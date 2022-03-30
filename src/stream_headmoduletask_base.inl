@@ -2058,6 +2058,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       ACE_THR_FUNC_RETURN status;
       // *TODO*: do not join() here; instead signal a condition upon leaving
       //         svc() in this case
+      // *WARNING*: also, do NOT fiddle with inherited::threadIds_[0] after
+      //            join()ing; it may have gone away...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_hthread_t handle = inherited::threadIds_[0].handle ();
       if (likely (handle != ACE_INVALID_HANDLE))
@@ -2069,14 +2071,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_Thread::join(%u): \"%m\", continuing\n"),
                       inherited::mod_->name (),
-                      handle));
-        else if (likely (result == 0))
-        {
-          // *NOTE*: successful join()s close the thread handle
-          //         (see OS_NS_Thread.inl:2971)
-          this_p->inherited::threadIds_[0].handle (ACE_INVALID_HANDLE);
-        } // end IF
-        this_p->inherited::threadIds_[0].id (std::numeric_limits<DWORD>::max ());
+                      thread_id));
       } // end IF
 #else
       if (likely (static_cast<int> (thread_id) != -1))
@@ -2084,7 +2079,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         { ACE_GUARD (ACE_Reverse_Lock<ACE_Thread_Mutex>, aGuard_2, reverse_lock);
           result = ACE_Thread::join (thread_id, NULL, &status);
         } // end lock scope
-        this_p->inherited::threadIds_[0].id (-1);
       } // end IF
       if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
@@ -2231,7 +2225,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onChange"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited2::stateLock_);
 
   // initialize return value
@@ -2269,6 +2262,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
     case STREAM_STATE_SESSION_STARTING:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+
       // send initial session message downstream ?
       // *TODO*: this is currently pushed by the calling thread; start any
       //         thread(s) first and push it (to the queue) afterwards,
@@ -2466,6 +2462,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
     case STREAM_STATE_RUNNING:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+
       // *NOTE*: implement tape-recorder logic:
       //         transition PAUSED --> PAUSED is mapped to PAUSED --> RUNNING
       //         --> check for this condition before doing anything else
@@ -2520,6 +2519,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
     case STREAM_STATE_SESSION_STOPPING:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+
       { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited2::stateLock_, false);
         switch (inherited2::state_)
         {
@@ -2600,6 +2602,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
     case STREAM_STATE_PAUSED:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+
       // suspend the worker(s) ?
       switch (inherited::configuration_->concurrency)
       {
@@ -2661,6 +2666,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
     case STREAM_STATE_FINISHED:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+
       bool release_lock = false;
       SessionDataContainerType* session_data_container_p = NULL;
 
@@ -2674,9 +2682,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s/%s: stream has ended, unlinking downstream\n"),
                     ACE_TEXT (istream_p->name ().c_str ()),
                     inherited::mod_->name ()));
-        ISTREAM_CONTROL_T* istream_control_p = NULL;
+        typename inherited::STREAM_T* downstream_p = istream_p->downstream ();
+        ACE_ASSERT (downstream_p);
         typename inherited::ISTREAM_T* istream_2 =
-          dynamic_cast<typename inherited::ISTREAM_T*> (istream_p->downstream ());
+          dynamic_cast<typename inherited::ISTREAM_T*> (downstream_p);
         if (unlikely (!istream_2))
         {
           ACE_DEBUG ((LM_WARNING,
@@ -2741,7 +2750,8 @@ continue_2:
         } // end IF
 
         // step3: notify downstream of session end
-        istream_control_p = dynamic_cast<ISTREAM_CONTROL_T*> (istream_p->downstream ());
+        ISTREAM_CONTROL_T* istream_control_p =
+          dynamic_cast<ISTREAM_CONTROL_T*> (downstream_p);
         if (unlikely (!istream_control_p))
         {
           ACE_DEBUG ((LM_WARNING,

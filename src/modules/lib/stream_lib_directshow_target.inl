@@ -814,7 +814,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
        iterator != graph_configuration.end ();
        ++iterator)
     if ((*iterator).mediaType)
-      Stream_MediaFramework_DirectShow_Tools::delete_ ((*iterator).mediaType);
+      Stream_MediaFramework_DirectShow_Tools::delete_ ((*iterator).mediaType, false);
 
   return true;
 
@@ -830,7 +830,7 @@ error:
        iterator != graph_configuration.end ();
        ++iterator)
       if ((*iterator).mediaType)
-        Stream_MediaFramework_DirectShow_Tools::delete_ ((*iterator).mediaType);
+        Stream_MediaFramework_DirectShow_Tools::delete_ ((*iterator).mediaType, false);
 
   return false;
 }

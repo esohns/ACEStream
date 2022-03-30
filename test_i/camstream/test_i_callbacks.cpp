@@ -3086,11 +3086,10 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_I_Target_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
       directshow_modulehandler_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -3098,11 +3097,10 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_I_Target_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_modulehandler_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -3117,20 +3115,14 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_I_Target_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_p->configuration);
-
   Test_I_Target_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
-
-  //Common_UI_GladeXMLsIterator_t iterator =
-  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  //// sanity check(s)
-  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
@@ -3160,28 +3152,28 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT64>::max ()));
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_CONNECTIONS_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -3261,7 +3253,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
       directory = Common_File_Tools::getTempDirectory ();
     } // end ELSE
   } // end IF
-  if (Common_File_Tools::isDirectory (file_name))
+  if (Common_File_Tools::isDirectory (file_name) ||
+      file_name.empty ())
     file_name =
       ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
   else if (Common_File_Tools::isValidFilename (file_name))
@@ -3441,7 +3434,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
   unsigned int buffer_size = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
@@ -3814,8 +3807,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     { ACE_ASSERT (!(*directshow_modulehandler_iterator).second.second->window);
       // *TODO*: find out why the DirectShow video renderers do not draw onto
       //         GtkDrawingAreas (e.g. missing overlay function ?)
-      (*directshow_modulehandler_iterator).second.second->window = NULL;
-        //gdk_win32_window_get_impl_hwnd (window_p);
+      (*directshow_modulehandler_iterator).second.second->window =
+        gdk_win32_window_get_impl_hwnd (window_p);
       //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
       break;
     }
@@ -6144,12 +6137,9 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
   struct Test_I_CamStream_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-//  Common_UI_GTK_State_t& state_r =
-//    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Target_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
@@ -6161,13 +6151,11 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_I_Target_DirectShow_UI_CBData*> (userData_in);
-
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
       directshow_modulehandler_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -6175,13 +6163,11 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_I_Target_MediaFoundation_UI_CBData*> (userData_in);
-
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_modulehandler_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -6196,16 +6182,16 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_I_Target_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
 #endif // ACE_WIN32 || ACE_WIN64
 
   GFile* file_p = gtk_file_chooser_get_file (fileChooser_in);
-  ACE_ASSERT (file_p);
+  if (!file_p)
+    return;
   char* string_p = g_file_get_path (file_p);
   if (!string_p)
   {
@@ -7892,46 +7878,34 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
   ACE_ASSERT (ui_cb_data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+  struct Test_I_Target_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Target_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
 
-  Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
-  Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
-  Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
-  Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
+  Test_I_Target_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
+  Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_ui_cb_data_p =
-        static_cast<struct Test_I_Source_DirectShow_UI_CBData*> (userData_in);
       // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Target_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
-      directshow_stream_iterator =
-        directshow_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_ui_cb_data_p->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
-        (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
-
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_ui_cb_data_p =
-        static_cast<struct Test_I_Source_MediaFoundation_UI_CBData*> (userData_in);
       // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_Target_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
-      mediafoundation_stream_iterator =
-        mediafoundation_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
-        (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
-
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
     default:
@@ -7943,20 +7917,15 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Test_I_Source_V4L_UI_CBData*> (userData_in);
-
   // sanity check(s)
+  struct Test_I_Target_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_V4L_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-
-  Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
-    ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
-    (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
-#endif
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
@@ -8014,7 +7983,7 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
       static_cast<__u32> (allocation_in->height);
   (*modulehandler_iterator).second.second->area.width =
       static_cast<__u32> (allocation_in->width);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 } // drawingarea_size_allocate_target_cb
 #else
 gboolean

@@ -31,23 +31,23 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionEventType>
+          typename NotificationType>
 Stream_HeadReaderTask_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType,
-                        SessionEventType>::Stream_HeadReaderTask_T (NOTIFY_T* notify_in,
+                        NotificationType>::Stream_HeadReaderTask_T (IEVENT_T* event_in,
                                                                     Stream_IMessageQueue* messageQueue_in,
                                                                     bool queueIncomingMessages_in)
  : inherited ()
  , enqueue_ (queueIncomingMessages_in)
- , notify_ (notify_in)
+ , event_ (event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadReaderTask_T::Stream_HeadReaderTask_T"));
 
   // sanity check(s)
-  ACE_ASSERT (notify_);
+  ACE_ASSERT (event_);
 
   if (unlikely (messageQueue_in))
   {
@@ -69,14 +69,33 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionEventType>
+          typename NotificationType>
+void
+Stream_HeadReaderTask_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        NotificationType>::set (const bool enqueue_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadReaderTask_T::set"));
+
+  enqueue_ = enqueue_in;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename NotificationType>
 int
 Stream_HeadReaderTask_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType,
-                        SessionEventType>::put (ACE_Message_Block* messageBlock_in,
+                        NotificationType>::put (ACE_Message_Block* messageBlock_in,
                                                 ACE_Time_Value* timeValue_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadReaderTask_T::put"));
@@ -86,25 +105,32 @@ Stream_HeadReaderTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (messageBlock_in);
 
+  // *NOTE*: never enqueue control-/session messages
+  bool enqueue_b = enqueue_;
   switch (messageBlock_in->msg_type ())
   {
     case STREAM_MESSAGE_CONTROL:
+    {
+      enqueue_b = false;
       break;
+    }
     case STREAM_MESSAGE_SESSION:
     {
+      enqueue_b = false;
+
       // sanity check(s)
-      ACE_ASSERT (notify_);
+      ACE_ASSERT (event_);
 
       SessionMessageType* session_message_p =
         static_cast<SessionMessageType*> (messageBlock_in);
       try {
-        notify_->notify (session_message_p->type (),
-                         false); // recurse upstream ?
+        event_->onEvent (session_message_p->type ());
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in Stream_INotify_T::notify(), aborting\n"),
+                    ACE_TEXT ("%s: caught exception in Stream_IEvent_T::onEvent(), aborting\n"),
                     inherited::mod_->name ()));
       }
+
       break;
     }
     case STREAM_MESSAGE_DATA:
@@ -123,12 +149,14 @@ Stream_HeadReaderTask_T<ACE_SYNCH_USE,
 
   if (inherited::next_)
     return inherited::put_next (messageBlock_in, timeValue_in);
-  if (enqueue_)
+  if (enqueue_b)
     return inherited::put (messageBlock_in, timeValue_in);
 
   messageBlock_in->release ();
   return 0;
 }
+
+//////////////////////////////////////////
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

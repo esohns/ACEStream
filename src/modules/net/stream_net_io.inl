@@ -150,7 +150,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to retrieve connection (id was: %d), returning\n"),
                 inherited::mod_->name (),
                 (*session_data_p->connectionStates.begin ()).first));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return;
   } // end IF
 

@@ -30,6 +30,8 @@
 
 #include "common_iget.h"
 
+#include "stream_inotify.h"
+
 // forward declaration(s)
 class ACE_Message_Block;
 class ACE_Time_Value;
@@ -41,7 +43,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionEventType>
+          typename NotificationType>
 class Stream_HeadReaderTask_T
 // *TODO*: figure out how to use ACE_NULL_SYNCH in this case
  : public ACE_Stream_Head<ACE_SYNCH_USE,
@@ -53,15 +55,15 @@ class Stream_HeadReaderTask_T
 
  public:
   // convenient types
-  typedef Stream_INotify_T<SessionEventType> NOTIFY_T;
+  typedef Stream_IEvent_T<NotificationType> IEVENT_T;
 
-  Stream_HeadReaderTask_T (NOTIFY_T*,             // stream handle
+  Stream_HeadReaderTask_T (IEVENT_T*,             // event handle
                            Stream_IMessageQueue*, // message queue handle
                            bool);                 // queue incoming messages ? : release()
   inline virtual ~Stream_HeadReaderTask_T () {}
 
   // implement Common_ISet_T
-  inline virtual void set (const bool enqueue_in) { enqueue_ = enqueue_in; }
+  virtual void set (const bool); // queue incoming messages ? : release()
 
   // override some task-based members
   virtual int put (ACE_Message_Block*, // data chunk
@@ -77,7 +79,7 @@ class Stream_HeadReaderTask_T
                             TimePolicyType> MESSAGE_QUEUE_T;
 
   bool      enqueue_;
-  NOTIFY_T* notify_;
+  IEVENT_T* event_;
 };
 
 template <ACE_SYNCH_DECL,

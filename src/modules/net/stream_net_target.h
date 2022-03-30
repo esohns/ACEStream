@@ -21,15 +21,10 @@
 #ifndef STREAM_NET_TARGET_H
 #define STREAM_NET_TARGET_H
 
-//#include <map>
-//#include <string>
-
 #include "ace/Global_Macros.h"
 #include "ace/INET_Addr.h"
 #include "ace/Stream.h"
 #include "ace/Synch_Traits.h"
-
-//#include "common_time_common.h"
 
 #include "stream_task_base_synch.h"
 

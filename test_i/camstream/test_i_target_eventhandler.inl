@@ -247,6 +247,7 @@ Test_I_Target_EventHandler_T<SessionDataType,
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
+    case STREAM_SESSION_MESSAGE_CONNECT:
     case STREAM_SESSION_MESSAGE_DISCONNECT:
       return;
     case STREAM_SESSION_MESSAGE_STATISTIC:

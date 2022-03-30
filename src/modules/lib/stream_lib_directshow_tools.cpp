@@ -2856,7 +2856,11 @@ Stream_MediaFramework_DirectShow_Tools::getFirstFormat (IPin* pin_in,
   enumerator_p->Release (); enumerator_p = NULL;
 
   if (media_types_a[0])
-    mediaType_inout = media_types_a[0];
+  {
+    mediaType_inout =
+      Stream_MediaFramework_DirectShow_Tools::copy (*media_types_a[0]);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (media_types_a[0], true);
+  } // end IF
 
   return !!mediaType_inout;
 }

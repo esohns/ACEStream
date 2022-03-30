@@ -130,7 +130,7 @@ class Stream_HeadModuleTaskBase_T
                      bool = false); // high priority ?
   virtual bool isRunning () const;
   inline virtual void pause () { inherited2::change (STREAM_STATE_PAUSED); }
-  inline virtual void idle () const { queue_.waitForIdleState (); }
+  inline virtual void idle (bool = true) const { queue_.waitForIdleState (); }
   virtual void wait (bool = true,         // wait for any worker thread(s) ?
                      bool = false,        // N/A
                      bool = false) const; // N/A

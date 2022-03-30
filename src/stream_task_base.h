@@ -91,6 +91,8 @@ class Stream_TaskBase_T
                                               TimePolicyType>,
                             ACE_Task<ACE_SYNCH_USE,
                                      TimePolicyType> > TASK_BASE_T;
+  typedef ACE_Stream<ACE_SYNCH_USE,
+                     TimePolicyType> STREAM_T;
   typedef Stream_IStream_T<ACE_SYNCH_USE,
                            TimePolicyType> ISTREAM_T;
 

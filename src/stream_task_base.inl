@@ -246,13 +246,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleSessionMessage"));
 
-  // initialize return value(s)
-  passMessageDownstream_out = true;
-
   // *NOTE*: the default behavior is to simply dump the module state at the end
   //         of a session
-
-  const typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
 
   switch (message_inout->type ())
   {
@@ -266,6 +261,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
       int result = -1;
       bool release_lock = false;
+      const typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
       typename SessionMessageType::DATA_T* session_data_container_p = NULL;
       typename SessionMessageType::DATA_T::DATA_T* session_data_2 = NULL;
 
@@ -368,6 +364,7 @@ continue_:
         break;
       --linked_;
 
+      const typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
       typename SessionMessageType::DATA_T* session_data_container_p = NULL;
       typename SessionMessageType::DATA_T::DATA_T* session_data_2 = NULL;
 
@@ -439,7 +436,9 @@ continue_2:
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      if (aggregate_)
+      const typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
+
+      if (unlikely (aggregate_))
       {
         if (freeSessionData_ &&
             sessionData_)
@@ -448,7 +447,7 @@ continue_2:
       } // end IF
 
       // sanity check(s)
-      if (sessionData_) // --> head modules initialize this in open()
+      if (unlikely (sessionData_)) // --> head modules initialize this in open()
       {
         freeSessionData_ = false;
         goto continue_3;
@@ -466,15 +465,6 @@ continue_3:
         &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->getR ());
       // *NOTE*: retain a handle to the original lock
       sessionDataLock_ = session_data_p->lock;
-
-      // sanity check(s)
-      if (unlikely (!isInitialized_))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: not initialized, aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
 
       break;
 
@@ -650,7 +640,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   // sanity check
   ACE_ASSERT (messageBlock_in);
-  ACE_ASSERT (configuration_);
 
   bool forward_b = true;
   switch (messageBlock_in->msg_type ())

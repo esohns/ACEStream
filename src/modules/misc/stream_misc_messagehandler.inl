@@ -433,6 +433,40 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType,
           typename UserDataType>
+ACE_Task<ACE_SYNCH_USE,
+         TimePolicyType>*
+Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataType,
+                               UserDataType>::clone () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::clone"));
+
+  ACE_Task<ACE_SYNCH_USE,
+           TimePolicyType>* result_p = NULL;
+
+  ACE_NEW_NORETURN (result_p,
+                    OWN_TYPE_T (NULL));
+  if (unlikely (!result_p))
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
+                inherited::mod_->name ()));
+
+  return result_p;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename UserDataType>
 bool
 Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                TimePolicyType,

@@ -117,7 +117,8 @@ class Stream_Module_MessageHandler_T
                           bool = false);               // initialize from 'original' ?
 
   // implement Common_IClone_T
-  inline virtual ACE_Task<ACE_SYNCH_USE, TimePolicyType>* clone () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) }
+  virtual ACE_Task<ACE_SYNCH_USE,
+                   TimePolicyType>* clone () const;
 
  protected:
   // convenient types

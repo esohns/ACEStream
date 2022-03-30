@@ -34,6 +34,8 @@ class Stream_ISessionCB
   virtual void onSessionEnd (Stream_SessionId_t) = 0;
 };
 
+//////////////////////////////////////////
+
 class Stream_ISession
  : public Stream_ISessionCB
 {

@@ -25,7 +25,14 @@
 
 #include "ace/Notification_Strategy.h"
 
-//#include "common_iget.h"
+
+template <typename NotificationType>
+class Stream_IEvent_T
+{
+ public:
+  ////////////////////////////////////////
+  virtual void onEvent (NotificationType) = 0;
+};
 
 template <typename NotificationType>
 class Stream_INotify_T

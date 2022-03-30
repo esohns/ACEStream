@@ -625,6 +625,7 @@ continue_:
         //         does not block forever
         // *NOTE*: stop()ping the connection stream will also unlink it
         //         --> send the disconnect notification early
+        // *TODO*: push(), notify will not work as it starts at the stream head
         inherited::notify (STREAM_SESSION_MESSAGE_DISCONNECT);
         // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
         stream_p->stop (false, // wait for completion ?
@@ -643,8 +644,10 @@ flush:
 continue_2:
       if (likely (unlink_))
       {
-        // *TODO*: if active (!) finished() (see above) already forwarded a
-        //         session end message (on the linked stream)
+        // post-process before forwarding early
+        bool forward_b = true;
+        inherited::handleSessionMessage (message_inout, forward_b);
+        ACE_ASSERT (forward_b);
         // *TODO*: this prevents the GTK close_all button from working
         //         properly in the integration test, as the connection has not
         //         yet been released when session end is notified to the
@@ -681,18 +684,43 @@ continue_2:
 
       if (likely (connection_))
       {
-        connection_->decrease ();
-        connection_ = NULL;
+        connection_->decrease (); connection_ = NULL;
       } // end IF
 
       break;
     }
     case STREAM_SESSION_MESSAGE_LINK:
     {
-//#if defined (_DEBUG)
-//      ACE_ASSERT (inherited::stream_);
-//      inherited::stream_->dump_state ();
-//#endif
+      // *IMPORTANT NOTE*: tell the head reader task to enqueue messages for
+      //                   network dispatch
+      TASK_T* task_p = inherited::mod_->reader ();
+      ACE_ASSERT (task_p);
+      while ((ACE_OS::strcmp (task_p->module ()->name (),
+                              ACE_TEXT ("ACE_Stream_Head"))) &&
+             (ACE_OS::strcmp (task_p->module ()->name (),
+                              ACE_TEXT (STREAM_MODULE_HEAD_NAME))))
+      {
+        task_p = task_p->next ();
+        if (!task_p)
+          break;
+      } // end WHILE
+      if (unlikely (!task_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: no head module reader task found, aborting\n"),
+                    inherited::mod_->name ()));
+        inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+        return;
+      } // end IF
+      Common_ISet_T<bool>* iset_p = dynamic_cast<Common_ISet_T<bool>*> (task_p);
+      ACE_ASSERT (iset_p);
+      iset_p->set (true);
+
+#if defined (_DEBUG)
+      const ISTREAM_T* istream_p = inherited::getP ();
+      ACE_ASSERT (istream_p);
+      istream_p->dump_state ();
+#endif // _DEBUG
       break;
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
@@ -715,10 +743,11 @@ continue_2:
       //         context reference test is required here
       unlink_ = false;
 
-//#if defined (_DEBUG)
-//      ACE_ASSERT (inherited::stream_);
-//      inherited::stream_->dump_state ();
-//#endif
+#if defined (_DEBUG)
+      const ISTREAM_T* istream_p = inherited::getP ();
+      ACE_ASSERT (istream_p);
+      istream_p->dump_state ();
+#endif // _DEBUG
       break;
     }
     default:

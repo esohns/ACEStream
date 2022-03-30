@@ -103,8 +103,8 @@ Test_I_Source_DirectShow_Stream_Message::duplicate (void) const
     // *NOTE*: the argument to alloc() does not really matter, as this creates
     //         a shallow copy of the existing data block
     ACE_NEW_MALLOC_NORETURN (message_p,
-                             static_cast<Test_I_Source_DirectShow_Stream_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
-                                                                                                                      '\0')),
+                             static_cast<Test_I_Source_DirectShow_Stream_Message*> (inherited::message_block_allocator_->calloc (sizeof (Test_I_Source_DirectShow_Stream_Message),
+                                                                                                                                 '\0')),
                              Test_I_Source_DirectShow_Stream_Message (*this));
   } // end ELSE
   if (!message_p)

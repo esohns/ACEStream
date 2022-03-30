@@ -278,7 +278,8 @@ typedef Common_IStateMachine_T<enum Stream_StateMachine_ControlState> Stream_ISt
 struct Stream_State
 {
   Stream_State ()
-   : module (NULL)
+   : linked_ds_ (false)
+   , module (NULL)
    , moduleIsClone (false)
    , sessionData (NULL)
    , stateMachineLock (NULL)
@@ -300,6 +301,7 @@ struct Stream_State
     return *this;
   }
 
+  bool                       linked_ds_; // to downstream
   Stream_Module_t*           module; // final-
   bool                       moduleIsClone; // final-
   struct Stream_SessionData* sessionData;

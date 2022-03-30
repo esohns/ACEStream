@@ -591,7 +591,7 @@ do_initialize_directshow (struct _AMMediaType& sourceMediaType_inout,
     goto error;
   } // end IF
   outputMediaType_inout = *media_type_p;
-  CoTaskMemFree (media_type_p); media_type_p = NULL;
+  delete (media_type_p); media_type_p = NULL;
 
   return true;
 
@@ -928,40 +928,62 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in);
-  Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  Test_I_Target_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in);
+  struct _AllocatorProperties allocator_properties;
+  ACE_OS::memset (&allocator_properties, 0, sizeof (struct _AllocatorProperties));
+  allocator_properties.cBuffers =
+      STREAM_LIB_DIRECTSHOW_VIDEO_DEFAULT_SOURCE_BUFFERS;
+  allocator_properties.cbBuffer = -1; // <-- use default
+  // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+  //         if this is -1/0 (why ?)
+  //allocatorProperties_.cbAlign = -1;  // <-- use default
+  allocator_properties.cbAlign = 1;
+  // *TODO*: IMemAllocator::SetProperties returns E_INVALIDARG (0x80070057)
+  //         if this is -1/0 (why ?)
+  //allocatorProperties.cbPrefix = -1; // <-- use default
+  allocator_properties.cbPrefix = 0;
+
+  struct Test_I_Target_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
   Test_I_Target_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
+  struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
+  Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
+
+  Test_I_Target_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in);
+  Test_I_Target_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in);
+
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      struct Test_I_Target_DirectShow_ModuleHandlerConfiguration modulehandler_configuration;
-      modulehandler_configuration.configuration = &directshow_configuration;
-      modulehandler_configuration.connectionConfigurations =
+      directshow_modulehandler_configuration.concurrency =
+        STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+      directshow_modulehandler_configuration.configuration =
+        &directshow_configuration;
+      directshow_modulehandler_configuration.connectionConfigurations =
         &directshow_configuration.connectionConfigurations;
 
-      modulehandler_configuration.filterConfiguration =
+      directshow_modulehandler_configuration.filterConfiguration =
         &directshow_configuration.filterConfiguration;
       // *TODO*: specify the preferred media type
       //modulehandler_configuration.format = ;
       //modulehandler_configuration.format->lSampleSize = frameSize_in;
+      directshow_modulehandler_configuration.inbound = true;
 
       //modulehandler_configuration.connectionManager = connection_manager_p;
-      modulehandler_configuration.printProgressDot =
+      directshow_modulehandler_configuration.printProgressDot =
         UIDefinitionFilename_in.empty ();
-      modulehandler_configuration.statisticReportingInterval =
+      directshow_modulehandler_configuration.statisticReportingInterval =
           ACE_Time_Value (statisticReportingInterval_in, 0);
-      modulehandler_configuration.streamConfiguration =
+      directshow_modulehandler_configuration.streamConfiguration =
         &directshow_configuration.streamConfiguration;
-      modulehandler_configuration.subscriber =
+      directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
-      modulehandler_configuration.fileIdentifier.identifier = fileName_in;
+      directshow_modulehandler_configuration.fileIdentifier.identifier =
+        fileName_in;
 
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
 
       directshow_configuration.streamConfiguration.initialize (module_configuration,
-                                                               modulehandler_configuration,
+                                                               directshow_modulehandler_configuration,
                                                                directshow_stream_configuration);
       directshow_modulehandler_iterator =
         directshow_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -970,9 +992,8 @@ do_work (unsigned int bufferSize_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration modulehandler_configuration;
-      modulehandler_configuration.configuration = &mediafoundation_configuration;
-      modulehandler_configuration.connectionConfigurations =
+      mediafoundation_modulehandler_configuration.configuration = &mediafoundation_configuration;
+      mediafoundation_modulehandler_configuration.connectionConfigurations =
         &mediafoundation_configuration.connectionConfigurations;
 
       //modulehandler_configuration.connectionManager = connection_manager_p;
@@ -987,20 +1008,22 @@ do_work (unsigned int bufferSize_in,
       //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       //  goto clean;
       //} // end IF
-      modulehandler_configuration.printProgressDot =
+      mediafoundation_modulehandler_configuration.inbound = true;
+      mediafoundation_modulehandler_configuration.printProgressDot =
         UIDefinitionFilename_in.empty ();
-      modulehandler_configuration.statisticReportingInterval =
+      mediafoundation_modulehandler_configuration.statisticReportingInterval =
           ACE_Time_Value (statisticReportingInterval_in, 0);
-      modulehandler_configuration.streamConfiguration =
+      mediafoundation_modulehandler_configuration.streamConfiguration =
         &mediafoundation_configuration.streamConfiguration;
-      modulehandler_configuration.subscriber =
+      mediafoundation_modulehandler_configuration.subscriber =
         &mediafoundation_ui_event_handler;
-      modulehandler_configuration.fileIdentifier.identifier = fileName_in;
+      mediafoundation_modulehandler_configuration.fileIdentifier.identifier =
+        fileName_in;
 
       mediafoundation_stream_configuration.allocatorConfiguration = &allocator_configuration;
 
       mediafoundation_configuration.streamConfiguration.initialize (module_configuration,
-                                                                    modulehandler_configuration,
+                                                                    mediafoundation_modulehandler_configuration,
                                                                     mediafoundation_stream_configuration);
 
       mediafoundation_modulehandler_iterator =
@@ -1446,12 +1469,13 @@ do_work (unsigned int bufferSize_in,
         Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_modulehandler_iterator).second.second->sourceFormat);
       ACE_ASSERT (directshow_configuration.pinConfiguration.format);
 
-      //ACE_ASSERT (!directshow_configuration.filterConfiguration.format);
-      //Stream_Device_DirectShow_Tools::copy (*directshow_configuration.moduleHandlerConfiguration.format,
-      //                                                      directshow_configuration.filterConfiguration.format);
-      //ACE_ASSERT (directshow_configuration.filterConfiguration.format);
+      directshow_configuration.pinConfiguration.allocatorProperties =
+        &allocator_properties;
+      directshow_configuration.filterConfiguration.allocatorProperties =
+        &allocator_properties;
       directshow_configuration.filterConfiguration.pinConfiguration =
         &directshow_configuration.pinConfiguration;
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

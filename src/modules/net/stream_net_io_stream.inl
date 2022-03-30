@@ -292,7 +292,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                 ACE_TEXT (inherited::name_.c_str ())));
     goto error;
   } // end IF
-  iset_p->set (true); // enqueue incoming head reader messages
+  iset_p->set (true); // enqueue incoming head reader data (!) messages
 
   // ************** IO *******************
   module_p =

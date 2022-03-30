@@ -105,6 +105,7 @@
 #include "test_i_source_stream.h"
 
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CamStream");
+const char stream_name_string_2[] = ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING);
 
 void
 do_printUsage (const std::string& programName_in)
@@ -913,6 +914,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
   struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // visualization
+  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // network io
   Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration;
   struct Test_I_Source_DirectShow_StreamConfiguration directshow_stream_configuration_2;
   Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration_3;
@@ -921,6 +923,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
 
   struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
+  struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // visualization
+  struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_3; // network io
   Test_I_Source_MediaFoundation_StreamConfiguration_t mediafoundation_stream_configuration;
   struct Test_I_Source_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration_2;
   Test_I_Source_MediaFoundation_StreamConfiguration_t mediafoundation_stream_configuration_3;
@@ -952,7 +956,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                   directshow_modulehandler_configuration,
                                                   directshow_stream_configuration_2);
 
-      directshow_modulehandler_configuration_2.deviceIdentifier.clear ();
       directshow_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING),
                                                               std::make_pair (&module_configuration,
                                                                               &directshow_modulehandler_configuration_2)));
@@ -963,10 +966,16 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         directShowCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directShowCBData_in.configuration->streamConfigurations.end ());
 
+      directshow_modulehandler_configuration_3 =
+        directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_3.concurrency =
+        STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+      directshow_modulehandler_configuration_3.inbound = false;
+
       directshow_stream_configuration_4 = directshow_stream_configuration_2;
       directshow_stream_configuration_4.module = NULL;
       directshow_stream_configuration_3.initialize (module_configuration,
-                                                    directshow_modulehandler_configuration,
+                                                    directshow_modulehandler_configuration_3,
                                                     directshow_stream_configuration_4);
       directShowCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING),
                                                                                       directshow_stream_configuration_3));
@@ -989,6 +998,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       //  ((mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? mediaFoundationCBData_in.stream
       //                                                                      : mediaFoundationCBData_in.UDPStream);
 
+      mediafoundation_modulehandler_configuration_2.display =
+        Common_UI_Tools::getDefaultDisplay ();
+
       mediafoundation_stream_configuration_2.allocatorConfiguration = allocator_configuration_p;
       mediafoundation_stream_configuration_2.mediaFoundationConfiguration =
         &mediaFoundationCBData_in.configuration->mediaFoundationConfiguration;
@@ -1008,7 +1020,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 
       mediafoundation_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING),
                                                                    std::make_pair (&module_configuration,
-                                                                                   &mediafoundation_modulehandler_configuration)));
+                                                                                   &mediafoundation_modulehandler_configuration_2)));
 
       mediaFoundationCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                            mediafoundation_stream_configuration));
@@ -1016,10 +1028,16 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         mediaFoundationCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationCBData_in.configuration->streamConfigurations.end ());
 
+      mediafoundation_modulehandler_configuration_3 =
+        mediafoundation_modulehandler_configuration;
+      mediafoundation_modulehandler_configuration_3.concurrency =
+        STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+      mediafoundation_modulehandler_configuration_3.inbound = false;
+
       mediafoundation_stream_configuration_4 = mediafoundation_stream_configuration_2;
       mediafoundation_stream_configuration_4.module = NULL;
       mediafoundation_stream_configuration_3.initialize (module_configuration,
-                                                         mediafoundation_modulehandler_configuration,
+                                                         mediafoundation_modulehandler_configuration_3,
                                                          mediafoundation_stream_configuration_4);
       mediaFoundationCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING),
                                                                                            mediafoundation_stream_configuration_3));
@@ -1047,6 +1065,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 
   struct Stream_AllocatorConfiguration allocator_configuration;
   struct Test_I_Source_V4L_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_I_Source_V4L_ModuleHandlerConfiguration modulehandler_configuration_2; // net io
   modulehandler_configuration.connectionConfigurations =
       &v4l2CBData_in.configuration->connectionConfigurations;
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
@@ -1076,9 +1095,14 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
   allocator_configuration_p = &allocator_configuration;
 
+  modulehandler_configuration_2 = modulehandler_configuration;
+  modulehandler_configuration_2.concurrency =
+    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+  modulehandler_configuration_2.inbound = false;
+
   stream_configuration.module = NULL;
   stream_configuration_3.initialize (module_configuration,
-                                     modulehandler_configuration,
+                                     modulehandler_configuration_2,
                                      stream_configuration);
   v4l2CBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING),
                                                             stream_configuration_3));

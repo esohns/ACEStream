@@ -42,6 +42,9 @@
 
 // forward declarations
 class Stream_IAllocator;
+
+extern const char stream_name_string_[];
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,

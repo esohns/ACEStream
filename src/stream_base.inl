@@ -1140,7 +1140,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       } // end IF
       try {
         istreamcontrol_p->control (control_in,
-                                   false); // forward upstream ?
+                                   false); // N/A
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::control(%d), returning\n"),
@@ -1201,9 +1201,6 @@ Stream_Base_T<ACE_SYNCH_USE,
   int result = -1;
   ISTREAM_CONTROL_T* istreamcontrol_p = NULL;
 
-  // sanity check(s)
-  ACE_ASSERT (state_.sessionData);
-
   // forward upstream ?
   if (inherited::linked_us_ &&
       recurseUpstream_in)
@@ -1244,95 +1241,6 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (module_p);
 
-  ISTATE_MACHINE_T* istatemachine_p =
-    dynamic_cast<ISTATE_MACHINE_T*> (module_p->writer ());
-  if (unlikely (!istatemachine_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s/%s: dynamic_cast<Common_IStateMachine_2> failed, returning\n"),
-                ACE_TEXT (name_.c_str ()),
-                module_p->name ()));
-    return;
-  } // end IF
-  switch (notification_in)
-  {
-    case STREAM_SESSION_MESSAGE_ABORT:
-    {
-      // *NOTE*: there are two scenarios in this case:
-      //         - session initialization failed and is being notified here
-      //           --> stop session: set aborted flag and send SESSION_ABORT
-      //         - session abort is complete
-      //           --> end session normally
-      if ((istatemachine_p->current () == STREAM_STATE_SESSION_STARTING) &&
-          !state_.sessionData->aborted)
-      { // == first case; handled by head module writer task
-        break;
-      } // end IF
-
-      try {
-        istatemachine_p->change (STREAM_STATE_SESSION_STOPPING);
-      } catch (...) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s/%s: caught exception in Common_IStateMachine_2::change(), returning\n"),
-                    ACE_TEXT (name_.c_str ()),
-                    module_p->name ()));
-        return;
-      }
-
-      // == second case
-      goto session_end;
-    }
-    case STREAM_SESSION_MESSAGE_BEGIN:
-    {
-      try {
-        istatemachine_p->change (STREAM_STATE_RUNNING);
-      } catch (...) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s/%s: caught exception in Common_IStateMachine_2::change(), returning\n"),
-                    ACE_TEXT (name_.c_str ()),
-                    module_p->name ()));
-        return;
-      }
-
-      try {
-        onSessionBegin (state_.sessionData->sessionId);
-      } catch (...) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in Stream_ISessionCB::onSessionBegin(), continuing\n"),
-                    ACE_TEXT (name_.c_str ()),
-                    module_p->name ()));
-      }
-
-      return; // done
-    }
-    case STREAM_SESSION_MESSAGE_END:
-    {
-session_end:
-      try {
-        istatemachine_p->change (STREAM_STATE_STOPPED);
-      } catch (...) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s/%s: caught exception in Common_IStateMachine_2::change(), returning\n"),
-                    ACE_TEXT (name_.c_str ()),
-                    module_p->name ()));
-        return;
-      }
-
-      try {
-        onSessionEnd (state_.sessionData->sessionId);
-      } catch (...) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in Stream_ISessionCB::onSessionEnd(), continuing\n"),
-                    ACE_TEXT (name_.c_str ()),
-                    module_p->name ()));
-      }
-
-      return; // done
-    }
-    default:
-      break;
-  } // end SWITCH
-
   istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
   if (unlikely (!istreamcontrol_p))
   {
@@ -1353,6 +1261,192 @@ session_end:
                 notification_in));
     return;
   }
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+void
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              StreamName,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::onEvent (NotificationType notification_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::onEvent"));
+
+  MODULE_T* module_p = NULL;
+  int result = inherited::top (module_p);
+  if (unlikely ((result == -1) ||
+                !module_p))
+  { // connection failed ?
+//    ACE_DEBUG ((LM_WARNING,
+//                ACE_TEXT ("%s: failed to ACE_Stream::top(), continuing\n"),
+//                ACE_TEXT (name_.c_str ())));
+    return;
+  } // end IF
+  ACE_ASSERT (module_p);
+
+  ISTATE_MACHINE_T* istatemachine_p =
+    dynamic_cast<ISTATE_MACHINE_T*> (module_p->writer ());
+  if (unlikely (!istatemachine_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s/%s: dynamic_cast<Common_IStateMachine_2> failed, returning\n"),
+                ACE_TEXT (name_.c_str ()),
+                module_p->name ()));
+    return;
+  } // end IF
+
+  switch (notification_in)
+  {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      // sanity check(s)
+      ACE_ASSERT (state_.sessionData);
+
+      // *NOTE*: there are two scenarios in this case:
+      //         - session initialization failed and is being notified here
+      //           --> stop session: set aborted flag and send SESSION_ABORT
+      //         - session abort is complete
+      //           --> end session normally
+      if ((istatemachine_p->current () == STREAM_STATE_SESSION_STARTING) &&
+          !state_.sessionData->aborted)
+      { // == first case; handled by head module writer task
+        notify (notification_in,
+                false); // recurse upstream ?
+        break;
+      } // end IF
+
+      // == second case
+      try
+      {
+        istatemachine_p->change (STREAM_STATE_SESSION_STOPPING);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s/%s: caught exception in Common_IStateMachine_2::change(), returning\n"),
+                    ACE_TEXT (name_.c_str ()),
+                    module_p->name ()));
+        return;
+      }
+
+      goto session_end;
+    }
+    case STREAM_SESSION_MESSAGE_CONNECT:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: connect notified, returning\n"),
+                  ACE_TEXT (name_.c_str ())));
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_DISCONNECT:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: disconnect notified, returning\n"),
+                  ACE_TEXT (name_.c_str ())));
+      break;
+    }
+    // *NOTE*: there are two scenarios in this case:
+    //         - stream link/unlink is being notified here
+    //           --> send SESSION_LINK/UNLINK
+    //         - session link/unlink is complete
+    //           --> do NOT recurse
+    case STREAM_SESSION_MESSAGE_LINK:
+    {
+      { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
+        ACE_ASSERT (!state_.linked_ds_);
+        state_.linked_ds_ = true;
+      } // end lock scope
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: link notified, returning\n"),
+                  ACE_TEXT (name_.c_str ())));
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_UNLINK:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: unlink notified, returning\n"),
+                  ACE_TEXT (name_.c_str ())));
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+      // sanity check(s)
+      ACE_ASSERT (state_.sessionData);
+
+      try {
+        istatemachine_p->change (STREAM_STATE_RUNNING);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s/%s: caught exception in Common_IStateMachine_2::change(), returning\n"),
+                    ACE_TEXT (name_.c_str ()),
+                    module_p->name ()));
+        return;
+      }
+
+      try {
+        onSessionBegin (state_.sessionData->sessionId);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in Stream_ISessionCB::onSessionBegin(), continuing\n"),
+                    ACE_TEXT (name_.c_str ()),
+                    module_p->name ()));
+      }
+
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_END:
+    {
+session_end:
+      // sanity check(s)
+      ACE_ASSERT (state_.sessionData);
+
+      try {
+        istatemachine_p->change (STREAM_STATE_STOPPED);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s/%s: caught exception in Common_IStateMachine_2::change(), returning\n"),
+                    ACE_TEXT (name_.c_str ()),
+                    module_p->name ()));
+        return;
+      }
+
+      try {
+        onSessionEnd (state_.sessionData->sessionId);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in Stream_ISessionCB::onSessionEnd(), continuing\n"),
+                    ACE_TEXT (name_.c_str ()),
+                    module_p->name ()));
+      }
+
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
 }
 
 template <ACE_SYNCH_DECL,
@@ -1748,13 +1842,14 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::idle () const
+              SessionMessageType>::idle (bool recurseUpstream_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::idle"));
 
   // *NOTE*: if this stream has been linked (e.g. connection is part of another
   //         stream), make sure to wait for the whole pipeline
-  if (inherited::linked_us_)
+  if (unlikely (recurseUpstream_in &&
+                inherited::linked_us_))
   {
     Stream_IStreamControlBase* istreamcontrol_p =
       dynamic_cast<Stream_IStreamControlBase*> (inherited::linked_us_);
@@ -2253,6 +2348,10 @@ Stream_Base_T<ACE_SYNCH_USE,
   // sanity check(s)
   if (!inherited::linked_us_)
   { // *TODO*: consider all scenarios where this might happen
+    // *NOTE*: upstream finished and has already _unlink()ed downstream
+    //         (connection closed abruptly by peer)
+    //         (see: stream_headmoduletask_base.inl:2699), so second _unlink()
+    //         in stream_net_target.inl:667 fails
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: no upstream; cannot unlink, returning\n"),
                 ACE_TEXT (name_.c_str ())));

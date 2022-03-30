@@ -63,8 +63,8 @@ class Stream_IStreamControlBase
                               bool = false,      // flush session messages ?
                               bool = false) = 0; // flush upstream (if any) ?
 
-  // *TODO*: this currently waits for outbound (!) data only
-  virtual void idle () const = 0;
+  // *TODO*: this currently waits for writer-side (!) data only
+  virtual void idle (bool = true) const = 0; // recurse upstream (if any) ?
   // *NOTE*: wait for workers, and/or all queued data to drain
   virtual void wait (bool = true,             // wait for any worker thread(s) ?
                      bool = false,            // wait for upstream (if any) ?
@@ -99,6 +99,8 @@ class Stream_IStreamControl_T
                                       StateType>
  , public Stream_INotify_T<NotificationType>
 {};
+
+//////////////////////////////////////////
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType>

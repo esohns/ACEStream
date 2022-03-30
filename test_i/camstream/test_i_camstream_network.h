@@ -326,12 +326,12 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
-extern const char stream_name_string_[];
+extern const char stream_name_string_2[];
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
-                                      stream_name_string_,
+                                      stream_name_string_2,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
@@ -350,7 +350,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Stream_UserData> Test_I_Source_DirectShow_Net_TCPStream_t;
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
-                                      stream_name_string_,
+                                      stream_name_string_2,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
@@ -370,7 +370,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
 
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
-                                      stream_name_string_,
+                                      stream_name_string_2,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
@@ -389,7 +389,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Stream_UserData> Test_I_Source_MediaFoundation_Net_TCPStream_t;
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
-                                      stream_name_string_,
+                                      stream_name_string_2,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
@@ -409,7 +409,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
 #else
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
-                                      stream_name_string_,
+                                      stream_name_string_2,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
@@ -428,7 +428,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Stream_UserData> Test_I_Source_V4L_Net_TCPStream_t;
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
-                                      stream_name_string_,
+                                      stream_name_string_2,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,

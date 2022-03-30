@@ -109,6 +109,7 @@ class Stream_Base_T
                                   StatusType,
                                   StateType>
  , public Stream_ILinkCB
+ , public Stream_IEvent_T<NotificationType>
  , public Stream_ISessionCB
  , public Common_IInitialize_T<Stream_Configuration_T<//StreamName,
                                                       ConfigurationType,
@@ -214,7 +215,7 @@ class Stream_Base_T
   virtual unsigned int flush (bool = true,   // flush inbound data ?
                               bool = false,  // flush session messages ?
                               bool = false); // flush upstream (if any) ?
-  virtual void idle () const;
+  virtual void idle (bool = true) const; // recurse upstream (if any) ?
   virtual void wait (bool = true,         // wait for any worker thread(s) ?
                      bool = false,        // wait for upstream (if any) ?
                      bool = false) const; // wait for downstream (if any) ?
@@ -259,6 +260,9 @@ class Stream_Base_T
   // implement Stream_ILinkCB
   inline virtual void onLink () {}
   inline virtual void onUnlink () {}
+
+  // implement Stream_IEvent_T
+  virtual void onEvent (NotificationType);
 
   // implement Stream_ISessionCB
   inline virtual void onSessionBegin (Stream_SessionId_t) {}
@@ -312,13 +316,13 @@ class Stream_Base_T
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  enum Stream_SessionMessageType> HEAD_READER_T;
+                                  NotificationType> HEAD_READER_T;
   typedef Stream_HeadWriterTask_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  enum Stream_SessionMessageType> HEAD_WRITER_T;
+                                  NotificationType> HEAD_WRITER_T;
   typedef ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType> TAIL_READER_T;
   typedef Stream_TailWriterTask_T<ACE_SYNCH_USE,
@@ -326,7 +330,7 @@ class Stream_Base_T
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  enum Stream_SessionMessageType> TAIL_WRITER_T;
+                                  NotificationType> TAIL_WRITER_T;
   typedef Common_IGetR_T<SessionDataContainerType> ISESSION_DATA_T;
   typedef Stream_IModuleHandler_T<ACE_SYNCH_USE,
                                   TimePolicyType,
