@@ -3805,17 +3805,18 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (!(*directshow_modulehandler_iterator).second.second->window);
-      // *TODO*: find out why the DirectShow video renderers do not draw onto
-      //         GtkDrawingAreas (e.g. missing overlay function ?)
-      (*directshow_modulehandler_iterator).second.second->window =
-        gdk_win32_window_get_impl_hwnd (window_p);
+      // *NOTE*: the DirectShow video renderers do not draw onto
+      //         GtkDrawingArea(s) correctly (on Win32, only the toplevel window
+      //         maps to HWND directly)
+      (*directshow_modulehandler_iterator).second.second->window = NULL;
+        //gdk_win32_window_get_impl_hwnd (window_p);
       //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second->window);
-      (*mediafoundation_modulehandler_iterator).second.second->window =
-        gdk_win32_window_get_impl_hwnd (window_p);
+      (*mediafoundation_modulehandler_iterator).second.second->window = NULL;
+        //gdk_win32_window_get_impl_hwnd (window_p);
       //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
       break;
     }

@@ -605,6 +605,7 @@ error:
 
   return false;
 }
+
 bool
 do_initialize_mediafoundation (IMFMediaType*& sourceMediaType_out,
                                IMFMediaType*& outputMediaType_out)
@@ -960,15 +961,11 @@ do_work (unsigned int bufferSize_in,
         &directshow_configuration;
       directshow_modulehandler_configuration.connectionConfigurations =
         &directshow_configuration.connectionConfigurations;
-
+      directshow_modulehandler_configuration.display =
+        Common_UI_Tools::getDefaultDisplay ();
       directshow_modulehandler_configuration.filterConfiguration =
         &directshow_configuration.filterConfiguration;
-      // *TODO*: specify the preferred media type
-      //modulehandler_configuration.format = ;
-      //modulehandler_configuration.format->lSampleSize = frameSize_in;
       directshow_modulehandler_configuration.inbound = true;
-
-      //modulehandler_configuration.connectionManager = connection_manager_p;
       directshow_modulehandler_configuration.printProgressDot =
         UIDefinitionFilename_in.empty ();
       directshow_modulehandler_configuration.statisticReportingInterval =

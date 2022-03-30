@@ -625,7 +625,8 @@ continue_:
         //         does not block forever
         // *NOTE*: stop()ping the connection stream will also unlink it
         //         --> send the disconnect notification early
-        // *TODO*: push(), notify will not work as it starts at the stream head
+        // *TODO*: push(), notify() will probably not work as it starts at the
+        //         stream head
         inherited::notify (STREAM_SESSION_MESSAGE_DISCONNECT);
         // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
         stream_p->stop (false, // wait for completion ?
