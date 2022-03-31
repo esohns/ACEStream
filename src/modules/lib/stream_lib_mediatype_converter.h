@@ -112,11 +112,13 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void setFormat (REFGUID format_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setFormat (format_in, mediaType_inout); }
   inline void setResolution (const Common_Image_Resolution_t resolution_in, struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_in, mediaType_inout.video); }
   inline void setResolution (const Common_Image_Resolution_t resolution_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_in, mediaType_inout); }
+  inline void setResolution (const Common_Image_Resolution_t resolution_in, IMFMediaType* mediaType_inout) { Stream_MediaFramework_MediaFoundation_Tools::setResolution (resolution_in, mediaType_inout); }
 
 #if defined (FFMPEG_SUPPORT)
   // ffmpeg
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setFormat (Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (format_in), mediaType_inout.video); }
   inline void setFormat (enum AVPixelFormat format_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setFormat (Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (format_in), mediaType_inout); }
+  inline void setFormat (enum AVPixelFormat format_in, IMFMediaType* mediaType_inout) { Stream_MediaFramework_MediaFoundation_Tools::setFormat (Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (format_in), mediaType_inout); }
 #endif // FFMPEG_SUPPORT
 #else
   // ALSA

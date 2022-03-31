@@ -69,6 +69,10 @@ class Stream_MediaFramework_MediaFoundation_Tools
                      IMFMediaType*,       // target
                      bool = true);        // reconfigure ?
   static bool reconfigure (IMFMediaType*); // media type handle
+  static bool setFormat (REFGUID,        // media subtype
+                         IMFMediaType*); // media type
+  static bool setResolution (Common_Image_Resolution_t, // resolution
+                             IMFMediaType*);            // media type
   // *IMPORTANT NOTE*: make sure to Release() the return value
   static IMFMediaType* to (const struct tWAVEFORMATEX&); // media type
   static struct _GUID toFormat (const IMFMediaType*);

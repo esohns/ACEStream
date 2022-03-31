@@ -865,6 +865,41 @@ Stream_MediaFramework_MediaFoundation_Tools::to (const struct tWAVEFORMATEX& for
   return result_p;
 }
 
+bool
+Stream_MediaFramework_MediaFoundation_Tools::setFormat (REFGUID format_in,
+                                                        IMFMediaType* mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::setFormat"));
+
+  // sanity check(s)
+  ACE_ASSERT (mediaType_inout);
+
+  HRESULT result = mediaType_inout->SetGUID (MF_MT_SUBTYPE,
+                                             format_in);
+  ACE_ASSERT (SUCCEEDED (result));
+  // *TODO*: adjust bitrate, bitcount, image size, ...
+
+  return true;
+}
+
+bool
+Stream_MediaFramework_MediaFoundation_Tools::setResolution (Common_Image_Resolution_t resolution_in,
+                                                            IMFMediaType* mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::setResolution"));
+
+  // sanity check(s)
+  ACE_ASSERT (mediaType_inout);
+
+  HRESULT result = MFSetAttributeSize (mediaType_inout,
+                                       MF_MT_FRAME_SIZE,
+                                       resolution_in.cx, resolution_in.cy);
+  ACE_ASSERT (SUCCEEDED (result));
+  // *TODO*: adjust bitrate, image size, ...
+
+  return true;
+}
+
 //void
 //Stream_MediaFramework_MediaFoundation_Tools::dump (IMFSourceReader* IMFSourceReader_in)
 //{

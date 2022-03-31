@@ -138,6 +138,12 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                   false);
   layout_out->append (module_p, NULL, 0);
   module_p = NULL;
+  //ACE_NEW_RETURN (module_p,
+  //                Test_I_Source_DirectShow_Converter_Module (this,
+  //                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)),
+  //                false);
+  //layout_out->append (module_p, NULL, 0);
+  //module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   TARGET_MODULE_T (this,
                                    ACE_TEXT_ALWAYS_CHAR (MODULE_NET_TARGET_DEFAULT_NAME_STRING)),
@@ -161,11 +167,6 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 //  //  modules_out.push_back (module_p);
 //  //} // end ELSE
 //#endif
-  //ACE_NEW_RETURN (module_p,
-  //                Test_I_Source_DirectShow_StatisticReport_Module (this,
-  //                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
-  //                false);
-  //modules_out.push_back (module_p);
 
   delete_out = true;
 
