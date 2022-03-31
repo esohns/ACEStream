@@ -6667,7 +6667,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::string module_name;
   Stream_Module_t* module_p = NULL;
-  switch (ui_cb_data_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       break;
@@ -6751,7 +6751,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -6759,7 +6759,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   Test_I_Stream_MediaFoundation_CamSource* mediafoundation_source_impl_p = NULL;
   Test_I_Stream_DirectShow_CamSource* directshow_source_impl_p = NULL;
   IMFTopology* topology_p = NULL;
-  switch (ui_cb_data_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -6890,7 +6890,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -6940,7 +6940,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (ui_cb_data_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -6960,7 +6960,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -6993,15 +6993,14 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
-        GUID_s =
-          directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype;
+        GUID_s = (*directshow_stream_iterator).second.configuration_->format.subtype;
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
         HRESULT result =
-          mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetGUID (MF_MT_SUBTYPE,
-                                                                                                            &GUID_s);
+          (*mediafoundation_stream_iterator).second.configuration_->format->GetGUID (MF_MT_SUBTYPE,
+                                                                                     &GUID_s);
         ACE_ASSERT (SUCCEEDED (result));
         break;
       }
@@ -7246,8 +7245,31 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
     g_value_init (&value, G_TYPE_UINT);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    Common_Image_Resolution_t resolution_s;
+    switch (ui_cb_data_p->mediaFramework)
+    {
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      {
+        resolution_s =
+          Stream_MediaFramework_DirectShow_Tools::toResolution ((*directshow_stream_iterator).second.configuration_->format);
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      {
+        resolution_s =
+          Stream_MediaFramework_MediaFoundation_Tools::toResolution ((*mediafoundation_stream_iterator).second.configuration_->format);
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    ui_cb_data_p->mediaFramework));
+        return;
+      }
+    } // end SWITCH
     g_value_set_uint (&value,
-                      (*stream_iterator).second.configuration_->format.format.height);
+                      resolution_s.cy);
 #else
     g_value_set_uint (&value,
                       (*stream_iterator).second.configuration_->format.format.height);
@@ -7569,8 +7591,31 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
     g_value_init (&value, G_TYPE_UINT);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    unsigned int framerate_i = 0;
+    switch (ui_cb_data_base_p->mediaFramework)
+    {
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      {
+        framerate_i =
+          Stream_MediaFramework_DirectShow_Tools::toFramerate ((*directshow_stream_iterator).second.configuration_->format);
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      {
+        framerate_i =
+          Stream_MediaFramework_MediaFoundation_Tools::toFramerate ((*mediafoundation_stream_iterator).second.configuration_->format);
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    ui_cb_data_base_p->mediaFramework));
+        return;
+      }
+    } // end SWITCH
     g_value_set_uint (&value,
-                      (*stream_iterator).second.configuration_->format.format.width);
+                      framerate_i);
 #else
     g_value_set_uint (&value,
                       (*stream_iterator).second.configuration_->format.frameRate.numerator);

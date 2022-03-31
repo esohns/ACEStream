@@ -572,6 +572,7 @@ elseif (WIN32)
 endif ()
 
 #cmake_policy (SET CMP0053 OLD)
+set (ARGS "")
 set (COMMAND "$<TARGET_FILE:${EXECUTABLE_TARGET}>")
 set (ENVIRONMENT "")
 if (UNIX)
