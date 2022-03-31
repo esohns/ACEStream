@@ -106,6 +106,8 @@
       <column type="gchararray"/>
       <!-- column-name GUID -->
       <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="guint"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststore_rate">

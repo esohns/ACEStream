@@ -1139,20 +1139,16 @@ load_formats (int fd_in,
                                     reinterpret_cast<char*> (format_description.description)));
   } while (true);
 
-  std::ostringstream converter;
   GtkTreeIter iterator;
   for (std::map<__u32, std::string>::const_iterator iterator_2 = formats.begin ();
        iterator_2 != formats.end ();
        ++iterator_2)
   {
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter << (*iterator_2).first;
-
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
                         0, (*iterator_2).second.c_str (),
-                        1, converter.str ().c_str (),
+                        1, ACE_TEXT_ALWAYS_CHAR (""),
+                        2, (*iterator_2).first,
                         -1);
   } // end FOR
 
@@ -1228,8 +1224,8 @@ struct less_fract
   bool operator() (const struct v4l2_fract& lhs_in,
                    const struct v4l2_fract& rhs_in) const
   {
-    return ((lhs_in.numerator / lhs_in.denominator) <
-            (rhs_in.numerator / rhs_in.denominator));
+    return ((lhs_in.numerator / (float)lhs_in.denominator) <
+            (rhs_in.numerator / (float)rhs_in.denominator));
   }
 };
 bool
@@ -1424,18 +1420,26 @@ set_capture_format (struct Test_I_CamStream_UI_CBData* CBData_in)
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
+  gint index_i = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  index_i = 1;
+#else
+  index_i = 2;
+#endif // ACE_WIN32 || ACE_WIN64
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
-                            1, &value);
+                            index_i, &value);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (G_VALUE_HOLDS (&value, G_TYPE_STRING));
   std::string format_string = g_value_get_string (&value);
-  g_value_unset (&value);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID media_subtype = Common_Tools::StringToGUID (format_string);
   ACE_ASSERT (!InlineIsEqualGUID (media_subtype, GUID_NULL));
-#endif
+#else
+  ACE_ASSERT (G_VALUE_HOLDS (&value, G_TYPE_UINT));
+  __u32 format_i = g_value_get_uint (&value);
+#endif // ACE_WIN32 || ACE_WIN64
+  g_value_unset (&value);
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
@@ -1452,7 +1456,6 @@ set_capture_format (struct Test_I_CamStream_UI_CBData* CBData_in)
 #else
   GValue value_2;
   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
-  g_value_init (&value_2, G_TYPE_UINT);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -1554,10 +1557,26 @@ set_capture_format (struct Test_I_CamStream_UI_CBData* CBData_in)
     }
   } // end SWITCH
 #else
+  (*stream_iterator).second.configuration_->format.format.pixelformat =
+    format_i;
   (*stream_iterator).second.configuration_->format.format.height = height;
   (*stream_iterator).second.configuration_->format.format.width = width;
-  Stream_Device_Tools::setFormat (V4L_ui_cb_data_p->fileDescriptor,
-                                  (*stream_iterator).second.configuration_->format.format);
+//retry:
+  if (unlikely (!Stream_Device_Tools::setFormat (V4L_ui_cb_data_p->fileDescriptor,
+                                                 (*stream_iterator).second.configuration_->format.format)))
+  {
+//    static bool retried_set_format_b = false;
+//    if (!retried_set_format_b)
+//    { retried_set_format_b = true;
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), retrying\n")));
+//      v4l2_close (V4L_ui_cb_data_p->fileDescriptor); V4L_ui_cb_data_p->fileDescriptor = -1;
+//      V4L_ui_cb_data_p->fileDescriptor = v4l2_open ();
+//      goto retry;
+//    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), returning\n")));
+  } // end IF
 #endif
 }
 
@@ -4761,7 +4780,6 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
     gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                               &iterator_4,
@@ -6544,9 +6562,9 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   STREAM_TRACE (ACE_TEXT ("::combobox_source_changed_cb"));
 
   // sanity check(s)
-  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_base_p);
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -6562,7 +6580,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (ui_cb_data_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -6596,17 +6614,17 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
   // sanity check(s)
-  struct Test_I_Source_V4L_UI_CBData* V4L_ui_cb_data_p =
+  struct Test_I_Source_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_I_Source_V4L_UI_CBData*> (userData_in);
   Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
-    V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
+    ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
@@ -6629,7 +6647,6 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
@@ -6879,29 +6896,29 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   } // end SWITCH
 #else
   int result_3 = -1;
-  if (V4L_ui_cb_data_p->fileDescriptor != -1)
+  if (ui_cb_data_p->fileDescriptor != -1)
   {
-    result_3 = v4l2_close (V4L_ui_cb_data_p->fileDescriptor);
+    result_3 = v4l2_close (ui_cb_data_p->fileDescriptor);
     if (result_3 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                  V4L_ui_cb_data_p->fileDescriptor));
-    V4L_ui_cb_data_p->fileDescriptor = -1;
+                  ui_cb_data_p->fileDescriptor));
+    ui_cb_data_p->fileDescriptor = -1;
   } // end IFs
-  ACE_ASSERT (V4L_ui_cb_data_p->fileDescriptor == -1);
+  ACE_ASSERT (ui_cb_data_p->fileDescriptor == -1);
   Test_I_Source_V4L_StreamConfigurationsIterator_t iterator_3 =
-      V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_3 != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
+      ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T iterator_4 =
       (*iterator_3).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_4 != (*iterator_3).second.end ());
   int open_mode =
       (((*iterator_4).second.second->method == V4L2_MEMORY_MMAP) ? O_RDWR
-                                                                : O_RDONLY);
-  V4L_ui_cb_data_p->fileDescriptor =
+                                                                 : O_RDONLY);
+  ui_cb_data_p->fileDescriptor =
     v4l2_open (device_identifier_string.c_str (),
-               open_mode);
-  if (V4L_ui_cb_data_p->fileDescriptor == -1)
+               open_mode | V4L2_DISABLE_CONVERSION);
+  if (ui_cb_data_p->fileDescriptor == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", returning\n"),
@@ -6909,6 +6926,17 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
                 open_mode));
     return;
   } // end IF
+//  int real_fd = v4l2_fd_open (ui_cb_data_p->fileDescriptor,
+//                              V4L2_DISABLE_CONVERSION);
+//  if (real_fd == -1)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to v4l2_fd_open(%d): \"%m\", returning\n"),
+//                ui_cb_data_p->fileDescriptor));
+//    v4l2_close (ui_cb_data_p->fileDescriptor); ui_cb_data_p->fileDescriptor = -1;
+//    return;
+//  } // end IF
+//  ui_cb_data_p->fileDescriptor = real_fd;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -6937,7 +6965,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  result_2 = load_formats (V4L_ui_cb_data_p->fileDescriptor,
+  result_2 = load_formats (ui_cb_data_p->fileDescriptor,
                            list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
@@ -6955,10 +6983,50 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
     ACE_ASSERT (combo_box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
-                              true);
-    gtk_combo_box_set_active (combo_box_p,
-                              0);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
+    gint index_i = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    index_i = 1;
+    struct _GUID GUID_s = GUID_NULL;
+    std::string format_string;
+    switch (ui_cb_data_base_p->mediaFramework)
+    {
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      {
+        GUID_s =
+          directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype;
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      {
+        HRESULT result =
+          mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetGUID (MF_MT_SUBTYPE,
+                                                                                                            &GUID_s);
+        ACE_ASSERT (SUCCEEDED (result));
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    ui_cb_data_base_p->mediaFramework));
+        return;
+      }
+    } // end SWITCH
+    format_string = Common_Tools::GUIDToString (GUID_s);
+    g_value_init (&value, G_TYPE_STRING);
+    g_value_set_string (&value,
+                        format_string.c_str ());
+#else
+    index_i = 2;
+    g_value_init (&value, G_TYPE_UINT);
+    g_value_set_uint (&value,
+                     (*stream_iterator).second.configuration_->format.format.pixelformat);
+#endif // ACE_WIN32 || ACE_WIN64
+    Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                      value,
+                                      index_i);
+    g_value_unset (&value);
   } // end IF
 
   toggle_action_p =
@@ -7066,23 +7134,26 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
+  gint index_i = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  index_i = 1;
+#else
+  index_i = 2;
+#endif // ACE_WIN32 || ACE_WIN64
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
-                            1, &value);
+                            index_i, &value);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   std::string format_string = g_value_get_string (&value);
-  g_value_unset (&value);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
   ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
 #else
-  __u32 format_i = 0;
-  std::istringstream converter;
-  converter.str (format_string);
-  converter >> format_i;
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
+  __u32 format_i = g_value_get_uint (&value);
 #endif // ACE_WIN32 || ACE_WIN64
+  g_value_unset (&value);
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator_2).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
@@ -7150,9 +7221,8 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*stream_iterator).second.configuration_->format.format.pixelformat = format_i;
-  (*modulehandler_iterator).second.second->outputFormat.format =
-      Stream_MediaFramework_Tools::v4lFormatToffmpegFormat (format_i);
+  (*stream_iterator).second.configuration_->format.format.pixelformat =
+    format_i;
 
   result =
     load_resolutions (V4L_ui_cb_data_p->fileDescriptor,
@@ -7173,8 +7243,19 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator_2).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
     ACE_ASSERT (combo_box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
-    gtk_combo_box_set_active (combo_box_p, 0);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
+    g_value_init (&value, G_TYPE_UINT);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    g_value_set_uint (&value,
+                      (*stream_iterator).second.configuration_->format.format.height);
+#else
+    g_value_set_uint (&value,
+                      (*stream_iterator).second.configuration_->format.format.height);
+#endif // ACE_WIN32 || ACE_WIN64
+    Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                      value,
+                                      2);
+    g_value_unset (&value);
   } // end IF
 } // combobox_format_changed_cb
 
@@ -7279,20 +7360,23 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
+  gint index_i = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  index_i = 1;
+#else
+  index_i = 2;
+#endif // ACE_WIN32 || ACE_WIN64
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
-                            1, &value);
-  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+                            index_i, &value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   struct _GUID GUID_s =
     Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (g_value_get_string (&value)));
 #else
-  __u32 format_i = 0;
-  std::istringstream converter;
-  converter.str (g_value_get_string (&value));
-  converter >> format_i;
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
+  __u32 format_i = g_value_get_uint (&value);
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
   if (!gtk_combo_box_get_active_iter (comboBox_in,
@@ -7311,7 +7395,6 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
 #else
   GValue value_2;
   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
-  g_value_init (&value_2, G_TYPE_UINT);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -7483,8 +7566,19 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator_2).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_COMBOBOX_RATE_NAME)));
     ACE_ASSERT (combo_box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
-    gtk_combo_box_set_active (combo_box_p, 0);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
+    g_value_init (&value, G_TYPE_UINT);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    g_value_set_uint (&value,
+                      (*stream_iterator).second.configuration_->format.format.width);
+#else
+    g_value_set_uint (&value,
+                      (*stream_iterator).second.configuration_->format.frameRate.numerator);
+#endif // ACE_WIN32 || ACE_WIN64
+    Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                      value,
+                                      0);
+    g_value_unset (&value);
   } // end IF
 } // combobox_resolution_changed_cb
 
@@ -7586,9 +7680,7 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
 #else
   GValue value, value_2;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_UINT);
   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
-  g_value_init (&value_2, G_TYPE_UINT);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,

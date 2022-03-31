@@ -57,14 +57,17 @@
 
 #if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
+
+#include "stream_dec_libav_decoder.h"
+
+#include "stream_vis_libav_resize.h"
 #endif // FFMPEG_SUPPORT
 #include "stream_lib_v4l_common.h"
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_pixbuf.h"
-#include "stream_vis_libav_resize.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -137,16 +140,6 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Common_Timer_Manager_t,
                                       struct Stream_UserData> Test_I_Source_V4L_CamSource;
 #endif // ACE_WIN32 || ACE_WIN64
-
-//typedef Stream_Decoder_AVIDecoder_T<Test_I_Target_SessionMessage,
-//                                    Test_I_Target_Stream_Message,
-//                                    struct Test_I_Target_ModuleHandlerConfiguration,
-//                                    Test_I_Target_SessionData> Test_I_Target_Stream_AVIDecoder;
-//DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
-//                              Common_TimePolicy_t,                             // time policy
-//                              struct Stream_ModuleConfiguration,               // module configuration type
-//                              struct Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
-//                              Test_I_Target_Stream_AVIDecoder);                // writer type
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Module_Splitter_T<ACE_MT_SYNCH,
@@ -501,6 +494,15 @@ typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
                                                       Test_I_Source_V4L_SessionMessage,
                                                       Test_I_Source_V4L_SessionData_t> Test_I_Source_V4L_Distributor_Writer_t;
 #if defined (FFMPEG_SUPPORT)
+typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
+                                        Common_TimePolicy_t,
+                                        struct Test_I_Source_V4L_ModuleHandlerConfiguration,
+                                        Stream_ControlMessage_t,
+                                        Test_I_Source_V4L_Stream_Message,
+                                        Test_I_Source_V4L_SessionMessage,
+                                        Test_I_Source_V4L_SessionData_t,
+                                        struct Stream_MediaFramework_V4L_MediaType> Test_I_Source_V4L_Converter;
+
 typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
                                            struct Test_I_Source_V4L_ModuleHandlerConfiguration,
@@ -874,6 +876,13 @@ DATASTREAM_MODULE_DUPLEX (Test_I_Source_V4L_SessionData,                        
                           Test_I_Source_V4L_Distributor_Writer_t,                 // writer type
                           Test_I_Source_V4L_Distributor);                         // module name prefix
 #if defined (FFMPEG_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L_SessionData,                             // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_I_Source_V4L_ModuleHandlerConfiguration,       // module handler configuration type
+                              libacestream_default_dec_libav_decoder_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_I_Source_V4L_Converter);                              // writer type
+
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L_SessionData,                  // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Test_I_Source_V4L_ModuleHandlerConfiguration,   // module handler configuration type

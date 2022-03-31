@@ -1077,13 +1077,23 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   Test_I_Source_V4L_StreamConfiguration_t stream_configuration_3;
   Test_I_Source_V4L_StreamConfiguration_t stream_configuration_4;
   stream_configuration.allocatorConfiguration = &allocator_configuration;
-  stream_configuration.format.format.pixelformat = V4L2_PIX_FMT_RGB24;
+//  stream_configuration.format.format.pixelformat = V4L2_PIX_FMT_RGB24;
+  stream_configuration.format.format.pixelformat = V4L2_PIX_FMT_YUYV;
   stream_configuration.format.format.width =
-      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
+    STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
   stream_configuration.format.format.height =
-      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
+    STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
+  stream_configuration.format.frameRate.numerator =
+    STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE;
   stream_configuration.messageAllocator = allocator_p;
   stream_configuration.module = &event_handler_module;
+
+  modulehandler_configuration.outputFormat.format =
+    Stream_MediaFramework_Tools::v4lFormatToffmpegFormat (V4L2_PIX_FMT_RGB24);
+  modulehandler_configuration.outputFormat.resolution.height =
+    stream_configuration.format.format.height;
+  modulehandler_configuration.outputFormat.resolution.width =
+    stream_configuration.format.format.width;
 
   stream_configuration_3.initialize (module_configuration,
                                      modulehandler_configuration,
@@ -1638,15 +1648,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   v4l2CBData_in.UIState = ui_state_p;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  (*modulehandler_iterator).second.second->outputFormat.format =
-      STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT;
-  (*modulehandler_iterator).second.second->outputFormat.resolution.width =
-      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
-  (*modulehandler_iterator).second.second->outputFormat.resolution.height =
-      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
 
-  //  (*modulehandler_iterator).second.second->method =
-//      STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
+  (*modulehandler_iterator).second.second->method =
+      V4L2_MEMORY_USERPTR;
   (*modulehandler_iterator).second.second->streamConfiguration =
       &(*stream_iterator).second;
 #endif // ACE_WIN32 || ACE_WIN64

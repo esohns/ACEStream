@@ -117,7 +117,6 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         data_r.device = fd_in;
         data_r.index = i;
         data_r.method = method_in;
-        data_r.release = true;
         buffer.m.userptr =
             reinterpret_cast<unsigned long> (message_block_p->rd_ptr ());
         buffer.length = format.fmt.pix.sizeimage;
@@ -323,7 +322,7 @@ Stream_Device_Tools::finalizeBuffers (int fd_in,
     // *TODO*: remove type inference
     typename MessageType::DATA_T& data_r =
         const_cast<typename MessageType::DATA_T&> (message_p->getR ());
-    data_r.release = false;
+    data_r.release = true;
     message_block_p->release (); message_block_p = NULL;
 
     ++counter;

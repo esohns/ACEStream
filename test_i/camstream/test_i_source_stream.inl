@@ -1307,10 +1307,16 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING)),
                   false);
   layout_inout->append (module_p, NULL, 0);
+//  module_p = NULL;
+//  ACE_NEW_RETURN (module_p,
+//                  Test_I_Source_V4L_StatisticReport_Module (this,
+//                                                             ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+//                  false);
+//  layout_inout->append (module_p, NULL, 0);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_V4L_StatisticReport_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+                  Test_I_Source_V4L_Converter_Module (this,
+                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)),
                   false);
   layout_inout->append (module_p, NULL, 0);
   module_p = NULL;
@@ -1321,7 +1327,6 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
   layout_inout->append (module_p, NULL, 0);
   module_p = NULL;
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_V4L_Distributor_Module (this,
                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
@@ -1341,13 +1346,14 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
                   false);
   layout_inout->append (module_p, branch_p, 0);
   module_p = NULL;
+#if defined (GTK_SUPPORT)
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_V4L_Display_Module (this,
                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
                   false);
   layout_inout->append (module_p, branch_p, 0);
   module_p = NULL;
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
   delete_out = true;
@@ -1417,32 +1423,32 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
 
   // ---------------------------------------------------------------------------
 
-  Test_I_Source_V4L_CamSource* source_impl_p = NULL;
+//  Test_I_Source_V4L_CamSource* source_impl_p = NULL;
 
   // ******************* Camera Source ************************
-  typename inherited::MODULE_T* module_p =
-    const_cast<typename inherited::MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING)));
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING)));
-    return false;
-  } // end IF
-  source_impl_p =
-    dynamic_cast<Test_I_Source_V4L_CamSource*> (module_p->writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Source_V4L_CamSource> failed, aborting\n")));
-    return false;
-  } // end IF
-  source_impl_p->setP (&(inherited::state_));
-  //fileReader_impl_p->reset ();
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  module_p->arg (inherited::sessionData_);
+//  typename inherited::MODULE_T* module_p =
+//    const_cast<typename inherited::MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING)));
+//  if (!module_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+//                ACE_TEXT (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING)));
+//    return false;
+//  } // end IF
+//  source_impl_p =
+//    dynamic_cast<Test_I_Source_V4L_CamSource*> (module_p->writer ());
+//  if (!source_impl_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("dynamic_cast<Test_I_Source_V4L_CamSource> failed, aborting\n")));
+//    return false;
+//  } // end IF
+//  source_impl_p->setP (&(inherited::state_));
+//  //fileReader_impl_p->reset ();
+//  // *NOTE*: push()ing the module will open() it
+//  //         --> set the argument that is passed along (head module expects a
+//  //             handle to the session data)
+//  module_p->arg (inherited::sessionData_);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))

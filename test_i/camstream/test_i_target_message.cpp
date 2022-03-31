@@ -310,7 +310,7 @@ Test_I_Target_Stream_Message::duplicate (void) const
   // the ACE_Data_Block.
 
   // if there is no allocator, use the standard new and delete calls.
-  if (inherited::message_block_allocator_ == NULL)
+  if (unlikely (inherited::message_block_allocator_ == NULL))
     ACE_NEW_NORETURN (message_p,
                       Test_I_Target_Stream_Message (*this));
   else // otherwise, use the existing message_block_allocator
@@ -318,11 +318,11 @@ Test_I_Target_Stream_Message::duplicate (void) const
     // *NOTE*: the argument to malloc doesn't matter, as this will be
     //         a shallow copy which just references the same data block
     ACE_NEW_MALLOC_NORETURN (message_p,
-                             static_cast<Test_I_Target_Stream_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
+                             static_cast<Test_I_Target_Stream_Message*> (inherited::message_block_allocator_->calloc (sizeof (Test_I_Target_Stream_Message),
                                                                                                                       '\0')),
                              Test_I_Target_Stream_Message (*this));
   } // end ELSE
-  if (!message_p)
+  if (unlikely (!message_p))
   {
     Stream_IAllocator* allocator_p =
       dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
@@ -333,8 +333,8 @@ Test_I_Target_Stream_Message::duplicate (void) const
     return NULL;
   } // end IF
 
-    // increment the reference counts of any continuation messages
-  if (inherited::cont_)
+  // increment the reference counts of any continuation messages
+  if (unlikely (inherited::cont_))
   {
     message_p->cont_ = inherited::cont_->duplicate ();
     if (!message_p->cont_)

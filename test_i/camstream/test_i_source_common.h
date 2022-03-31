@@ -26,16 +26,16 @@
 
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <OAIdl.h>
-#include <control.h>
-#include <evr.h>
-#include <mfapi.h>
-#include <strmif.h>
-#include <sdkddkver.h>
+#include "OAIdl.h"
+#include "control.h"
+#include "evr.h"
+#include "mfapi.h"
+#include "strmif.h"
+#include "sdkddkver.h"
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-#include <minwindef.h>
+#include "minwindef.h"
 #else
-#include <windef.h>
+#include "windef.h"
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #endif // ACE_WIN32 || ACE_WIN64
 

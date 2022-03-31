@@ -19,13 +19,12 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
 #include "test_i_source_message.h"
 
 #include "ace/Malloc_Base.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <dshow.h>
+#include "dshow.h"
 #else
 #include "libv4l2.h"
 #include "linux/videodev2.h"
@@ -334,7 +333,7 @@ Test_I_Source_V4L_Stream_Message::Test_I_Source_V4L_Stream_Message (Stream_Sessi
 }
 
 Test_I_Source_V4L_Stream_Message::Test_I_Source_V4L_Stream_Message (Stream_SessionId_t sessionId_in,
-                                                                      ACE_Allocator* messageAllocator_in)
+                                                                    ACE_Allocator* messageAllocator_in)
  : inherited (sessionId_in,
               messageAllocator_in) // message block allocator
  , inherited2 (1, false)
@@ -355,6 +354,7 @@ Test_I_Source_V4L_Stream_Message::duplicate (void) const
 
   return message_p;
 }
+
 ACE_Message_Block*
 Test_I_Source_V4L_Stream_Message::release (void)
 {
@@ -374,7 +374,7 @@ Test_I_Source_V4L_Stream_Message::release (void)
     return NULL; // done
 
   if ((inherited::data_.device == -1) || // not a device data buffer
-    inherited::data_.release)          // clean up (device data)
+      inherited::data_.release)          // clean up (device data)
     return inherited::release ();
 
   // reset reference counter/message

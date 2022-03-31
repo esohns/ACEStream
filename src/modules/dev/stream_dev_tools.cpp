@@ -1172,6 +1172,22 @@ Stream_Device_Tools::setFormat (int fileDescriptor_in,
                 fileDescriptor_in, ACE_TEXT ("VIDIOC_S_FMT")));
     return false;
   } // end IF
+  // validate result
+  if ((format_s.fmt.pix.pixelformat != format_in.pixelformat) ||
+      (format_s.fmt.pix.height != format_in.height)           ||
+      (format_s.fmt.pix.width != format_in.width))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%d: failed to set capture format (was: %u;\"%s\"), aborting\n"),
+                fileDescriptor_in,
+                format_in.pixelformat, ACE_TEXT (Stream_Device_Tools::formatToString (fileDescriptor_in, format_in.pixelformat).c_str ())));
+    return false;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%d: set capture format to %u;\"%s\" @ %ux%u\n"),
+              fileDescriptor_in,
+              format_in.pixelformat, ACE_TEXT (Stream_Device_Tools::formatToString (fileDescriptor_in, format_in.pixelformat).c_str ()),
+              format_in.width, format_in.height));
 
   return true;
 }
@@ -1198,7 +1214,6 @@ Stream_Device_Tools::getFormat (int fileDescriptor_in,
                 fileDescriptor_in, ACE_TEXT ("VIDIOC_G_FMT")));
     return false;
   } // end IF
-//  ACE_ASSERT (format_out.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
 
   return true;
 }
@@ -1233,8 +1248,6 @@ Stream_Device_Tools::getFrameRate (int fileDescriptor_in,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("the device driver does not support frame interval settings, continuing\n")));
 
-  //  ACE_ASSERT (stream_parameters.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
-
   // *NOTE*: the frame rate is the reciprocal value of the time-per-frame
   //         interval
   frameRate_out.denominator =
@@ -1268,7 +1281,6 @@ Stream_Device_Tools::setFrameRate (int fileDescriptor_in,
                 fileDescriptor_in, ACE_TEXT ("VIDIOC_G_PARM")));
     return false;
   } // end IF
-//  ACE_ASSERT (stream_parameters.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
   // sanity check(s)
   if ((stream_parameters.parm.capture.capability & V4L2_CAP_TIMEPERFRAME) == 0)
     goto no_support;
@@ -1316,15 +1328,12 @@ Stream_Device_Tools::formatToString (int fileDescriptor_in,
 
   std::string result;
 
-  struct v4l2_fmtdesc fmtdesc_s;
   int result_2 = -1;
-  for (__u32 i = 0;
-       ;
-       ++i)
+  struct v4l2_fmtdesc fmtdesc_s;
+  ACE_OS::memset (&fmtdesc_s, 0, sizeof (struct v4l2_fmtdesc));
+  fmtdesc_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  do
   {
-    ACE_OS::memset (&fmtdesc_s, 0, sizeof (struct v4l2_fmtdesc));
-    fmtdesc_s.index = i;
-    fmtdesc_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     result_2 = ACE_OS::ioctl (fileDescriptor_in,
                               VIDIOC_ENUM_FMT,
                               &fmtdesc_s);
@@ -1342,7 +1351,13 @@ Stream_Device_Tools::formatToString (int fileDescriptor_in,
       result = reinterpret_cast<char*> (&fmtdesc_s.description);
       break;
     } // end IF
-  } // end FOR
+    ++fmtdesc_s.index;
+  } while (true); // end WHILE
+  if (unlikely (result.empty ()))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%d: failed to retrieve format string (id was: (%u), aborting\n"),
+                fileDescriptor_in,
+                pixelFormat_in));
 
   return result;
 }

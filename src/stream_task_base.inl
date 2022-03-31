@@ -468,7 +468,7 @@ continue_3:
 
       break;
 
-error:
+//error:
       notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;

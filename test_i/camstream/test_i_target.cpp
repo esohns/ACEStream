@@ -1044,6 +1044,7 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
     &configuration.connectionConfigurations;
+  modulehandler_configuration.inbound = true;
 
   //modulehandler_configuration.connectionManager = connection_manager_p;
   //modulehandler_configuration.format.type =
@@ -1063,14 +1064,12 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.outputFormat.resolution.width =
       STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH ;
 
-  modulehandler_configuration.inbound = true;
   modulehandler_configuration.printProgressDot =
     UIDefinitionFilename_in.empty ();
   modulehandler_configuration.statisticReportingInterval =
     ACE_Time_Value (statisticReportingInterval_in, 0);
   modulehandler_configuration.streamConfiguration =
     &configuration.streamConfiguration;
-//  modulehandler_configuration.subscriber = &ui_event_handler;
   modulehandler_configuration.targetFileName = fileName_in;
 
   stream_configuration.allocatorConfiguration = &allocator_configuration;
@@ -1191,6 +1190,7 @@ do_work (unsigned int bufferSize_in,
   Test_I_Target_EventHandler_t ui_event_handler (&CBData_in);
   Test_I_Target_Module_EventHandler_Module event_handler (NULL,
                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  modulehandler_configuration.subscriber = &ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
