@@ -18,30 +18,12 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef TEST_I_DEFINES_H
-#define TEST_I_DEFINES_H
+#ifndef TEST_I_HTTPGET_DEFINES_H
+#define TEST_I_HTTPGET_DEFINES_H
 
-#include "ace/config-lite.h"
-
-#define TEST_I_DEFAULT_OUTPUT_DB                     "news"
-#define TEST_I_DEFAULT_OUTPUT_DB_OPTIONS_FILE        "options.cnf"
-#define TEST_I_DEFAULT_OUTPUT_DB_TABLE               "page"
-#define TEST_I_DEFAULT_OUTPUT_FILE                   "output.html"
-#define TEST_I_THREAD_NAME                           "stream processor"
-
-#define TEST_I_DEFAULT_BUFFER_SIZE                   16384 // bytes
-#define TEST_I_MAX_MESSAGES                          0 // 0 --> no limits
-
-//#define TEST_I_DEFAULT_PORT                          80
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 1
-#else
-// *IMPORTANT NOTE*: on Linux, specifying 1 will not work correctly for proactor
-//                   scenarios with the default (rt signal) proactor. The thread
-//                   blocked in sigwaitinfo (see man pages) will not awaken when
-//                   the dispatch set is changed (*TODO*: to be verified)
-#define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 2
-#endif
+#define TEST_I_DEFAULT_OUTPUT_DB              "news"
+#define TEST_I_DEFAULT_OUTPUT_DB_OPTIONS_FILE "options.cnf"
+#define TEST_I_DEFAULT_OUTPUT_DB_TABLE        "page"
+#define TEST_I_DEFAULT_OUTPUT_FILE            "output.html"
 
 #endif

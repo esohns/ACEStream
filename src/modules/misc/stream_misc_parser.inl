@@ -1006,8 +1006,8 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
   int result = -1;
   int error = 0;
   DataMessageType* message_p = NULL;
-  typename DataMessageType::DATA_T* message_data_container_p = NULL;
-  typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL;
+  //typename DataMessageType::DATA_T* message_data_container_p = NULL;
+  //typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL;
 //  bool do_scan_end = false;
 //  const typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
   bool result_2 = false;
@@ -1091,23 +1091,19 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
         {
           // *NOTE*: most probable reason: connection
           //         has been closed --> session end
-          ACE_DEBUG ((LM_DEBUG,
+          ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_IParser_T::parse(): \"%m\", aborting\n"),
                       inherited::mod_->name ()));
           goto error;
         } // end IF
 
-//        // more data ?
-//        if (inherited2::fragment_)
-//          goto continue_;
-
         break;
 
 error:
-        if (message_data_p)
-          delete message_data_p;
-        if (message_data_container_p)
-          message_data_container_p->decrease ();
+        //if (message_data_p)
+        //  delete message_data_p;
+        //if (message_data_container_p)
+        //  message_data_container_p->decrease ();
         if (message_block_p)
           message_block_p->release ();
 

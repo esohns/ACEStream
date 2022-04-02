@@ -23,9 +23,6 @@
 
 #include "ace/Global_Macros.h"
 
-//#include <mfobjects.h>
-
-//#include "stream_common.h"
 #include "stream_data_message_base.h"
 #include "stream_message_base.h"
 #include "stream_session_message_base.h"
@@ -36,28 +33,19 @@ class ACE_Data_Block;
 class ACE_Message_Block;
 
 template <typename DataType,
-          //typename AllocatorConfigurationType,
           typename MessageType>
-class Stream_MediaFramework_MediaFoundation_MessageBase_T
+class Stream_MediaFramework_MediaFoundation_DataMessageBase_T
  : public Stream_DataMessageBase_T<DataType,
-                                   //AllocatorConfigurationType,
                                    MessageType,
                                    int>
  //, public IMFSample
 {
   typedef Stream_DataMessageBase_T<DataType,
-                                   //AllocatorConfigurationType,
                                    MessageType,
                                    int> inherited;
 
  public:
-  // convenient types
-  typedef Stream_MediaFramework_MediaFoundation_MessageBase_T<DataType,
-                                                              //AllocatorConfigurationType,
-                                                              MessageType> OWN_TYPE_T;
-  typedef DataType DATA_T;
-
-  inline virtual ~Stream_MediaFramework_MediaFoundation_MessageBase_T () {}
+  inline virtual ~Stream_MediaFramework_MediaFoundation_DataMessageBase_T () {}
 
   //// implement IMFSample
   //virtual HRESULT STDMETHODCALLTYPE GetSampleFlags (DWORD*);
@@ -151,21 +139,26 @@ class Stream_MediaFramework_MediaFoundation_MessageBase_T
   virtual void dump_state () const;
 
  protected:
-  Stream_MediaFramework_MediaFoundation_MessageBase_T (Stream_SessionId_t, // session id
-                                                       unsigned int);      // size
+  Stream_MediaFramework_MediaFoundation_DataMessageBase_T (Stream_SessionId_t, // session id
+                                                           unsigned int);      // size
   // copy ctor, to be used by derivates
-  Stream_MediaFramework_MediaFoundation_MessageBase_T (const OWN_TYPE_T&);
+  Stream_MediaFramework_MediaFoundation_DataMessageBase_T (const Stream_MediaFramework_MediaFoundation_DataMessageBase_T<DataType,
+                                                                                                                         MessageType>&);
   // *NOTE*: to be used by message allocators
-  Stream_MediaFramework_MediaFoundation_MessageBase_T (Stream_SessionId_t, // session id
-                                                       ACE_Allocator*);    // message allocator
-  Stream_MediaFramework_MediaFoundation_MessageBase_T (Stream_SessionId_t, // session id
-                                                       ACE_Data_Block*,    // data block
-                                                       ACE_Allocator*,     // message allocator
-                                                       bool = true);       // increment running message counter ?
+  Stream_MediaFramework_MediaFoundation_DataMessageBase_T (Stream_SessionId_t, // session id
+                                                           ACE_Allocator*);    // message allocator
+  Stream_MediaFramework_MediaFoundation_DataMessageBase_T (Stream_SessionId_t, // session id
+                                                           ACE_Data_Block*,    // data block
+                                                           ACE_Allocator*,     // message allocator
+                                                           bool = true);       // increment running message counter ?
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_MessageBase_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_MessageBase_T& operator= (const Stream_MediaFramework_MediaFoundation_MessageBase_T&))
+  // convenient types
+  typedef Stream_MediaFramework_MediaFoundation_DataMessageBase_T<DataType,
+                                                                  MessageType> OWN_TYPE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_DataMessageBase_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_DataMessageBase_T& operator= (const Stream_MediaFramework_MediaFoundation_DataMessageBase_T&))
 
   // overriden from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;

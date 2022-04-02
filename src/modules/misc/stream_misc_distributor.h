@@ -190,6 +190,14 @@ class Stream_Miscellaneous_Distributor_WriterTask_T
   typedef std::map<typename inherited::MESSAGE_QUEUE_T*,
                    MODULE_T*> QUEUE_TO_MODULE_MAP_T;
   typedef typename QUEUE_TO_MODULE_MAP_T::const_iterator QUEUE_TO_MODULE_CONST_ITERATOR_T;
+  typedef std::pair<typename inherited::MESSAGE_QUEUE_T*, MODULE_T*> QUEUE_TO_MODULE_PAIR_T;
+  struct QUEUE_TO_MODULE_MAP_FIND_S
+   : public std::binary_function<QUEUE_TO_MODULE_PAIR_T,
+                                 MODULE_T*,
+                                 bool>
+  {
+    inline bool operator() (const QUEUE_TO_MODULE_PAIR_T& entry_in, MODULE_T* module_in) const { return (entry_in.second == module_in); }
+  };
   typedef std::map<std::string,
                    MODULE_T*> BRANCH_TO_HEAD_MAP_T;
   typedef typename BRANCH_TO_HEAD_MAP_T::const_iterator BRANCH_TO_HEAD_CONST_ITERATOR_T;
@@ -201,6 +209,11 @@ class Stream_Miscellaneous_Distributor_WriterTask_T
   {
     inline bool operator() (const BRANCH_TO_HEAD_PAIR_T& entry_in, MODULE_T* module_in) const { return !ACE_OS::strcmp (entry_in.second->name (), module_in->name ()); }
   };
+
+  // helper methods
+  void forward (ACE_Message_Block*, // message handle
+                bool = false,       // dispose of original message ?
+                bool = false);      // high priority ?
 
   Stream_Branches_t         branches_; // FIFO
   BRANCH_TO_HEAD_MAP_T      heads_;
@@ -226,11 +239,6 @@ class Stream_Miscellaneous_Distributor_WriterTask_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_WriterTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_WriterTask_T (const Stream_Miscellaneous_Distributor_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_WriterTask_T& operator= (const Stream_Miscellaneous_Distributor_WriterTask_T&))
-
-  // helper methods
-  void forward (ACE_Message_Block*, // message handle
-                bool = false,       // dispose of original message ?
-                bool = false);      // high priority ?
 
   // override ACE_Task_Base members
   virtual int svc (void);
