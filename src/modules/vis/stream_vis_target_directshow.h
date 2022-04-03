@@ -63,7 +63,9 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename FilterConfigurationType, // DirectShow-
           typename PinConfigurationType,    // DirectShow Filter (Output) Pin-
-          typename FilterType>              // DirectShow-
+          typename FilterType,              // DirectShow-
+          ////////////////////////////////
+          typename MediaType>
 class Stream_Vis_Target_DirectShow_T
  : public Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
                                                     TimePolicyType,
@@ -74,7 +76,7 @@ class Stream_Vis_Target_DirectShow_T
                                                     SessionDataType,
                                                     FilterConfigurationType,
                                                     PinConfigurationType,
-                                                    struct _AMMediaType,
+                                                    MediaType,
                                                     FilterType>
  //, public Stream_MediaFramework_MediaTypeConverter_T<struct _AMMediaType>
  //, public Common_UI_WindowTypeConverter_T<HWND>
@@ -89,7 +91,7 @@ class Stream_Vis_Target_DirectShow_T
                                                     SessionDataType,
                                                     FilterConfigurationType,
                                                     PinConfigurationType,
-                                                    struct _AMMediaType,
+                                                    MediaType,
                                                     FilterType> inherited;
   //typedef Stream_MediaFramework_MediaTypeConverter_T<struct _AMMediaType> inherited2;
   //typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;

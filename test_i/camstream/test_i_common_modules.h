@@ -467,7 +467,8 @@ typedef Stream_Vis_Target_DirectShow_T<ACE_MT_SYNCH,
                                        Test_I_Source_DirectShow_SessionData,
                                        struct Test_I_Source_DirectShow_FilterConfiguration,
                                        struct Test_I_Source_DirectShow_PinConfiguration,
-                                       Test_I_Source_DirectShowFilter_t> Test_I_Source_DirectShow_Display;
+                                       Test_I_Source_DirectShowFilter_t,
+                                       struct _AMMediaType> Test_I_Source_DirectShow_Display;
 typedef Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_MT_SYNCH,
                                                      Common_TimePolicy_t,
                                                      struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
@@ -691,7 +692,8 @@ typedef Stream_Vis_Target_DirectShow_T<ACE_MT_SYNCH,
                                        Test_I_Target_DirectShow_SessionData,
                                        struct Test_I_Target_DirectShow_FilterConfiguration,
                                        struct Test_I_Target_DirectShow_PinConfiguration,
-                                       Test_I_Target_DirectShowFilter_t> Test_I_Target_DirectShow_Display;
+                                       Test_I_Target_DirectShowFilter_t,
+                                       struct _AMMediaType> Test_I_Target_DirectShow_Display;
 typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
                                             struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,

@@ -75,7 +75,7 @@ class Stream_Module_Aggregator_ReaderTask_T
                            TimePolicyType> ISTREAM_T;
 
   Stream_Module_Aggregator_ReaderTask_T (ISTREAM_T*); // stream handle
-  inline virtual ~Stream_Module_Aggregator_ReaderTask_T () {};
+  inline virtual ~Stream_Module_Aggregator_ReaderTask_T () {}
 
   virtual int put (ACE_Message_Block*,      // message
                    ACE_Time_Value* = NULL); // time
@@ -120,7 +120,7 @@ class Stream_Module_Aggregator_ReaderTask_2
                            TimePolicyType> ISTREAM_T;
 
   Stream_Module_Aggregator_ReaderTask_2 (ISTREAM_T*); // stream handle
-  inline virtual ~Stream_Module_Aggregator_ReaderTask_2 () {};
+  inline virtual ~Stream_Module_Aggregator_ReaderTask_2 () {}
 
   virtual int put (ACE_Message_Block*,      // message
                    ACE_Time_Value* = NULL); // time

@@ -292,11 +292,19 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   int result = 0;
   bool stop_processing = false;
   bool forward_b = true;
+  enum Stream_MessageType message_type_e =
+    static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ());
+  bool is_data_b = (message_type_e == STREAM_MESSAGE_DATA) ||
+                   (message_type_e == STREAM_MESSAGE_OBJECT);
+  bool is_control_b = (message_type_e == STREAM_MESSAGE_CONTROL);
 
   // step1: handle message
   handleMessage (messageBlock_in,
                  stop_processing);
-  ACE_UNUSED_ARG (stop_processing);
+  if (is_data_b && stop_processing) // *WORKAROUND*
+    return 0;
+  else if (is_control_b)
+    goto continue_;
 
   // step2: forward message to downstream module
   try {
@@ -518,8 +526,10 @@ error:
                                           forward_b);
         ACE_ASSERT (session_message_p && forward_b);
       } // end ELSE
-      ACE_ASSERT (session_message_p && forward_b);
+
       // process message
+      // *TODO*: if there is no derived implementation, do NOT call into 'this'
+      //         again !
       try {
         this->handleSessionMessage (session_message_p,
                                     forward_b);
@@ -529,6 +539,8 @@ error:
                     inherited::mod_->name ()));
         goto error_2;
       }
+
+//continue_:
       // post-process UNLINK/END messages
       if (unlikely (post_process_b))
       {
@@ -607,6 +619,8 @@ error_2:
                     inherited::mod_->name ()));
         goto error_3;
       }
+      if (unlikely (!forward_b)) // *WORKAROUND*
+        stopProcessing_out = true;
 
       break;
 

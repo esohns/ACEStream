@@ -152,6 +152,15 @@ class Stream_Miscellaneous_Distributor_WriterTask_T
                                  struct Stream_UserData> inherited;
 
  public:
+  // convenient types
+  typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_SYNCH_USE,
+                                                        TimePolicyType,
+                                                        ConfigurationType,
+                                                        ControlMessageType,
+                                                        DataMessageType,
+                                                        SessionMessageType,
+                                                        SessionDataType> READER_TASK_T;
+
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_Miscellaneous_Distributor_WriterTask_T (ISTREAM_T*); // stream handle
@@ -181,7 +190,6 @@ class Stream_Miscellaneous_Distributor_WriterTask_T
   virtual Stream_ModuleList_t next () const;
 
  protected:
-  // convenient types
   typedef std::map<ACE_thread_t,
                    typename inherited::MESSAGE_QUEUE_T*> THREAD_TO_QUEUE_MAP_T;
   typedef typename THREAD_TO_QUEUE_MAP_T::const_iterator THREAD_TO_QUEUE_CONST_ITERATOR_T;

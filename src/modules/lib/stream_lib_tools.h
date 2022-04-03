@@ -99,7 +99,7 @@ class Stream_MediaFramework_Tools
                                  enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 
   // *NOTE*: as used in struct tagBITMAPINFOHEADER.biBitCount
-  static WORD toBitCount (REFGUID,                          // media subtype
+  static WORD toBitCount (REFGUID, // media subtype
                           enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 
   static std::string mediaFormatTypeToString (REFGUID); // media format type

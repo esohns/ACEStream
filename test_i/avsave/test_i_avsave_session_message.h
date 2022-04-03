@@ -49,13 +49,11 @@ class Stream_MessageAllocatorHeapBase_T;
 template <typename DataMessageType,
           typename SessionDataType> // derives off Stream_SessionData_T
 class Stream_AVSave_SessionMessage_T
- : public Stream_SessionMessageBase_T<//struct Stream_AllocatorConfiguration,
-                                      enum Stream_SessionMessageType,
+ : public Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
                                       SessionDataType,
                                       struct Stream_UserData>
 {
-  typedef Stream_SessionMessageBase_T<//struct Stream_AllocatorConfiguration,
-                                      enum Stream_SessionMessageType,
+  typedef Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
                                       SessionDataType,
                                       struct Stream_UserData> inherited;
 

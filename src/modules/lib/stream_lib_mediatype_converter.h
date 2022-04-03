@@ -60,15 +60,22 @@ class Stream_MediaFramework_MediaTypeConverter_T
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: struct _AMMediaType return values need to be Stream_MediaFramework_DirectShow_Tools::free'd !
   inline void getMediaType (const struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_in, enum Stream_MediaType_Type, struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_out) { Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in, mediaType_out); }
+  void getMediaType (const struct _AMMediaType&, // media type
+                     enum Stream_MediaType_Type, // media type type
+                     struct Stream_MediaFramework_DirectShow_AudioVideoFormat&);
   void getMediaType (const struct Stream_MediaFramework_DirectShow_AudioVideoFormat&, // media type
                      enum Stream_MediaType_Type,                                      // media type type
                      struct _AMMediaType&);
   inline void getMediaType (const struct _AMMediaType& mediaType_in, enum Stream_MediaType_Type, struct _AMMediaType& mediaType_out) { bool result = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in, mediaType_out); ACE_ASSERT (result); }
   void getMediaType (const struct _AMMediaType&, enum Stream_MediaType_Type, IMFMediaType*&);
 
+  inline void getMediaType (const struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat& mediaType_in, enum Stream_MediaType_Type, struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat& mediaType_out) { Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in, mediaType_out); }
   void getMediaType (const struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat&, // media type
                      enum Stream_MediaType_Type,                                           // media type type
                      struct _AMMediaType&);
+  void getMediaType (const IMFMediaType*,        // media type
+                     enum Stream_MediaType_Type, // media type type
+                     struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat&);
   void getMediaType (const struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat&, // media type
                      enum Stream_MediaType_Type,                                           // media type type
                      IMFMediaType*&);
@@ -111,12 +118,14 @@ class Stream_MediaFramework_MediaTypeConverter_T
 
   inline void setFormat (REFGUID format_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setFormat (format_in, mediaType_inout); }
   inline void setResolution (const Common_Image_Resolution_t resolution_in, struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_in, mediaType_inout.video); }
+  inline void setResolution (const Common_Image_Resolution_t resolution_in, struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat& mediaType_inout) { Stream_MediaFramework_MediaFoundation_Tools::setResolution (resolution_in, mediaType_inout.video); }
   inline void setResolution (const Common_Image_Resolution_t resolution_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_in, mediaType_inout); }
   inline void setResolution (const Common_Image_Resolution_t resolution_in, IMFMediaType* mediaType_inout) { Stream_MediaFramework_MediaFoundation_Tools::setResolution (resolution_in, mediaType_inout); }
 
 #if defined (FFMPEG_SUPPORT)
   // ffmpeg
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setFormat (Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (format_in), mediaType_inout.video); }
+  inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat& mediaType_inout) { Stream_MediaFramework_MediaFoundation_Tools::setFormat (Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (format_in), mediaType_inout.video); }
   inline void setFormat (enum AVPixelFormat format_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setFormat (Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (format_in), mediaType_inout); }
   inline void setFormat (enum AVPixelFormat format_in, IMFMediaType* mediaType_inout) { Stream_MediaFramework_MediaFoundation_Tools::setFormat (Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (format_in), mediaType_inout); }
 #endif // FFMPEG_SUPPORT

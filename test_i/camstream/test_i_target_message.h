@@ -95,13 +95,11 @@ class Test_I_Target_DirectShow_Stream_Message
 };
 
 class Test_I_Target_MediaFoundation_Stream_Message
- : public Stream_MediaFramework_MediaFoundation_MessageBase_T<struct Test_I_Target_MediaFoundation_MessageData,
-                                                              //struct Common_AllocatorConfiguration,
-                                                              enum Stream_MessageType>
+ : public Stream_MediaFramework_MediaFoundation_DataMessageBase_T<struct Test_I_Target_MediaFoundation_MessageData,
+                                                                  enum Stream_MessageType>
 {
-  typedef Stream_MediaFramework_MediaFoundation_MessageBase_T<struct Test_I_Target_MediaFoundation_MessageData,
-                                                              //struct Common_AllocatorConfiguration,
-                                                              enum Stream_MessageType> inherited;
+  typedef Stream_MediaFramework_MediaFoundation_DataMessageBase_T<struct Test_I_Target_MediaFoundation_MessageData,
+                                                                  enum Stream_MessageType> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,

@@ -250,7 +250,8 @@ typedef Stream_Vis_Target_DirectShow_T<ACE_MT_SYNCH,
                                        Stream_CameraScreen_DirectShow_SessionData,
                                        struct Stream_CameraScreen_DirectShow_FilterConfiguration,
                                        struct Stream_CameraScreen_DirectShow_PinConfiguration,
-                                       Stream_CameraScreen_DirectShowFilter_t> Stream_CameraScreen_DirectShow_Display;
+                                       Stream_CameraScreen_DirectShowFilter_t,
+                                       struct _AMMediaType> Stream_CameraScreen_DirectShow_Display;
 
 #if defined (GLUT_SUPPORT)
 typedef Stream_Visualization_OpenGL_GLUT_T<ACE_MT_SYNCH,

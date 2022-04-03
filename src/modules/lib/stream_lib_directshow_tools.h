@@ -192,6 +192,9 @@ class Stream_MediaFramework_DirectShow_Tools
                     struct Stream_MediaFramework_DirectShow_AudioVideoFormat&);      // return value: media type
   static void free (struct Stream_MediaFramework_DirectShow_AudioVideoFormat&); // media type
   static void free (Stream_MediaFramework_DirectShow_AudioVideoFormats_t&);
+  static std::string toString (const struct Stream_MediaFramework_DirectShow_AudioVideoFormat&, // media type
+                               bool = false); // condensed version ?
+
   // *IMPORTANT NOTE*: callers must 'delete_' any return values
   static struct _AMMediaType* copy (const struct _AMMediaType&);
   // *IMPORTANT NOTE*: callers must 'free' the second argument

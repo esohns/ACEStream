@@ -185,13 +185,6 @@ typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_DirectShow_LibAVResize;
 #endif // FFMPEG_SUPPORT
 
-typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
-                                                      Stream_ControlMessage_t,
-                                                      Stream_AVSave_DirectShow_Message_t,
-                                                      Stream_AVSave_DirectShow_SessionMessage_t,
-                                                      Stream_AVSave_DirectShow_SessionData> Stream_AVSave_DirectShow_Distributor_Reader_t;
 typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
@@ -255,13 +248,6 @@ typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_LibAVResize;
 #endif // FFMPEG_SUPPORT
 
-typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
-                                                      Stream_ControlMessage_t,
-                                                      Stream_AVSave_Message_t,
-                                                      Stream_AVSave_ALSA_V4L_SessionMessage_t,
-                                                      Stream_AVSave_ALSA_V4L_SessionData> Stream_AVSave_ALSA_V4L_Distributor_Reader_t;
 typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
@@ -443,7 +429,8 @@ typedef Stream_Vis_Target_DirectShow_T<ACE_MT_SYNCH,
                                        Stream_AVSave_DirectShow_SessionData,
                                        struct Stream_AVSave_DirectShow_FilterConfiguration,
                                        struct Stream_AVSave_DirectShow_PinConfiguration,
-                                       Stream_AVSave_DirectShowFilter_t> Stream_AVSave_DirectShow_DirectShowDisplay;
+                                       Stream_AVSave_DirectShowFilter_t,
+                                       struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_DirectShow_DirectShowDisplay;
 
 typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
@@ -687,14 +674,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,               
 //                          Stream_AVSave_MediaFoundation_Statistic_WriterTask_t, // writer type
 //                          Stream_AVSave_MediaFoundation_StatisticReport);  // name
 
-DATASTREAM_MODULE_DUPLEX (Stream_AVSave_DirectShow_SessionData,                       // session data type
-                          enum Stream_SessionMessageType,                             // session event type
-                          struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_DUPLEX (Stream_AVSave_DirectShow_SessionData,                         // session data type
+                          enum Stream_SessionMessageType,                               // session event type
+                          struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,   // module handler configuration type
                           libacestream_default_misc_distributor_module_name_string,
-                          Stream_INotify_t,                                           // stream notification interface type
-                          Stream_AVSave_DirectShow_Distributor_Reader_t,              // reader type
-                          Stream_AVSave_DirectShow_Distributor_Writer_t,              // writer type
-                          Stream_AVSave_DirectShow_Distributor);                      // module name prefix
+                          Stream_INotify_t,                                             // stream notification interface type
+                          Stream_AVSave_DirectShow_Distributor_Writer_t::READER_TASK_T, // reader type
+                          Stream_AVSave_DirectShow_Distributor_Writer_t,                // writer type
+                          Stream_AVSave_DirectShow_Distributor);                        // module name prefix
 #else
 //DATASTREAM_MODULE_DUPLEX (Stream_AVSave_V4L_SessionData,                // session data type
 //                          enum Stream_SessionMessageType,                   // session event type
@@ -705,14 +692,14 @@ DATASTREAM_MODULE_DUPLEX (Stream_AVSave_DirectShow_SessionData,                 
 //                          Stream_AVSave_Statistic_WriterTask_t,            // writer type
 //                          Stream_AVSave_StatisticReport);                  // name
 
-DATASTREAM_MODULE_DUPLEX (Stream_AVSave_ALSA_V4L_SessionData,                       // session data type
-                          enum Stream_SessionMessageType,                           // session event type
-                          struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_DUPLEX (Stream_AVSave_ALSA_V4L_SessionData,                         // session data type
+                          enum Stream_SessionMessageType,                             // session event type
+                          struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,   // module handler configuration type
                           libacestream_default_misc_distributor_module_name_string,
-                          Stream_INotify_t,                                         // stream notification interface type
-                          Stream_AVSave_ALSA_V4L_Distributor_Reader_t,              // reader type
-                          Stream_AVSave_ALSA_V4L_Distributor_Writer_t,              // writer type
-                          Stream_AVSave_Distributor);                               // module name prefix
+                          Stream_INotify_t,                                           // stream notification interface type
+                          Stream_AVSave_ALSA_V4L_Distributor_Writer_t::READER_TASK_T, // reader type
+                          Stream_AVSave_ALSA_V4L_Distributor_Writer_t,                // writer type
+                          Stream_AVSave_Distributor);                                 // module name prefix
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

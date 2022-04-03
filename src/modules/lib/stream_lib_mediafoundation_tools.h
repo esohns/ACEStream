@@ -236,10 +236,14 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static bool copy (const IMFAttributes*, // source
                     IMFAttributes*,       // destination
                     REFGUID);             // key
+
   static bool copy (const struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat&, // media type
                     struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat&);      // return value: media type
   static void free (struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat&); // media type
+  static std::string toString (struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat&, // media type
+                               bool = false);                                                  // condensed ?
   static void free (Stream_MediaFramework_MediaFoundation_AudioVideoFormats_t&);
+
   static IMFMediaType* copy (const IMFMediaType*); // media type
   static void free (Stream_MediaFramework_MediaFoundation_Formats_t&);
   //static std::string mediaSubTypeToString (REFGUID); // media subtype

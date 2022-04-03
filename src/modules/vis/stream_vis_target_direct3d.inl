@@ -2413,6 +2413,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
       TOPOID node_id = 0;
       Common_Image_Resolution_t resolution_s;
       bool COM_initialized = Common_Tools::initializeCOM ();
+      MediaType media_type_s;
 
       // sanity check(s)
       ACE_ASSERT (session_data_r.session);
@@ -2447,7 +2448,6 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       ACE_ASSERT (media_type_p);
-      MediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (MediaType));
       inherited::getMediaType (media_type_p,
                                STREAM_MEDIATYPE_VIDEO,

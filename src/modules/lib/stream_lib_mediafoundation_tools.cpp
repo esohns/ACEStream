@@ -5939,6 +5939,21 @@ Stream_MediaFramework_MediaFoundation_Tools::free (struct Stream_MediaFramework_
   mediaType_inout.video = NULL;
 }
 
+std::string
+Stream_MediaFramework_MediaFoundation_Tools::toString (struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat& mediaType_in,
+                                                       bool condensed_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::toString"));
+
+  std::string result = ACE_TEXT_ALWAYS_CHAR ("AUDIO:\n");
+  result += Stream_MediaFramework_MediaFoundation_Tools::toString (mediaType_in.audio,
+                                                                   condensed_in);
+  result += ACE_TEXT_ALWAYS_CHAR ("\nVIDEO:\n");
+  result += Stream_MediaFramework_MediaFoundation_Tools::toString (mediaType_in.video,
+                                                                   condensed_in);
+  return result;
+}
+
 void
 Stream_MediaFramework_MediaFoundation_Tools::free (Stream_MediaFramework_MediaFoundation_AudioVideoFormats_t& formats_in)
 {

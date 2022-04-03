@@ -81,6 +81,40 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 
 template <typename MediaType>
 void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct _AMMediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  switch (type_in)
+  {
+    case STREAM_MEDIATYPE_AUDIO:
+    {
+      Stream_MediaFramework_DirectShow_Tools::free (mediaType_out.audio);
+      Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in,
+                                                    mediaType_out.audio);
+      break;
+    }
+    case STREAM_MEDIATYPE_VIDEO:
+    {
+      Stream_MediaFramework_DirectShow_Tools::free (mediaType_out.video);
+      Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in,
+                                                    mediaType_out.video);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media type type (was: %d), returning\n"),
+                  type_in));
+      return;
+    }
+  } // end SWITCH
+}
+
+template <typename MediaType>
+void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_in,
                                                                      enum Stream_MediaType_Type type_in,
                                                                      struct _AMMediaType& mediaType_out)
@@ -230,6 +264,44 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
                 type_in,
                 mediaType_out);
   media_type_p->Release ();
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMediaType* mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  switch (type_in)
+  {
+    case STREAM_MEDIATYPE_AUDIO:
+    {
+      if (mediaType_out.audio)
+        mediaType_out.audio->Release ();
+      mediaType_out.audio =
+        Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in);
+      ACE_ASSERT (mediaType_out.audio);
+      break;
+    }
+    case STREAM_MEDIATYPE_VIDEO:
+    {
+      if (mediaType_out.video)
+        mediaType_out.video->Release ();
+      mediaType_out.video =
+        Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in);
+      ACE_ASSERT (mediaType_out.video);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media type type (was: %d), returning\n"),
+                  type_in));
+      return;
+    }
+  } // end SWITCH
 }
 
 template <typename MediaType>

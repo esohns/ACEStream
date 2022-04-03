@@ -288,9 +288,6 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
-  ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (inherited::sessionData_);
 
   HRESULT result_2 = E_FAIL;
@@ -302,6 +299,7 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
       ACE_ASSERT (!session_data_r.formats.empty ());
 
       struct _AMMediaType media_type_s;

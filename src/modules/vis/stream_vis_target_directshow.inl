@@ -67,7 +67,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
-          typename FilterType>
+          typename FilterType,
+          typename MediaType>
 Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
@@ -78,7 +79,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                SessionDataType,
                                FilterConfigurationType,
                                PinConfigurationType,
-                               FilterType>::Stream_Vis_Target_DirectShow_T (ISTREAM_T* stream_in)
+                               FilterType,
+                               MediaType>::Stream_Vis_Target_DirectShow_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , closeWindow_ (false)
  , IMFVideoDisplayControl_ (NULL)
@@ -99,7 +101,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
-          typename FilterType>
+          typename FilterType,
+          typename MediaType>
 Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
@@ -110,7 +113,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                SessionDataType,
                                FilterConfigurationType,
                                PinConfigurationType,
-                               FilterType>::~Stream_Vis_Target_DirectShow_T ()
+                               FilterType,
+                               MediaType>::~Stream_Vis_Target_DirectShow_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::~Stream_Vis_Target_DirectShow_T"));
 
@@ -151,7 +155,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
-          typename FilterType>
+          typename FilterType,
+          typename MediaType>
 void
 Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -163,7 +168,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                SessionDataType,
                                FilterConfigurationType,
                                PinConfigurationType,
-                               FilterType>::toggle ()
+                               FilterType,
+                               MediaType>::toggle ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::toggle"));
 
@@ -344,7 +350,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
-          typename FilterType>
+          typename FilterType,
+          typename MediaType>
 void
 Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -356,16 +363,14 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                SessionDataType,
                                FilterConfigurationType,
                                PinConfigurationType,
-                               FilterType>::handleDataMessage (DataMessageType*& message_inout,
-                                                               bool& passMessageDownstream_out)
+                               FilterType,
+                               MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                              bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::handleDataMessage"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-
   // forward message to the directshow filter graph ?
-  if (unlikely (InlineIsEqualGUID (inherited::configuration_->filterCLSID, GUID_NULL)))
+  if (unlikely (!window_))
     return;
 
   inherited::handleDataMessage (message_inout,
@@ -382,7 +387,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
-          typename FilterType>
+          typename FilterType,
+          typename MediaType>
 void
 Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -394,8 +400,9 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                SessionDataType,
                                FilterConfigurationType,
                                PinConfigurationType,
-                               FilterType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                  bool& passMessageDownstream_out)
+                               FilterType,
+                               MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                 bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::handleSessionMessage"));
 
@@ -981,7 +988,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
-          typename FilterType>
+          typename FilterType,
+          typename MediaType>
 bool
 Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -993,8 +1001,9 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                SessionDataType,
                                FilterConfigurationType,
                                PinConfigurationType,
-                               FilterType>::initialize (const ConfigurationType& configuration_in,
-                                                        Stream_IAllocator* allocator_in)
+                               FilterType,
+                               MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                       Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::initialize"));
 
@@ -1064,7 +1073,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
-          typename FilterType>
+          typename FilterType,
+          typename MediaType>
 bool
 Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -1076,13 +1086,14 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                SessionDataType,
                                FilterConfigurationType,
                                PinConfigurationType,
-                               FilterType>::initialize_DirectShow (IGraphBuilder* IGraphBuilder_in,
-                                                                   const struct _AMMediaType& mediaType_in,
-                                                                   HWND& windowHandle_inout,
-                                                                   bool fullScreen_in,
-                                                                   struct tagRECT& windowArea_inout,
-                                                                   IVideoWindow*& IVideoWindow_out,
-                                                                   IMFVideoDisplayControl*& IMFVideoDisplayControl_out)
+                               FilterType,
+                               MediaType>::initialize_DirectShow (IGraphBuilder* IGraphBuilder_in,
+                                                                  const struct _AMMediaType& mediaType_in,
+                                                                  HWND& windowHandle_inout,
+                                                                  bool fullScreen_in,
+                                                                  struct tagRECT& windowArea_inout,
+                                                                  IVideoWindow*& IVideoWindow_out,
+                                                                  IMFVideoDisplayControl*& IMFVideoDisplayControl_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::initialize_DirectShow"));
 

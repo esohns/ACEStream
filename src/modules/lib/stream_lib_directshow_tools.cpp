@@ -3008,6 +3008,21 @@ Stream_MediaFramework_DirectShow_Tools::free (Stream_MediaFramework_DirectShow_A
     Stream_MediaFramework_DirectShow_Tools::free (*iterator);
 }
 
+std::string
+Stream_MediaFramework_DirectShow_Tools::toString (const struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_in,
+                                                  bool condensed_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toString"));
+
+  std::string result = ACE_TEXT_ALWAYS_CHAR ("AUDIO:\n");
+  result += Stream_MediaFramework_DirectShow_Tools::toString (mediaType_in.audio,
+                                                              condensed_in);
+  result += ACE_TEXT_ALWAYS_CHAR ("\nVIDEO:\n");
+  result += Stream_MediaFramework_DirectShow_Tools::toString (mediaType_in.video,
+                                                              condensed_in);
+  return result;
+}
+
 struct _AMMediaType*
 Stream_MediaFramework_DirectShow_Tools::copy (const struct _AMMediaType& mediaType_in)
 {

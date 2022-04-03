@@ -505,7 +505,8 @@ typedef Stream_Vis_Target_DirectShow_T<ACE_MT_SYNCH,
                                        Stream_CamSave_DirectShow_SessionData,
                                        struct Stream_CamSave_DirectShow_FilterConfiguration,
                                        struct Stream_CamSave_DirectShow_PinConfiguration,
-                                       Stream_CamSave_DirectShowFilter_t> Stream_CamSave_DirectShow_DirectShowDisplay;
+                                       Stream_CamSave_DirectShowFilter_t,
+                                       struct _AMMediaType> Stream_CamSave_DirectShow_DirectShowDisplay;
 
 typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
