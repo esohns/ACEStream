@@ -185,6 +185,8 @@ if (UNIX)
   link_directories (/usr/local/lib64)
   target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${LIBCAMERA_LIBRARIES})
  endif (LIBCAMERA_SUPPORT)
+
+ target_link_libraries (${PROJECT_NAME}_Device PUBLIC CommonTask)
 elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC Avrt.lib)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC d3d9.lib)

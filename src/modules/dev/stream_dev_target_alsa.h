@@ -33,6 +33,8 @@ extern "C"
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_lib_mediatype_converter.h"
+
 #include "stream_dev_common.h"
 
 extern const char libacestream_default_dev_target_alsa_module_name_string[];
@@ -59,6 +61,7 @@ class Stream_Dev_Target_ALSA_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<struct Stream_MediaFramework_ALSA_MediaType>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -69,6 +72,7 @@ class Stream_Dev_Target_ALSA_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<struct Stream_MediaFramework_ALSA_MediaType> inherited2;
 
  public:
   Stream_Dev_Target_ALSA_T (typename inherited::ISTREAM_T*); // stream handle

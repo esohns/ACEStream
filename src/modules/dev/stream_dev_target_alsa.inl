@@ -151,6 +151,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                          SessionMessageType,
                          SessionDataType>::Stream_Dev_Target_ALSA_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
+ , inherited2 ()
  , asynchCBData_ ()
  , asynchHandler_ (NULL)
 #if defined (_DEBUG)
@@ -451,10 +452,12 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
       SessionDataType& session_data_r =
         const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-      struct Stream_MediaFramework_ALSA_MediaType media_type_r =
-        session_data_r.formats.back ();
+      struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_AUDIO,
+                                media_type_s);
       sampleSize_ =
-          (snd_pcm_format_width (media_type_r.format) / 8) * media_type_r.channels;
+          (snd_pcm_format_width (media_type_s.format) / 8) * media_type_s.channels;
 
       bool stop_device = false;
 //      size_t initial_buffer_size = 0;
@@ -518,7 +521,7 @@ open:
 
         if (!inherited::configuration_->ALSAConfiguration->format)
         {
-          inherited::configuration_->ALSAConfiguration->format = &media_type_r;
+          inherited::configuration_->ALSAConfiguration->format = &media_type_s;
           reset_format = true;
         } // end IF
         if (unlikely (!Stream_MediaFramework_ALSA_Tools::setFormat (deviceHandle_,

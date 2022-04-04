@@ -1075,19 +1075,19 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
         //                       NULL);
         //message_data_container_p = NULL;
 
-//continue_:
-        // parse incoming data fragment(s)
         ACE_ASSERT (!headFragment_);
         headFragment_ = message_p;
+continue_:
+        // parse next data fragment(s)
         try {
-          result_2 = inherited2::parse (message_block_p);
+          result_2 = inherited2::parse (headFragment_);
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: caught exception in Common_IParser_T::parse(), continuing\n"),
                       inherited::mod_->name ()));
           result_2 = false;
         }
-        if (!result_2)
+        if (unlikely (!result_2))
         {
           // *NOTE*: most probable reason: connection
           //         has been closed --> session end
@@ -1096,6 +1096,8 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                       inherited::mod_->name ()));
           goto error;
         } // end IF
+        if (headFragment_)
+          goto continue_;
 
         break;
 
