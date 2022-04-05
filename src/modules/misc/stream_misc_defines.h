@@ -25,8 +25,9 @@
 
 // module
 #define STREAM_MISC_AGGREGATOR_DEFAULT_NAME_STRING                  "Aggregator"
-#define STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING                 "Distributor"
+#define STREAM_MISC_DEFRAGMENT_DEFAULT_NAME_STRING                  "Defragment"
 #define STREAM_MISC_DELAY_DEFAULT_NAME_STRING                       "Delay"
+#define STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING                 "Distributor"
 #define STREAM_MISC_DUMP_DEFAULT_NAME_STRING                        "Dump"
 #define STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING              "MessageHandler"
 // *NOTE*: duplex module consisting of 'parser' / 'streamer'
