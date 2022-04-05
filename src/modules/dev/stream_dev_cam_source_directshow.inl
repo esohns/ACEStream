@@ -18,14 +18,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#if defined (NUMELMS)
-#else
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-#define NUMELMS(aa) (sizeof(aa)/sizeof((aa)[0]))
-#else
-#define NUMELMS(aa) ARRAYSIZE(aa)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-#endif // NUMELMS
+//#if defined (NUMELMS)
+//#else
+//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+//#define NUMELMS(aa) (sizeof(aa)/sizeof((aa)[0]))
+//#else
+//#define NUMELMS(aa) ARRAYSIZE(aa)
+//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+//#endif // NUMELMS
 
 #include "strmif.h"
 #include "vfwmsgs.h"

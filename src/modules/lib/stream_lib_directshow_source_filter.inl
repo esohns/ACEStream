@@ -1466,6 +1466,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
   int result_2 = -1;
   size_t bytes_to_write_i = 0;
   unsigned int offset_i = 0;
+  ACE_Message_Block* message_block_p = NULL;
 
   if (configuration_->buffer)
     goto continue_;
@@ -1521,6 +1522,14 @@ continue_:
   configuration_->buffer->rd_ptr (bytes_to_write_i);
   if (!configuration_->buffer->length ())
   {
+    if (configuration_->buffer->cont ())
+    {
+      message_block_p = configuration_->buffer->cont ();
+      configuration_->buffer->cont (NULL);
+      configuration_->buffer->release (); configuration_->buffer = NULL;
+      configuration_->buffer = message_block_p;
+      goto continue_;
+    } // end IF
     configuration_->buffer->release (); configuration_->buffer = NULL;
   } // end IF
   if (available_buffer_size_i)

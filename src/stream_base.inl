@@ -1356,16 +1356,16 @@ Stream_Base_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_CONNECT:
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: connect notified, returning\n"),
-                  ACE_TEXT (name_.c_str ())));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: connect notified, returning\n"),
+      //            ACE_TEXT (name_.c_str ())));
       break;
     }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: disconnect notified, returning\n"),
-                  ACE_TEXT (name_.c_str ())));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: disconnect notified, returning\n"),
+      //            ACE_TEXT (name_.c_str ())));
       break;
     }
     // *NOTE*: there are two scenarios in this case:
@@ -1379,16 +1379,20 @@ Stream_Base_T<ACE_SYNCH_USE,
         ACE_ASSERT (!state_.linked_ds_);
         state_.linked_ds_ = true;
       } // end lock scope
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: link notified, returning\n"),
-                  ACE_TEXT (name_.c_str ())));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: link notified, returning\n"),
+      //            ACE_TEXT (name_.c_str ())));
       break;
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: unlink notified, returning\n"),
-                  ACE_TEXT (name_.c_str ())));
+      { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
+        //ACE_ASSERT (state_.linked_ds_);
+        state_.linked_ds_ = false;
+      } // end lock scope
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: unlink notified, returning\n"),
+      //            ACE_TEXT (name_.c_str ())));
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -3059,6 +3063,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     // *NOTE*: this module may be shared by multiple stream instances, so it
     //         must not be close()d or reset here
     { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
+      state_.linked_ds_ = false;
+    
       if (state_.module && !state_.moduleIsClone)
         if (unlikely (!remove (state_.module,
                                false,   // lock ?

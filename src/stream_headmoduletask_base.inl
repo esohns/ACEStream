@@ -663,9 +663,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: stream still active in Stream_HeadModuleTaskBase_T::module_closed(), continuing\n"),
                 inherited::mod_->name ()));
-    Common_ITask* itask_p = this;
-    itask_p->stop (true,  // wait ?
-                   true); // N/A
+    stop (true,  // wait ?
+          false, // recurse ?
+          true); // high priority ?
   } // end IF
 
   return 0;
@@ -2318,11 +2318,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           //         i.e. would complete 'before' the state has transitioned to
           //         'running' --> set the state early
           if (result)
-          { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited2::stateLock_, false);
-            result = false; // <-- caller will not set the state
-            inherited2::state_ = STREAM_STATE_SESSION_STARTING;
-          } // end IF/lock scope
-          inherited2::signal ();
+          {
+            { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited2::stateLock_, false);
+              result = false; // <-- caller will not set the state
+              inherited2::state_ = STREAM_STATE_SESSION_STARTING;
+            } // end lock scope
+            inherited2::signal ();
+          } // end IF
 
           { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard_2, inherited::lock_, false);
             // sanity check(s)

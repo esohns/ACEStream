@@ -1088,7 +1088,7 @@ next_buffer_2:
 continue_:
     bytes_to_write_i = std::min (message_block_p->length (),
                                  (num_frames_available_i * frameSize_));
-    ACE_ASSERT ((bytes_to_write_i % frameSize_) == 0);
+    //ACE_ASSERT ((bytes_to_write_i % frameSize_) == 0);
     ACE_OS::memcpy (data_p + offset_i, message_block_p->rd_ptr (),
                     bytes_to_write_i);
     num_frames_available_i -= (bytes_to_write_i / frameSize_);

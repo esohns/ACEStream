@@ -212,8 +212,6 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
-  ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (inherited::sessionData_);
 
   SessionDataType& session_data_r =
