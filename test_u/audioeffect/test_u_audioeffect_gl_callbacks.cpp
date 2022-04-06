@@ -292,12 +292,13 @@ glarea_realize_cb (GtkWidget* widget_in,
     COMMON_GL_ASSERT;
     *texture_id_p = 0;
   } // end IF
-  static GLubyte* image_p = NULL;
+  static GLubyte*image_p = NULL;
   if (!image_p)
   {
-    std::string filename = Common_File_Tools::getWorkingDirectory ();
-    filename += ACE_DIRECTORY_SEPARATOR_CHAR;
-    filename += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+    std::string filename =
+      Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                        false); // data
     filename += ACE_DIRECTORY_SEPARATOR_CHAR;
     filename +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_OPENGL_DEFAULT_TEXTURE_FILE);

@@ -1,7 +1,7 @@
 
 set (IN_CPACK TRUE)
 
-set (CPACK_COMPONENTS_ALL config include mod_include lib mod_lib test_u test_i)
+set (CPACK_COMPONENTS_ALL config data include mod_include lib mod_lib test_u test_i)
 set (CPACK_COMPONENT_CONFIG_DESCRIPTION "configuration data")
 set (CPACK_COMPONENT_CONFIG_DISPLAY_NAME "configuration data")
 set (CPACK_COMPONENT_CONFIG_HIDDEN TRUE)
@@ -10,18 +10,18 @@ set (CPACK_COMPONENT_INCLUDE_DESCRIPTION "C++ headers")
 set (CPACK_COMPONENT_INCLUDE_DISPLAY_NAME "C++ headers (library)")
 set (CPACK_COMPONENT_MOD_INCLUDE_DESCRIPTION "C++ headers of the modules")
 set (CPACK_COMPONENT_MOD_INCLUDE_DISPLAY_NAME "C++ headers (modules)")
-set (CPACK_COMPONENT_LIB_DESCRIPTION "C++ (import) library and DLL")
-set (CPACK_COMPONENT_LIB_DISPLAY_NAME "C++ (import) library and DLL")
-set (CPACK_COMPONENS_MOD_LIB_DESCRIPTION "C++ (import) libraries and DLLs (modules)")
-set (CPACK_COMPONENS_MOD_LIB_DISPLAY_NAME "C++ (import) libraries and DLLs (modules)")
+set (CPACK_COMPONENT_LIB_DESCRIPTION "C++ (import) library (and DLL)")
+set (CPACK_COMPONENT_LIB_DISPLAY_NAME "C++ (import) library (and DLL)")
+set (CPACK_COMPONENT_MOD_LIB_DESCRIPTION "C++ (import) libraries (and DLLs) (modules)")
+set (CPACK_COMPONENT_MOD_LIB_DISPLAY_NAME "C++ (import) libraries (and DLLs) (modules)")
 set (CPACK_COMPONENT_TEST_I_DISPLAY_NAME "integration tests")
 set (CPACK_COMPONENT_TEST_U_DISPLAY_NAME "unit tests")
 
 #set (CPACK_COMPONENT_LIB_DEPENDS include)
 #set (CPACK_COMPONENT_MOD_LIB_DEPENDS mod_include)
 set (CPACK_COMPONENT_MOD_LIB_DEPENDS lib)
-set (CPACK_COMPONENT_TEST_I_DEPENDS config lib mod_lib)
-set (CPACK_COMPONENT_TEST_U_DEPENDS config lib mod_lib)
+set (CPACK_COMPONENT_TEST_I_DEPENDS config data lib mod_lib)
+set (CPACK_COMPONENT_TEST_U_DEPENDS config data lib mod_lib)
 
 set (CPACK_COMPONENT_INCLUDE_GROUP "Development")
 set (CPACK_COMPONENT_MOD_INCLUDE_GROUP "Development")
@@ -47,7 +47,17 @@ set (CPACK_COMPONENT_TEST_U_INSTALL_TYPES Full)
 if (UNIX)
  set (CPACK_INSTALL_CMAKE_PROJECTS "@PROJECT_SOURCE_DIR@/build/gcc;@PROJECT_NAME@;ALL;/")
 elseif (WIN32)
- set (CPACK_INSTALL_CMAKE_PROJECTS "@PROJECT_SOURCE_DIR@/build/msvc;@PROJECT_NAME@;ALL;/")
+ set (CPACK_INSTALL_CMAKE_PROJECTS
+#      "@PROJECT_SOURCE_DIR@/build/gcc;@PROJECT_NAME@;ALL;/
+      "@PROJECT_SOURCE_DIR@/build/msvc;@PROJECT_NAME@;include;/"
+      "@PROJECT_SOURCE_DIR@/build/msvc;@PROJECT_NAME@;mod_include;/"
+      "@PROJECT_SOURCE_DIR@/build/msvc;@PROJECT_NAME@;lib;/"
+      "@PROJECT_SOURCE_DIR@/build/msvc;@PROJECT_NAME@;mod_lib;/"
+      "@PROJECT_SOURCE_DIR@/build/msvc;@PROJECT_NAME@;config;/"
+      "@PROJECT_SOURCE_DIR@/build/msvc;@PROJECT_NAME@;data;/"
+      "@PROJECT_SOURCE_DIR@/build/msvc;@PROJECT_NAME@;test_u;/"
+      "@PROJECT_SOURCE_DIR@/build/msvc;@PROJECT_NAME@;test_i;/"
+     )
 endif ()
 
 #set (CPACK_INSTALL_SCRIPT )
@@ -76,7 +86,7 @@ elseif (WIN32)
  set (CPACK_PACKAGE_INSTALL_DIRECTORY "$ENV{PROGRAMFILES64}@PROJECT_NAME@")
  set (CPACK_PACKAGE_INSTALL_REGISTRY_KEY "@PROJECT_NAME@")
 endif ()
-set (CPACK_PACKAGE_ICON "@PROJECT_SOURCE_DIR@/include/libacestream_icon.png")
+set (CPACK_PACKAGE_ICON "@PROJECT_SOURCE_DIR@/include/ACEStream_icon.png")
 set (CPACK_PACKAGE_NAME "@PROJECT_NAME@")
 set (CPACK_PACKAGE_VENDOR "")
 set (CPACK_PACKAGE_VERSION "@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_MICRO@")
@@ -106,13 +116,13 @@ set (CPACK_SOURCE_STRIP_FILES "")
 # use CMAKE_INSTALL_PREFIX ? : CPACK_PACKAGING_INSTALL_PREFIX
 set (CPACK_SET_DESTDIR FALSE)
 
-set (CPACK_STRIP_FILES "bin/camsource;bin/camtarget")
+#set (CPACK_STRIP_FILES "bin/camsource;bin/camtarget")
 
 set (CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
 
 set (CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
 #set (CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_BUILD_TYPE})
-message ("package file name: \"${CPACK_PACKAGE_FILE_NAME}\"")
+#message ("package file name: \"${CPACK_PACKAGE_FILE_NAME}\"")
 
 ################################################################################
 
@@ -190,12 +200,12 @@ elseif (WIN32)
 
 #set (CPACK_NSIS_CREATE_ICONS_EXTRA )
 #set (CPACK_NSIS_COMPRESSOR )
- set (CPACK_NSIS_CONTACT ${CPACK_PACKAGE_CONTACT})
+set (CPACK_NSIS_CONTACT ${CPACK_PACKAGE_CONTACT})
 
 #set (CPACK_NSIS_DELETE_ICONS_EXTRA )
- set (CPACK_NSIS_DISPLAY_NAME "@PROJECT_NAME@")
+set (CPACK_NSIS_DISPLAY_NAME "@PROJECT_NAME@")
 
- set (CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
+set (CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 #set (CPACK_NSIS_EXECUTABLES_DIRECTORY )
 set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\file copy.lnk' '$INSTDIR\\\\bin\\\\filecopy.exe' '-g.\\data\\@PROJECT_NAME@\\filecopy\\filecopy.glade -l -t' $INSTDIR\\\\include\\\\libacestream_icon.ico 0 SW_SHOWNORMAL ALT|CONTROL|SHIFT|F1 'file copy'
                                         CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\file source.lnk' '$INSTDIR\\\\bin\\\\filesource.exe' '-g.\\data\\@PROJECT_NAME@\\filestream\\source.glade -l -t' $INSTDIR\\\\include\\\\libacestream_icon.ico 0 SW_SHOWNORMAL ALT|CONTROL|SHIFT|F3 'filestream source'

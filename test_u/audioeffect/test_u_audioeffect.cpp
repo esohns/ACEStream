@@ -92,6 +92,7 @@
 
 #include "test_u_common.h"
 #include "test_u_defines.h"
+#include "test_u_tools.h"
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
@@ -168,8 +169,8 @@ do_printUsage (const std::string& programName_in)
 #endif // GTK_USE || WXWIDGETS_USE
 #if defined (GTK_SUPPORT)
   std::string UI_style_file = path;
-  UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_file +=
+  UI_style_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  UI_style_file +=
     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_DEFAULT_GTK_CSS_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-i[[STRING]]: UI CSS file [\"")
             << UI_style_file
@@ -257,10 +258,9 @@ do_processArguments (int argc_in,
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
   std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                      true);
 
   // initialize results
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2001,8 +2001,12 @@ ACE_TMAIN (int argc_in,
   // start profile timer...
   process_profile.start ();
 
+  Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (argv_in[0]));
+
   std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                      true);
 
   // step1a set defaults
   //unsigned int buffer_size = TEST_U_STREAM_AUDIOEFFECT_DEFAULT_BUFFER_SIZE;
@@ -2020,8 +2024,6 @@ ACE_TMAIN (int argc_in,
   std::string source_filename;
 #if defined (GUI_SUPPORT)
   path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
 #if defined (GTK_USE)
@@ -2091,7 +2093,7 @@ ACE_TMAIN (int argc_in,
                             ))
 #endif // ACE_WIN32 || ACE_WIN64
   {
-    do_printUsage (ACE::basename (argv_in[0]));
+    do_printUsage (Common_File_Tools::executable);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     // *PORTABILITY*: on Windows, finalize ACE...
@@ -2138,7 +2140,7 @@ ACE_TMAIN (int argc_in,
   //if (run_stress_test)
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
-  Common_Tools::initialize (true);
+  Common_Tools::initialize (true); // initialize random number generator
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   COM_initialized = Common_Tools::initializeCOM ();
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2157,6 +2159,7 @@ ACE_TMAIN (int argc_in,
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 #endif // GTK_SUPPORT
+
   struct Test_U_AudioEffect_UI_CBDataBase* cb_data_base_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_Configuration directshow_configuration;
@@ -2295,8 +2298,8 @@ ACE_TMAIN (int argc_in,
   if (log_to_file)
     log_file_name =
       Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                        ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]),               // program name
+                                        Common_File_Tools::executable);
+  if (!Common_Log_Tools::initializeLogging (Common_File_Tools::executable,            // program name
                                             log_file_name,                            // log file name
                                             false,                                    // log to syslog ?
                                             false,                                    // trace messages ?

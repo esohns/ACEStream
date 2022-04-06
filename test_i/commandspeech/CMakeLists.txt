@@ -260,13 +260,12 @@ endif (GUI_SUPPORT)
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
-install (FILES ${model_file} ${scorer_file}
-         DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT data)
-if (GUI_SUPPORT)
- install (FILES ${ui_definition_file}
-          DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
-endif (GUI_SUPPORT)
-if (WIN32)
+if (UNIX)
+ if (GUI_SUPPORT)
+  install (FILES ${ui_definition_file}
+           DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
+ endif (GUI_SUPPORT)
+elseif (WIN32)
  get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY} DIRECTORY)
  set (ACE_DLL_FILE ACE${LIB_FILE_SUFFIX}.dll)
  set (ACE_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_DLL_FILE})
@@ -294,9 +293,11 @@ if (WIN32)
                 ${LIB_ROOT}/gtk3/bin/zlib1.dll
                 ${LIB_ROOT}/gtk3/bin/libxml2-2.dll
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
- install (FILES ${ui_definition_file}
-          DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+ if (GUI_SUPPORT)
+  install (FILES ${ui_definition_file}
+           DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+ endif (GUI_SUPPORT)
 endif ()
 
 ##########################################

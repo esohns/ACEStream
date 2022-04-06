@@ -29,6 +29,8 @@
 class Test_U_Tools
 {
  public:
+  static bool initialize ();
+
   template <typename ThreadDataType,
             typename CallbackDataType>
   static bool spawn (const std::string&,      // thread name

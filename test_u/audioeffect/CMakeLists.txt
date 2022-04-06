@@ -245,6 +245,17 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_U)
 target_precompile_headers (${EXECUTABLE}
                            PUBLIC stdafx.h)
 
+set (ui_definition_file "")
+if (GUI_SUPPORT)
+if (GTK_USE)
+if (GTK2_USE)
+ set (ui_definition_file "${EXECUTABLE}.gtk2")
+elseif (GTK3_USE OR GTK4_USE)
+ set (ui_definition_file "${EXECUTABLE}.gtk3")
+endif ()
+endif (GTK_USE)
+endif (GUI_SUPPORT)
+
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
@@ -295,10 +306,14 @@ elseif (WIN32)
                 ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxbase316d_vc_x64_custom.dll
                 ${LIB_ROOT}/zlib/build/Debug/zlibd.dll
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
- install (FILES etc/${EXECUTABLE}.gtk2 etc/${EXECUTABLE}.gtk3
-          DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+ install (FILES etc/${ui_definition_file}
+          DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
-
+ install (FILES ${LIB_ROOT}/gtk3/share/glib-2.0/schemas/gschemas.compiled
+                ${LIB_ROOT}/gtk3/share/glib-2.0/schemas/org.gtk.Settings.FileChooser.gschema.xml
+          DESTINATION "${INSTALL_SHARE_DIR}/glib-2.0/schemas" COMPONENT config)
+ install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/image.png
+          DESTINATION "${INSTALL_SHARE_DIR}/${EXECUTABLE}" COMPONENT data)
 endif ()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR
@@ -310,13 +325,9 @@ endif ()
 if (UNIX)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE}" COMMAND)
  if (GUI_SUPPORT)
-  if (GTK_SUPPORT)
-   if (GTK3_USE OR GTK4_USE)
-    set (ARGS "-g./etc/${EXECUTABLE}.gtk3 ${ARGS}")
-   elseif (GTK2_USE)
-    set (ARGS "-g./etc/${EXECUTABLE}.gtk2 ${ARGS}")
-   endif ()
-  endif (GTK_SUPPORT)
+  if (GTK_USE)
+    set (ARGS "-g./etc/${ui_definition_file} ${ARGS}")
+  endif (GTK_USE)
  endif (GUI_SUPPORT)
  set (RUNTIME_LIBRARY_DIR ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
 # set (ENVIRONMENT "GDK_BACKEND=x11")
@@ -326,11 +337,9 @@ elseif (WIN32)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if (GUI_SUPPORT)
   if (GTK_SUPPORT)
-   if (GTK3_USE OR GTK4_USE)
-    set (ARGS "-g.\\\\etc\\\\${EXECUTABLE}.gtk3 ${ARGS}")
-   elseif (GTK2_USE)
-    set (ARGS "-g.\\\\etc\\\\${EXECUTABLE}.gtk2 ${ARGS}")
-   endif ()
+   if (GTK_USE)
+    set (ARGS "-g.\\\\etc\\\\${ui_definition_file} ${ARGS}")
+   endif (GTK_USE)
    file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
   endif (GTK_SUPPORT)
   if (WXWIDGETS_SUPPORT)

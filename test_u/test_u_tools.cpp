@@ -20,3 +20,30 @@
 #include "stdafx.h"
 
 #include "test_u_tools.h"
+
+#include "stream_macros.h"
+
+#include "common_file_tools.h"
+
+#include "common_error_tools.h"
+
+bool
+Test_U_Tools::initialize ()
+{
+  STREAM_TRACE (ACE_TEXT ("Test_U_Tools::initialize"));
+
+  if (likely (!Common_Error_Tools::inDebugSession ()))
+  {
+    if (unlikely (!Common_File_Tools::setWorkingDirectory (ACE_TEXT_ALWAYS_CHAR (".."))))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Common_File_Tools::setWorkingDirectory(\"..\"), aborting\n")));
+      return false;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("set working directory to \"%s\"\n"),
+                ACE_TEXT (Common_File_Tools::getWorkingDirectory ().c_str ())));
+  } // end IF
+
+  return true;
+}

@@ -261,11 +261,11 @@ endif (GUI_SUPPORT)
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
-install (FILES ${model_file} ${scorer_file}
-         DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT data)
+#install (FILES ${model_file} ${scorer_file}
+#         DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT data)
 if (GUI_SUPPORT)
  install (FILES ${ui_definition_file}
-          DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+          DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
 endif (GUI_SUPPORT)
 if (WIN32)
  get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY} DIRECTORY)
