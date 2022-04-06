@@ -181,6 +181,26 @@ target_precompile_headers (${EXECUTABLE}
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
+if (WIN32)
+ get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY}
+                         DIRECTORY)
+ set (ACE_DLL_FILE ACE${LIB_FILE_SUFFIX}.dll)
+ set (ACE_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_DLL_FILE})
+ set (ACE_SSL_DLL_FILE ACE_SSL${LIB_FILE_SUFFIX}.dll)
+ set (ACE_SSL_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_SSL_DLL_FILE})
+ file (TO_NATIVE_PATH $ENV{OO_SDK_HOME} OO_SDK_HOME)
+ string (REPLACE "\\" "\\\\" OO_SDK_HOME ${OO_SDK_HOME})
+ file (TO_NATIVE_PATH $ENV{LIB_ROOT} LIB_ROOT)
+ string (REPLACE "\\" "\\\\" LIB_ROOT ${LIB_ROOT})
+ install (FILES ${ACE_DLL_FQPATH}
+                ${ACE_SSL_DLL_FQPATH}
+                ${OO_SDK_HOME}/bin/sal3.dll
+                ${OO_SDK_HOME}/../program/cppu3.dll
+                ${OO_SDK_HOME}/../program/cppuhelper3MSC.dll
+                ${OO_SDK_HOME}/../program/sal3.dll
+                ${LIB_ROOT}/openssl/libssl-3-x64.dll
+          DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
+endif (WIN32)
 
 if (UNIX)
  create_target_launcher (${EXECUTABLE}

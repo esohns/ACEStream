@@ -230,38 +230,34 @@ elseif (WIN32)
                          DIRECTORY)
  set (ACE_DLL_FILE ACE${LIB_FILE_SUFFIX}.dll)
  set (ACE_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_DLL_FILE})
+ file (TO_NATIVE_PATH $ENV{LIB_ROOT} LIB_ROOT)
+ string (REPLACE "\\" "\\\\" LIB_ROOT ${LIB_ROOT})
  install (FILES ${ACE_DLL_FQPATH}
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libatk-1.0-0.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/freetype6.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/intl.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libcairo-2.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libfontconfig-1.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libgio-2.0-0.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libglib-2.0-0.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libgmodule-2.0-0.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libgobject-2.0-0.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libgthread-2.0-0.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libgdk_pixbuf-2.0-0.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libgdk-win32-2.0-0.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libgtk-win32-2.0-0.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libpango-1.0-0.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libpangocairo-1.0-0.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libpangoft2-1.0-0.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libpangowin32-1.0-0.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/libpng14-14.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/zlib1.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade/bin/libglade-2.0-0.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.1/.libs/libxml2-2.dll
+                ${LIB_ROOT}/gtk3/bin/libatk-1.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libfreetype-6.dll
+                ${LIB_ROOT}/gtk3/bin/libintl-8.dll
+                ${LIB_ROOT}/gtk3/bin/libcairo-2.dll
+                ${LIB_ROOT}/gtk3/bin/libfontconfig-1.dll
+                ${LIB_ROOT}/gtk3/bin/libgio-2.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libglib-2.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libgmodule-2.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libgobject-2.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libgthread-2.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libgdk_pixbuf-2.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libgdk-3-0.dll
+                ${LIB_ROOT}/gtk3/bin/libgtk-3-0.dll
+                ${LIB_ROOT}/gtk3/bin/libpango-1.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libpangocairo-1.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libpangoft2-1.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libpangowin32-1.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libpng15-15.dll
+                ${LIB_ROOT}/gtk3/bin/zlib1.dll
+                ${LIB_ROOT}/gtk3/bin/libxml2-2.dll
                 G:/software/Development/dll/libgcc_s_dw2-1.dll
                 G:/software/Development/dll/libexpat-1.dll
                 G:/software/Development/dll/libiconv-2.dll
-                ${Common_DIR}/src/Debug/Common.dll
-                ${Common_DIR}/src/ui/Debug/CommonUI.dll
-                ${ACENetwork_DIR}/src/Debug/ACENetwork.dll
-                ${ACENetwork_DIR}/src/protocol/http/Debug/ACENetwork_Protocol_HTTP.dll
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/cmake/libmysql/Debug/libmysql.dll
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
- install (FILES ${ui_definition_file} ${EXECUTABLE}.fbp
+ install (FILES ${ui_definition_file}
           DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()

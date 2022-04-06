@@ -246,12 +246,42 @@ install (TARGETS ${EXECUTABLE_SOURCE}
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
          COMPONENT test_i)
 if (UNIX)
- install (FILES etc/source.glade
+ install (FILES etc/resources.rc ${ui_definition_file}
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/camstream" COMPONENT config)
 elseif (WIN32)
- install (FILES etc/source.glade
+ install (FILES etc/resources.rc ${ui_definition_file}
           DESTINATION "data/${PROJECT_NAME}/camstream" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/camstream" COMPONENT config)
+ get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY}
+                         DIRECTORY)
+ set (ACE_DLL_FILE ACE${LIB_FILE_SUFFIX}.dll)
+ set (ACE_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_DLL_FILE})
+ set (ACE_SSL_DLL_FILE ACE_SSL${LIB_FILE_SUFFIX}.dll)
+ set (ACE_SSL_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_SSL_DLL_FILE})
+ file (TO_NATIVE_PATH $ENV{LIB_ROOT} LIB_ROOT)
+ string (REPLACE "\\" "\\\\" LIB_ROOT ${LIB_ROOT})
+ install (FILES ${ACE_DLL_FQPATH}
+                ${LIB_ROOT}/gtk3/bin/libatk-1.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libfreetype-6.dll
+                ${LIB_ROOT}/gtk3/bin/libintl-8.dll
+                ${LIB_ROOT}/gtk3/bin/libcairo-2.dll
+                ${LIB_ROOT}/gtk3/bin/libfontconfig-1.dll
+                ${LIB_ROOT}/gtk3/bin/libgio-2.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libglib-2.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libgmodule-2.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libgobject-2.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libgthread-2.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libgdk_pixbuf-2.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libgdk-3-0.dll
+                ${LIB_ROOT}/gtk3/bin/libgtk-3-0.dll
+                ${LIB_ROOT}/gtk3/bin/libpango-1.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libpangocairo-1.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libpangoft2-1.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libpangowin32-1.0-0.dll
+                ${LIB_ROOT}/gtk3/bin/libpng15-15.dll
+                ${LIB_ROOT}/gtk3/bin/zlib1.dll
+                ${LIB_ROOT}/gtk3/bin/libxml2-2.dll
+          DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
 endif ()
 
 set (COMMAND "$<TARGET_FILE:${EXECUTABLE_SOURCE}>")
@@ -563,10 +593,10 @@ install (TARGETS ${EXECUTABLE_TARGET}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
 if (UNIX)
- install (FILES etc/target.glade
+ install (FILES etc/resources.rc ${ui_definition_file_2}
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/camstream" COMPONENT config)
 elseif (WIN32)
- install (FILES etc/target.glade
+ install (FILES etc/resources.rc ${ui_definition_file_2}
           DESTINATION "data/${PROJECT_NAME}/camstream" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/camstream" COMPONENT config)
 endif ()
