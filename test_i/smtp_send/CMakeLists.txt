@@ -258,12 +258,10 @@ elseif (WIN32)
    if (GTK3_USE)
     file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk3/bin GTK_LIB_PATH)
     set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              G:/software/Development/dll
                               ${GTK_LIB_PATH})
    elseif (GTK2_USE)
     file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_LIB_PATH)
     set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              G:/software/Development/dll
                               ${GTK_LIB_PATH})
    endif ()
   elseif (WXWIDGETS_USE)

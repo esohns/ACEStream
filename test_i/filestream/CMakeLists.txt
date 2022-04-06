@@ -203,7 +203,6 @@ elseif (WIN32)
                                               ${SSL_PATH}
                                               ${ACE_PATH}
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-                                              G:/software/Development/dll
                                               ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
                                               ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/err/${CMAKE_BUILD_TYPE}
                                               ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/ui/${CMAKE_BUILD_TYPE}

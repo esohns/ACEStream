@@ -183,7 +183,6 @@ elseif (WIN32)
                           ARGS "-g.\\\\etc\\\\filecopy.glade -l -t"
 #                        FORWARD_ARGS
                           RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                                               G:/software/Development/dll
                                                ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
                                                ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
                                                ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
@@ -202,7 +201,6 @@ elseif (WIN32)
                           ARGS "-g.\\\\etc\\\\filecopy.glade -l -t"
 #                        FORWARD_ARGS
                           RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                                               G:/software/Development/dll
                                                ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
                                                ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
                                                ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug

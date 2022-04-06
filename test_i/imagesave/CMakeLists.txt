@@ -253,9 +253,6 @@ elseif (WIN32)
                 ${LIB_ROOT}/gtk3/bin/libpng15-15.dll
                 ${LIB_ROOT}/gtk3/bin/zlib1.dll
                 ${LIB_ROOT}/gtk3/bin/libxml2-2.dll
-                G:/software/Development/dll/libgcc_s_dw2-1.dll
-                G:/software/Development/dll/libexpat-1.dll
-                G:/software/Development/dll/libiconv-2.dll
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
  install (FILES ${ui_definition_file}
           DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
@@ -302,7 +299,6 @@ elseif (WIN32)
   if (GTK_USE)
    file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                             G:/software/Development/dll
                              ${GTK_PATH})
   elseif (WXWIDGETS_USE)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}

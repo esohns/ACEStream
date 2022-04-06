@@ -282,6 +282,7 @@ elseif (WIN32)
                 ${LIB_ROOT}/gtk3/bin/libffi-6.dll
                 ${LIB_ROOT}/gtk3/bin/libcairo-gobject-2.dll
                 ${LIB_ROOT}/gtk3/bin/libpixman-1-0.dll
+                ${LIB_ROOT}/gtk3/bin/libwinpthread-1.dll
                 ${LIB_ROOT}/sox/build/src/Debug/libsox.dll
                 ${LIB_ROOT}/mpg123/src/libmpg123/.libs/libmpg123-0.dll
                 ${LIB_ROOT}/assimp/cmake/bin/Debug/assimp-vc142-mtd.dll

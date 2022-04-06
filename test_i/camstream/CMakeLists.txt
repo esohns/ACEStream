@@ -326,7 +326,6 @@ elseif (WIN32)
                            ${GTK_PATH}
                            ${WXWIDGETS_PATH}
                            ${SSL_PATH}
-                           G:/software/Development/dll
                            ${ACE_PATH})
  string (REPLACE "/" "\\\\" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/camstream) 
 endif ()

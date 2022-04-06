@@ -350,7 +350,6 @@ elseif (WIN32)
 #   set (ENVIRONMENT "GTK_DEBUG=interactive$<COMMA>size-request")
    file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                             G:/software/Development/dll
                              ${GTK_PATH})
   endif (GTK_SUPPORT)
   if (WXWIDGETS_SUPPORT)
