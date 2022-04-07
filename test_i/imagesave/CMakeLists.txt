@@ -255,7 +255,7 @@ elseif (WIN32)
                 ${LIB_ROOT}/gtk3/bin/libxml2-2.dll
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
  install (FILES ${ui_definition_file}
-          DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+          DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()
 

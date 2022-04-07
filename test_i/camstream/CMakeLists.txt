@@ -250,7 +250,7 @@ if (UNIX)
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/camstream" COMPONENT config)
 elseif (WIN32)
  install (FILES etc/resources.rc ${ui_definition_file}
-          DESTINATION "data/${PROJECT_NAME}/camstream" COMPONENT config)
+          DESTINATION "etc/camstream" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/camstream" COMPONENT config)
  get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY}
                          DIRECTORY)
@@ -596,7 +596,7 @@ if (UNIX)
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/camstream" COMPONENT config)
 elseif (WIN32)
  install (FILES etc/resources.rc ${ui_definition_file_2}
-          DESTINATION "data/${PROJECT_NAME}/camstream" COMPONENT config)
+          DESTINATION "etc/camstream" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/camstream" COMPONENT config)
 endif ()
 

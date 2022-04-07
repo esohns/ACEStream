@@ -232,7 +232,7 @@ elseif (WIN32)
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
 
  install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/etc/${ui_definition_file} ${CMAKE_CURRENT_SOURCE_DIR}/etc/${EXECUTABLE}.fbp
-          DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+          DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()
 

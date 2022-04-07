@@ -223,7 +223,7 @@ elseif (WIN32)
                 ${LIB_ROOT}/openssl/libssl-3-x64.dll
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
  install (FILES ${ui_definition_file}
-          DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+          DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()
 

@@ -297,7 +297,7 @@ if (WIN32)
                 ${LIB_ROOT}/DeepSpeech/native_client/windows/bin/libdeepspeech.so
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
  install (FILES ${ui_definition_file}
-          DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+          DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()
 

@@ -169,7 +169,7 @@ install (TARGETS ${EXECUTABLE_SOURCE}
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT test_i)
 if (WIN32)
  install (FILES etc/source.glade
-          DESTINATION "data/${PROJECT_NAME}/filestream" COMPONENT config)
+          DESTINATION "etc/filestream" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/filestream" COMPONENT config)
 elseif (UNIX)
  install (FILES etc/source.glade
@@ -322,7 +322,7 @@ if (UNIX)
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/filestream" COMPONENT config)
 elseif (WIN32)
  install (FILES etc/target.glade
-          DESTINATION "data/${PROJECT_NAME}/filestream" COMPONENT config)
+          DESTINATION "etc/filestream" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/filestream" COMPONENT config)
 endif ()
 #guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
