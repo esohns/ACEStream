@@ -3687,7 +3687,6 @@ idle_update_display_cb (gpointer userData_in)
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
-  GdkWindow* window_p = NULL;
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
@@ -5487,6 +5486,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       return;
     }
   } // end SWITCH
+#else
+  ACE_UNUSED_ARG (card_id_i);
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

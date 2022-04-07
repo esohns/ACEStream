@@ -453,7 +453,6 @@ audio:
 //      inherited::audioStream_->time_base.den =
 //        inherited::audioCodecContext_->sample_rate;
       inherited::audioCodecContext_->time_base.num = 1;
-        inherited::audioStream_->time_base;
       inherited::audioCodecContext_->time_base.den =
         inherited::audioCodecContext_->sample_rate;
 

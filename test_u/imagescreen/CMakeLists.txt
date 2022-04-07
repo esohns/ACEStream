@@ -212,10 +212,7 @@ install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
 if (UNIX)
- if (NOT ${ui_definition_file} STREQUAL "")
-  set (config_files "${config_files} etc/${ui_definition_file}")
- endif ()
- install (FILES ${config_files}
+ install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/etc/${ui_definition_file} ${CMAKE_CURRENT_SOURCE_DIR}/etc/${EXECUTABLE}.fbp
           DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 elseif (WIN32)
  get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY}

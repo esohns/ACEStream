@@ -406,6 +406,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //      ACE_ASSERT (false); // *TODO*
 //#endif // FFMPEG_SUPPORT
 //#endif // ACE_WIN32 || ACE_WIN64
+      ACE_UNUSED_ARG (row_stride_i);
 
       break;
 
