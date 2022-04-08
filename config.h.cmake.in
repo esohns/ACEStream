@@ -36,6 +36,3 @@
 #cmakedefine TRACING
 
 #cmakedefine VALGRIND_SUPPORT
-
-//#cmakedefine DEBUG_DEBUGGER
-/* #undef WINXP_SUPPORT */

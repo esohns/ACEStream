@@ -172,7 +172,9 @@ target_precompile_headers (${PROJECT_NAME}_Device
 set_property (TARGET ${PROJECT_NAME}_Device PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Device Common)
-if (WIN32)
+if (UNIX)
+ add_dependencies (${PROJECT_NAME}_Device CommonTask)
+elseif (WIN32)
  add_dependencies (${PROJECT_NAME}_Device CommonError)
 endif ()
 add_dependencies (${PROJECT_NAME}_Device ${PROJECT_NAME})

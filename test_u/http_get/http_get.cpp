@@ -492,20 +492,6 @@ do_initializeSignals (bool useReactor_in,
     signals_out.sig_del (SIGUSR1);         // 10      /* User-defined signal 1 */
     ignoredSignals_out.sig_add (SIGUSR1);  // 10      /* User-defined signal 1 */
   } // end IF
-  // *NOTE* core dump on SIGSEGV
-  signals_out.sig_del (SIGSEGV);           // 11      /* Segmentation fault: Invalid memory reference */
-  // *NOTE* don't care about SIGPIPE
-  signals_out.sig_del (SIGPIPE);           // 12      /* Broken pipe: write to pipe with no readers */
-  signals_out.sig_del (SIGSTOP);           // 19      /* Stop process */
-
-  // *IMPORTANT NOTE*: "...NPTL makes internal use of the first two real-time
-  //                   signals (see also signal(7)); these signals cannot be
-  //                   used in applications. ..." (see 'man 7 pthreads')
-  // --> on POSIX platforms, make sure that ACE_SIGRTMIN == 34
-  //  for (int i = ACE_SIGRTMIN;
-  //       i <= ACE_SIGRTMAX;
-  //       i++)
-  //    signals_out.sig_del (i);
 
   if (!useReactor_in)
   {
@@ -517,26 +503,6 @@ do_initializeSignals (bool useReactor_in,
     if (proactor_impl_p->get_impl_type () == ACE_POSIX_Proactor::PROACTOR_SIG)
       signals_out.sig_del (COMMON_EVENT_PROACTOR_SIG_RT_SIGNAL);
   } // end IF
-#endif
-
-  // *NOTE*: gdb sends some signals (when running in an IDE ?)
-  //         --> remove signals (and let IDE handle them)
-  // *TODO*: clean this up
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#if defined (DEBUG_DEBUGGER)
-  //  signals_out.sig_del (SIGINT);
-  signals_out.sig_del (SIGCONT);
-  signals_out.sig_del (SIGHUP);
-#endif
-#endif
-
-  // *TODO*: improve valgrind support
-#ifdef LIBACESTREAM_ENABLE_VALGRIND_SUPPORT
-  // *NOTE*: valgrind uses SIGRT32 (--> SIGRTMAX ?) and apparently will not work
-  // if the application installs its own handler (see documentation)
-  if (RUNNING_ON_VALGRIND)
-    signals_out.sig_del (SIGRTMAX);        // 64
 #endif
 }
 

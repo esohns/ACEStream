@@ -1013,19 +1013,11 @@ Stream_Base_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  ISTREAM_CONTROL_T* istreamcontrol_p =
-    dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
-  if (unlikely (!istreamcontrol_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s/%s: dynamic_cast<Stream_IStreamControl_T> failed, aborting\n"),
-                ACE_TEXT (name_.c_str ()),
-                module_p->name ()));
-    return false;
-  } // end IF
+  HEAD_TASK_T* task_p = static_cast<HEAD_TASK_T*> (module_p->writer ());
+  ACE_ASSERT (task_p);
 
   try {
-    return istreamcontrol_p->isRunning ();
+    return task_p->isRunning ();
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::isRunning(), aborting\n"),

@@ -327,9 +327,6 @@ do_initialize_signals (ACE_Sig_Set& signals_out,
                 ACE_TEXT ("failed to ACE_Sig_Set::fill_set(): \"%m\", returning\n")));
     return;
   } // end IF
-#if defined (DEBUG_DEBUGGER)
-  signals_out.sig_del (SIGTRAP);           // 5       /* Trace trap (POSIX) */
-#endif
   // *NOTE*: cannot handle some signals --> registration fails for these...
   signals_out.sig_del (SIGKILL);           // 9       /* Kill signal */
   signals_out.sig_del (SIGSTOP);           // 19      /* Stop process */
@@ -339,12 +336,12 @@ do_initialize_signals (ACE_Sig_Set& signals_out,
   // *NOTE* don't care about SIGPIPE
   signals_out.sig_del (SIGPIPE);           // 12      /* Broken pipe: write to pipe with no readers */
 
-#ifdef ENABLE_VALGRIND_SUPPORT
+#if defined (VALGRIND_USE)
   // *NOTE*: valgrind uses SIGRT32 (--> SIGRTMAX ?) and apparently will not work
   // if the application installs its own handler (see documentation)
   if (RUNNING_ON_VALGRIND)
     signals_out.sig_del (SIGRTMAX);        // 64
-#endif
+#endif // VALGRIND_USE
 #endif
 }
 

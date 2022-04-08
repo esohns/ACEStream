@@ -148,29 +148,32 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
     case HTTP_Codes::HTTP_STATUS_OK:
     {
       receivedBytes_ += message_inout->total_length ();
-      // step1: got all data ? --> close connection
+      // step1: got all data ? --> close connection ?
       iterator =
           record_p->headers.find (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_CONTENT_LENGTH_STRING));
-      if (iterator == record_p->headers.end ())
+      if (iterator != record_p->headers.end ())
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: missing \"%s\" HTTP header, aborting\n"),
+        std::istringstream converter ((*iterator).second);
+        unsigned int content_length = 0;
+        converter >> content_length;
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+          if (inherited::configuration_->closeAfterReception &&
+              (content_length == receivedBytes_)             &&
+              session_data_r.connection)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("%s: received all content, closing connection\n"),
+                        inherited::mod_->name ()));
+            ACE_ASSERT (session_data_r.connection);
+            session_data_r.connection->close ();
+          } // end IF
+        } // end lock scope
+      } // end IF
+      else
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: missing \"%s\" HTTP header, continuing\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (HTTP_PRT_HEADER_CONTENT_LENGTH_STRING)));
-        goto error;
-      } // end IF
-      std::istringstream converter ((*iterator).second);
-      unsigned int content_length = 0;
-      converter >> content_length;
-      if (inherited::configuration_->closeAfterReception &&
-          (content_length == receivedBytes_))
-      {
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: received all content, closing connection\n"),
-                    inherited::mod_->name ()));
-        ACE_ASSERT (session_data_r.connection);
-        session_data_r.connection->close ();
-      } // end IF
 
       passMessageDownstream_out = true;
 

@@ -43,12 +43,12 @@ class Bencoding_ParserDriver
  : public Common_ParserBase_T<struct Common_FlexBisonParserConfiguration,
                               yy::parser,
                               Bencoding_IParser_t,
-                              std::string>
+                              void>
 {
   typedef Common_ParserBase_T<struct Common_FlexBisonParserConfiguration,
                               yy::parser,
                               Bencoding_IParser_t,
-                              std::string> inherited;
+                              void> inherited;
 
  public:
   Bencoding_ParserDriver ();
@@ -58,7 +58,7 @@ class Bencoding_ParserDriver
   typedef Common_ParserBase_T<struct Common_FlexBisonParserConfiguration,
                               yy::parser,
                               Bencoding_IParser_t,
-                              std::string> PARSER_BASE_T;
+                              void> PARSER_BASE_T;
 
   // implement (part of) Bencoding_IParser
   using PARSER_BASE_T::initialize;

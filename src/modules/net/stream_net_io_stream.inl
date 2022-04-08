@@ -90,6 +90,60 @@ template <ACE_SYNCH_DECL,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              StatisticHandlerType,
+                              HandlerConfigurationType,
+                              SessionDataType,
+                              SessionDataContainerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::~Stream_Module_Net_IO_Stream_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::~Stream_Module_Net_IO_Stream_T"));
+
+  if (unlikely (this->isRunning ()))
+  {
+    stop (true,  // wait ?
+          false, // recurse ?
+          true); // high priority ?
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: stream still active in dtor, continuing\n"),
+                inherited::name_.c_str ()));
+  } // end IF
+
+  inherited::shutdown ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename StatisticHandlerType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
 bool
 Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,

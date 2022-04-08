@@ -32,11 +32,13 @@
 #include "common_iinitialize.h"
 #include "common_istatistic.h"
 
+#include "common_time_common.h"
 #include "common_timer_manager_common.h"
 
 #include "stream_common.h"
 #include "stream_configuration.h"
 #include "stream_head_task.h"
+#include "stream_headmoduletask_base.h"
 #include "stream_ilink.h"
 #include "stream_ilock.h"
 #include "stream_inotify.h"
@@ -337,6 +339,20 @@ class Stream_Base_T
                                   TimePolicyType,
                                   HandlerConfigurationType> IMODULE_HANDLER_T;
   typedef Common_IStatistic_T<StatisticContainerType> ISTATISTIC_T;
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                                      TimePolicyType,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      ControlType,
+                                      NotificationType,
+                                      StateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      Common_Timer_Manager_t,
+                                      struct Stream_UserData> HEAD_TASK_T;
 
   Stream_Base_T ();
 

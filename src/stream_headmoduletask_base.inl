@@ -162,6 +162,18 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 //      delete act_p; act_p = NULL;
 //    } // end IF
   } // end IF
+
+  if (unlikely (isRunning ()))
+  {
+    stop (true,  // wait ?
+          false, // recurse ?
+          true); // high priority ?
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: stream still active in dtor, continuing\n"),
+                inherited::mod_->name ()));
+  } // end IF
+
+  inherited::msg_queue (NULL);
 }
 
 template <ACE_SYNCH_DECL,
@@ -1686,12 +1698,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   {
     case STREAM_STATE_INVALID:
     case STREAM_STATE_INITIALIZED:
-    case STREAM_STATE_SESSION_STARTING:
       return false;
+    case STREAM_STATE_SESSION_STARTING:
     case STREAM_STATE_RUNNING:
     case STREAM_STATE_PAUSED:
-      return true;
     case STREAM_STATE_SESSION_STOPPING:
+      return true;
     case STREAM_STATE_STOPPED:
     case STREAM_STATE_FINISHED:
       break; // left to check: (still) processing data ?

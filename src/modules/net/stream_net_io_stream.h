@@ -125,7 +125,7 @@ class Stream_Module_Net_IO_Stream_T
                         SessionMessageType> STREAM_BASE_T;
 
   Stream_Module_Net_IO_Stream_T ();
-  inline virtual ~Stream_Module_Net_IO_Stream_T () { inherited::shutdown (); }
+  virtual ~Stream_Module_Net_IO_Stream_T ();
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
