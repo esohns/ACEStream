@@ -120,7 +120,7 @@ do_printUsage (const std::string& programName_in)
   std::string configuration_path =
     Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
                                                       ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
-                                                      true);
+                                                      true); // configuration-
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in

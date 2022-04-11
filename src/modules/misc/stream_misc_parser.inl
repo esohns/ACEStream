@@ -1102,20 +1102,23 @@ continue_:
         break;
 
 error:
-        //if (message_data_p)
-        //  delete message_data_p;
-        //if (message_data_container_p)
-        //  message_data_container_p->decrease ();
         if (message_block_p)
           message_block_p->release ();
 
-        goto done;
+        result = -1;
+
+        goto error_2;
       }
     } // end SWITCH
   } while (true);
   result = -1;
 
 done:
+  return result;
+
+error_2:
+  inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+
   return result;
 }
 

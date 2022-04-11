@@ -58,6 +58,5 @@
 #define HTTPGET_UI_STATUSBAR_CONTEXT_INFORMATION           "information"
 
 #define HTTPGET_UI_DEFINITION_FILE_NAME                    "httpget.glade"
-#define HTTPGET_UI_PROCESSING_THREAD_NAME                  "stream processor"
 
 #endif

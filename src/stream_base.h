@@ -344,7 +344,7 @@ class Stream_Base_T
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ConfigurationType,
+                                      HandlerConfigurationType,
                                       ControlType,
                                       NotificationType,
                                       StateType,

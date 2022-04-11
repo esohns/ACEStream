@@ -324,9 +324,9 @@ continue_:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
-      ACE_TCHAR buffer[PATH_MAX];
-      ACE_OS::memset (buffer, 0, sizeof (buffer));
-      result = path_.addr_to_string (buffer, sizeof (buffer));
+      ACE_TCHAR buffer_a[PATH_MAX];
+      ACE_OS::memset (buffer_a, 0, sizeof (ACE_TCHAR[PATH_MAX]));
+      result = path_.addr_to_string (buffer_a, sizeof (ACE_TCHAR[PATH_MAX]));
       if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
@@ -353,19 +353,22 @@ continue_:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: closed target file \"%s\" (wrote: %q byte(s))\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (buffer),
+                    buffer_a,
                     file_information.size_));
       } // end IF
 
       unsigned int file_index = 0;
       std::stringstream converter;
-
+      std::string dirname =
+        Common_File_Tools::directory (ACE_TEXT_ALWAYS_CHAR (buffer_a));
+      std::string filename_base =
+        Common_File_Tools::basename (ACE_TEXT_ALWAYS_CHAR (buffer_a), false);
       std::string regex_string =
         ACE_TEXT_ALWAYS_CHAR ("^([^_.]+)(?:_([[:digit:]]+))?(\\..+)$");
       std::regex regular_expression (regex_string,
                                      std::regex::ECMAScript);
-      std::cmatch match_results;
-      if (unlikely (!std::regex_match (buffer,
+      std::smatch match_results;
+      if (unlikely (!std::regex_match (filename_base,
                                        match_results,
                                        regular_expression,
                                        std::regex_constants::match_default)))
@@ -373,14 +376,14 @@ continue_:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid file name (was: \"%s\"), returning\n"),
                     inherited::mod_->name (),
-                    buffer));
+                    filename_base));
         return;
       } // end IF
-//      ACE_ASSERT (match_results.ready () && !match_results.empty ());
-      ACE_ASSERT (!match_results.empty ());
-
+      ACE_ASSERT (match_results.ready () && !match_results.empty ());
       ACE_ASSERT (match_results[1].matched);
-      std::string file_name = match_results.str (1);
+      std::string file_name = dirname;
+      file_name += ACE_DIRECTORY_SEPARATOR_CHAR;
+      file_name += match_results.str (1);
       if (match_results[2].matched)
       {
         converter << match_results.str (2);
@@ -1278,6 +1281,112 @@ continue_:
 error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_STEP:
+    {
+      result = stream_.get_local_addr (path_);
+      if (unlikely (result == -1))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
+      ACE_TCHAR buffer_a[PATH_MAX];
+      ACE_OS::memset (buffer_a, 0, sizeof (ACE_TCHAR[PATH_MAX]));
+      result = path_.addr_to_string (buffer_a, sizeof (ACE_TCHAR[PATH_MAX]));
+      if (unlikely (result == -1))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
+
+      if (likely (isOpen_))
+      {
+        ACE_FILE_Info file_information;
+        result = stream_.get_info (file_information);
+        if (unlikely (result == -1))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_FILE_IO::get_info(): \"%m\", continuing\n"),
+                      inherited::mod_->name ()));
+
+        result = stream_.close ();
+        if (unlikely (result == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_File_Stream::close(): \"%m\", returning\n"),
+                      inherited::mod_->name ()));
+          return;
+        } // end IF
+        isOpen_ = false;
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: closed target file \"%s\" (wrote: %q byte(s))\n"),
+                    inherited::mod_->name (),
+                    buffer_a,
+                    file_information.size_));
+      } // end IF
+
+      unsigned int file_index = 0;
+      std::stringstream converter;
+      std::string dirname =
+        Common_File_Tools::directory (ACE_TEXT_ALWAYS_CHAR (buffer_a));
+      std::string filename_base =
+        Common_File_Tools::basename (ACE_TEXT_ALWAYS_CHAR (buffer_a), false);
+      std::string regex_string =
+        ACE_TEXT_ALWAYS_CHAR ("^([^_.]+)(?:_([[:digit:]]+))?(\\..+)$");
+      std::regex regular_expression (regex_string,
+                                     std::regex::ECMAScript);
+      std::smatch match_results;
+      if (unlikely (!std::regex_match (filename_base,
+                                       match_results,
+                                       regular_expression,
+                                       std::regex_constants::match_default)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid file name (was: \"%s\"), returning\n"),
+                    inherited::mod_->name (),
+                    filename_base));
+        return;
+      } // end IF
+      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+      ACE_ASSERT (match_results[1].matched);
+      std::string file_name = dirname;
+      file_name += ACE_DIRECTORY_SEPARATOR_CHAR;
+      file_name += match_results.str (1);
+      if (match_results[2].matched)
+      {
+        converter << match_results.str (2);
+        converter >> file_index;
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+      } // end IF
+      converter << ++file_index;
+      file_name += '_';
+      file_name += converter.str ();
+      if (match_results[3].matched)
+        file_name += match_results.str (3);
+
+      if (Common_File_Tools::isReadable (file_name))
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: overwriting target file \"%s\"\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (file_name.c_str ())));
+
+      int open_flags = (O_CREAT |
+                        O_TRUNC |
+                        O_WRONLY);
+      if (unlikely (!Common_File_Tools::open (file_name,  // FQ file name
+                                              open_flags, // flags
+                                              stream_)))  // stream
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Common_File_Tools::open(\"%s\"), returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (file_name.c_str ())));
+        return;
+      } // end IF
+      isOpen_ = true;
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: opened target file \"%s\"\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (file_name.c_str ())));
       break;
     }
     case STREAM_SESSION_MESSAGE_END:

@@ -211,8 +211,12 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::stateToString (Stream_StateMachine
       break;
     case STREAM_STATE_INITIALIZED:
       result = ACE_TEXT_ALWAYS_CHAR ("INITIALIZED"); break;
+    case STREAM_STATE_SESSION_STARTING:
+      result = ACE_TEXT_ALWAYS_CHAR ("STARTING"); break;
     case STREAM_STATE_RUNNING:
       result = ACE_TEXT_ALWAYS_CHAR ("RUNNING"); break;
+    case STREAM_STATE_SESSION_STOPPING:
+      result = ACE_TEXT_ALWAYS_CHAR ("STOPPING"); break;
     case STREAM_STATE_PAUSED:
       result = ACE_TEXT_ALWAYS_CHAR ("PAUSED"); break;
     case STREAM_STATE_STOPPED:

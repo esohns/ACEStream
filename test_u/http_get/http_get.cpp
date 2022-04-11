@@ -89,7 +89,8 @@
 #include "http_get_signalhandler.h"
 #include "http_get_stream.h"
 
-const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("Stream");
+const char stream_name_string_2[] = ACE_TEXT_ALWAYS_CHAR ("NetworkStream");
 
 void
 do_printUsage (const std::string& programName_in)
@@ -566,6 +567,8 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (connection_manager_p);
 
   // *********************** socket configuration data ************************
+  struct HTTPGet_ModuleHandlerConfiguration modulehandler_configuration_2;
+  HTTPGet_StreamConfiguration_t stream_configuration_network;
   HTTPGet_ConnectionConfiguration_t connection_configuration;
   connection_configuration.socketConfiguration.address = remoteHost_in;
   connection_configuration.socketConfiguration.useLoopBackDevice =
@@ -577,8 +580,7 @@ do_work (unsigned int bufferSize_in,
   connection_configuration.allocatorConfiguration = &allocator_configuration;
   connection_configuration.allocatorConfiguration->defaultBufferSize = bufferSize_in;
   connection_configuration.messageAllocator = &message_allocator;
-  connection_configuration.streamConfiguration =
-    &CBData_in.configuration->streamConfiguration;
+  connection_configuration.streamConfiguration = &stream_configuration_network;
 
   CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                             &connection_configuration));
@@ -594,6 +596,7 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
   struct HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
+  modulehandler_configuration.closeAfterReception = true;
   modulehandler_configuration.configuration = CBData_in.configuration;
   modulehandler_configuration.connectionConfigurations =
     &CBData_in.configuration->connectionConfigurations;
@@ -612,6 +615,7 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.URL = URL_in;
   // ******************** (sub-)stream configuration data *********************
   struct Stream_Configuration steam_configuration;
+  struct Stream_Configuration steam_configuration_2;
   steam_configuration.allocatorConfiguration = &allocator_configuration;
   steam_configuration.messageAllocator = &message_allocator;
   steam_configuration.module =
@@ -621,6 +625,15 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration->streamConfiguration.initialize (module_configuration,
                                                            modulehandler_configuration,
                                                            steam_configuration);
+
+  modulehandler_configuration_2 = modulehandler_configuration;
+  modulehandler_configuration_2.concurrency =
+    STREAM_HEADMODULECONCURRENCY_ACTIVE;
+  steam_configuration_2 = steam_configuration;
+  steam_configuration_2.module = NULL;
+  stream_configuration_network.initialize (module_configuration,
+                                           modulehandler_configuration_2,
+                                           steam_configuration_2);
 
   if (bufferSize_in)
     CBData_in.configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =

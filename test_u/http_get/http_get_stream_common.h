@@ -140,7 +140,7 @@ struct HTTPGet_ModuleHandlerConfiguration
    , URL ()
    , waitForConnect (true)
   {
-    crunchMessages = HTTP_DEFAULT_CRUNCH_MESSAGES; // HTTP parser module
+    //crunchMessages = HTTP_DEFAULT_CRUNCH_MESSAGES; // HTTP parser module
     passive = false;
   };
 

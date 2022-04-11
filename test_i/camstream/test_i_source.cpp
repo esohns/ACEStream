@@ -1649,8 +1649,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
-  (*modulehandler_iterator).second.second->method =
-      V4L2_MEMORY_USERPTR;
+  (*modulehandler_iterator).second.second->method = V4L2_MEMORY_MMAP;
+//      V4L2_MEMORY_USERPTR;
   (*modulehandler_iterator).second.second->streamConfiguration =
       &(*stream_iterator).second;
 #endif // ACE_WIN32 || ACE_WIN64

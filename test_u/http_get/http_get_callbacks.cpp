@@ -24,7 +24,6 @@
 #include <sstream>
 
 #include "ace/Log_Msg.h"
-//#include "ace/Synch.h"
 #include "ace/Time_Value.h"
 
 #include "gmodule.h"
@@ -120,8 +119,8 @@ stream_processing_function (void* arg_in)
 //  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->CBData->UIState.lock, std::numeric_limits<void*>::max ());
 //#endif
     // configure streams and retrieve stream handles
-    ACE_Time_Value session_start_timeout =
-        COMMON_TIME_NOW + ACE_Time_Value (5, 0);
+    //ACE_Time_Value session_start_timeout =
+    //    COMMON_TIME_NOW + ACE_Time_Value (5, 0);
     result_2 =
       iinitialize_p->initialize (thread_data_p->CBData->configuration->streamConfiguration);
     if (!result_2)
@@ -684,7 +683,7 @@ idle_session_end_cb (gpointer userData_in)
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
 
   // stop progress reporting ?
-  ACE_ASSERT (ui_cb_data_p->progressData.eventSourceId);
+  if (ui_cb_data_p->progressData.eventSourceId)
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
     if (!g_source_remove (ui_cb_data_p->progressData.eventSourceId))
       ACE_DEBUG ((LM_ERROR,
@@ -812,10 +811,9 @@ idle_update_info_display_cb (gpointer userData_in)
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_CONNECTIONS)));
-          if (spin_button_p) // target ?
-            gtk_spin_button_spin (spin_button_p,
-                                  GTK_SPIN_STEP_BACKWARD,
-                                  1.0);
+          gtk_spin_button_spin (spin_button_p,
+                                GTK_SPIN_STEP_BACKWARD,
+                                1.0);
 
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -842,6 +840,9 @@ idle_update_info_display_cb (gpointer userData_in)
           break;
         }
         case COMMON_UI_EVENT_CONTROL:
+        case COMMON_UI_EVENT_STARTED:
+        case COMMON_UI_EVENT_STOPPED:
+        case COMMON_UI_EVENT_STEP:
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -851,9 +852,6 @@ idle_update_info_display_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
-        case COMMON_UI_EVENT_STARTED:
-        case COMMON_UI_EVENT_STOPPED:
-          break;
         default:
         {
           ACE_DEBUG ((LM_ERROR,
@@ -1055,6 +1053,7 @@ button_execute_clicked_cb (GtkButton* button_in,
   // sanity check(s)
   ACE_ASSERT (iterator != state_r.builders.end ());
 
+  GtkSpinButton* spin_button_p = NULL;
   GtkFileChooserButton* file_chooser_button_p = NULL;
   gchar* URI_p = NULL;
   GError* error_p = NULL;
@@ -1070,7 +1069,7 @@ button_execute_clicked_cb (GtkButton* button_in,
   struct HTTPGet_UI_ThreadData* thread_data_p = NULL;
   ACE_thread_t thread_id = -1;
   ACE_hthread_t thread_handle;
-  ACE_TCHAR thread_name[BUFSIZ];
+  char thread_name[BUFSIZ];
   const char* thread_name_p = NULL;
   ACE_Thread_Manager* thread_manager_p = NULL;
   int result = -1;
@@ -1185,6 +1184,25 @@ continue_:
   // update widgets
   gtk_widget_set_sensitive (GTK_WIDGET (button_in), false);
 
+  spin_button_p =
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_SESSIONMESSAGES)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_value (spin_button_p,
+                             0.0);
+  spin_button_p =
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_DATAMESSAGES)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_value (spin_button_p,
+                             0.0);
+  spin_button_p =
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_DATA)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_value (spin_button_p,
+                             0.0);
+
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_FRAME_URL)));
@@ -1218,26 +1236,17 @@ continue_:
   } // end IF
   thread_data_p->CBData = ui_cb_data_p;
 
-  ACE_OS::memset (thread_name, 0, sizeof (thread_name));
-  //  char* thread_name_p = NULL;
-  //  ACE_NEW_NORETURN (thread_name_p,
-  //                    ACE_TCHAR[BUFSIZ]);
-  //  if (!thread_name_p)
-  //  {
-  //    ACE_DEBUG ((LM_CRITICAL,
-  //                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
-
-  //    // clean up
-  //    delete thread_data_p;
-
-  //    return;
-  //  } // end IF
-  //  ACE_OS::memset (thread_name_p, 0, sizeof (thread_name_p));
-  //  ACE_OS::strcpy (thread_name_p,
-  //                  ACE_TEXT (TEST_I_STREAM_FILECOPY_THREAD_NAME));
-  //  const char* thread_name_2 = thread_name_p;
-  ACE_OS::strcpy (thread_name,
-                  ACE_TEXT (HTTPGET_UI_PROCESSING_THREAD_NAME));
+  ACE_OS::memset (thread_name, 0, sizeof (char[BUFSIZ]));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_OS::strncpy (thread_name,
+                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_THREAD_NAME),
+                   std::min (static_cast<size_t> (BUFSIZ - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_THREAD_NAME)))));
+#else
+  ACE_ASSERT (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH <= BUFSIZ);
+  ACE_OS::strncpy (thread_name,
+                   ACE_TEXT (TEST_U_STREAM_THREAD_NAME),
+                   std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_THREAD_NAME)))));
+#endif // ACE_WIN32 || ACE_WIN64
   thread_name_p = thread_name;
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);

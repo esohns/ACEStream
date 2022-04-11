@@ -111,9 +111,6 @@ HTTPGet_Stream_T<TCPConnectorType,
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_Stream_T::initialize"));
 
-  // sanity check(s)
-  ACE_ASSERT (!this->isRunning ());
-
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   struct HTTPGet_SessionData* session_data_p = NULL;
   Stream_Module_t* module_p = NULL;

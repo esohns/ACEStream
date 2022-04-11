@@ -83,7 +83,37 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Defragment_T::handleDataMessage"));
 
-  message_inout->defragment ();
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+
+  if (inherited::configuration_->clone)
+  {
+    DataMessageType* message_p =
+      static_cast<DataMessageType*> (message_inout->clone ());
+    ACE_ASSERT (message_p);
+
+    message_p->defragment ();
+
+    int result = inherited::put_next (message_p, NULL);
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task_T::put_next(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
+      message_p->release (); message_p = NULL;
+      goto error;
+    } // end IF
+
+    passMessageDownstream_out = false;
+    message_inout->release (); message_inout = NULL;
+  } // end IF
+  else
+    message_inout->defragment ();
+
+  return;
+
+error:
+  inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,

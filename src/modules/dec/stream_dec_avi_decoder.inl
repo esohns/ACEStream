@@ -47,7 +47,7 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
             COMMON_PARSER_DEFAULT_YACC_TRACE)
  , allocator_ (NULL)
  , buffer_ (NULL)
- , crunchMessages_ (STREAM_DEC_DEFAULT_CRUNCH_MESSAGES)
+ //, crunchMessages_ (STREAM_DEC_DEFAULT_CRUNCH_MESSAGES)
  , frameSize_ (0)
  , debugParser_ (COMMON_PARSER_DEFAULT_YACC_TRACE)
  , debugScanner_ (COMMON_PARSER_DEFAULT_LEX_TRACE)
@@ -111,7 +111,7 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
     if (buffer_)
       buffer_->release ();
     buffer_ = NULL;
-    crunchMessages_ = STREAM_DEC_DEFAULT_CRUNCH_MESSAGES;
+    //crunchMessages_ = STREAM_DEC_DEFAULT_CRUNCH_MESSAGES;
     frameSize_ = 0;
 
     debugParser_ = COMMON_PARSER_DEFAULT_YACC_TRACE;
@@ -121,7 +121,7 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
 
   allocator_ = allocator_in;
   // *TODO*: remove type inferences
-  crunchMessages_ = configuration_in.crunchMessages;
+  //crunchMessages_ = configuration_in.crunchMessages;
 
   debugParser_ = configuration_in.parserConfiguration->debugParser;
   debugScanner_ = configuration_in.parserConfiguration->debugScanner;
@@ -226,7 +226,7 @@ dispatch:
   } // end IF
 
   // "crunch" messages for easier parsing ?
-  if (crunchMessages_ &&
+  if (true &&
       buffer_->cont ())
   {
     // step1: get a new message buffer

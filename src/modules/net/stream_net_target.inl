@@ -596,6 +596,8 @@ continue_:
 
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
+      typename SessionMessageType::DATA_T* session_data_container_p =
+        inherited::sessionData_;
 
       ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
 
@@ -625,13 +627,21 @@ continue_:
         //         does not block forever
         // *NOTE*: stop()ping the connection stream will also unlink it
         //         --> send the disconnect notification early
-        // *TODO*: push(), notify() will probably not work as it starts at the
-        //         stream head
-        inherited::notify (STREAM_SESSION_MESSAGE_DISCONNECT);
+        // notify downstream
+        if (likely (session_data_container_p))
+          session_data_container_p->increase ();
+        if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_DISCONNECT,
+                                                     session_data_container_p,
+                                                     NULL)))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
+                      inherited::name (),
+                      STREAM_SESSION_MESSAGE_DISCONNECT));
+
         // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
-        stream_p->stop (false, // wait for completion ?
-                        false, // recurse upstream ?
-                        true); // locked access ?
+        stream_p->stop (false,  // wait for completion ?
+                        false,  // recurse upstream ?
+                        false); // high priority ?
         connection_->waitForCompletion (false); // --> data only
 
         goto continue_2;

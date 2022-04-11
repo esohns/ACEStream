@@ -114,20 +114,23 @@ Stream_DataBase_T<DataType>::setR (const DataType& data_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::setR"));
 
-  // merge ?
-  DataType& data_r = const_cast<DataType&> (data_in);
-  if (data_)
-    data_r += *data_;
-
-  // clean up ?
-  if (data_ && delete_)
+  if (!data_)
   {
-    delete data_; data_ = NULL;
-    delete_ = false;
+    ACE_NEW_NORETURN (data_,
+                      DataType ());
+    if (unlikely (!data_))
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+      delete_ = false;
+      return;
+    } // end IF
+    delete_ = true;
+    //ACE_OS::memset (data_, 0, sizeof (DataType));
+    *data_ = data_in; // set
   } // end IF
-
-  data_ = &data_r;
-  delete_ = false; // never delete
+  else
+    *data_ += data_in; // merge
 }
 
 template <typename DataType>

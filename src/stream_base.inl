@@ -922,9 +922,6 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
 
 continue_:
-  if (unlikely (!isRunning ()))
-    return;
-
   // delegate to the head module, skip over ACE_Stream_Head
   result = inherited::top (module_p);
   if (unlikely ((result == -1) ||

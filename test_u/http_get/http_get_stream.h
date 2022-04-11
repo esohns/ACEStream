@@ -39,6 +39,8 @@
 #include "http_get_stream_common.h"
 #include "http_get_network.h"
 
+extern const char stream_name_string_[];
+
 // forward declarations
 class Stream_IAllocator;
 

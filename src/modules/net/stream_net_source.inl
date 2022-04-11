@@ -413,12 +413,10 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       if (iterator == inherited::configuration_->connectionConfigurations->end ())
         iterator =
           inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-#if defined (_DEBUG)
       else
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: applying dedicated connection configuration\n"),
                     inherited::mod_->name ()));
-#endif // _DEBUG
       ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
       configuration_p =
           static_cast<typename ConnectorType::CONFIGURATION_T*> ((*iterator).second);
@@ -570,10 +568,11 @@ error:
 
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         Stream_ConnectionStatesIterator_t iterator = session_data_r.connectionStates.find (handle_h);
-        ACE_ASSERT (iterator != session_data_r.connectionStates.end ());
-        session_data_r.connectionStates.erase (iterator);
+        if (iterator != session_data_r.connectionStates.end ())
+          session_data_r.connectionStates.erase (iterator);
       } // end lock scope
-      handles_.pop_back ();
+      if (!handles_.empty ())
+        handles_.pop_back ();
 
       if (isOpen_ &&
           !isPassive_)
@@ -630,6 +629,8 @@ continue_:
         ACE_ASSERT (istream_connection_p);
         typename ConnectorType::STREAM_T* stream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
+        typename SessionMessageType::DATA_T* session_data_container_p =
+          inherited::sessionData_;
 
         // wait for upstream data processing to complete before unlinking ?
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
@@ -641,12 +642,22 @@ continue_:
         //         does not block forever
         // *NOTE*: stop()ping the connection stream will also unlink it
         //         --> send the disconnect notification early
-        inherited::notify (STREAM_SESSION_MESSAGE_DISCONNECT);
+        // notify downstream
+        if (likely (session_data_container_p))
+          session_data_container_p->increase ();
+        if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_DISCONNECT,
+                                                     session_data_container_p,
+                                                     NULL)))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
+                      inherited::name (),
+                      STREAM_SESSION_MESSAGE_DISCONNECT));
+
         // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
-        stream_p->stop (false, // wait for completion ?
-                        false, // recurse upstream ?
-                        true); // locked access ?
-        connection_->waitForCompletion (false); // --> data only
+        stream_p->stop (false,  // wait for completion ?
+                        false,  // recurse upstream ?
+                        false); // high priority ?
+        istream_connection_p->waitForIdleState ();
 
         goto continue_2;
 
@@ -659,6 +670,17 @@ flush:
 continue_2:
       if (unlink_)
       {
+        // *NOTE*: forward the session end message early
+        int result = inherited::put_next (message_inout, NULL);
+        if (unlikely (result == -1))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", continuing\n"),
+                      inherited::mod_->name ()));
+
+        // clean up
+        message_inout = NULL;
+        passMessageDownstream_out = false;
+
         istream_p =
             const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
         ACE_ASSERT (istream_p);
@@ -1339,6 +1361,8 @@ continue_:
         ACE_ASSERT (istream_connection_p);
         typename ConnectorType::STREAM_T* stream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
+        typename SessionMessageType::DATA_T* session_data_container_p =
+          inherited::sessionData_;
 
         // wait for upstream data processing to complete before unlinking ?
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
@@ -1350,11 +1374,20 @@ continue_:
         //         does not block forever
         // *NOTE*: stop()ping the connection stream will also unlink it
         //         --> send the disconnect notification early
-        inherited::notify (STREAM_SESSION_MESSAGE_DISCONNECT);
+        if (likely (session_data_container_p))
+          session_data_container_p->increase ();
+        if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_DISCONNECT,
+                                                     session_data_container_p,
+                                                     NULL)))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
+                      inherited::name (),
+                      STREAM_SESSION_MESSAGE_DISCONNECT));
+
         // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
-        stream_p->stop (false, // wait for completion ?
-                        false, // recurse upstream ?
-                        true); // locked access ?
+        stream_p->stop (false,  // wait for completion ?
+                        false,  // recurse upstream ?
+                        false); // high priority ?
         connection_->waitForCompletion (false); // --> data only
 
         goto continue_2;

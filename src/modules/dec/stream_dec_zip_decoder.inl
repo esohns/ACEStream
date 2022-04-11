@@ -46,7 +46,7 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
 #endif
  : inherited (stream_in)
  , buffer_ (NULL)
- , crunchMessages_ (STREAM_DEC_DEFAULT_CRUNCH_MESSAGES)
+ //, crunchMessages_ (STREAM_DEC_DEFAULT_CRUNCH_MESSAGES)
  , format_ (STREAM_COMPRESSION_FORMAT_INVALID)
  , stream_ ()
 {
@@ -101,12 +101,12 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
     if (buffer_)
       buffer_->release ();
     buffer_ = NULL;
-    crunchMessages_ = STREAM_DEC_DEFAULT_CRUNCH_MESSAGES;
+    //crunchMessages_ = STREAM_DEC_DEFAULT_CRUNCH_MESSAGES;
     format_ = STREAM_COMPRESSION_FORMAT_INVALID;
   } // end IF
 
   // *TODO*: remove type dependencies
-  crunchMessages_ = configuration_in.crunchMessages;
+  //crunchMessages_ = configuration_in.crunchMessages;
 
   //format_ = configuration_in.format;
 

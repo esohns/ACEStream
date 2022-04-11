@@ -503,6 +503,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
       } // end IF
 
 continue_:
+      //inherited::change (STREAM_STATE_SESSION_STOPPING);
+
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -674,6 +676,12 @@ continue_3:
 
       if (!inbound_)
         goto continue_4;
+
+      if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+      { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
+        itask_p->stop (false,  // wait for completion ?
+                       false); // high priority ?
+      } // end IF
 
 continue_4:
       break;

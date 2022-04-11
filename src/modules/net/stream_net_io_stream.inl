@@ -522,7 +522,9 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   if (likely (handle_ != ACE_INVALID_HANDLE))
     connection_p = connection_manager_p->get (handle_);
 
-  inherited::finished (recurseUpstream_in);
+  inherited::stop (false,              // wait ?
+                   recurseUpstream_in,
+                   false);             // high priority ?
 
   // clean up
   if (likely (connection_p))

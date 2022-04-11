@@ -561,11 +561,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       inherited::mod_->name (),
                       result_2));
 
-continue_:
-        if (likely (inherited::sessionData_))
-        {
-          inherited::sessionData_->decrease (); inherited::sessionData_ = NULL;
-        } // end IF
+continue_:;
       } // end IF
       else
       {
@@ -1138,7 +1134,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
-      inherited2::change (STREAM_STATE_SESSION_STOPPING);
+      //inherited2::change (STREAM_STATE_SESSION_STOPPING);
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -2249,10 +2245,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::configuration_);
 
       // send initial session message downstream ?
-      // *TODO*: this is currently pushed by the calling thread; start any
-      //         thread(s) first and push it (to the queue) afterwards,
-      //         otherwise active/passive baseclass thread(s) will never see
-      //         this session message...
+      // *NOTE*: this is currently pushed (inline/queue) by the calling thread
       if (likely (inherited::configuration_->generateSessionMessages))
       {
         // *NOTE*: if the object is 'passive/concurrent', the session-begin
@@ -2757,6 +2750,11 @@ continue_2:
       } // end IF
 
 continue_:
+      if (likely (inherited::sessionData_))
+      {
+        inherited::sessionData_->decrease (); inherited::sessionData_ = NULL;
+      } // end IF
+
       break;
     }
     default:

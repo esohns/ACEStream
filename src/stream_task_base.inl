@@ -711,8 +711,9 @@ error:
         } // end ELSE
       } // end IF
 
-      // *NOTE*: iff this was a SESSION_END message, stop processing (see above)
-      if (unlikely (session_message_type == STREAM_SESSION_MESSAGE_END))
+      // stop processing ?
+      if (unlikely ((session_message_type == STREAM_SESSION_MESSAGE_ABORT) ||
+                    (session_message_type == STREAM_SESSION_MESSAGE_END)))
         stopProcessing_out = true;
 
       break;

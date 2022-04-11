@@ -52,7 +52,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     SessionMessageType>::Stream_Module_Net_Source_HTTP_Get_T (ISTREAM_T* stream_in)
 #else
                                     SessionMessageType>::Stream_Module_Net_Source_HTTP_Get_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , receivedBytes_ (0)
  , resentRequest_ (false)
@@ -166,6 +166,19 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                         inherited::mod_->name ()));
             ACE_ASSERT (session_data_r.connection);
             session_data_r.connection->close ();
+
+            // notify downstream
+            typename SessionMessageType::DATA_T* session_data_container_p =
+              inherited::sessionData_;
+            if (likely (session_data_container_p))
+              session_data_container_p->increase ();
+            if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_STEP,
+                                                         session_data_container_p,
+                                                         NULL)))
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
+                          inherited::name (),
+                          STREAM_SESSION_MESSAGE_STEP));
           } // end IF
         } // end lock scope
       } // end IF

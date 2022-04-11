@@ -1,7 +1,7 @@
 include (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts/SSLConfig.cmake)
 
-get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
-get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
+string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
+string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
@@ -212,20 +212,30 @@ endif (WIN32)
 
 set (ARGS "-l -r -t -u https://www.mirc.com/servers.ini")
 if (UNIX)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE}" COMMAND)
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
 elseif (WIN32)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_PATH)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
+ file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
+ file (TO_CMAKE_PATH "$ENV{LIB_ROOT}/openssl" SSL_PATH)
+ if (GTK_SUPPORT)
+  file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
+  file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
+ endif (WXWIDGETS_SUPPORT)
  set (RUNTIME_LIBRARY_DIRS ${ACE_LIBRARY_PATH}
                            ${FFMPEG_PATH}
                            ${SSL_PATH}
-                           ${GTK_PATH})
+                           ${GTK_PATH}
+                           ${WXWIDGETS_PATH})
 endif ()
 create_target_launcher (${EXECUTABLE}
+                        COMMAND ${COMMAND}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/http_get
+                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                         ENVIRONMENT ${ENVIRONMENT})

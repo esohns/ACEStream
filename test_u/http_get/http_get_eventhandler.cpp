@@ -19,13 +19,12 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#if defined (GUI_SUPPORT)
-//#if defined (GTK_USE)
-//#include "gtk/gtk.h"
-//#endif // GTK_USE
-//#endif // GUI_SUPPORT
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#include "gtk/gtk.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
-//#include "ace/Synch.h"
 #include "http_get_eventhandler.h"
 
 #include "ace/Guard_T.h"
@@ -128,6 +127,9 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+
+  CBData_->progressData.statistic.bytes += message_in.total_length ();
+
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
@@ -203,6 +205,26 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
 #endif // GUI_SUPPORT
 
       event_e = COMMON_UI_EVENT_STATISTIC;
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_STEP:
+    {
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+      guint event_source_id = 0;
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+        event_source_id = g_idle_add (idle_session_end_cb,
+                                      CBData_);
+        if (!event_source_id)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
+        else
+          state_r.eventSourceIds.insert (event_source_id);
+      } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
+      event_e = COMMON_UI_EVENT_STEP;
       break;
     }
     default:

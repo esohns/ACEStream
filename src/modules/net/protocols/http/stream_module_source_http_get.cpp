@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "stream_module_source_http_get.h"
 
 #include "stream_net_http_defines.h"

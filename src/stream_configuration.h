@@ -96,14 +96,14 @@ struct Stream_ModuleHandlerConfiguration
   Stream_ModuleHandlerConfiguration ()
    : allocatorConfiguration (NULL)
    , autoStart (false)
+   , clone (false)
    , computeThroughput (false)
    , concurrency (STREAM_HEADMODULECONCURRENCY_PASSIVE)
-   , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
+   //, crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
 #if defined (_DEBUG)
    , debug (false)
 #endif // _DEBUG
    , demultiplex (false)
-//   , dispatchConfiguration (NULL)
    , finishOnDisconnect (false)
    , generateSessionMessages (true)
    , hasReentrantSynchronousSubDownstream (true)
@@ -128,6 +128,7 @@ struct Stream_ModuleHandlerConfiguration
 
   struct Common_AllocatorConfiguration*       allocatorConfiguration;
   bool                                        autoStart;                            // head module(s)
+  bool                                        clone;                                // defragment module
   bool                                        computeThroughput;                    // statistic/... module(s)
   // *NOTE*: valid operating modes (see also: put()):
   //         active    : dedicated worker thread(s) running svc()
@@ -140,7 +141,7 @@ struct Stream_ModuleHandlerConfiguration
   enum Stream_HeadModuleConcurrency           concurrency;                          // head module(s)
   // *NOTE*: this option may be useful for (downstream) modules that only work
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
-  bool                                        crunchMessages;
+  //bool                                        crunchMessages;
 #if defined (_DEBUG)
   bool                                        debug;
 #endif // _DEBUG

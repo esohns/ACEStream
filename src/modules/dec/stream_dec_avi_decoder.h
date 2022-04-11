@@ -95,7 +95,7 @@ class Stream_Decoder_AVIDecoder_T
 
   Stream_IAllocator* allocator_;
   ACE_Message_Block* buffer_; // <-- continuation chain
-  bool               crunchMessages_;
+  //bool               crunchMessages_;
   unsigned int       frameSize_;
 
   // driver
