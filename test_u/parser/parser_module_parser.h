@@ -31,6 +31,8 @@
 
 #include "common_time_common.h"
 
+#include "common_parser_bencoding_parser_driver.h"
+
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
@@ -40,8 +42,6 @@
 #include "parser_session_message.h"
 #include "parser_stream_common.h"
 
-#include "bencoding_parser_driver.h"
-
 class Parser_Module_Parser
  : public Stream_Module_Parser_T <ACE_MT_SYNCH,
                                  Common_TimePolicy_t,
@@ -49,7 +49,7 @@ class Parser_Module_Parser
                                  Stream_ControlMessage_t,
                                  Parser_Message,
                                  Parser_SessionMessage,
-                                 Bencoding_ParserDriver,
+                                 Common_Parser_Bencoding_ParserDriver,
                                  struct Stream_UserData>
 {
   typedef Stream_Module_Parser_T <ACE_MT_SYNCH,
@@ -58,7 +58,7 @@ class Parser_Module_Parser
                                   Stream_ControlMessage_t,
                                   Parser_Message,
                                   Parser_SessionMessage,
-                                  Bencoding_ParserDriver,
+                                  Common_Parser_Bencoding_ParserDriver,
                                   struct Stream_UserData> inherited;
 
  public:

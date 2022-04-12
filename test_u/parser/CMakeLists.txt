@@ -16,6 +16,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/parser)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/parser/bencoding)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
 
@@ -31,13 +32,6 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ###############
 set (parser_EXE_SRCS
-     bencoding_iparser.h
-     bencoding_parser.cpp
-     bencoding_parser.h
-     bencoding_parser_driver.cpp
-     bencoding_parser_driver.h
-     bencoding_scanner.cpp
-     bencoding_scanner.h
      parser_common_modules.h
      parser_eventhandler.cpp
      parser_eventhandler.h
@@ -74,6 +68,7 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 target_link_libraries (${EXECUTABLE} PUBLIC Common)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonLog)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonParser)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonParser_Bencoding)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonTimer)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ACEStream)
