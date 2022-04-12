@@ -155,7 +155,12 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
     {
       parse_errors = static_cast<xmlParserErrors> (result);
       error_p = xmlGetLastError ();
-      ACE_DEBUG ((Stream_HTML_Tools::errorLevelToLogPriority (error_p->level),
+      ACE_Log_Priority log_priority_e = LM_ERROR;
+#if defined (LIBXML2_SUPPORT)
+      log_priority_e =
+        Stream_HTML_Tools::errorLevelToLogPriority (error_p->level);
+#endif // LIBXML2_SUPPORT
+      ACE_DEBUG ((log_priority_e,
                   ACE_TEXT ("failed to htmlParseChunk() (result was: %d): \"%s\", continuing\n"),
                   parse_errors,
                   ACE_TEXT (error_p->message)));
