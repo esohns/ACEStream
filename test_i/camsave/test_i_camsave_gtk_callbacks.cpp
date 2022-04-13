@@ -6543,6 +6543,7 @@ combobox_display_changed_cb (GtkWidget* widget_in,
   Common_UI_GTK_Tools::selectValue (combo_box_p,
                                     value,
                                     1);
+  g_value_unset (&value);
 } // combobox_display_changed_cb
 
 gboolean

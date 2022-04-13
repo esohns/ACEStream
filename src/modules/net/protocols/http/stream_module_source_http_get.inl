@@ -201,6 +201,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
     case HTTP_Codes::HTTP_STATUS_TEMPORARYREDIRECT:
     case HTTP_Codes::HTTP_STATUS_PERMANENTREDIRECT:
     {
+      ACE_INET_Addr host_address;
       std::string host_name_string_2;
       std::string uri_string_2;
       bool use_SSL = false, use_SSL_2 = false;
@@ -226,6 +227,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
       // step2: send request ?
       // *IMPORTANT NOTE*: only auto-effectuate same-server/protocol redirects
       if (!HTTP_Tools::parseURL ((*iterator).second,
+                                 host_address,
                                  host_name_string,
                                  uri_string,
                                  use_SSL))
@@ -237,6 +239,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       if (!HTTP_Tools::parseURL (inherited::configuration_->URL,
+                                 host_address,
                                  host_name_string_2,
                                  uri_string_2,
                                  use_SSL_2))
@@ -499,9 +502,11 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::send"));
 
   int result = -1;
+  ACE_INET_Addr host_address;
   std::string hostname_string, URI_string;
   bool use_SSL = false;
   if (!HTTP_Tools::parseURL (URL_in,
+                             host_address,
                              hostname_string,
                              URI_string,
                              use_SSL))

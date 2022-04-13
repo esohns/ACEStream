@@ -373,9 +373,11 @@ do_processArguments (int argc_in,
   } // end WHILE
 
   // step2: parse URL
+  ACE_INET_Addr host_address;
   std::string hostname_string;
   std::string URI_s;
   if (!HTTP_Tools::parseURL (URI_out,
+                             remoteHost_out,
                              hostname_string,
                              URI_s,
                              useSSL_out))
@@ -383,17 +385,6 @@ do_processArguments (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to HTTP_Tools::parseURL(\"%s\"), aborting\n"),
                 ACE_TEXT (URI_out.c_str ())));
-    return false;
-  } // end IF
-  result = remoteHost_out.set ((useSSL_out ? 443 : 80),
-                               Net_Common_Tools::getAddress (hostname_string),
-                               1, // convert to network byte order
-                               0);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (hostname_string.c_str ())));
     return false;
   } // end IF
 

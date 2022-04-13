@@ -327,6 +327,7 @@ do_processArguments (int argc_in,
         // step1: parse URL
         std::string URI_s;
         if (!HTTP_Tools::parseURL (URL_out,
+                                   remoteHost_out,
                                    hostName_out,
                                    URI_s,
                                    useSSL_out))
@@ -337,40 +338,41 @@ do_processArguments (int argc_in,
           return false;
         } // end IF
 
-        std::string hostname_string = hostName_out;
-        size_t position =
-          hostname_string.find_last_of (':', std::string::npos);
-        if (position == std::string::npos)
-        {
-          hostname_string += ':';
-          std::ostringstream converter;
-          converter << (useSSL_out ? HTTPS_DEFAULT_SERVER_PORT
-                                   : HTTP_DEFAULT_SERVER_PORT);
-          hostname_string += converter.str ();
-        } // end IF
-        result = remoteHost_out.set (hostname_string.c_str (),
-                                     AF_INET);
-        if (result == -1)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"): \"%m\", aborting\n"),
-                      ACE_TEXT (hostname_string.c_str ())));
-          return false;
-        } // end IF
+//        std::string hostname_string = hostName_out;
+//        size_t position =
+//          hostname_string.find_last_of (':', std::string::npos);
+//        if (position == std::string::npos)
+//        {
+//          hostname_string += ':';
+//          std::ostringstream converter;
+//          converter << (useSSL_out ? HTTPS_DEFAULT_SERVER_PORT
+//                                   : HTTP_DEFAULT_SERVER_PORT);
+//          hostname_string += converter.str ();
+//        } // end IF
+//        result = remoteHost_out.set (hostname_string.c_str (),
+//                                     AF_INET);
+//        if (result == -1)
+//        {
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"): \"%m\", aborting\n"),
+//                      ACE_TEXT (hostname_string.c_str ())));
+//          return false;
+//        } // end IF
 
         // step2: validate address/verify host name exists
         //        --> resolve
-        ACE_TCHAR buffer[HOST_NAME_MAX];
-        ACE_OS::memset (buffer, 0, sizeof (buffer));
-        result = remoteHost_out.get_host_name (buffer,
-                                               sizeof (buffer));
+        ACE_TCHAR buffer_a[HOST_NAME_MAX];
+        ACE_OS::memset (buffer_a, 0, sizeof (ACE_TCHAR[HOST_NAME_MAX]));
+        result =
+          remoteHost_out.get_host_name (buffer_a,
+                                        sizeof (ACE_TCHAR[HOST_NAME_MAX]));
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::get_host_name(): \"%m\", aborting\n")));
           return false;
         } // end IF
-        std::string hostname = ACE_TEXT_ALWAYS_CHAR (buffer);
+        std::string hostname = ACE_TEXT_ALWAYS_CHAR (buffer_a);
         std::string dotted_decimal_string;
         if (!Net_Common_Tools::getAddress (hostname,
                                            dotted_decimal_string))

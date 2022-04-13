@@ -1093,9 +1093,11 @@ button_execute_clicked_cb (GtkButton* button_in,
               ACE_TEXT (gtk_entry_get_text (entry_p))));
   (*iterator_2).second.second->URL = gtk_entry_get_text (entry_p);
   // step1: parse URL
+  ACE_INET_Addr host_address;
   std::string hostname_string, URI_string;
   bool use_SSL = false;
   if (!HTTP_Tools::parseURL ((*iterator_2).second.second->URL,
+                             host_address,
                              hostname_string,
                              URI_string,
                              use_SSL))
