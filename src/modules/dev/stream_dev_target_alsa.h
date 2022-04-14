@@ -50,7 +50,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionDataType>
+          typename SessionDataType> // NOT (!) reference-counted
 class Stream_Dev_Target_ALSA_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,

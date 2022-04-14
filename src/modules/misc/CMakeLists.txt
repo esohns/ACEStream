@@ -70,6 +70,9 @@ set (source_files
      stream_misc_input_stream.cpp
      stream_misc_input_stream.h
      stream_misc_input_stream.inl
+     stream_misc_media_splitter.cpp
+     stream_misc_media_splitter.h
+     stream_misc_media_splitter.inl
      stream_misc_messagehandler.cpp
      stream_misc_messagehandler.h
      stream_misc_messagehandler.inl
@@ -137,7 +140,8 @@ install (FILES
          stream_misc_input_manager.inl
          stream_misc_input_stream.h
          stream_misc_input_stream.inl
-#         stream_misc_exports.h
+         stream_misc_media_splitter.h
+         stream_misc_media_splitter.inl
          stream_misc_messagehandler.h
          stream_misc_messagehandler.inl
          stream_misc_parser.h

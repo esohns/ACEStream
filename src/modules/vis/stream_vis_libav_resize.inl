@@ -260,10 +260,8 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
       typename SessionDataContainerType::DATA_T& session_data_r =
         const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
       // *TODO*: remove type inference
-      const MediaType& media_type_r = session_data_r.formats.back ();
-
-      // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
+      const MediaType& media_type_r = session_data_r.formats.back ();
 
       int flags_i = 0;
       MediaType media_type_s;

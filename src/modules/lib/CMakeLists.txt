@@ -128,6 +128,7 @@ endif (UNIX)
 set (source_files
      stream_lib_common.h
      stream_lib_defines.h
+     stream_lib_imediatype.h
      stream_lib_macros.h
      stream_lib_mediatype_converter.cpp
      stream_lib_mediatype_converter.h
@@ -266,6 +267,7 @@ unset (source_files)
 set (source_files
      stream_lib_common.h
      stream_lib_defines.h
+     stream_lib_imediatype.h
      stream_lib_macros.h
      stream_lib_mediatype_converter.h
      stream_lib_mediatype_converter.inl

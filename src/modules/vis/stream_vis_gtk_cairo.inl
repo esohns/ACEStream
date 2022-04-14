@@ -342,6 +342,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                                   media_type_s.resolution.width,
                                   media_type_s.resolution.height,
                                   1); // *TODO*: linesize alignment
+#else
+        ACE_ASSERT (false); // *TODO*
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
       ACE_UNUSED_ARG (frame_size_i);
