@@ -247,8 +247,6 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (!isOpen_);
-  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
-//  ACE_ASSERT (session_data_r.lock);
   size_t pdu_size_i = 0;
 
 next:
@@ -272,18 +270,18 @@ next:
                 ACE_TEXT ("%s: failed to Common_File_Tools::open(\"%s\"): \"%m\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (file_path_string.c_str ())));
-
-    // signal the controller
-    inherited::STATE_MACHINE_T::finished ();
-
-    goto continue_;
+    finished = true;
+    inherited::stop (false, false, false);
   } // end IF
-  isOpen_ = true;
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: processing file \"%s\" (%u byte(s))\n"),
-              inherited::mod_->name (),
-              ACE_TEXT (file_path_string.c_str ()),
-              Common_File_Tools::size (file_path_string)));
+  else
+  {
+    isOpen_ = true;
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: processing file \"%s\" (%u byte(s))\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (file_path_string.c_str ()),
+                Common_File_Tools::size (file_path_string)));
+  } // end ELSE
 
   do
   {
@@ -297,31 +295,37 @@ next:
       {
         case ACE_Message_Block::MB_STOP:
         {
-          // clean up
-          message_block_p->release (); message_block_p = NULL;
-
-          // *NOTE*: when close()d manually (i.e. user abort), 'finished' will not
-          //         have been set at this stage
-
-          // signal the controller ?
-          if (!finished)
+          if (unlikely (inherited::isHighPriorityStop_))
           {
-            finished = true;
-            // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-            //         --> continue
-            inherited::STATE_MACHINE_T::finished ();
-            // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
-            //         --> done
-            if (inherited::thr_count_ == 0)
-              goto done; // finished processing
+            if (likely (!inherited::abortSent_))
+              inherited::control (STREAM_CONTROL_ABORT,
+                                  false); // forward upstream ?
+          } // end IF
 
+          bool finished_b = false;
+          // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
+          //                   the stream may not have finish()ed at this point
+          { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+            if (inherited::sessionEndSent_ || inherited::sessionEndProcessed_)
+              finished_b = true;
+          } // end lock scope
+          if (!finished_b)
+          {
+            // enqueue(/process) STREAM_SESSION_END
+            inherited::finished (false); // recurse upstream ?
+            message_block_p->release (); message_block_p = NULL;
             continue;
           } // end IF
 
-done:
+          inherited::isHighPriorityStop_ = false;
+
+          // clean up
+          message_block_p->release (); message_block_p = NULL;
+
+          // --> SESSION_END has been processed; leave
           result_2 = 0;
 
-          goto continue_; // STREAM_SESSION_END has been processed
+          goto continue_2; // STREAM_SESSION_END has been processed
         }
         default:
           break;
@@ -331,54 +335,64 @@ done:
       inherited::handleMessage (message_block_p,
                                 stop_processing);
       if (stop_processing)
-      {
-        // *IMPORTANT NOTE*: message_block_p has already been released() !
-
+      { stop_processing = false;
         finished = true;
-        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-        //         --> continue
-        inherited::STATE_MACHINE_T::finished ();
-
-        continue;
+        bool finished_b = false;
+        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+          if (unlikely (inherited::sessionEndSent_ || inherited::sessionEndProcessed_))
+            finished_b = true;
+        } // end lock scope
+        if (!finished_b)
+        {
+          inherited::stop (false, false, false);
+          continue;
+        } // end IF
       } // end IF
     } // end IF
     else if (result == -1)
     {
       error = ACE_OS::last_error ();
-      if (error != EWOULDBLOCK) // Win32: 10035
+      if (likely (error == EWOULDBLOCK))
+        goto continue_;
+      if (error != ESHUTDOWN)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
-
-        if (!finished)
-        {
-          finished = true;
-          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-          //         --> continue
-          inherited::STATE_MACHINE_T::finished ();
-        } // end IF
-
+        finished = true;
         break;
       } // end IF
+
+      ACE_ASSERT (inherited::msg_queue_->state () == ACE_Message_Queue_Base::DEACTIVATED);
+      result_2 = 0;
+
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+        if (unlikely (inherited::current () != STREAM_STATE_FINISHED))
+        {
+          // need to reactivate the queue
+          result = inherited::msg_queue_->activate ();
+          if (unlikely (result == -1))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_Message_Queue::activate(): \"%m\", aborting\n"),
+                        inherited::mod_->name ()));
+            finished = true;
+            break;
+          } // end IF
+
+          inherited::stop (false, false, false);
+          continue;
+        } // end IF
+      } // end lock scope
+      break;
     } // end ELSE IF
 
-    // session aborted ?
-    if (session_data_r.aborted)
-    {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("session aborted\n")));
-
-      finished = true;
-      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-      //         --> continue
-      inherited::STATE_MACHINE_T::finished ();
-
+continue_:
+    if (finished)
       continue;
-    } // end IF
 
     message_p = inherited::allocateMessage (pdu_size_i);
-    if (!message_p)
+    if (unlikely (!message_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), aborting\n"),
@@ -386,9 +400,7 @@ done:
                   pdu_size_i));
 
       finished = true;
-      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-      //         --> continue
-      inherited::STATE_MACHINE_T::finished ();
+      inherited::stop (false, false, false);
 
       continue;
     } // end IF
@@ -416,9 +428,7 @@ done:
         } // end IF
 
         finished = true;
-        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-        //         --> continue
-        inherited::STATE_MACHINE_T::finished ();
+        inherited::stop (false, false, false);
 
         result_2 = 0;
 
@@ -434,9 +444,7 @@ done:
         message_p->release (); message_p = NULL;
 
         finished = true;
-        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-        //         --> continue
-        inherited::STATE_MACHINE_T::finished ();
+        inherited::stop (false, false, false);
 
         break;
       }
@@ -444,7 +452,7 @@ done:
       {
         message_p->wr_ptr (static_cast<size_t> (bytes_read));
         result = inherited::put_next (message_p, NULL);
-        if (result == -1)
+        if (unlikely (result == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
@@ -453,9 +461,7 @@ done:
           message_p->release (); message_p = NULL;
 
           finished = true;
-          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-          //         --> continue
-          inherited::STATE_MACHINE_T::finished ();
+          inherited::stop (false, false, false);
         } // end IF
 
         break;
@@ -464,7 +470,7 @@ done:
     message_p = NULL;
   } while (true);
 
-continue_:
+continue_2:
   if (isOpen_)
   {
     result = stream_.close ();

@@ -243,6 +243,7 @@ class Stream_MediaFramework_DirectShow_Tools
 
 #if defined (FFMPEG_SUPPORT)
   // *IMPORTANT NOTE*: callers must 'delete_' return values
+  static struct _AMMediaType* to (const struct Stream_MediaFramework_FFMPEG_AudioMediaType&); // media type
   static struct _AMMediaType* to (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&); // media type
   static enum AVSampleFormat toAVSampleFormat (const struct _AMMediaType&); // media type
   static enum AVPixelFormat mediaSubTypeToAVPixelFormat (REFGUID); // media foundation subtype

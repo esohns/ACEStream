@@ -21,12 +21,16 @@
 #ifndef STREAM_VISUALIZATION_IRESIZE_H
 #define STREAM_VISUALIZATION_IRESIZE_H
 
+#include "common_image_common.h"
+
 class Stream_Visualization_IResize
 {
  public:
-  // filter implementing this MUST discard all frames until the next
+  virtual void resize (const Common_Image_Resolution_t&) = 0; // new resolution
+
+  // modules implementing this MUST discard all frames until the next
   // STREAM_SESSION_MESSAGE_RESIZE has been processed
-  virtual void resizing () = 0;
+  virtual void resizing () = 0; // new resolution
 };
 
 #endif

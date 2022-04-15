@@ -138,7 +138,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   if (!configuration_in.window)
-    return true; // nothing to do
+    return inherited::initialize (configuration_in,
+                                  allocator_in); // nothing to do
 
   GDK_THREADS_ENTER ();
 
@@ -315,6 +316,12 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+      // *TODO*: remove type inferences
+      if (!inherited::configuration_->window)
+        break;
+
+      // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
       const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -424,13 +431,15 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       if (!inherited::configuration_->window)
         break;
 
+      ACE_GUARD (ACE_Thread_Mutex, aGuard, surfaceLock_);
+
 #if GTK_CHECK_VERSION(3, 0, 0)
       if (context_)
       {
         cairo_destroy (context_); context_ = NULL;
       } // end IF
 #endif  // GTK_CHECK_VERSION (3,0,0)
-      if (unlikely (surface_))
+      if (surface_)
 #if GTK_CHECK_VERSION (3,10,0)
         cairo_surface_destroy (surface_);
 #else
@@ -550,15 +559,16 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   if (unlikely (inherited2::resizing_))
     return;
   cairo_t* context_p = static_cast<cairo_t*> (arg_in);
-  ACE_ASSERT (context_p);
 
   ACE_GUARD (ACE_Thread_Mutex, aGuard, surfaceLock_);
 
 #if GTK_CHECK_VERSION (3,10,0)
+  ACE_ASSERT (context_p);
   cairo_surface_flush ();
   cairo_set_source_surface (context_p, surface_, 0.0, 0.0);
   cairo_paint (context_p);
 #elif GTK_CHECK_VERSION(3, 0, 0)
+  ACE_ASSERT (context_p);
   gdk_cairo_set_source_pixbuf (context_p, surface_, 0.0, 0.0);
   cairo_paint (context_p);
 #else
@@ -566,9 +576,6 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->window);
 
-  gint width, height;
-  gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
-                         &width, &height);
   // *IMPORTANT NOTE*: potentially, this involves tranfer of image data to an X
   //                   server running on a different host. Also, X servers don't
   //                   react kindly to multithreaded access
@@ -577,7 +584,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   gdk_draw_pixbuf (GDK_DRAWABLE (inherited::configuration_->window),
                    NULL,
                    surface_,
-                   0, 0, 0, 0, width, height,
+                   0, 0, 0, 0,
+                   gdk_pixbuf_get_width (surface_),
+                   gdk_pixbuf_get_height (surface_),
                    GDK_RGB_DITHER_NONE, 0, 0);
 #endif // GTK_CHECK_VERSION(3,10,0)
 }

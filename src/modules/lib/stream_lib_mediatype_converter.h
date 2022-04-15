@@ -83,6 +83,8 @@ class Stream_MediaFramework_MediaTypeConverter_T
   void getMediaType (const IMFMediaType*, enum Stream_MediaType_Type, struct _AMMediaType&);
 
 #if defined (FFMPEG_SUPPORT)
+  inline void getMediaType (const struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_in, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out) { mediaType_out = mediaType_in; }
+  inline void getMediaType (const struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_in, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out) { mediaType_out = mediaType_in.video; }
   inline void getMediaType (const struct Stream_MediaFramework_FFMPEG_AudioMediaType& mediaType_in, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_AudioMediaType& mediaType_inout) { mediaType_inout = mediaType_in; }
   inline void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout = mediaType_in; }
 
@@ -94,12 +96,17 @@ class Stream_MediaFramework_MediaTypeConverter_T
   void getMediaType (const struct _AMMediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
 
   // helper methods
+  inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.video.format = format_in; }
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout.format = format_in; }
+  inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.video.resolution = resolution_in; }
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout.resolution = resolution_in; }
+  inline void free_ (struct Stream_MediaFramework_FFMPEG_MediaType&) {}
 
   void getMediaType (const IMFMediaType*, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_AudioMediaType&);
   void getMediaType (const IMFMediaType*, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
 
+  void getMediaType (const struct Stream_MediaFramework_FFMPEG_MediaType&, enum Stream_MediaType_Type, struct _AMMediaType&);
+  void getMediaType (const struct Stream_MediaFramework_FFMPEG_AudioMediaType&, enum Stream_MediaType_Type, struct _AMMediaType&);
   void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, enum Stream_MediaType_Type, struct _AMMediaType&);
 //  void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, enum Stream_MediaType_Type, IMFMediaType*&);
 #endif // FFMPEG_SUPPORT
@@ -121,6 +128,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void setResolution (const Common_Image_Resolution_t resolution_in, struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat& mediaType_inout) { Stream_MediaFramework_MediaFoundation_Tools::setResolution (resolution_in, mediaType_inout.video); }
   inline void setResolution (const Common_Image_Resolution_t resolution_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_in, mediaType_inout); }
   inline void setResolution (const Common_Image_Resolution_t resolution_in, IMFMediaType* mediaType_inout) { Stream_MediaFramework_MediaFoundation_Tools::setResolution (resolution_in, mediaType_inout); }
+  inline void free_ (struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_in) { Stream_MediaFramework_DirectShow_Tools::free (mediaType_in); }
 
 #if defined (FFMPEG_SUPPORT)
   // ffmpeg

@@ -30,6 +30,7 @@ Test_I_Message::Test_I_Message (Stream_SessionId_t sessionId_in,
                                 unsigned int size_in)
  : inherited (sessionId_in,
               size_in)
+ , mediaType_ (STREAM_MEDIATYPE_INVALID)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message::Test_I_Message"));
 
@@ -99,7 +100,7 @@ Test_I_Message::clone (ACE_Message_Block::Message_Flags flags_in) const
     return NULL;
   } // end IF
 
-  // allocate a new Test_I_Message that contains unique copies of the message
+  // allocate a new message that contains unique copies of the message
   // block fields, and "deep" copy(s) of the data block(s)
 
   // *NOTE*: if there is no allocator, use the standard new/delete calls
@@ -109,7 +110,7 @@ Test_I_Message::clone (ACE_Message_Block::Message_Flags flags_in) const
     // *NOTE*: the argument to calloc() doesn't matter (as long as it is not 0),
     //         the returned memory is always sizeof(Test_I_Message)
     ACE_NEW_MALLOC_NORETURN (result_p,
-                             static_cast<Test_I_Message*> (inherited::message_block_allocator_->calloc (sizeof (OWN_TYPE_T),
+                             static_cast<Test_I_Message*> (inherited::message_block_allocator_->calloc (sizeof (Test_I_Message),
                                                                                                         '\0')),
                              Test_I_Message (inherited::sessionId_,
                                              data_block_p,
@@ -186,7 +187,7 @@ Test_I_Message::duplicate (void) const
 
   Test_I_Message* message_p = NULL;
 
-  // create a new Stream_MessageBase that contains unique copies of
+  // create a new message that contains unique copies of
   // the message block fields, but a (reference counted) shallow duplicate of
   // the ACE_Data_Block
 
@@ -199,7 +200,7 @@ Test_I_Message::duplicate (void) const
     // *NOTE*: the argument to malloc SHOULDN'T really matter, as this will be
     //         a "shallow" copy which just references the same data block
     ACE_NEW_MALLOC_NORETURN (message_p,
-                             static_cast<Test_I_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
+                             static_cast<Test_I_Message*> (inherited::message_block_allocator_->calloc (sizeof (Test_I_Message),
                                                                                                         '\0')),
                              Test_I_Message (*this));
   } // end ELSE

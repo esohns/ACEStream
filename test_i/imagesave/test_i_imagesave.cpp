@@ -431,7 +431,6 @@ do_work (
 
   // ********************** module configuration data **************************
   struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
-  //if (bufferSize_in)
   allocator_configuration.defaultBufferSize = 524288;
 
   struct Stream_ModuleConfiguration module_configuration;
@@ -540,52 +539,24 @@ do_work (
   //    //gdk_win32_drawable_get_handle (GDK_DRAWABLE (configuration.moduleHandlerConfiguration.window));
   //    static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.second->window));
   //} // end IF
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  (*stream_iterator).second.second->outputFormat.majortype = MEDIATYPE_Video;
-  (*stream_iterator).second.second->outputFormat.subtype = MEDIASUBTYPE_RGB32;
-  (*stream_iterator).second.second->outputFormat.bFixedSizeSamples = TRUE;
-  (*stream_iterator).second.second->outputFormat.bTemporalCompression = FALSE;
-  (*stream_iterator).second.second->outputFormat.formattype = FORMAT_VideoInfo;
-  (*stream_iterator).second.second->outputFormat.pbFormat =
-    static_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tagVIDEOINFOHEADER)));
-  ACE_ASSERT ((*stream_iterator).second.second->outputFormat.pbFormat);
-  (*stream_iterator).second.second->outputFormat.cbFormat =
-    sizeof (struct tagVIDEOINFOHEADER);
-  struct tagVIDEOINFOHEADER* video_info_header_p =
-    reinterpret_cast<struct tagVIDEOINFOHEADER*> ((*stream_iterator).second.second->outputFormat.pbFormat);
-  // *NOTE*: empty --> use entire video
-  BOOL result_2 = SetRectEmpty (&video_info_header_p->rcSource);
-  ACE_ASSERT (SUCCEEDED (result_2));
-  result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
-  // *NOTE*: empty --> fill entire buffer
-  ACE_ASSERT (SUCCEEDED (result_2));
-  //video_info_header_p->dwBitErrorRate;
-  video_info_header_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
-  video_info_header_p->bmiHeader.biWidth = 1920;
-  video_info_header_p->bmiHeader.biHeight = 1080;
-  video_info_header_p->bmiHeader.biPlanes = 1;
-  video_info_header_p->bmiHeader.biBitCount = 32;
-  video_info_header_p->bmiHeader.biCompression = BI_RGB;
-  video_info_header_p->bmiHeader.biSizeImage =
-    DIBSIZE (video_info_header_p->bmiHeader);
-  ////video_info_header_p->bmiHeader.biXPelsPerMeter;
-  ////video_info_header_p->bmiHeader.biYPelsPerMeter;
-  ////video_info_header_p->bmiHeader.biClrUsed;
-  ////video_info_header_p->bmiHeader.biClrImportant;
-  video_info_header_p->AvgTimePerFrame =
-    MILLISECONDS_TO_100NS_UNITS (1000 / 30); // --> 30 fps
-  video_info_header_p->dwBitRate =
-    (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
-    (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-  (*stream_iterator).second.second->outputFormat.lSampleSize =
-    video_info_header_p->bmiHeader.biSizeImage;
-#else
 #if defined (FFMPEG_SUPPORT)
-  (*stream_iterator).second.second->outputFormat.format = AV_PIX_FMT_RGB32;
-  (*stream_iterator).second.second->outputFormat.resolution.width = 1920;
-  (*stream_iterator).second.second->outputFormat.resolution.height = 1080;
-#endif // FFMPEG_SUPPORT
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  (*stream_iterator).second.second->outputFormat.video.format = AV_PIX_FMT_RGB24;
+#else
+  (*stream_iterator).second.second->outputFormat.video.format = AV_PIX_FMT_RGB32;
+#endif (GTK_USE)
+#else
+  (*stream_iterator).second.second->outputFormat.video.format = AV_PIX_FMT_RGB32;
+#endif (GUI_SUPPORT)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  (*stream_iterator).second.second->outputFormat.video.resolution.cx = 1920;
+  (*stream_iterator).second.second->outputFormat.video.resolution.cy = 1080;
+#else
+  (*stream_iterator).second.second->outputFormat.video.resolution.width = 1920;
+  (*stream_iterator).second.second->outputFormat.video.resolution.height = 1080;
 #endif // ACE_WIN32 || ACE_WIN64
+#endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   (*stream_iterator_2).second.second->outputFormat =
     (*stream_iterator).second.second->outputFormat;
@@ -595,24 +566,17 @@ do_work (
 
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Common_Image_Resolution_t resolution_s =
-    Stream_MediaFramework_DirectShow_Tools::toResolution ((*stream_iterator).second.second->outputFormat);
-#else
-//  Common_Image_Resolution_t resolution_s =
-//    (*stream_iterator).second.second->outputFormat.resolution;
-#endif // ACE_WIN32 || ACE_WIN64
-  //struct _D3DDISPLAYMODE display_mode_s =
-  //  Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (directShowConfiguration_in.direct3DConfiguration.adapter,
-  //                                                          STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT,
-  //                                                          resolution_s);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // struct _D3DDISPLAYMODE display_mode_s =
+  //   Stream_MediaFramework_DirectDraw_Tools::getDisplayMode(directShowConfiguration_in.direct3DConfiguration.adapter,
+  //                                                           STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT,
+  //                                                           resolution_s);
   ACE_ASSERT (!configuration_in.direct3DConfiguration.presentationParameters.hDeviceWindow);
   //directShowConfiguration_in.direct3DConfiguration.focusWindow =
   //    GetConsoleWindow ();
   configuration_in.direct3DConfiguration.presentationParameters.BackBufferWidth =
-      resolution_s.cx;
+    (*stream_iterator).second.second->outputFormat.video.resolution.cx;
   configuration_in.direct3DConfiguration.presentationParameters.BackBufferHeight =
-      resolution_s.cy;
+    (*stream_iterator).second.second->outputFormat.video.resolution.cy;
   configuration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
     GetConsoleWindow ();
   IDirect3DDeviceManager9* direct3D_manager_p = NULL;
@@ -760,16 +724,21 @@ do_work (
 clean:
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  gtk_manager_p->stop (true, true);
+  gtk_manager_p->stop (true,   // wait ?
+                       false);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   timer_manager_p->stop ();
+
+  stream.remove (&message_handler,
+                 true,             // lock ?
+                 true);            // reset ?
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));
 }
 
-COMMON_DEFINE_PRINTVERSION_FUNCTION(do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
+COMMON_DEFINE_PRINTVERSION_FUNCTION (do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE (programName_in, ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
 
 int
 ACE_TMAIN (int argc_in,
@@ -804,6 +773,7 @@ ACE_TMAIN (int argc_in,
   // initialize framework(s)
   Common_Tools::initialize (false); // initialize random number generator ?
 #if defined (GUI_SUPPORT)
+  Common_UI_Tools::initialize ();
 #if defined (WXWIDGETS_USE)
   if (!Common_UI_WxWidgets_Tools::initialize (argc_in,
                                               argv_in))

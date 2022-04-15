@@ -47,7 +47,7 @@ stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
     if (*iterator == *preferred_format_p)
       return *iterator;
   ACE_DEBUG ((LM_WARNING,
-              ACE_TEXT ("%s: preferred format (was: %s) not supported, falling back\n"),
+              ACE_TEXT ("%s: preferred format (was: \"%s\") not supported, falling back\n"),
               ACE_TEXT (avcodec_get_name (context_in->codec_id)),
               ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*preferred_format_p).c_str ())));
 

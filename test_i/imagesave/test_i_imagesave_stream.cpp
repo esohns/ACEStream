@@ -42,21 +42,33 @@ Test_I_Stream::Test_I_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING))
- , decoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_4_DEFAULT_NAME_STRING))
+ , MP4Decoder_ (this,
+                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_4_DEFAULT_NAME_STRING))
+ , MPEGTSDecoder_ (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_TS_DEFAULT_NAME_STRING))
+ , splitter_ (this,
+              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
 #if defined (FFMPEG_SUPPORT)
  , decoder2_ (this,
               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
 #endif // FFMPEG_SUPPORT
   //, report_ (this,
- //           ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+ //            ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+ , resize_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
- , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
+ , Direct3D_ (this,
+              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
 #else
- , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
+ , X11_ (this,
+         ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_SUPPORT)
+ , GTKCairo_ (this,
+              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
+#endif // GTK_SUPPORT
+#endif // GUI_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream::Test_I_Stream"));
 
@@ -72,26 +84,54 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   delete_out = false;
 
   ACE_ASSERT (inherited::configuration_);
-  //inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
-  //iterator =
-  //  const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  inherited::CONFIGURATION_T::ITERATOR_T iterator/*, iterator_2*/;
+  iterator = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   //iterator_2 =
   //  const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
   //// sanity check(s)
-  //ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
   //ACE_ASSERT (iterator_2 != configuration_in.end ());
+  std::string file_extension =
+    Common_File_Tools::fileExtension ((*iterator).second.second->fileIdentifier.identifier,
+                                      false);
+  bool is_mpeg_4 = !ACE_OS::strcmp (file_extension.c_str (),
+                                    ACE_TEXT_ALWAYS_CHAR ("mp4"));
+  bool is_mpeg_ts = !ACE_OS::strcmp (file_extension.c_str (),
+                                     ACE_TEXT_ALWAYS_CHAR ("ts"));
 
-  // *NOTE*: one problem is that any module that was NOT enqueued onto the
-  //         stream (e.g. because initialize() failed) needs to be explicitly
-  //         close()d
 
   layout_in->append (&source_, NULL, 0);
-  layout_in->append (&decoder_, NULL, 0);
+  if (is_mpeg_4)
+    layout_in->append (&MP4Decoder_, NULL, 0);
+  else if (is_mpeg_ts)
+    layout_in->append (&MPEGTSDecoder_, NULL, 0);
+
+  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
+  unsigned int index_i = 0;
+
+  layout_in->append (&splitter_, NULL, 0);
+  branch_p = &splitter_;
+  configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+//  configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+  Stream_IDistributorModule* idistributor_p =
+    dynamic_cast<Stream_IDistributorModule*> (splitter_.writer ());
+  ACE_ASSERT (idistributor_p);
+  idistributor_p->initialize (configuration_->configuration_->branches);
+
 #if defined (FFMPEG_SUPPORT)
-  layout_in->append (&decoder2_, NULL, 0);
+  layout_in->append (&decoder2_, branch_p, index_i);
 #endif // FFMPEG_SUPPORT
   //layout_in->append (&report_, NULL, 0);
-  layout_in->append (&display_, NULL, 0);
+  layout_in->append (&resize_, branch_p, index_i);
+#if defined (GUI_SUPPORT)
+#if defined (GTK_SUPPORT)
+  layout_in->append (&GTKCairo_, branch_p, index_i);
+#else
+  layout_in->append (&X11_, branch_p, index_i);
+#endif // GTK_SUPPORT
+#endif // GUI_SUPPORT
+
+  ++index_i;
 
   return true;
 }
@@ -108,7 +148,6 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 //  bool reset_setup_pipeline = false;
   Test_I_ImageSave_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
-  Test_I_Source* source_impl_p = NULL;
   std::string log_file_name;
 
   iterator =
@@ -162,31 +201,10 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
-  // step4: initialize module(s)
-
-  // ******************* Camera Source ************************
-  source_impl_p =
-    dynamic_cast<Test_I_Source*> (source_.writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Test_I_Source> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
-
-  // ---------------------------------------------------------------------------
   // step5: update session data
   session_data_p->formats.push_back (configuration_in.configuration_->format);
 
   // ---------------------------------------------------------------------------
-  // step6: initialize head module
-  source_impl_p->setP (&(inherited::state_));
-  //fileReader_impl_p->reset ();
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  source_.arg (inherited::sessionData_);
 
   // step7: assemble stream
   if (configuration_in.configuration_->setupPipeline)
@@ -199,12 +217,6 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
     } // end IF
 
   // ---------------------------------------------------------------------------
-
-  //// *TODO*: remove type inferences
-  //session_data_r.fileName =
-  //  configuration_in.moduleHandlerConfiguration->fileName;
-  //session_data_r.size =
-  //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
 
   // OK: all went well
   inherited::isInitialized_ = true;

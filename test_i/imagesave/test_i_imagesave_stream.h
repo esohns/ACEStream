@@ -89,12 +89,24 @@ class Test_I_Stream
 
   // modules
   Test_I_Source_Module          source_;
-  Test_I_MP4Decoder_Module      decoder_;
+  Test_I_MP4Decoder_Module      MP4Decoder_;
+  Test_I_MPEGTSDecoder_Module   MPEGTSDecoder_;
+  Test_I_MediaSplitter_Module   splitter_;
 #if defined (FFMPEG_SUPPORT)
   Test_I_LibAVDecoder_Module    decoder2_;
 #endif // FFMPEG_SUPPORT
   //Test_I_StatisticReport_Module report_;
-  Test_I_Display_Module         display_;
+  Test_I_LibAVResize_Module     resize_;
+#if defined (GUI_SUPPORT)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_Direct3D_Module        Direct3D_;
+#else
+  Test_I_X11_Module             X11_;
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_SUPPORT)
+  Test_I_GTKCairo_Module        GTKCairo_;
+#endif // GTK_SUPPORT
+#endif // GUI_SUPPORT
 };
 
 #endif

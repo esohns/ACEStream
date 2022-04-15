@@ -4383,6 +4383,57 @@ Stream_MediaFramework_DirectShow_Tools::toString (enum _AM_AUDIO_RENDERER_STAT_P
 
 #if defined (FFMPEG_SUPPORT)
 struct _AMMediaType*
+Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_FFMPEG_AudioMediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::to"));
+
+  // initialize return value(s)
+  struct _AMMediaType* result_p = NULL;
+  ACE_NEW_NORETURN (result_p,
+                    struct _AMMediaType ());
+  if (unlikely (!result_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    return NULL;
+  } // end IF
+
+  BOOL result_2 = FALSE;
+  result_p->majortype = MEDIATYPE_Audio;
+  result_p->subtype =
+    Stream_MediaFramework_Tools::AVSampleFormatToMediaSubType (mediaType_in.format);
+  result_p->bFixedSizeSamples = TRUE;
+  result_p->bTemporalCompression = FALSE;
+  result_p->formattype = FORMAT_WaveFormatEx;
+  result_p->cbFormat = sizeof (struct tWAVEFORMATEX);
+  result_p->pbFormat =
+    reinterpret_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tWAVEFORMATEX)));
+  if (unlikely (!result_p->pbFormat))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    delete result_p; result_p = NULL;
+    return NULL;
+  } // end IF
+  ACE_OS::memset (result_p->pbFormat, 0, sizeof (struct tWAVEFORMATEX));
+  struct tWAVEFORMATEX* wave_format_ex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (result_p->pbFormat);
+  wave_format_ex_p->wFormatTag =
+    Stream_MediaFramework_Tools::AVSampleFormatToFormatTag (mediaType_in.format);
+  wave_format_ex_p->nChannels = mediaType_in.channels;
+  wave_format_ex_p->nSamplesPerSec = mediaType_in.sampleRate;
+  wave_format_ex_p->wBitsPerSample =
+    av_get_bytes_per_sample (mediaType_in.format) * 8;
+  wave_format_ex_p->nBlockAlign =
+    (wave_format_ex_p->wBitsPerSample / 8) * wave_format_ex_p->nChannels;
+  wave_format_ex_p->nAvgBytesPerSec =
+    wave_format_ex_p->nBlockAlign * wave_format_ex_p->nSamplesPerSec;
+  result_p->lSampleSize = wave_format_ex_p->nBlockAlign;
+
+  return result_p;
+}
+
+struct _AMMediaType*
 Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::to"));

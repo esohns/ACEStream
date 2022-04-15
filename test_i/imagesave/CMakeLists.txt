@@ -265,7 +265,7 @@ set (ARGS "-l")
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
  set (ARGS "${ARGS} -t")
 endif (CMAKE_BUILD_TYPE STREQUAL Debug)
-file (TO_CMAKE_PATH "C:/Users/Erik/Downloads/file_example_MP4_1920_18MG.mp4" SOURCE_FILE_PATH)
+file (TO_CMAKE_PATH "F:/Erik/Videos/file_example_MP4_1920_18MG.mp4" SOURCE_FILE_PATH)
 #message (STATUS "SOURCE_FILE_PATH: ${SOURCE_FILE_PATH}")
 file (TO_NATIVE_PATH "${SOURCE_FILE_PATH}" SOURCE_FILE_PATH)
 #message (STATUS "SOURCE_FILE_PATH: ${SOURCE_FILE_PATH}")
@@ -296,14 +296,15 @@ elseif (WIN32)
 #  message (STATUS "ui_definition_file: ${ui_definition_file}")
   set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
 
-  if (GTK_USE)
+  if (GTK_SUPPORT)
    file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              ${GTK_PATH})
-  elseif (WXWIDGETS_USE)
+  endif (GTK_SUPPORT)
+  if (WXWIDGETS_SUPPORT)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              ${wxWidgets_LIB_DIR})
-  endif ()
+  endif (WXWIDGETS_SUPPORT)
  else ()
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
@@ -322,7 +323,7 @@ create_target_launcher (${EXECUTABLE}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/imagesave
+                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/imagesave
                         ENVIRONMENT ${ENVIRONMENT})
 
 ##########################################

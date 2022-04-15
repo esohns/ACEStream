@@ -28,6 +28,8 @@
 #include "stream_common.h"
 #include "stream_message_base.h"
 
+#include "stream_lib_imediatype.h"
+
 #include "test_i_common.h"
 
 // forward declaration(s)
@@ -47,6 +49,7 @@ class ACE_Message_Block;
 class Test_I_Message
  : public Stream_MessageBase_T<enum Stream_MessageType,
                                int>
+ , public Stream_IMediaType
 {
   typedef Stream_MessageBase_T<enum Stream_MessageType,
                                int> inherited;
@@ -79,6 +82,10 @@ class Test_I_Message
   // implement Stream_MessageBase_T
   inline virtual int command () const { return ACE_Message_Block::MB_DATA; }
 
+  // implement Stream_IMediaType
+  inline virtual enum Stream_MediaType_Type getMediaType () { return mediaType_; }
+  inline virtual void setMediaType (enum Stream_MediaType_Type mediaType_in) { mediaType_ = mediaType_in; }
+
  protected:
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
@@ -95,6 +102,8 @@ class Test_I_Message
                   ACE_Allocator*);    // message allocator
   Test_I_Message (const Test_I_Message&);
   ACE_UNIMPLEMENTED_FUNC (Test_I_Message& operator= (const Test_I_Message&))
+
+  enum Stream_MediaType_Type mediaType_;
 };
 
 #endif

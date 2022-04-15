@@ -112,6 +112,8 @@ class Stream_MediaFramework_Tools
   static unsigned int frameSize (const IMFMediaType*);
 
 #if defined (FFMPEG_SUPPORT)
+  static WORD AVSampleFormatToFormatTag (enum AVSampleFormat); // format
+  static struct _GUID AVSampleFormatToMediaSubType (enum AVSampleFormat); // format
   static struct _GUID AVPixelFormatToMediaSubType (enum AVPixelFormat); // format
 #endif // FFMPEG_SUPPORT
 #else
@@ -147,7 +149,7 @@ class Stream_MediaFramework_Tools
 #if defined (FFMPEG_SUPPORT)
   // ffmpeg
   static enum AVCodecID ffmpegFormatToffmpegCodecId (enum AVSampleFormat); // format
-  inline static std::string pixelFormatToString (enum AVPixelFormat format_in) { std::string result = ((format_in == AV_PIX_FMT_NONE) ? ACE_TEXT_ALWAYS_CHAR ("") : av_get_pix_fmt_name (format_in)); return result; }
+  inline static std::string pixelFormatToString (enum AVPixelFormat format_in) { std::string result = ((format_in == AV_PIX_FMT_NONE) ? ACE_TEXT_ALWAYS_CHAR ("NONE") : av_get_pix_fmt_name (format_in)); return result; }
 #endif // FFMPEG_SUPPORT
 
  private:

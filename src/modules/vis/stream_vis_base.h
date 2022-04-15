@@ -16,6 +16,7 @@ class Stream_Visualization_Base
    inline virtual ~Stream_Visualization_Base () {}
 
    // implement Stream_Visualization_IResize
+   inline virtual void resize (const Common_Image_Resolution_t&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
    inline virtual void resizing () { resizing_ = true; }
 
  protected:

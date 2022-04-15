@@ -1662,7 +1662,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                               (box_3->es_descriptor.ocr_stream_flag ? ACE_TEXT ("set") : ACE_TEXT ("not set"))));
                   ACE_ASSERT (!box_3->es_descriptor.ocr_stream_flag);
                   ACE_DEBUG ((LM_DEBUG,
-                              ACE_TEXT ("%s: esds: stream_priority: %s\n"),
+                              ACE_TEXT ("%s: esds: stream_priority: %u\n"),
                               inherited::mod_->name (),
                               box_3->es_descriptor.stream_priority));
                   // parse decoder-configuration descriptor
@@ -2616,6 +2616,7 @@ continue_2:
     message_block_2->rd_ptr (static_cast<size_t> (bytes_to_skip_i));
   } // end ELSE
   message_block_p->cont (NULL);
+  buffer_->setMediaType (STREAM_MEDIATYPE_VIDEO); // tag the message so the splitter knows what to do
   message_block_p = buffer_;
   buffer_ = static_cast<DataMessageType*> (message_block_2);
   ACE_ASSERT (message_block_p->total_length () == frameSizes_[videoFrame_]);

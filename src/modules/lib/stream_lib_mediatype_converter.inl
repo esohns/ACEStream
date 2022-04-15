@@ -469,6 +469,54 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
 
 template <typename MediaType>
 void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     struct _AMMediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  switch (type_in)
+  {
+    case STREAM_MEDIATYPE_AUDIO:
+    {
+      getMediaType (mediaType_in.audio, type_in, mediaType_out);
+      break;
+    }
+    case STREAM_MEDIATYPE_VIDEO:
+    {
+      getMediaType (mediaType_in.video, type_in, mediaType_out);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media type type (was: %d), returning\n"),
+                  type_in));
+      return;
+    }
+  } // end SWITCH
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_AudioMediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     struct _AMMediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
+
+  Stream_MediaFramework_DirectShow_Tools::free (mediaType_out);
+
+  struct _AMMediaType* media_type_p =
+    Stream_MediaFramework_DirectShow_Tools::to (mediaType_in);
+  ACE_ASSERT (media_type_p);
+  mediaType_out = *media_type_p;
+}
+
+template <typename MediaType>
+void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in,
                                                                      enum Stream_MediaType_Type type_in,
                                                                      struct _AMMediaType& mediaType_out)

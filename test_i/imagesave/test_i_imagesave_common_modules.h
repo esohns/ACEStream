@@ -30,6 +30,7 @@
 #include "stream_streammodule_base.h"
 
 #include "stream_dec_mpeg_4_decoder.h"
+#include "stream_dec_mpeg_ts_decoder.h"
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_decoder.h"
 #endif // FFMPEG_SUPPORT
@@ -37,29 +38,28 @@
 #include "stream_file_source.h"
 
 #include "stream_misc_defines.h"
-#include "stream_misc_distributor.h"
+#include "stream_misc_media_splitter.h"
 #include "stream_misc_messagehandler.h"
 
 //#include "stream_stat_statistic_report.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
 #if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
 #endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "stream_vis_target_direct3d.h"
-#else
 #if defined (FFMPEG_SUPPORT)
 #include "stream_vis_libav_resize.h"
 #endif // FFMPEG_SUPPORT
 
-//#include "stream_vis_gtk_pixbuf.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_vis_target_direct3d.h"
+#else
 #include "stream_vis_x11_window.h"
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined(GTK_SUPPORT)
+#include "stream_vis_gtk_cairo.h"
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "test_i_imagesave_common.h"
@@ -88,6 +88,13 @@ typedef Stream_Decoder_MPEG_4_Decoder_T<ACE_MT_SYNCH,
                                         Test_I_Message,
                                         Test_I_SessionMessage_t,
                                         Test_I_ImageSave_SessionData_t> Test_I_MP4Decoder;
+typedef Stream_Decoder_MPEG_TS_Decoder_T<ACE_MT_SYNCH,
+                                         Common_TimePolicy_t,
+                                         struct Test_I_ImageSave_ModuleHandlerConfiguration,
+                                         Stream_ControlMessage_t,
+                                         Test_I_Message,
+                                         Test_I_SessionMessage_t,
+                                         Test_I_ImageSave_SessionData_t> Test_I_MPEGTSDecoder;
 
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
@@ -97,11 +104,7 @@ typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Test_I_Message,
                                       Test_I_SessionMessage_t,
                                       Test_I_ImageSave_SessionData_t,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                      struct _AMMediaType> Test_I_LibAVDecoder;
-#else
-                                      struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_I_LibAVDecoder;
-#endif // ACE_WIN32 || ACE_WIN64
+                                      struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_LibAVDecoder;
 #endif // FFMPEG_SUPPORT
 
 //typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
@@ -127,23 +130,13 @@ typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
 //                                                      Test_I_DirectShow_SessionData,
 //                                                      Test_I_DirectShow_SessionData_t> Test_I_Statistic_WriterTask_t;
 
-typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct Test_I_ImageSave_ModuleHandlerConfiguration,
-                                                      Stream_ControlMessage_t,
-                                                      Test_I_Message,
-                                                      Test_I_SessionMessage_t,
-                                                      Test_I_ImageSave_SessionData> Test_I_Distributor_Reader_t;
-typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct Test_I_ImageSave_ModuleHandlerConfiguration,
-                                                      Stream_ControlMessage_t,
-                                                      Test_I_Message,
-                                                      Test_I_SessionMessage_t,
-                                                      Test_I_ImageSave_SessionData> Test_I_Distributor_Writer_t;
+typedef Stream_Miscellaneous_MediaSplitter_T<ACE_MT_SYNCH,
+                                             struct Test_I_ImageSave_ModuleHandlerConfiguration,
+                                             Stream_ControlMessage_t,
+                                             Test_I_Message,
+                                             Test_I_SessionMessage_t,
+                                             Test_I_ImageSave_SessionData> Test_I_MediaSplitter_t;
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
 #if defined (FFMPEG_SUPPORT)
 //typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
 //                                        Common_TimePolicy_t,
@@ -160,10 +153,10 @@ typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            Test_I_Message,
                                            Test_I_SessionMessage_t,
                                            Test_I_ImageSave_SessionData_t,
-                                           struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_I_LibAVResize;
+                                           struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_LibAVResize;
 #endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
@@ -173,17 +166,8 @@ typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Test_I_SessionMessage_t,
                                      Test_I_ImageSave_SessionData,
                                      Test_I_ImageSave_SessionData_t,
-                                     struct _AMMediaType> Test_I_Display;
+                                     struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_Direct3D;
 #else
-//typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
-//                                      Common_TimePolicy_t,
-//                                      struct Test_I_V4L_ModuleHandlerConfiguration,
-//                                      Stream_ControlMessage_t,
-//                                      Test_I_Message_t,
-//                                      Test_I_V4L_SessionMessage_t,
-//                                      Test_I_V4L_SessionData,
-//                                      Test_I_V4L_SessionData_t,
-//                                      struct Stream_MediaFramework_V4L_MediaType> Test_I_Display;
 //typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
 //                                       Common_TimePolicy_t,
 //                                       struct Test_I_V4L_ModuleHandlerConfiguration,
@@ -206,8 +190,20 @@ typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Test_I_Message,
                                        Test_I_SessionMessage_t,
                                        Test_I_ImageSave_SessionData_t,
-                                       struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_I_Display;
+                                       struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_X11;
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_SUPPORT)
+typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_I_ImageSave_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_I_Message,
+                                      Test_I_SessionMessage_t,
+                                      Test_I_ImageSave_SessionData,
+                                      Test_I_ImageSave_SessionData_t,
+                                      struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_GTKCairo;
+#endif // GTK_SUPPORT
+#endif // GUI_SUPPORT
 
 typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
@@ -230,9 +226,15 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                     
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                        // session data type
                               enum Stream_SessionMessageType,                      // session event type
                               struct Test_I_ImageSave_ModuleHandlerConfiguration,  // module handler configuration type
-                              libacestream_default_file_source_module_name_string,
+                              libacestream_default_dec_mpeg_4_module_name_string,
                               Stream_INotify_t,                                    // stream notification interface type
                               Test_I_MP4Decoder);                                  // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                        // session data type
+                              enum Stream_SessionMessageType,                      // session event type
+                              struct Test_I_ImageSave_ModuleHandlerConfiguration,  // module handler configuration type
+                              libacestream_default_dec_mpeg_ts_module_name_string,
+                              Stream_INotify_t,                                    // stream notification interface type
+                              Test_I_MPEGTSDecoder);                               // writer type
 
 #if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                              // session data type
@@ -248,12 +250,10 @@ DATASTREAM_MODULE_DUPLEX (Test_I_ImageSave_SessionData,                         
                           struct Test_I_ImageSave_ModuleHandlerConfiguration,       // module handler configuration type
                           libacestream_default_misc_distributor_module_name_string,
                           Stream_INotify_t,                                         // stream notification interface type
-                          Test_I_Distributor_Reader_t,                              // reader type
-                          Test_I_Distributor_Writer_t,                              // writer type
-                          Test_I_Distributor);                                      // name
+                          Test_I_MediaSplitter_t::READER_TASK_T,                    // reader type
+                          Test_I_MediaSplitter_t,                                   // writer type
+                          Test_I_MediaSplitter);                                    // name
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
 #if defined (FFMPEG_SUPPORT)
 //DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                   // session data type
 //                              enum Stream_SessionMessageType,                   // session event type
@@ -269,7 +269,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                   //
                               Stream_INotify_t,                                 // stream notification interface type
                               Test_I_LibAVResize);                      // writer type
 #endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
 
 //DATASTREAM_MODULE_DUPLEX (Test_I_DirectShow_SessionData,                // session data type
 //                          enum Stream_SessionMessageType,                   // session event type
@@ -280,20 +279,15 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                   //
 //                          Test_I_DirectShow_Statistic_WriterTask_t, // writer type
 //                          Test_I_DirectShow_StatisticReport);       // name
 
+#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                         // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_I_ImageSave_ModuleHandlerConfiguration,   // module handler configuration type
                               libacestream_default_vis_direct3d_module_name_string,
                               Stream_INotify_t,                                     // stream notification interface type
-                              Test_I_Display);                                      // writer type
+                              Test_I_Direct3D);                                     // writer type
 #else
-//DATASTREAM_MODULE_INPUT_ONLY (Test_I_V4L_SessionData,                       // session data type
-//                              enum Stream_SessionMessageType,                       // session event type
-//                              struct Test_I_V4L_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_vis_gtk_cairo_module_name_string,
-//                              Stream_INotify_t,                                     // stream notification interface type
-//                              Test_I_Display);                              // writer type
 //DATASTREAM_MODULE_INPUT_ONLY (Test_I_V4L_SessionData,                   // session data type
 //                              enum Stream_SessionMessageType,                   // session event type
 //                              struct Test_I_V4L_ModuleHandlerConfiguration, // module handler configuration type
@@ -311,8 +305,17 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                     
                               struct Test_I_ImageSave_ModuleHandlerConfiguration,     // module handler configuration type
                               libacestream_default_vis_x11_window_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
-                              Test_I_Display);                                        // writer type
+                              Test_I_X11);                                        // writer type
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                         // session data type
+                              enum Stream_SessionMessageType,                       // session event type
+                              struct Test_I_ImageSave_ModuleHandlerConfiguration,   // module handler configuration type
+                              libacestream_default_vis_gtk_cairo_module_name_string,
+                              Stream_INotify_t,                                     // stream notification interface type
+                              Test_I_GTKCairo);                                     // writer type
+#endif // GTK_SUPPORT
+#endif // GUI_SUPPORT
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                                // session data type
                               enum Stream_SessionMessageType,                              // session event type

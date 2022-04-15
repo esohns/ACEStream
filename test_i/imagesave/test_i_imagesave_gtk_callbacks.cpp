@@ -131,6 +131,7 @@ stream_processing_function (void* arg_in)
     static_cast<struct Test_I_ImageSave_UI_CBData*> (thread_data_p->CBData);
   ACE_ASSERT (cb_data_p->configuration);
   ACE_ASSERT (cb_data_p->stream);
+  Stream_Module_t* module_p = NULL;
 
   iterator =
     thread_data_p->CBData->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
@@ -186,6 +187,12 @@ stream_processing_function (void* arg_in)
                                                                                                    converter.str ().c_str ())));
   gdk_threads_leave ();
 
+  module_p =
+    const_cast<Stream_Module_t*> (cb_data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
+  ACE_ASSERT (module_p);
+  cb_data_p->dispatch = dynamic_cast<Common_IDispatch*> (module_p->writer ());
+  ACE_ASSERT (cb_data_p->dispatch);
+
   // *NOTE*: blocks until 'finished'
   ACE_ASSERT (stream_p);
   stream_p->start ();
@@ -226,20 +233,44 @@ error:
 /////////////////////////////////////////
 
 gboolean
+idle_update_display_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_update_display_cb"));
+
+  struct Test_I_ImageSave_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ImageSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  Common_UI_GTK_BuildersIterator_t iterator =
+    cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
+
+  // trigger refresh
+  GtkDrawingArea* drawing_area_p =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME)));
+  ACE_ASSERT (drawing_area_p);
+  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  if (unlikely (!window_p))
+    return G_SOURCE_CONTINUE;
+
+  gdk_window_invalidate_rect (window_p,
+                              NULL,   // whole window
+                              FALSE); // invalidate children ?
+
+  return G_SOURCE_CONTINUE;
+}
+
+gboolean
 idle_initialize_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_UI_cb"));
 
   // sanity check(s)
-  ACE_ASSERT (userData_in);
-
   struct Test_I_ImageSave_UI_CBData* cb_data_p =
     static_cast<struct Test_I_ImageSave_UI_CBData*> (userData_in);
-
+  ACE_ASSERT (cb_data_p);
   Common_UI_GTK_BuildersIterator_t iterator =
     cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-
-  // sanity check(s)
   ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
 
   // step1: initialize dialog window(s)
@@ -266,14 +297,14 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             std::numeric_limits<ACE_UINT32>::max ());
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             std::numeric_limits<ACE_UINT32>::max ());
 
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -281,7 +312,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             std::numeric_limits<ACE_UINT64>::max ());
 
   //spin_button_p =
   //  GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -327,8 +358,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   //GError* error_p = NULL;
   //GFile* file_p = NULL;
   //gchar* filename_p = NULL;
-  Common_Image_Resolution_t resolution_s;
-//  unsigned int framerate_i = 0;
+  Common_Image_Resolution_t resolution_s = { 0, 0 };
+  //  unsigned int framerate_i = 0;
   std::string filename_string;
   //bool is_display_b = false, is_fullscreen_b = false;
 //  unsigned int buffer_size_i = 0;
@@ -350,12 +381,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   //format_s =
   //  cb_data_p->configuration->streamConfiguration.configuration->format.format;
-  resolution_s =
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    Stream_MediaFramework_DirectShow_Tools::toResolution (cb_data_p->configuration->streamConfiguration.configuration_->format);
-#else
-    cb_data_p->configuration->streamConfiguration.configuration_->format.resolution;
-#endif // ACE_WIN32 || ACE_WIN64
+  //resolution_s =
+  //  cb_data_p->configuration->streamConfiguration.configuration_->format.video.resolution;
   filename_string = (*stream_iterator).second.second->targetFileName;
   gtk_entry_set_text (entry_p,
                       (filename_string.empty () ? ACE_TEXT_ALWAYS_CHAR ("")
@@ -568,7 +595,15 @@ idle_initialize_UI_cb (gpointer userData_in)
   //ACE_ASSERT (!(*stream_iterator).second.second->window);
   //ACE_ASSERT (!cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow);
   //ACE_ASSERT (!cb_data_p->configuration->direct3DConfiguration.focusWindow);
+  (*stream_iterator).second.second->outputFormat.video.resolution.cx =
+    allocation.width;
+  (*stream_iterator).second.second->outputFormat.video.resolution.cy =
+    allocation.height;
+#if defined (GTK_SUPPORT)
+  (*stream_iterator).second.second->window = window_p;
+#else
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+
   ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
   //(*stream_iterator).second.second->window =
   //  gdk_win32_window_get_impl_hwnd (window_p);
@@ -577,6 +612,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
     gdk_win32_window_get_impl_hwnd (window_p);
 #endif // ACE_WIN32 || ACE_WIN64
+#endif // GTK_SUPPORT
 
   //(*stream_iterator).second.second->area.bottom =
   //  allocation.y + allocation.height;
@@ -700,13 +736,12 @@ idle_session_end_cb (gpointer userData_in)
   STREAM_TRACE (ACE_TEXT ("::idle_session_end_cb"));
 
   // sanity check(s)
-  ACE_ASSERT (userData_in);
-
   struct Test_I_ImageSave_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_I_ImageSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p);
 
   // synch access
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState->lock, G_SOURCE_REMOVE);
+//  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState->lock, G_SOURCE_REMOVE);
 
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
@@ -768,7 +803,11 @@ idle_session_end_cb (gpointer userData_in)
   // *NOTE*: this disables "activity mode" (in Gtk2)
   gtk_progress_bar_set_fraction (progressbar_p, 0.0);
   gtk_progress_bar_set_text (progressbar_p, ACE_TEXT_ALWAYS_CHAR (""));
-  gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
+  gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), FALSE);
+
+  ACE_ASSERT (ui_cb_data_p->eventSourceId);
+  g_source_remove (ui_cb_data_p->eventSourceId);
+  ui_cb_data_p->eventSourceId = 0;
 
   return G_SOURCE_REMOVE;
 }
@@ -978,10 +1017,9 @@ idle_update_progress_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_cb"));
 
+  // sanity check(s)
   struct Test_I_ImageSave_ProgressData* data_p =
       static_cast<struct Test_I_ImageSave_ProgressData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->state);
 
@@ -1027,7 +1065,7 @@ idle_update_progress_cb (gpointer userData_in)
                   ACE_TEXT ("thread %u has joined (status was: 0x%@)\n"),
                   thread_id,
                   exit_status));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     } // end ELSE
 
     data_p->state->eventSourceIds.erase (*iterator_3);
@@ -1108,6 +1146,169 @@ idle_update_progress_cb (gpointer userData_in)
 extern "C"
 {
 #endif /* __cplusplus */
+#if GTK_CHECK_VERSION(3,0,0)
+gboolean
+drawingarea_draw_cb (GtkWidget* widget_in,
+                     cairo_t* context_in,
+                     gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+
+  ACE_ASSERT (context_in);
+  struct Test_I_ImageSave_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ImageSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  if (!cb_data_p->dispatch)
+    return FALSE;
+
+  try {
+    cb_data_p->dispatch->dispatch (context_in);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
+  }
+
+  return FALSE;
+}
+#else
+gboolean
+drawingarea_expose_event_cb (GtkWidget* widget_in,
+                             GdkEvent* event_in,
+                             gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_expose_event_cb"));
+
+  ACE_UNUSED_ARG (event_in);
+
+  // sanity check(s)
+  struct Test_I_ImageSave_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ImageSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  if (!cb_data_p->dispatch)
+    return FALSE;
+
+  // sanity check(s)
+  cairo_t* context_p =
+    gdk_cairo_create (GDK_DRAWABLE (gtk_widget_get_window (widget_in)));
+  if (unlikely (!context_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
+    return FALSE;
+  } // end IF
+
+  try {
+    cb_data_p->dispatch->dispatch (context_p);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
+  }
+
+  cairo_destroy (context_p); context_p = NULL;
+
+  return FALSE;
+} // drawingarea_expose_event_cb
+#endif // GTK_CHECK_VERSION(3,0,0)
+
+gboolean
+drawing_area_resize_end (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawing_area_resize_end"));
+
+  // sanity check(s)
+  struct Test_I_ImageSave_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ImageSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  Common_UI_GTK_BuildersIterator_t iterator =
+    cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
+//  GtkToggleButton* toggle_button_p =
+//    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+//                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
+//  ACE_ASSERT (toggle_button_p);
+  GtkDrawingArea* drawing_area_p =
+//    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+//                                              (gtk_toggle_button_get_active (toggle_button_p) ? ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_FULLSCREEN_NAME)
+//                                                                                                : ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME))));
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME)));
+  ACE_ASSERT (drawing_area_p);
+
+  GtkAllocation allocation_s;
+  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
+                             &allocation_s);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("window resized to %dx%d\n"),
+              allocation_s.width, allocation_s.height));
+
+  Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator;
+  ACE_ASSERT (cb_data_p->configuration);
+  stream_iterator =
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_p->configuration->streamConfiguration.end ());
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  (*stream_iterator).second.second->outputFormat.video.resolution.cy =
+    allocation_s.height;
+  (*stream_iterator).second.second->outputFormat.video.resolution.cx =
+    allocation_s.width;
+#else
+  (*stream_iterator).second.second->outputFormat.video.resolution.height =
+    allocation_s.height;
+  (*stream_iterator).second.second->outputFormat.video.resolution.width =
+    allocation_s.width;
+#endif // ACE_WIN32 || ACE_WIN64
+
+  if (!cb_data_p->stream->isRunning ())
+    return FALSE;
+
+   // *NOTE*: two things need doing:
+   //         - drop inbound frames until the 'resize' session message is through
+   //         - enqueue a 'resize' session message
+
+  // step1:
+  const Stream_Module_t* module_p =
+    cb_data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
+  ACE_ASSERT (module_p);
+  Stream_Visualization_IResize* iresize_p =
+    dynamic_cast<Stream_Visualization_IResize*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  ACE_ASSERT (iresize_p);
+  try {
+    iresize_p->resizing ();
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Stream_Visualization_IResize::resizing(), aborting\n")));
+    return FALSE;
+  }
+
+  // step2
+  cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
+
+  return FALSE;
+} // drawing_area_resize_end
+void
+drawingarea_size_allocate_cb (GtkWidget* widget_in,
+                              GdkRectangle* allocation_in,
+                              gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_size_allocate_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (allocation_in);
+
+  static gint timer_id = 0;
+  if (timer_id == 0)
+  {
+    timer_id = g_timeout_add (300, drawing_area_resize_end, userData_in);
+    return;
+  } // end IF
+  g_source_remove (timer_id);
+  timer_id = g_timeout_add (300, drawing_area_resize_end, userData_in);
+} // drawingarea_size_allocate_cb
+
+
 void
 togglebutton_process_toggled_cb (GtkToggleButton* toggleButton_in,
                                  gpointer userData_in)
@@ -1244,22 +1445,16 @@ togglebutton_process_toggled_cb (GtkToggleButton* toggleButton_in,
   thread_data_p->CBData = cb_data_p;
   ACE_TCHAR thread_name[BUFSIZ];
   ACE_OS::memset (thread_name, 0, sizeof (ACE_TCHAR[BUFSIZ]));
-//  char* thread_name_p = NULL;
-//  ACE_NEW_NORETURN (thread_name_p,
-//                    ACE_TCHAR[BUFSIZ]);
-//  if (!thread_name_p)
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
-//    delete thread_data_p; thread_data_p = NULL;
-//    return;
-//  } // end IF
-//  ACE_OS::memset (thread_name_p, 0, sizeof (thread_name_p));
-//  ACE_OS::strcpy (thread_name_p,
-//                  ACE_TEXT (TEST_I_CamSave_THREAD_NAME));
-//  const char* thread_name_2 = thread_name_p;
-  ACE_OS::strcpy (thread_name,
-                  ACE_TEXT (TEST_I_STREAM_THREAD_NAME));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ACE_OS::strncpy (thread_name,
+                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_THREAD_NAME),
+                     std::min (static_cast<size_t> (BUFSIZ - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_THREAD_NAME)))));
+#else
+  ACE_ASSERT (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH <= BUFSIZ);
+  ACE_OS::strncpy (thread_name,
+                   ACE_TEXT (TEST_I_STREAM_THREAD_NAME),
+                   std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_THREAD_NAME)))));
+#endif // ACE_WIN32 || ACE_WIN64
   thread_name_2 = thread_name;
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
@@ -1335,6 +1530,17 @@ togglebutton_process_toggled_cb (GtkToggleButton* toggleButton_in,
   //                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_DISPLAY_NAME)));
   //ACE_ASSERT (frame_p);
   //gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
+
+  cb_data_p->eventSourceId =
+    g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS,
+                   idle_update_display_cb,
+                   userData_in);
+  //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
+  //                 idle_update_display_cb,
+  //                 userData_in,
+  //                 NULL);
+  ACE_ASSERT (cb_data_p->eventSourceId > 0);
+  cb_data_p->UIState->eventSourceIds.insert (cb_data_p->eventSourceId);
 
   return;
 

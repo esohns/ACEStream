@@ -414,16 +414,36 @@ error:
     {
       int result = -1;
       int flags_i = 0;
+      MediaType media_type_s;
+
+      ACE_ASSERT (inherited::sessionData_);
+      typename SessionDataContainerType::DATA_T& session_data_r =
+        const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
+      // *TODO*: remove type inference
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      const MediaType& media_type_r = session_data_r.formats.back ();
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
-      inherited::getMediaType (inherited::configuration_->outputFormat,
+      inherited::getMediaType (media_type_r,
                                STREAM_MEDIATYPE_VIDEO,
                                media_type_2);
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_3;
+      inherited::getMediaType (inherited::configuration_->outputFormat,
+                               STREAM_MEDIATYPE_VIDEO,
+                               media_type_3);
+
+      inherited::inputFormat_ = media_type_2.format;
+      sourceResolution_ = media_type_2.resolution;
+      if (inherited::context_)
+      {
+        sws_freeContext (inherited::context_); inherited::context_ = NULL;
+      } // end IF
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if ((sourceResolution_.cy == media_type_2.resolution.cy) &&
-          (sourceResolution_.cx == media_type_2.resolution.cx))
+      if ((sourceResolution_.cy == media_type_3.resolution.cy) &&
+          (sourceResolution_.cx == media_type_3.resolution.cx))
 #else
-      if ((sourceResolution_.height == media_type_2.resolution.height) &&
-          (sourceResolution_.width == media_type_2.resolution.width))
+      if ((sourceResolution_.height == media_type_3.resolution.height) &&
+          (sourceResolution_.width == media_type_3.resolution.width))
 #endif // ACE_WIN32 || ACE_WIN64
       {
         ACE_DEBUG ((LM_DEBUG,
@@ -437,20 +457,16 @@ error:
                   ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
                   inherited::mod_->name (),
                   sourceResolution_.cx, sourceResolution_.cy,
-                  media_type_2.resolution.cx, media_type_2.resolution.cy));
+                  media_type_3.resolution.cx, media_type_3.resolution.cy));
 #else
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
                   inherited::mod_->name (),
                   sourceResolution_.width, sourceResolution_.height,
-                  media_type_2.resolution.width, media_type_2.resolution.height));
+                  media_type_3.resolution.width, media_type_3.resolution.height));
 #endif // ACE_WIN32 || ACE_WIN64
 
       // initialize conversion context
-      if (inherited::context_)
-      {
-        sws_freeContext (inherited::context_); inherited::context_ = NULL;
-      } // end IF
       flags_i =
           (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
            SWS_BICUBIC);
@@ -458,10 +474,10 @@ error:
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                 sourceResolution_.cx, sourceResolution_.cy, inherited::inputFormat_,
-                                media_type_2.resolution.cx, media_type_2.resolution.cy, inherited::inputFormat_,
+                                media_type_3.resolution.cx, media_type_3.resolution.cy, inherited::inputFormat_,
 #else
                                 sourceResolution_.width, sourceResolution_.height, inherited::inputFormat_,
-                                media_type_2.resolution.width, media_type_2.resolution.height, inherited::inputFormat_,
+                                media_type_3.resolution.width, media_type_3.resolution.height, inherited::inputFormat_,
 #endif // ACE_WIN32 || ACE_WIN64
                                 flags_i,                      // flags
                                 NULL, NULL,
@@ -482,11 +498,11 @@ error:
       ACE_ASSERT (inherited::frame_);
       //  frame_->format = session_data_r.format;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      inherited::frame_->height = media_type_2.resolution.cy;
-      inherited::frame_->width = media_type_2.resolution.cx;
+      inherited::frame_->height = media_type_3.resolution.cy;
+      inherited::frame_->width = media_type_3.resolution.cx;
 #else
-      inherited::frame_->height = media_type_2.resolution.height;
-      inherited::frame_->width = media_type_2.resolution.width;
+      inherited::frame_->height = media_type_3.resolution.height;
+      inherited::frame_->width = media_type_3.resolution.width;
 #endif // ACE_WIN32 || ACE_WIN64
       inherited::frameSize_ =
         av_image_get_buffer_size (inherited::inputFormat_,
@@ -514,6 +530,14 @@ error:
                                   reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
                                   inherited::frame_->linesize);
       ACE_ASSERT (result >= 0);
+
+      media_type_s = media_type_r;
+      inherited::setResolution (media_type_3.resolution,
+                                media_type_s);
+      ACE_ASSERT (session_data_r.lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        session_data_r.formats.push_back (media_type_s);
+      } // end lock scope
 
       break;
 
@@ -598,9 +622,9 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
   uint8_t* data_a[AV_NUM_DATA_POINTERS];
   ACE_OS::memset (&line_sizes_a, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
   ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-#if defined (_DEBUG)
-    std::string filename_string;
-#endif // _DEBUG
+//#if defined (_DEBUG)
+//    std::string filename_string;
+//#endif // _DEBUG
 
   // sanity check(s)
   ACE_ASSERT (inherited::buffer_);

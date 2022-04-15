@@ -159,9 +159,9 @@ stream_processing_function (void* arg_in)
   //                  ACE_TEXT ("failed to start stream, aborting\n")));
   //      return;
   //    } // end IF
-    istream_control_p->wait (true,
-                             false,
-                             false);
+    istream_control_p->wait (true,   // wait for threads ?
+                             false,  // wait for upstream ?
+                             false); // wait for downstream ?
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = 0;
@@ -1119,7 +1119,7 @@ button_execute_clicked_cb (GtkButton* button_in,
     hostname_string_2 += converter.str ();
   } // end IF
   result =
-	  NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address.set (hostname_string_2.c_str (),
+    NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address.set (hostname_string_2.c_str (),
                                                                                         AF_INET);
   if (result == -1)
   {
@@ -1128,8 +1128,10 @@ button_execute_clicked_cb (GtkButton* button_in,
                 ACE_TEXT (hostname_string_2.c_str ())));
     return;
   } // end IF
+  NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.hostname =
+    hostname_string;
   NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.useLoopBackDevice =
-	  NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address.is_loopback ();
+    NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address.is_loopback ();
 
   // save to file ?
   check_button_p =

@@ -121,6 +121,7 @@
 
 // MPEG
 #define STREAM_DEC_MPEG_TS_PACKET_ID_PAT                             0
+#define STREAM_DEC_MPEG_TS_PACKET_ID_NULL                            0x1FFF
 #define STREAM_DEC_MPEG_TS_TABLE_ID_PAT                              0
 #define STREAM_DEC_MPEG_TS_TABLE_ID_PMT                              2
 #define STREAM_DEC_MPEG_TS_PACKET_SIZE                               188 // bytes
