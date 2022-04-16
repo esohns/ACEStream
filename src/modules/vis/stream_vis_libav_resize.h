@@ -85,6 +85,7 @@ class Stream_Visualization_LibAVResize_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_LibAVResize_T (const Stream_Visualization_LibAVResize_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_LibAVResize_T& operator= (const Stream_Visualization_LibAVResize_T&))
 
+  unsigned int              formatsIndex_;
   Common_Image_Resolution_t sourceResolution_;
 };
 

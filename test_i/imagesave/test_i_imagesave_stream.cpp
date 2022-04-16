@@ -46,6 +46,8 @@ Test_I_Stream::Test_I_Stream ()
                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_4_DEFAULT_NAME_STRING))
  , MPEGTSDecoder_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_TS_DEFAULT_NAME_STRING))
+ , defragment_ (this,
+                ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DEFRAGMENT_DEFAULT_NAME_STRING))
  , splitter_ (this,
               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
 #if defined (FFMPEG_SUPPORT)
@@ -105,6 +107,8 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (&MP4Decoder_, NULL, 0);
   else if (is_mpeg_ts)
     layout_in->append (&MPEGTSDecoder_, NULL, 0);
+
+  layout_in->append (&defragment_, NULL, 0);
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;

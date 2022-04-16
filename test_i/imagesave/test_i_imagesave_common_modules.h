@@ -38,6 +38,7 @@
 #include "stream_file_source.h"
 
 #include "stream_misc_defines.h"
+#include "stream_misc_defragment.h"
 #include "stream_misc_media_splitter.h"
 #include "stream_misc_messagehandler.h"
 
@@ -95,6 +96,13 @@ typedef Stream_Decoder_MPEG_TS_Decoder_T<ACE_MT_SYNCH,
                                          Test_I_Message,
                                          Test_I_SessionMessage_t,
                                          Test_I_ImageSave_SessionData_t> Test_I_MPEGTSDecoder;
+
+typedef Stream_Module_Defragment_T<ACE_MT_SYNCH,
+                                   Common_TimePolicy_t,
+                                   struct Test_I_ImageSave_ModuleHandlerConfiguration,
+                                   Stream_ControlMessage_t,
+                                   Test_I_Message,
+                                   Test_I_SessionMessage_t> Test_I_Defragment;
 
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
@@ -235,6 +243,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                     
                               libacestream_default_dec_mpeg_ts_module_name_string,
                               Stream_INotify_t,                                    // stream notification interface type
                               Test_I_MPEGTSDecoder);                               // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                        // session data type
+                              enum Stream_SessionMessageType,                      // session event type
+                              struct Test_I_ImageSave_ModuleHandlerConfiguration,  // module handler configuration type
+                              libacestream_default_misc_defragment_module_name_string,
+                              Stream_INotify_t,                                    // stream notification interface type
+                              Test_I_Defragment);                                  // writer type
 
 #if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                              // session data type

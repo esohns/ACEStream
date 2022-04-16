@@ -91,6 +91,7 @@ class Test_I_Stream
   Test_I_Source_Module          source_;
   Test_I_MP4Decoder_Module      MP4Decoder_;
   Test_I_MPEGTSDecoder_Module   MPEGTSDecoder_;
+  Test_I_Defragment_Module      defragment_;
   Test_I_MediaSplitter_Module   splitter_;
 #if defined (FFMPEG_SUPPORT)
   Test_I_LibAVDecoder_Module    decoder2_;

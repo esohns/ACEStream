@@ -595,10 +595,17 @@ idle_initialize_UI_cb (gpointer userData_in)
   //ACE_ASSERT (!(*stream_iterator).second.second->window);
   //ACE_ASSERT (!cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow);
   //ACE_ASSERT (!cb_data_p->configuration->direct3DConfiguration.focusWindow);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   (*stream_iterator).second.second->outputFormat.video.resolution.cx =
     allocation.width;
   (*stream_iterator).second.second->outputFormat.video.resolution.cy =
     allocation.height;
+#else
+  (*stream_iterator).second.second->outputFormat.video.resolution.width =
+    allocation.width;
+  (*stream_iterator).second.second->outputFormat.video.resolution.height =
+    allocation.height;
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_SUPPORT)
   (*stream_iterator).second.second->window = window_p;
 #else

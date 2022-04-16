@@ -177,6 +177,8 @@ Test_I_Message::clone (ACE_Message_Block::Message_Flags flags_in) const
 //    ACE_OS::memset (message_block_p->wr_ptr (), 0, padding_bytes);
 //  } // end FOR
 
+  result_p->setMediaType (getMediaType ());
+
   return result_p;
 }
 

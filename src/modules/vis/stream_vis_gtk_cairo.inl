@@ -572,6 +572,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   gdk_cairo_set_source_pixbuf (context_p, surface_, 0.0, 0.0);
   cairo_paint (context_p);
 #else
+  ACE_UNUSED_ARG (context_p);
+
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->window);

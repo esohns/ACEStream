@@ -61,6 +61,7 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
                                    MediaType>::Stream_Visualization_LibAVResize_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
+ , formatsIndex_ (0)
  , sourceResolution_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize_T::Stream_Visualization_LibAVResize_T"));
@@ -102,20 +103,20 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
   ACE_OS::memset (&line_sizes_a, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
   ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
 
-  try {
-    message_inout->defragment ();
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), returning\n"),
-                inherited::mod_->name ()));
-    goto error;
-  }
-  ACE_ASSERT (!message_inout->cont ());
+  //try {
+  //  message_inout->defragment ();
+  //} catch (...) {
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), returning\n"),
+  //              inherited::mod_->name ()));
+  //  goto error;
+  //}
 
   // sanity check(s)
   ACE_ASSERT (inherited::buffer_);
 //  ACE_ASSERT (inherited::buffer_->capacity () >= inherited::frameSize_);
   ACE_ASSERT (inherited::frame_);
+  ACE_ASSERT (!message_inout->cont ());
 
   result =
       av_image_fill_linesizes (line_sizes_a,
@@ -355,6 +356,7 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
       ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         session_data_r.formats.push_back (media_type_s);
+        formatsIndex_ = session_data_r.formats.size () - 1;
       } // end lock scope
 
       ACE_ASSERT (!inherited::frame_);
@@ -421,6 +423,14 @@ error:
         const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
+      ACE_ASSERT (session_data_r.lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        typename SessionDataContainerType::DATA_T::MEDIAFORMATS_ITERATOR_T iterator =
+          session_data_r.formats.begin ();
+        std::advance (iterator, formatsIndex_);
+        session_data_r.formats.erase (iterator);
+        formatsIndex_ = 0;
+      } // end lock scope
       const MediaType& media_type_r = session_data_r.formats.back ();
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
       inherited::getMediaType (media_type_r,
@@ -537,6 +547,7 @@ error:
       ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         session_data_r.formats.push_back (media_type_s);
+        formatsIndex_ = session_data_r.formats.size () - 1;
       } // end lock scope
 
       break;

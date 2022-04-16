@@ -26,7 +26,7 @@
 class Stream_IMediaType
 {
  public:
-  virtual enum Stream_MediaType_Type getMediaType () = 0;
+  virtual enum Stream_MediaType_Type getMediaType () const = 0;
   virtual void setMediaType (enum Stream_MediaType_Type) = 0;
 };
 

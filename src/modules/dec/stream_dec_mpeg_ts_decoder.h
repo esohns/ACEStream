@@ -102,9 +102,7 @@ class Stream_Decoder_MPEG_TS_Decoder_T
   bool                        isParsingPSI_; // program-specific information
   unsigned int                missingPSIBytes_;
   unsigned int                programPMTPacketId_;
-  unsigned int                program_;
   PROGRAMNUM_TO_PMTPACKETID_T programs_;
-  unsigned int                streamType_;
   STREAMTYPE_TO_PACKETID_T    streams_;
   unsigned int                streamPacketId_;
 };
