@@ -125,6 +125,53 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
 #endif // IMAGEMAGICK_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  media_type_s.majortype = MEDIATYPE_Video;
+  media_type_s.subtype = MEDIASUBTYPE_RGB32;
+  media_type_s.bFixedSizeSamples = TRUE;
+  media_type_s.bTemporalCompression = FALSE;
+  media_type_s.formattype = FORMAT_VideoInfo;
+  media_type_s.cbFormat = sizeof (struct tagVIDEOINFOHEADER);
+  media_type_s.pbFormat =
+    reinterpret_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tagVIDEOINFOHEADER)));
+  if (unlikely (!media_type_s.pbFormat))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    return false;
+  } // end IF
+  ACE_OS::memset (media_type_s.pbFormat, 0, sizeof (struct tagVIDEOINFOHEADER));
+  struct tagVIDEOINFOHEADER* video_info_header_p =
+    reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_s.pbFormat);
+  // *NOTE*: empty --> use entire video
+  BOOL result_2 = SetRectEmpty (&video_info_header_p->rcSource);
+  ACE_ASSERT (result_2);
+  result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
+  // *NOTE*: empty --> fill entire buffer
+  ACE_ASSERT (result_2);
+  //video_info_header_p->dwBitRate = ;
+  video_info_header_p->dwBitErrorRate = 0;
+  video_info_header_p->AvgTimePerFrame = 1;
+  video_info_header_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
+  video_info_header_p->bmiHeader.biWidth = 640;
+  video_info_header_p->bmiHeader.biHeight = 480;
+  //if (video_info_header_p->bmiHeader.biHeight > 0)
+  //  video_info_header_p->bmiHeader.biHeight =
+  //    -video_info_header_p->bmiHeader.biHeight;
+  //ACE_ASSERT (video_info_header_p->bmiHeader.biHeight < 0);
+  video_info_header_p->bmiHeader.biPlanes = 1;
+  video_info_header_p->bmiHeader.biBitCount =
+    Stream_MediaFramework_Tools::toBitCount (media_type_s.subtype);
+  //ACE_ASSERT (video_info_header_p->bmiHeader.biBitCount);
+  video_info_header_p->bmiHeader.biCompression = BI_RGB;
+  video_info_header_p->bmiHeader.biSizeImage =
+    DIBSIZE (video_info_header_p->bmiHeader);
+  ////video_info_header_p->bmiHeader.biXPelsPerMeter;
+  ////video_info_header_p->bmiHeader.biYPelsPerMeter;
+  ////video_info_header_p->bmiHeader.biClrUsed;
+  ////video_info_header_p->bmiHeader.biClrImportant;
+  media_type_s.lSampleSize =
+    video_info_header_p->bmiHeader.biSizeImage;
 #else
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;

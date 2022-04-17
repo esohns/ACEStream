@@ -936,7 +936,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                 context_->width, context_->height));
 
     int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-      SWS_LANCZOS | SWS_ACCURATE_RND | SWS_BITEXACT);
+      SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
     transformContext_ =
       sws_getCachedContext (NULL,
                             context_->width, context_->height, context_->pix_fmt,
@@ -972,7 +972,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     typename SessionDataContainerType::DATA_T& session_data_r =
       const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
     MediaType media_type_2 = session_data_r.formats.back ();
-    inherited2::setFormat (context_->pix_fmt,
+    inherited2::setFormat (outputFormat_,
                            media_type_2);
     Common_Image_Resolution_t resolution_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

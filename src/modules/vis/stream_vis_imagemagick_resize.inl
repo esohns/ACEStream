@@ -19,9 +19,10 @@
  ***************************************************************************/
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "magick/api.h"
-#endif // ACE_WIN32 || ACE_WIN64
+#include "MagickWand/MagickWand.h"
+#else
 #include "wand/magick_wand.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
 
@@ -542,7 +543,9 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   inherited::getMediaType (message_data_r.format,
+                           STREAM_MEDIATYPE_VIDEO,
                            media_type_s);
   Common_Image_Resolution_t resolution_s =
     Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
@@ -573,6 +576,10 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
                           message_data_r.format.resolution.width, message_data_r.format.resolution.height);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result == MagickTrue);
+  result = MagickSetFormat (inherited::context_,
+                            ACE_TEXT_ALWAYS_CHAR ("RGBA"));
+  ACE_ASSERT (result == MagickTrue);
+
   result = MagickReadImage (inherited::context_,
                             ACE_TEXT_ALWAYS_CHAR ("xc:black"));
   ACE_ASSERT (result == MagickTrue);
@@ -586,22 +593,30 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 //                    pixelContext_);
 //  ACE_ASSERT (result == MagickTrue);
 
+  //result =
+  //  MagickReadImageBlob (inherited::context_,
+  //                       reinterpret_cast<unsigned char*> (message_inout->rd_ptr ()),
+  //                       message_inout->length ());
   result =
-    MagickReadImageBlob (inherited::context_,
-                         reinterpret_cast<unsigned char*> (message_inout->rd_ptr ()),
-                         message_inout->length ());
-  ACE_ASSERT (result == MagickTrue);
-//  result =
-//    MagickImportImagePixels (inherited::context_,
-//                             0, 0,
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//                             resolution_s.cx, resolution_s.cy,
-//#else
-//                             message_data_r.format.resolution.width, message_data_r.format.resolution.height,
-//#endif // ACE_WIN32 || ACE_WIN64
-//                             ACE_TEXT_ALWAYS_CHAR ("RGBA"),
-//                             CharPixel,
-//                             message_inout->rd_ptr ());
+    MagickImportImagePixels (inherited::context_,
+                             0, 0,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                             resolution_s.cx, resolution_s.cy,
+#else
+                             message_data_r.format.resolution.width, message_data_r.format.resolution.height,
+#endif // ACE_WIN32 || ACE_WIN64
+                             ACE_TEXT_ALWAYS_CHAR ("RGBA"),
+                             CharPixel,
+                             message_inout->rd_ptr ());
+  if (unlikely (result != MagickTrue))
+  {
+     ACE_DEBUG ((LM_ERROR,
+                 ACE_TEXT ("%s: failed to MagickImportImagePixels(): \"%s\", returning\n"),
+                 inherited::mod_->name (),
+                 ACE_TEXT (Common_Image_Tools::errorToString (inherited::context_).c_str ())));
+     goto error;
+  } // end IF
+
   message_inout->release (); message_inout = NULL;
 
   result = MagickSetImageFormat (inherited::context_,
@@ -616,8 +631,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
                        inherited::configuration_->outputFormat.resolution.width,
                        inherited::configuration_->outputFormat.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
-                       LanczosFilter,
-                       1.0);
+                       LanczosFilter);
   ACE_ASSERT (result == MagickTrue);
 
 //  // Set the compression quality to 95 (high quality = low compression)
@@ -628,9 +642,9 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   ACE_ASSERT (Common_Image_Tools::stringToCodecId (MagickGetImageFormat (inherited::context_)) == AV_CODEC_ID_NONE);
 #endif // ACE_WIN32 || ACE_WIN64
 
-  data_p = MagickWriteImageBlob (inherited::context_,
-                                 &size_i);
-  if (!data_p)
+  data_p = MagickGetImageBlob (inherited::context_, // was: MagickWriteImageBlob
+                               &size_i);
+  if (unlikely (!data_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MagickGetImageBlob(): \"%s\", returning\n"),
@@ -719,8 +733,11 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       ACE_ASSERT (!session_data_r.formats.empty ());
-      const MediaType& media_type_r = session_data_r.formats.back ();
-      MediaType media_type_s = media_type_r;
+      MediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (MediaType));
+      inherited::getMediaType (session_data_r.formats.back (),
+                               STREAM_MEDIATYPE_VIDEO,
+                               media_type_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       Common_Image_Resolution_t resolution_s =
         Stream_MediaFramework_DirectShow_Tools::toResolution (inherited::configuration_->outputFormat);

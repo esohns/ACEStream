@@ -1215,7 +1215,7 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
 
   cairo_destroy (context_p); context_p = NULL;
 
-  return FALSE;
+  return TRUE; // do not propagate
 } // drawingarea_expose_event_cb
 #endif // GTK_CHECK_VERSION(3,0,0)
 

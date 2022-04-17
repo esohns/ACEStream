@@ -121,51 +121,59 @@ Stream_SessionDataMediaBase_T<BaseType,
 
   // *NOTE*: the idea is to 'merge' the data
   inherited::operator+= (rhs_in);
-//  ACE_ASSERT (formats.size () == rhs_in.formats.size ());
-//  state = (state ? state : rhs_in.state);
+
+  // *NOTE*: the idea is to 'merge' the data
+  // *TODO*: this is problematic on windows
+  formats = rhs_in.formats;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  mediaFramework = rhs_in.mediaFramework;
+#endif // ACE_WIN32 || ACE_WIN64
+  state = (state ? state : rhs_in.state);
   statistic =
       ((statistic.timeStamp >= rhs_in.statistic.timeStamp) ? statistic
                                                            : rhs_in.statistic);
-
+  targetFileName = rhs_in.targetFileName;
   userData = (userData ? userData : rhs_in.userData);
 
   return *this;
 }
 
-//template <typename BaseType,
-//          typename MediaFormatType,
-//          typename StreamStateType,
-//          typename StatisticType,
-//          typename UserDataType>
-//Stream_SessionDataMediaBase_T<BaseType,
-//                              MediaFormatType,
-//                              StreamStateType,
-//                              StatisticType,
-//                              UserDataType>&
-//Stream_SessionDataMediaBase_T<BaseType,
-//                              MediaFormatType,
-//                              StreamStateType,
-//                              StatisticType,
-//                              UserDataType>::operator= (const Stream_SessionDataMediaBase_T<BaseType,
-//                                                                                            MediaFormatType,
-//                                                                                            StreamStateType,
-//                                                                                            StatisticType,
-//                                                                                            UserDataType>& rhs_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::operator="));
+template <typename BaseType,
+          typename MediaFormatType,
+          typename StreamStateType,
+          typename StatisticType,
+          typename UserDataType>
+Stream_SessionDataMediaBase_T<BaseType,
+                              MediaFormatType,
+                              StreamStateType,
+                              StatisticType,
+                              UserDataType>&
+Stream_SessionDataMediaBase_T<BaseType,
+                              MediaFormatType,
+                              StreamStateType,
+                              StatisticType,
+                              UserDataType>::operator= (const Stream_SessionDataMediaBase_T<BaseType,
+                                                                                            MediaFormatType,
+                                                                                            StreamStateType,
+                                                                                            StatisticType,
+                                                                                            UserDataType>& rhs_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::operator="));
 
-//  // *NOTE*: the idea is to 'merge' the data
-//  inherited::operator= (rhs_in);
-////  ACE_ASSERT (formats.size () == rhs_in.formats.size ());
-////  state = (state ? state : rhs_in.state);
-//  statistic =
-//      ((statistic.timeStamp >= rhs_in.statistic.timeStamp) ? statistic
-//                                                           : rhs_in.statistic);
+  inherited::operator= (rhs_in);
 
-//  userData = (userData ? userData : rhs_in.userData);
+  // *TODO*: this is problematic on windows
+  formats = rhs_in.formats;
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+  mediaFramework = rhs_in.mediaFramework;
+#endif // ACE_WIN32 || ACE_WIN64
+  state = (state ? state : rhs_in.state);
+  statistic = rhs_in.statistic;
+  targetFileName = rhs_in.targetFileName;
+  userData = (userData ? userData : rhs_in.userData);
 
-//  return *this;
-//}
+  return *this;
+}
 
 //////////////////////////////////////////
 

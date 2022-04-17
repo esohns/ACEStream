@@ -386,6 +386,8 @@ do_work (int argc_in,
   modulehandler_configuration.codecId = AV_CODEC_ID_MJPEG;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+  modulehandler_configuration.delayConfiguration =
+    &configuration.delayConfiguration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.display = Common_UI_Tools::getDefaultDisplay ();
 #else
@@ -403,8 +405,53 @@ do_work (int argc_in,
   modulehandler_configuration.fullScreen = fullscreen_in;
   // X11 requires RGB32
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB32,
-                                                     modulehandler_configuration.outputFormat);
+  modulehandler_configuration.outputFormat.majortype = MEDIATYPE_Video;
+  modulehandler_configuration.outputFormat.subtype = MEDIASUBTYPE_RGB32;
+  modulehandler_configuration.outputFormat.bFixedSizeSamples = TRUE;
+  modulehandler_configuration.outputFormat.bTemporalCompression = FALSE;
+  modulehandler_configuration.outputFormat.formattype = FORMAT_VideoInfo;
+  modulehandler_configuration.outputFormat.cbFormat =
+    sizeof (struct tagVIDEOINFOHEADER);
+  modulehandler_configuration.outputFormat.pbFormat =
+    reinterpret_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tagVIDEOINFOHEADER)));
+  if (unlikely (!modulehandler_configuration.outputFormat.pbFormat))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+    return;
+  } // end IF
+  ACE_OS::memset (modulehandler_configuration.outputFormat.pbFormat, 0, sizeof (struct tagVIDEOINFOHEADER));
+  struct tagVIDEOINFOHEADER* video_info_header_p =
+    reinterpret_cast<struct tagVIDEOINFOHEADER*> (modulehandler_configuration.outputFormat.pbFormat);
+  // *NOTE*: empty --> use entire video
+  BOOL result_2 = SetRectEmpty (&video_info_header_p->rcSource);
+  ACE_ASSERT (result_2);
+  result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
+  // *NOTE*: empty --> fill entire buffer
+  ACE_ASSERT (result_2);
+  //video_info_header_p->dwBitRate = ;
+  video_info_header_p->dwBitErrorRate = 0;
+  video_info_header_p->AvgTimePerFrame = 1;
+  video_info_header_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
+  video_info_header_p->bmiHeader.biWidth = 640;
+  video_info_header_p->bmiHeader.biHeight = 480;
+  //if (video_info_header_p->bmiHeader.biHeight > 0)
+  //  video_info_header_p->bmiHeader.biHeight =
+  //    -video_info_header_p->bmiHeader.biHeight;
+  //ACE_ASSERT (video_info_header_p->bmiHeader.biHeight < 0);
+  video_info_header_p->bmiHeader.biPlanes = 1;
+  video_info_header_p->bmiHeader.biBitCount =
+    Stream_MediaFramework_Tools::toBitCount (modulehandler_configuration.outputFormat.subtype);
+  //ACE_ASSERT (video_info_header_p->bmiHeader.biBitCount);
+  video_info_header_p->bmiHeader.biCompression = BI_RGB;
+  video_info_header_p->bmiHeader.biSizeImage =
+    DIBSIZE (video_info_header_p->bmiHeader);
+  ////video_info_header_p->bmiHeader.biXPelsPerMeter;
+  ////video_info_header_p->bmiHeader.biYPelsPerMeter;
+  ////video_info_header_p->bmiHeader.biClrUsed;
+  ////video_info_header_p->bmiHeader.biClrImportant;
+  modulehandler_configuration.outputFormat.lSampleSize =
+    video_info_header_p->bmiHeader.biSizeImage;
 #else
 #if defined (FFMPEG_SUPPORT)
   modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGBA;
@@ -516,8 +563,8 @@ do_work (int argc_in,
   gtk_manager_p->start (NULL);
   ACE_Time_Value timeout (0,
                           COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION_MS * 1000);
-  int result_2 = ACE_OS::sleep (timeout);
-  if (result_2 == -1)
+  int result_3 = ACE_OS::sleep (timeout);
+  if (result_3 == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
                 &timeout));
@@ -528,7 +575,7 @@ do_work (int argc_in,
     timer_manager_p->stop ();
     return;
   } // end IF
-  gtk_manager_p->wait ();
+  gtk_manager_p->wait (false);
 #endif // GTK_USE
 
   timer_manager_p->stop ();
@@ -561,6 +608,7 @@ ACE_TMAIN (int argc_in,
   ACE_Profile_Timer process_profile;
   process_profile.start ();
 
+  MagickWandGenesis ();
   Common_Tools::initialize ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   COM_initialized = Common_Tools::initializeCOM ();
@@ -727,6 +775,8 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nvcsw,
               elapsed_rusage.ru_nivcsw));
 #endif // ACE_WIN32 || ACE_WIN64
+
+  MagickWandTerminus ();
 
   result = EXIT_SUCCESS;
 

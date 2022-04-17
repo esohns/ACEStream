@@ -232,7 +232,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
     packet_identifier =
       (packet_header_p->packet_identifier_hi << 8 | packet_header_p->packet_identifier_lo);
     if ((packet_identifier == STREAM_DEC_MPEG_TS_PACKET_ID_PAT) ||
-        ((packet_identifier != STREAM_DEC_MPEG_TS_PACKET_ID_NULL) &&
+        (//(packet_identifier != STREAM_DEC_MPEG_TS_PACKET_ID_NULL) &&
          !streamPacketId_    &&
          programPMTPacketId_ &&
          (packet_identifier == programPMTPacketId_)))
@@ -446,11 +446,11 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
         (PAT_data_p->program_map_id_hi << 8 | PAT_data_p->program_map_id_lo);
       programs_.insert (std::make_pair (program_number,
                                         program_map_id));
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: found program (number: %u, id: %u)\n"),
-                  inherited::mod_->name (),
-                  program_number,
-                  program_map_id));
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("%s: found program (number: %u, id: %u)\n"),
+//                  inherited::mod_->name (),
+//                  program_number,
+//                  program_map_id));
 
       if (program_number == inherited::configuration_->program)
         programPMTPacketId_ = program_map_id;
@@ -485,11 +485,11 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
         (ES_data_p->elementary_pid_hi << 8 | ES_data_p->elementary_pid_lo);
       streams_.insert (std::make_pair (ES_data_p->stream_type,
                                        elementary_stream_pid));
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: found stream (type: %u, id: %u)\n"),
-                  inherited::mod_->name (),
-                  ES_data_p->stream_type,
-                  elementary_stream_pid));
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("%s: found stream (type: %u, id: %u)\n"),
+//                  inherited::mod_->name (),
+//                  ES_data_p->stream_type,
+//                  elementary_stream_pid));
 
       if (ES_data_p->stream_type == inherited::configuration_->streamType)
         streamPacketId_ = elementary_stream_pid;

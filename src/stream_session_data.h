@@ -62,6 +62,7 @@ class Stream_SessionDataMediaBase_T
   Stream_SessionDataMediaBase_T (const OWN_TYPE_T&);
   virtual ~Stream_SessionDataMediaBase_T ();
 
+  OWN_TYPE_T& operator= (const OWN_TYPE_T&);
   // *NOTE*: the idea is to 'merge' the data
   //         --> this ought (!) to be overriden by derived classes
   OWN_TYPE_T& operator+= (const OWN_TYPE_T&);

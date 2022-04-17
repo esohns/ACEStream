@@ -59,6 +59,11 @@ stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
        ++iterator)
     if (!Stream_Module_Decoder_Tools::isCompressedVideo (*iterator))
       return *iterator;
+    else
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: rejecting format \"%s\"; it is compressed\n"),
+                  ACE_TEXT (avcodec_get_name (context_in->codec_id)),
+                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*iterator).c_str ())));
 
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("%s: does not support any uncompressed video format, aborting\n"),

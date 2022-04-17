@@ -310,6 +310,7 @@ struct Test_I_ImageSave_StreamConfiguration
 #if defined (FFMPEG_SUPPORT)
    , format ()
 #endif // FFMPEG_SUPPORT
+   , saveOnly (false)
   {
     printFinalReport = true;
   }
@@ -317,6 +318,7 @@ struct Test_I_ImageSave_StreamConfiguration
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_MediaType format;
 #endif // FFMPEG_SUPPORT
+  bool                                          saveOnly; // no display pipeline
 };
 //extern const char stream_name_string_[];
 typedef Stream_Configuration_T<//stream_name_string_,

@@ -129,6 +129,10 @@ class Stream_Module_FileReaderH_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
 
+  // implement Common_IStatistic
+  // *NOTE*: implements regular (timer-based) statistic collection
+  virtual bool collect (StatisticContainerType&); // statistic container (implements struct Stream_Statistic)
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReaderH_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReaderH_T (const Stream_Module_FileReaderH_T&))

@@ -1574,7 +1574,7 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
       configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_->end ());
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
-      configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
+      configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
   ACE_ASSERT (iterator_2 != configuration_->end ());
   bool display_b =
       !(*iterator_2).second.second->deviceIdentifier.identifier.empty ();
@@ -1613,8 +1613,8 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
 //      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
 //        layout_in->append (&display_, branch_p, 0);
 //      else
-        layout_in->append (&GTKPixbufDisplay_, branch_p, index_i);
-//      layout_in->append (&GTKCairoDisplay_, branch_p, 0);
+//        layout_in->append (&GTKPixbufDisplay_, branch_p, index_i);
+      layout_in->append (&GTKCairoDisplay_, branch_p, 0);
 #elif defined (WXWIDGETS_USE)
       layout_in->append (&display_, branch_p, index_i);
 #endif

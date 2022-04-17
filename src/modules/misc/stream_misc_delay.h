@@ -100,11 +100,10 @@ class Stream_Module_Delay_T
   // implement Common_ICounter
   virtual void reset ();
 
-  ACE_UINT64                                     availableTokens_;
-  ACE_SYNCH_CONDITION                            condition_;
-  struct Stream_Miscellaneous_DelayConfiguration delayConfiguration_;
-  Common_Timer_ResetCounterHandler               resetTimeoutHandler_;
-  long                                           resetTimeoutHandlerId_;
+  ACE_UINT64                       availableTokens_;
+  ACE_SYNCH_CONDITION              condition_;
+  Common_Timer_ResetCounterHandler resetTimeoutHandler_;
+  long                             resetTimeoutHandlerId_;
 };
 
 // include template definition

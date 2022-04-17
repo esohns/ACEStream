@@ -33,9 +33,10 @@ extern "C"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "magick/api.h"
-#endif // ACE_WIN32 || ACE_WIN64
+#include "MagickWand/MagickWand.h"
+#else
 #include "wand/magick_wand.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
 
@@ -141,7 +142,9 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
                             outputFormat_);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   inherited2::getMediaType (outputFormat_,
+                            STREAM_MEDIATYPE_VIDEO,
                             media_type_s);
   if (unlikely (InlineIsEqualGUID (media_type_s.subtype, GUID_NULL)))
 #else
@@ -278,8 +281,8 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
 //                                       ActivateAlphaChannel);
 //  ACE_ASSERT (result == MagickTrue);
 
-  data_p = MagickWriteImageBlob (context_,
-                                 &size_2);
+  data_p = MagickGetImageBlob (context_, // was: MagickWriteImageBlob
+                               &size_2);
   ACE_ASSERT (data_p);
   ACE_ASSERT (size_i == size_2);
   // *TODO*: crashes in release()...(needs MagickRelinquishMemory())

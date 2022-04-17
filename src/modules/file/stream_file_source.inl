@@ -186,17 +186,51 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                   ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ())));
       return false;
     } // end IF
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: processing %d file(s) in \"%s\"\n"),
                 inherited::mod_->name (),
                 directory_.length (),
                 ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ())));
-#endif // _DEBUG
   } // end IF
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename UserDataType>
+bool
+Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType,
+                            TimerManagerType,
+                            UserDataType>::collect (StatisticContainerType& statisticContainer_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReaderH_T::collect"));
+
+  // *TODO*: add realtime data
+  statisticContainer_inout.timeStamp = COMMON_TIME_NOW;
+
+  return true;
 }
 
 template <ACE_SYNCH_DECL,
@@ -497,7 +531,7 @@ Stream_Module_FileReader_Reader_T<ACE_SYNCH_USE,
                                   UserDataType>::Stream_Module_FileReader_Reader_T (ISTREAM_T* stream_in)
 #else
                                   UserDataType>::Stream_Module_FileReader_Reader_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Reader_T::Stream_Module_FileReader_Reader_T"));
@@ -556,7 +590,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
                                   UserDataType>::Stream_Module_FileReader_Writer_T (ISTREAM_T* stream_in)
 #else
                                   UserDataType>::Stream_Module_FileReader_Writer_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , aborted_ (NULL)
  , fileName_ ()

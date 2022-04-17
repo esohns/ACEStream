@@ -2623,7 +2623,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     device_identifier_string = (*iterator_2).second.second->deviceIdentifier.identifier;
     filename_string = (*iterator_2).second.second->targetFileName;
     iterator_3 =
-      ui_cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
+      ui_cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
     ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
     iterator_4 =
       ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
@@ -6546,6 +6546,7 @@ combobox_display_changed_cb (GtkWidget* widget_in,
   g_value_unset (&value);
 } // combobox_display_changed_cb
 
+#if GTK_CHECK_VERSION (3,0,0)
 gboolean
 drawingarea_draw_cb (GtkWidget* widget_in,
                      cairo_t* context_in,
@@ -6572,6 +6573,45 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 
   return TRUE; // do not propagate
 }
+#else
+gboolean
+drawingarea_expose_event_cb (GtkWidget* widget_in,
+                             GdkEvent* event_in,
+                             gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_expose_event_cb"));
+
+  ACE_UNUSED_ARG (event_in);
+
+  // sanity check(s)
+  struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+  if (!ui_cb_data_base_p->dispatch)
+    return FALSE; // propagate event
+
+  cairo_t* context_p =
+    gdk_cairo_create (GDK_DRAWABLE (gtk_widget_get_window (widget_in)));
+  if (unlikely (!context_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
+    return FALSE;
+  } // end IF
+
+  try {
+    ui_cb_data_base_p->dispatch->dispatch (context_p);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
+    return FALSE; // propagate event
+  }
+
+  cairo_destroy (context_p); context_p = NULL;
+
+  return TRUE; // do not propagate
+}
+#endif // GTK_CHECK_VERSION (3,0,0)
 
 //void
 //drawingarea_configure_event_cb (GtkWindow* window_in,
@@ -6751,7 +6791,7 @@ drawing_area_resize_end (gpointer userData_in)
     ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-    ui_cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
+    ui_cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_4 =
     ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));

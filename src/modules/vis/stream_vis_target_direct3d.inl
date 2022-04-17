@@ -356,13 +356,11 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_Image_Tools::save(), continuing\n"),
                 inherited::mod_->name ()));
-#if defined (_DEBUG)
   else
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: saved screenshot \"%s\"\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (filename_string.c_str ())));
-#endif // _DEBUG
   snapShotNextFrame_ = false;
 
 continue_:

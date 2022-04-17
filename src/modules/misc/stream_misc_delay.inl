@@ -63,7 +63,6 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , availableTokens_ (0)
  , condition_ (inherited::lock_)
- , delayConfiguration_ ()
  , resetTimeoutHandler_ (this)
  , resetTimeoutHandlerId_ (-1)
 {
@@ -92,10 +91,6 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::initialize"));
 
-  // *TODO*: remove type inference
-  if (configuration_in.delayConfiguration)
-    delayConfiguration_ = *configuration_in.delayConfiguration;
-
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
@@ -121,6 +116,10 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::handleDataMessage"));
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->delayConfiguration);
+
   passMessageDownstream_out = false;
 
   int result = -1;
@@ -144,7 +143,7 @@ continue_:
       } // end IF
     } // end WHILE
 
-    switch (delayConfiguration_.mode)
+    switch (inherited::configuration_->delayConfiguration->mode)
     {
       case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
       {
@@ -165,14 +164,14 @@ continue_:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid/unknown delay mode (was: %d), returning\n"),
                     inherited::mod_->name (),
-                    delayConfiguration_.mode));
+                    inherited::configuration_->delayConfiguration->mode));
         message_block_p->release ();
         return;
       }
     } // end SWITCH
   } // end lock scope
 
-  switch (delayConfiguration_.mode)
+  switch (inherited::configuration_->delayConfiguration->mode)
   {
     case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
     {
@@ -227,7 +226,7 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: invalid/unknown delay mode (was: %d), returning\n"),
                   inherited::mod_->name (),
-                  delayConfiguration_.mode));
+                  inherited::configuration_->delayConfiguration->mode));
       message_block_p->release ();
       return;
     }
@@ -261,6 +260,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (message_inout);
   ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->delayConfiguration);
 
   Common_ITimerCBBase* itimer_p =
       (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
@@ -273,24 +273,32 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
-
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       ACE_UINT64 average_bytes_per_second_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
+      struct tWAVEFORMATEX* waveformatex_p = NULL;
+#else
+      struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+#endif // ACE_WIN32 || ACE_WIN64
+
+      if (inherited::configuration_->delayConfiguration->mode != STREAM_MISCELLANEOUS_DELAY_MODE_INVALID)
+        goto continue_;
+
+      // *TODO*: move this to a template specialization
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_INVALID, // N/A
                                 media_type_s);
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
-      struct tWAVEFORMATEX* waveformatex_p =
+      waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
       ACE_ASSERT (waveformatex_p);
       average_bytes_per_second_i = waveformatex_p->nAvgBytesPerSec;
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
-      struct Stream_MediaFramework_ALSA_MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_INVALID, // N/A
                                 media_type_s);
@@ -299,28 +307,32 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                                    media_type_s.channels;
 #endif // ACE_WIN32 || ACE_WIN64
       availableTokens_ = average_bytes_per_second_i;
-      delayConfiguration_.averageBytesPerInterval = average_bytes_per_second_i;
-      delayConfiguration_.interval = ACE_Time_Value (1, 0);
-      delayConfiguration_.mode = STREAM_MISCELLANEOUS_DELAY_MODE_BYTES;
+      inherited::configuration_->delayConfiguration->averageBytesPerInterval =
+        average_bytes_per_second_i;
+      inherited::configuration_->delayConfiguration->interval =
+        ACE_Time_Value (1, 0);
+      inherited::configuration_->delayConfiguration->mode =
+        STREAM_MISCELLANEOUS_DELAY_MODE_BYTES;
 
+continue_:
       // schedule the delay interval timer
       resetTimeoutHandlerId_ =
         itimer_p->schedule_timer (&resetTimeoutHandler_,                          // event handler handle
                                   NULL,                                           // asynchronous completion token
-                                  COMMON_TIME_NOW + delayConfiguration_.interval, // first wakeup time
-                                  delayConfiguration_.interval);                  // interval
+                                  COMMON_TIME_NOW + inherited::configuration_->delayConfiguration->interval, // first wakeup time
+                                  inherited::configuration_->delayConfiguration->interval);                  // interval
       if (unlikely (resetTimeoutHandlerId_ == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Common_ITimerCBBase::schedule_timer(%#T): \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    &delayConfiguration_.interval));
+                    &inherited::configuration_->delayConfiguration->interval));
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: scheduled interval timer (%#T, id: %d)\n"),
                   inherited::mod_->name (),
-                  &delayConfiguration_.interval,
+                  &inherited::configuration_->delayConfiguration->interval,
                   resetTimeoutHandlerId_));
 
       break;
@@ -377,14 +389,19 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::reset"));
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->delayConfiguration);
+
   int result = -1;
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-    switch (delayConfiguration_.mode)
+    switch (inherited::configuration_->delayConfiguration->mode)
     {
       case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
       {
-        availableTokens_ = delayConfiguration_.averageBytesPerInterval;
+        availableTokens_ =
+          inherited::configuration_->delayConfiguration->averageBytesPerInterval;
         break;
       }
       case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
@@ -397,7 +414,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid/unknown delay mode (was: %d), returning\n"),
                     inherited::mod_->name (),
-                    delayConfiguration_.mode));
+                    inherited::configuration_->delayConfiguration->mode));
         return;
       }
     } // end SWITCH

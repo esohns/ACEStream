@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "magick/api.h"
+#include "MagickWand/MagickWand.h"
 #else
 #include "wand/magick_wand.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -222,7 +222,6 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
   int result = -1;
   int result_2 = -1;
   int error = 0;
-//  ssize_t bytes_read = -1;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
   int message_type = -1;
@@ -237,6 +236,7 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
   unsigned char* data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 #else
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
@@ -244,6 +244,7 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   MediaType media_type_2;
+  ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -292,18 +293,12 @@ next:
           if (!finished)
           {
             finished = true;
-            // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-            //         --> continue
-            inherited::STATE_MACHINE_T::finished ();
-            // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
-            //         --> done
-            if (inherited::thr_count_ == 0)
-              goto done; // finished processing
+            // enqueue(/process) STREAM_SESSION_END
+            inherited::finished (false); // recurse upstream ?
 
             continue;
           } // end IF
 
-done:
           result_2 = 0;
 
           goto continue_2; // STREAM_SESSION_END has been processed
@@ -320,9 +315,7 @@ done:
         // *IMPORTANT NOTE*: message_block_p has already been released() !
 
         finished = true;
-        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-        //         --> continue
-        inherited::STATE_MACHINE_T::finished ();
+        inherited::stop (false, false, false);
 
         continue;
       } // end IF
@@ -339,9 +332,7 @@ done:
         if (!finished)
         {
           finished = true;
-          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-          //         --> continue
-          inherited::STATE_MACHINE_T::finished ();
+          inherited::stop (false, false, false);
         } // end IF
 
         break;
@@ -355,9 +346,7 @@ done:
                   ACE_TEXT ("session aborted\n")));
 
       finished = true;
-      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-      //         --> continue
-      inherited::STATE_MACHINE_T::finished ();
+      inherited::stop (false, false, false);
 
       continue;
     } // end IF
@@ -365,19 +354,22 @@ done:
       continue;
 
     // *TODO*: remove type inference
+    //result = MagickReadImage (context_,
+    //                          ACE_TEXT_ALWAYS_CHAR ("xc:black"));
+    //ACE_ASSERT (result == MagickTrue);
+
     result_3 = MagickReadImage (context_,
                                 file_path_string.c_str ());
     if (unlikely (result_3 != MagickTrue))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to MagickReadImage(): \"%s\", returning\n"),
+                  ACE_TEXT ("%s: failed to MagickReadImage(\"%s\"): \"%s\", returning\n"),
                   inherited::mod_->name (),
+                  ACE_TEXT (file_path_string.c_str ()),
                   ACE_TEXT (Common_Image_Tools::errorToString (context_).c_str ())));
 
       finished = true;
-      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-      //         --> continue
-      inherited::STATE_MACHINE_T::finished ();
+      inherited::stop (false, false, false);
 
       continue;
     } // end IF
@@ -385,6 +377,10 @@ done:
 //    media_type_s.codec =
 //        Common_Image_Tools::stringToCodecId (MagickGetImageFormat (context_));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ACE_ASSERT (!session_data_r.formats.empty ());
+    inherited2::getMediaType (session_data_r.formats.back (),
+                              STREAM_MEDIATYPE_VIDEO,
+                              media_type_s);
     Common_Image_Resolution_t resolution_s;
     resolution_s.cx = MagickGetImageWidth (context_);
     resolution_s.cy = MagickGetImageHeight (context_);
@@ -400,8 +396,8 @@ done:
     result_3 = MagickSetImageFormat (context_, "RGBA");
     ACE_ASSERT (result_3 == MagickTrue);
 
-    data_p = MagickWriteImageBlob (context_,
-                                   &file_size_i);
+    data_p = MagickGetImageBlob (context_, // was: MagickWriteImageBlob
+                                 &file_size_i);
     ACE_ASSERT (data_p);
 
 //#if defined (_DEBUG)
@@ -420,9 +416,7 @@ done:
                   inherited::configuration_->allocatorConfiguration->defaultBufferSize));
 
       finished = true;
-      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-      //         --> continue
-      inherited::STATE_MACHINE_T::finished ();
+      inherited::stop (false, false, false);
 
       continue;
     } // end IF
@@ -431,11 +425,9 @@ done:
                      file_size_i,
                      ACE_Message_Block::DONT_DELETE); // own image datas
     message_p->wr_ptr (file_size_i);
-#if defined (FFMPEG_SUPPORT)
     inherited2::getMediaType (media_type_s,
                               STREAM_MEDIATYPE_VIDEO,
                               media_type_2);
-#endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
@@ -458,9 +450,7 @@ done:
       message_p->release (); message_p = NULL;
 
       finished = true;
-      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-      //         --> continue
-      inherited::STATE_MACHINE_T::finished ();
+      inherited::stop (false, false, false);
     } // end IF
     message_p = NULL;
 

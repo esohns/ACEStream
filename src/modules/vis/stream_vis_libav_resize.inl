@@ -307,14 +307,16 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
       } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
+                    ACE_TEXT ("%s: resizing %s %ux%u to %ux%u\n"),
                     inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::inputFormat_).c_str ()),
                     sourceResolution_.cx, sourceResolution_.cy,
                     media_type_3.resolution.cx, media_type_3.resolution.cy));
 #else
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
+                    ACE_TEXT ("%s: resizing %s %ux%u to %ux%u\n"),
                     inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::inputFormat_).c_str ()),
                     sourceResolution_.width, sourceResolution_.height,
                     media_type_3.resolution.width, media_type_3.resolution.height));
 #endif // ACE_WIN32 || ACE_WIN64
@@ -322,7 +324,7 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
       // initialize conversion context
       flags_i =
           (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-           SWS_FAST_BILINEAR);
+           SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
       inherited::context_ =
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -464,14 +466,16 @@ error:
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
+                  ACE_TEXT ("%s: resizing %s %ux%u to %ux%u\n"),
                   inherited::mod_->name (),
+                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::inputFormat_).c_str ()),
                   sourceResolution_.cx, sourceResolution_.cy,
                   media_type_3.resolution.cx, media_type_3.resolution.cy));
 #else
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
+                  ACE_TEXT ("%s: resizing %s %ux%u to %ux%u\n"),
                   inherited::mod_->name (),
+                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::inputFormat_).c_str ()),
                   sourceResolution_.width, sourceResolution_.height,
                   media_type_3.resolution.width, media_type_3.resolution.height));
 #endif // ACE_WIN32 || ACE_WIN64
@@ -479,7 +483,7 @@ error:
       // initialize conversion context
       flags_i =
           (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-           SWS_BICUBIC);
+           SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
       inherited::context_ =
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -193,6 +193,32 @@ Stream_Module_Decoder_Tools::mpeg4ToDateTime (ACE_UINT64 secondsSince_MPEG4Epoch
   return result;
 }
 
+enum Stream_MediaType_Type
+Stream_Module_Decoder_Tools::streamIdToMediaType (unsigned short streamId_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::streamIdToMediaType"));
+
+  switch (streamId_in)
+  {
+    case 3:   // audio_stream_descriptor
+    case 28:  // MPEG-4_audio_descriptor
+    case 43:  // MPEG-2_AAC_audio_descriptor
+    case 46:  // MPEG-4_audio_extension_descriptor
+      return STREAM_MEDIATYPE_AUDIO;
+    case 2:   // video_stream_descriptor
+    case 27:  // MPEG-4_video_descriptor
+    case 40:  // AVC video descriptor
+    case 50:  // J2K video descriptor
+    case 52:  // MPEG2_stereoscopic_video_format_descriptor
+    case 56:  // HEVC video descriptor
+      return STREAM_MEDIATYPE_VIDEO;
+    default:
+      break;
+  } // end SWITCH
+
+  return STREAM_MEDIATYPE_INVALID;
+}
+
 #if defined (FFMPEG_SUPPORT)
 bool
 Stream_Module_Decoder_Tools::isChromaLuminance (enum AVPixelFormat format_in)
@@ -208,9 +234,7 @@ Stream_Module_Decoder_Tools::isChromaLuminance (enum AVPixelFormat format_in)
     case AV_PIX_FMT_YUV410P:   ///< planar YUV 4:1:0,  9bpp, (1 Cr & Cb sample per 4x4 Y samples)
     case AV_PIX_FMT_YUV411P:   ///< planar YUV 4:1:1, 12bpp, (1 Cr & Cb sample per 4x1 Y samples)
     case AV_PIX_FMT_YUVJ420P:  ///< planar YUV 4:2:0, 12bpp, full scale (JPEG), deprecated in favor of AV_PIX_FMT_YUV420P and setting color_range
-    // *NOTE*: libav does not specify a pixel format for MJPEG, it is a
-    //         'compressed' format) --> map this deprecated format
-//    case AV_PIX_FMT_YUVJ422P:  ///< planar YUV 4:2:2, 16bpp, full scale (JPEG), deprecated in favor of AV_PIX_FMT_YUV422P and setting color_range
+    case AV_PIX_FMT_YUVJ422P:  ///< planar YUV 4:2:2, 16bpp, full scale (JPEG), deprecated in favor of AV_PIX_FMT_YUV422P and setting color_range
     case AV_PIX_FMT_YUVJ444P:  ///< planar YUV 4:4:4, 24bpp, full scale (JPEG), deprecated in favor of AV_PIX_FMT_YUV444P and setting color_range
     case AV_PIX_FMT_UYVY422:   ///< packed YUV 4:2:2, 16bpp, Cb Y0 Cr Y1
     case AV_PIX_FMT_UYYVYY411: ///< packed YUV 4:1:1, 12bpp, Cb Y0 Y1 Cr Y2 Y3

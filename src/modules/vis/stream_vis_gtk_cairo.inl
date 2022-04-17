@@ -142,7 +142,6 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                                   allocator_in); // nothing to do
 
   GDK_THREADS_ENTER ();
-
 #if GTK_CHECK_VERSION (2,8,0)
   context_ = gdk_cairo_create (configuration_in.window);
 #else
@@ -151,62 +150,12 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   if (unlikely (!context_))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_cairo_create(%@), aborting\n"),
+                ACE_TEXT ("%s: failed to gdk_cairo_create(%@), aborting\n"),
+                inherited::mod_->name (),
                 configuration_in.window));
     GDK_THREADS_LEAVE ();
     return false;
   } // end IF
-
-  surface_ =
-#if GTK_CHECK_VERSION (3,10,0)
-    gdk_window_create_similar_image_surface (configuration_in.window,
-                                             CAIRO_FORMAT_RGB24,
-                                             gdk_window_get_width (configuration_in.window),
-                                             gdk_window_get_height (configuration_in.window),
-                                             gdk_window_get_scale_factor (configuration_in.window));
-  if (unlikely (!surface_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_window_create_similar_image_surface(%@), aborting\n"),
-                configuration_in.window));
-    GDK_THREADS_LEAVE ();
-    goto error;
-  } // end IF
-#elif GTK_CHECK_VERSION (3,0,0)
-    gdk_pixbuf_get_from_window (configuration_in.window,
-                                0, 0,
-                                gdk_window_get_width (configuration_in.window),
-                                gdk_window_get_height (configuration_in.window));
-  if (unlikely (!surface_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_pixbuf_get_from_window(%@), aborting\n"),
-                configuration_in.window));
-    GDK_THREADS_LEAVE ();
-    goto error;
-  } // end IF
-#elif GTK_CHECK_VERSION(2,0,0)
-    gdk_pixbuf_get_from_drawable (NULL,
-                                  GDK_DRAWABLE (configuration_in.window),
-                                  NULL,
-                                  0, 0,
-                                  0, 0,
-                                  gdk_window_get_width (configuration_in.window),
-                                  gdk_window_get_height (configuration_in.window));
-  if (unlikely (!surface_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(%@), aborting\n"),
-                configuration_in.window));
-    GDK_THREADS_LEAVE ();
-    goto error;
-  } // end IF
-#else
-      NULL;
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (false);
-  ACE_NOTREACHED (return false;)
-#endif // GTK_CHECK_VERSION
   GDK_THREADS_LEAVE ();
 
   return inherited::initialize (configuration_in,
@@ -250,18 +199,6 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   if (unlikely (!context_))
     return; // done
   ACE_ASSERT (surface_);
-
-  // *NOTE*: 'crunching' the message data simplifies the data transformation
-  //         algorithms, at the cost of (several) memory copies. This is a
-  //         tradeoff that may warrant further optimization efforts
-  try {
-    message_inout->defragment ();
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_IDataMessage_T::defragment(), returning\n"),
-                inherited::mod_->name ()));
-    return;
-  }
 
   ACE_GUARD (ACE_Thread_Mutex, aGuard, surfaceLock_);
 
@@ -318,16 +255,15 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
       // *TODO*: remove type inferences
-      if (!inherited::configuration_->window)
-        break;
-
-      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_->window);
       ACE_ASSERT (inherited::sessionData_);
+      ACE_ASSERT (!surface_);
       const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+      Common_Image_Resolution_t resolution_s;
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-      Common_Image_Resolution_t resolution_s;
 #else
 #if defined (FFMPEG_SUPPORT)
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
@@ -349,8 +285,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                                   media_type_s.resolution.width,
                                   media_type_s.resolution.height,
                                   1); // *TODO*: linesize alignment
+      resolution_s = media_type_s.resolution;
 #else
-        ACE_ASSERT (false); // *TODO*
+        0;
+      ACE_ASSERT (false); // *TODO*
+      resolution_s = media_type_s.resolution;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
       ACE_UNUSED_ARG (frame_size_i);
@@ -360,10 +299,72 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #else
 #if defined (FFMPEG_SUPPORT)
         av_image_get_linesize (media_type_s.format,
-                               media_type_s.resolution.width,
+                               resolution_s.width,
                                0);
+#else
+        0;
+      ACE_ASSERT (false); // *TODO*
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+
+      GDK_THREADS_ENTER ();
+      surface_ =
+#if GTK_CHECK_VERSION (3,10,0)
+        gdk_window_create_similar_image_surface (inherited::configuration_->window,
+                                                 CAIRO_FORMAT_RGB24,
+                                                 gdk_window_get_width (inherited::configuration_->window),
+                                                 gdk_window_get_height (inherited::configuration_->window),
+                                                 gdk_window_get_scale_factor (inherited::configuration_->window));
+      if (unlikely (!surface_))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to gdk_window_create_similar_image_surface(%@), aborting\n"),
+                    inherited::mod_->name (),
+                    inherited::configuration_->window));
+        GDK_THREADS_LEAVE ();
+        goto error;
+      } // end IF
+#elif GTK_CHECK_VERSION (3,0,0)
+    gdk_pixbuf_get_from_window (inherited::configuration_->window,
+                                0, 0,
+                                gdk_window_get_width (inherited::configuration_->window),
+                                gdk_window_get_height (inherited::configuration_->window));
+  if (unlikely (!surface_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(%@), aborting\n"),
+                inherited::mod_->name (),
+                inherited::configuration_->window));
+    GDK_THREADS_LEAVE ();
+    goto error;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("%s: created %ux%u surface buffer\n"),
+              inherited::mod_->name (),
+              gdk_window_get_width (inherited::configuration_->window),
+              gdk_window_get_height (inherited::configuration_->window)));
+#elif GTK_CHECK_VERSION(2,0,0)
+    gdk_pixbuf_get_from_drawable (NULL,
+                                  GDK_DRAWABLE (inherited::configuration_->window),
+                                  NULL,
+                                  0, 0,
+                                  0, 0,
+                                  gdk_window_get_width (inherited::configuration_->window),
+                                  gdk_window_get_height (inherited::configuration_->window));
+  if (unlikely (!surface_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_drawable(%@), aborting\n"),
+                inherited::mod_->name (),
+                inherited::configuration_->window));
+    GDK_THREADS_LEAVE ();
+    goto error;
+  } // end IF
+#else
+      NULL;
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (false);
+  ACE_NOTREACHED (return false;)
+#endif // GTK_CHECK_VERSION
 
 #if GTK_CHECK_VERSION (3,10,0)
       ACE_ASSERT (cairo_surface_status (surface_) == CAIRO_STATUS_SUCCESS);
@@ -384,13 +385,13 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                     ACE_TEXT_ALWAYS_CHAR ("n-channels"), &n_channels_i,
                     NULL);
 #endif // GTK_CHECK_VERSION
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//      ACE_ASSERT ((resolution_s.cx <= static_cast<LONG> (width_2)) && (resolution_s.cy <= static_cast<LONG> (height_2)));
-//#else
-//#if defined (FFMPEG_SUPPORT)
-//      ACE_ASSERT ((media_type_s.resolution.width <= static_cast<unsigned int> (width_2)) && (media_type_s.resolution.height <= static_cast<unsigned int> (height_2)));
-//#endif // FFMPEG_SUPPORT
-//#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_ASSERT ((resolution_s.cx <= static_cast<LONG> (width_2)) && (resolution_s.cy <= static_cast<LONG> (height_2)));
+#else
+#if defined (FFMPEG_SUPPORT)
+      ACE_ASSERT ((resolution_s.width <= static_cast<unsigned int> (width_2)) && (media_type_s.resolution.height <= static_cast<unsigned int> (height_2)));
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 //      ACE_ASSERT (row_stride_i <= static_cast<unsigned int> (row_stride_2));
 //#if GTK_CHECK_VERSION(3,10,0)
 //      ACE_ASSERT ((format_e == CAIRO_FORMAT_RGB24) || (format_e == CAIRO_FORMAT_ARGB32));
@@ -416,10 +417,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //#endif // FFMPEG_SUPPORT
 //#endif // ACE_WIN32 || ACE_WIN64
       ACE_UNUSED_ARG (row_stride_i);
+      GDK_THREADS_LEAVE ();
 
       break;
 
-//error:
+error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -428,11 +430,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       // *TODO*: remove type inferences
-      if (!inherited::configuration_->window)
-        break;
+      ACE_ASSERT (inherited::configuration_->window);
 
       ACE_GUARD (ACE_Thread_Mutex, aGuard, surfaceLock_);
 
+      GDK_THREADS_ENTER ();
 #if GTK_CHECK_VERSION(3, 0, 0)
       if (context_)
       {
@@ -462,8 +464,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       if (unlikely (!surface_))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to gdk_window_create_similar_image_surface(%@), aborting\n"),
+                    ACE_TEXT ("%s: failed to gdk_window_create_similar_image_surface(%@), aborting\n"),
+                    inherited::mod_->name (),
                     inherited::configuration_->window));
+        GDK_THREADS_LEAVE ();
         goto error_2;
       } // end IF
 #elif GTK_CHECK_VERSION (3,0,0)
@@ -474,10 +478,17 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       if (unlikely (!surface_))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to gdk_pixbuf_get_from_window(%@), aborting\n"),
+                    ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(%@), aborting\n"),
+                    inherited::mod_->name (),
                     inherited::configuration_->window));
+        GDK_THREADS_LEAVE ();
         goto error_2;
       } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: resized surface to %ux%u\n"),
+                  inherited::mod_->name (),
+                  gdk_window_get_width (inherited::configuration_->window),
+                  gdk_window_get_height (inherited::configuration_->window)));
 #elif GTK_CHECK_VERSION(2,0,0)
         gdk_pixbuf_get_from_drawable (NULL,
                                       GDK_DRAWABLE (inherited::configuration_->window),
@@ -489,8 +500,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       if (unlikely (!surface_))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(%@), aborting\n"),
+                    ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_drawable(%@), aborting\n"),
+                    inherited::mod_->name (),
                     inherited::configuration_->window));
+        GDK_THREADS_LEAVE ();
         goto error_2;
       } // end IF
 #else
@@ -499,6 +512,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       ACE_NOTSUP_RETURN (false);
       ACE_NOTREACHED (return false;)
 #endif // GTK_CHECK_VERSION
+      GDK_THREADS_LEAVE ();
 
       inherited2::resizing_ = false;
 
@@ -556,7 +570,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::dispatch"));
 
   // sanity check(s)
-  if (unlikely (inherited2::resizing_))
+  if (unlikely (!surface_ ||
+                inherited2::resizing_))
     return;
   cairo_t* context_p = static_cast<cairo_t*> (arg_in);
 

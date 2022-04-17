@@ -259,14 +259,15 @@ elseif (WIN32)
  if (GUI_SUPPORT)
   set (ARGS "-g.\\\\etc\\\\${ui_definition_file} ${ARGS}")
 
-  if (GTK_USE)
+  if (GTK_SUPPORT)
    file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              ${GTK_PATH})
-  elseif (WXWIDGETS_USE)
+  endif (GTK_SUPPORT)
+  if (WXWIDGETS_SUPPORT)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              ${wxWidgets_LIB_DIR})
-  endif ()
+  endif (WXWIDGETS_SUPPORT)
  else ()
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
@@ -281,14 +282,16 @@ elseif (WIN32)
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
                            ${ACE_PATH})
- set (ENVIRONMENT "MAGICK_CODER_MODULE_PATH=${IMAGEMAGICK_LIB_PATH}\\\\modules\\\\coders")
+ file (TO_NATIVE_PATH "${IMAGEMAGICK_PATH}" IMAGEMAGICK_NATIVE_PATH)
+ string (REPLACE "\\" "\\\\" IMAGEMAGICK_NATIVE_PATH ${IMAGEMAGICK_NATIVE_PATH})
+ set (ENVIRONMENT "MAGICK_CODER_MODULE_PATH=${IMAGEMAGICK_NATIVE_PATH}\\\\modules\\\\coders")
 endif ()
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/${EXECUTABLE}
+                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/${EXECUTABLE}
                         ENVIRONMENT ${ENVIRONMENT})
 
 ##########################################

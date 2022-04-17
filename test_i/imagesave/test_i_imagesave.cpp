@@ -478,6 +478,7 @@ do_work (
   modulehandler_configuration.lock = &state_r.subscribersLock;
 #endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
+//  modulehandler_configuration.streamType = 2;
   modulehandler_configuration.subscriber = &ui_event_handler;
   modulehandler_configuration.subscribers = &CBData_in.subscribers;
   modulehandler_configuration.targetFileName = targetFilename_in;
@@ -508,6 +509,7 @@ do_work (
     (!UIDefinitionFilename_in.empty () ? &message_handler
                                        : NULL);
 #endif // GUI_SUPPORT
+  stream_configuration.saveOnly = UIDefinitionFilename_in.empty ();
 
   stream_configuration.allocatorConfiguration = &allocator_configuration;
 

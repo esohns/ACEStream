@@ -55,8 +55,9 @@ extern "C"
 #include "ace/Date_Time.h"
 #include "ace/Global_Macros.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_common.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_defines.h"
 #include "stream_lib_directshow_common.h"
 #include "stream_lib_directsound_common.h"
@@ -74,6 +75,9 @@ class Stream_Module_Decoder_Tools
   // MPEG4
   // *IMPORTANT NOTE*: return value is localtime
   static ACE_Date_Time mpeg4ToDateTime (ACE_UINT64); // seconds since UTC 1904-01-01 zero
+
+  // MPEGTS: see ITU-T Rec. H.222.0 Table 2.45
+  static enum Stream_MediaType_Type streamIdToMediaType (unsigned short); // stream id
 
 #if defined (FFMPEG_SUPPORT)
   inline static bool isCompressedVideo (enum AVPixelFormat format_in) { return (!Stream_Module_Decoder_Tools::isRGB (format_in) && !Stream_Module_Decoder_Tools::isChromaLuminance (format_in)); }
