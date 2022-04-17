@@ -927,17 +927,9 @@ ACE_TMAIN (int argc_in,
   ACE_Sig_Set previous_signal_mask (false); // fill ?
   std::string log_file_name;
   struct HTTPGet_UI_CBData ui_cb_data;
-  //Common_Logger_t logger (&ui_cb_data.UIState.logStack,
-  //                        &ui_cb_data.UIState.lock);
-//  ACE_SYNCH_RECURSIVE_MUTEX* lock_p = NULL;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-  ACE_ASSERT (gtk_manager_p);
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-//  lock_p = &state_r.subscribersLock;
+  Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
@@ -983,8 +975,22 @@ ACE_TMAIN (int argc_in,
     goto error;
   } // end IF
 
-  Common_Tools::initialize ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Common_Tools::initialize (false,  // COM ?
+                            false); // RNG ?
+#else
+  Common_Tools::initialize (false); // RNG ?
+#endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   ui_cb_data.configuration = &configuration;
   working_directory = Common_File_Tools::getWorkingDirectory ();
   temp_directory = Common_File_Tools::getTempDirectory ();
@@ -1020,7 +1026,7 @@ ACE_TMAIN (int argc_in,
                             buffer_size,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             show_console,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                             debug_parser,
                             output_file_path,
                             UI_file_path,
@@ -1169,7 +1175,7 @@ continue_:
            previous_signal_actions,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            show_console,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
            signal_handler);
   timer.stop ();
 
@@ -1244,6 +1250,7 @@ done:
                                  previous_signal_actions,
                                  previous_signal_mask);
   Common_Log_Tools::finalizeLogging ();
+  Common_Tools::finalize ();
 
   // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1251,11 +1258,12 @@ done:
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return EXIT_SUCCESS;
 
 error:
+  Common_Tools::finalize ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = ACE::fini ();
   if (result == -1)
@@ -1264,6 +1272,6 @@ error:
                 ACE_TEXT ("failed to ACE::fini(): \"%m\", aborting\n")));
     return EXIT_FAILURE;
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   return EXIT_FAILURE;
 } // end main

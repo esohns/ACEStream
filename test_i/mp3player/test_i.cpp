@@ -439,12 +439,18 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
-  Common_Tools::initialize (false);
 
   // *PROCESS PROFILE*
   ACE_Profile_Timer process_profile;
   // start profile timer...
   process_profile.start ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Common_Tools::initialize (false,  // COM ?
+                            false); // RNG ?
+#else
+  Common_Tools::initialize (false); // RNG ?
+#endif // ACE_WIN32 || ACE_WIN64
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();

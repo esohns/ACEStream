@@ -770,11 +770,13 @@ ACE_TMAIN (int argc_in,
   // start profile timer...
   process_profile.start ();
 
-  std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
-
   // initialize framework(s)
-  Common_Tools::initialize (false); // initialize random number generator ?
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Common_Tools::initialize (true,   // COM ?
+                            false); // RNG ?
+#else
+  Common_Tools::initialize (false); // RNG ?
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (GUI_SUPPORT)
   Common_UI_Tools::initialize ();
 #if defined (WXWIDGETS_USE)
@@ -797,8 +799,9 @@ ACE_TMAIN (int argc_in,
 #endif // GUI_SUPPORT
 
   // step1a set defaults
+  std::string configuration_path = Common_File_Tools::getWorkingDirectory ();
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool COM_initialized = false;
   bool show_console = false;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
@@ -952,10 +955,9 @@ ACE_TMAIN (int argc_in,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif // ACE_WIN32 || ACE_WIN64
     return EXIT_SUCCESS;
-  }
+  } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  COM_initialized = Common_Tools::initializeCOM ();
   Stream_Visualization_Tools::initialize (STREAM_VIS_FRAMEWORK_DEFAULT);
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1044,9 +1046,9 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
 
     Common_Log_Tools::finalizeLogging ();
+    Common_Tools::finalize ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    if (COM_initialized) Common_Tools::finalizeCOM ();
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -1075,9 +1077,9 @@ ACE_TMAIN (int argc_in,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
+    Common_Tools::finalize ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    if (COM_initialized) Common_Tools::finalizeCOM ();
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -1105,7 +1107,6 @@ ACE_TMAIN (int argc_in,
       Common_Tools::finalize ();
       // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (COM_initialized) Common_Tools::finalizeCOM ();
       result = ACE::fini ();
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
@@ -1167,9 +1168,9 @@ ACE_TMAIN (int argc_in,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
+    Common_Tools::finalize ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    if (COM_initialized) Common_Tools::finalizeCOM ();
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -1224,10 +1225,10 @@ ACE_TMAIN (int argc_in,
                                  previous_signal_actions,
                                  previous_signal_mask);
   Common_Log_Tools::finalizeLogging ();
+  Common_Tools::finalize ();
 
   // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (COM_initialized) Common_Tools::finalizeCOM ();
   result = ACE::fini ();
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,

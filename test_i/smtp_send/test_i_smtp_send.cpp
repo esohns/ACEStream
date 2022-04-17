@@ -766,11 +766,13 @@ ACE_TMAIN (int argc_in,
   // start profile timer...
   process_profile.start ();
 
-  std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
-
   // initialize framework(s)
-  Common_Tools::initialize (false); // initialize random number generator ?
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Common_Tools::initialize (false,  // COM ?
+                            false); // RNG ?
+#else
+  Common_Tools::initialize (false); // RNG ?
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   if (!Common_UI_GTK_Tools::initialize (argc_in,
@@ -807,6 +809,8 @@ ACE_TMAIN (int argc_in,
 #endif // GUI_SUPPORT
 
   // step1a set defaults
+  std::string configuration_path = Common_File_Tools::getWorkingDirectory ();
+
   struct Stream_SMTPSend_Configuration configuration;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;

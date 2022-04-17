@@ -2322,9 +2322,6 @@ ACE_TMAIN (int argc_in,
   STREAM_TRACE (ACE_TEXT ("::main"));
 
   int result = -1;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool COM_initialized = false;
-#endif // ACE_WIN32 || ACE_WIN64
 
   // step0: initialize
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2342,6 +2339,13 @@ ACE_TMAIN (int argc_in,
   ACE_Profile_Timer process_profile;
   // start profile timer...
   process_profile.start ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Common_Tools::initialize (true,   // COM ?
+                            false); // RNG ?
+#else
+  Common_Tools::initialize (false); // RNG ?
+#endif // ACE_WIN32 || ACE_WIN64
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
@@ -2496,10 +2500,6 @@ ACE_TMAIN (int argc_in,
     goto error;
   } // end IF
 
-  Common_Tools::initialize (false); // initialize random number generator ?
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  COM_initialized = Common_Tools::initializeCOM ();
-#endif // ACE_WIN32 || ACE_WIN64
 #if defined (GUI_SUPPORT)
   Common_UI_Tools::initialize ();
 #if defined (GTK_SUPPORT)
@@ -2659,8 +2659,8 @@ ACE_TMAIN (int argc_in,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
+    Common_Tools::finalize ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    if (COM_initialized) Common_Tools::finalizeCOM ();
     // *PORTABILITY*: on Windows, finalize ACE...
     result = ACE::fini ();
     if (result == -1)
@@ -2802,8 +2802,8 @@ ACE_TMAIN (int argc_in,
                                  previous_signal_actions,
                                  previous_signal_mask);
   Common_Log_Tools::finalizeLogging ();
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (COM_initialized) Common_Tools::finalizeCOM ();
+  Common_Tools::finalize ();
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
   // *PORTABILITY*: on Windows, finalize ACE...
   result = ACE::fini ();
   if (unlikely (result == -1))
@@ -2818,8 +2818,8 @@ error:
                                  previous_signal_actions,
                                  previous_signal_mask);
   Common_Log_Tools::finalizeLogging ();
+  Common_Tools::finalize ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (COM_initialized) Common_Tools::finalizeCOM ();
   // *PORTABILITY*: on Windows, finalize ACE...
   result = ACE::fini ();
   if (unlikely (result == -1))

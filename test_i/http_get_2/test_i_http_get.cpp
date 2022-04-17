@@ -1017,7 +1017,7 @@ ACE_TMAIN (int argc_in,
   int result = EXIT_FAILURE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool finalize_ACE = false;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   bool finalize_logging = false;
   bool finalize_signals = false;
   ACE_Profile_Timer process_profile;
@@ -1038,7 +1038,6 @@ ACE_TMAIN (int argc_in,
   ACE_Sig_Set ignored_signal_set (false);
   Common_SignalActions_t previous_signal_actions;
   ACE_Sig_Set previous_signal_mask (false); // fill ?
-//  ACE_SYNCH_RECURSIVE_MUTEX signal_lock;
   Test_I_SignalHandler signal_handler;
 
   ACE_High_Res_Timer timer;
@@ -1059,10 +1058,16 @@ ACE_TMAIN (int argc_in,
   } // end IF
   finalize_ACE = true;
 #endif // ACE_WIN32 || ACE_WIN64
-  Common_Tools::initialize ();
 
   // start profile timer
   process_profile.start ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Common_Tools::initialize (false,  // COM ?
+                            false); // RNG ?
+#else
+  Common_Tools::initialize (false); // RNG ?
+#endif // ACE_WIN32 || ACE_WIN64
 
   path = Common_File_Tools::getWorkingDirectory ();
 
@@ -1305,7 +1310,7 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nsignals,
               elapsed_rusage.ru_nvcsw,
               elapsed_rusage.ru_nivcsw));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   result = EXIT_SUCCESS;
 
@@ -1318,6 +1323,7 @@ error:
                                    previous_signal_mask);
   if (finalize_logging)
     Common_Log_Tools::finalizeLogging ();
+  Common_Tools::finalize ();
   // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (finalize_ACE)
@@ -1327,7 +1333,7 @@ error:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return result;
 } // end main
