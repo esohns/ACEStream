@@ -72,6 +72,7 @@ extern "C"
 #include "libavcodec/avcodec.h"
 
 #include "libavutil/avutil.h"
+#include "libavutil/channel_layout.h"
 #include "libavutil/imgutils.h"
 #include "libavutil/pixfmt.h"
 
@@ -220,6 +221,74 @@ Stream_Module_Decoder_Tools::streamIdToMediaType (unsigned short streamId_in)
 }
 
 #if defined (FFMPEG_SUPPORT)
+bool
+Stream_Module_Decoder_Tools::isPackedIntegerPCM (enum AVSampleFormat format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::isPackedIntegerPCM"));
+
+  switch (format_in)
+  {
+    case AV_SAMPLE_FMT_U8:
+    case AV_SAMPLE_FMT_S16:
+    case AV_SAMPLE_FMT_S32:
+    case AV_SAMPLE_FMT_S64:
+      return true;
+    default:
+      break;
+  } // end SWITCH
+
+  return false;
+}
+
+bool
+Stream_Module_Decoder_Tools::isPackedRealPCM (enum AVSampleFormat format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::isPackedRealPCM"));
+
+  switch (format_in)
+  {
+    case AV_SAMPLE_FMT_FLT:
+    case AV_SAMPLE_FMT_DBL:
+      return true;
+    default:
+      break;
+  } // end SWITCH
+
+  return false;
+}
+
+uint64_t
+Stream_Module_Decoder_Tools::channelsToLayout (unsigned int channels_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::channelsToLayout"));
+
+  switch (channels_in)
+  {
+    case 1:
+      return AV_CH_LAYOUT_MONO;
+    case 2:
+      return AV_CH_LAYOUT_STEREO;
+    case 3:
+      return AV_CH_LAYOUT_2_1;
+    case 4:
+      return AV_CH_LAYOUT_QUAD;
+    case 5:
+      return AV_CH_LAYOUT_5POINT0;
+    case 6:
+      return AV_CH_LAYOUT_6POINT0;
+    case 7:
+      return AV_CH_LAYOUT_7POINT0;
+    case 8:
+      return AV_CH_LAYOUT_OCTAGONAL;
+    case 16:
+      return AV_CH_LAYOUT_HEXADECAGONAL;
+    default:
+      break;
+  } // end SWITCH
+
+  return AV_CH_LAYOUT_STEREO_DOWNMIX;
+}
+
 bool
 Stream_Module_Decoder_Tools::isChromaLuminance (enum AVPixelFormat format_in)
 {
@@ -390,6 +459,67 @@ Stream_Module_Decoder_Tools::isRGB32 (enum AVPixelFormat format_in)
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if defined (FFMPEG_SUPPORT)
+enum AVSampleFormat
+Stream_Module_Decoder_Tools::to (const struct tWAVEFORMATEX& format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::to"));
+
+  WORD format_tag = format_in.wFormatTag;
+
+do_it:
+  switch (format_tag)
+  {
+    case WAVE_FORMAT_PCM:
+    {
+      switch (format_in.wBitsPerSample)
+      {
+        case 8:
+          return AV_SAMPLE_FMT_U8;
+        case 16:
+          return AV_SAMPLE_FMT_S16;
+        case 32:
+          return AV_SAMPLE_FMT_S32;
+        case 64:
+          return AV_SAMPLE_FMT_S64;
+        default:
+          break;
+      }
+      break;
+    }
+    case WAVE_FORMAT_IEEE_FLOAT:
+    {
+      switch (format_in.wBitsPerSample)
+      {
+        case 32:
+          return AV_SAMPLE_FMT_FLT;
+        case 64:
+          return AV_SAMPLE_FMT_DBL;
+        default:
+          break;
+      }
+      break;
+    }
+    case WAVE_FORMAT_EXTENSIBLE:
+    {
+      const WAVEFORMATEXTENSIBLE* waveformatextensible_p =
+        reinterpret_cast<const WAVEFORMATEXTENSIBLE*> (&format_in);
+      if (InlineIsEqualGUID (waveformatextensible_p->SubFormat,
+                             KSDATAFORMAT_SUBTYPE_PCM))
+        format_tag = WAVE_FORMAT_PCM;
+      else if (InlineIsEqualGUID (waveformatextensible_p->SubFormat,
+                                  KSDATAFORMAT_SUBTYPE_IEEE_FLOAT))
+        format_tag = WAVE_FORMAT_IEEE_FLOAT;
+      else
+        format_tag = 0;
+      goto do_it;
+    }
+    default:
+      break;
+  } // end SWITCH
+
+  return AV_SAMPLE_FMT_NONE;
+}
+
 enum AVCodecID
 Stream_Module_Decoder_Tools::mediaSubTypeToAVCodecId (REFGUID mediaSubType_in,
                                                       enum Stream_MediaFramework_Type mediaFramework_in)

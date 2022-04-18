@@ -286,7 +286,7 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
       if (unlikely (Stream_Module_Decoder_Tools::isCompressedVideo (inherited::inputFormat_)))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: input format (was: %d) is compressed; cannot resize, aborting\n"),
+                    ACE_TEXT ("%s: input format (was: %s) is compressed; cannot resize, aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::inputFormat_).c_str ())));
         goto error;

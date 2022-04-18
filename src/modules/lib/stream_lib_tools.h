@@ -150,6 +150,7 @@ class Stream_MediaFramework_Tools
   // ffmpeg
   static enum AVCodecID ffmpegFormatToffmpegCodecId (enum AVSampleFormat); // format
   inline static std::string pixelFormatToString (enum AVPixelFormat format_in) { std::string result = ((format_in == AV_PIX_FMT_NONE) ? ACE_TEXT_ALWAYS_CHAR ("NONE") : av_get_pix_fmt_name (format_in)); return result; }
+  inline static std::string sampleFormatToString (enum AVSampleFormat format_in) { std::string result = ((format_in == AV_SAMPLE_FMT_NONE) ? ACE_TEXT_ALWAYS_CHAR ("NONE") : av_get_sample_fmt_name (format_in)); return result; }
 #endif // FFMPEG_SUPPORT
 
  private:

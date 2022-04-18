@@ -1092,7 +1092,7 @@ continue_:
           // *NOTE*: most probable reason: connection
           //         has been closed --> session end
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Common_IParser_T::parse(): \"%m\", aborting\n"),
+                      ACE_TEXT ("%s: failed to Common_IParser_T::parse(), aborting\n"),
                       inherited::mod_->name ()));
           goto error;
         } // end IF
@@ -1166,11 +1166,11 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  int result = parserQueue_.enqueue (message_block_p, NULL);
+  int result = parserQueue_.enqueue_tail (message_block_p, NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue(): \"%m\", continuing\n"),
+                ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue_tail(): \"%m\", continuing\n"),
                 inherited::mod_->name ()));
     message_block_p->release (); message_block_p = NULL;
   } // end IF

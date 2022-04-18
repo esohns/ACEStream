@@ -161,7 +161,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   return inherited::initialize (configuration_in,
                                 allocator_in);
 
-error:
+//error:
   if (context_)
   {
     cairo_destroy (context_); context_ = NULL;

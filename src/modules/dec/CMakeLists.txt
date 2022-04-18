@@ -186,6 +186,9 @@ endif (WIN32)
 if (FFMPEG_SUPPORT)
  set (source_files
       ${source_files}
+      stream_dec_libav_audio_decoder.cpp
+      stream_dec_libav_audio_decoder.h
+      stream_dec_libav_audio_decoder.inl
       stream_dec_libav_converter.cpp
       stream_dec_libav_converter.h
       stream_dec_libav_converter.inl
@@ -413,14 +416,16 @@ endif (WIN32)
 if (FFMPEG_SUPPORT)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS
       ${${PROJECT_NAME}_Decoder_LIB_HDRS}
-     stream_dec_libav_converter.h
-     stream_dec_libav_converter.inl
-     stream_dec_libav_decoder.h
-     stream_dec_libav_decoder.inl
-     stream_dec_libav_encoder.h
-     stream_dec_libav_encoder.inl
-     stream_dec_libav_img_decoder.h
-     stream_dec_libav_img_decoder.inl)
+      stream_dec_libav_audio_decoder.h
+      stream_dec_libav_audio_decoder.inl
+      stream_dec_libav_converter.h
+      stream_dec_libav_converter.inl
+      stream_dec_libav_decoder.h
+      stream_dec_libav_decoder.inl
+      stream_dec_libav_encoder.h
+      stream_dec_libav_encoder.inl
+      stream_dec_libav_img_decoder.h
+      stream_dec_libav_img_decoder.inl)
  if (UNIX)
   set (${PROJECT_NAME}_Decoder_LIB_HDRS
        ${${PROJECT_NAME}_Decoder_LIB_HDRS}

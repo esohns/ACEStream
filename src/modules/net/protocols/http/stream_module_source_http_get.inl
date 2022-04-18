@@ -344,12 +344,10 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                     ACE_TEXT (inherited::configuration_->URL.c_str ())));
         goto error;
       } // end IF
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: started HTTP request for \"%s\"\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (inherited::configuration_->URL.c_str ())));
-#endif // _DEBUG
       break;
 
 error:

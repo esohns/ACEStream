@@ -59,10 +59,8 @@ class Stream_MediaFramework_DirectSound_Tools
 
   static struct _GUID endpointIdToDirectSoundGUID (const std::string&); // device endpoint id
 
-  
-
   // format
-  static struct tWAVEFORMATEX extensibleTo (const struct tWAVEFORMATEX&); // format
+  static struct tWAVEFORMATEX extensibleTo (const struct tWAVEFORMATEX&); // 'extensible' format
   static bool isFloat (const struct tWAVEFORMATEX&); // format
   static void reconfigure (struct tWAVEFORMATEX&); // format
   static std::string toString (const struct tWAVEFORMATEX&, // format

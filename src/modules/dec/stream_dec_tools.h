@@ -80,6 +80,11 @@ class Stream_Module_Decoder_Tools
   static enum Stream_MediaType_Type streamIdToMediaType (unsigned short); // stream id
 
 #if defined (FFMPEG_SUPPORT)
+  // *NOTE*: 'packed' formats only
+  static bool isPackedIntegerPCM (enum AVSampleFormat); // sample format
+  static bool isPackedRealPCM (enum AVSampleFormat); // sample format
+  static uint64_t channelsToLayout (unsigned int); // #channels
+
   inline static bool isCompressedVideo (enum AVPixelFormat format_in) { return (!Stream_Module_Decoder_Tools::isRGB (format_in) && !Stream_Module_Decoder_Tools::isChromaLuminance (format_in)); }
 
   static bool isChromaLuminance (enum AVPixelFormat); // pixel format
@@ -89,12 +94,13 @@ class Stream_Module_Decoder_Tools
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if defined (FFMPEG_SUPPORT)
-  // *NOTE*: supports non-RGB AND non-Chroma-Luminance types only
-  static enum AVCodecID mediaSubTypeToAVCodecId (REFGUID,                                                              // media subtype
-                                                 enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
+  static enum AVSampleFormat to (const struct tWAVEFORMATEX&); // format
   // *NOTE*: supports RGB and Chroma-Luminance types only
   static enum AVPixelFormat mediaSubTypeToAVPixelFormat (REFGUID,                                                              // media subtype
                                                          enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
+  // *NOTE*: supports non-RGB AND non-Chroma-Luminance types only
+  static enum AVCodecID mediaSubTypeToAVCodecId (REFGUID,                                                              // media subtype
+                                                 enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 #endif // FFMPEG_SUPPORT
 
   // -------------------------------------
