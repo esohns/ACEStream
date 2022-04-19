@@ -260,6 +260,12 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       ACE_ASSERT (!surface_);
       const SessionDataType& session_data_r = inherited::sessionData_->getR ();
       Common_Image_Resolution_t resolution_s;
+#if GTK_CHECK_VERSION (3,10,0)
+      int width_2 = 0, height_2 = 0, row_stride_2 = 0, n_channels_i = 0;
+      cairo_format_t format_e = CAIRO_FORMAT_INVALID;
+#else
+      gint width_2 = 0, height_2 = 0, row_stride_2 = 0, n_channels_i = 0;
+#endif // GTK_CHECK_VERSION
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
@@ -369,14 +375,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #if GTK_CHECK_VERSION (3,10,0)
       ACE_ASSERT (cairo_surface_status (surface_) == CAIRO_STATUS_SUCCESS);
       ACE_ASSERT (cairo_surface_get_type (surface_) == CAIRO_SURFACE_TYPE_IMAGE);
-      int width_2 = 0, height_2 = 0, row_stride_2 = 0, n_channels_i = 0;
-      cairo_format_t format_e = CAIRO_FORMAT_INVALID;
       width_2 = cairo_image_surface_get_width (surface_);
       height_2 = cairo_image_surface_get_height (surface_);
       row_stride_2 = cairo_image_surface_get_stride (surface_);
       format_e = cairo_image_surface_get_format (surface_);
 #else
-      gint width_2 = 0, height_2 = 0, row_stride_2 = 0, n_channels_i = 0;
       ACE_ASSERT (GDK_IS_PIXBUF (surface_));
       g_object_get (G_OBJECT (surface_),
                     ACE_TEXT_ALWAYS_CHAR ("width"),      &width_2,

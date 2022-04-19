@@ -1,3 +1,4 @@
+include (ffmpeg)
 include (ImageMagick)
 
 ##########################################
@@ -7,6 +8,10 @@ add_library (${PROJECT_NAME}_File STATIC "")
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
+if (FFMPEG_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_File PUBLIC
+                             "$<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>")
+endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_File PUBLIC
                              "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")

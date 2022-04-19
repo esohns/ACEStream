@@ -379,7 +379,7 @@ continue_:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid file name (was: \"%s\"), returning\n"),
                     inherited::mod_->name (),
-                    filename_base));
+                    ACE_TEXT (filename_base.c_str ())));
         return;
       } // end IF
       ACE_ASSERT (match_results.ready () && !match_results.empty ());

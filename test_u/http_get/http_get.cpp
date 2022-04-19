@@ -930,6 +930,7 @@ ACE_TMAIN (int argc_in,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
+  Common_UI_GTK_State_t* state_p = NULL;
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
@@ -987,8 +988,8 @@ ACE_TMAIN (int argc_in,
   gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+  state_p =
+    &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   ui_cb_data.configuration = &configuration;
@@ -1140,7 +1141,7 @@ ACE_TMAIN (int argc_in,
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  ui_cb_data.progressData.state = &state_r;
+  ui_cb_data.progressData.state = state_p;
 
   ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
   ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
@@ -1150,7 +1151,7 @@ ACE_TMAIN (int argc_in,
   ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
       idle_initialize_ui_cb;
   ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
-  state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+  state_p->builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     std::make_pair (UI_file_path, static_cast<GtkBuilder*> (NULL));
   COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (ui_cb_data.configuration->GTKConfiguration);
 #endif // GTK_USE

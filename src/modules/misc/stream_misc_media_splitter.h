@@ -64,7 +64,7 @@ class Stream_Miscellaneous_MediaSplitter_T
 #endif
   inline virtual ~Stream_Miscellaneous_MediaSplitter_T () {}
 
-  inline virtual void handleDataMessage (MessageType*& message_inout, bool& passMessageDownstream_out) { passMessageDownstream_out = false; forward (message_inout); }
+  inline virtual void handleDataMessage (MessageType*& message_inout, bool&) { forward (message_inout); }
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_MediaSplitter_T ())

@@ -548,10 +548,10 @@ do_work (
   (*stream_iterator).second.second->outputFormat.video.format = AV_PIX_FMT_RGB24;
 #else
   (*stream_iterator).second.second->outputFormat.video.format = AV_PIX_FMT_RGB32;
-#endif (GTK_USE)
+#endif // GTK_USE
 #else
   (*stream_iterator).second.second->outputFormat.video.format = AV_PIX_FMT_RGB32;
-#endif (GUI_SUPPORT)
+#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   (*stream_iterator).second.second->outputFormat.video.resolution.cx = 1920;
   (*stream_iterator).second.second->outputFormat.video.resolution.cy = 1080;

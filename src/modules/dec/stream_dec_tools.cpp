@@ -202,6 +202,7 @@ Stream_Module_Decoder_Tools::streamIdToMediaType (unsigned short streamId_in)
   switch (streamId_in)
   {
     case 3:   // audio_stream_descriptor
+    case 15:  // private_data_indicator_descriptor
     case 28:  // MPEG-4_audio_descriptor
     case 43:  // MPEG-2_AAC_audio_descriptor
     case 46:  // MPEG-4_audio_extension_descriptor

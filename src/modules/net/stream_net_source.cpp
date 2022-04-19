@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "stream_net_source.h"
 
 #include "stream_net_defines.h"

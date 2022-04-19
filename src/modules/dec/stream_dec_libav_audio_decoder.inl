@@ -606,7 +606,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       //context_->gop_size
       //context_->pix_fmt = outputFormat_;
       //context_->draw_horiz_band = NULL;
-      context_->get_format = stream_decoder_libav_getformat_cb;
+//      context_->get_format = stream_decoder_libav_audio_getformat_cb;
       //context_->max_b_frames
       // context_->b_quant_factor
       // context_->b_quant_offset

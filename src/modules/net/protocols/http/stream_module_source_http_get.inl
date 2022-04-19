@@ -168,21 +168,22 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
             session_data_r.connection->close ();
 
             // notify downstream
-            typename SessionMessageType::DATA_T* session_data_container_p =
-              inherited::sessionData_;
-            if (likely (session_data_container_p))
-              session_data_container_p->increase ();
-            if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_STEP,
-                                                         session_data_container_p,
-                                                         NULL)))
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
-                          inherited::name (),
-                          STREAM_SESSION_MESSAGE_STEP));
+            // *NOTE*: the HTTP parser already sends STREAM_SESSION_MESSAGE_STEP
+//            typename SessionMessageType::DATA_T* session_data_container_p =
+//              inherited::sessionData_;
+//            if (likely (session_data_container_p))
+//              session_data_container_p->increase ();
+//            if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_STEP,
+//                                                         session_data_container_p,
+//                                                         NULL)))
+//              ACE_DEBUG ((LM_ERROR,
+//                          ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
+//                          inherited::name (),
+//                          STREAM_SESSION_MESSAGE_STEP));
           } // end IF
         } // end lock scope
       } // end IF
-      else
+      else // most likely: chunked transfer
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: missing \"%s\" HTTP header, continuing\n"),
                     inherited::mod_->name (),

@@ -245,7 +245,8 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
    , fullScreen (false)
    , outputFormat ()
    , program (1)
-   , streamType (27) // H264
+   , audioStreamType (0)
+   , videoStreamType (27) // H264
    , subscriber (NULL)
    , subscribers (NULL)
    , targetFileName ()
@@ -272,7 +273,8 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
   struct Stream_MediaFramework_FFMPEG_MediaType      outputFormat;
 #endif // FFMPEG_SUPPORT
   unsigned int                                       program;                  // MPEG TS decoder module
-  unsigned int                                       streamType;               // MPEG TS decoder module
+  unsigned int                                       audioStreamType;          // MPEG TS decoder module
+  unsigned int                                       videoStreamType;          // MPEG TS decoder module
   Test_I_ISessionNotify_t*                           subscriber;
   Test_I_Subscribers_t*                              subscribers;
   std::string                                        targetFileName;

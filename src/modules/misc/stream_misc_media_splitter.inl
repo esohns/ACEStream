@@ -66,6 +66,7 @@ Stream_Miscellaneous_MediaSplitter_T<ACE_SYNCH_USE,
   ACE_ASSERT (message_in);
 
   int result = -1;
+  ACE_Message_Block* message_block_p = NULL;
   std::string branch_name_string;
 
   // map message type to branch name
@@ -103,13 +104,24 @@ Stream_Miscellaneous_MediaSplitter_T<ACE_SYNCH_USE,
                                   (*iterator).second));
     ACE_ASSERT (iterator_2 != inherited::modules_.end ());
     ACE_ASSERT ((*iterator_2).first);
-    result = (*iterator_2).first->enqueue_tail (message_in, NULL);
+
+    ACE_ASSERT (!message_block_p);
+    message_block_p = message_in->duplicate ();
+    if (unlikely (!message_block_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", returning\n"),
+                  inherited::mod_->name ()));
+      return;
+    } // end IF
+
+    result = (*iterator_2).first->enqueue_tail (message_block_p, NULL);
     if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Message_Queue_Base::enqueue_tail(): \"%m\", returning\n"),
                   inherited::mod_->name ()));
-      message_in->release (); message_in = NULL;
+      message_block_p->release (); message_block_p = NULL;
       return;
     } // end IF
   } // end lock scope

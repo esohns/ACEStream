@@ -53,7 +53,8 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
  , programPMTPacketId_ (0)
  , programs_ ()
  , streams_ ()
- , streamPacketId_ (0)
+ , audioStreamPacketId_ (0)
+ , videoStreamPacketId_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MPEG_TS_Decoder_T::Stream_Decoder_MPEG_TS_Decoder_T"));
 
@@ -110,7 +111,8 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
     missingPSIBytes_ = 0;
     programs_.clear ();
     streams_.clear ();
-    streamPacketId_ = 0;
+    audioStreamPacketId_ = 0;
+    videoStreamPacketId_ = 0;
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -233,15 +235,16 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
       (packet_header_p->packet_identifier_hi << 8 | packet_header_p->packet_identifier_lo);
     if ((packet_identifier == STREAM_DEC_MPEG_TS_PACKET_ID_PAT) ||
         (//(packet_identifier != STREAM_DEC_MPEG_TS_PACKET_ID_NULL) &&
-         !streamPacketId_    &&
+         (!audioStreamPacketId_ || !videoStreamPacketId_)    &&
          programPMTPacketId_ &&
          (packet_identifier == programPMTPacketId_)))
     {
       parsePSI (buffer_);
       goto continue_;
     } // end IF
-    if (!streamPacketId_ ||
-        (packet_identifier != streamPacketId_))
+    if ((!audioStreamPacketId_ && !videoStreamPacketId_) ||
+        ((packet_identifier != audioStreamPacketId_) &&
+         (packet_identifier != videoStreamPacketId_)))
       goto continue_;
 
     // extract PES packet
@@ -294,8 +297,10 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
       message_block_p->cont (NULL);
     } // end IF
 
+    // tag the message so the splitter knows what to do
     message_p = static_cast<DataMessageType*> (message_block_p);
-    message_p->setMediaType (STREAM_MEDIATYPE_VIDEO); // tag the message so the splitter knows what to do
+    message_p->setMediaType ((packet_identifier == audioStreamPacketId_) ? STREAM_MEDIATYPE_AUDIO
+                                                                         : STREAM_MEDIATYPE_VIDEO);
 
     result = inherited::put_next (message_block_p, NULL);
     if (result == -1)
@@ -491,8 +496,10 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
 //                  ES_data_p->stream_type,
 //                  elementary_stream_pid));
 
-      if (ES_data_p->stream_type == inherited::configuration_->streamType)
-        streamPacketId_ = elementary_stream_pid;
+      if (ES_data_p->stream_type == inherited::configuration_->audioStreamType)
+        audioStreamPacketId_ = elementary_stream_pid;
+      else if (ES_data_p->stream_type == inherited::configuration_->videoStreamType)
+        videoStreamPacketId_ = elementary_stream_pid;
     } while (true);
   } // end ELSE IF
   else if (table_header_p->table_id == 0xFF) {}

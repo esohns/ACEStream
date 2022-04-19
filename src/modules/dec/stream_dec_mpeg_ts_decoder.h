@@ -104,7 +104,8 @@ class Stream_Decoder_MPEG_TS_Decoder_T
   unsigned int                programPMTPacketId_;
   PROGRAMNUM_TO_PMTPACKETID_T programs_;
   STREAMTYPE_TO_PACKETID_T    streams_;
-  unsigned int                streamPacketId_;
+  unsigned int                audioStreamPacketId_;
+  unsigned int                videoStreamPacketId_;
 };
 
 // include template definition

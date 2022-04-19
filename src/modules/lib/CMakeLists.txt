@@ -242,6 +242,10 @@ add_dependencies (${PROJECT_NAME}_MediaFramework ${PROJECT_NAME})
 
 if (UNIX)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC X11)
+ if (LIBCAMERA_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC
+                         ${LIBCAMERA_LIBRARIES})
+ endif (LIBCAMERA_SUPPORT)
 elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
   target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC $ENV{DXSDK_DIR}/Lib/${CMAKE_VS_PLATFORM_NAME}/D3dx9.lib)

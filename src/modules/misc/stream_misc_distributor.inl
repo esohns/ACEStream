@@ -361,8 +361,8 @@ error:
     default:
     {
       forward (message_inout,
-               false,
-               false);
+               false,         // dispose original ?
+               false);        // high priority ?
 
       break;
     }
