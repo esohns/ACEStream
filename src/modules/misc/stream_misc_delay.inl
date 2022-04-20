@@ -307,7 +307,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                                    media_type_s.channels;
 #endif // ACE_WIN32 || ACE_WIN64
       availableTokens_ = average_bytes_per_second_i;
-      inherited::configuration_->delayConfiguration->averageBytesPerInterval =
+      inherited::configuration_->delayConfiguration->averageTokensPerInterval =
         average_bytes_per_second_i;
       inherited::configuration_->delayConfiguration->interval =
         ACE_Time_Value (1, 0);
@@ -315,6 +315,33 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
         STREAM_MISCELLANEOUS_DELAY_MODE_BYTES;
 
 continue_:
+      switch (inherited::configuration_->delayConfiguration->mode)
+      {
+        case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
+        {
+          availableTokens_ =
+            inherited::configuration_->delayConfiguration->averageTokensPerInterval;
+          break;
+        }
+        case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
+        { ACE_ASSERT (inherited::configuration_->delayConfiguration->interval == ACE_Time_Value (1, 0));
+          inherited::configuration_->delayConfiguration->interval =
+            ACE_Time_Value::zero;
+          inherited::configuration_->delayConfiguration->interval.msec (static_cast<long> (1000 / inherited::configuration_->delayConfiguration->averageTokensPerInterval));
+          inherited::configuration_->delayConfiguration->averageTokensPerInterval = 1;
+          availableTokens_ = 1;
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown delay mode (was: %d), aborting\n"),
+                      inherited::mod_->name (),
+                      inherited::configuration_->delayConfiguration->mode));
+          goto error;
+        }
+      } // end SWITCH
+
       // schedule the delay interval timer
       resetTimeoutHandlerId_ =
         itimer_p->schedule_timer (&resetTimeoutHandler_,                          // event handler handle
@@ -396,28 +423,8 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   int result = -1;
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-    switch (inherited::configuration_->delayConfiguration->mode)
-    {
-      case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
-      {
-        availableTokens_ =
-          inherited::configuration_->delayConfiguration->averageBytesPerInterval;
-        break;
-      }
-      case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
-      {
-        availableTokens_ = 1;
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: invalid/unknown delay mode (was: %d), returning\n"),
-                    inherited::mod_->name (),
-                    inherited::configuration_->delayConfiguration->mode));
-        return;
-      }
-    } // end SWITCH
+    availableTokens_ += // --> "catch up"
+      inherited::configuration_->delayConfiguration->averageTokensPerInterval;
 
     result = condition_.broadcast ();
     if (unlikely (result == -1))

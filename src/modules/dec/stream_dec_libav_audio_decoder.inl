@@ -728,6 +728,14 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                       ACE_TEXT ("failed to swr_alloc_set_opts(): \"%m\", aborting\n")));
           goto error;
         } // end IF
+        result = swr_init (transformContext_);
+        if (unlikely (result < 0))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to swr_init(): \"%s\", aborting\n"),
+                      ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+          goto error;
+        } // end IF
       } // end IF
 
       format_ = context_->sample_fmt;
@@ -860,6 +868,14 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to swr_alloc_set_opts(): \"%m\", aborting\n")));
+      return false;
+    } // end IF
+    result = swr_init (transformContext_);
+    if (unlikely (result < 0))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to swr_init(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
       return false;
     } // end IF
 

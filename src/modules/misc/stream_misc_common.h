@@ -40,12 +40,12 @@ enum Stream_Miscellaneous_DelayModeType
 struct Stream_Miscellaneous_DelayConfiguration
 {
   Stream_Miscellaneous_DelayConfiguration ()
-   : averageBytesPerInterval (0)
+   : averageTokensPerInterval (0)
    , interval (ACE_Time_Value::zero)
    , mode (STREAM_MISCELLANEOUS_DELAY_MODE_INVALID)
   {}
 
-  ACE_UINT64                              averageBytesPerInterval;
+  ACE_UINT64                              averageTokensPerInterval;
   ACE_Time_Value                          interval;
   enum Stream_Miscellaneous_DelayModeType mode;
 };

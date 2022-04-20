@@ -90,7 +90,6 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize_T::handleDataMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
   if (unlikely (!inherited::context_))
     return; // nothing to do
 
@@ -103,18 +102,8 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
   ACE_OS::memset (&line_sizes_a, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
   ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
 
-  //try {
-  //  message_inout->defragment ();
-  //} catch (...) {
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), returning\n"),
-  //              inherited::mod_->name ()));
-  //  goto error;
-  //}
-
   // sanity check(s)
   ACE_ASSERT (inherited::buffer_);
-//  ACE_ASSERT (inherited::buffer_->capacity () >= inherited::frameSize_);
   ACE_ASSERT (inherited::frame_);
   ACE_ASSERT (!message_inout->cont ());
 

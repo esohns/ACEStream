@@ -196,8 +196,6 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  if (unlikely (!context_))
-    return; // done
   ACE_ASSERT (surface_);
 
   ACE_GUARD (ACE_Thread_Mutex, aGuard, surfaceLock_);
@@ -438,7 +436,7 @@ error:
       ACE_GUARD (ACE_Thread_Mutex, aGuard, surfaceLock_);
 
       GDK_THREADS_ENTER ();
-#if GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION(3,0,0)
       if (context_)
       {
         cairo_destroy (context_); context_ = NULL;
