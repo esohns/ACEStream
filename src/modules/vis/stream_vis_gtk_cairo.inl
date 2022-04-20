@@ -588,6 +588,12 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #elif GTK_CHECK_VERSION(3, 0, 0)
   ACE_ASSERT (context_p);
   gdk_cairo_set_source_pixbuf (context_p, surface_, 0.0, 0.0);
+  //cairo_pattern_t* pattern_p = cairo_get_source (context_p);
+  //ACE_ASSERT (pattern_p);
+  //cairo_surface_t* surface_p = NULL;
+  //cairo_pattern_get_surface (pattern_p, &surface_p);
+  //ACE_ASSERT (surface_p);
+  //cairo_surface_flush (surface_p);
   cairo_paint (context_p);
 #else
   ACE_UNUSED_ARG (context_p);

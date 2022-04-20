@@ -97,7 +97,7 @@ class Stream_Decoder_MPEG_TS_Decoder_T
   typedef std::map<unsigned short, unsigned short> STREAMTYPE_TO_PACKETID_T;
   typedef STREAMTYPE_TO_PACKETID_T::const_iterator STREAMTYPE_TO_PACKETID_ITERATOR_T;
 
-  ACE_Message_Block*          buffer_;
+  DataMessageType*            buffer_;
   unsigned int                missingPESBytes_;
   bool                        isParsingPSI_; // program-specific information
   unsigned int                missingPSIBytes_;

@@ -221,10 +221,17 @@ struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ElementaryStreamSpecifi
   /*01*/ uint16_t reserved_bits:3,
                   elementary_pid:13;
 #endif // ACE_LITTLE_ENDIAN
-  /*03*/ uint16_t reserved_bits_2:4,
+#if defined (ACE_LITTLE_ENDIAN)
+  /*04*/ uint8_t  es_info_length_hi:2,
+                  es_info_length_unused_bits:2,
+                  reserved_bits_2:4;
+  /*05*/ uint8_t  es_info_length_lo;
+#else
+  /*04*/ uint16_t reserved_bits_2:4,
                   es_info_length_unused_bits:2,
                   es_info_length:10;
-  ///*05*/ uint8_t  elementary_stream_descriptors; // n*8
+#endif // ACE_LITTLE_ENDIAN
+  ///*06*/ uint8_t  elementary_stream_descriptors; // n*8
 #ifdef __GNUC__
 } __attribute__ ((__packed__));
 #else
@@ -234,9 +241,9 @@ struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamHeader
 {
   /*00*/ uint16_t packet_start_code_prefix_hi;
   /*02*/ uint8_t  packet_start_code_prefix_lo;
-  /*01*/ uint8_t  stream_id;
-  /*02*/ uint16_t pes_packet_length;
-  ///*03*/ uint8_t  optional_pes_header; // n*8
+  /*03*/ uint8_t  stream_id;
+  /*04*/ uint16_t pes_packet_length;
+  ///*06*/ uint8_t  optional_pes_header; // n*8
   ///*xx*/ uint8_t  stuffing_bytes;      // n*8
   ///*xx*/ uint8_t  data;                // n*8
 #ifdef __GNUC__

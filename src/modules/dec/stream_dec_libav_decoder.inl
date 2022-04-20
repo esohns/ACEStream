@@ -398,8 +398,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     { ACE_ASSERT (inherited::sessionData_);
       typename SessionDataContainerType::DATA_T& session_data_r =
         const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
-      int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM |
-                    FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
+      //int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM |
+      //              FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
+      int debug_i = FF_DEBUG_PICT_INFO;
 
       // sanity check(s)
       // *TODO*: remove type inference

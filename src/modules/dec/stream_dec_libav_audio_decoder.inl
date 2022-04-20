@@ -494,13 +494,13 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       //codec_parameters_p->chroma_location = ;
       //codec_parameters_p->video_delay = 0;
       codec_parameters_p->channel_layout =
-          Stream_Module_Decoder_Tools::channelsToLayout (media_type_s.channels);
-      codec_parameters_p->channels = media_type_s.channels;
-      codec_parameters_p->sample_rate = media_type_s.sampleRate;
+          Stream_Module_Decoder_Tools::channelsToLayout (outputChannels_);
+      codec_parameters_p->channels = outputChannels_;
+      codec_parameters_p->sample_rate = outputSampleRate_;
       codec_parameters_p->block_align =
-        av_get_bytes_per_sample (outputFormat_) * media_type_s.channels;
+        av_get_bytes_per_sample (outputFormat_) * outputChannels_;
       codec_parameters_p->frame_size =
-        av_get_bytes_per_sample (outputFormat_) * media_type_s.channels;
+        av_get_bytes_per_sample (outputFormat_) * outputChannels_;
       codec_parameters_p->initial_padding = 0;
       codec_parameters_p->trailing_padding = 0;
       codec_parameters_p->seek_preroll = 0;
@@ -650,7 +650,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
 //      context_->skip_idct = AVDISCARD_DEFAULT;
 //      context_->skip_frame = AVDISCARD_DEFAULT;
       context_->pkt_timebase.num = 1;
-      context_->pkt_timebase.den = media_type_s.sampleRate;
+      context_->pkt_timebase.den = outputSampleRate_;
       context_->sub_charenc = NULL;
       context_->skip_alpha = 0;
       context_->seek_preroll = 0;
@@ -907,7 +907,6 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
     uint8_t* data_a[AV_NUM_DATA_POINTERS];
     ACE_OS::memset (&data_a, 0, sizeof (uint8_t* [AV_NUM_DATA_POINTERS]));
     data_a[0] = reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ());
-
     result =
       swr_convert (transformContext_,
                    data_a, result,
@@ -915,7 +914,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
     if (unlikely (result < 0))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to swr_convert(), aborting\n"),
+                  ACE_TEXT ("%s: failed to swr_convert(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
       av_frame_unref (frame_);

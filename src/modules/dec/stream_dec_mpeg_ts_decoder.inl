@@ -169,9 +169,9 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
 
   if (missingPSIBytes_)
   {
-    if (message_inout->length () < missingPSIBytes_)
+    if (message_inout->total_length () < missingPSIBytes_)
     {
-      missingPSIBytes_ -= message_inout->length ();
+      missingPSIBytes_ -= message_inout->total_length ();
       return;
     } // end IF
     missingPSIBytes_ = 0;
@@ -181,21 +181,15 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
   if (total_length < STREAM_DEC_MPEG_TS_PACKET_SIZE)
     return; // done
 
-  // *TODO*: this step is unnecessary --> implement a proper parser
-  typename DataMessageType::IDATA_MESSAGE_T* idata_message_p =
-    dynamic_cast<typename DataMessageType::IDATA_MESSAGE_T*> (buffer_);
-  ACE_ASSERT (idata_message_p);
+defragment:
+  // *TODO*: this step should be unnecessary --> implement a proper parser
   try {
-    idata_message_p->defragment ();
+    buffer_->defragment ();
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), returning\n"),
                 inherited::mod_->name ()));
-
-    // clean up
-    message_inout->release (); message_inout = NULL;
     buffer_->release (); buffer_ = NULL;
-
     return;
   } // end IF
 
@@ -211,7 +205,11 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
   do
   { // done ?
     if (buffer_->length () < STREAM_DEC_MPEG_TS_PACKET_SIZE)
+    {
+      if (buffer_->cont ())
+        goto defragment;
       break;
+    } // end IF
 
     packet_header_p =
       reinterpret_cast<struct Stream_Decoder_MPEG_TS_PacketHeader*> (buffer_->rd_ptr ());
@@ -233,18 +231,19 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
 
     packet_identifier =
       (packet_header_p->packet_identifier_hi << 8 | packet_header_p->packet_identifier_lo);
-    if ((packet_identifier == STREAM_DEC_MPEG_TS_PACKET_ID_PAT) ||
-        (//(packet_identifier != STREAM_DEC_MPEG_TS_PACKET_ID_NULL) &&
-         (!audioStreamPacketId_ || !videoStreamPacketId_)    &&
+    if ((!programPMTPacketId_ &&
+         (packet_identifier == STREAM_DEC_MPEG_TS_PACKET_ID_PAT)) ||
+        ((!audioStreamPacketId_ && !videoStreamPacketId_) &&
          programPMTPacketId_ &&
          (packet_identifier == programPMTPacketId_)))
     {
       parsePSI (buffer_);
       goto continue_;
     } // end IF
-    if ((!audioStreamPacketId_ && !videoStreamPacketId_) ||
+    if ((!programPMTPacketId_ ||
+         (!audioStreamPacketId_ && !videoStreamPacketId_)) || // mapping not set up (yet)
         ((packet_identifier != audioStreamPacketId_) &&
-         (packet_identifier != videoStreamPacketId_)))
+         (packet_identifier != videoStreamPacketId_)))        // not interested
       goto continue_;
 
     // extract PES packet
@@ -278,17 +277,16 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
     else if (missingPESBytes_)
       missingPESBytes_ -= (STREAM_DEC_MPEG_TS_PACKET_SIZE - skipped_bytes);
 
-    // part of the specified program --> forward data
-    message_block_p = buffer_->duplicate ();
+    // part of the specified program/stream(s) --> forward data
+    message_block_p = buffer_->clone ();
     if (!message_block_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(), returning\n"),
+                  ACE_TEXT ("%s: failed to DataMessageType::clone(), returning\n"),
                   inherited::mod_->name ()));
       return;
     } // end IF
-    message_block_p->wr_ptr (buffer_->rd_ptr () +
-                             (STREAM_DEC_MPEG_TS_PACKET_SIZE - skipped_bytes));
+    message_block_p->length (STREAM_DEC_MPEG_TS_PACKET_SIZE - skipped_bytes);
 
     message_block_2 = message_block_p->cont ();
     if (message_block_2)
@@ -440,7 +438,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
         reinterpret_cast<struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ProgramAssociationSpecificData*> (messageBlock_in->rd_ptr () + offset);
       offset +=
         sizeof (struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ProgramAssociationSpecificData);
-      if ((offset - table_syntax_section_offset) >= section_length)
+      if (offset > section_length)
         break;
 
       // cache for re-use
@@ -451,11 +449,11 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
         (PAT_data_p->program_map_id_hi << 8 | PAT_data_p->program_map_id_lo);
       programs_.insert (std::make_pair (program_number,
                                         program_map_id));
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("%s: found program (number: %u, id: %u)\n"),
-//                  inherited::mod_->name (),
-//                  program_number,
-//                  program_map_id));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: found program (number: %u --> packet id: %u)\n"),
+      //            inherited::mod_->name (),
+      //            program_number,
+      //            program_map_id));
 
       if (program_number == inherited::configuration_->program)
         programPMTPacketId_ = program_map_id;
@@ -467,7 +465,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
       reinterpret_cast<struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ProgramMapSpecificData*> (messageBlock_in->rd_ptr () + offset);
     offset +=
       sizeof (struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ProgramMapSpecificData);
-    unsigned short program_info_length =
+    uint16_t program_info_length =
       (PMT_data_p->program_info_length_hi << 8 | PMT_data_p->program_info_length_lo);
     offset += program_info_length;
 
@@ -477,24 +475,27 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
     unsigned short elementary_stream_pid = 0;
     do
     {
-      if ((offset - table_syntax_section_offset) >= section_length)
+      if (offset >= section_length)
         break;
 
       ES_data_p =
         reinterpret_cast<struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ElementaryStreamSpecificData*> (messageBlock_in->rd_ptr () + offset);
       offset +=
         sizeof (struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ElementaryStreamSpecificData);
+      uint16_t ES_info_length =
+        (ES_data_p->es_info_length_hi << 8 | ES_data_p->es_info_length_lo);
+      offset += ES_info_length;
 
       // cache for re-use
       elementary_stream_pid =
         (ES_data_p->elementary_pid_hi << 8 | ES_data_p->elementary_pid_lo);
       streams_.insert (std::make_pair (ES_data_p->stream_type,
                                        elementary_stream_pid));
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("%s: found stream (type: %u, id: %u)\n"),
-//                  inherited::mod_->name (),
-//                  ES_data_p->stream_type,
-//                  elementary_stream_pid));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: found stream (type: %u --> packet id: %u)\n"),
+      //            inherited::mod_->name (),
+      //            ES_data_p->stream_type,
+      //            elementary_stream_pid));
 
       if (ES_data_p->stream_type == inherited::configuration_->audioStreamType)
         audioStreamPacketId_ = elementary_stream_pid;

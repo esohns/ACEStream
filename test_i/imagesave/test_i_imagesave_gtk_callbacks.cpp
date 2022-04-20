@@ -1145,7 +1145,7 @@ idle_update_progress_cb (gpointer userData_in)
 extern "C"
 {
 #endif /* __cplusplus */
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
 gboolean
 drawingarea_draw_cb (GtkWidget* widget_in,
                      cairo_t* context_in,
@@ -1209,7 +1209,7 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
 
   return TRUE; // do not propagate
 } // drawingarea_expose_event_cb
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
 
 gboolean
 drawing_area_resize_end (gpointer userData_in)
@@ -1269,7 +1269,9 @@ drawing_area_resize_end (gpointer userData_in)
 
   // step1:
   const Stream_Module_t* module_p =
-    cb_data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
+    cb_data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING),
+                             false,
+                             false);
   ACE_ASSERT (module_p);
   Stream_Visualization_IResize* iresize_p =
     dynamic_cast<Stream_Visualization_IResize*> (const_cast<Stream_Module_t*> (module_p)->writer ());
