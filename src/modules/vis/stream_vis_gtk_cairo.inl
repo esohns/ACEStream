@@ -430,8 +430,18 @@ error:
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
       // sanity check(s)
-      // *TODO*: remove type inferences
-      ACE_ASSERT (inherited::configuration_->window);
+      ACE_ASSERT (inherited::sessionData_);
+      typename SessionDataContainerType::DATA_T& session_data_r =
+        const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
+      // *TODO*: remove type inference
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      ACE_ASSERT (session_data_r.lock);
+      struct Stream_MediaFramework_V4L_MediaType media_type_s;
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        inherited3::getMediaType (session_data_r.formats.back (),
+                                  STREAM_MEDIATYPE_VIDEO,
+                                  media_type_s);
+      } // end lock scope
 
       ACE_GUARD (ACE_Thread_Mutex, aGuard, surfaceLock_);
 
@@ -459,9 +469,9 @@ error:
 #if GTK_CHECK_VERSION (3,10,0)
         gdk_window_create_similar_image_surface (inherited::configuration_->window,
                                                  CAIRO_FORMAT_RGB24,
-                                                 gdk_window_get_width (inherited::configuration_->window),
-                                                 gdk_window_get_height (inherited::configuration_->window),
-                                                 gdk_window_get_scale_factor (inherited::configuration_->window));
+                                                 media_type_s.format.width,
+                                                 media_type_s.format.height,
+                                                 1.0);
       if (unlikely (!surface_))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -474,8 +484,8 @@ error:
 #elif GTK_CHECK_VERSION (3,0,0)
         gdk_pixbuf_get_from_window (inherited::configuration_->window,
                                     0, 0,
-                                    gdk_window_get_width (inherited::configuration_->window),
-                                    gdk_window_get_height (inherited::configuration_->window));
+                                    media_type_s.format.width,
+                                    media_type_s.format.height);
       if (unlikely (!surface_))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -485,19 +495,14 @@ error:
         GDK_THREADS_LEAVE ();
         goto error_2;
       } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: resized surface to %ux%u\n"),
-                  inherited::mod_->name (),
-                  gdk_window_get_width (inherited::configuration_->window),
-                  gdk_window_get_height (inherited::configuration_->window)));
 #elif GTK_CHECK_VERSION(2,0,0)
         gdk_pixbuf_get_from_drawable (NULL,
                                       GDK_DRAWABLE (inherited::configuration_->window),
                                       NULL,
                                       0, 0,
                                       0, 0,
-                                      gdk_window_get_width (inherited::configuration_->window),
-                                      gdk_window_get_height (inherited::configuration_->window));
+                                      media_type_s.format.width,
+                                      media_type_s.format.height);
       if (unlikely (!surface_))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -514,6 +519,11 @@ error:
       ACE_NOTREACHED (return false;)
 #endif // GTK_CHECK_VERSION
       GDK_THREADS_LEAVE ();
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: resized surface to %ux%u\n"),
+                  inherited::mod_->name (),
+                  media_type_s.format.width,
+                  media_type_s.format.height));
 
       inherited2::resizing_ = false;
 

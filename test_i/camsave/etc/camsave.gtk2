@@ -906,7 +906,14 @@
     <property name="decorated">False</property>
     <property name="deletable">False</property>
     <child>
-      <placeholder/>
+      <object class="GtkDrawingArea" id="drawingarea_fullscreen">
+        <property name="visible">True</property>
+        <property name="app_paintable">True</property>
+        <property name="can_focus">False</property>
+        <property name="double_buffered">False</property>
+        <signal name="size-allocate" handler="drawingarea_size_allocate_cb" swapped="no"/>
+        <signal name="expose-event" handler="drawingarea_expose_event_cb" swapped="no"/>
+      </object>
     </child>
   </object>
 </interface>

@@ -503,7 +503,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    : Test_I_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
    , display ()
-   , fullScreen (false)
+//   , fullScreen (false)
 #if defined (GUI_SUPPORT)
    , window (NULL)
 #endif // GUI_SUPPORT
@@ -514,7 +514,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 
   struct Stream_Device_Identifier deviceIdentifier; // source/renderer module
   struct Common_UI_DisplayDevice  display;
-  bool                            fullScreen;
+//  bool                            fullScreen;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) && defined (GTK_USE)
   GdkWindow*                      window;

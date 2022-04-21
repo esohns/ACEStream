@@ -2590,7 +2590,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     display_device_string = (*libcamera_iterator_3).second.second->display.device;
     is_display_b =
         !(*libcamera_iterator_3).second.second->deviceIdentifier.identifier.empty ();
-    is_fullscreen_b = (*libcamera_iterator_3).second.second->fullScreen;
+//    is_fullscreen_b = (*libcamera_iterator_3).second.second->fullScreen;
 
     (*libcamera_iterator_3).second.second->outputFormat.resolution.height =
       resolution_s.height;
@@ -2633,7 +2633,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     display_device_string = display_device_s.device;
     is_display_b =
         !(*iterator_3).second.second->deviceIdentifier.identifier.empty ();
-    is_fullscreen_b = (*iterator_3).second.second->fullScreen;
+//    is_fullscreen_b = (*iterator_3).second.second->fullScreen;
 
     (*iterator_3).second.second->outputFormat.format.height =
       resolution_s.height;
@@ -4455,7 +4455,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
       static_cast<struct Stream_CamSave_LibCamera_UI_CBData*> (ui_cb_data_base_p);
     ACE_ASSERT (cb_data_p->configuration);
     libcamera_iterator_2 =
-      cb_data_p->configuration->libCamera_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
+      cb_data_p->configuration->libCamera_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
     ACE_ASSERT (libcamera_iterator_2 != cb_data_p->configuration->libCamera_streamConfiguration.end ());
 #else
     ACE_DEBUG ((LM_ERROR,
@@ -4469,7 +4469,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
       static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
     ACE_ASSERT (cb_data_p->configuration);
     v4l_iterator_2 =
-      cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
+      cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
     ACE_ASSERT (v4l_iterator_2 != cb_data_p->configuration->v4l_streamConfiguration.end ());
   } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
@@ -4662,9 +4662,9 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   stream_p = cb_data_p->stream;
   ACE_ASSERT (cb_data_p->configuration);
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO)));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->v4l_streamConfiguration.end ());
-  (*iterator_2).second.second->fullScreen = is_active_b;
+//  (*iterator_2).second.second->fullScreen = is_active_b;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_base_p);
   if (!stream_base_p->isRunning ())
@@ -4713,13 +4713,18 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end SWITCH
 #else
   module_p =
-      stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING));
+      stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
+  (*iterator_2).second.second->window =
+    (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
+                   : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
+  ACE_ASSERT ((*iterator_2).second.second->window);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_IStream::find(\"Display\"), returning\n"),
-                ACE_TEXT (stream_p->name ().c_str ())));
+                ACE_TEXT ("%s: failed to Stream_IStream::find(\"%s\"), returning\n"),
+                ACE_TEXT (stream_p->name ().c_str ()),
+                ACE_TEXT (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
     return;
   } // end IF
   Common_UI_IFullscreen* ifullscreen_p =
@@ -6803,7 +6808,7 @@ drawing_area_resize_end (gpointer userData_in)
     return FALSE;
 
   module_name =
-    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING);
+    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 
