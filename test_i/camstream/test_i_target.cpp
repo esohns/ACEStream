@@ -2616,7 +2616,7 @@ ACE_TMAIN (int argc_in,
   ACE_SYNCH_MUTEX* lock_p = NULL;
 //  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
 #if defined (GUI_SUPPORT)
-  struct Test_I_CamStream_UI_CBData* ui_cb_data_p = NULL;
+//  struct Test_I_CamStream_UI_CBData* ui_cb_data_p = NULL;
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -2696,7 +2696,7 @@ ACE_TMAIN (int argc_in,
   struct Test_I_Target_UI_CBData ui_cb_data;
   struct Test_I_Target_Configuration configuration;
   ui_cb_data.configuration = &configuration;
-  ui_cb_data_p = &ui_cb_data;
+//  ui_cb_data_p = &ui_cb_data;
 #if defined (GTK_USE)
   ui_cb_data.UIState = &state_r;
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;

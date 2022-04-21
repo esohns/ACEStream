@@ -2646,9 +2646,9 @@ action_listen_activate_cb (GtkAction* action_in,
           connection_manager_p;
         ACE_ASSERT (iconnection_manager_p);
         Test_I_Target_IUDPConnector_t* connector_p = NULL;
-        Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_2 =
-          ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-        ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
+//        Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_2 =
+//          ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+//        ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
         if (ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0)
           ACE_NEW_NORETURN (connector_p,
                             Test_I_InboundUDPConnector_t (true));
@@ -3043,10 +3043,9 @@ button_about_clicked_cb (GtkWidget* widget_in,
   ACE_UNUSED_ARG (widget_in);
 
   // sanity check(s)
-  struct Test_I_GTK_CBData* ui_cb_data_p =
-    static_cast<struct Test_I_GTK_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_p);
-
+//  struct Test_I_GTK_CBData* ui_cb_data_p =
+//    static_cast<struct Test_I_GTK_CBData*> (userData_in);
+//  ACE_ASSERT (ui_cb_data_p);
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -3149,10 +3148,9 @@ textview_size_allocate_cb (GtkWidget* widget_in,
   ACE_UNUSED_ARG (rectangle_in);
 
   // sanity check(s)
-  struct Test_I_GTK_CBData* ui_cb_data_p =
-    static_cast<struct Test_I_GTK_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_p);
-
+//  struct Test_I_GTK_CBData* ui_cb_data_p =
+//    static_cast<struct Test_I_GTK_CBData*> (userData_in);
+//  ACE_ASSERT (ui_cb_data_p);
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);

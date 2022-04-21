@@ -1492,9 +1492,9 @@ idle_finalize_UI_cb (gpointer userData_in)
   STREAM_TRACE (ACE_TEXT ("::idle_finalize_UI_cb"));
 
   // sanity check(s)
-  struct Test_I_UI_CBData* ui_cb_data_base_p =
-    static_cast<struct Test_I_UI_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_base_p);
+//  struct Test_I_UI_CBData* ui_cb_data_base_p =
+//    static_cast<struct Test_I_UI_CBData*> (userData_in);
+//  ACE_ASSERT (ui_cb_data_base_p);
 
   Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1546,9 +1546,9 @@ idle_finalize_UI_cb (gpointer userData_in)
     static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-  Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+//  Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+//    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+//  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
   stream_p = ui_cb_data_p->stream;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);

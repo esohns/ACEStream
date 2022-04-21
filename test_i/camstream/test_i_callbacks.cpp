@@ -8125,9 +8125,9 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (event_in);
-  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
-    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_p);
+//  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+//    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
+//  ACE_ASSERT (ui_cb_data_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
@@ -8142,34 +8142,30 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_I_Source_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
       directshow_stream_iterator =
         directshow_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directshow_ui_cb_data_p->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
-
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_I_Source_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_stream_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
-
       break;
     }
     default:
@@ -8186,14 +8182,13 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
     static_cast<struct Test_I_Source_V4L_UI_CBData*> (userData_in);
   ACE_ASSERT (V4L_ui_cb_data_p);
   ACE_ASSERT (V4L_ui_cb_data_p->configuration);
-
   Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
     V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_p->mediaFramework)
@@ -8247,7 +8242,7 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
       event_in->configure.height;
   (*modulehandler_iterator).second.second->area.width =
       event_in->configure.width;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return FALSE;
 } // drawingarea_configure_event_source_cb

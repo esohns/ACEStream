@@ -379,8 +379,10 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 //  xmlKeepBlanksDefault (1);
 //  xmlLineNumbersDefault (1);
 //  xmlSubstituteEntitiesDefault (1);
+#if defined (_DEBUG)
   if (configuration_in.parserConfiguration->debugParser)
     xmlPedanticParserDefault (1);
+#endif // _DEBUG
 
   // sanity check(s)
   ACE_ASSERT (inherited::mod_);

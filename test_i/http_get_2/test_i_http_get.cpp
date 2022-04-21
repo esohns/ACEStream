@@ -761,9 +761,11 @@ do_work (const std::string& bootstrapFileName_in,
 
   // ********************** stream configuration data **************************
   // ********************** parser configuration data **************************
+#if defined (_DEBUG)
   configuration.parserConfiguration.debugParser = debug_in;
   if (debug_in)
     configuration.parserConfiguration.debugScanner = true;
+#endif // _DEBUG
   // ********************** module configuration data **************************
   modulehandler_configuration.allocatorConfiguration =
     &allocator_configuration;

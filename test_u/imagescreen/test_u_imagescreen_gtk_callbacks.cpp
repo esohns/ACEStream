@@ -979,11 +979,11 @@ button_quit_clicked_cb (GtkWidget* widget_in,
                         gpointer userData_in)
 {
   ACE_UNUSED_ARG (widget_in);
-  struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (ui_cb_data_p);
+//  struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
+//    static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
+//  ACE_ASSERT (ui_cb_data_p);
 
   gtk_main_quit ();
 
@@ -1001,9 +1001,9 @@ filechooserbutton_current_folder_changed_cb (GtkFileChooser* fileChooser_in,
     static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-  Common_UI_GTK_BuildersIterator_t iterator =
-    ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
+//  Common_UI_GTK_BuildersIterator_t iterator =
+//    ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+//  ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
   Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_configuration_iterator =
       ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());

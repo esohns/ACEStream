@@ -1007,10 +1007,10 @@ ACE_TMAIN (int argc_in,
   } // end SWITCH
 
 #if defined (GUI_SUPPORT)
-  struct Stream_SMTPSend_UI_CBData* ui_cb_data_p = NULL;
+//  struct Stream_SMTPSend_UI_CBData* ui_cb_data_p = NULL;
   struct Stream_SMTPSend_UI_CBData ui_cb_data;
   ui_cb_data.configuration = &configuration;
-  ui_cb_data_p = &ui_cb_data;
+//  ui_cb_data_p = &ui_cb_data;
 
 #if defined (GTK_USE)
   ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
@@ -1027,9 +1027,9 @@ ACE_TMAIN (int argc_in,
 
   // step1h: initialize UI framework
 #if defined (GUI_SUPPORT)
-  struct Common_UI_State* ui_state_p = NULL;
+//  struct Common_UI_State* ui_state_p = NULL;
 #if defined (GTK_USE)
-  ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+//  ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 #elif defined (WXWIDGETS_USE)
   Common_UI_wxWidgets_IApplicationBase_t* iapplication_p = NULL;
 //  // *WORKAROUND*: this prevents crashing the wxGTK3 application in Fedora 29
