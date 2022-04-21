@@ -193,12 +193,14 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
+#if defined (_DEBUG)
   if (configuration_in.debug)
   {
     av_log_set_callback (stream_decoder_libav_log_cb);
     // *NOTE*: this level logs all messages
     av_log_set_level (std::numeric_limits<int>::max ());
   } // end IF
+#endif // _DEBUG
 //  av_register_all ();
 //  avcodec_register_all ();
 
@@ -655,7 +657,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 //      context_->workaround_bugs = FF_BUG_AUTODETECT;
 //      context_->strict_std_compliance = FF_COMPLIANCE_NORMAL;
 //      context_->error_concealment = 3;
+#if defined (_DEBUG)
       context_->debug = (inherited::configuration_->debug ? debug_i : 0);
+#endif // _DEBUG
 //      context_->debug_mv = (inherited::configuration_->debug ? 1 : 0);
 //      context_->err_recognition = 0;
       context_->reordered_opaque = 0;

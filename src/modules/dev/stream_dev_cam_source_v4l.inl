@@ -776,6 +776,7 @@ continue_:
       } // end IF
     } // end lock scope
 
+#if defined (_DEBUG)
     // log device status to kernel log ?
     if (unlikely (inherited::configuration_->debug))
     {
@@ -787,6 +788,7 @@ continue_:
                     inherited::mod_->name (),
                     captureFileDescriptor_, ACE_TEXT ("VIDIOC_LOG_STATUS")));
     } // end IF
+#endif // _DEBUG
 
 //    // dequeue pending events
 //    result = v4l2_ioctl (captureFileDescriptor_,
