@@ -216,9 +216,11 @@ do_work (bool debug_in,
   Test_U_RIFFDecoder_Stream stream;
 
   // ********************** parser configuration data **************************
+#if defined (_DEBUG)
   configuration.parserConfiguration.debugParser = debug_in;
   if (debug_in)
     configuration.parserConfiguration.debugScanner = true;
+#endif // _DEBUG
 
   // ********************** module configuration data **************************
   struct Test_U_RIFFDecoder_ModuleHandlerConfiguration modulehandler_configuration;

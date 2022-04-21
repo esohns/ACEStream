@@ -5461,17 +5461,21 @@ idle_initialize_UI_cb (gpointer userData_in)
 #else
 #if defined (GTKGLAREA_SUPPORT)
   ACE_ASSERT ((*opengl_contexts_iterator).first->glcontext);
+#if defined (_DEBUG)
   Common_UI_GTK_Tools::dumpGtkOpenGLInfo ((*opengl_contexts_iterator).first->glcontext);
+#endif // _DEBUG
 #else
+#if defined (_DEBUG)
   Common_UI_GTK_Tools::dumpGtkOpenGLInfo ();
+#endif // _DEBUG
 #endif // GTKGLAREA_SUPPORT
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
 #endif // GTKGL_SUPPORT
 
 #if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION(3,16,0)
+#if GTK_CHECK_VERSION (3,16,0)
 continue_:
-#endif // GTK_CHECK_VERSION(3,16,0)
+#endif // GTK_CHECK_VERSION (3,16,0)
 #endif // GTKGL_SUPPORT
 
   // step10: OpenGL context, ...
@@ -12425,9 +12429,9 @@ filechooserbutton_file_file_set_cb (GtkFileChooserButton* button_in,
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
-  Common_UI_GTK_BuildersConstIterator_t iterator =
-    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != state_r.builders.end ());
+//  Common_UI_GTK_BuildersConstIterator_t iterator =
+//    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+//  ACE_ASSERT (iterator != state_r.builders.end ());
 
   char* filename_p = NULL;
   GFile* file_p = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button_in));

@@ -592,9 +592,11 @@ do_work (unsigned int bufferSize_in,
 
   // ********************** stream configuration data **************************
   // ********************** parser configuration data **************************
+#if defined (_DEBUG)
   CBData_in.configuration->parserConfiguration.debugParser = debugParser_in;
   if (debugParser_in)
     CBData_in.configuration->parserConfiguration.debugScanner = true;
+#endif // _DEBUG
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
   struct HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;

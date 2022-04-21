@@ -393,7 +393,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
   ACE_ASSERT (writer_);
   ACE_ASSERT (reader_);
 
-  TASK_T* task_p, *task_2 = NULL;
+  TASK_T* task_p = NULL, *task_2 = NULL;
   typename IMODULE_T::ICLONE_TASK_T* itaskclone_p =
       dynamic_cast<typename IMODULE_T::ICLONE_TASK_T*> (writer_);
   if (!itaskclone_p)

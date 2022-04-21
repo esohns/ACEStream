@@ -123,8 +123,10 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
   // *TODO*: remove type inferences
   //crunchMessages_ = configuration_in.crunchMessages;
 
+#if defined (_DEBUG)
   debugParser_ = configuration_in.parserConfiguration->debugParser;
   debugScanner_ = configuration_in.parserConfiguration->debugScanner;
+#endif // _DEBUG
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

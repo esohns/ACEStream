@@ -1346,11 +1346,10 @@ button_cancel_clicked_cb (GtkButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::button_cancel_clicked_cb"));
 
-  struct HTTPGet_UI_CBData* ui_cb_data_p =
-      static_cast<struct HTTPGet_UI_CBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (ui_cb_data_p);
+//  struct HTTPGet_UI_CBData* ui_cb_data_p =
+//      static_cast<struct HTTPGet_UI_CBData*> (userData_in);
+//  ACE_ASSERT (ui_cb_data_p);
 }
 
 //G_MODULE_EXPORT void
@@ -1574,18 +1573,15 @@ checkbutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
 
   // sanity check(s)
   ACE_ASSERT (toggleButton_in);
-  struct HTTPGet_UI_CBData* ui_cb_data_p =
-      static_cast<struct HTTPGet_UI_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_p);
-
+//  struct HTTPGet_UI_CBData* ui_cb_data_p =
+//      static_cast<struct HTTPGet_UI_CBData*> (userData_in);
+//  ACE_ASSERT (ui_cb_data_p);
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
-
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != state_r.builders.end ());
 
   GtkFrame* frame_p =
@@ -1731,18 +1727,15 @@ button_about_clicked_cb (GtkButton* button_in,
   ACE_UNUSED_ARG (button_in);
 
   // sanity check(s)
-  struct HTTPGet_UI_CBData* ui_cb_data_p =
-      static_cast<struct HTTPGet_UI_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_p);
-
+//  struct HTTPGet_UI_CBData* ui_cb_data_p =
+//      static_cast<struct HTTPGet_UI_CBData*> (userData_in);
+//  ACE_ASSERT (ui_cb_data_p);
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
-
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != state_r.builders.end ());
 
   // retrieve about dialog handle

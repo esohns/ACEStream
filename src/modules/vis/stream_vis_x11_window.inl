@@ -222,8 +222,10 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     closeDisplay_ = true;
   } // end ELSE
   ACE_ASSERT (display_);
+#if defined (_DEBUG)
   if (configuration_in.debug)
     XSync (display_, True);
+#endif // _DEBUG
 
   int count_i = 0;
   int* depths_p = XListDepths (display_, DefaultScreen (display_),

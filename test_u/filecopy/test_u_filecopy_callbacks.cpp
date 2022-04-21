@@ -549,9 +549,9 @@ idle_update_log_display_cb (gpointer userData_in)
   STREAM_TRACE (ACE_TEXT ("::idle_update_log_display_cb"));
 
   // sanity check(s)
-  struct Stream_Filecopy_UI_CBData* data_p =
-    static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
-  ACE_ASSERT (data_p);
+//  struct Stream_Filecopy_UI_CBData* data_p =
+//    static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
+//  ACE_ASSERT (data_p);
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -645,9 +645,9 @@ idle_update_info_display_cb (gpointer userData_in)
   STREAM_TRACE (ACE_TEXT ("::idle_update_info_display_cb"));
 
   // sanity check(s)
-  struct Stream_Filecopy_UI_CBData* data_p =
-      static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
-  ACE_ASSERT (data_p);
+//  struct Stream_Filecopy_UI_CBData* data_p =
+//      static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
+//  ACE_ASSERT (data_p);
 
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
@@ -1129,23 +1129,19 @@ button_clear_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_clear_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  struct Stream_Filecopy_UI_CBData* data_p =
-    static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
+
+  // sanity check(s)
+//  struct Stream_Filecopy_UI_CBData* data_p =
+//    static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
+//  ACE_ASSERT (data_p);
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
-
-  // sanity check(s)
-  ACE_ASSERT (data_p);
-
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-
-  // sanity check(s)
-  ACE_ASSERT (data_p);
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   ACE_ASSERT (iterator != state_r.builders.end ());
 
@@ -1172,15 +1168,15 @@ button_about_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_about_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  struct Stream_Filecopy_UI_CBData* data_p =
-    static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
+
+  // sanity check(s)
+//  struct Stream_Filecopy_UI_CBData* data_p =
+//    static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
+//  ACE_ASSERT (data_p);
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
-
-  // sanity check(s)
-  ACE_ASSERT (data_p);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
