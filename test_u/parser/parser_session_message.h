@@ -67,7 +67,8 @@ class Parser_SessionMessage
   Parser_SessionMessage (Stream_SessionId_t,
                           enum Stream_SessionMessageType,
                           Parser_SessionData_t*&,        // session data container handle
-                          struct Stream_UserData*);
+                          struct Stream_UserData*,
+                          bool); // expedited ?
   inline virtual ~Parser_SessionMessage () {}
 
   // overloaded from ACE_Message_Block

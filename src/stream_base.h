@@ -229,7 +229,8 @@ class Stream_Base_T
                         bool = false); // recurse upstream (if any) ?
   // *NOTE*: the default implementation forwards calls to the head module
   virtual void notify (NotificationType, // notification type
-                       bool = false);    // recurse upstream (if any) ?
+                       bool = false,     // recurse upstream (if any) ?
+                       bool = false);    // expedite ?
   virtual StatusType status () const;
   inline virtual const StateType& state () const { return state_; }
 

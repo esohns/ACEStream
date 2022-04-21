@@ -1183,7 +1183,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::notify (NotificationType notification_in,
-                                           bool recurseUpstream_in)
+                                           bool recurseUpstream_in,
+                                           bool expedite_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::notify"));
 
@@ -1206,7 +1207,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     try {
       istreamcontrol_p->notify (notification_in,
-                                recurseUpstream_in);
+                                recurseUpstream_in,
+                                expedite_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
@@ -1241,7 +1243,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
   try {
     istreamcontrol_p->notify (notification_in,
-                              false);
+                              false,
+                              expedite_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::notify(%d), returning\n"),
@@ -4215,7 +4218,8 @@ Stream_Base_T<ACE_SYNCH_USE,
                       SessionMessageType (session_data_r.sessionId,
                                           STREAM_SESSION_MESSAGE_END,
                                           sessionData_, // *NOTE*: fire-and-forget sessionData_
-                                          state_.userData));
+                                          state_.userData,
+                                          false)); // expedited ?
   if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -4232,7 +4236,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     message_p->initialize (session_data_r.sessionId,
                            STREAM_SESSION_MESSAGE_END,
                            sessionData_, // *NOTE*: fire-and-forget sessionData_
-                           state_.userData);
+                           state_.userData,
+                           false); // expedited ?
 
   // forward message
   int result = inherited::put (message_p, NULL);

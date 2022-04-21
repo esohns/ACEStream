@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_i_session_message.h"
 
 #include "ace/Malloc_Base.h"
@@ -29,11 +28,13 @@
 Test_I_Stream_SessionMessage::Test_I_Stream_SessionMessage (Stream_SessionId_t sessionId_in,
                                                             enum Stream_SessionMessageType messageType_in,
                                                             Test_I_Stream_SessionData_t*& sessionData_in,
-                                                            struct Stream_UserData* userData_in)
+                                                            struct Stream_UserData* userData_in,
+                                                            bool expedited_in)
  : inherited (sessionId_in,
               messageType_in,
               sessionData_in,
-              userData_in)
+              userData_in,
+              expedited_in) // expedited ?
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_SessionMessage::Test_I_Stream_SessionMessage"));
 

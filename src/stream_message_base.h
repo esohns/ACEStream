@@ -60,6 +60,7 @@ class Stream_MessageBase_T
                                 CommandType> IDATA_MESSAGE_T;
 
   // implement (part of) Stream_IDataMessage_T
+  inline virtual bool expedited () const { return false; }
   inline virtual Stream_MessageId_t id () const { return id_; }
   inline virtual Stream_SessionId_t sessionId () const { return sessionId_; }
   inline virtual MessageType type () const { return type_; }

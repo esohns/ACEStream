@@ -40,7 +40,8 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
                             UserDataType>::Stream_SessionMessageBase_T (Stream_SessionId_t sessionId_in,
                                                                         SessionMessageType messageType_in,
                                                                         SessionDataType*& data_inout,
-                                                                        UserDataType* userData_in)
+                                                                        UserDataType* userData_in,
+                                                                        bool expedited_in)
  : inherited (0,                                  // size
               ACE_Message_Block::MB_EVENT,        // type
               NULL,                               // continuation
@@ -53,6 +54,7 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
               NULL,                               // data block allocator
               NULL)                               // message block allocator
  , data_ (data_inout)
+ , expedited_ (expedited_in)
  , isInitialized_ (!!data_inout)
  , sessionId_ (sessionId_in)
  , type_ (messageType_in)
@@ -75,6 +77,7 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
                                                                         ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message allocator
  , data_ (NULL)
+ , expedited_ (false)
  , isInitialized_ (false)
  , sessionId_ (sessionId_in)
  , type_ (STREAM_SESSION_MESSAGE_INVALID)
@@ -102,6 +105,7 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
               0,                   // flags --> 'release' data block in dtor
               messageAllocator_in) // message allocator
  , data_ (NULL)
+ , expedited_ (false)
  , isInitialized_ (false)
  , sessionId_ (sessionId_in)
  , type_ (STREAM_SESSION_MESSAGE_INVALID)
@@ -130,6 +134,7 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
               0,                                    // flags --> 'release' data block in dtor
               message_in.message_block_allocator_)  // reuse message allocator
  , data_ (message_in.data_)
+ , expedited_ (message_in.expedited_)
  , isInitialized_ (message_in.isInitialized_)
  , sessionId_ (message_in.sessionId_)
  , type_ (message_in.type_)
@@ -162,6 +167,7 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
   {
     data_->decrease (); data_ = NULL;
   } // end IF
+  expedited_ = false;
   isInitialized_ = false;
   sessionId_ = 0;
   type_ = STREAM_SESSION_MESSAGE_INVALID;
@@ -306,7 +312,8 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
                             UserDataType>::initialize (Stream_SessionId_t sessionId_in,
                                                        SessionMessageType messageType_in,
                                                        SessionDataType*& data_inout,
-                                                       UserDataType* userData_in)
+                                                       UserDataType* userData_in,
+                                                       bool expedited_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::initialize"));
 
@@ -325,6 +332,7 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
     data_ = data_inout;
     data_inout = NULL;
   } // end IF
+  expedited_ = expedited_in;
   isInitialized_ = true;
   sessionId_ = sessionId_in;
   type_ = messageType_in;

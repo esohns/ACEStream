@@ -142,7 +142,8 @@ class Stream_TaskBase_T
   // *NOTE*: "fire-and-forget" the second argument
   bool putSessionMessage (SessionEventType,                      // session message type
                           typename SessionMessageType::DATA_T*&, // session data container
-                          UserDataType* = NULL);                 // user data handle
+                          UserDataType*,                         // user data handle
+                          bool);                                 // expedited ?
 
   virtual void notify (SessionEventType); // session event
 

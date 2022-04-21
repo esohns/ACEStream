@@ -492,6 +492,14 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 
       break;
     }
+    case STREAM_MESSAGE_SESSION:
+    {
+      SessionMessageType* message_p =
+        static_cast<SessionMessageType*> (messageBlock_in);
+      if (unlikely (message_p->expedited ()))
+        return queue_.enqueue_head_i (messageBlock_in, NULL);
+      break;
+    }
     default:
       break;
   } // end SWITCH

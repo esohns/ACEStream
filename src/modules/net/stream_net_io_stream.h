@@ -145,9 +145,11 @@ class Stream_Module_Net_IO_Stream_T
                      bool = false); // high priority ?
   virtual void finished (bool = true); // recurse upstream (if any) ?
   using inherited::flush;
+
   // *NOTE*: the default implementation forwards calls to the head module
   virtual void notify (NotificationType, // notification type
-                       bool = false);    // recurse upstream (if any) ?
+                       bool = false,     // recurse upstream (if any) ?
+                       bool = false);    // expedite ?
   //inline virtual const SessionDataContainerType& getR_2 () const { ACE_ASSERT (inherited::sessionData_); return *inherited::sessionData_; }
 
   //// implement Stream_IMessageQueue

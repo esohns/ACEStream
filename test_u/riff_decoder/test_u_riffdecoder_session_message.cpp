@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_riffdecoder_session_message.h"
 
 #include "ace/Log_Msg.h"
@@ -30,11 +29,13 @@
 Test_U_RIFFDecoder_SessionMessage::Test_U_RIFFDecoder_SessionMessage (Stream_SessionId_t sessionId_in,
                                                                       Stream_SessionMessageType messageType_in,
                                                                       Test_U_RIFFDecoder_SessionData_t*& sessionData_in,
-                                                                      Stream_UserData* userData_in)
+                                                                      Stream_UserData* userData_in,
+                                                                      bool expedited_in)
  : inherited (sessionId_in,   // session id
               messageType_in,
               sessionData_in,
-              userData_in)
+              userData_in,
+              expedited_in) // expedited ?
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_SessionMessage::Test_U_RIFFDecoder_SessionMessage"));
 

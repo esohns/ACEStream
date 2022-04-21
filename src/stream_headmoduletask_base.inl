@@ -283,6 +283,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
           break;
         }
+        case STREAM_MESSAGE_SESSION:
+        {
+          SessionMessageType* message_p =
+            static_cast<SessionMessageType*> (messageBlock_in);
+          if (unlikely (message_p->expedited ()))
+            return queue_.enqueue_head_i (messageBlock_in, NULL);
+          break;
+        }
         default:
           break;
       } // end SWITCH
@@ -1434,7 +1442,8 @@ send_session_message:
 
   if (unlikely (!inherited::putSessionMessage (message_type_e,
                                                session_data_container_p,
-                                               streamState_->userData)))
+                                               streamState_->userData,
+                                               false))) // expedited ?
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
                 inherited::mod_->name (),
@@ -1484,7 +1493,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             StatisticContainerType,
                             TimerManagerType,
                             UserDataType>::notify (SessionEventType notification_in,
-                                                   bool forwardUpStream_in)
+                                                   bool forwardUpStream_in,
+                                                   bool expedite_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::notify"));
 
@@ -1541,7 +1551,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       // *NOTE*: "fire-and-forget" the second argument
       if (unlikely (!inherited::putSessionMessage (static_cast<enum Stream_SessionMessageType> (notification_in),
                                                    session_data_container_p,
-                                                   streamState_->userData)))
+                                                   streamState_->userData,
+                                                   expedite_in))) // expedited ?
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
                     inherited::name (),
@@ -2148,7 +2159,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   result =
       inherited::putSessionMessage (STREAM_SESSION_MESSAGE_STATISTIC,
                                     session_data_container_p,
-                                    streamState_->userData);
+                                    streamState_->userData,
+                                    false); // expedited ?
   if (unlikely (!result))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), aborting\n"),
@@ -2283,7 +2295,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         ACE_ASSERT (streamState_);
         if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_BEGIN, // session message type
                                                      session_data_container_p,     // session data
-                                                     streamState_->userData)))     // user data handle
+                                                     streamState_->userData,       // user data handle
+                                                     false)))                      // expedited ?
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_BEGIN), continuing\n"),
                       inherited::mod_->name ()));
@@ -2709,7 +2722,8 @@ continue_2:
         // *NOTE*: "fire-and-forget" the second argument
         if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_UNLINK, // session message type
                                                      session_data_container_p,      // session data
-                                                     streamState_->userData)))      // user data handle
+                                                     streamState_->userData,        // user data handle
+                                                     false)))                       // expedited ?
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_UNLINK), continuing\n"),
                       inherited::mod_->name ()));
@@ -2853,7 +2867,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       // *NOTE*: "fire-and-forget" the second argument
       if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_END, // session message type
                                                    session_data_container_p,   // session data
-                                                   streamState_->userData)))   // user data handle
+                                                   streamState_->userData,     // user data handle
+                                                   false)))                    // expedited ?
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_END), continuing\n"),
                     inherited::mod_->name ()));

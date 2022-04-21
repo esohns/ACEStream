@@ -31,11 +31,13 @@
 HTTPGet_SessionMessage::HTTPGet_SessionMessage (Stream_SessionId_t sessionId_in,
                                                 enum Stream_SessionMessageType messageType_in,
                                                 HTTPGet_SessionData_t*& sessionData_in,
-                                                struct Stream_UserData* userData_in)
+                                                struct Stream_UserData* userData_in,
+                                                bool expedited_in)
  : inherited (sessionId_in,
               messageType_in,
               sessionData_in,
-              userData_in)
+              userData_in,
+              expedited_in) // expedited ?
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_SessionMessage::HTTPGet_SessionMessage"));
 

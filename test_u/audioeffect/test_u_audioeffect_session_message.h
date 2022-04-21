@@ -156,7 +156,8 @@ class Test_U_AudioEffect_SessionMessage
   Test_U_AudioEffect_SessionMessage (Stream_SessionId_t,
                                      enum Stream_SessionMessageType,
                                      Test_U_AudioEffect_SessionData_t*&, // session data container handle
-                                     struct Stream_UserData*);
+                                     struct Stream_UserData*,
+                                     bool); // expedited ?
   inline virtual ~Test_U_AudioEffect_SessionMessage () {}
 
   // overloaded from ACE_Message_Block

@@ -935,7 +935,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   SessionEventType,
                   UserDataType>::putSessionMessage (SessionEventType eventType_in,
                                                     typename SessionMessageType::DATA_T*& sessionData_inout,
-                                                    UserDataType* userData_in)
+                                                    UserDataType* userData_in,
+                                                    bool expedited_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::putSessionMessage"));
 
@@ -974,7 +975,8 @@ retry:
                       SessionMessageType ((session_data_p ? session_data_p->sessionId : -1),
                                           eventType_in,
                                           sessionData_inout,
-                                          userData_in));
+                                          userData_in,
+                                          false)); // expedited ?
   if (unlikely (!session_message_p))
   {
     if (likely (allocator_))
@@ -994,7 +996,8 @@ retry:
     session_message_p->initialize ((session_data_p ? session_data_p->sessionId : -1),
                                    eventType_in,
                                    sessionData_inout,
-                                   userData_in);
+                                   userData_in,
+                                   expedited_in);
 
   result = put (session_message_p, NULL);
   if (unlikely (result == -1))

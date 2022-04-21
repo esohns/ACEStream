@@ -130,6 +130,7 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
               const_cast<typename SessionMessageType::DATA_T&> (session_message_p->getR ());
             session_data_container_r.increase ();
           } // end ELSE
+          highPriority_in = session_message_p->expedited ();
 
           break;
         }

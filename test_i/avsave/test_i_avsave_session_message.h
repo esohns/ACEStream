@@ -34,8 +34,6 @@
 
 #include "test_i_common.h"
 
-//#include "test_i_avsave_common.h"
-
 // forward declaratation(s)
 struct Stream_UserData;
 
@@ -79,7 +77,8 @@ class Stream_AVSave_SessionMessage_T
   Stream_AVSave_SessionMessage_T (Stream_SessionId_t,
                                   enum Stream_SessionMessageType,
                                   SessionDataType*&,   // session data container handle
-                                  struct Stream_UserData*);
+                                  struct Stream_UserData*,
+                                  bool); // expedited ?
   inline virtual ~Stream_AVSave_SessionMessage_T () {}
 
   inline void setMediaType (enum Stream_MediaType_Type mediaType_in) { mediaType_ = mediaType_in; }

@@ -415,18 +415,20 @@ error:
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
       ACE_ASSERT (session_data_r.lock);
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        typename SessionDataContainerType::DATA_T::MEDIAFORMATS_ITERATOR_T iterator =
-          session_data_r.formats.begin ();
-        std::advance (iterator, formatsIndex_);
-        session_data_r.formats.erase (iterator);
-        formatsIndex_ = 0;
-      } // end lock scope
-      const MediaType& media_type_r = session_data_r.formats.back ();
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
-      inherited::getMediaType (media_type_r,
-                               STREAM_MEDIATYPE_VIDEO,
-                               media_type_2);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        if (session_data_r.formats.size () >= formatsIndex_)
+        {
+          typename SessionDataContainerType::DATA_T::MEDIAFORMATS_ITERATOR_T
+            iterator = session_data_r.formats.begin ();
+          std::advance (iterator, formatsIndex_);
+          session_data_r.formats.erase (iterator, session_data_r.formats.end ());
+          formatsIndex_ = 0;
+        } // end IF
+        inherited::getMediaType (session_data_r.formats.back (),
+                                 STREAM_MEDIATYPE_VIDEO,
+                                 media_type_2);
+      } // end lock scope
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_3;
       inherited::getMediaType (inherited::configuration_->outputFormat,
                                STREAM_MEDIATYPE_VIDEO,
@@ -534,11 +536,13 @@ error:
                                   inherited::frame_->linesize);
       ACE_ASSERT (result >= 0);
 
-      media_type_s = media_type_r;
-      inherited::setResolution (media_type_3.resolution,
-                                media_type_s);
       ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        inherited::getMediaType (session_data_r.formats.back (),
+                                 STREAM_MEDIATYPE_VIDEO,
+                                 media_type_s);
+        inherited::setResolution (media_type_3.resolution,
+                                  media_type_s);
         session_data_r.formats.push_back (media_type_s);
         formatsIndex_ = session_data_r.formats.size () - 1;
       } // end lock scope

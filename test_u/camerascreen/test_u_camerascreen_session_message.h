@@ -74,7 +74,8 @@ class Stream_CameraScreen_SessionMessage_T
   Stream_CameraScreen_SessionMessage_T (Stream_SessionId_t,
                                         enum Stream_SessionMessageType,
                                         SessionDataType*&,   // session data container handle
-                                        struct Stream_UserData*);
+                                        struct Stream_UserData*,
+                                        bool); // expedited ?
   inline virtual ~Stream_CameraScreen_SessionMessage_T () {}
 
   // overloaded from ACE_Message_Block

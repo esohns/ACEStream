@@ -39,7 +39,8 @@ class Stream_INotify_T
  public:
   // *NOTE*: notify (module) (status) events, may enqeue session message(s)
   virtual void notify (NotificationType,  // session message type
-                       bool = false) = 0; // forward upstream ?
+                       bool = false,      // forward upstream ?
+                       bool = false) = 0; // expedite ?
 };
 
 class Stream_IOutboundDataNotify

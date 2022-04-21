@@ -26,13 +26,15 @@ template <typename DataMessageType,
           typename SessionDataType>
 Stream_ImageScreen_SessionMessage_T<DataMessageType,
                                 SessionDataType>::Stream_ImageScreen_SessionMessage_T (Stream_SessionId_t sessionId_in,
-                                                                                   enum Stream_SessionMessageType messageType_in,
-                                                                                   SessionDataType*& sessionData_in,
-                                                                                   struct Stream_UserData* userData_in)
+                                                                                       enum Stream_SessionMessageType messageType_in,
+                                                                                       SessionDataType*& sessionData_in,
+                                                                                       struct Stream_UserData* userData_in,
+                                                                                       bool expedited_in)
  : inherited (sessionId_in,
               messageType_in,
               sessionData_in,
-              userData_in)
+              userData_in,
+              expedited_in) // expedited ?
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_SessionMessage_T::Stream_ImageScreen_SessionMessage_T"));
 
@@ -42,7 +44,7 @@ template <typename DataMessageType,
           typename SessionDataType>
 Stream_ImageScreen_SessionMessage_T<DataMessageType,
                                 SessionDataType>::Stream_ImageScreen_SessionMessage_T (const Stream_ImageScreen_SessionMessage_T<DataMessageType,
-                                                                                                                         SessionDataType>& message_in)
+                                                                                                                                 SessionDataType>& message_in)
  : inherited (message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_SessionMessage_T::Stream_ImageScreen_SessionMessage_T"));
@@ -53,7 +55,7 @@ template <typename DataMessageType,
           typename SessionDataType>
 Stream_ImageScreen_SessionMessage_T<DataMessageType,
                                 SessionDataType>::Stream_ImageScreen_SessionMessage_T (Stream_SessionId_t sessionId_in,
-                                                                                   ACE_Allocator* messageAllocator_in)
+                                                                                       ACE_Allocator* messageAllocator_in)
  : inherited (sessionId_in,
               messageAllocator_in) // message block allocator
 {
@@ -65,8 +67,8 @@ template <typename DataMessageType,
           typename SessionDataType>
 Stream_ImageScreen_SessionMessage_T<DataMessageType,
                                 SessionDataType>::Stream_ImageScreen_SessionMessage_T (Stream_SessionId_t sessionId_in,
-                                                                                   ACE_Data_Block* dataBlock_in,
-                                                                                   ACE_Allocator* messageAllocator_in)
+                                                                                       ACE_Data_Block* dataBlock_in,
+                                                                                       ACE_Allocator* messageAllocator_in)
  : inherited (sessionId_in,
               dataBlock_in,        // use (don't own (!) memory of-) this data block
               messageAllocator_in) // message block allocator

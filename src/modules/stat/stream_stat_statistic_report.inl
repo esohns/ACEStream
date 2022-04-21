@@ -843,7 +843,8 @@ allocate:
                       SessionMessageType (session_data_r.sessionId,
                                           STREAM_SESSION_MESSAGE_STATISTIC,
                                           session_data_container_p,
-                                          session_data_r.userData));
+                                          session_data_r.userData,
+                                          false)); // expedited ?
   } // end ELSE
   if (unlikely (!session_message_p))
   {
@@ -868,7 +869,8 @@ allocate:
     session_message_p->initialize (session_data_r.sessionId,
                                    STREAM_SESSION_MESSAGE_STATISTIC,
                                    session_data_container_p,
-                                   session_data_r.userData);
+                                   session_data_r.userData,
+                                   false); // expedited ?
     session_data_container_p = NULL;
   } // end IF
 

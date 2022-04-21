@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_filecopy_session_message.h"
 
 #include "ace/Malloc_Base.h"
@@ -29,11 +28,13 @@
 Stream_Filecopy_SessionMessage::Stream_Filecopy_SessionMessage (Stream_SessionId_t sessionId_in,
                                                                 Stream_SessionMessageType messageType_in,
                                                                 Stream_Filecopy_SessionData_t*& sessionData_in,
-                                                                Stream_UserData* userData_in)
+                                                                Stream_UserData* userData_in,
+                                                                bool expedited_in)
  : inherited (sessionId_in,
               messageType_in,
               sessionData_in,
-              userData_in)
+              userData_in,
+              expedited_in) // expedited ?
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SessionMessage::Stream_Filecopy_SessionMessage"));
 

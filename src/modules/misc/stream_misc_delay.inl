@@ -154,6 +154,7 @@ continue_:
         break;
       }
       case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
+      case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER:
       {
         available_tokens_i = 1;
         --availableTokens_;
@@ -209,6 +210,7 @@ continue_:
       break;
     }
     case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
+    case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER:
     {
       result = inherited::put_next (message_block_p, NULL);
       if (unlikely (result == -1))
@@ -318,13 +320,14 @@ continue_:
       switch (inherited::configuration_->delayConfiguration->mode)
       {
         case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
+        case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
         {
           availableTokens_ =
             inherited::configuration_->delayConfiguration->averageTokensPerInterval;
           break;
         }
-        case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
-        { ACE_ASSERT (inherited::configuration_->delayConfiguration->interval == ACE_Time_Value (1, 0));
+        case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER:
+        {
           inherited::configuration_->delayConfiguration->interval =
             ACE_Time_Value::zero;
           inherited::configuration_->delayConfiguration->interval.msec (static_cast<long> (1000 / inherited::configuration_->delayConfiguration->averageTokensPerInterval));

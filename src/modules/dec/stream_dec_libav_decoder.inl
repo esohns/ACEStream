@@ -72,6 +72,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
  , codecId_ (AV_CODEC_ID_NONE)
  , context_ (NULL)
  , format_ (AV_PIX_FMT_NONE)
+ , formatsIndex_ (0)
  , formatHeight_ (0)
  , formatWidth_ (0)
  , frame_ (NULL)
@@ -169,6 +170,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       avcodec_free_context (&context_);
     } // end IF
     format_ = AV_PIX_FMT_NONE;
+    formatsIndex_ = 0;
     formatHeight_ = 0;
     formatWidth_ = 0;
     if (frame_)
@@ -773,6 +775,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                                media_type_2);
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
           session_data_r.formats.push_back (media_type_2);
+          formatsIndex_ = session_data_r.formats.size () - 1;
         } // end lock scope
       } // end IF
       else
@@ -793,26 +796,31 @@ error:
 continue_:
       break;
     }
-//    case STREAM_SESSION_MESSAGE_RESIZE:
-//    {
-//      // sanity check(s)
-//      if (unlikely (!context_))
-//        break;
+    case STREAM_SESSION_MESSAGE_RESIZE:
+    {
+      MediaType media_type_s;
 
-//      const SessionDataContainerType& session_data_container_r =
-//        message_inout->getR ();
-//      typename SessionDataContainerType::DATA_T& session_data_r =
-//        const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
-//      ACE_ASSERT (!session_data_r.formats.empty ());
-//      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
-//      inherited2::getMediaType (session_data_r.formats.back (),
-//                                STREAM_MEDIATYPE_VIDEO,
-//                                media_type_s);
+      ACE_ASSERT (inherited::sessionData_);
+      typename SessionDataContainerType::DATA_T& session_data_r =
+        const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      ACE_ASSERT (session_data_r.lock);
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        if (session_data_r.formats.size () >= formatsIndex_)
+        {
+          typename SessionDataContainerType::DATA_T::MEDIAFORMATS_ITERATOR_T iterator =
+            session_data_r.formats.begin ();
+          std::advance (iterator, formatsIndex_);
+          session_data_r.formats.erase (iterator, session_data_r.formats.end ());
+          formatsIndex_ = 0;
+        } // end IF
+        inherited2::getMediaType (session_data_r.formats.back (),
+                                  STREAM_MEDIATYPE_VIDEO,
+                                  media_type_2);
+      } // end lock scope
+
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
-////      struct _AMMediaType media_type_2;
-////      ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
-////      inherited2::getMediaType (session_data_r.formats.back (),
-////                                media_type_2);
 //      formatHeight_ =
 //          static_cast<unsigned int> (std::abs (media_type_s.resolution.cy));
 //      formatWidth_ = static_cast<unsigned int> (media_type_s.resolution.cx);
@@ -852,19 +860,30 @@ continue_:
 //        } // end IF
 //      } // end IF
 
-//      outputFrameSize_ =
-//        av_image_get_buffer_size (outputFormat_,
-//                                  formatWidth_,
-//                                  formatHeight_,
-//                                  1); // *TODO*: linesize alignment
+      //      outputFrameSize_ =
+      //        av_image_get_buffer_size (outputFormat_,
+      //                                  formatWidth_,
+      //                                  formatHeight_,
+      //                                  1); // *TODO*: linesize alignment
 
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("%s: modified frame resolution to %ux%u\n"),
-//                  inherited::mod_->name (),
-//                  formatWidth_, formatHeight_));
+      //      ACE_DEBUG ((LM_DEBUG,
+      //                  ACE_TEXT ("%s: modified frame resolution to %ux%u\n"),
+      //                  inherited::mod_->name (),
+      //                  formatWidth_, formatHeight_));
 
-//      break;
-//    }
+      Common_Image_Resolution_t resolution_s = { formatWidth_, formatHeight_};
+      inherited2::setFormat (outputFormat_,
+                             media_type_s);
+      inherited2::setResolution (resolution_s,
+                                 media_type_s);
+      ACE_ASSERT (session_data_r.lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        session_data_r.formats.push_back (media_type_s);
+        formatsIndex_ = session_data_r.formats.size () - 1;
+      } // end lock scope
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_END:
     {
       if (likely (context_))
@@ -998,7 +1017,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         inherited::sessionData_;
       if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_RESIZE,
                                                    session_data_container_p,
-                                                   NULL)))
+                                                   NULL,
+                                                   true))) // expedited ?
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
                     inherited::mod_->name (),

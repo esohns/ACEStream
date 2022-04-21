@@ -62,7 +62,8 @@ class Stream_Filecopy_SessionMessage
   Stream_Filecopy_SessionMessage (Stream_SessionId_t,
                                   enum Stream_SessionMessageType,
                                   Stream_Filecopy_SessionData_t*&, // session data container handle
-                                  struct Stream_UserData*);
+                                  struct Stream_UserData*,
+                                  bool); // expedited ?
   inline virtual ~Stream_Filecopy_SessionMessage () {}
 
   // overloaded from ACE_Message_Block

@@ -78,12 +78,12 @@ class Test_I_SessionMessage_T
                                                                          SessionDataType> >;
 
  public:
-  // *NOTE*: assumes responsibility for the second argument !
-  // *TODO*: (using gcc) cannot pass reference to pointer for some reason
+  // *NOTE*: assumes responsibility for the third argument !
   Test_I_SessionMessage_T (Stream_SessionId_t,
                            enum Stream_SessionMessageType,
                            SessionDataType*&,   // session data container handle
-                           struct Stream_UserData*);
+                           struct Stream_UserData*,
+                           bool); // expedited ?
   inline virtual ~Test_I_SessionMessage_T () {}
 
   // overloaded from ACE_Message_Block

@@ -84,7 +84,8 @@ class Test_I_SessionMessage_T
   Test_I_SessionMessage_T (Stream_SessionId_t,
                            enum Stream_SessionMessageType,
                            SessionDataType*&, // session data container handle
-                           UserDataType*);
+                           UserDataType*,
+                           bool); // expedited ?
   inline virtual ~Test_I_SessionMessage_T () {}
 
   // overloaded from ACE_Message_Block

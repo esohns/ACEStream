@@ -898,7 +898,9 @@
     <property name="can_focus">True</property>
     <property name="can_default">True</property>
     <property name="receives_default">True</property>
+    <property name="events">GDK_KEY_PRESS_MASK | GDK_STRUCTURE_MASK</property>
     <property name="no_show_all">True</property>
+    <property name="double_buffered">False</property>
     <property name="resizable">False</property>
     <property name="window_position">center-always</property>
     <property name="decorated">False</property>

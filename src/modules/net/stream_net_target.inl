@@ -632,7 +632,8 @@ continue_:
           session_data_container_p->increase ();
         if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_DISCONNECT,
                                                      session_data_container_p,
-                                                     NULL)))
+                                                     NULL,
+                                                     false))) // expedited ?
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
                       inherited::name (),

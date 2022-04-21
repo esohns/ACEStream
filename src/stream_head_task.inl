@@ -246,7 +246,8 @@ Stream_HeadWriterTask_T<ACE_SYNCH_USE,
             session_message_p->initialize (session_message_p->sessionId (),
                                            STREAM_SESSION_MESSAGE_END,
                                            sessionData_,
-                                           &const_cast<typename SessionMessageType::USER_DATA_T&> (session_message_p->getR_2 ()));
+                                           &const_cast<typename SessionMessageType::USER_DATA_T&> (session_message_p->getR_2 ()),
+                                           false); // expedited ?
             sessionData_->decrease (); sessionData_ = NULL;
             isLinked_ = false;
           } // end IF
@@ -259,7 +260,8 @@ Stream_HeadWriterTask_T<ACE_SYNCH_USE,
             session_message_p->initialize (session_message_p->sessionId (),
                                            session_message_p->type (),
                                            sessionData_,
-                                           &const_cast<typename SessionMessageType::USER_DATA_T&> (session_message_p->getR_2 ()));
+                                           &const_cast<typename SessionMessageType::USER_DATA_T&> (session_message_p->getR_2 ()),
+                                           session_message_p->expedited ()); // expedited ?
           break;
         }
       } // end SWITCH

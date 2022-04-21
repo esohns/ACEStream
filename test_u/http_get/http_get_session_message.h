@@ -65,7 +65,8 @@ class HTTPGet_SessionMessage
   HTTPGet_SessionMessage (Stream_SessionId_t,
                           enum Stream_SessionMessageType,
                           HTTPGet_SessionData_t*&,        // session data container handle
-                          struct Stream_UserData*);
+                          struct Stream_UserData*,
+                          bool); // expedited ?
   inline virtual ~HTTPGet_SessionMessage () {};
 
   // overloaded from ACE_Message_Block

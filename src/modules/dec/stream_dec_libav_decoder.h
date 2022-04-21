@@ -121,6 +121,7 @@ class Stream_Decoder_LibAVDecoder_T
   enum AVCodecID               codecId_;
   struct AVCodecContext*       context_;
   enum AVPixelFormat           format_; // codec output-
+  unsigned int                 formatsIndex_;
   unsigned int                 formatHeight_; // codec output-
   unsigned int                 formatWidth_; // codec output-
   struct AVFrame*              frame_;

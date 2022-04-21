@@ -95,7 +95,8 @@ class Stream_SessionMessageBase_T
   Stream_SessionMessageBase_T (Stream_SessionId_t,
                                SessionMessageType,
                                SessionDataType*&, // in/out
-                               UserDataType*);
+                               UserDataType*,
+                               bool); // expedited ?
   virtual ~Stream_SessionMessageBase_T ();
 
   // initialization-after-construction
@@ -104,9 +105,11 @@ class Stream_SessionMessageBase_T
   void initialize (Stream_SessionId_t,
                    SessionMessageType,
                    SessionDataType*&, // in/out
-                   UserDataType*);
+                   UserDataType*,
+                   bool); // expedited ?
 
   // implement (part of) Stream_IMessage_T
+  inline virtual bool expedited () const { return expedited_; }
   inline virtual Stream_SessionId_t sessionId () const { return sessionId_; }
   inline virtual SessionMessageType type () const { return type_; }
 
@@ -145,6 +148,7 @@ class Stream_SessionMessageBase_T
                                ACE_Allocator*);    // message allocator
 
   SessionDataType*   data_;
+  bool               expedited_;
   bool               isInitialized_;
   Stream_SessionId_t sessionId_;
   SessionMessageType type_;

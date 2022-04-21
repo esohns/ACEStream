@@ -420,6 +420,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
 
       int result = -1;
       const struct AVCodec* codec_p = NULL;
+      struct AVCodecParameters* codec_parameters_p = NULL;
       struct AVDictionary* dictionary_p = NULL;
       int flags, flags2;
 //      unsigned int buffer_size = 0;
@@ -459,9 +460,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       } // end IF
       ACE_ASSERT (context_);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct AVCodecParameters* codec_parameters_p =
-        avcodec_parameters_alloc ();
+      codec_parameters_p = avcodec_parameters_alloc ();
       if (unlikely (!codec_parameters_p))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -535,133 +534,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                //AV_CODEC_FLAG2_EXPORT_MVS    |
                AV_CODEC_FLAG2_SKIP_MANUAL;
       // AV_CODEC_FLAG2_RO_FLUSH_NOOP
-#else
-      flags = AV_CODEC_FLAG_UNALIGNED      |
-              //AV_CODEC_FLAG_QSCALE         |
-      //        AV_CODEC_FLAG_4MV            |
-              AV_CODEC_FLAG_OUTPUT_CORRUPT |
-              //AV_CODEC_FLAG_QPEL           |
-              //AV_CODEC_FLAG_PASS1          |
-              //AV_CODEC_FLAG_PASS2          |
-              AV_CODEC_FLAG_LOOP_FILTER    |
-              //AV_CODEC_FLAG_GRAY           |
-              //AV_CODEC_FLAG_PSNR           |
-              AV_CODEC_FLAG_TRUNCATED      |
-              //AV_CODEC_FLAG_INTERLACED_DCT |
-              AV_CODEC_FLAG_LOW_DELAY      |
-              //AV_CODEC_FLAG_GLOBAL_HEADER  |
-              AV_CODEC_FLAG_BITEXACT;//       |
-              //AV_CODEC_FLAG_AC_PRED        |
-      //AV_CODEC_FLAG_INTERLACED_ME  |
-      //AV_CODEC_FLAG_CLOSED_GOP;
-//      if (codec_p->capabilities & CODEC_CAP_TRUNCATED)
-//        flags |= CODEC_FLAG_TRUNCATED;
-      if (codec_p->capabilities & AV_CODEC_CAP_TRUNCATED)
-        flags |= AV_CODEC_FLAG_TRUNCATED;
 
-      flags2 = AV_CODEC_FLAG2_FAST          |
-      //         AV_CODEC_FLAG2_NO_OUTPUT           |
-      //         AV_CODEC_FLAG2_LOCAL_HEADER        |
-      //         AV_CODEC_FLAG2_DROP_FRAME_TIMECODE |
-               AV_CODEC_FLAG2_CHUNKS        |
-               //AV_CODEC_FLAG2_IGNORE_CROP   |
-               AV_CODEC_FLAG2_SHOW_ALL      |
-               //AV_CODEC_FLAG2_EXPORT_MVS    |
-               AV_CODEC_FLAG2_SKIP_MANUAL;
-#endif // ACE_WIN32 || ACE_WIN64
-      format_ = outputFormat_; // try
-      context_->opaque = &format_;
-      //context_->bit_rate = 0;
-      // context_->bit_rate_tolerance
-      //  context_->global_quality
-      //   context_->compression_level
-      context_->flags = flags;
-      context_->flags2 = flags2;
-      //if (session_data_r.codecConfigurationDataSize)
-      //{ ACE_ASSERT (session_data_r.codecConfigurationData);
-      //  ACE_ASSERT (!context_->extradata);
-      //  context_->extradata =
-      //    static_cast<uint8_t*> (av_malloc (session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE));
-      //  if (!context_->extradata)
-      //  {
-      //    ACE_DEBUG ((LM_CRITICAL,
-      //                ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
-      //                inherited::mod_->name ()));
-      //    goto error;
-      //  } // end IF
-      //  ACE_OS::memcpy (context_->extradata,
-      //                  session_data_r.codecConfigurationData,
-      //                  session_data_r.codecConfigurationDataSize);
-      //  context_->extradata_size = session_data_r.codecConfigurationDataSize;
-      //} // end IF
-      //context_->time_base = { 1, 30 };
-      //context_->ticks_per_frame =
-      //  (((codecId_ == AV_CODEC_ID_H264) ||
-      //    (codecId_ == AV_CODEC_ID_MPEG2VIDEO)) ? 2 : 1);
-      // context_->delay
-      //context_->width = formatWidth_;
-      //context_->height = formatHeight_;
-      //context_->coded_width = width;
-      //context_->coded_height = height;
-      //context_->gop_size
-      //context_->pix_fmt = outputFormat_;
-      //context_->draw_horiz_band = NULL;
-//      context_->get_format = stream_decoder_libav_audio_getformat_cb;
-      //context_->max_b_frames
-      // context_->b_quant_factor
-      // context_->b_quant_offset
-      // context_->has_b_frames
-        //      context_->slice_count = 0;
-//      context_->slice_offset = NULL;
-//      context_->slice_flags = 0;
-//      context_->skip_top = 0;
-//      context_->skip_bottom = 0;
-//      context_->field_order = AV_FIELD_UNKNOWN;
-      context_->sample_rate = outputSampleRate_;
-      context_->channels = outputChannels_;
-      //context_->frame_size
-      //context_->block_align = 0;
-      //context_->channel_layout = 0;
-      context_->request_channel_layout =
-        Stream_Module_Decoder_Tools::channelsToLayout (outputChannels_);
-      context_->request_sample_fmt = outputFormat_;
-      // context_->get_buffer2 = NULL;
-      //      context_->refcounted_frames = 0;
-      //context_->rc_max_rate = 0;
-      context_->workaround_bugs = FF_BUG_AUTODETECT;
-      context_->strict_std_compliance = FF_COMPLIANCE_NORMAL;
-//      context_->error_concealment = FF_EC_GUESS_MVS | FF_EC_DEBLOCK | FF_EC_FAVOR_INTER;
-      context_->debug = (inherited::configuration_->debug ? 1 : 0);
-      context_->err_recognition = AV_EF_IGNORE_ERR;
-      context_->reordered_opaque = 0;
-      context_->hwaccel_context = NULL;
-//      context_->idct_algo = FF_IDCT_AUTO;
-      context_->bits_per_coded_sample =
-        av_get_bytes_per_sample (outputFormat_) * 8;
-      context_->lowres = 0;
-      context_->thread_count = 1;
-      // *TODO*: support multithreaded decoding ?
-      //context_->thread_count = Common_Tools::getNumberOfCPUs (true);
-      context_->thread_type = 0;
-      context_->thread_safe_callbacks = 0;
-      //context_->execute = NULL;
-      //context_->execute2 = NULL;
-      context_->skip_loop_filter = AVDISCARD_DEFAULT;
-//      context_->skip_idct = AVDISCARD_DEFAULT;
-//      context_->skip_frame = AVDISCARD_DEFAULT;
-      context_->pkt_timebase.num = 1;
-      context_->pkt_timebase.den = outputSampleRate_;
-      context_->sub_charenc = NULL;
-      context_->skip_alpha = 0;
-      context_->seek_preroll = 0;
-      context_->dump_separator = NULL;
-      context_->codec_whitelist = NULL;
-      //context_->hw_frames_ctx = NULL;
-//      context_->sub_text_format = FF_SUB_TEXT_FMT_ASS;
-      context_->max_samples = 2147483647;
-      //context_->export_side_data = 0;
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
       result = avcodec_parameters_to_context (context_,
                                               codec_parameters_p);
       if (unlikely (result < 0))
@@ -673,8 +546,6 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       avcodec_parameters_free (&codec_parameters_p); codec_parameters_p = NULL;
-#endif // ACE_WIN32 || ACE_WIN64
-//      ACE_ASSERT (context_->pix_fmt == AV_PIX_FMT_NONE);
 
 //      result = av_dict_set (&dictionary_p,
 //                            NULL, NULL,

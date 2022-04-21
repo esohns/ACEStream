@@ -874,12 +874,14 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               AddressType,
                               ConnectionManagerType,
                               UserDataType>::notify (NotificationType notification_in,
-                                                     bool recurseUpstream_in)
+                                                     bool recurseUpstream_in,
+                                                     bool expedite_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::notify"));
 
   inherited::notify (notification_in,
-                     recurseUpstream_in);
+                     recurseUpstream_in,
+                     expedite_in);
 
   // finished ?
   switch (notification_in)

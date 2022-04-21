@@ -142,7 +142,8 @@ class Stream_HeadModuleTaskBase_T
   //            session messages for all events except 'abort'
   //            --> make sure there are no session message 'loops'
   virtual void notify (SessionEventType, // notification type
-                       bool = false);    // N/A
+                       bool = false,     // N/A
+                       bool = false);    // expedite ?
   inline virtual const StreamStateType& state () const { ACE_ASSERT (streamState_); return *streamState_; }
   inline virtual enum Stream_StateMachine_ControlState status () const { enum Stream_StateMachine_ControlState result = inherited2::current (); return result; }
 

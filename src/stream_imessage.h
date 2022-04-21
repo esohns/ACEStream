@@ -26,6 +26,7 @@
 class Stream_IMessage
 {
  public:
+  virtual bool expedited () const = 0; // always goes to the top of any queue
   virtual Stream_MessageId_t id () const = 0;
   virtual Stream_SessionId_t sessionId () const = 0;
 };

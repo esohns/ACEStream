@@ -329,7 +329,8 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (session_data_container_p);
   if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_STEP,
                                                session_data_container_p,
-                                               inherited::streamState_->userData)))
+                                               inherited::streamState_->userData,
+                                               false))) // expedited ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), aborting\n"),
