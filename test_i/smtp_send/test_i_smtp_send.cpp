@@ -1022,7 +1022,7 @@ ACE_TMAIN (int argc_in,
       idle_initialize_UI_cb;
   ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
 #endif // GTK_USE
-  ACE_ASSERT (ui_cb_data_p);
+//  ACE_ASSERT (ui_cb_data_p);
 #endif // GUI_SUPPORT
 
   // step1h: initialize UI framework
@@ -1121,7 +1121,7 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 #endif
-  ACE_ASSERT (ui_state_p);
+//  ACE_ASSERT (ui_state_p);
 #endif // GUI_SUPPORT
 
   // step1e: pre-initialize signal handling

@@ -2711,7 +2711,7 @@ ACE_TMAIN (int argc_in,
   ui_cb_data.configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_file);
 #endif // GTK_USE
 #endif // ACE_WIN32 || ACE_WIN64
-  ACE_ASSERT (ui_cb_data_p);
+//  ACE_ASSERT (ui_cb_data_p);
 #endif // GUI_SUPPORT
 
   // step1d: initialize logging and/or tracing

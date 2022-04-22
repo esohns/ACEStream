@@ -347,10 +347,10 @@ continue_:
 
       // schedule the delay interval timer
       resetTimeoutHandlerId_ =
-        itimer_p->schedule_timer (&resetTimeoutHandler_,                          // event handler handle
-                                  NULL,                                           // asynchronous completion token
-                                  COMMON_TIME_NOW + inherited::configuration_->delayConfiguration->interval, // first wakeup time
-                                  inherited::configuration_->delayConfiguration->interval);                  // interval
+        itimer_p->schedule_timer (&resetTimeoutHandler_,                                    // event handler handle
+                                  NULL,                                                     // asynchronous completion token
+                                  inherited::configuration_->delayConfiguration->interval,  // delay
+                                  inherited::configuration_->delayConfiguration->interval); // interval
       if (unlikely (resetTimeoutHandlerId_ == -1))
       {
         ACE_DEBUG ((LM_ERROR,
