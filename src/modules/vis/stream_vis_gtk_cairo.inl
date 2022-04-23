@@ -433,12 +433,24 @@ error:
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
       ACE_ASSERT (session_data_r.lock);
+      Common_Image_Resolution_t resolution_s;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      struct _AMMediaType media_type_s;
+#else
       struct Stream_MediaFramework_V4L_MediaType media_type_s;
+#endif // ACE_WIN32 || ACE_WIN64
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         inherited3::getMediaType (session_data_r.formats.back (),
                                   STREAM_MEDIATYPE_VIDEO,
                                   media_type_s);
       } // end lock scope
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      resolution_s =
+        Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#else
+      resolution_s = media_type_s.resolution;
+#endif // ACE_WIN32 || ACE_WIN64
 
       ACE_GUARD (ACE_Thread_Mutex, aGuard, surfaceLock_);
 
@@ -466,8 +478,13 @@ error:
 #if GTK_CHECK_VERSION (3,10,0)
         gdk_window_create_similar_image_surface (inherited::configuration_->window,
                                                  CAIRO_FORMAT_RGB24,
-                                                 media_type_s.format.width,
-                                                 media_type_s.format.height,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                 resolution_s.cx,
+                                                 resolution_s.cy,
+#else
+                                                 resolution_s.width,
+                                                 resolution_s.height,
+#endif // ACE_WIN32 || ACE_WIN64
                                                  1.0);
       if (unlikely (!surface_))
       {
@@ -479,10 +496,17 @@ error:
         goto error_2;
       } // end IF
 #elif GTK_CHECK_VERSION (3,0,0)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
         gdk_pixbuf_get_from_window (inherited::configuration_->window,
                                     0, 0,
-                                    media_type_s.format.width,
-                                    media_type_s.format.height);
+                                    resolution_s.cx,
+                                    resolution_s.cy);
+#else
+        gdk_pixbuf_get_from_window (inherited::configuration_->window,
+                                    0, 0,
+                                    resolution_s.width,
+                                    resolution_s.height);
+#endif // ACE_WIN32 || ACE_WIN64
       if (unlikely (!surface_))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -492,14 +516,19 @@ error:
         GDK_THREADS_LEAVE ();
         goto error_2;
       } // end IF
-#elif GTK_CHECK_VERSION(2,0,0)
+#elif GTK_CHECK_VERSION (2,0,0)
         gdk_pixbuf_get_from_drawable (NULL,
                                       GDK_DRAWABLE (inherited::configuration_->window),
                                       NULL,
                                       0, 0,
                                       0, 0,
-                                      media_type_s.format.width,
-                                      media_type_s.format.height);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                      resolution_s.cx,
+                                      resolution_s.cy);
+#else
+                                      resolution_s.width,
+                                      resolution_s.height);
+#endif // ACE_WIN32 || ACE_WIN64
       if (unlikely (!surface_))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -516,11 +545,19 @@ error:
       ACE_NOTREACHED (return false;)
 #endif // GTK_CHECK_VERSION
       GDK_THREADS_LEAVE ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: resized surface to %ux%u\n"),
                   inherited::mod_->name (),
-                  media_type_s.format.width,
-                  media_type_s.format.height));
+                  resolution_s.cx,
+                  resolution_s.cy));
+#else
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: resized surface to %ux%u\n"),
+                  inherited::mod_->name (),
+                  resolution_s.width,
+                  resolution_s.height));
+#endif // ACE_WIN32 || ACE_WIN64
 
       inherited2::resizing_ = false;
 

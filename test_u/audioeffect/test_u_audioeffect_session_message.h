@@ -61,12 +61,12 @@ class Test_U_AudioEffect_DirectShow_SessionMessage
                                                  Test_U_AudioEffect_DirectShow_SessionMessage>;
 
  public:
-  // *NOTE*: assumes responsibility for the second argument !
-  // *TODO*: (using gcc) cannot pass reference to pointer for some reason
+  // *NOTE*: assumes responsibility for the third argument !
   Test_U_AudioEffect_DirectShow_SessionMessage (Stream_SessionId_t,
                                                 enum Stream_SessionMessageType,
                                                 Test_U_AudioEffect_DirectShow_SessionData_t*&, // session data container handle
-                                                struct Stream_UserData*);
+                                                struct Stream_UserData*,
+                                                bool); // expedited ?
   inline virtual ~Test_U_AudioEffect_DirectShow_SessionMessage () {}
 
   // overloaded from ACE_Message_Block
@@ -107,12 +107,12 @@ class Test_U_AudioEffect_MediaFoundation_SessionMessage
                                                  Test_U_AudioEffect_MediaFoundation_SessionMessage>;
 
  public:
-  // *NOTE*: assumes responsibility for the second argument !
-  // *TODO*: (using gcc) cannot pass reference to pointer for some reason
+  // *NOTE*: assumes responsibility for the third argument !
   Test_U_AudioEffect_MediaFoundation_SessionMessage (Stream_SessionId_t,
                                                      enum Stream_SessionMessageType,
                                                      Test_U_AudioEffect_MediaFoundation_SessionData_t*&, // session data container handle
-                                                     struct Stream_UserData*);
+                                                     struct Stream_UserData*,
+                                                     bool); // expedited ?
   inline virtual ~Test_U_AudioEffect_MediaFoundation_SessionMessage () {}
 
   // overloaded from ACE_Message_Block

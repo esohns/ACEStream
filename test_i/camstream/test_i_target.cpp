@@ -2640,13 +2640,14 @@ ACE_TMAIN (int argc_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       //directshow_ui_cb_data.progressData.state = &directshow_ui_cb_data;
-      ui_cb_data_p = &directshow_ui_cb_data;
+      //ui_cb_data_p = &directshow_ui_cb_data;
       directshow_ui_cb_data.configuration = &directshow_configuration;
+      directshow_ui_cb_data.mediaFramework = media_framework_e;
 #if defined (GTK_USE)
       directshow_ui_cb_data.UIState = &state_r;
       directshow_configuration.GTKConfiguration.argc = argc_in;
       directshow_configuration.GTKConfiguration.argv = argv_in;
-      directshow_configuration.GTKConfiguration.CBData = ui_cb_data_p;
+      directshow_configuration.GTKConfiguration.CBData = &directshow_ui_cb_data;
       directshow_configuration.GTKConfiguration.eventHooks.finiHook =
         idle_finalize_target_UI_cb;
       directshow_configuration.GTKConfiguration.eventHooks.initHook =
@@ -2660,13 +2661,15 @@ ACE_TMAIN (int argc_in,
     {
       //mediafoundation_ui_cb_data.progressData.state =
       //  &mediafoundation_ui_cb_data;
-      ui_cb_data_p = &mediafoundation_ui_cb_data;
+      //ui_cb_data_p = &mediafoundation_ui_cb_data;
       mediafoundation_ui_cb_data.configuration = &mediafoundation_configuration;
-#if defined (GTK_USE)
+      mediafoundation_ui_cb_data.mediaFramework = media_framework_e;
+#if defined(GTK_USE)
       mediafoundation_ui_cb_data.UIState = &state_r;
       mediafoundation_configuration.GTKConfiguration.argc = argc_in;
       mediafoundation_configuration.GTKConfiguration.argv = argv_in;
-      mediafoundation_configuration.GTKConfiguration.CBData = ui_cb_data_p;
+      mediafoundation_configuration.GTKConfiguration.CBData =
+        &mediafoundation_ui_cb_data;
       mediafoundation_configuration.GTKConfiguration.eventHooks.finiHook =
         idle_finalize_target_UI_cb;
       mediafoundation_configuration.GTKConfiguration.eventHooks.initHook =
@@ -2691,7 +2694,6 @@ ACE_TMAIN (int argc_in,
       return EXIT_FAILURE;
     }
   } // end SWITCH
-  ui_cb_data_p->mediaFramework = media_framework_e;
 #else
   struct Test_I_Target_UI_CBData ui_cb_data;
   struct Test_I_Target_Configuration configuration;

@@ -1492,9 +1492,11 @@ idle_finalize_UI_cb (gpointer userData_in)
   STREAM_TRACE (ACE_TEXT ("::idle_finalize_UI_cb"));
 
   // sanity check(s)
-//  struct Test_I_UI_CBData* ui_cb_data_base_p =
-//    static_cast<struct Test_I_UI_CBData*> (userData_in);
-//  ACE_ASSERT (ui_cb_data_base_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_I_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Test_I_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+#endif // ACE_WIN32 || ACE_WIN64
 
   Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

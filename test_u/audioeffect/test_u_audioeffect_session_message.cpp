@@ -29,11 +29,13 @@
 Test_U_AudioEffect_DirectShow_SessionMessage::Test_U_AudioEffect_DirectShow_SessionMessage (Stream_SessionId_t sessionId_in,
                                                                                             Stream_SessionMessageType messageType_in,
                                                                                             Test_U_AudioEffect_DirectShow_SessionData_t*& sessionData_in,
-                                                                                            Stream_UserData* userData_in)
+                                                                                            Stream_UserData* userData_in,
+                                                                                            bool expedited_in)
  : inherited (sessionId_in,
               messageType_in,
               sessionData_in,
-              userData_in)
+              userData_in,
+              expedited_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_SessionMessage::Test_U_AudioEffect_DirectShow_SessionMessage"));
 
@@ -119,11 +121,13 @@ Test_U_AudioEffect_DirectShow_SessionMessage::duplicate (void) const
 Test_U_AudioEffect_MediaFoundation_SessionMessage::Test_U_AudioEffect_MediaFoundation_SessionMessage (Stream_SessionId_t sessionId_in,
                                                                                                       Stream_SessionMessageType messageType_in,
                                                                                                       Test_U_AudioEffect_MediaFoundation_SessionData_t*& sessionData_in,
-                                                                                                      Stream_UserData* userData_in)
+                                                                                                      Stream_UserData* userData_in,
+                                                                                                      bool expedited_in)
  : inherited (sessionId_in,
               messageType_in,
               sessionData_in,
-              userData_in)
+              userData_in,
+              expedited_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_SessionMessage::Test_U_AudioEffect_MediaFoundation_SessionMessage"));
 

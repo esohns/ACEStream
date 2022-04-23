@@ -631,8 +631,8 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
                        inherited::configuration_->outputFormat.resolution.width,
                        inherited::configuration_->outputFormat.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
-                       LanczosFilter,
-                       1.0); // do not blur
+                       LanczosFilter/*,
+                       1.0*/); // do not blur
   ACE_ASSERT (result == MagickTrue);
 
 //  // Set the compression quality to 95 (high quality = low compression)

@@ -296,8 +296,8 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
       struct tWAVEFORMATEX* waveformatex_p =
         Stream_MediaFramework_DirectShow_Tools::toWaveFormatEx (media_type_s);
       ACE_ASSERT (waveformatex_p);
-      sample_rate = waveformatex_p->sampleRate;
-      channels = waveformatex_p->channels;
+      sample_rate = waveformatex_p->nSamplesPerSec;
+      channels = waveformatex_p->nChannels;
       sampleSize_ = (waveformatex_p->wBitsPerSample / 8);
       CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
