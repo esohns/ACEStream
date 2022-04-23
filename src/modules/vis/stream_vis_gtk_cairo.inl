@@ -195,9 +195,6 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  // sanity check(s)
-  ACE_ASSERT (surface_);
-
   ACE_GUARD (ACE_Thread_Mutex, aGuard, surfaceLock_);
 
 #if GTK_CHECK_VERSION(3,10,0)

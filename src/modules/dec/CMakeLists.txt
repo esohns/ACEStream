@@ -5,6 +5,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../lib/
 include (sox)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 include (deepspeech)
+include (faad)
 include (festival)
 include (mpg123)
 include (opencv)
@@ -29,6 +30,10 @@ endif (WIN32)
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
+if (FAAD_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${faad_INCLUDE_DIRS}>)
+endif (FAAD_SUPPORT)
 if (FFMPEG_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
@@ -183,6 +188,13 @@ if (WIN32)
       stream_dec_avi_encoder.h
       stream_dec_avi_encoder.inl)
 endif (WIN32)
+if (FAAD_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_dec_faad_decoder.cpp
+      stream_dec_faad_decoder.h
+      stream_dec_faad_decoder.inl)
+endif (FAAD_SUPPORT)
 if (FFMPEG_SUPPORT)
  set (source_files
       ${source_files}
@@ -312,6 +324,9 @@ set_property (TARGET ${PROJECT_NAME}_Decoder PROPERTY FOLDER "modules")
 add_dependencies (${PROJECT_NAME}_Decoder Common)
 add_dependencies (${PROJECT_NAME}_Decoder ${PROJECT_NAME})
 
+if (FAAD_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${faad_LIBRARIES})
+endif (FAAD_SUPPORT)
 if (FFMPEG_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)
@@ -413,6 +428,12 @@ if (WIN32)
       stream_dec_avi_encoder.h
       stream_dec_avi_encoder.inl)
 endif (WIN32)
+if (FAAD_SUPPORT)
+ set (${PROJECT_NAME}_Decoder_LIB_HDRS
+      ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+      stream_dec_faad_decoder.h
+      stream_dec_faad_decoder.inl)
+endif (FAAD_SUPPORT)
 if (FFMPEG_SUPPORT)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS
       ${${PROJECT_NAME}_Decoder_LIB_HDRS}

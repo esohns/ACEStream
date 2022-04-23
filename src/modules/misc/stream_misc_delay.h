@@ -30,6 +30,7 @@
 
 #include "stream_common.h"
 #include "stream_task_base_asynch.h"
+#include "stream_task_base_synch.h"
 
 #include "stream_misc_common.h"
 
@@ -50,27 +51,27 @@ template <ACE_SYNCH_DECL,
           ///////////////////////////////
           typename UserDataType>
 class Stream_Module_Delay_T
- : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  enum Stream_ControlType,
-                                  enum Stream_SessionMessageType,
-                                  UserDataType>
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_ICounter
 {
-  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  enum Stream_ControlType,
-                                  enum Stream_SessionMessageType,
-                                  UserDataType> inherited;
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
@@ -96,6 +97,77 @@ class Stream_Module_Delay_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Delay_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Delay_T (const Stream_Module_Delay_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Delay_T& operator= (const Stream_Module_Delay_T&))
+
+  // implement Common_ICounter
+  virtual void reset ();
+
+  ACE_UINT64                       availableTokens_;
+  ACE_SYNCH_CONDITION              condition_;
+  Common_Timer_ResetCounterHandler resetTimeoutHandler_;
+  long                             resetTimeoutHandlerId_;
+};
+
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ///////////////////////////////
+          typename MediaType,
+          ///////////////////////////////
+          typename UserDataType>
+class Stream_Module_Delay_2
+ : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  UserDataType>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+ , public Common_ICounter
+{
+  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  UserDataType> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+
+ public:
+         // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_Delay_2 (ISTREAM_T*); // stream handle
+#else
+  Stream_Module_Delay_2 (typename inherited::ISTREAM_T*); // stream handle
+#endif // ACE_WIN32 || ACE_WIN64
+  inline virtual ~Stream_Module_Delay_2 () {}
+
+     // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL); // report cache usage ?
+
+     // implement (part of) Stream_ITaskBase_T
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Delay_2 ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Delay_2 (const Stream_Module_Delay_2&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Delay_2& operator= (const Stream_Module_Delay_2&))
 
   // implement Common_ICounter
   virtual void reset ();

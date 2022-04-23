@@ -425,7 +425,9 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       struct AVCodecParameters* codec_parameters_p = NULL;
       struct AVDictionary* dictionary_p = NULL;
       int flags, flags2;
-//      unsigned int buffer_size = 0;
+      //int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM |
+      //              FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
+      int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_BUGS;
 
       codec_p = avcodec_find_decoder (codecId_);
       if (unlikely (!codec_p))
@@ -548,6 +550,10 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       avcodec_parameters_free (&codec_parameters_p); codec_parameters_p = NULL;
+#if defined (_DEBUG)
+      context_->debug = (inherited::configuration_->debug ? debug_i : 0);
+#endif // _DEBUG
+      context_->err_recognition = 0;
 
 //      result = av_dict_set (&dictionary_p,
 //                            NULL, NULL,

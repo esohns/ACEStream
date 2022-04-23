@@ -3948,13 +3948,13 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   STREAM_TRACE (ACE_TEXT ("::togglebutton_fullscreen_toggled_cb"));
 
   // sanity check(s)
-  struct Test_I_UI_CBData* ui_cb_data_base_p =
-    static_cast<struct Test_I_UI_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_base_p);
-  ACE_ASSERT (ui_cb_data_base_p->UIState);
-  Common_UI_GTK_BuildersIterator_t iterator =
-    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+//  struct Test_I_UI_CBData* ui_cb_data_base_p =
+//    static_cast<struct Test_I_UI_CBData*> (userData_in);
+//  ACE_ASSERT (ui_cb_data_base_p);
+//  ACE_ASSERT (ui_cb_data_base_p->UIState);
+//  Common_UI_GTK_BuildersIterator_t iterator =
+//    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+//  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 } // togglebutton_fullscreen_toggled_cb
 
 void

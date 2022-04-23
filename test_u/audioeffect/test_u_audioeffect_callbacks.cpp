@@ -12428,7 +12428,7 @@ filechooserbutton_file_file_set_cb (GtkFileChooserButton* button_in,
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+//  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
 //  Common_UI_GTK_BuildersConstIterator_t iterator =
 //    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 //  ACE_ASSERT (iterator != state_r.builders.end ());
