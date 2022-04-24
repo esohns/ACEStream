@@ -130,6 +130,45 @@ typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                 enum Stream_SessionMessageType,
                                 struct Stream_UserData> Test_I_MediaFoundation_TaskBaseAsynch_t;
 #else
+typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Stream_CamSave_V4L_Message_t,
+                               Stream_CamSave_V4L_SessionMessage_t,
+                               enum Stream_ControlType,
+                               enum Stream_SessionMessageType,
+                               struct Stream_UserData> Test_I_V4L_TaskBaseSynch_t;
+typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t,
+                                struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
+                                Stream_ControlMessage_t,
+                                Stream_CamSave_V4L_Message_t,
+                                Stream_CamSave_V4L_SessionMessage_t,
+                                enum Stream_ControlType,
+                                enum Stream_SessionMessageType,
+                                struct Stream_UserData> Test_I_V4L_TaskBaseAsynch_t;
+
+#if defined (LIBCAMERA_SUPPORT)
+typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Stream_CamSave_LibCamera_Message_t,
+                               Stream_CamSave_LibCamera_SessionMessage_t,
+                               enum Stream_ControlType,
+                               enum Stream_SessionMessageType,
+                               struct Stream_UserData> Test_I_LibCamera_TaskBaseSynch_t;
+typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t,
+                                struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
+                                Stream_ControlMessage_t,
+                                Stream_CamSave_LibCamera_Message_t,
+                                Stream_CamSave_LibCamera_SessionMessage_t,
+                                enum Stream_ControlType,
+                                enum Stream_SessionMessageType,
+                                struct Stream_UserData> Test_I_LibCamera_TaskBaseAsynch_t;
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -258,21 +297,9 @@ typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CamSave_LibCamera_SessionData> Stream_CamSave_LibCamera_Distributor_Writer_t;
 
 #if defined (FFMPEG_SUPPORT)
-typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
-                                        Stream_ControlMessage_t,
-                                        Stream_CamSave_LibCamera_Message_t,
-                                        Stream_CamSave_LibCamera_SessionMessage_t,
-                                        Stream_CamSave_LibCamera_SessionData_t,
+typedef Stream_Decoder_LibAVConverter_T<Test_I_LibCamera_TaskBaseSynch_t,
                                         struct Stream_MediaFramework_LibCamera_MediaType> Stream_CamSave_LibCamera_LibAVConverter;
-typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Stream_CamSave_LibCamera_Message_t,
-                                           Stream_CamSave_LibCamera_SessionMessage_t,
-                                           Stream_CamSave_LibCamera_SessionData_t,
+typedef Stream_Visualization_LibAVResize_T<Test_I_LibCamera_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_LibCamera_MediaType> Stream_CamSave_LibCamera_LibAVResize;
 #endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT
@@ -304,21 +331,9 @@ typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CamSave_V4L_SessionData> Stream_CamSave_V4L_Distributor_Writer_t;
 
 #if defined (FFMPEG_SUPPORT)
-typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
-                                        Stream_ControlMessage_t,
-                                        Stream_CamSave_V4L_Message_t,
-                                        Stream_CamSave_V4L_SessionMessage_t,
-                                        Stream_CamSave_V4L_SessionData_t,
+typedef Stream_Decoder_LibAVConverter_T<Test_I_V4L_TaskBaseSynch_t,
                                         struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_V4L_LibAVConverter;
-typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Stream_CamSave_V4L_Message_t,
-                                           Stream_CamSave_V4L_SessionMessage_t,
-                                           Stream_CamSave_V4L_SessionData_t,
+typedef Stream_Visualization_LibAVResize_T<Test_I_V4L_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_V4L_LibAVResize;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64

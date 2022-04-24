@@ -39,6 +39,8 @@ extern "C"
 
 #include "stream_macros.h"
 
+#include "stream_lib_tools.h"
+
 #include "stream_dec_defines.h"
 #include "stream_dec_tools.h"
 

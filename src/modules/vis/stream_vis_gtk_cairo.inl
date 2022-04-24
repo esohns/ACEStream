@@ -450,7 +450,8 @@ error:
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
-      resolution_s = media_type_s.resolution;
+      resolution_s.width = media_type_s.format.width;
+      resolution_s.height = media_type_s.format.height;
 #endif // ACE_WIN32 || ACE_WIN64
 
       ACE_GUARD (ACE_Thread_Mutex, aGuard, surfaceLock_);

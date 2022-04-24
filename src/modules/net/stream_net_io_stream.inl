@@ -313,8 +313,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   bool reset_setup_pipeline_b = false;
   //typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
   //  const_cast<inherited::CONFIGURATION_T&> (configuration_in.find (ACE_TEXT_ALWAYS_CHAR ("")));
-  typename inherited::MODULE_T* module_p = NULL;
-  WRITER_T* IOWriter_impl_p = NULL;
+//  typename inherited::MODULE_T* module_p = NULL;
+//  WRITER_T* IOWriter_impl_p = NULL;
   Common_ISet_T<bool>* iset_p = NULL;
 
   // sanity check(s)

@@ -105,6 +105,25 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 struct Stream_UserData,
                                                 IMFMediaType*> Stream_CameraScreen_MediaFoundation_Source;
 #else
+typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Stream_CameraScreen_Message_t,
+                               Stream_CameraScreen_SessionMessage_t,
+                               enum Stream_ControlType,
+                               enum Stream_SessionMessageType,
+                               struct Stream_UserData> Test_U_TaskBaseSynch_t;
+typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t,
+                                struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
+                                Stream_ControlMessage_t,
+                                Stream_CameraScreen_Message_t,
+                                Stream_CameraScreen_SessionMessage_t,
+                                enum Stream_ControlType,
+                                enum Stream_SessionMessageType,
+                                struct Stream_UserData> Test_U_TaskBaseAsynch_t;
+
 typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Stream_ControlMessage_t,
                                       Stream_CameraScreen_Message_t,
@@ -120,22 +139,10 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       struct Stream_UserData> Stream_CameraScreen_V4L_Source;
 
 #if defined (FFMPEG_SUPPORT)
-typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
-                                        Stream_ControlMessage_t,
-                                        Stream_CameraScreen_Message_t,
-                                        Stream_CameraScreen_SessionMessage_t,
-                                        Stream_CameraScreen_V4L_SessionData_t,
+typedef Stream_Decoder_LibAVConverter_T<Test_U_TaskBaseSynch_t,
                                         struct Stream_MediaFramework_V4L_MediaType> Stream_CameraScreen_LibAVConvert;
 
-typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Stream_CameraScreen_Message_t,
-                                           Stream_CameraScreen_SessionMessage_t,
-                                           Stream_CameraScreen_V4L_SessionData_t,
+typedef Stream_Visualization_LibAVResize_T<Test_U_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_V4L_MediaType> Stream_CameraScreen_LibAVResize;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64

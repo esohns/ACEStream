@@ -46,6 +46,7 @@ extern "C"
 extern "C"
 {
 #include "libavcodec/codec_id.h"
+#include "libavutil/hwcontext.h"
 #include "libavutil/pixdesc.h"
 #include "libavutil/pixfmt.h"
 #include "libavutil/samplefmt.h"
@@ -112,7 +113,6 @@ class Stream_MediaFramework_Tools
   static unsigned int frameSize (const IMFMediaType*);
 
 #if defined (FFMPEG_SUPPORT)
-  static enum AVPixelFormat AVHWDeviceTypeToPixelFormat (enum AVHWDeviceType);
   static WORD AVSampleFormatToFormatTag (enum AVSampleFormat); // format
   static struct _GUID AVSampleFormatToMediaSubType (enum AVSampleFormat); // format
   static struct _GUID AVPixelFormatToMediaSubType (enum AVPixelFormat); // format
@@ -149,6 +149,7 @@ class Stream_MediaFramework_Tools
 
 #if defined (FFMPEG_SUPPORT)
   // ffmpeg
+  static enum AVPixelFormat AVHWDeviceTypeToPixelFormat (enum AVHWDeviceType);
   static enum AVCodecID ffmpegFormatToffmpegCodecId (enum AVSampleFormat); // format
   inline static std::string pixelFormatToString (enum AVPixelFormat format_in) { std::string result = ((format_in == AV_PIX_FMT_NONE) ? ACE_TEXT_ALWAYS_CHAR ("NONE") : av_get_pix_fmt_name (format_in)); return result; }
   inline static std::string sampleFormatToString (enum AVSampleFormat format_in) { std::string result = ((format_in == AV_SAMPLE_FMT_NONE) ? ACE_TEXT_ALWAYS_CHAR ("NONE") : av_get_sample_fmt_name (format_in)); return result; }
