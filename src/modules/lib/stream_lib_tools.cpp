@@ -1152,6 +1152,48 @@ continue_:
 }
 
 #if defined (FFMPEG_SUPPORT)
+enum AVPixelFormat
+Stream_MediaFramework_Tools::AVHWDeviceTypeToPixelFormat (enum AVHWDeviceType type_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::AVHWDeviceTypeToPixelFormat"));
+
+  enum AVPixelFormat result = AV_PIX_FMT_NONE;
+
+  switch (type_in)
+  {
+    case AV_HWDEVICE_TYPE_VDPAU:
+      return AV_PIX_FMT_VDPAU;
+    case AV_HWDEVICE_TYPE_CUDA:
+      return AV_PIX_FMT_CUDA;
+    case AV_HWDEVICE_TYPE_VAAPI:
+      return AV_PIX_FMT_VAAPI;
+    case AV_HWDEVICE_TYPE_DXVA2:
+      return AV_PIX_FMT_DXVA2_VLD;
+    case AV_HWDEVICE_TYPE_QSV:
+      return AV_PIX_FMT_QSV;
+    case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
+      return AV_PIX_FMT_VIDEOTOOLBOX;
+    case AV_HWDEVICE_TYPE_D3D11VA:
+      return AV_PIX_FMT_D3D11;
+    case AV_HWDEVICE_TYPE_OPENCL:
+      return AV_PIX_FMT_OPENCL;
+    case AV_HWDEVICE_TYPE_MEDIACODEC:
+      return AV_PIX_FMT_MEDIACODEC;
+    case AV_HWDEVICE_TYPE_VULKAN:
+      return AV_PIX_FMT_VULKAN;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown hardware device type (was: %d: \"%s\"), aborting\n"),
+                  type_in,
+                  ACE_TEXT (av_hwdevice_get_type_name (type_in))));
+      break;
+    }
+  } // end SWITCH
+  
+  return result;
+}
+
 WORD
 Stream_MediaFramework_Tools::AVSampleFormatToFormatTag (enum AVSampleFormat sampleFormat_in)
 {

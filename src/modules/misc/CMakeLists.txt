@@ -82,6 +82,9 @@ set (source_files
      stream_misc_queue_source.cpp
      stream_misc_queue_source.h
      stream_misc_queue_source.inl
+     stream_misc_queue_target.cpp
+     stream_misc_queue_target.h
+     stream_misc_queue_target.inl
      stream_misc_splitter.cpp
      stream_misc_splitter.h
      stream_misc_splitter.inl)
@@ -148,6 +151,8 @@ install (FILES
          stream_misc_parser.inl
          stream_misc_queue_source.h
          stream_misc_queue_source.inl
+         stream_misc_queue_target.h
+         stream_misc_queue_target.inl
          stream_misc_splitter.h
          stream_misc_splitter.inl
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"

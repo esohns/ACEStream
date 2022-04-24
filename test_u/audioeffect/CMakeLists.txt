@@ -306,7 +306,7 @@ elseif (WIN32)
                 ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxbase316d_vc_x64_custom.dll
                 ${LIB_ROOT}/zlib/build/Debug/zlibd.dll
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
- install (FILES etc/${ui_definition_file}
+ install (FILES etc/${EXECUTABLE}.gtk2 etc/${EXECUTABLE}.gtk3
           DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
  install (FILES ${LIB_ROOT}/gtk3/share/glib-2.0/schemas/gschemas.compiled

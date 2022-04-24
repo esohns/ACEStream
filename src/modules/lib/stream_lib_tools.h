@@ -112,6 +112,7 @@ class Stream_MediaFramework_Tools
   static unsigned int frameSize (const IMFMediaType*);
 
 #if defined (FFMPEG_SUPPORT)
+  static enum AVPixelFormat AVHWDeviceTypeToPixelFormat (enum AVHWDeviceType);
   static WORD AVSampleFormatToFormatTag (enum AVSampleFormat); // format
   static struct _GUID AVSampleFormatToMediaSubType (enum AVSampleFormat); // format
   static struct _GUID AVPixelFormatToMediaSubType (enum AVPixelFormat); // format
