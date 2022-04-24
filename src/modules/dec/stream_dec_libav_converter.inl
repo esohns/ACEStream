@@ -38,26 +38,10 @@ extern "C"
 
 #include "stream_lib_ffmpeg_common.h"
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
+template <typename TaskType,
           typename MediaType>
-Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
-                                TimePolicyType,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType,
-                                SessionDataContainerType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                MediaType>::Stream_Decoder_LibAVConverter_T (ISTREAM_T* stream_in)
-#else
-                                MediaType>::Stream_Decoder_LibAVConverter_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
+Stream_Decoder_LibAVConverter_T<TaskType,
+                                MediaType>::Stream_Decoder_LibAVConverter_T (typename TaskType::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
  , buffer_ (NULL)
@@ -70,21 +54,9 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
 
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
+template <typename TaskType,
           typename MediaType>
-Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
-                                TimePolicyType,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType,
-                                SessionDataContainerType,
+Stream_Decoder_LibAVConverter_T<TaskType,
                                 MediaType>::~Stream_Decoder_LibAVConverter_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVConverter_T::~Stream_Decoder_LibAVConverter_T"));
@@ -99,29 +71,14 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
     av_frame_free (&frame_);
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
+template <typename TaskType,
           typename MediaType>
 bool
-Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
-                                TimePolicyType,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType,
-                                SessionDataContainerType,
-                                MediaType>::initialize (const ConfigurationType& configuration_in,
+Stream_Decoder_LibAVConverter_T<TaskType,
+                                MediaType>::initialize (const typename TaskType::CONFIGURATION_T& configuration_in,
                                                         Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVConverter_T::initialize"));
-
-//  int result = -1;
-//  int flags = 0;
 
   if (unlikely (inherited::isInitialized_))
   {
@@ -155,23 +112,11 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
                                 allocator_in);
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
+template <typename TaskType,
           typename MediaType>
 void
-Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
-                                TimePolicyType,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType,
-                                SessionDataContainerType,
-                                MediaType>::handleDataMessage (DataMessageType*& message_inout,
+Stream_Decoder_LibAVConverter_T<TaskType,
+                                MediaType>::handleDataMessage (typename TaskType::DATA_MESSAGE_T*& message_inout,
                                                                bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVConverter_T::handleDataMessage"));
@@ -285,23 +230,11 @@ error:
   this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
+template <typename TaskType,
           typename MediaType>
 void
-Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
-                                TimePolicyType,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType,
-                                SessionDataContainerType,
-                                MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+Stream_Decoder_LibAVConverter_T<TaskType,
+                                MediaType>::handleSessionMessage (typename TaskType::SESSION_MESSAGE_T*& message_inout,
                                                                   bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVConverter_T::handleSessionMessage"));
@@ -311,10 +244,10 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  const SessionDataContainerType& session_data_container_r =
+  const typename TaskType::SESSION_MESSAGE_T::DATA_T& session_data_container_r =
     message_inout->getR ();
-  typename SessionDataContainerType::DATA_T& session_data_r =
-    const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
+  typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T& session_data_r =
+    const_cast<typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T&> (session_data_container_r.getR ());
   // *TODO*: remove type inference
   ACE_ASSERT (!session_data_r.formats.empty ());
 
@@ -556,26 +489,10 @@ error:
 
 //////////////////////////////////////////
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
+template <typename TaskType,
           typename MediaType>
-Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 SessionDataContainerType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                 MediaType>::Stream_Decoder_LibAVConverter1_T (ISTREAM_T* stream_in)
-#else
-                                 MediaType>::Stream_Decoder_LibAVConverter1_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
+Stream_Decoder_LibAVConverter1_T<TaskType,
+                                 MediaType>::Stream_Decoder_LibAVConverter1_T (typename TaskType::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
 {
@@ -583,23 +500,11 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
 
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
+template <typename TaskType,
           typename MediaType>
 bool
-Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 SessionDataContainerType,
-                                 MediaType>::initialize (const ConfigurationType& configuration_in,
+Stream_Decoder_LibAVConverter1_T<TaskType,
+                                 MediaType>::initialize (const typename TaskType::CONFIGURATION_T& configuration_in,
                                                          Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVConverter1_T::initialize"));
@@ -623,23 +528,11 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
                                 allocator_in);
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
+template <typename TaskType,
           typename MediaType>
 void
-Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 SessionDataContainerType,
-                                 MediaType>::handleDataMessage (DataMessageType*& message_inout,
+Stream_Decoder_LibAVConverter1_T<TaskType,
+                                 MediaType>::handleDataMessage (typename TaskType::DATA_MESSAGE_T*& message_inout,
                                                                 bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVConverter1_T::handleDataMessage"));
@@ -649,16 +542,16 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
 
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
-  DataMessageType* message_p = NULL;
+  typename TaskType::DATA_MESSAGE_T* message_p = NULL;
   struct SwsContext* context_p = NULL;
 //  unsigned char* data_p = NULL;
   int flags_i = 0;
   size_t size_i = 0;//, size_2 = 0;
   AVFrame* frame_p = NULL;
-  typename DataMessageType::DATA_T& message_data_r =
-      const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
+  typename TaskType::DATA_MESSAGE_T::DATA_T& message_data_r =
+      const_cast<typename TaskType::DATA_MESSAGE_T::DATA_T&> (message_inout->getR ());
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s, media_type_2;
-  typename DataMessageType::DATA_T message_data_2;
+  typename TaskType::DATA_MESSAGE_T::DATA_T message_data_2;
   int line_sizes[AV_NUM_DATA_POINTERS];
   uint8_t* data[AV_NUM_DATA_POINTERS];
   ACE_OS::memset (&line_sizes, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
@@ -703,7 +596,7 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
                 size_i));
     goto error;
   } // end IF
-  message_p = static_cast<DataMessageType*> (message_block_p);
+  message_p = static_cast<typename TaskType::DATA_MESSAGE_T*> (message_block_p);
   message_data_2.format = inherited::configuration_->outputFormat;
   message_p->initialize (message_data_2,
                          message_p->sessionId (),
@@ -857,23 +750,11 @@ error:
   this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
+template <typename TaskType,
           typename MediaType>
 void
-Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 SessionDataContainerType,
-                                 MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+Stream_Decoder_LibAVConverter1_T<TaskType,
+                                 MediaType>::handleSessionMessage (typename TaskType::SESSION_MESSAGE_T*& message_inout,
                                                                    bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVConverter1_T::handleSessionMessage"));

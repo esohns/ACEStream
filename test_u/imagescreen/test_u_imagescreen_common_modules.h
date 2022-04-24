@@ -63,6 +63,25 @@
 #include "test_u_imagescreen_session_message.h"
 
 // declare module(s)
+typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Stream_ImageScreen_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Stream_ImageScreen_Message_t,
+                               Stream_ImageScreen_SessionMessage_t,
+                               enum Stream_ControlType,
+                               enum Stream_SessionMessageType,
+                               struct Stream_UserData> Test_U_TaskBaseSynch_t;
+typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t,
+                                struct Stream_ImageScreen_ModuleHandlerConfiguration,
+                                Stream_ControlMessage_t,
+                                Stream_ImageScreen_Message_t,
+                                Stream_ImageScreen_SessionMessage_t,
+                                enum Stream_ControlType,
+                                enum Stream_SessionMessageType,
+                                struct Stream_UserData> Test_U_TaskBaseAsynch_t;
+
 typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,
                                     Stream_ImageScreen_Message_t,
@@ -89,24 +108,19 @@ typedef Stream_Decoder_LibAV_ImageDecoder_T<ACE_MT_SYNCH,
 #else
                                             struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_FFMPEG_Decode;
 #endif // ACE_WIN32 || ACE_WIN64
-typedef Stream_Visualization_LibAVResize1_T<ACE_MT_SYNCH,
-                                            Common_TimePolicy_t,
-                                            struct Stream_ImageScreen_ModuleHandlerConfiguration,
-                                            Stream_ControlMessage_t,
-                                            Stream_ImageScreen_Message_t,
-                                            Stream_ImageScreen_SessionMessage_t,
+typedef Stream_Decoder_LibAVConverter_T<Test_U_TaskBaseSynch_t,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                        struct _AMMediaType> Test_U_LibAVConverter;
+#else
+                                        struct Stream_MediaFramework_FFMPEG_MediaType> Test_U_LibAVConverter;
+#endif // ACE_WIN32 || ACE_WIN64
+typedef Stream_Visualization_LibAVResize1_T<Test_U_TaskBaseSynch_t,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                             struct _AMMediaType> Stream_ImageScreen_FFMPEG_Resize;
 #else
                                             struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_FFMPEG_Resize;
 #endif // ACE_WIN32 || ACE_WIN64
-typedef Stream_Decoder_LibAVConverter1_T<ACE_MT_SYNCH,
-                                         Common_TimePolicy_t,
-                                         struct Stream_ImageScreen_ModuleHandlerConfiguration,
-                                         Stream_ControlMessage_t,
-                                         Stream_ImageScreen_Message_t,
-                                         Stream_ImageScreen_SessionMessage_t,
-                                         Stream_ImageScreen_SessionData_t,
+typedef Stream_Decoder_LibAVConverter1_T<Test_U_TaskBaseSynch_t,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                          struct _AMMediaType> Stream_ImageScreen_FFMPEG_Convert;
 #else

@@ -40,26 +40,10 @@ extern "C"
 
 #include "stream_lib_ffmpeg_common.h"
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
+template <typename TaskType,
           typename MediaType>
-Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataContainerType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                   MediaType>::Stream_Visualization_LibAVResize_T (ISTREAM_T* stream_in)
-#else
-                                   MediaType>::Stream_Visualization_LibAVResize_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
+Stream_Visualization_LibAVResize_T<TaskType,
+                                   MediaType>::Stream_Visualization_LibAVResize_T (typename TaskType::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , formatsIndex_ (0)
  , sourceResolution_ ()
@@ -68,23 +52,11 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
 
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
+template <typename TaskType,
           typename MediaType>
 void
-Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataContainerType,
-                                   MediaType>::handleDataMessage (DataMessageType*& message_inout,
+Stream_Visualization_LibAVResize_T<TaskType,
+                                   MediaType>::handleDataMessage (typename TaskType::DATA_MESSAGE_T*& message_inout,
                                                                   bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize_T::handleDataMessage"));
@@ -213,23 +185,11 @@ error:
   this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
+template <typename TaskType,
           typename MediaType>
 void
-Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataContainerType,
-                                   MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+Stream_Visualization_LibAVResize_T<TaskType,
+                                   MediaType>::handleSessionMessage (typename TaskType::SESSION_MESSAGE_T*& message_inout,
                                                                      bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize_T::handleSessionMessage"));
@@ -247,8 +207,8 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (!inherited::context_);
       ACE_ASSERT (inherited::sessionData_);
-      typename SessionDataContainerType::DATA_T& session_data_r =
-        const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
+      typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T& session_data_r =
+        const_cast<typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
       const MediaType& media_type_r = session_data_r.formats.back ();
@@ -410,8 +370,8 @@ error:
       MediaType media_type_s;
 
       ACE_ASSERT (inherited::sessionData_);
-      typename SessionDataContainerType::DATA_T& session_data_r =
-        const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
+      typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T& session_data_r =
+        const_cast<typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
       ACE_ASSERT (session_data_r.lock);
@@ -419,7 +379,7 @@ error:
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         if (session_data_r.formats.size () >= formatsIndex_)
         {
-          typename SessionDataContainerType::DATA_T::MEDIAFORMATS_ITERATOR_T
+          typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T::MEDIAFORMATS_ITERATOR_T
             iterator = session_data_r.formats.begin ();
           std::advance (iterator, formatsIndex_);
           session_data_r.formats.erase (iterator, session_data_r.formats.end ());
@@ -575,45 +535,21 @@ error_2:
 
 //////////////////////////////////////////
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
+template <typename TaskType,
           typename MediaType>
-Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
-                                    TimePolicyType,
-                                    ConfigurationType,
-                                    ControlMessageType,
-                                    DataMessageType,
-                                    SessionMessageType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                    MediaType>::Stream_Visualization_LibAVResize1_T (ISTREAM_T* stream_in)
-#else
-                                    MediaType>::Stream_Visualization_LibAVResize1_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
+Stream_Visualization_LibAVResize1_T<TaskType,
+                                    MediaType>::Stream_Visualization_LibAVResize1_T (typename TaskType::ISTREAM_T* stream_in)
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize1_T::Stream_Visualization_LibAVResize1_T"));
 
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
+template <typename TaskType,
           typename MediaType>
 void
-Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
-                                    TimePolicyType,
-                                    ConfigurationType,
-                                    ControlMessageType,
-                                    DataMessageType,
-                                    SessionMessageType,
-                                    MediaType>::handleDataMessage (DataMessageType*& message_inout,
+Stream_Visualization_LibAVResize1_T<TaskType,
+                                    MediaType>::handleDataMessage (typename TaskType::DATA_MESSAGE_T*& message_inout,
                                                                    bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize1_T::handleDataMessage"));
@@ -639,8 +575,8 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
 //  ACE_ASSERT (inherited::buffer_->capacity () >= inherited::frameSize_);
   ACE_ASSERT (inherited::frame_);
 
-  typename DataMessageType::DATA_T& message_data_2 =
-      const_cast<typename DataMessageType::DATA_T&> (inherited::buffer_->getR ());
+  typename TaskType::DATA_MESSAGE_T::DATA_T& message_data_2 =
+      const_cast<typename TaskType::DATA_MESSAGE_T::DATA_T&> (inherited::buffer_->getR ());
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   inherited::getMediaType (message_data_2.format,
                            STREAM_MEDIATYPE_VIDEO,
@@ -826,22 +762,12 @@ error:
   this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
+template <typename TaskType,
           typename MediaType>
 void
-Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                     bool& passMessageDownstream_out)
+Stream_Visualization_LibAVResize1_T<TaskType,
+                                    MediaType>::handleSessionMessage (typename TaskType::SESSION_MESSAGE_T*& message_inout,
+                                                                      bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize1_T::handleSessionMessage"));
 
@@ -851,8 +777,8 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::sessionData_);
-  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+  typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T& session_data_r =
+    const_cast<typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inference
   ACE_ASSERT (!session_data_r.formats.empty ());
 

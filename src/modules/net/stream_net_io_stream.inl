@@ -349,28 +349,28 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   iset_p->set (true); // enqueue incoming head reader data (!) messages
 
   // ************** IO *******************
-  module_p =
-    const_cast<typename inherited::MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING),
-                                               true,    // sanitize module names ?
-                                               false)); // recurse upstream ?
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
-                ACE_TEXT (MODULE_NET_IO_DEFAULT_NAME_STRING)));
-    goto error;
-  } // end IF
-  IOWriter_impl_p = dynamic_cast<WRITER_T*> (module_p->writer ());
-  if (unlikely (!IOWriter_impl_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s/%s writer: dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
-                module_p->name ()));
-    goto error;
-  } // end IF
-  IOWriter_impl_p->initialize ();
+  //module_p =
+  //  const_cast<typename inherited::MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING),
+  //                                             true,    // sanitize module names ?
+  //                                             false)); // recurse upstream ?
+  //if (!module_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
+  //              ACE_TEXT (inherited::name_.c_str ()),
+  //              ACE_TEXT (MODULE_NET_IO_DEFAULT_NAME_STRING)));
+  //  goto error;
+  //} // end IF
+  //IOWriter_impl_p = dynamic_cast<WRITER_T*> (module_p->writer ());
+  //if (unlikely (!IOWriter_impl_p))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s/%s writer: dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n"),
+  //              ACE_TEXT (inherited::name_.c_str ()),
+  //              module_p->name ()));
+  //  goto error;
+  //} // end IF
+  //IOWriter_impl_p->initialize ();
 
   if (configuration_in.configuration_->setupPipeline)
     if (unlikely (!inherited::setup (configuration_in.configuration_->notificationStrategy)))

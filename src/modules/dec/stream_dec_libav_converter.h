@@ -44,75 +44,40 @@ class Stream_IAllocator;
 
 extern const char libacestream_default_dec_libav_converter_module_name_string[];
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
+template <typename TaskType,  // Stream_TaskBaseSynch_T || Stream_TaskBaseAsynch_T
           ////////////////////////////////
-          typename ConfigurationType,
-          ////////////////////////////////
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          ////////////////////////////////
-          typename SessionDataContainerType,
           typename MediaType> // session data-
 class Stream_Decoder_LibAVConverter_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData>
+ : public TaskType
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
+  typedef TaskType inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Decoder_LibAVConverter_T (ISTREAM_T*); // stream handle
-#else
-  Stream_Decoder_LibAVConverter_T (typename inherited::ISTREAM_T*); // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
+  Stream_Decoder_LibAVConverter_T (typename TaskType::ISTREAM_T*); // stream handle
   virtual ~Stream_Decoder_LibAVConverter_T ();
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&,
+  virtual bool initialize (const typename TaskType::CONFIGURATION_T&,
                            Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase
-  virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                  bool&);            // return value: pass message downstream ?
-  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                     bool&);               // return value: pass message downstream ?
+  virtual void handleDataMessage (typename TaskType::DATA_MESSAGE_T*&, // data message handle
+                                  bool&);                              // return value: pass message downstream ?
+  virtual void handleSessionMessage (typename TaskType::SESSION_MESSAGE_T*&, // session message handle
+                                     bool&);                                 // return value: pass message downstream ?
 
  protected:
-  DataMessageType*   buffer_;
-  struct SwsContext* context_;
-  struct AVFrame*    frame_;
-  unsigned int       frameSize_; // output-
-  enum AVPixelFormat inputFormat_;
+  typename TaskType::DATA_MESSAGE_T* buffer_;
+  struct SwsContext*                 context_;
+  struct AVFrame*                    frame_;
+  unsigned int                       frameSize_; // output-
+  enum AVPixelFormat                 inputFormat_;
 
  private:
   // convenient types
-  typedef Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          SessionDataContainerType,
+  typedef Stream_Decoder_LibAVConverter_T<TaskType,
                                           MediaType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T ())
@@ -122,68 +87,33 @@ class Stream_Decoder_LibAVConverter_T
 
 //////////////////////////////////////////
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
+template <typename TaskType,  // Stream_TaskBaseSynch_T || Stream_TaskBaseAsynch_T,
           ////////////////////////////////
-          typename ConfigurationType,
-          ////////////////////////////////
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          ////////////////////////////////
-          typename SessionDataContainerType,
           typename MediaType> // session data-
 class Stream_Decoder_LibAVConverter1_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData>
+ : public TaskType
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
+  typedef TaskType inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Decoder_LibAVConverter1_T (ISTREAM_T*); // stream handle
-#else
-  Stream_Decoder_LibAVConverter1_T (typename inherited::ISTREAM_T*); // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
+  Stream_Decoder_LibAVConverter1_T (typename TaskType::ISTREAM_T*); // stream handle
   inline virtual ~Stream_Decoder_LibAVConverter1_T () {}
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&,
+  virtual bool initialize (const typename TaskType::CONFIGURATION_T&,
                            Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase
-  virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                  bool&);            // return value: pass message downstream ?
-  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                     bool&);               // return value: pass message downstream ?
+  virtual void handleDataMessage (typename TaskType::DATA_MESSAGE_T*&, // data message handle
+                                  bool&);                              // return value: pass message downstream ?
+  virtual void handleSessionMessage (typename TaskType::SESSION_MESSAGE_T*&, // session message handle
+                                     bool&);                                 // return value: pass message downstream ?
 
  private:
   // convenient types
-  typedef Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
-                                           TimePolicyType,
-                                           ConfigurationType,
-                                           ControlMessageType,
-                                           DataMessageType,
-                                           SessionMessageType,
-                                           SessionDataContainerType,
+  typedef Stream_Decoder_LibAVConverter1_T<TaskType,
                                            MediaType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter1_T ())

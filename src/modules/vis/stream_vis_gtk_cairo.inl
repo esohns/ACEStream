@@ -436,6 +436,7 @@ error:
       Common_Image_Resolution_t resolution_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 #else
       struct Stream_MediaFramework_V4L_MediaType media_type_s;
 #endif // ACE_WIN32 || ACE_WIN64

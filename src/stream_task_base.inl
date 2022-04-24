@@ -47,10 +47,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   SessionEventType,
                   UserDataType>::Stream_TaskBase_T (ISTREAM_T* stream_in,
                                                     MESSAGE_QUEUE_T* queue_in)
-
  : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_THREAD_NAME), // thread name
               STREAM_MODULE_TASK_GROUP_ID,                      // group id
-              1,                                                // # thread(s)
+              0,                                                // # thread(s)
               false,                                            // auto-start ?
               ////////////////////////////
               queue_in)                                         // queue handle

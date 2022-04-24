@@ -35,50 +35,24 @@ extern const char libacestream_default_vis_libav_resize_module_name_string[];
 // forward declarations
 class Stream_IAllocator;
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          ////////////////////////////////
-          typename ConfigurationType,
-          ////////////////////////////////
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          ////////////////////////////////
-          typename SessionDataContainerType,
+template <typename TaskType,  // Stream_TaskBaseSynch_T || Stream_TaskBaseAsynch_T
           typename MediaType> // session data-
 class Stream_Visualization_LibAVResize_T
- : public Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          SessionDataContainerType,
+ : public Stream_Decoder_LibAVConverter_T<TaskType,
                                           MediaType>
 {
-  typedef Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          SessionDataContainerType,
+  typedef Stream_Decoder_LibAVConverter_T<TaskType,
                                           MediaType> inherited;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Visualization_LibAVResize_T (ISTREAM_T*); // stream handle
-#else
-  Stream_Visualization_LibAVResize_T (typename inherited::ISTREAM_T*); // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
+  Stream_Visualization_LibAVResize_T (typename TaskType::ISTREAM_T*); // stream handle
   inline virtual ~Stream_Visualization_LibAVResize_T () {}
 
   // override (part of) Stream_ITaskBase
-  virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                  bool&);            // return value: pass message downstream ?
-  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                     bool&);               // return value: pass message downstream ?
+  virtual void handleDataMessage (typename TaskType::DATA_MESSAGE_T*&, // data message handle
+                                  bool&);                              // return value: pass message downstream ?
+  virtual void handleSessionMessage (typename TaskType::SESSION_MESSAGE_T*&, // session message handle
+                                     bool&);                                 // return value: pass message downstream ?
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_LibAVResize_T ())
@@ -91,42 +65,18 @@ class Stream_Visualization_LibAVResize_T
 
 //////////////////////////////////////////
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          ////////////////////////////////
-          typename ConfigurationType,
-          ////////////////////////////////
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
+template <typename TaskType,  // Stream_TaskBaseSynch_T || Stream_TaskBaseAsynch_T
           ////////////////////////////////
           typename MediaType> // session data-
 class Stream_Visualization_LibAVResize1_T
- : public Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          typename SessionMessageType::DATA_T,
+ : public Stream_Decoder_LibAVConverter_T<TaskType,
                                           MediaType>
 {
-  typedef Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          typename SessionMessageType::DATA_T,
+  typedef Stream_Decoder_LibAVConverter_T<TaskType,
                                           MediaType> inherited;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Visualization_LibAVResize1_T (ISTREAM_T*); // stream handle
-#else
-  Stream_Visualization_LibAVResize1_T (typename inherited::ISTREAM_T*); // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
+  Stream_Visualization_LibAVResize1_T (typename TaskType::ISTREAM_T*); // stream handle
   inline virtual ~Stream_Visualization_LibAVResize1_T () {}
 
 //  // override (part of) Stream_IModuleHandler_T
@@ -134,10 +84,10 @@ class Stream_Visualization_LibAVResize1_T
 //                           Stream_IAllocator*);
 
   // override (part of) Stream_ITaskBase
-  virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                  bool&);            // return value: pass message downstream ?
-  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                     bool&);               // return value: pass message downstream ?
+  virtual void handleDataMessage (typename TaskType::DATA_MESSAGE_T*&, // data message handle
+                                  bool&);                              // return value: pass message downstream ?
+  virtual void handleSessionMessage (typename TaskType::SESSION_MESSAGE_T*&, // session message handle
+                                     bool&);                                 // return value: pass message downstream ?
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_LibAVResize1_T ())

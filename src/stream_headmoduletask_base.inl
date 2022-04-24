@@ -85,7 +85,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::Stream_HeadModuleTaskBase_T"));
 
   inherited::msg_queue (&queue_);
-  inherited::threadCount_ = STREAM_MODULE_DEFAULT_HEAD_THREADS;
 
   if (unlikely (!inherited2::initialize (stateMachineLock_)))
   {
@@ -2216,6 +2215,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onChange"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited2::stateLock_);
 
   // initialize return value
@@ -2249,13 +2249,30 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           inherited::threadIds_.clear ();
         } // end IF
       } // end lock scope
+
+      switch (inherited::configuration_->concurrency)
+      {
+        case STREAM_HEADMODULECONCURRENCY_ACTIVE:
+        {
+          inherited::threadCount_ = STREAM_MODULE_DEFAULT_HEAD_THREADS;
+          break;
+        }
+        case STREAM_HEADMODULECONCURRENCY_PASSIVE:
+        case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
+          break;
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown concurrency mode (was: %d), aborting\n"),
+                      inherited::configuration_->concurrency));
+          return false;
+        }
+      } // end SWITCH
+
       break;
     }
     case STREAM_STATE_SESSION_STARTING:
     {
-      // sanity check(s)
-      ACE_ASSERT (inherited::configuration_);
-
       // send initial session message downstream ?
       // *NOTE*: this is currently pushed (inline/queue) by the calling thread
       if (likely (inherited::configuration_->generateSessionMessages))
@@ -2453,9 +2470,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
     case STREAM_STATE_RUNNING:
     {
-      // sanity check(s)
-      ACE_ASSERT (inherited::configuration_);
-
       // *NOTE*: implement tape-recorder logic:
       //         transition PAUSED --> PAUSED is mapped to PAUSED --> RUNNING
       //         --> check for this condition before doing anything else
@@ -2510,9 +2524,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
     case STREAM_STATE_SESSION_STOPPING:
     {
-      // sanity check(s)
-      ACE_ASSERT (inherited::configuration_);
-
       { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited2::stateLock_, false);
         switch (inherited2::state_)
         {
@@ -2593,9 +2604,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
     case STREAM_STATE_PAUSED:
     {
-      // sanity check(s)
-      ACE_ASSERT (inherited::configuration_);
-
       // suspend the worker(s) ?
       switch (inherited::configuration_->concurrency)
       {
@@ -2657,9 +2665,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
     case STREAM_STATE_FINISHED:
     {
-      // sanity check(s)
-      ACE_ASSERT (inherited::configuration_);
-
       bool release_lock = false;
       SessionDataContainerType* session_data_container_p = NULL;
 

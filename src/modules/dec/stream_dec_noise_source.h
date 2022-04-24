@@ -133,7 +133,7 @@ class Stream_Dec_Noise_Source_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement Common_ITimerHandler
-  inline virtual const long get () const { return handler_.get (); }
+  inline virtual const long get_2 () const { return handler_.get_2 (); }
   virtual void handle (const void*); // asynchronous completion token handle
 
  private:

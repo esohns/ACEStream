@@ -90,7 +90,7 @@ class Stream_Dev_Cam_Source_VfW_T
                                       UserDataType>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_UI_WindowTypeConverter_T<HWND>
- , public Common_IGet_T<HWND>
+ , public Common_IGet_2_T<HWND>
  , public Common_IGetR_2_T<struct tagCapDriverCaps>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
@@ -150,7 +150,7 @@ class Stream_Dev_Cam_Source_VfW_T
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
 
   // implement Common_IGet_T
-  inline virtual const HWND get () const { return window_; }
+  inline virtual const HWND get_2 () const { return window_; }
   inline virtual const struct tagCapDriverCaps& getR_2 () const { return capabilities_; }
 
  private:

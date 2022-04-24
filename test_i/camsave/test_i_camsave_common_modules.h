@@ -92,6 +92,47 @@
 
 // declare module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Stream_CamSave_DirectShow_Message_t,
+                               Stream_CamSave_DirectShow_SessionMessage_t,
+                               enum Stream_ControlType,
+                               enum Stream_SessionMessageType,
+                               struct Stream_UserData> Test_I_DirectShow_TaskBaseSynch_t;
+typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t,
+                                struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
+                                Stream_ControlMessage_t,
+                                Stream_CamSave_DirectShow_Message_t,
+                                Stream_CamSave_DirectShow_SessionMessage_t,
+                                enum Stream_ControlType,
+                                enum Stream_SessionMessageType,
+                                struct Stream_UserData> Test_I_DirectShow_TaskBaseAsynch_t;
+
+typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Stream_CamSave_MediaFoundation_Message_t,
+                               Stream_CamSave_MediaFoundation_SessionMessage_t,
+                               enum Stream_ControlType,
+                               enum Stream_SessionMessageType,
+                               struct Stream_UserData> Test_I_MediaFoundation_TaskBaseSynch_t;
+typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t,
+                                struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration,
+                                Stream_ControlMessage_t,
+                                Stream_CamSave_MediaFoundation_Message_t,
+                                Stream_CamSave_MediaFoundation_SessionMessage_t,
+                                enum Stream_ControlType,
+                                enum Stream_SessionMessageType,
+                                struct Stream_UserData> Test_I_MediaFoundation_TaskBaseAsynch_t;
+#else
+#endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Dev_Cam_Source_VfW_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,
                                     Stream_CamSave_DirectShow_Message_t,
@@ -153,21 +194,9 @@ typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CamSave_DirectShow_SessionData> Stream_CamSave_DirectShow_Distributor_Writer_t;
 
 #if defined (FFMPEG_SUPPORT)
-typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
-                                        Stream_ControlMessage_t,
-                                        Stream_CamSave_DirectShow_Message_t,
-                                        Stream_CamSave_DirectShow_SessionMessage_t,
-                                        Stream_CamSave_DirectShow_SessionData_t,
+typedef Stream_Decoder_LibAVConverter_T<Test_I_DirectShow_TaskBaseSynch_t,
                                         struct _AMMediaType> Stream_CamSave_DirectShow_LibAVConverter;
-typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Stream_CamSave_DirectShow_Message_t,
-                                           Stream_CamSave_DirectShow_SessionMessage_t,
-                                           Stream_CamSave_DirectShow_SessionData_t,
+typedef Stream_Visualization_LibAVResize_T<Test_I_DirectShow_TaskBaseSynch_t,
                                            struct _AMMediaType> Stream_CamSave_DirectShow_LibAVResize;
 #endif // FFMPEG_SUPPORT
 #else

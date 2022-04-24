@@ -96,6 +96,47 @@
 struct Test_I_Target_DirectShow_FilterConfiguration;
 struct Test_I_Target_DirectShow_PinConfiguration;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Test_I_Source_DirectShow_Stream_Message,
+                               Test_I_Source_DirectShow_SessionMessage,
+                               enum Stream_ControlType,
+                               enum Stream_SessionMessageType,
+                               struct Stream_UserData> Test_I_DirectShow_TaskBaseSynch_t;
+typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t,
+                                struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
+                                Stream_ControlMessage_t,
+                                Test_I_Source_DirectShow_Stream_Message,
+                                Test_I_Source_DirectShow_SessionMessage,
+                                enum Stream_ControlType,
+                                enum Stream_SessionMessageType,
+                                struct Stream_UserData> Test_I_DirectShow_TaskBaseAsynch_t;
+
+typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Test_I_Source_MediaFoundation_Stream_Message,
+                               Test_I_Source_MediaFoundation_SessionMessage,
+                               enum Stream_ControlType,
+                               enum Stream_SessionMessageType,
+                               struct Stream_UserData> Test_I_MediaFoundation_TaskBaseSynch_t;
+typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t,
+                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
+                                Stream_ControlMessage_t,
+                                Test_I_Source_MediaFoundation_Stream_Message,
+                                Test_I_Source_MediaFoundation_SessionMessage,
+                                enum Stream_ControlType,
+                                enum Stream_SessionMessageType,
+                                struct Stream_UserData> Test_I_MediaFoundation_TaskBaseAsynch_t;
+#else
+#endif // ACE_WIN32 || ACE_WIN64
+
 // source
 typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            Stream_ControlMessage_t,
@@ -510,38 +551,14 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
 
 #if defined (FFMPEG_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                                        Stream_ControlMessage_t,
-                                        Test_I_Source_DirectShow_Stream_Message,
-                                        Test_I_Source_DirectShow_SessionMessage,
-                                        Test_I_Source_DirectShow_SessionData_t,
+typedef Stream_Decoder_LibAVConverter_T<Test_I_DirectShow_TaskBaseSynch_t,
                                         struct _AMMediaType> Test_I_Source_DirectShow_Converter;
-typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                                        Stream_ControlMessage_t,
-                                        Test_I_Source_MediaFoundation_Stream_Message,
-                                        Test_I_Source_MediaFoundation_SessionMessage,
-                                        Test_I_Source_MediaFoundation_SessionData_t,
+typedef Stream_Decoder_LibAVConverter_T<Test_I_MediaFoundation_TaskBaseSynch_t,
                                         IMFMediaType*> Test_I_Source_MediaFoundation_Converter;
 
-typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Test_I_Source_DirectShow_Stream_Message,
-                                           Test_I_Source_DirectShow_SessionMessage,
-                                           Test_I_Source_DirectShow_SessionData_t,
+typedef Stream_Visualization_LibAVResize_T<Test_I_DirectShow_TaskBaseSynch_t,
                                            struct _AMMediaType> Test_I_Source_DirectShow_Resize;
-typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Test_I_Source_MediaFoundation_Stream_Message,
-                                           Test_I_Source_MediaFoundation_SessionMessage,
-                                           Test_I_Source_MediaFoundation_SessionData_t,
+typedef Stream_Visualization_LibAVResize_T<Test_I_MediaFoundation_TaskBaseSynch_t,
                                            IMFMediaType*> Test_I_Source_MediaFoundation_Resize;
 #else
 typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,

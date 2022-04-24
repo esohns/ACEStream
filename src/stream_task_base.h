@@ -118,6 +118,9 @@ class Stream_TaskBase_T
 
  protected:
   // convenient types
+  typedef ConfigurationType CONFIGURATION_T;
+  typedef DataMessageType DATA_MESSAGE_T;
+  typedef SessionMessageType SESSION_MESSAGE_T;
   typedef Common_IGetR_T<STREAM_T> IGET_T;
   typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
                                 TimePolicyType,

@@ -126,7 +126,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dec_Noise_Source_T::~Stream_Dec_Noise_Source_T"));
 
-  long timer_id = handler_.get ();
+  long timer_id = handler_.get_2 ();
   if (unlikely (timer_id != -1))
   {
     typename TimerManagerType::INTERFACE_T* itimer_manager_p =
@@ -193,7 +193,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
     bufferSize_ = 0;
     frameSize_ = 0;
 
-    long timer_id = handler_.get ();
+    long timer_id = handler_.get_2 ();
     if (unlikely (timer_id != -1))
     {
       ACE_ASSERT (inherited::configuration_);
@@ -546,7 +546,7 @@ error:
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
-      long timer_id = handler_.get ();
+      long timer_id = handler_.get_2 ();
       if (likely (timer_id != -1))
       {
         const void* act_p = NULL;

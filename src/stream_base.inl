@@ -2857,7 +2857,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
 
   std::string stream_layout_string;
-
+  COMMON_TASK_BASE_T* task_p = NULL;
   const MODULE_T* module_p = NULL, *module_2 = NULL;
   std::vector<Stream_IDistributorModule*> distributors_a;
   Stream_IDistributorModule* idistributor_p = NULL;
@@ -2879,6 +2879,13 @@ Stream_Base_T<ACE_SYNCH_USE,
       stream_layout_string.append (ACE_TEXT (" |"));
       continue;
     } // end IF
+
+    // mark asynchronous tasks with an asterisk
+    task_p =
+      static_cast<COMMON_TASK_BASE_T*> (const_cast<MODULE_T*> (module_p)->writer ());
+    ACE_ASSERT (task_p);
+    if (task_p->get ())
+      stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR ("*"));
 
     stream_layout_string.append (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ())));
 
@@ -2918,7 +2925,16 @@ next:
       module_p = *iterator_2;
       do {
         ACE_ASSERT (module_p);
+
+        // mark asynchronous tasks with an asterisk
+        task_p =
+          static_cast<COMMON_TASK_BASE_T*> (const_cast<MODULE_T*> (module_p)->writer ());
+        ACE_ASSERT (task_p);
+        if (task_p->get ())
+          stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR ("*"));
+
         stream_layout_string.append (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ())));
+
         if (ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
                             ACE_TEXT (STREAM_MODULE_TAIL_NAME)) &&
             ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
@@ -2941,7 +2957,7 @@ next:
         } // end IF
 
         idistributor_p =
-            dynamic_cast<Stream_IDistributorModule*> ((*iterator_2)->writer ());
+          dynamic_cast<Stream_IDistributorModule*> (const_cast<MODULE_T*> (module_p)->writer ());
         if (idistributor_p)
           distributors_2.push_back (idistributor_p);
 

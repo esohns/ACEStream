@@ -136,6 +136,12 @@ class Stream_Base_T
                      TimePolicyType> MODULE_T;
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> STREAM_T;
+  typedef Common_TaskBase_T <ACE_SYNCH_USE,
+                             TimePolicyType,
+                             ACE_Message_Block,
+                             ACE_Message_Queue<ACE_SYNCH_USE,
+                                               TimePolicyType>,
+                             TASK_T> COMMON_TASK_BASE_T;
   typedef Stream_IModule_T<SessionDataType,
                            NotificationType,
                            ACE_SYNCH_USE,

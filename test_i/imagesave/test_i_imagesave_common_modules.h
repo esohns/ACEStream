@@ -68,6 +68,25 @@
 #include "test_i_imagesave_session_message.h"
 
 // declare module(s)
+typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Test_I_ImageSave_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Test_I_Message,
+                               Test_I_SessionMessage_t,
+                               enum Stream_ControlType,
+                               enum Stream_SessionMessageType,
+                               struct Stream_UserData> Test_I_TaskBaseSynch_t;
+typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t,
+                                struct Test_I_ImageSave_ModuleHandlerConfiguration,
+                                Stream_ControlMessage_t,
+                                Test_I_Message,
+                                Test_I_SessionMessage_t,
+                                enum Stream_ControlType,
+                                enum Stream_SessionMessageType,
+                                struct Stream_UserData> Test_I_TaskBaseAsynch_t;
+
 typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,
                                     Test_I_Message,
@@ -146,21 +165,9 @@ typedef Stream_Miscellaneous_MediaSplitter_T<ACE_MT_SYNCH,
                                              Test_I_ImageSave_SessionData> Test_I_MediaSplitter_t;
 
 #if defined (FFMPEG_SUPPORT)
-//typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
-//                                        Common_TimePolicy_t,
-//                                        struct Test_I_ImageSave_ModuleHandlerConfiguration,
-//                                        Stream_ControlMessage_t,
-//                                        Test_I_Message,
-//                                        Test_I_SessionMessage_t,
-//                                        Test_I_ImageSave_SessionData_t,
-//                                        struct _AMMediaType> Test_I_LibAVConverter;
-typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           struct Test_I_ImageSave_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Test_I_Message,
-                                           Test_I_SessionMessage_t,
-                                           Test_I_ImageSave_SessionData_t,
+//typedef Stream_Decoder_LibAVConverter_T<Test_I_TaskBaseSynch_t,
+//                                        struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_LibAVConverter;
+typedef Stream_Visualization_LibAVResize_T<Test_I_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_LibAVResize;
 #endif // FFMPEG_SUPPORT
 
