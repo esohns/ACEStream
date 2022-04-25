@@ -259,18 +259,28 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           switch (message_p->type ())
           {
             case STREAM_CONTROL_MESSAGE_ABORT:
-            {
-              // *IMPORTANT NOTE*: make sure the message is actually processed
+            { // *IMPORTANT NOTE*: try to ensure the message is actually processed
+              bool enqueue_b = false; // fallback
               { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::msg_queue_->lock (), -1);
-                if (likely (inherited::thr_count_ &&
-                            !queue_.isShuttingDown ()))
-                  return queue_.enqueue_head_i (messageBlock_in, NULL);
+                // *NOTE*: cannot just use queue_, because msg_queue_ may not
+                //         be the same as queue_ (e.g. when 'this' is a 'queue
+                //         source')
+                typename inherited::MESSAGE_QUEUE_T* queue_p =
+                    dynamic_cast<typename inherited::MESSAGE_QUEUE_T*> (inherited::msg_queue_);
+                if (likely (inherited::thr_count_      &&
+                            queue_p                    &&
+                            !queue_p->isShuttingDown ()))
+                  return queue_p->enqueue_head_i (messageBlock_in, NULL);
+                else if (!queue_p)
+                  enqueue_b = true; // --> try fallback
               } // end lock scope
+              if (unlikely (enqueue_b)) // *WARNING*: race condition here
+                return inherited::msg_queue_->enqueue_head (messageBlock_in, NULL);
 
               // *IMPORTANT NOTE*: it is either too early or too late to process
               //                   this message by this (and (!) subsequent
               //                   synchronous downstream-) task(s)
-              //                   --> do it manually
+              //                   --> process it 'inline'
               bool stop_processing = false;
               inherited::handleMessage (messageBlock_in,
                                         stop_processing);
@@ -287,7 +297,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           SessionMessageType* message_p =
             static_cast<SessionMessageType*> (messageBlock_in);
           if (unlikely (message_p->expedited ()))
-            return queue_.enqueue_head_i (messageBlock_in, NULL);
+            return inherited::msg_queue_->enqueue_head (messageBlock_in, NULL);
           break;
         }
         default:
@@ -1033,7 +1043,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   {
     case STREAM_CONTROL_MESSAGE_ABORT:
     {
-      unsigned int result = queue_.flush (false); // flush all data messages
+      unsigned int result = 0; 
+      typename inherited::MESSAGE_QUEUE_T* queue_p =
+        dynamic_cast<typename inherited::MESSAGE_QUEUE_T*> (inherited::msg_queue_);
+      if (likely (queue_p))
+        result = queue_p->flush (false); // flush all data messages
+      else
+      { ACE_ASSERT (false); // *TODO*
+        result = inherited::msg_queue_->flush ();
+      } // end ELSE
       if (unlikely (result == static_cast<unsigned int> (-1)))
       {
         ACE_DEBUG ((LM_ERROR,
