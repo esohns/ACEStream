@@ -29,7 +29,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType>
 Stream_MessageQueue_T<ACE_SYNCH_USE,
                       TimePolicyType,
-                      SessionMessageType>::Stream_MessageQueue_T (unsigned int maxMessages_in,
+                      SessionMessageType>::Stream_MessageQueue_T (size_t maxMessages_in,
                                                                   ACE_Notification_Strategy* notificationInterface_in)
  : inherited (maxMessages_in,
               notificationInterface_in)

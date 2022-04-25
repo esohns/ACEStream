@@ -31,7 +31,7 @@
 template <ACE_SYNCH_DECL,
           typename TimePolicyType>
 Stream_MessageQueueBase_T<ACE_SYNCH_USE,
-                          TimePolicyType>::Stream_MessageQueueBase_T (unsigned int maxMessages_in,
+                          TimePolicyType>::Stream_MessageQueueBase_T (size_t maxMessages_in,
                                                                       ACE_Notification_Strategy* notificationInterface_in)
  : inherited (maxMessages_in,           // high water mark
               maxMessages_in,           // low water mark

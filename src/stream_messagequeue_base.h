@@ -43,7 +43,7 @@ class Stream_MessageQueueBase_T
                             TimePolicyType> inherited;
 
  public:
-  Stream_MessageQueueBase_T (unsigned int,                       // maximum # of queued messages
+  Stream_MessageQueueBase_T (size_t,                             // maximum # of queued messages
                              ACE_Notification_Strategy* = NULL); // notification callback handle
   inline virtual ~Stream_MessageQueueBase_T () {}
 

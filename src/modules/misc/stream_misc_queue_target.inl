@@ -70,13 +70,13 @@ Stream_Module_QueueWriter_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->messageQueue);
+  ACE_ASSERT (inherited::configuration_->queue);
 
   ACE_Message_Block* message_block_p = message_inout->duplicate ();
   ACE_ASSERT (message_block_p);
 
   int result =
-    inherited::configuration_->messageQueue->enqueue_tail (message_block_p, NULL);
+    inherited::configuration_->queue->enqueue_tail (message_block_p, NULL);
   if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Queue_T::enqueue_tail(): \"%m\", continuing\n"),
