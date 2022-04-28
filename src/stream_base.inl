@@ -926,7 +926,7 @@ continue_:
   result = inherited::top (module_p);
   if (unlikely ((result == -1) ||
                 !module_p))
-  { // already close()d ?
+  { // already close()d/never open()ed ?
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: no head module found: \"%m\", returning\n"),
                 ACE_TEXT (name_.c_str ())));

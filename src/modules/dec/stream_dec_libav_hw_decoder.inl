@@ -24,6 +24,7 @@ extern "C"
 #include "libavformat/avformat.h"
 #include "libavutil/frame.h"
 #include "libavutil/imgutils.h"
+#include "libavutil/opt.h"
 #include "libswscale/swscale.h"
 }
 #endif /* __cplusplus */
@@ -212,8 +213,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
     av_log_set_level (std::numeric_limits<int>::max ());
   } // end IF
 #endif // _DEBUG
-//  av_register_all ();
-//  avcodec_register_all ();
+  //av_register_all ();
+  //avcodec_register_all ();
 
   // *TODO*: remove type inferences
   codecId_ = configuration_in.codecId;
@@ -472,6 +473,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       int flags, flags2;
       struct AVBufferRef* hw_device_ctx_p = NULL;
       struct AVHWFramesConstraints* hw_frames_constraints_p = NULL;
+      struct AVCodecParameters* codec_parameters_p = NULL;
 
       codec_p = avcodec_find_decoder (codecId_);
       if (unlikely (!codec_p))
@@ -509,8 +511,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       ACE_ASSERT (context_);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct AVCodecParameters* codec_parameters_p =
-        avcodec_parameters_alloc ();
+      codec_parameters_p = avcodec_parameters_alloc ();
       if (unlikely (!codec_parameters_p))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -542,21 +543,21 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       //codec_parameters_p->video_delay = 0;
 
       flags = AV_CODEC_FLAG_UNALIGNED      |
-              AV_CODEC_FLAG_QSCALE         |
+              //AV_CODEC_FLAG_QSCALE         |
       //        AV_CODEC_FLAG_4MV            |
               AV_CODEC_FLAG_OUTPUT_CORRUPT |
-              AV_CODEC_FLAG_QPEL           |
+              //AV_CODEC_FLAG_QPEL           |
               //AV_CODEC_FLAG_DROPCHANGED          |
               //AV_CODEC_FLAG_PASS1          |
               //AV_CODEC_FLAG_PASS2          |
-              AV_CODEC_FLAG_LOOP_FILTER    |
+              //AV_CODEC_FLAG_LOOP_FILTER    |
               //AV_CODEC_FLAG_GRAY           |
               //AV_CODEC_FLAG_PSNR           |
               AV_CODEC_FLAG_TRUNCATED      |
               //AV_CODEC_FLAG_INTERLACED_DCT |
               AV_CODEC_FLAG_LOW_DELAY      |
-              //AV_CODEC_FLAG_GLOBAL_HEADER  |
-              AV_CODEC_FLAG_BITEXACT;//       |
+              AV_CODEC_FLAG_GLOBAL_HEADER;//  |
+              //AV_CODEC_FLAG_BITEXACT;//       |
               //AV_CODEC_FLAG_AC_PRED        |
       //AV_CODEC_FLAG_INTERLACED_ME  |
       //AV_CODEC_FLAG_CLOSED_GOP;
@@ -567,9 +568,9 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       //         AV_CODEC_FLAG2_DROP_FRAME_TIMECODE |
                AV_CODEC_FLAG2_CHUNKS        |
                AV_CODEC_FLAG2_IGNORE_CROP   |
-               AV_CODEC_FLAG2_SHOW_ALL      |
-               AV_CODEC_FLAG2_EXPORT_MVS    |
-               AV_CODEC_FLAG2_SKIP_MANUAL;
+               AV_CODEC_FLAG2_SHOW_ALL;//      |
+               //AV_CODEC_FLAG2_EXPORT_MVS    |
+               //AV_CODEC_FLAG2_SKIP_MANUAL;
       // AV_CODEC_FLAG2_RO_FLUSH_NOOP
 #else
 //      flags = CODEC_FLAG_UNALIGNED      |
@@ -728,11 +729,11 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       ACE_ASSERT (dictionary_p);
 
       result =
-        av_hwdevice_ctx_create (&hw_device_ctx_p, // return value: device context
+        av_hwdevice_ctx_create (&hw_device_ctx_p,                      // return value: device context
                                 inherited::configuration_->deviceType, // device type
-                                NULL,             // device name
-                                NULL,             // device parameters
-                                0);               // device flags
+                                ACE_TEXT_ALWAYS_CHAR ("auto"),         // device name
+                                NULL,                                  // device parameters
+                                0);                                    // device flags
       if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -752,10 +753,10 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
         av_hwdevice_get_hwframe_constraints (hw_device_ctx_p, NULL);
       if (!hw_frames_constraints_p)
       {
-        intermediateFormat_ = AV_PIX_FMT_YUV420P;
+        //intermediateFormat_ = AV_PIX_FMT_YUV420P;
+        intermediateFormat_ = AV_PIX_FMT_NV12;
         //intermediateFormat_ = outputFormat_;
-        ACE_DEBUG ((
-          LM_WARNING,
+        ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: failed to av_hwdevice_get_hwframe_constraints; trying intermediate format: \"%s\"\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (intermediateFormat_).c_str ())));
@@ -779,6 +780,11 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
         } // end FOR
         av_hwframe_constraints_free (&hw_frames_constraints_p);
       } // end ELSE
+
+      //av_opt_set_int (context_,
+      //                ACE_TEXT_ALWAYS_CHAR ("refcounted_frames"),
+      //                1,
+      //                0);
 
       result = avcodec_open2 (context_,
                               context_->codec,
@@ -1409,7 +1415,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
     message_p = static_cast<DataMessageType*> (message_block_p);
 
     // clean up
-    ACE_OS::memset (frame_->data, 0, sizeof (uint8_t * [8]));
+    ACE_OS::memset (frame_->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
     av_frame_unref (frame_);
 
     // forward the decoded frame
