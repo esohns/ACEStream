@@ -542,10 +542,10 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       //codec_parameters_p->chroma_location = ;
       //codec_parameters_p->video_delay = 0;
 
-      flags = AV_CODEC_FLAG_UNALIGNED      |
+      flags = //AV_CODEC_FLAG_UNALIGNED      |
               //AV_CODEC_FLAG_QSCALE         |
       //        AV_CODEC_FLAG_4MV            |
-              AV_CODEC_FLAG_OUTPUT_CORRUPT |
+              //AV_CODEC_FLAG_OUTPUT_CORRUPT |
               //AV_CODEC_FLAG_QPEL           |
               //AV_CODEC_FLAG_DROPCHANGED          |
               //AV_CODEC_FLAG_PASS1          |
@@ -553,21 +553,21 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
               //AV_CODEC_FLAG_LOOP_FILTER    |
               //AV_CODEC_FLAG_GRAY           |
               //AV_CODEC_FLAG_PSNR           |
-              AV_CODEC_FLAG_TRUNCATED      |
+              //AV_CODEC_FLAG_TRUNCATED      |
               //AV_CODEC_FLAG_INTERLACED_DCT |
-              AV_CODEC_FLAG_LOW_DELAY      |
-              AV_CODEC_FLAG_GLOBAL_HEADER;//  |
+              AV_CODEC_FLAG_LOW_DELAY;//      |
+              //AV_CODEC_FLAG_GLOBAL_HEADER;//  |
               //AV_CODEC_FLAG_BITEXACT;//       |
               //AV_CODEC_FLAG_AC_PRED        |
       //AV_CODEC_FLAG_INTERLACED_ME  |
       //AV_CODEC_FLAG_CLOSED_GOP;
 
-      flags2 = AV_CODEC_FLAG2_FAST          |
+      flags2 = //AV_CODEC_FLAG2_FAST          |
       //         AV_CODEC_FLAG2_NO_OUTPUT           |
       //         AV_CODEC_FLAG2_LOCAL_HEADER        |
       //         AV_CODEC_FLAG2_DROP_FRAME_TIMECODE |
-               AV_CODEC_FLAG2_CHUNKS        |
-               AV_CODEC_FLAG2_IGNORE_CROP   |
+               //AV_CODEC_FLAG2_CHUNKS        |
+               //AV_CODEC_FLAG2_IGNORE_CROP   |
                AV_CODEC_FLAG2_SHOW_ALL;//      |
                //AV_CODEC_FLAG2_EXPORT_MVS    |
                //AV_CODEC_FLAG2_SKIP_MANUAL;
@@ -650,16 +650,16 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                         session_data_r.codecConfigurationDataSize);
         context_->extradata_size = session_data_r.codecConfigurationDataSize;
       } // end IF
-      context_->time_base = { 1, 30 };
-      context_->ticks_per_frame =
-        (((codecId_ == AV_CODEC_ID_H264) ||
-          (codecId_ == AV_CODEC_ID_MPEG2VIDEO)) ? 2 : 1);
+      //context_->time_base = { 1, 30 };
+      //context_->ticks_per_frame =
+      //  (((codecId_ == AV_CODEC_ID_H264) ||
+      //    (codecId_ == AV_CODEC_ID_MPEG2VIDEO)) ? 2 : 1);
       context_->width = formatWidth_;
       context_->height = formatHeight_;
       //context_->coded_width = width;
       //context_->coded_height = height;
 //      context_->pix_fmt = AV_PIX_FMT_NONE;
-      context_->pix_fmt = outputFormat_;
+      //context_->pix_fmt = outputFormat_;
       //context_->draw_horiz_band = NULL;
       context_->get_format = stream_decoder_libav_hw_getformat_cb;
 //      context_->slice_count = 0;
@@ -679,7 +679,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
 #endif // _DEBUG
 //      context_->debug_mv = (inherited::configuration_->debug ? 1 : 0);
 //      context_->err_recognition = 0;
-      context_->reordered_opaque = 0;
+      //context_->reordered_opaque = 0;
 //      context_->hwaccel_context = NULL;
 //      context_->idct_algo = FF_IDCT_AUTO;
 //      context_->bits_per_coded_sample = 0;
