@@ -426,7 +426,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   int result = -1;
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-    availableTokens_ += // --> "catch up"
+    availableTokens_ = // --> do NOT "catch up"
       inherited::configuration_->delayConfiguration->averageTokensPerInterval;
 
     result = condition_.broadcast ();
