@@ -187,6 +187,14 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
                 inherited::mod_->name (),
                 channels,
                 sample_rate));
+    //NeAACDecConfigurationPtr configuration_p =
+    //  NeAACDecGetCurrentConfiguration (context_);
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("%s: faad configuration: object type: %u, output format: %u, downMatrix: %u\n"),
+    //            inherited::mod_->name (),
+    //            configuration_p->defObjectType,
+    //            configuration_p->outputFormat,
+    //            configuration_p->downMatrix));
   } // end IF
 
   while (message_block_p)
@@ -214,11 +222,11 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
     if (unlikely (!result_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to NeAACDecDecode2(): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s: failed to NeAACDecDecode2(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (NeAACDecGetErrorMessage (frame_info_s.error))));
       message_p->release (); message_p = NULL;
-      goto error;
+      goto continue_;
     } // end IF
     ACE_ASSERT (frame_info_s.bytesconsumed == message_block_p->length ());
     ACE_ASSERT (frame_info_s.samples);
@@ -299,6 +307,48 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
       sample_rate = waveformatex_p->nSamplesPerSec;
       channels = waveformatex_p->nChannels;
       sampleSize_ = (waveformatex_p->wBitsPerSample / 8);
+
+      switch (waveformatex_p->wFormatTag)
+      {
+        case WAVE_FORMAT_PCM:
+        {
+          switch (waveformatex_p->wBitsPerSample)
+          {
+            case 16:
+              faad_format = FAAD_FMT_16BIT;
+              break;
+            case 24:
+              faad_format = FAAD_FMT_24BIT;
+              break;
+            case 32:
+              faad_format = FAAD_FMT_32BIT;
+              break;
+            case 8:
+            default:
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: invalid/unknown format (bits/sample was: %u), aborting\n"),
+                          inherited::mod_->name (),
+                          waveformatex_p->wBitsPerSample));
+              goto error;
+            }
+          } // end SWITCH
+          break;
+        }
+        case WAVE_FORMAT_IEEE_FLOAT:
+          faad_format = FAAD_FMT_FLOAT;
+          break;
+        case WAVE_FORMAT_EXTENSIBLE:
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown format (was: %d), aborting\n"),
+                      inherited::mod_->name (),
+                      waveformatex_p->wFormatTag));
+          goto error;
+        }
+      } // end SWITCH
+
       CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
@@ -351,7 +401,7 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
       configuration_.defObjectType = LC;
       configuration_.defSampleRate = sample_rate;
       configuration_.outputFormat = faad_format;
-      configuration_.downMatrix = 0;
+      configuration_.downMatrix = 1;
       configuration_.useOldADTSFormat = 0;
       configuration_.dontUpSampleImplicitSBR = 0;
 

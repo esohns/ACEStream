@@ -972,6 +972,11 @@ continue_:
                     inherited::mod_->name (),
                     result));
 
+      if (headFragment_)
+      {
+        headFragment_->release (); headFragment_ = NULL;
+      } // end IF
+
       break;
     }
     default:
@@ -1075,8 +1080,15 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
         //                       NULL);
         //message_data_container_p = NULL;
 
-        ACE_ASSERT (!headFragment_);
-        headFragment_ = message_p;
+        if (headFragment_)
+        { // enqueue at the end
+          ACE_Message_Block* message_block_2 = headFragment_;
+          while (message_block_2->cont ())
+            message_block_2 = message_block_2->cont ();
+          message_block_2->cont (message_p);
+        } // end IF
+        else
+          headFragment_ = message_p;
 continue_:
         // parse next data fragment(s)
         try {
@@ -1102,9 +1114,10 @@ continue_:
         break;
 
 error:
-        if (message_block_p)
-          message_block_p->release ();
-
+        if (headFragment_)
+        {
+          headFragment_->release (); headFragment_ = NULL;
+        } // end IF
         result = -1;
 
         goto error_2;
