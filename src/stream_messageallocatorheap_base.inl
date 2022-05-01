@@ -34,7 +34,7 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
                                   ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
-                                  SessionMessageType>::Stream_MessageAllocatorHeapBase_T (unsigned int maximumNumberOfMessages_in,
+                                  SessionMessageType>::Stream_MessageAllocatorHeapBase_T (size_t maximumNumberOfMessages_in,
                                                                                           HEAP_ALLOCATOR_T* allocator_in,
                                                                                           bool block_in)
  : inherited ()
@@ -42,13 +42,13 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
  , dataBlockAllocator_ (allocator_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , freeMessageCounter_ ((!maximumNumberOfMessages_in || // *TODO*: this is wrong --> implement 'no limit' feature
-                         (maximumNumberOfMessages_in >= static_cast<unsigned int> (std::numeric_limits<LONG>::max ())) ? std::numeric_limits<LONG>::max ()
-                                                                                                                       : maximumNumberOfMessages_in), // initial count
+                         (maximumNumberOfMessages_in >= static_cast<size_t> (std::numeric_limits<LONG>::max ())) ? std::numeric_limits<LONG>::max ()
+                                                                                                                 : maximumNumberOfMessages_in), // initial count
                         NULL,                                                                                             // name
                         NULL,                                                                                             // ACT
                         (!maximumNumberOfMessages_in || // *TODO*: this is wrong --> implement 'no limit' feature
-                         (maximumNumberOfMessages_in >= static_cast<unsigned int> (std::numeric_limits<LONG>::max ())) ? std::numeric_limits<LONG>::max ()
-                                                                                                                       : maximumNumberOfMessages_in)) // maximum
+                         (maximumNumberOfMessages_in >= static_cast<size_t> (std::numeric_limits<LONG>::max ())) ? std::numeric_limits<LONG>::max ()
+                                                                                                                 : maximumNumberOfMessages_in)) // maximum
 #else
  , freeMessageCounter_ ((!maximumNumberOfMessages_in || // *TODO*: this is wrong --> implement 'no limit' feature
                          (maximumNumberOfMessages_in >= SEM_VALUE_MAX) ? SEM_VALUE_MAX

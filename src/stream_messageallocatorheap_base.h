@@ -56,7 +56,7 @@ class Stream_MessageAllocatorHeapBase_T
   typedef Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
                                           ConfigurationType> DATABLOCK_ALLOCATOR_T;
 
-  Stream_MessageAllocatorHeapBase_T (unsigned int = 0,         // number of concurrent messages (0: no limits)
+  Stream_MessageAllocatorHeapBase_T (size_t = 0,         // number of concurrent messages (0: no limits)
                                      HEAP_ALLOCATOR_T* = NULL, // (heap) memory allocator handle
                                      bool = true);             // block until a buffer is available ?
   inline virtual ~Stream_MessageAllocatorHeapBase_T () {};

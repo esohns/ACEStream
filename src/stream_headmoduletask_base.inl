@@ -1523,15 +1523,19 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   switch (notification_in)
   {
     case STREAM_SESSION_MESSAGE_ABORT:
-    { ACE_ASSERT (inherited::sessionData_);
-      inherited::sessionData_->increase ();
-      SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-      ACE_ASSERT (session_data_r.lock);
-      { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock);
-        session_data_r.aborted = true;
-      } // end lock scope
-      inherited::sessionData_->decrease ();
+    { // *NOTE*: if the head module thread has left already, there is no session
+      //         data at this level of abstraction
+      if (inherited::sessionData_)
+      { // *TODO*: there is obviously a race condition here
+        inherited::sessionData_->increase ();
+        SessionDataType& session_data_r =
+          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+        ACE_ASSERT (session_data_r.lock);
+        { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock);
+          session_data_r.aborted = true;
+        } // end lock scope
+        inherited::sessionData_->decrease ();
+      } // end IF
 
       // *NOTE*: there is no SESSION_END message in this scenario
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
@@ -1560,11 +1564,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         }
       } // end IF
 
-      ACE_ASSERT (inherited::sessionData_);
-      ACE_ASSERT (streamState_);
-      inherited::sessionData_->increase ();
+      // *TODO*: there is obviously a race condition here
+      if (inherited::sessionData_)
+        inherited::sessionData_->increase ();
       SessionDataContainerType* session_data_container_p =
         inherited::sessionData_;
+      ACE_ASSERT (streamState_);
       // *NOTE*: "fire-and-forget" the second argument
       if (unlikely (!inherited::putSessionMessage (static_cast<enum Stream_SessionMessageType> (notification_in),
                                                    session_data_container_p,

@@ -149,7 +149,9 @@ class Stream_MediaFramework_Tools
 
 #if defined (FFMPEG_SUPPORT)
   // ffmpeg
+  static bool isAcceleratedFormat (enum AVPixelFormat);
   static enum AVPixelFormat AVHWDeviceTypeToPixelFormat (enum AVHWDeviceType);
+  static enum AVPixelFormat AVHWDeviceTypeToIntermediatePixelFormat (enum AVHWDeviceType);
   static enum AVCodecID ffmpegFormatToffmpegCodecId (enum AVSampleFormat); // format
   inline static std::string pixelFormatToString (enum AVPixelFormat format_in) { std::string result = ((format_in == AV_PIX_FMT_NONE) ? ACE_TEXT_ALWAYS_CHAR ("NONE") : av_get_pix_fmt_name (format_in)); return result; }
   inline static std::string sampleFormatToString (enum AVSampleFormat format_in) { std::string result = ((format_in == AV_SAMPLE_FMT_NONE) ? ACE_TEXT_ALWAYS_CHAR ("NONE") : av_get_sample_fmt_name (format_in)); return result; }

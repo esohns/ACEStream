@@ -44,12 +44,25 @@ stream_decoder_libav_hw_getformat_cb (struct AVCodecContext* context_in,
   for (const enum AVPixelFormat* iterator = formats_in;
        *iterator != -1;
        ++iterator)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: supported format \"%s\"\n"),
+                ACE_TEXT (avcodec_get_name (context_in->codec_id)),
+                ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*iterator).c_str ())));
     if (*iterator == *preferred_format_p)
       return *iterator;
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("%s: preferred format (was: \"%s\") not supported, aborting\n"),
+  } // end FOR
+  ACE_DEBUG ((LM_WARNING,
+              ACE_TEXT ("%s: preferred format (was: \"%s\") not supported, falling back\n"),
               ACE_TEXT (avcodec_get_name (context_in->codec_id)),
               ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*preferred_format_p).c_str ())));
+
+  // choose the first unaccelerated format
+  for (const enum AVPixelFormat* iterator = formats_in;
+       *iterator != -1;
+       ++iterator)
+    if (!Stream_MediaFramework_Tools::isAcceleratedFormat (*iterator))
+      return *iterator;
 
   return AV_PIX_FMT_NONE;
 }
