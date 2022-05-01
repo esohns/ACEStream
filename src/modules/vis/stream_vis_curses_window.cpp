@@ -19,38 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_vis_x11_window.h"
-
-#include "common_ui_tools.h"
+#include "stream_vis_curses_window.h"
 
 #include "stream_vis_defines.h"
 
-const char libacestream_default_vis_x11_window_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING);
-
-int
-libacestream_vis_x11_error_handler_cb (Display* display_in,
-                                       XErrorEvent* event_in)
-{
-//  STREAM_TRACE (ACE_TEXT ("libacestream_vis_x11_error_handler_cb"));
-
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("X11 error (display was: %@): \"%s\", returning\n"),
-              display_in,
-              ACE_TEXT (Common_UI_Tools::toString (*display_in, event_in->error_code).c_str ())));
-
-  return 0;
-}
-
-int
-libacestream_vis_x11_io_error_handler_cb (Display* display_in)
-{
-//  STREAM_TRACE (ACE_TEXT ("libacestream_vis_x11_io_error_handler_cb"));
-
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("X11 I/O error (display was: %@): \"%s\", returning\n"),
-              display_in,
-              ACE_TEXT (Common_UI_Tools::toString (*display_in, ACE_OS::last_error ()).c_str ())));
-
-  return 0;
-}
+const char libacestream_default_vis_curses_window_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CURSES_WINDOW_DEFAULT_NAME_STRING);

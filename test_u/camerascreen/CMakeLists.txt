@@ -2,10 +2,6 @@ include (glut)
 include (ffmpeg)
 include (ImageMagick)
 
-#set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/gl/scripts;;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/gl/scripts")
-#include (assimp)
-#include (png)
-
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev/scripts")
 include (libcamera)
 
@@ -76,7 +72,6 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 ############## next target ################
 set (EXECUTABLE camerascreen)
 set (${EXECUTABLE}_EXE_SRCS
-#     stdafx.cpp
      stdafx.h
      ../test_u_common.h
      ../test_u_defines.h
@@ -95,6 +90,12 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_camerascreen_session_message.inl
      test_u_camerascreen_stream.cpp
      test_u_camerascreen_stream.h)
+if (CURSES_SUPPORT)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
+       test_u_camerascreen_curses.cpp
+       test_u_camerascreen_curses.h)
+endif (CURSES_SUPPORT)
 
 if (UNIX)
 elseif (WIN32)
@@ -157,11 +158,15 @@ target_link_libraries (${EXECUTABLE} PUBLIC CommonSignal)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonTimer)
 if (GUI_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC CommonUI)
- if (GTK_USE)
+ if (CURSES_SUPPORT)
+  target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_Curses)
+ endif (CURSES_SUPPORT)
+ if (GTK_SUPPORT)
   target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_GTK)
- elseif (WXWIDGETS_USE)
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
   target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_wxWidgets)
- endif ()
+ endif (WXWIDGETS_SUPPORT)
 endif (GUI_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC CommonXML)

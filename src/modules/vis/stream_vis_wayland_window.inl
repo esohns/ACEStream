@@ -132,6 +132,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   const MediaType& media_type_r = session_data_r.formats.back ();
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
   inherited2::getMediaType (media_type_r,
+                            STREAM_MEDIATYPE_VIDEO,
                             media_type_2);
 //  Common_Image_Resolution_t resolution_s =
 //      Stream_MediaFramework_Tools::toResolution (cbData_.display,

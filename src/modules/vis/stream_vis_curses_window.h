@@ -18,10 +18,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_VIS_X11_WINDOW_H
-#define STREAM_VIS_X11_WINDOW_H
+#ifndef STREAM_VIS_CURSES_WINDOW_H
+#define STREAM_VIS_CURSES_WINDOW_H
 
-#include "X11/Xlib.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN32)
+#undef MOUSE_MOVED
+#include "curses.h"
+#else
+#include "ncurses.h"
+// *NOTE*: the ncurses "timeout" macros conflicts with
+//         ACE_Synch_Options::timeout. Since not currently used, it's safe to
+//         undefine
+#undef timeout
+#endif // ACE_WIN32 || ACE_WIN32
+#include "panel.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -33,10 +43,7 @@
 
 #include "stream_lib_mediatype_converter.h"
 
-int libacestream_vis_x11_error_handler_cb (struct _XDisplay*, XErrorEvent*);
-int libacestream_vis_x11_io_error_handler_cb (struct _XDisplay*);
-
-extern const char libacestream_default_vis_x11_window_module_name_string[];
+extern const char libacestream_default_vis_curses_window_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -50,7 +57,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           ////////////////////////////////
           typename MediaType> // *IMPORTANT NOTE*: must correspond to session data 'formats' member
-class Stream_Module_Vis_X11_Window_T
+class Stream_Module_Vis_Curses_Window_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -77,8 +84,8 @@ class Stream_Module_Vis_X11_Window_T
   typedef Common_UI_WindowTypeConverter_T<void> inherited3;
 
  public:
-  Stream_Module_Vis_X11_Window_T (typename inherited::ISTREAM_T*); // stream handle
-  virtual ~Stream_Module_Vis_X11_Window_T ();
+  Stream_Module_Vis_Curses_Window_T (typename inherited::ISTREAM_T*); // stream handle
+  virtual ~Stream_Module_Vis_Curses_Window_T ();
 
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
@@ -93,21 +100,14 @@ class Stream_Module_Vis_X11_Window_T
   virtual void toggle ();
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_X11_Window_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_X11_Window_T (const Stream_Module_Vis_X11_Window_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_X11_Window_T& operator= (const Stream_Module_Vis_X11_Window_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Curses_Window_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Curses_Window_T (const Stream_Module_Vis_Curses_Window_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Curses_Window_T& operator= (const Stream_Module_Vis_Curses_Window_T&))
 
-  bool              closeDisplay_;
-  bool              closeWindow_;
-  GC                context_;
-  struct _XDisplay* display_;
-  bool              isFirst_;
-  Pixmap            pixmap_;
-  Visual*           visual_;
-  Window            window_;
+  bool closeWindow_;
 };
 
 // include template definition
-#include "stream_vis_x11_window.inl"
+#include "stream_vis_curses_window.inl"
 
 #endif

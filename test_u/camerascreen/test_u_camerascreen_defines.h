@@ -21,4 +21,9 @@
 #ifndef TEST_U_CAMERASCREEN_DEFINES_H
 #define TEST_U_CAMERASCREEN_DEFINES_H
 
+#if defined (CURSES_SUPPORT)
+#define TEST_U_CURSES_COLOR_MAIN  1
+#define TEST_U_CURSES_CURSOR_MODE 0 // invisible
+#endif // CURSES_SUPPORT
+
 #endif

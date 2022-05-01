@@ -1168,25 +1168,25 @@ Stream_CameraScreen_Stream::Stream_CameraScreen_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+#if defined (CURSES_SUPPORT)
+ , CursesDisplay_ (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CURSES_WINDOW_DEFAULT_NAME_STRING))
+#endif // CURSES_SUPPORT
+#if defined (GTK_SUPPORT)
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
+#endif // GTK_SUPPORT
 // , WaylandDisplay_ (this,
 //                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING))
  , X11Display_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
+#if defined (GLUT_SUPPORT)
  , OpenGLDisplay_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+#endif // GLUT_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_Stream::Stream_CameraScreen_Stream"));
 
-}
-
-Stream_CameraScreen_Stream::~Stream_CameraScreen_Stream ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_Stream::~Stream_CameraScreen_Stream"));
-
-  // *NOTE*: this implements an ordered shutdown on destruction...
-  inherited::shutdown ();
 }
 
 bool
@@ -1199,20 +1199,39 @@ Stream_CameraScreen_Stream::load (Stream_ILayout* layout_in,
   delete_out = false;
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
-      configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_->end ());
+  ACE_ASSERT (inherited::configuration_);
 
   layout_in->append (&source_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
   layout_in->append (&convert_, NULL, 0);
   layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-//  if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
-  // layout_in->append (&display_, NULL, 0);
-//  else
-  layout_in->append (&X11Display_, NULL, 0);
-//  layout_in->append (&WaylandDisplay_, NULL, 0);
+  switch (inherited::configuration_->configuration_->renderer)
+  {
+#if defined (CURSES_SUPPORT)
+    case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
+      layout_in->append (&CursesDisplay_, NULL, 0);
+      break;
+#endif // CURSES_SUPPORT
+#if defined (GTK_SUPPORT)
+    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
+      layout_in->append (&GTKDisplay_, NULL, 0);
+      break;
+#endif // GTK_SUPPORT
+//    case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
+//      layout_in->append (&WaylandDisplay_, NULL, 0);
+//      break;
+    case STREAM_VISUALIZATION_VIDEORENDERER_X11:
+      layout_in->append (&X11Display_, NULL, 0);
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown renderer (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->renderer));
+      return false;
+    }
+  } // end SWITCH
 
   return true;
 }

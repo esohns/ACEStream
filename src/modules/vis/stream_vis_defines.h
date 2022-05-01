@@ -31,6 +31,7 @@
 #if defined (IMAGEMAGICK_SUPPORT)
 #define STREAM_VIS_IMAGEMAGICK_RESIZE_DEFAULT_NAME_STRING                 "ImageMagickResize"
 #endif // IMAGEMAGICK_SUPPORT
+#define STREAM_VIS_CURSES_WINDOW_DEFAULT_NAME_STRING                      "Curses"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define STREAM_VIS_DIRECT2D_DEFAULT_NAME_STRING                           "Direct2D"
 #define STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING                           "Direct3D"

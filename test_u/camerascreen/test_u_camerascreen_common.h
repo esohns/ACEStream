@@ -56,11 +56,15 @@ extern "C"
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-#include "ace/Singleton.h"
+//#include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_isubscribe.h"
 #include "common_tools.h"
+
+#if defined (CURSES_SUPPORT)
+#include "common_ui_curses_common.h"
+#endif // CURSES_SUPPORT
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -380,6 +384,9 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
 #else
    , window (0)
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (CURSES_SUPPORT)
+   , window_2 (NULL)
+#endif // CURSES_SUPPORT
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
@@ -400,6 +407,9 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
 #else
   Window                          window;
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (CURSES_SUPPORT)
+  WINDOW*                         window_2;
+#endif // CURSES_SUPPORT
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -608,9 +618,11 @@ struct Stream_CameraScreen_StreamConfiguration
 {
   Stream_CameraScreen_StreamConfiguration ()
    : Stream_Configuration ()
+   , renderer (STREAM_VISUALIZATION_VIDEORENDERER_INVALID)
   {
     printFinalReport = true;
   }
+  enum Stream_Visualization_VideoRenderer renderer;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_CameraScreen_DirectShow_StreamConfiguration
@@ -696,9 +708,15 @@ struct Stream_CameraScreen_Configuration
 {
   Stream_CameraScreen_Configuration ()
    : Test_U_Configuration ()
+#if defined (CURSES_SUPPORT)
+   , cursesConfiguration ()
+#endif // CURSES_SUPPORT
    , streamConfiguration ()
   {}
 
+#if defined (CURSES_SUPPORT)
+  struct Common_UI_Curses_Configuration     cursesConfiguration;
+#endif // CURSES_SUPPORT
   // **************************** stream data **********************************
   Stream_CameraScreen_StreamConfiguration_t streamConfiguration;
 };

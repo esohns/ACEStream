@@ -235,7 +235,7 @@ class Stream_CameraScreen_Stream
 
  public:
   Stream_CameraScreen_Stream ();
-  virtual ~Stream_CameraScreen_Stream ();
+  inline virtual ~Stream_CameraScreen_Stream () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*, // return value: layout
@@ -253,10 +253,17 @@ class Stream_CameraScreen_Stream
   Stream_CameraScreen_StatisticReport_Module statisticReport_;
   Stream_CameraScreen_LibAVConvert_Module    convert_; // --> BGRA (Xlib)
   Stream_CameraScreen_LibAVResize_Module     resize_; // --> window size/fullscreen
+#if defined (CURSES_SUPPORT)
+  Stream_CameraScreen_Curses_Display_Module  CursesDisplay_;
+#endif // CURSES_SUPPORT
+#if defined (GTK_SUPPORT)
   Stream_CameraScreen_GTK_Display_Module     GTKDisplay_;
+#endif // GTK_SUPPORT
 //  Stream_CameraScreen_Wayland_Display_Module WaylandDisplay_;
   Stream_CameraScreen_X11_Display_Module     X11Display_;
+#if defined (GLUT_SUPPORT)
   Stream_CameraScreen_OpenGL_Display_Module  OpenGLDisplay_;
+#endif // GLUT_SUPPORT
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -146,6 +146,13 @@ set (source_files
      stream_vis_iresize.h
      stream_vis_tools.cpp
      stream_vis_tools.h)
+if (CURSES_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_vis_curses_window.cpp
+      stream_vis_curses_window.h
+      stream_vis_curses_window.inl)
+endif (CURSES_SUPPORT)
 if (OPENGL_SUPPORT)
  if (GLUT_SUPPORT)
   set (source_files
@@ -315,6 +322,12 @@ set (header_files
      stream_vis_defines.h
      stream_vis_iresize.h
      stream_vis_tools.h)
+if (CURSES_SUPPORT)
+ set (source_files
+      ${header_files}
+      stream_vis_curses_window.h
+      stream_vis_curses_window.inl)
+endif (CURSES_SUPPORT)
 if (OPENGL_SUPPORT)
  if (GLUT_SUPPORT)
   set (header_files

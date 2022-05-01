@@ -17,40 +17,46 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "stdafx.h"
 
-#include "stream_vis_x11_window.h"
+#ifndef TEST_U_CAMERASCREEN_CURSES_H
+#define TEST_U_CAMERASCREEN_CURSES_H
 
-#include "common_ui_tools.h"
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
 
-#include "stream_vis_defines.h"
+#include "common_ui_curses_common.h"
+#include "common_ui_curses_manager.h"
 
-const char libacestream_default_vis_x11_window_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING);
+// forward declarations
+class Stream_IStreamControlBase;
 
-int
-libacestream_vis_x11_error_handler_cb (Display* display_in,
-                                       XErrorEvent* event_in)
+struct Test_U_CursesState
+ : Common_UI_Curses_State
 {
-//  STREAM_TRACE (ACE_TEXT ("libacestream_vis_x11_error_handler_cb"));
+  Test_U_CursesState ()
+   : Common_UI_Curses_State ()
+   , stream (NULL)
+  {}
 
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("X11 error (display was: %@): \"%s\", returning\n"),
-              display_in,
-              ACE_TEXT (Common_UI_Tools::toString (*display_in, event_in->error_code).c_str ())));
+  Stream_IStreamControlBase* stream;
+};
 
-  return 0;
-}
+typedef Common_UI_Curses_Manager_T<ACE_MT_SYNCH,
+                                   struct Common_UI_Curses_Configuration,
+                                   struct Test_U_CursesState> Test_U_Curses_Manager_t;
+typedef ACE_Singleton<Test_U_Curses_Manager_t,
+                      ACE_MT_SYNCH::MUTEX> TEST_U_CURSES_MANAGER_SINGLETON;
 
-int
-libacestream_vis_x11_io_error_handler_cb (Display* display_in)
-{
-//  STREAM_TRACE (ACE_TEXT ("libacestream_vis_x11_io_error_handler_cb"));
+//////////////////////////////////////////
 
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("X11 I/O error (display was: %@): \"%s\", returning\n"),
-              display_in,
-              ACE_TEXT (Common_UI_Tools::toString (*display_in, ACE_OS::last_error ()).c_str ())));
+// event hooks
+bool curses_init (struct Common_UI_Curses_State*); // state
+bool curses_fini (struct Common_UI_Curses_State*); // state
 
-  return 0;
-}
+bool curses_input (struct Common_UI_Curses_State*, // state
+                   int);                           // character
+bool curses_main (struct Common_UI_Curses_State*); // state
+
+//////////////////////////////////////////
+
+#endif
