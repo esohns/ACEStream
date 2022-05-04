@@ -202,10 +202,11 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   // sanity check(s)
   //ACE_ASSERT (message_inout->length () == inherited::configuration_->format->lSampleSize);
   ACE_ASSERT (direct3DConfiguration_);
-  if (unlikely (!direct3DConfiguration_->presentationParameters.Windowed &&
-                !direct3DConfiguration_->presentationParameters.hDeviceWindow &&
-                !direct3DConfiguration_->focusWindow))
-    return; // --> nothing to do
+  if (unlikely ((!direct3DConfiguration_->presentationParameters.Windowed &&
+                 !direct3DConfiguration_->presentationParameters.hDeviceWindow &&
+                 !direct3DConfiguration_->focusWindow) ||
+                !direct3DConfiguration_->handle))
+    return; // --> nothing to do (yet)
 
   // *TODO*: remove ASAP
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, direct3DConfiguration_->lock);

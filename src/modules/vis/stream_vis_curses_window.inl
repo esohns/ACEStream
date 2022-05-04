@@ -39,7 +39,11 @@ Stream_Module_Vis_Curses_Window_T<ACE_SYNCH_USE,
                                   DataMessageType,
                                   SessionMessageType,
                                   SessionDataContainerType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                  MediaType>::Stream_Module_Vis_Curses_Window_T (ISTREAM_T* stream_in)
+#else
                                   MediaType>::Stream_Module_Vis_Curses_Window_T (typename inherited::ISTREAM_T* stream_in)
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
  , inherited3 ()
@@ -134,7 +138,8 @@ Stream_Module_Vis_Curses_Window_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->window_2);
 
   static const char* char_density =
-    ACE_TEXT_ALWAYS_CHAR ("Ñ@#W$9876543210?!abc;:+=-,._                    ");
+//    ACE_TEXT_ALWAYS_CHAR ("Ñ@#W$9876543210?!abc;:+=-,._                    ");
+    ACE_TEXT_ALWAYS_CHAR ("@#O%+=|i-:.       ");
   static size_t char_density_length = ACE_OS::strlen (char_density);
 
   int result = ERR;

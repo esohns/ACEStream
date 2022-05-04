@@ -88,7 +88,7 @@ class Stream_CameraScreen_DirectShow_Stream
 
  public:
   Stream_CameraScreen_DirectShow_Stream ();
-  virtual ~Stream_CameraScreen_DirectShow_Stream ();
+  inline virtual ~Stream_CameraScreen_DirectShow_Stream () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*,
@@ -102,18 +102,22 @@ class Stream_CameraScreen_DirectShow_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_DirectShow_Stream& operator= (const Stream_CameraScreen_DirectShow_Stream&))
 
   // modules
-  Stream_CameraScreen_DirectShow_Source_Module          source_;
-  //Stream_CameraScreen_DirectShow_StatisticReport_Module statisticReport_;
-#if defined (GUI_SUPPORT)
-  Stream_CameraScreen_DirectShow_Display_Module         DirectShowDisplay_;
-  Stream_CameraScreen_DirectShow_GDI_Display_Module     GDIDisplay_;
-#if defined(GLUT_SUPPORT)
-  Stream_CameraScreen_DirectShow_OpenGL_Display_Module  OpenGLDisplay_;
-#endif // GLUT_SUPPORT
+  Stream_CameraScreen_DirectShow_Source_Module           source_;
+  Stream_CameraScreen_DirectShow_StatisticReport_Module  statisticReport_;
+  Stream_CameraScreen_DirectShow_LibAVConvert_Module     convert_; // RGB
+  Stream_CameraScreen_DirectShow_LibAVResize_Module      resize_; // --> window size/fullscreen
+#if defined (CURSES_SUPPORT)
+  Stream_CameraScreen_DirectShow_Curses_Display_Module   CursesDisplay_;
+#endif // CURSES_SUPPORT
 #if defined (GTK_SUPPORT)
-  //Stream_CameraScreen_DirectShow_GTKCairoDisplay_Module GTKCairoDisplay_;
+  Stream_CameraScreen_DirectShow_GTK_Display_Module      GTKDisplay_;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
+  Stream_CameraScreen_DirectShow_GDI_Display_Module      GDIDisplay_;
+  Stream_CameraScreen_DirectShow_Direct3DDisplay_Module  Direct3DDisplay_;
+  Stream_CameraScreen_DirectShow_Display_Module          DirectShowDisplay_;
+#if defined (GLUT_SUPPORT)
+  Stream_CameraScreen_DirectShow_OpenGL_Display_Module   OpenGLDisplay_;
+#endif // GLUT_SUPPORT
 };
 
 class Stream_CameraScreen_MediaFoundation_Stream

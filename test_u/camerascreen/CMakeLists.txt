@@ -1,3 +1,5 @@
+include (png)
+include (assimp)
 include (glut)
 include (ffmpeg)
 include (ImageMagick)
@@ -223,27 +225,41 @@ elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  file (TO_CMAKE_PATH "${OPENGL_LIB_DIR}" OPENGL_PATH)
+ file (TO_CMAKE_PATH "${GLUT_LIB_DIR}" GLUT_PATH)
  file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
-# file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+ if (GTK_SUPPORT)
+  file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
+  file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
+ endif (WXWIDGETS_SUPPORT)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${OPENGL_PATH}
+                           ${GLUT_PATH}
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
                            ${ASSIMP_PATH}
                            ${LIBPNG_PATH}
-#                           ${GTK_PATH}
                            ${ACE_LIBRARY_PATH})
+ if (GTK_SUPPORT)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${GTK_PATH})
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${WXWIDGETS_PATH})
+ endif (WXWIDGETS_SUPPORT)
 endif ()
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/${EXECUTABLE}
+                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/${EXECUTABLE}
                         ENVIRONMENT ${ENVIRONMENT})
 
 ##########################################

@@ -731,7 +731,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       result =
         av_hwdevice_ctx_create (&hw_device_ctx_p,                      // return value: device context
                                 inherited::configuration_->deviceType, // device type
-                                ACE_TEXT_ALWAYS_CHAR ("auto"),         // device name
+                                NULL,                                  // device name
                                 NULL,                                  // device parameters
                                 0);                                    // device flags
       if (unlikely (result < 0))
@@ -753,9 +753,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
         av_hwdevice_get_hwframe_constraints (hw_device_ctx_p, NULL);
       if (!hw_frames_constraints_p)
       {
-        //intermediateFormat_ = AV_PIX_FMT_YUV420P;
-        intermediateFormat_ = AV_PIX_FMT_NV12;
-        //intermediateFormat_ = outputFormat_;
+        intermediateFormat_ =
+          Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (inherited::configuration_->deviceType);
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: failed to av_hwdevice_get_hwframe_constraints; trying intermediate format: \"%s\"\n"),
                     inherited::mod_->name (),
@@ -785,6 +784,11 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       //                ACE_TEXT_ALWAYS_CHAR ("refcounted_frames"),
       //                1,
       //                0);
+      av_opt_set (context_->priv_data,
+                  "profile",
+                  "baseline",
+                  0);
+      context_->profile = FF_PROFILE_H264_BASELINE;
 
       result = avcodec_open2 (context_,
                               context_->codec,
@@ -1016,6 +1020,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (hwFrame_);
   ACE_ASSERT (frameSize_);
 
+  struct AVFrame* frame_p = NULL;
+
   int result = avcodec_send_packet (context_,
                                     &packet_in);
   if (unlikely (result))
@@ -1035,6 +1041,11 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
     if (transformContext_)
     {
       sws_freeContext (transformContext_); transformContext_ = NULL;
+    } // end IF
+
+    if (!Stream_MediaFramework_Tools::isAcceleratedFormat (context_->pix_fmt))
+    {
+      intermediateFormat_ = context_->pix_fmt;
     } // end IF
 
     ACE_DEBUG ((LM_DEBUG,
@@ -1129,19 +1140,29 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   } // end IF
 
   /* retrieve data from GPU to CPU */
-  frame_->format = intermediateFormat_;
-  result = av_hwframe_transfer_data (frame_, hwFrame_, 0);
-  if (unlikely (result < 0))
+  if (Stream_MediaFramework_Tools::isAcceleratedFormat (static_cast<enum AVPixelFormat> (hwFrame_->format)))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to av_hwframe_transfer_data(): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+    frame_->format = intermediateFormat_;
+    result = av_hwframe_transfer_data (frame_, hwFrame_, 0);
+    if (unlikely (result < 0))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to av_hwframe_transfer_data(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+      av_frame_unref (hwFrame_);
+      return false;
+    } // end IF
     av_frame_unref (hwFrame_);
-    return false;
+    ACE_ASSERT (frame_->data);
+
+    frame_p = frame_;
   } // end IF
-  av_frame_unref (hwFrame_);
-  ACE_ASSERT (frame_->data);
+  else
+  {
+    intermediateFormat_ = static_cast<enum AVPixelFormat> (hwFrame_->format);
+    frame_p = hwFrame_;
+  } // end ELSE
 
   // --> successfully decoded a frame
 
@@ -1162,32 +1183,32 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
                   inherited::mod_->name (),
                   outputFrameSize_));
-      av_frame_unref (frame_);
+      av_frame_unref (frame_p);
       return false;
     } // end IF
 
     result =
         av_image_fill_linesizes (line_sizes_a,
                                  outputFormat_,
-                                 static_cast<int> (frame_->width));
+                                 static_cast<int> (frame_p->width));
     ACE_ASSERT (result >= 0);
     result =
         av_image_fill_pointers (data_a,
                                 outputFormat_,
-                                static_cast<int> (frame_->height),
+                                static_cast<int> (frame_p->height),
                                 reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
                                 line_sizes_a);
     ACE_ASSERT (result >= 0);
     if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
                                                          context_->width, context_->height, intermediateFormat_,
-                                                         static_cast<uint8_t**> (frame_->data),
+                                                         static_cast<uint8_t**> (frame_p->data),
                                                          context_->width, context_->height, outputFormat_,
                                                          data_a)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), aborting\n"),
                   inherited::mod_->name ()));
-      av_frame_unref (frame_);
+      av_frame_unref (frame_p);
       message_block_p->release ();
       return false;
     } // end IF
@@ -1215,10 +1236,10 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
                   inherited::mod_->name (),
                   frameSize_));
-      av_frame_unref (frame_);
+      av_frame_unref (frame_p);
       return false;
     } // end IF
-    message_block_p->base (reinterpret_cast<char*> (frame_->data),
+    message_block_p->base (reinterpret_cast<char*> (frame_p->data),
                            frameSize_,
                            0); // own image data
     message_block_p->wr_ptr (frameSize_);
@@ -1240,8 +1261,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   message_inout = static_cast<DataMessageType*> (message_block_p);
 
   // clean up
-  ACE_OS::memset (frame_->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-  av_frame_unref (frame_);
+  ACE_OS::memset (frame_p->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
+  av_frame_unref (frame_p);
 
   return true;
 }
@@ -1276,6 +1297,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   DataMessageType* message_p = NULL;
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
+  struct AVFrame* frame_p = NULL;
 
   av_init_packet (&packet_s);
 
@@ -1306,19 +1328,27 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
     } // end IF
 
     /* retrieve data from GPU to CPU */
-    frame_->format = intermediateFormat_;
-    result = av_hwframe_transfer_data (frame_, hwFrame_, 0);
-    if (unlikely (result < 0))
+    if (Stream_MediaFramework_Tools::isAcceleratedFormat (static_cast<enum AVPixelFormat> (hwFrame_->format)))
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to av_hwframe_transfer_data(): \"%s\", returning\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+      frame_->format = intermediateFormat_;
+      result = av_hwframe_transfer_data (frame_, hwFrame_, 0);
+      if (unlikely (result < 0))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to av_hwframe_transfer_data(): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+        av_frame_unref (hwFrame_);
+        return;
+      } // end IF
       av_frame_unref (hwFrame_);
-      return;
+      ACE_ASSERT (frame_->data);
     } // end IF
-    av_frame_unref (hwFrame_);
-    ACE_ASSERT (frame_->data);
+    else
+    {
+      intermediateFormat_ = static_cast<enum AVPixelFormat> (hwFrame_->format);
+      frame_p = hwFrame_;
+    } // end ELSE
 
     // --> successfully decoded a frame
 
@@ -1337,32 +1367,32 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), returning\n"),
                     inherited::mod_->name (),
                     outputFrameSize_));
-        av_frame_unref (frame_);
+        av_frame_unref (frame_p);
         return;
       } // end IF
 
       result =
           av_image_fill_linesizes (line_sizes_a,
                                    outputFormat_,
-                                   static_cast<int> (frame_->width));
+                                   static_cast<int> (frame_p->width));
       ACE_ASSERT (result >= 0);
       result =
           av_image_fill_pointers (data_a,
                                   outputFormat_,
-                                  static_cast<int> (frame_->height),
+                                  static_cast<int> (frame_p->height),
                                   reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
                                   line_sizes_a);
       ACE_ASSERT (result >= 0);
       if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
                                                            context_->width, context_->height, intermediateFormat_,
-                                                           static_cast<uint8_t**> (frame_->data),
+                                                           static_cast<uint8_t**> (frame_p->data),
                                                            context_->width, context_->height, outputFormat_,
                                                            data_a)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
                     inherited::mod_->name ()));
-        av_frame_unref (frame_);
+        av_frame_unref (frame_p);
         message_block_p->release ();
         return;
       } // end IF
@@ -1390,10 +1420,10 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), returning\n"),
                     inherited::mod_->name (),
                     outputFrameSize_));
-        av_frame_unref (frame_);
+        av_frame_unref (frame_p);
         return;
       } // end IF
-      message_block_p->base (reinterpret_cast<char*> (frame_->data),
+      message_block_p->base (reinterpret_cast<char*> (frame_p->data),
                              outputFrameSize_,
                              0); // own image data
       message_block_p->wr_ptr (outputFrameSize_);
@@ -1415,8 +1445,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
     message_p = static_cast<DataMessageType*> (message_block_p);
 
     // clean up
-    ACE_OS::memset (frame_->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-    av_frame_unref (frame_);
+    ACE_OS::memset (frame_p->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
+    av_frame_unref (frame_p);
 
     // forward the decoded frame
     message_p->initialize (sessionId_in,

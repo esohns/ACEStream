@@ -254,7 +254,6 @@ do_process_arguments (int argc_in,
       return false;
     }
   } // end SWITCH
-  showConsole_out = false;
 #else
   deviceIdentifier_out.identifier =
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
@@ -477,7 +476,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   } // end IF
   ACE_ASSERT (media_type_p);
   outputFormat_inout = *media_type_p;
-  CoTaskMemFree (media_type_p); media_type_p = NULL;
+  delete media_type_p; media_type_p = NULL;
 
   // *NOTE*: the default save format is ARGB32
   ACE_ASSERT (InlineIsEqualGUID (outputFormat_inout.majortype, MEDIATYPE_Video));
@@ -959,9 +958,12 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
+  struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // converter
+  struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // display
   struct Stream_CameraScreen_DirectShow_StreamConfiguration directshow_stream_configuration;
   Stream_CameraScreen_DirectShow_EventHandler_t directshow_ui_event_handler;
   struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
+  struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // converter
   struct Stream_CameraScreen_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
   Stream_CameraScreen_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler;
 #else
@@ -971,10 +973,10 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_CameraScreen_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
-  Stream_CameraScreen_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
-  Stream_CameraScreen_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-  Stream_CameraScreen_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
+  //Stream_CameraScreen_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
+  //Stream_CameraScreen_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
+  //Stream_CameraScreen_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
+  //Stream_CameraScreen_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1077,25 +1079,25 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
           &directshow_message_allocator;
       directshow_stream_configuration.module =
         &directshow_message_handler;
-      //directShowConfiguration_in.streamConfiguration.configuration_.renderer =
-      //  renderer_in;
+      directshow_stream_configuration.renderer = renderer_in;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
                                                                  directshow_stream_configuration);
-      directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+      directshow_modulehandler_configuration_3 = directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
         Stream_Device_Identifier::STRING;
-      ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
+      ACE_OS::strcpy (directshow_modulehandler_configuration_3.deviceIdentifier.identifier._string,
                       displayDevice_in.device.c_str ());
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
-                                                                                             &directshow_modulehandler_configuration)));
-      directshow_stream_iterator =
-        directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.streamConfiguration.end ());
-      directshow_stream_iterator_2 =
-        directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
-      ACE_ASSERT (directshow_stream_iterator_2 != directShowConfiguration_in.streamConfiguration.end ());
+                                                                                             &directshow_modulehandler_configuration_3)));
+      //directshow_stream_iterator =
+      //  directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      //ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.streamConfiguration.end ());
+      //directshow_stream_iterator_2 =
+      //  directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
+      //ACE_ASSERT (directshow_stream_iterator_2 != directShowConfiguration_in.streamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1113,12 +1115,12 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
                                                                       mediafoundation_stream_configuration);
-      mediafoundation_stream_iterator =
-        mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
-      mediafoundation_stream_iterator_2 =
-        mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
-      ACE_ASSERT (mediafoundation_stream_iterator_2 != mediaFoundationConfiguration_in.streamConfiguration.end ());
+      //mediafoundation_stream_iterator =
+      //  mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      //ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
+      //mediafoundation_stream_iterator_2 =
+      //  mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
+      //ACE_ASSERT (mediafoundation_stream_iterator_2 != mediaFoundationConfiguration_in.streamConfiguration.end ());
       break;
     }
     default:
@@ -1156,6 +1158,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   Stream_IStreamControlBase* stream_p = NULL;
 #if defined (CURSES_SUPPORT)
   Test_U_Curses_Manager_t* curses_manager_p = NULL;
+  struct Common_UI_Curses_Configuration* curses_configuration_p = NULL;
 #endif // CURSES_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1171,25 +1174,29 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       struct _AMMediaType* media_type_p = NULL;
       if (!do_initialize_directshow (deviceIdentifier_in,
                                      false,                             // has UI ?
-                                     (*directshow_stream_iterator).second.second->builder,
+                                     directshow_modulehandler_configuration.builder,
                                      stream_config_p,
                                      directshow_stream_configuration.format,
-                                     (*directshow_stream_iterator).second.second->outputFormat,
-                                     (*directshow_stream_iterator).second.second->window))
+                                     directshow_modulehandler_configuration.outputFormat,
+                                     directshow_modulehandler_configuration.window))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
         return;
       } // end IF
       //ACE_ASSERT (stream_config_p);
-      ACE_ASSERT ((*directshow_stream_iterator).second.second->window);
+      ACE_ASSERT (directshow_modulehandler_configuration.window);
       //directShowCBData_in.streamConfiguration = stream_config_p;
       media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator).second.second->outputFormat);
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
-      (*directshow_stream_iterator_2).second.second->outputFormat =
-        *media_type_p;
-      CoTaskMemFree (media_type_p); media_type_p = NULL;
+      directshow_modulehandler_configuration_2.outputFormat = *media_type_p;
+      delete media_type_p; media_type_p = NULL;
+      media_type_p =
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
+      ACE_ASSERT (media_type_p);
+      directshow_modulehandler_configuration_3.outputFormat = *media_type_p;
+      delete media_type_p; media_type_p = NULL;
       //directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
       //  (*directshow_stream_iterator).second.second->window;
       stream_p = &directshow_stream;
@@ -1200,7 +1207,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       if (!do_initialize_mediafoundation (deviceIdentifier_in,
                                           window_handle,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                                          (*mediafoundation_stream_iterator).second.second->session,
+                                          mediafoundation_modulehandler_configuration.session,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                                           load_device)) // load device ?
       {
@@ -1209,7 +1216,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         return;
       } // end IF
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      ACE_ASSERT ((*mediafoundation_stream_iterator).second.second->session);
+      ACE_ASSERT (mediafoundation_modulehandler_configuration.session);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       stream_p = &mediafoundation_stream;
       break;
@@ -1245,24 +1252,56 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       modulehandler_configuration_2 = modulehandler_configuration;
       modulehandler_configuration_2.outputFormat.format.pixelformat =
         V4L2_PIX_FMT_BGRA32;
-      configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
-                                                                   std::make_pair (&module_configuration,
-                                                                                   &modulehandler_configuration_2)));
       break;
     }
     default:
       break;
   } // end SWITCH
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_2)));
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 
 #if defined (CURSES_SUPPORT)
   if (renderer_in == STREAM_VISUALIZATION_VIDEORENDERER_CURSES)
   {
-    configuration_in.cursesConfiguration.hooks.initHook = curses_init;
-    configuration_in.cursesConfiguration.hooks.finiHook = curses_fini;
-    configuration_in.cursesConfiguration.hooks.inputHook = curses_input;
-    configuration_in.cursesConfiguration.hooks.mainHook = curses_main;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    switch (mediaFramework_in)
+    {
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      {
+        curses_configuration_p = &directShowConfiguration_in.cursesConfiguration;
+        directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+                                                                               std::make_pair (&module_configuration,
+                                                                                               &directshow_modulehandler_configuration_2)));
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      {
+        curses_configuration_p = &mediaFoundationConfiguration_in.cursesConfiguration;
+        mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+                                                                                    std::make_pair (&module_configuration,
+                                                                                                    &mediafoundation_modulehandler_configuration_2)));
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    mediaFramework_in));
+        return;
+      }
+    } // end SWITCH
+#else
+    curses_configuration_p = &configuration_in.cursesConfiguration;
+#endif // ACE_WIN32 || ACE_WIN64
+    ACE_ASSERT (curses_configuration_p);
+
+    curses_configuration_p->hooks.initHook = curses_init;
+    curses_configuration_p->hooks.finiHook = curses_fini;
+    curses_configuration_p->hooks.inputHook = curses_input;
+    curses_configuration_p->hooks.mainHook = curses_main;
 
     curses_manager_p = TEST_U_CURSES_MANAGER_SINGLETON::instance ();
     ACE_ASSERT (curses_manager_p);
@@ -1270,7 +1309,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       const_cast<struct Test_U_CursesState&> (curses_manager_p->getR ());
     state_r.stream = stream_p;
 
-    if (!curses_manager_p->initialize (configuration_in.cursesConfiguration))
+    if (!curses_manager_p->initialize (*curses_configuration_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Common_UI_Curses_Manager_T::initialize(), returning\n")));
@@ -1284,6 +1323,41 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     } // end IF
     ACE_OS::sleep (1);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    Common_Image_Resolution_t resolution_s;
+    switch (mediaFramework_in)
+    {
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      {
+        directshow_modulehandler_configuration.window_2 = state_r.std_window;
+        ACE_ASSERT (directshow_modulehandler_configuration.window_2);
+        resolution_s.cx = getmaxx (state_r.std_window);
+        resolution_s.cy = getmaxy (state_r.std_window);
+        Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                               directshow_modulehandler_configuration.outputFormat);
+        Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
+                                                           directshow_modulehandler_configuration_2.outputFormat);
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      {
+        mediafoundation_modulehandler_configuration.window_2 = state_r.std_window;
+        ACE_ASSERT (mediafoundation_modulehandler_configuration.window_2);
+        Stream_MediaFramework_MediaFoundation_Tools::setResolution (resolution_s,
+                                                                    mediafoundation_modulehandler_configuration.outputFormat);
+        Stream_MediaFramework_MediaFoundation_Tools::setFormat (MEDIASUBTYPE_RGB24,
+                                                                mediafoundation_modulehandler_configuration_2.outputFormat);
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    mediaFramework_in));
+        return;
+      }
+    } // end SWITCH
+#else
     modulehandler_configuration.window_2 = state_r.std_window;
     ACE_ASSERT (modulehandler_configuration.window_2);
     modulehandler_configuration.outputFormat.format.width =
@@ -1292,7 +1366,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       getmaxy (state_r.std_window);
     modulehandler_configuration_2.outputFormat.format.pixelformat =
       V4L2_PIX_FMT_RGB24;
-  } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
+  }    // end IF
 #endif // CURSES_SUPPORT
 
   // intialize timers

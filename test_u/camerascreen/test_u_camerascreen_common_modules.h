@@ -35,12 +35,12 @@
 #include "stream_dev_cam_source_directshow.h"
 #include "stream_dev_cam_source_mediafoundation.h"
 #else
+#include "stream_dev_cam_source_v4l.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_converter.h"
 #endif // FFMPEG_SUPPORT
-
-#include "stream_dev_cam_source_v4l.h"
-#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_asynch_source_filter.h"
@@ -81,6 +81,25 @@
 
 // declare module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Stream_CameraScreen_DirectShow_Message_t,
+                               Stream_CameraScreen_DirectShow_SessionMessage_t,
+                               enum Stream_ControlType,
+                               enum Stream_SessionMessageType,
+                               struct Stream_UserData> Test_U_DirectShow_TaskBaseSynch_t;
+typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t,
+                                struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
+                                Stream_ControlMessage_t,
+                                Stream_CameraScreen_DirectShow_Message_t,
+                                Stream_CameraScreen_DirectShow_SessionMessage_t,
+                                enum Stream_ControlType,
+                                enum Stream_SessionMessageType,
+                                struct Stream_UserData> Test_U_DirectShow_TaskBaseAsynch_t;
+
 typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            Stream_ControlMessage_t,
                                            Stream_CameraScreen_DirectShow_Message_t,
@@ -111,6 +130,14 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 Common_Timer_Manager_t,
                                                 struct Stream_UserData,
                                                 IMFMediaType*> Stream_CameraScreen_MediaFoundation_Source;
+
+#if defined (FFMPEG_SUPPORT)
+typedef Stream_Decoder_LibAVConverter_T<Test_U_DirectShow_TaskBaseSynch_t,
+                                        struct _AMMediaType> Stream_CameraScreen_DirectShow_LibAVConvert;
+
+typedef Stream_Visualization_LibAVResize_T<Test_U_DirectShow_TaskBaseSynch_t,
+                                           struct _AMMediaType> Stream_CameraScreen_DirectShow_LibAVResize;
+#endif // FFMPEG_SUPPORT
 #else
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
@@ -288,6 +315,26 @@ typedef Stream_Vis_Target_GDI_T<ACE_MT_SYNCH,
                                 Stream_CameraScreen_DirectShow_SessionData_t,
                                 struct _AMMediaType> Stream_CameraScreen_DirectShow_GDI_Display;
 
+#if defined (CURSES_SUPPORT)
+typedef Stream_Module_Vis_Curses_Window_T<ACE_MT_SYNCH,
+                                          Common_TimePolicy_t,
+                                          struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
+                                          Stream_ControlMessage_t,
+                                          Stream_CameraScreen_DirectShow_Message_t,
+                                          Stream_CameraScreen_DirectShow_SessionMessage_t,
+                                          Stream_CameraScreen_DirectShow_SessionData_t,
+                                          struct _AMMediaType> Stream_CameraScreen_DirectShow_Curses_Display;
+#endif // CURSES_SUPPORT
+#if defined (GTK_SUPPORT)
+typedef Stream_Module_Vis_GTK_Window_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
+                                       struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
+                                       Stream_ControlMessage_t,
+                                       Stream_CameraScreen_DirectShow_Message_t,
+                                       Stream_CameraScreen_DirectShow_SessionMessage_t,
+                                       struct _AMMediaType> Stream_CameraScreen_DirectShow_GTK_Display;
+#endif // GTK_SUPPORT
+
 typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration,
@@ -430,6 +477,22 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_MediaFoundation_SessionData,  
                               libacestream_default_dev_cam_source_mediafoundation_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CameraScreen_MediaFoundation_Source);           // writer type
+
+#if defined (FFMPEG_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                   // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_libav_converter_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_CameraScreen_DirectShow_LibAVConvert);                      // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                   // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_libav_resize_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_CameraScreen_DirectShow_LibAVResize);                      // writer type
+#endif // FFMPEG_SUPPORT
 #else
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
@@ -514,6 +577,23 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,       
                               libacestream_default_vis_gdi_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CameraScreen_DirectShow_GDI_Display);                 // writer type
+
+#if defined (CURSES_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_curses_window_module_name_string,
+                              Stream_INotify_t,                                           // stream notification interface type
+                              Stream_CameraScreen_DirectShow_Curses_Display);                        // writer type
+#endif // CURSES_SUPPORT
+#if defined (GTK_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                   // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_gtk_window_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_CameraScreen_DirectShow_GTK_Display);                        // writer type
+#endif // GTK_SUPPORT
 
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                   // session event type

@@ -680,13 +680,19 @@ struct Stream_CameraScreen_DirectShow_Configuration
 {
   Stream_CameraScreen_DirectShow_Configuration ()
    : Test_U_Configuration ()
+#if defined (CURSES_SUPPORT)
+   , cursesConfiguration ()
+#endif // CURSES_SUPPORT
    , direct3DConfiguration ()
    , streamConfiguration ()
   {}
 
+#if defined (CURSES_SUPPORT)
+  struct Common_UI_Curses_Configuration                cursesConfiguration;
+#endif // CURSES_SUPPORT
   // **************************** stream data **********************************
-  struct Stream_MediaFramework_Direct3D_Configuration direct3DConfiguration;
-  Stream_CameraScreen_DirectShow_StreamConfiguration_t     streamConfiguration;
+  struct Stream_MediaFramework_Direct3D_Configuration  direct3DConfiguration;
+  Stream_CameraScreen_DirectShow_StreamConfiguration_t streamConfiguration;
 };
 
 struct Stream_CameraScreen_MediaFoundation_Configuration
@@ -694,12 +700,18 @@ struct Stream_CameraScreen_MediaFoundation_Configuration
 {
   Stream_CameraScreen_MediaFoundation_Configuration ()
    : Test_U_Configuration ()
+#if defined (CURSES_SUPPORT)
+   , cursesConfiguration ()
+#endif // CURSES_SUPPORT
    , direct3DConfiguration ()
    , streamConfiguration ()
   {}
 
+#if defined (CURSES_SUPPORT)
+  struct Common_UI_Curses_Configuration                     cursesConfiguration;
+#endif // CURSES_SUPPORT
   // **************************** stream data **********************************
-  struct Stream_MediaFramework_Direct3D_Configuration  direct3DConfiguration;
+  struct Stream_MediaFramework_Direct3D_Configuration       direct3DConfiguration;
   Stream_CameraScreen_MediaFoundation_StreamConfiguration_t streamConfiguration;
 };
 #else

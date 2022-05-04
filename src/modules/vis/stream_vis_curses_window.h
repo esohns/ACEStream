@@ -84,7 +84,12 @@ class Stream_Module_Vis_Curses_Window_T
   typedef Common_UI_WindowTypeConverter_T<void> inherited3;
 
  public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_Vis_Curses_Window_T (ISTREAM_T*); // stream handle
+#else
   Stream_Module_Vis_Curses_Window_T (typename inherited::ISTREAM_T*); // stream handle
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_Vis_Curses_Window_T ();
 
   virtual bool initialize (const ConfigurationType&,
