@@ -63,6 +63,8 @@ Stream_CameraScreen_DirectShow_Stream::Stream_CameraScreen_DirectShow_Stream ()
 #endif // GTK_SUPPORT
  , GDIDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GDI_DEFAULT_NAME_STRING))
+ , Direct2DDisplay_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT2D_DEFAULT_NAME_STRING))
  , Direct3DDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
  , DirectShowDisplay_ (this,
@@ -106,9 +108,9 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
     case STREAM_VISUALIZATION_VIDEORENDERER_GDI:
       layout_in->append (&GDIDisplay_, NULL, 0);
       break;
-    //case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
-    //  layout_in->append (&Direct2DDisplay_, NULL, 0);
-    //  break;
+    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
+      layout_in->append (&Direct2DDisplay_, NULL, 0);
+      break;
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
       layout_in->append (&Direct3DDisplay_, NULL, 0);
       break;
@@ -165,7 +167,7 @@ Stream_CameraScreen_DirectShow_Stream::initialize (const inherited::CONFIGURATIO
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   iterator_2 =
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (Stream_Visualization_Tools::rendererToModuleName (configuration_in.configuration_->renderer));
   // sanity check(s)
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
   ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
@@ -421,11 +423,6 @@ continue_:
   media_filter_p->Release (); media_filter_p = NULL;
 
   // ---------------------------------------------------------------------------
-  // step2: update stream module configuration(s)
-  //(*iterator_2).second.second = (*iterator).second.second;
-  //(*iterator_2).second.second->deviceIdentifier.clear ();
-
-  // ---------------------------------------------------------------------------
   // step3: allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
@@ -489,12 +486,12 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step6: initialize head module
-  source_impl_p->setP (&(inherited::state_));
-  //fileReader_impl_p->reset ();
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  source_.arg (inherited::sessionData_);
+  //source_impl_p->setP (&(inherited::state_));
+  ////fileReader_impl_p->reset ();
+  //// *NOTE*: push()ing the module will open() it
+  ////         --> set the argument that is passed along (head module expects a
+  ////             handle to the session data)
+  //source_.arg (inherited::sessionData_);
 
   // step7: assemble stream
   if (configuration_in.configuration_->setupPipeline)
@@ -1266,6 +1263,11 @@ Stream_CameraScreen_Stream::load (Stream_ILayout* layout_in,
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
       layout_in->append (&X11Display_, NULL, 0);
       break;
+#if defined (GLUT_SUPPORT)
+    case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
+      layout_in->append (&OpenGLDisplay_, NULL, 0);
+      break;
+#endif // GLUT_SUPPORT
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1292,7 +1294,7 @@ Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_
   bool reset_setup_pipeline = false;
   Stream_CameraScreen_V4L_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  Stream_CameraScreen_V4L_Source* source_impl_p = NULL;
+//  Stream_CameraScreen_V4L_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -1326,21 +1328,21 @@ Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_
   // ---------------------------------------------------------------------------
 
   // ******************* Camera Source ************************
-  source_impl_p =
-    dynamic_cast<Stream_CameraScreen_V4L_Source*> (source_.writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_V4L_CamSource> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
-  source_impl_p->setP (&(inherited::state_));
+//  source_impl_p =
+//    dynamic_cast<Stream_CameraScreen_V4L_Source*> (source_.writer ());
+//  if (!source_impl_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_V4L_CamSource> failed, aborting\n"),
+//                ACE_TEXT (stream_name_string_)));
+//    goto error;
+//  } // end IF
+//  source_impl_p->setP (&(inherited::state_));
 
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  source_.arg (inherited::sessionData_);
+//  // *NOTE*: push()ing the module will open() it
+//  //         --> set the argument that is passed along (head module expects a
+//  //             handle to the session data)
+//  source_.arg (inherited::sessionData_);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))

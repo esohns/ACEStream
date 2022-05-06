@@ -162,7 +162,7 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
                                 STREAM_MEDIATYPE_VIDEO,
                                 CBData_.mediaType);
 
-      window_ = glutCreateWindow ("Bounce");
+      window_ = glutCreateWindow ("OpenGL GLUT");
       glutSetWindow (window_);
       glutSetWindowData (&CBData_);
 
@@ -202,7 +202,12 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
       COMMON_GL_ASSERT;
 
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      COMMON_GL_ASSERT;
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      COMMON_GL_ASSERT;
+
+      glGenTextures (1, &CBData_.textureId);
+      COMMON_GL_ASSERT;
 
       glutDisplayFunc (libacestream_glut_draw);
       glutReshapeFunc (libacestream_glut_reshape);

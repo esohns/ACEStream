@@ -113,7 +113,8 @@ class Stream_CameraScreen_DirectShow_Stream
   Stream_CameraScreen_DirectShow_GTK_Display_Module      GTKDisplay_;
 #endif // GTK_SUPPORT
   Stream_CameraScreen_DirectShow_GDI_Display_Module      GDIDisplay_;
-  Stream_CameraScreen_DirectShow_Direct3DDisplay_Module  Direct3DDisplay_;
+  Stream_CameraScreen_DirectShow_Direct2D_Display_Module Direct2DDisplay_;
+  Stream_CameraScreen_DirectShow_Direct3D_Display_Module Direct3DDisplay_;
   Stream_CameraScreen_DirectShow_Display_Module          DirectShowDisplay_;
 #if defined (GLUT_SUPPORT)
   Stream_CameraScreen_DirectShow_OpenGL_Display_Module   OpenGLDisplay_;

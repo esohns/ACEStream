@@ -63,6 +63,7 @@
 #include "stream_vis_gtk_window.h"
 #endif // GTK_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_vis_target_direct2d.h"
 #include "stream_vis_target_direct3d.h"
 #include "stream_vis_target_directshow.h"
 #include "stream_vis_target_gdi.h"
@@ -253,6 +254,16 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Vis_Target_Direct2D_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Stream_CameraScreen_DirectShow_Message_t,
+                                     Stream_CameraScreen_DirectShow_SessionMessage_t,
+                                     Stream_CameraScreen_DirectShow_SessionData,
+                                     Stream_CameraScreen_DirectShow_SessionData_t,
+                                     struct _AMMediaType> Stream_CameraScreen_DirectShow_Direct2D_Display;
+
 typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
@@ -261,7 +272,7 @@ typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Stream_CameraScreen_DirectShow_SessionMessage_t,
                                      Stream_CameraScreen_DirectShow_SessionData,
                                      Stream_CameraScreen_DirectShow_SessionData_t,
-                                     struct _AMMediaType> Stream_CameraScreen_DirectShow_Direct3DDisplay;
+                                     struct _AMMediaType> Stream_CameraScreen_DirectShow_Direct3D_Display;
 
 struct Stream_CameraScreen_DirectShow_FilterConfiguration
  : Stream_MediaFramework_DirectShow_FilterConfiguration
@@ -343,7 +354,7 @@ typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Stream_CameraScreen_MediaFoundation_SessionMessage_t,
                                      Stream_CameraScreen_MediaFoundation_SessionData,
                                      Stream_CameraScreen_MediaFoundation_SessionData_t,
-                                     IMFMediaType*> Stream_CameraScreen_MediaFoundation_Direct3DDisplay;
+                                     IMFMediaType*> Stream_CameraScreen_MediaFoundation_Direct3D_Display;
 
 typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
@@ -548,12 +559,19 @@ DATASTREAM_MODULE_DUPLEX (Stream_CameraScreen_V4L_SessionData,                //
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                // session data type
-                              enum Stream_SessionMessageType,                   // session event type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                   // session event type
                               struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_directshow_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CameraScreen_DirectShow_Direct3DDisplay);       // writer type
+                              libacestream_default_vis_direct2d_module_name_string,
+                              Stream_INotify_t,                                                 // stream notification interface type
+                              Stream_CameraScreen_DirectShow_Direct2D_Display);                 // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                   // session event type
+                              struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_direct3d_module_name_string,
+                              Stream_INotify_t,                                                 // stream notification interface type
+                              Stream_CameraScreen_DirectShow_Direct3D_Display);                 // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                   // session event type
@@ -600,7 +618,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_MediaFoundation_SessionData,  
                               struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_mediafoundation_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CameraScreen_MediaFoundation_Direct3DDisplay);  // writer type
+                              Stream_CameraScreen_MediaFoundation_Direct3D_Display);  // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_MediaFoundation_SessionData,                      // session data type
                               enum Stream_SessionMessageType,                         // session event type

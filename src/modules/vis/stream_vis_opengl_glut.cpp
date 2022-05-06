@@ -21,12 +21,6 @@
 
 #include "stream_vis_opengl_glut.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "gl/GL.h"
-#else
-#include "GL/gl.h"
-#endif // ACE_WIN32 || ACE_WIN64
-
 #include "common_gl_tools.h"
 
 #include "stream_vis_defines.h"
@@ -95,7 +89,7 @@ void
 libacestream_glut_reshape (int width_in, int height_in)
 {
   glViewport (0, 0,
-    static_cast<GLsizei> (width_in), static_cast<GLsizei> (height_in));
+              static_cast<GLsizei> (width_in), static_cast<GLsizei> (height_in));
   // *TODO*: find out why this reports GL_INVALID_OPERATION
   COMMON_GL_PRINT_ERROR;
 
@@ -106,7 +100,7 @@ libacestream_glut_reshape (int width_in, int height_in)
   COMMON_GL_ASSERT;
 
   gluPerspective (45.0,
-    static_cast<GLdouble> (width_in) / static_cast<GLdouble> (height_in),
+                  static_cast<GLdouble> (width_in) / static_cast<GLdouble> (height_in),
                   0.1, 100.0);
   COMMON_GL_ASSERT;
 
@@ -150,29 +144,31 @@ libacestream_glut_draw (void)
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Message_Block* message_block_p = NULL;
 
-  GLuint tex_index;
-
   message_block_p = NULL;
    cb_data_p->queue->dequeue_head (message_block_p,
                                    NULL);
   ACE_ASSERT (message_block_p);
-  tex_index =
-    Common_GL_Tools::loadTexture (reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
+
+  //glDeleteTextures (1, &cb_data_p->textureId);
+  //COMMON_GL_PRINT_ERROR;
+  //glGenTextures (1, &cb_data_p->textureId);
+  //COMMON_GL_ASSERT;
+
+  Common_GL_Tools::loadTexture (reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                  resolution_s.cx,
-                                  resolution_s.cy);
+                                resolution_s.cx, resolution_s.cy,
 #else
-                                  cb_data_p->mediaType.resolution.width,
-                                  cb_data_p->mediaType.resolution.height);
+                                cb_data_p->mediaType.resolution.width,
+                                cb_data_p->mediaType.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
-  //glBindTexture (GL_TEXTURE_2D, tex_index);
+                                cb_data_p->textureId);
   message_block_p->release ();
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   // *TODO*: find out why this reports GL_INVALID_OPERATION
   COMMON_GL_PRINT_ERROR;
 
-  glBindTexture (GL_TEXTURE_2D, tex_index);
+  glBindTexture (GL_TEXTURE_2D, cb_data_p->textureId);
   COMMON_GL_ASSERT;
 
   glLoadIdentity (); // Reset the transformation matrix.

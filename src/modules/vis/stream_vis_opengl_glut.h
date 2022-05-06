@@ -27,7 +27,10 @@
 #include "stream_task_base_asynch.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "gl/GL.h"
 #else
+#include "GL/gl.h"
+
 #if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
 #endif // FFMPEG_SUPPORT
@@ -65,6 +68,7 @@ struct OpenGL_GLUT_WindowData
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Message_Queue_Base*                            queue;
+  GLuint                                             textureId;
 };
 
 template <ACE_SYNCH_DECL,

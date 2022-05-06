@@ -33,7 +33,7 @@ add_library (${PROJECT_NAME}_Visualization STATIC "")
 
 if (GLUT_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${GLUT_INCLUDE_DIRS}>)
+                             "$<BUILD_INTERFACE:${GLUT_INCLUDE_DIRS}>")
 endif (GLUT_SUPPORT)
 if (FFMPEG_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -45,7 +45,7 @@ if (IMAGEMAGICK_SUPPORT)
 endif (IMAGEMAGICK_SUPPORT)
 if (CURSES_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CURSES_INCLUDE_DIRS}>)
+                             "$<BUILD_INTERFACE:${CURSES_INCLUDE_DIRS}>")
 endif (CURSES_SUPPORT)
 if (GTK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -228,6 +228,9 @@ if (UNIX)
 elseif (WIN32)
  set (source_files
       ${source_files}
+      stream_vis_target_direct2d.cpp
+      stream_vis_target_direct2d.h
+      stream_vis_target_direct2d.inl
       stream_vis_target_direct3d.cpp
       stream_vis_target_direct3d.h
       stream_vis_target_direct3d.inl
@@ -303,6 +306,7 @@ elseif (WIN32)
 # target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ucrt${LIB_FILE_SUFFIX}.lib)
 # target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC uuids.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC User32.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC D2d1.lib)
 endif ()
 
 target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${ACE_LIBRARY})
@@ -394,6 +398,8 @@ if (UNIX)
 elseif (WIN32)
  set (header_files
       ${header_files}
+      stream_vis_target_direct2d.h
+      stream_vis_target_direct2d.inl
       stream_vis_target_direct3d.h
       stream_vis_target_direct3d.inl
       stream_vis_target_directshow.h
