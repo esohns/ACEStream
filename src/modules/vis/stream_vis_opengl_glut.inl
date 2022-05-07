@@ -166,16 +166,19 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
       glutSetWindow (window_);
       glutSetWindowData (&CBData_);
 
-      glClearColor (0.0F, 0.0F, 0.0F, 1.0F);              // Black Background
+      //glClearColor (0.0F, 0.0F, 0.0F, 1.0F); // Black Background
+      glClearColor (0.0F, 0.0F, 0.0F, 0.0F); // Black Background
       COMMON_GL_ASSERT;
       //glClearDepth (1.0);                                 // Depth Buffer Setup
       //COMMON_GL_ASSERT;
       /* speedups */
-      //  glDisable (GL_CULL_FACE);
+      //glDisable (GL_CULL_FACE);
+      //glFrontFace (GL_CW);
+      //glCullFace (GL_BACK);
       //  glEnable (GL_DITHER);
       //  glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
       //  glHint (GL_POLYGON_SMOOTH_HINT, GL_FASTEST);
-      COMMON_GL_ASSERT;
+      //COMMON_GL_ASSERT;
       //glColorMaterial (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
       //COMMON_GL_ASSERT;
       //glEnable (GL_COLOR_MATERIAL);
@@ -196,15 +199,20 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
       COMMON_GL_ASSERT;
       glEnable (GL_BLEND);                                // Enable Semi-Transparency
       COMMON_GL_ASSERT;
-      glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      //glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glBlendFunc (GL_ONE_MINUS_DST_ALPHA, GL_ONE);
       COMMON_GL_ASSERT;
       glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
       COMMON_GL_ASSERT;
 
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      COMMON_GL_ASSERT;
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      COMMON_GL_ASSERT;
+      //glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      //COMMON_GL_ASSERT;
+      //glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      //COMMON_GL_ASSERT;
+      //glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+      //COMMON_GL_ASSERT;
+      //glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+      //COMMON_GL_ASSERT;
 
       glGenTextures (1, &CBData_.textureId);
       COMMON_GL_ASSERT;

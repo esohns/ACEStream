@@ -182,6 +182,7 @@ libacestream_glut_draw (void)
   COMMON_GL_ASSERT;
 
   glBegin (GL_QUADS);
+  COMMON_GL_ASSERT;
 
   // Front Face
   glTexCoord2f (0.0f, 0.0f); glVertex3f (-1.0f, -1.0f, 1.0f); // Bottom Left Of The Texture and Quad
@@ -215,12 +216,21 @@ libacestream_glut_draw (void)
   glTexCoord2f (0.0f, 1.0f); glVertex3f (-1.0f, 1.0f, -1.0f); // Top Left Of The Texture and Quad
 
   glEnd ();
+  // *TODO*: find out why this reports GL_INVALID_OPERATION
+  COMMON_GL_PRINT_ERROR;
 
   cube_rotation -= 1.0f; // Decrease The Rotation Variable For The Cube
 
   glPopMatrix ();
+  // *TODO*: find out why this reports GL_INVALID_OPERATION
+  COMMON_GL_PRINT_ERROR;
+
+  glBindTexture (GL_TEXTURE_2D, 0);
+  COMMON_GL_ASSERT;
 
   glFlush ();
+  COMMON_GL_ASSERT;
+
   glutSwapBuffers ();
 }
 

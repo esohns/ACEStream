@@ -476,7 +476,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   outputFormat_inout = *media_type_p;
   delete media_type_p; media_type_p = NULL;
 
-  // *NOTE*: the default save format is ARGB32
+  // *NOTE*: the default (sample grabber-) output format is RGB32
   ACE_ASSERT (InlineIsEqualGUID (outputFormat_inout.majortype, MEDIATYPE_Video));
   outputFormat_inout.subtype =
     STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT;
@@ -1388,6 +1388,27 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       DestroyWindow (directshow_modulehandler_configuration_3.window);
       directshow_modulehandler_configuration_3.window = NULL;
+
+      switch (mediaFramework_in)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        { // *TODO*: there is no way to specify BGRA with _AMMediaType !
+          //Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_ARGB32,
+          //                                                   directshow_modulehandler_configuration_2.outputFormat);
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      mediaFramework_in));
+          return;
+        }
+      } // end SWITCH
 #endif // ACE_WIN32 || ACE_WIN64
 
       break;
