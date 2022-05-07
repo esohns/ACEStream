@@ -244,7 +244,7 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
       goto error;
     } // end IF
 
-continue_:
+//continue_:
     message_block_p = message_block_p->cont ();
   } // end WHILE
 

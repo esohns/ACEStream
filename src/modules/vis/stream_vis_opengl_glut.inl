@@ -234,8 +234,10 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
     { ACE_ASSERT (inSession_);
       inSession_ = false;
 
-      if (window_)
-        glutDestroyWindow (window_);
+      if (likely (window_))
+      {
+        glutDestroyWindow (window_); window_ = 0;
+      } // end IF
 
       //glutLeaveMainLoop ();
 
@@ -302,8 +304,7 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
       if (message_type == ACE_Message_Block::MB_STOP)
       {
         // clean up
-        message_block_p->release ();
-        message_block_p = NULL;
+        message_block_p->release (); message_block_p = NULL;
 
         // *NOTE*: when close()d manually (i.e. user abort), 'finished' will not
         //         have been set at this stage
