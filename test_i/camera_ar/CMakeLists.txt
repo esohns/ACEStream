@@ -1,5 +1,8 @@
 include (ffmpeg)
 
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
+include (pge)
+
 if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
@@ -16,6 +19,7 @@ string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 if (FFMPEG_SUPPORT)
  include_directories (${ffmpeg_INCLUDE_DIRS})
 endif (FFMPEG_SUPPORT)
+include_directories (${PGE_INCLUDE_DIR})
 if (UNIX)
  include_directories (${PKG_V4L_INCLUDE_DIRS})
 
@@ -73,6 +77,9 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_camera_ar_message.cpp
      test_i_camera_ar_message.h
      test_i_camera_ar_message.inl
+     test_i_camera_ar_module_pge.cpp
+     test_i_camera_ar_module_pge.h
+     test_i_camera_ar_module_pge.inl
      test_i_camera_ar_session_message.cpp
      test_i_camera_ar_session_message.h
      test_i_camera_ar_session_message.inl

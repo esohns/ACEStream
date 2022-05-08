@@ -1026,15 +1026,15 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                                                                               &heap_allocator,     // heap allocator handle
                                                                               true);               // block ?
   Stream_CameraAR_DirectShow_Stream directshow_stream;
-  Stream_CameraAR_DirectShow_MessageHandler_Module directshow_message_handler (&directshow_stream,
-                                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Stream_CameraAR_DirectShow_PGE_Module directshow_PGE (&directshow_stream,
+                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING));
 
   Stream_CameraAR_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                                         &heap_allocator,     // heap allocator handle
                                                                                         true);               // block ?
   Stream_CameraAR_MediaFoundation_Stream mediafoundation_stream;
-  Stream_CameraAR_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (&mediafoundation_stream,
-                                                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Stream_CameraAR_MediaFoundation_PGE_Module mediafoundation_message_handler (&mediafoundation_stream,
+                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING));
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1045,8 +1045,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_stream_configuration.messageAllocator =
           &directshow_message_allocator;
-      directshow_stream_configuration.module =
-        &directshow_message_handler;
+      directshow_stream_configuration.module = &directshow_PGE;
       directshow_stream_configuration.renderer = renderer_in;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
