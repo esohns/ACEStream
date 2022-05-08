@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_CAMSAVE_EVENTHANDLER_H
-#define TEST_I_CAMSAVE_EVENTHANDLER_H
+#ifndef TEST_U_CAMSAVE_EVENTHANDLER_H
+#define TEST_U_CAMSAVE_EVENTHANDLER_H
 
 #include "ace/Global_Macros.h"
 
@@ -83,6 +83,6 @@ class Stream_CamSave_EventHandler_T
 };
 
 // include template definition
-#include "test_i_camsave_eventhandler.inl"
+#include "test_u_camsave_eventhandler.inl"
 
 #endif

@@ -106,20 +106,20 @@
 
 #include "stream_vis_tools.h"
 
-#include "test_i_common.h"
-#include "test_i_defines.h"
+#include "test_u_common.h"
+#include "test_u_defines.h"
 
-#include "test_i_camsave_defines.h"
-#include "test_i_camsave_eventhandler.h"
+#include "test_u_camsave_defines.h"
+#include "test_u_camsave_eventhandler.h"
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-#include "test_i_camsave_gtk_callbacks.h"
+#include "test_u_camsave_gtk_callbacks.h"
 #elif defined (WXWIDGETS_USE)
 #include "test_u_camsave_ui.h"
 #endif
 #endif // GUI_SUPPORT
-#include "test_i_camsave_signalhandler.h"
-#include "test_i_camsave_stream.h"
+#include "test_u_camsave_signalhandler.h"
+#include "test_u_camsave_stream.h"
 
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CamSaveStream");
 #if defined (GUI_SUPPORT)
@@ -210,7 +210,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_OUTPUT_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f[[STRING]]: target filename [")
             << path
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -221,7 +221,7 @@ do_printUsage (const std::string& programName_in)
 #if defined (GUI_SUPPORT)
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
+  UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_DEFINITION_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-g[[STRING]]: UI file [\"")
             << UI_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
@@ -309,7 +309,7 @@ do_processArguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_OUTPUT_FILE);
   targetFileName_out = path;
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -317,7 +317,7 @@ do_processArguments (int argc_in,
 #if defined (GUI_SUPPORT)
   UIFile_out = path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
+  UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_DEFINITION_FILE);
 #endif // GUI_SUPPORT
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1485,14 +1485,14 @@ error:
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_CamSave_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+  Stream_CamSave_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                              &heap_allocator,     // heap allocator handle
                                                                              true);               // block ?
   Stream_CamSave_DirectShow_MessageHandler_Module directshow_message_handler (NULL,
                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Stream_CamSave_DirectShow_Stream directshow_stream;
 
-  Stream_CamSave_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+  Stream_CamSave_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                        &heap_allocator,     // heap allocator handle
                                                                                        true);               // block ?
   Stream_CamSave_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (NULL,
@@ -1599,14 +1599,14 @@ error:
   } // end SWITCH
 #else
 #if defined (LIBCAMERA_SUPPORT)
-  Stream_CamSave_LibCamera_MessageAllocator_t libcamera_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+  Stream_CamSave_LibCamera_MessageAllocator_t libcamera_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                            &heap_allocator,     // heap allocator handle
                                                                            true);               // block ?
   Stream_CamSave_LibCamera_MessageHandler_Module libcamera_message_handler (NULL,
                                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Stream_CamSave_LibCamera_Stream libcamera_stream;
 #endif // LIBCAMERA_SUPPORT
-  Stream_CamSave_V4L_MessageAllocator_t v4l_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+  Stream_CamSave_V4L_MessageAllocator_t v4l_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                &heap_allocator,     // heap allocator handle
                                                                true);               // block ?
   Stream_CamSave_V4L_MessageHandler_Module v4l_message_handler (NULL,
@@ -2370,7 +2370,7 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_OUTPUT_FILE);
   std::string target_filename = path;
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -2379,7 +2379,7 @@ ACE_TMAIN (int argc_in,
   std::string UI_definition_filename = path;
   UI_definition_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_filename +=
-    ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_DEFINITION_FILE);
 #endif // GUI_SUPPORT
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2487,7 +2487,7 @@ ACE_TMAIN (int argc_in,
   //                   reactor/proactor thread could (dead)lock on the
   //                   allocator lock, as it cannot dispatch events that would
   //                   free slots
-  if (TEST_I_MAX_MESSAGES)
+  if (TEST_U_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to a deadlock --> ensure the streaming elements are sufficiently efficient in this regard\n")));
   if (

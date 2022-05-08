@@ -17,32 +17,6 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "stdafx.h"
 
-#ifndef TEST_I_CAMSAVE_SIGNALHANDLER_H
-#define TEST_I_CAMSAVE_SIGNALHANDLER_H
-
-#include "ace/Global_Macros.h"
-
-#include "common_isignal.h"
-#include "common_signal_handler.h"
-
-#include "test_i_camsave_common.h"
-
-class Stream_CamSave_SignalHandler
- : public Common_SignalHandler_T<struct Stream_CamSave_SignalHandlerConfiguration>
-{
-  typedef Common_SignalHandler_T<struct Stream_CamSave_SignalHandlerConfiguration> inherited;
-
- public:
-  Stream_CamSave_SignalHandler ();
-  inline virtual ~Stream_CamSave_SignalHandler () {}
-
-  // implement Common_ISignal
-  virtual void handle (const struct Common_Signal&); // signal
-
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_SignalHandler (const Stream_CamSave_SignalHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_SignalHandler& operator= (const Stream_CamSave_SignalHandler&))
-};
-
-#endif
+#include "test_u_camsave_message.h"

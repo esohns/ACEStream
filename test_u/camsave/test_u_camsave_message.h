@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_CAMSAVE_MESSAGE_H
-#define TEST_I_CAMSAVE_MESSAGE_H
+#ifndef TEST_U_CAMSAVE_MESSAGE_H
+#define TEST_U_CAMSAVE_MESSAGE_H
 
 #include "ace/Global_Macros.h"
 #include "ace/Malloc_Base.h"
@@ -31,7 +31,7 @@
 #include "stream_control_message.h"
 #include "stream_data_message_base.h"
 
-#include "test_i_common.h"
+#include "test_u_common.h"
 
 // forward declaration(s)
 template <ACE_SYNCH_DECL,
@@ -169,6 +169,6 @@ class Stream_CamSave_LibCamera_Message_T
 #endif // ACE_WIN32 || ACE_WIN64
 
 // include template definition
-#include "test_i_camsave_message.inl"
+#include "test_u_camsave_message.inl"
 
 #endif

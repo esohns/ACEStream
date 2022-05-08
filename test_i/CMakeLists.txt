@@ -282,7 +282,6 @@ install (TARGETS ${PROJECT_NAME}_Test_I
 # ----------------------------------------
 
 add_subdirectory (avsave)
-add_subdirectory (camsave)
 add_subdirectory (commandspeech)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
@@ -298,7 +297,7 @@ add_subdirectory (speechcommand)
 
 add_custom_target (test_i ALL
                    COMMENT "building test_i...")
-add_dependencies (test_i avsave camsave commandspeech imagesave mp3player speechcommand)
+add_dependencies (test_i avsave commandspeech imagesave mp3player speechcommand)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
 add_dependencies (test_i camsource camtarget filesource filetarget HTTP_get_1 HTTP_get_2 SMTP_send)

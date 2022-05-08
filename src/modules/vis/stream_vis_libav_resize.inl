@@ -148,7 +148,7 @@ Stream_Visualization_LibAVResize_T<TaskType,
 //                  ACE_TEXT (filename_string.c_str ())));
 //      goto error;
 //    } // end IF
-//#endif
+//#endif // _DEBUG
 
   // allocate a message buffer for the next frame
   inherited::buffer_ = inherited::allocateMessage (inherited::frameSize_);
@@ -393,7 +393,7 @@ error:
                                STREAM_MEDIATYPE_VIDEO,
                                media_type_3);
 
-      inherited::inputFormat_ = media_type_2.format;
+      //inherited::inputFormat_ = media_type_2.format;
       sourceResolution_ = media_type_2.resolution;
       if (inherited::context_)
       {
@@ -494,6 +494,7 @@ error:
                                   inherited::frame_->linesize);
       ACE_ASSERT (result >= 0);
 
+      ACE_OS::memset (&media_type_s, 0, sizeof (MediaType));
       ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         inherited::getMediaType (session_data_r.formats.back (),

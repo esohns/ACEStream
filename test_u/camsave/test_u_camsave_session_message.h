@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_CAMSAVE_SESSION_MESSAGE_H
-#define TEST_I_CAMSAVE_SESSION_MESSAGE_H
+#ifndef TEST_U_CAMSAVE_SESSION_MESSAGE_H
+#define TEST_U_CAMSAVE_SESSION_MESSAGE_H
 
 #include "ace/Global_Macros.h"
 #include "ace/Malloc_Base.h"
@@ -30,9 +30,9 @@
 #include "stream_session_data.h"
 #include "stream_session_message_base.h"
 
-#include "test_i_common.h"
+#include "test_u_common.h"
 
-#include "test_i_camsave_common.h"
+#include "test_u_camsave_common.h"
 
 // forward declaratation(s)
 struct Stream_UserData;
@@ -108,6 +108,6 @@ class Stream_CamSave_SessionMessage_T
 };
 
 // include template definition
-#include "test_i_camsave_session_message.inl"
+#include "test_u_camsave_session_message.inl"
 
 #endif

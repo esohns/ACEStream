@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_i_camsave_stream.h"
+#include "test_u_camsave_stream.h"
 
 #include "ace/Log_Msg.h"
 

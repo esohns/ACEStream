@@ -18,16 +18,16 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_CAMSAVE_STREAM_H
-#define TEST_I_CAMSAVE_STREAM_H
+#ifndef TEST_U_CAMSAVE_STREAM_H
+#define TEST_U_CAMSAVE_STREAM_H
 
+#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
 #include "minwindef.h"
 #else
 #include "windef.h"
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-//#include "winnt.h"
 #include "guiddef.h"
 #undef GetObject
 #include "mfidl.h"
@@ -42,10 +42,10 @@
 #include "stream_base.h"
 #include "stream_common.h"
 
-#include "test_i_camsave_common.h"
-#include "test_i_camsave_common_modules.h"
-#include "test_i_camsave_message.h"
-#include "test_i_camsave_session_message.h"
+#include "test_u_camsave_common.h"
+#include "test_u_camsave_common_modules.h"
+#include "test_u_camsave_message.h"
+#include "test_u_camsave_session_message.h"
 
 // forward declarations
 class Stream_IAllocator;

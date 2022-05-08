@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_i_camsave_signalhandler.h"
+#include "test_u_camsave_signalhandler.h"
 
 #if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_USE)

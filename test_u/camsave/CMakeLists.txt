@@ -75,42 +75,42 @@ set (EXECUTABLE camsave)
 set (${EXECUTABLE}_EXE_SRCS
 #     stdafx.cpp
      stdafx.h
-     ../test_i_common.h
-     ../test_i_defines.h
-     test_i_camsave.cpp
-     test_i_camsave_common.h
-     test_i_camsave_common_modules.h
-     test_i_camsave_defines.h
-     test_i_camsave_eventhandler.cpp
-     test_i_camsave_eventhandler.h
-     test_i_camsave_eventhandler.inl
-     test_i_camsave_message.cpp
-     test_i_camsave_message.h
-     test_i_camsave_message.inl
-     test_i_camsave_session_message.cpp
-     test_i_camsave_session_message.h
-     test_i_camsave_session_message.inl
-     test_i_camsave_signalhandler.cpp
-     test_i_camsave_signalhandler.h
-     test_i_camsave_stream.cpp
-     test_i_camsave_stream.h)
+     ../test_u_common.h
+     ../test_u_defines.h
+     test_u_camsave.cpp
+     test_u_camsave_common.h
+     test_u_camsave_common_modules.h
+     test_u_camsave_defines.h
+     test_u_camsave_eventhandler.cpp
+     test_u_camsave_eventhandler.h
+     test_u_camsave_eventhandler.inl
+     test_u_camsave_message.cpp
+     test_u_camsave_message.h
+     test_u_camsave_message.inl
+     test_u_camsave_session_message.cpp
+     test_u_camsave_session_message.h
+     test_u_camsave_session_message.inl
+     test_u_camsave_signalhandler.cpp
+     test_u_camsave_signalhandler.h
+     test_u_camsave_stream.cpp
+     test_u_camsave_stream.h)
 if (GUI_SUPPORT)
  if (GTK_SUPPORT)
   set (${EXECUTABLE}_EXE_SRCS
        ${${EXECUTABLE}_EXE_SRCS}
-       test_i_camsave_gtk_callbacks.cpp
-       test_i_camsave_gtk_callbacks.h)
+       test_u_camsave_gtk_callbacks.cpp
+       test_u_camsave_gtk_callbacks.h)
  endif (GTK_SUPPORT)
  if (WXWIDGETS_SUPPORT)
   set (${EXECUTABLE}_EXE_SRCS
        ${${EXECUTABLE}_EXE_SRCS}
-       test_i_camsave_ui.cpp
-       test_i_camsave_ui.h
-       test_i_camsave_ui.inl
+       test_u_camsave_ui.cpp
+       test_u_camsave_ui.h
+       test_u_camsave_ui.inl
        camsave_wxwidgets_ui.cpp
        camsave_wxwidgets_ui.h)
-#       test_i_camsave_ui_base.cpp
-#       test_i_camsave_ui_base.h)
+#       test_u_camsave_ui_base.cpp
+#       test_u_camsave_ui_base.h)
  endif (WXWIDGETS_SUPPORT)
 endif (GUI_SUPPORT)
 
@@ -144,11 +144,11 @@ add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS}
                 ${ui_definition_file})
-set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
+set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 cmake_policy (SET CMP0012 NEW)
-if (WIN32 AND NOT BUILD_TEST_I)
+if (WIN32 AND NOT BUILD_TEST_U)
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
-endif (WIN32 AND NOT BUILD_TEST_I)
+endif (WIN32 AND NOT BUILD_TEST_U)
 
 add_dependencies (${EXECUTABLE} Common)
 
@@ -212,7 +212,7 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Miscellaneous)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Visualization)
 
-target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_I)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_U)
 
 # add PCH
 #set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
@@ -323,7 +323,7 @@ create_target_launcher (${EXECUTABLE}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/camsave
+                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/${EXECUTABLE}
                         ENVIRONMENT ${ENVIRONMENT})
 
 ##########################################

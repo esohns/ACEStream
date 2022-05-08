@@ -299,6 +299,7 @@ install (TARGETS ${PROJECT_NAME}_Test_U
 
 add_subdirectory (audioeffect)
 add_subdirectory (branch)
+add_subdirectory (camsave)
 add_subdirectory (camerascreen)
 add_subdirectory (document)
 add_subdirectory (filecopy)
@@ -313,7 +314,7 @@ add_subdirectory (riff_decoder)
 # phonies
 add_custom_target (test_u ALL
                    COMMENT "building test_u...")
-add_dependencies (test_u audioeffect branch camerascreen document filecopy imagescreen parser RIFF_decoder)
+add_dependencies (test_u audioeffect branch camsave camerascreen document filecopy imagescreen parser RIFF_decoder)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
 add_dependencies (test_u HTTP_GET)

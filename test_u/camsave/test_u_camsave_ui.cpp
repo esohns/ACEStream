@@ -1,8 +1,8 @@
 #include "stdafx.h"
 
-#include "test_i_camsave_ui.h"
+#include "test_u_camsave_ui.h"
 
-#include "test_i_camsave_common.h"
+#include "test_u_camsave_common.h"
 
 //////////////////////////////////////////
 

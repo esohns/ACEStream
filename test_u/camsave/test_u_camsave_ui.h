@@ -9,8 +9,8 @@
 
 #include "common_ui_wxwidgets_itoplevel.h"
 
-#include "test_i_camsave_common.h"
-#include "test_i_camsave_stream.h"
+#include "test_u_camsave_common.h"
+#include "test_u_camsave_stream.h"
 //#include "test_u_camsave_ui_base.h" // wxFormBuilder
 #include "camsave_wxwidgets_ui.h" // wxGlade
 
@@ -304,6 +304,6 @@ class Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
 #endif // ACE_WIN32 || ACE_WIN64
 
 // include template definition
-#include "test_i_camsave_ui.inl"
+#include "test_u_camsave_ui.inl"
 
 #endif // __test_u_camsave_ui__

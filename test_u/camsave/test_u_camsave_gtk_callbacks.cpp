@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_i_camsave_gtk_callbacks.h"
+#include "test_u_camsave_gtk_callbacks.h"
 
 #include <math.h>
 
@@ -98,9 +98,9 @@
 #include "stream_vis_defines.h"
 #include "stream_vis_tools.h"
 
-#include "test_i_camsave_common.h"
-#include "test_i_camsave_defines.h"
-#include "test_i_camsave_stream.h"
+#include "test_u_camsave_common.h"
+#include "test_u_camsave_defines.h"
+#include "test_u_camsave_stream.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct less_guid
@@ -1706,7 +1706,7 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
 
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_FORMAT_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_FORMAT_NAME)));
   ACE_ASSERT (combo_box_p);
   GtkTreeIter iterator_3;
   if (!gtk_combo_box_get_active_iter (combo_box_p,
@@ -1714,7 +1714,7 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
     return; // <-- nothing selected
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_FORMAT_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
 
 #if GTK_CHECK_VERSION(2,30,0)
@@ -1742,14 +1742,14 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
   ACE_ASSERT (combo_box_p);
   if (!gtk_combo_box_get_active_iter (combo_box_p,
                                       &iterator_3))
     return; // <-- nothing selected
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value_2 = G_VALUE_INIT;
@@ -1777,14 +1777,14 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_RATE_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_RATE_NAME)));
   ACE_ASSERT (combo_box_p);
   if (!gtk_combo_box_get_active_iter (combo_box_p,
                                       &iterator_3))
     return; // <-- nothing selected
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_RATE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_RATE_NAME)));
   ACE_ASSERT (list_store_p);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -1959,7 +1959,7 @@ update_buffer_size (struct Stream_CamSave_UI_CBData* CBData_in)
 
 //  GtkSpinButton* spin_button_p =
 //    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-//                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
+//                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
 //  ACE_ASSERT (spin_button_p);
   unsigned int frame_size_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2194,7 +2194,7 @@ stream_processing_function (void* arg_in)
   // generate context id
   statusbar_p =
     GTK_STATUSBAR (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_STATUSBAR_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_STATUSBAR_NAME)));
   ACE_ASSERT (statusbar_p);
 
   gdk_threads_leave ();
@@ -2338,7 +2338,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   // step1: initialize dialog window(s)
   GtkWidget* dialog_p =
     GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DIALOG_MAIN_NAME)));
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DIALOG_MAIN_NAME)));
   ACE_ASSERT (dialog_p);
   //  GtkWidget* image_icon_p = gtk_image_new_from_file (path.c_str ());
   //  ACE_ASSERT (image_icon_p);
@@ -2350,19 +2350,19 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   GtkWidget* about_dialog_p =
     GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DIALOG_ABOUT_NAME)));
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DIALOG_ABOUT_NAME)));
   ACE_ASSERT (about_dialog_p);
 
   GtkSpinButton* spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
                              std::numeric_limits<uint32_t>::max ());
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
@@ -2370,7 +2370,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_DATA_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_SPINBUTTON_DATA_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
@@ -2378,7 +2378,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   //spin_button_p =
   //  GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-  //                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
+  //                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
   //ACE_ASSERT (spin_button_p);
   //gtk_spin_button_set_range (spin_button_p,
   //                           0.0,
@@ -2386,7 +2386,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_SOURCE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
   gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
                                         1, GTK_SORT_DESCENDING);
@@ -2435,7 +2435,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end IF
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_SOURCE_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_SOURCE_NAME)));
   ACE_ASSERT (combo_box_p);
   //gtk_combo_box_set_model (combo_box_p,
   //                         GTK_TREE_MODEL (list_store_p));
@@ -2457,19 +2457,19 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   GtkEntry* entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_SAVE_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_ENTRY_SAVE_NAME)));
   ACE_ASSERT (entry_p);
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   //GtkFileChooserDialog* file_chooser_dialog_p =
   //  GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
-  //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME)));
+  //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME)));
   //ACE_ASSERT (file_chooser_dialog_p);
   GtkFileFilter* file_filter_p =
     GTK_FILE_FILTER (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILEFILTER_AVI_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FILEFILTER_AVI_NAME)));
   ACE_ASSERT (file_filter_p);
   gtk_file_filter_add_mime_type (file_filter_p,
                                  ACE_TEXT ("application/x-troff-msvideo"));
@@ -2660,13 +2660,13 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_FORMAT_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
   gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
                                         1, GTK_SORT_DESCENDING);
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_FORMAT_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_FORMAT_NAME)));
   ACE_ASSERT (combo_box_p);
   //gtk_combo_box_set_model (combo_box_p,
   //                         GTK_TREE_MODEL (list_store_p));
@@ -2688,13 +2688,13 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
   gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
                                         1, GTK_SORT_ASCENDING);
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
   ACE_ASSERT (combo_box_p);
   //gtk_combo_box_set_model (combo_box_p,
   //                         GTK_TREE_MODEL (list_store_p));
@@ -2716,13 +2716,13 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_RATE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_RATE_NAME)));
   ACE_ASSERT (list_store_p);
   gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
                                         1, GTK_SORT_DESCENDING);
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_RATE_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_RATE_NAME)));
   ACE_ASSERT (combo_box_p);
   //gtk_combo_box_set_model (combo_box_p,
   //                         GTK_TREE_MODEL (list_store_p));
@@ -2744,7 +2744,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME)));
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_SAVE_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_toggle_button_set_active (toggle_button_p,
                                 !filename_string.empty ());
@@ -2789,14 +2789,14 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_DISPLAY_NAME)));
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_DISPLAY_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_toggle_button_set_active (toggle_button_p,
                                 is_display_b);
 
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_ADAPTER_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_ADAPTER_NAME)));
   ACE_ASSERT (list_store_p);
   if (!load_display_adapters (list_store_p))
   {
@@ -2808,7 +2808,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                                         1, GTK_SORT_DESCENDING);
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_ADAPTER_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_ADAPTER_NAME)));
   ACE_ASSERT (combo_box_p);
   cell_renderer_p = gtk_cell_renderer_text_new ();
   if (!cell_renderer_p)
@@ -2835,7 +2835,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_DISPLAY_NAME)));
   ACE_ASSERT (list_store_p);
   if (!load_display_devices (list_store_p))
   {
@@ -2847,7 +2847,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                                         1, GTK_SORT_DESCENDING);
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_DISPLAY_NAME)));
   ACE_ASSERT (combo_box_p);
   cell_renderer_p = gtk_cell_renderer_text_new ();
   if (!cell_renderer_p)
@@ -2867,7 +2867,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_toggle_button_set_active (toggle_button_p,
                                 is_fullscreen_b);
@@ -2901,7 +2901,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PROGRESSBAR_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
   gint width, height;
   gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
@@ -2912,7 +2912,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
 
   // step5: initialize updates
@@ -2948,7 +2948,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   // step6: disable some functions ?
   GtkButton* button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_CUT_NAME)));
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_BUTTON_CUT_NAME)));
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p),
                             FALSE);
@@ -2993,7 +2993,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   // set defaults
   //file_chooser_button_p =
   //  GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-  //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+  //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
 //  std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
 //  default_folder_uri += filename_string;
@@ -3167,7 +3167,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         --> populate the options comboboxes
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_SOURCE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
   n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
@@ -3175,7 +3175,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   {
     combo_box_p =
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_SOURCE_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_SOURCE_NAME)));
     ACE_ASSERT (combo_box_p);
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
 
@@ -3233,11 +3233,11 @@ idle_initialize_UI_cb (gpointer userData_in)
   std::ostringstream converter;
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_FORMAT_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_FORMAT_NAME)));
   ACE_ASSERT (combo_box_p);
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_FORMAT_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
   g_value_unset (&value);
   g_value_init (&value, G_TYPE_STRING);
@@ -3277,11 +3277,11 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
   ACE_ASSERT (combo_box_p);
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
   g_value_unset (&value);
   g_value_init (&value, G_TYPE_STRING);
@@ -3306,11 +3306,11 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_RATE_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_RATE_NAME)));
   ACE_ASSERT (combo_box_p);
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_RATE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_RATE_NAME)));
   ACE_ASSERT (list_store_p);
   g_value_unset (&value);
   g_value_init (&value, G_TYPE_STRING);
@@ -3327,7 +3327,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_DISPLAY_NAME)));
   ACE_ASSERT (combo_box_p);
   g_value_unset (&value);
   g_value_init (&value, G_TYPE_STRING);
@@ -3403,7 +3403,7 @@ idle_session_end_cb (gpointer userData_in)
 
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_button_set_label (GTK_BUTTON (toggle_button_p),
                         GTK_STOCK_MEDIA_RECORD);
@@ -3412,38 +3412,38 @@ idle_session_end_cb (gpointer userData_in)
 
   GtkButton* button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_CUT_NAME)));
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_BUTTON_CUT_NAME)));
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), FALSE);
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_REPORT_NAME)));
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_BUTTON_REPORT_NAME)));
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), FALSE);
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_SNAPSHOT_NAME)));
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_BUTTON_SNAPSHOT_NAME)));
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), FALSE);
 
   //GtkFrame* frame_p =
   //  GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-  //                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SOURCE_NAME)));
+  //                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FRAME_SOURCE_NAME)));
   //ACE_ASSERT (frame_p);
   //gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_SOURCE_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_SOURCE_NAME)));
   ACE_ASSERT (combo_box_p);
   gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
   GtkFrame* frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_OPTIONS_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FRAME_OPTIONS_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SAVE_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FRAME_SAVE_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
 
@@ -3465,7 +3465,7 @@ idle_session_end_cb (gpointer userData_in)
   //} // end lock scope
   GtkProgressBar* progressbar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PROGRESSBAR_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progressbar_p);
   // *NOTE*: this disables "activity mode" (in Gtk2)
   gtk_progress_bar_set_fraction (progressbar_p, 0.0);
@@ -3491,7 +3491,7 @@ idle_session_end_cb (gpointer userData_in)
 
 //  GtkTextView* view_p =
 //      GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
-//                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_NAME)));
+//                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TEXTVIEW_NAME)));
 //  ACE_ASSERT (view_p);
 //  GtkTextBuffer* buffer_p = gtk_text_view_get_buffer (view_p);
 //  ACE_ASSERT (buffer_p);
@@ -3539,7 +3539,7 @@ idle_session_end_cb (gpointer userData_in)
 ////  // because it has "right" gravity
 ////  GtkTextMark* text_mark_p =
 ////      gtk_text_buffer_get_mark (buffer_p,
-////                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCROLLMARK_NAME));
+////                                ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_SCROLLMARK_NAME));
 //////  gtk_text_buffer_move_mark (buffer_p,
 //////                             text_mark_p,
 //////                             &text_iterator);
@@ -3549,7 +3549,7 @@ idle_session_end_cb (gpointer userData_in)
 ////                                      text_mark_p);
 //  GtkAdjustment* adjustment_p =
 //      GTK_ADJUSTMENT (gtk_builder_get_object ((*iterator).second.second,
-//                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ADJUSTMENT_NAME)));
+//                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_ADJUSTMENT_NAME)));
 //  ACE_ASSERT (adjustment_p);
 //  gtk_adjustment_set_value (adjustment_p,
 //                            gtk_adjustment_get_upper (adjustment_p));
@@ -3586,12 +3586,12 @@ idle_update_info_display_cb (gpointer userData_in)
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p, 0.0);
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p, 0.0);
           is_session_message = true;
@@ -3601,14 +3601,14 @@ idle_update_info_display_cb (gpointer userData_in)
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_DATA_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_SPINBUTTON_DATA_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p,
                                      static_cast<gdouble> (ui_cb_data_base_p->progressData.statistic.bytes));
 
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
           break;
         }
@@ -3616,7 +3616,7 @@ idle_update_info_display_cb (gpointer userData_in)
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
           is_session_message = true;
           break;
@@ -3626,7 +3626,7 @@ idle_update_info_display_cb (gpointer userData_in)
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //          spin_button_p =
 //            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-//                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_CAPTUREDFRAMES_NAME)));
+//                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_SPINBUTTON_CAPTUREDFRAMES_NAME)));
 //          ACE_ASSERT (spin_button_p);
 //          gtk_spin_button_set_value (spin_button_p,
 //                                     static_cast<gdouble> (ui_cb_data_base_p->progressData.statistic.capturedFrames));
@@ -3634,14 +3634,14 @@ idle_update_info_display_cb (gpointer userData_in)
 //
 //          spin_button_p =
 //            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-//                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_DROPPEDFRAMES_NAME)));
+//                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_SPINBUTTON_DROPPEDFRAMES_NAME)));
 //          ACE_ASSERT (spin_button_p);
 //          gtk_spin_button_set_value (spin_button_p,
 //                                     static_cast<gdouble> (ui_cb_data_base_p->progressData.statistic.droppedFrames));
 
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
 
           is_session_message = true;
@@ -3690,14 +3690,14 @@ idle_update_display_cb (gpointer userData_in)
 
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
   ACE_ASSERT (toggle_button_p);
 
   // trigger refresh of the 2D area
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              (gtk_toggle_button_get_active (toggle_button_p) ? ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_FULLSCREEN_NAME)
-                                                                                              : ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME))));
+                                              (gtk_toggle_button_get_active (toggle_button_p) ? ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_FULLSCREEN_NAME)
+                                                                                              : ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME))));
   ACE_ASSERT (drawing_area_p);
   gdk_window_invalidate_rect (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)),
                               NULL,   // whole window
@@ -3729,7 +3729,7 @@ idle_update_progress_cb (gpointer userData_in)
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PROGRESSBAR_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
 
   ACE_THR_FUNC_RETURN exit_status;
@@ -3840,7 +3840,7 @@ idle_update_progress_cb (gpointer userData_in)
 
 //  GtkDrawingArea* drawing_area_p =
 //    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-//                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME)));
+//                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME)));
 //  ACE_ASSERT (drawing_area_p);
 
 //  gdk_window_invalidate_rect (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)),
@@ -3969,17 +3969,17 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_CUT_NAME)));
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_BUTTON_CUT_NAME)));
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_REPORT_NAME)));
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_BUTTON_REPORT_NAME)));
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_SNAPSHOT_NAME)));
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_BUTTON_SNAPSHOT_NAME)));
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
 
@@ -3992,7 +3992,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                   sizeof (struct Stream_CamSave_StatisticData));
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PROGRESSBAR_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
   //gint width, height;
   //gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
@@ -4005,7 +4005,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   // *NOTE*: the source device configuration is kept up-to-date automatically
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME)));
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_SAVE_NAME)));
   ACE_ASSERT (toggle_button_p);
   GtkFileChooserButton* file_chooser_button_p = NULL;
 //  GError* error_p = NULL;
@@ -4014,7 +4014,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     goto continue_;
   file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   filename_string =
     gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p));
@@ -4022,7 +4022,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (Common_File_Tools::isWriteable (filename_string));
   entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_SAVE_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_ENTRY_SAVE_NAME)));
   ACE_ASSERT (entry_p);
   filename_string += ACE_DIRECTORY_SEPARATOR_STR;
   filename_string += ACE_TEXT_ALWAYS_CHAR (gtk_entry_get_text (entry_p));
@@ -4131,12 +4131,12 @@ continue_:
   ACE_OS::memset (thread_name, 0, sizeof (ACE_TCHAR[BUFSIZ]));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::strcpy (thread_name,
-                  ACE_TEXT (TEST_I_STREAM_THREAD_NAME));
+                  ACE_TEXT (TEST_U_STREAM_THREAD_NAME));
 #else
   ACE_ASSERT (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH <= BUFSIZ);
   ACE_OS::strncpy (thread_name,
-                   ACE_TEXT (TEST_I_STREAM_THREAD_NAME),
-                   std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT (TEST_I_STREAM_THREAD_NAME)))));
+                   ACE_TEXT (TEST_U_STREAM_THREAD_NAME),
+                   std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT (TEST_U_STREAM_THREAD_NAME)))));
 #endif // ACE_WIN32 || ACE_WIN64
   thread_name_2 = thread_name;
   thread_manager_p = ACE_Thread_Manager::instance ();
@@ -4206,22 +4206,22 @@ continue_:
 
   //frame_p =
   //  GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-  //                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SOURCE_NAME)));
+  //                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FRAME_SOURCE_NAME)));
   //ACE_ASSERT (frame_p);
   //gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_SOURCE_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_SOURCE_NAME)));
   ACE_ASSERT (combo_box_p);
   gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), FALSE);
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_OPTIONS_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FRAME_OPTIONS_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SAVE_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FRAME_SAVE_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
 
@@ -4320,7 +4320,7 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   GError* error_p = NULL;
   GFile* file_p = NULL;
@@ -4521,7 +4521,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
 
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_DISPLAY_NAME)));
   ACE_ASSERT (combo_box_p);
   GtkTreeIter iterator_3;
   gboolean result = gtk_combo_box_get_active_iter (combo_box_p,
@@ -4529,7 +4529,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (result);
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_DISPLAY_NAME)));
   ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
@@ -4597,11 +4597,11 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
 
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
   GtkDrawingArea* drawing_area_2 =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_FULLSCREEN_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_FULLSCREEN_NAME)));
   ACE_ASSERT (drawing_area_2);
 
   Stream_IStreamControlBase* stream_base_p = NULL;
@@ -4674,7 +4674,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
   GtkWindow* window_p =
     GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_WINDOW_FULLSCREEN)));
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_WINDOW_FULLSCREEN)));
   ACE_ASSERT (window_p);
 
   if (is_active_b)
@@ -4842,7 +4842,7 @@ button_hw_settings_clicked_cb (GtkButton* button_in,
 
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
   GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
 
@@ -5029,7 +5029,7 @@ button_snapshot_clicked_cb (GtkButton* button_in,
 
 //  GtkTextView* view_p =
 //    GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
-//                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_NAME)));
+//                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TEXTVIEW_NAME)));
 //  ACE_ASSERT (view_p);
 //  GtkTextBuffer* buffer_p =
 ////    gtk_text_buffer_new (NULL); // text tag table --> create new
@@ -5062,12 +5062,12 @@ button_about_clicked_cb (GtkWidget* widget_in,
   // retrieve about dialog handle
   GtkDialog* dialog_p =
     GTK_DIALOG (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DIALOG_ABOUT_NAME)));
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DIALOG_ABOUT_NAME)));
   if (!dialog_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gtk_builder_get_object(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (TEST_I_UI_GTK_DIALOG_ABOUT_NAME)));
+                ACE_TEXT (TEST_U_UI_GTK_DIALOG_ABOUT_NAME)));
     return TRUE; // propagate
   } // end IF
 
@@ -5251,7 +5251,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_SOURCE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
@@ -5278,7 +5278,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
   list_store_p =
       GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_FORMAT_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
@@ -5554,7 +5554,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   {
     GtkComboBox* combo_box_p =
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_FORMAT_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_FORMAT_NAME)));
     ACE_ASSERT (combo_box_p);
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
     gtk_combo_box_set_active (combo_box_p, 0);
@@ -5562,18 +5562,18 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
   toggle_button_p =
       GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
+                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
 
 //  GtkFrame* frame_p =
 //    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-//                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SAVE_NAME)));
+//                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FRAME_SAVE_NAME)));
 //  ACE_ASSERT (frame_p);
 //  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
 //  frame_p =
 //    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-//                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_DISPLAY_NAME)));
+//                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FRAME_DISPLAY_NAME)));
 //  ACE_ASSERT (frame_p);
 //  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
 } // combobox_source_changed_cb
@@ -5639,7 +5639,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_SOURCE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_SOURCE_NAME)));
   ACE_ASSERT (combo_box_p);
   GtkTreeIter iterator_3;
   if (!gtk_combo_box_get_active_iter (combo_box_p,
@@ -5651,7 +5651,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   } // end IF
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_SOURCE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
@@ -5675,7 +5675,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   } // end IF
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_FORMAT_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION(2,30,0)
   value = G_VALUE_INIT;
@@ -5699,7 +5699,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
 
   bool result = false;
@@ -5849,7 +5849,7 @@ continue_:
   {
     GtkComboBox* combo_box_p =
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
     ACE_ASSERT (combo_box_p);
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
     gtk_combo_box_set_active (combo_box_p, 0);
@@ -5917,7 +5917,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_SOURCE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_SOURCE_NAME)));
   ACE_ASSERT (combo_box_p);
   GtkTreeIter iterator_3;
   if (!gtk_combo_box_get_active_iter (combo_box_p,
@@ -5929,7 +5929,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   } // end IF
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_SOURCE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
@@ -5946,7 +5946,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_FORMAT_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_FORMAT_NAME)));
   ACE_ASSERT (combo_box_p);
   if (!gtk_combo_box_get_active_iter (combo_box_p,
                                       &iterator_3))
@@ -5957,7 +5957,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   } // end IF
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_FORMAT_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION(2,30,0)
   value = G_VALUE_INIT;
@@ -5989,7 +5989,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   } // end IF
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value_2 = G_VALUE_INIT;
@@ -6011,7 +6011,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   g_value_unset (&value_2);
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_RATE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_RATE_NAME)));
   ACE_ASSERT (list_store_p);
 
   bool result = false;
@@ -6202,7 +6202,7 @@ continue_:
   {
     GtkComboBox* combo_box_p =
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_RATE_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_RATE_NAME)));
     ACE_ASSERT (combo_box_p);
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
     gtk_combo_box_set_active (combo_box_p, 0);
@@ -6281,7 +6281,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   } // end IF
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_RATE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_RATE_NAME)));
   ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
@@ -6462,7 +6462,7 @@ combobox_display_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (result);
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_DISPLAY_NAME)));
   ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
@@ -6506,7 +6506,7 @@ combobox_display_changed_cb (GtkWidget* widget_in,
   // select corresponding adapter
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_ADAPTER_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_ADAPTER_NAME)));
   ACE_ASSERT (combo_box_p);
   struct Common_UI_DisplayAdapter display_adapter_s;
   struct Common_UI_DisplayDevice display_s;
@@ -6649,7 +6649,7 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
 
 //  GtkDrawingArea* drawing_area_p =
 //    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-//                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME)));
+//                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME)));
 //  ACE_ASSERT (drawing_area_p);
 //  GtkAllocation allocation;
 //  ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
@@ -6699,13 +6699,13 @@ drawing_area_resize_end (gpointer userData_in)
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
   ACE_ASSERT (toggle_button_p);
   bool is_active_b = gtk_toggle_button_get_active (toggle_button_p);
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              (is_active_b ? ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_FULLSCREEN_NAME)
-                                                           : ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME))));
+                                              (is_active_b ? ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_FULLSCREEN_NAME)
+                                                           : ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME))));
   ACE_ASSERT (drawing_area_p);
 
   GtkAllocation allocation_s;
@@ -6985,7 +6985,7 @@ filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
 
   GtkEntry* entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_SAVE_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_ENTRY_SAVE_NAME)));
   ACE_ASSERT (entry_p);
   const gchar* string_2 = gtk_entry_get_text (entry_p);
   filename_string += ACE_DIRECTORY_SEPARATOR_STR;
@@ -7060,7 +7060,7 @@ key_cb (GtkWidget* widget_in,
       bool is_active_b = false;
       GtkToggleButton* toggle_button_p =
         GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
+                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
       ACE_ASSERT (toggle_button_p);
       is_active_b = gtk_toggle_button_get_active (toggle_button_p);
 

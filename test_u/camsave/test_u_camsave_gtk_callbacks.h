@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_CAMSAVE_CALLBACKS_H
-#define TEST_I_CAMSAVE_CALLBACKS_H
+#ifndef TEST_U_CAMSAVE_CALLBACKS_H
+#define TEST_U_CAMSAVE_CALLBACKS_H
 
 #include "gtk/gtk.h"
 

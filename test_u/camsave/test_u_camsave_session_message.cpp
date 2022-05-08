@@ -19,4 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_i_camsave_eventhandler.h"
+#include "test_u_camsave_session_message.h"

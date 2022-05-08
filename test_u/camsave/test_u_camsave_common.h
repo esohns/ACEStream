@@ -18,13 +18,14 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef TEST_I_CAMSAVE_COMMON_H
-#define TEST_I_CAMSAVE_COMMON_H
+#ifndef TEST_U_CAMSAVE_COMMON_H
+#define TEST_U_CAMSAVE_COMMON_H
 
 #include <list>
 #include <map>
 #include <string>
 
+#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "BaseTyps.h"
 #include "OAIdl.h"
@@ -119,17 +120,17 @@ extern "C"
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
 
-#include "test_i_common.h"
-#include "test_i_configuration.h"
+#include "test_u_common.h"
+#include "test_u_configuration.h"
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
-#include "test_i_gtk_common.h"
+#include "test_u_gtk_common.h"
 #endif // GTK_SUPPORT
 #if defined (QT_SUPPORT)
-#include "test_i_qt_common.h"
+#include "test_u_qt_common.h"
 #endif // QT_SUPPORT
 #if defined (WXWIDGETS_SUPPORT)
-#include "test_i_wxwidgets_common.h"
+#include "test_u_wxwidgets_common.h"
 
 #include "camsave_wxwidgets_ui.h"
 #endif // WXWIDGETS_SUPPORT
@@ -267,7 +268,7 @@ struct Stream_CamSave_StatisticData
   unsigned int capturedFrames;
 #endif // ACE_WIN32 || ACE_WIN64
 };
-typedef Common_StatisticHandler_T<struct Stream_CamSave_StatisticData> Test_I_CamSave_StatisticHandler_t;
+typedef Common_StatisticHandler_T<struct Stream_CamSave_StatisticData> Test_U_CamSave_StatisticHandler_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_CamSave_DirectShow_StreamState;
@@ -497,10 +498,10 @@ typedef Stream_CamSave_LibCamera_Subscribers_t::iterator Stream_CamSave_LibCamer
 #endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 struct Stream_CamSave_ModuleHandlerConfiguration
- : Test_I_ModuleHandlerConfiguration
+ : Test_U_ModuleHandlerConfiguration
 {
   Stream_CamSave_ModuleHandlerConfiguration ()
-   : Test_I_ModuleHandlerConfiguration ()
+   : Test_U_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
    , display ()
 //   , fullScreen (false)
@@ -863,18 +864,18 @@ typedef Stream_IStreamControl_T<enum Stream_ControlType,
 struct Stream_CamSave_DirectShow_Configuration
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
- : Test_I_GTK_Configuration
+ : Test_U_GTK_Configuration
 #else
- : Test_I_Configuration
+ : Test_U_Configuration
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 {
   Stream_CamSave_DirectShow_Configuration ()
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-   : Test_I_GTK_Configuration ()
+   : Test_U_GTK_Configuration ()
 #else
-   : Test_I_Configuration ()
+   : Test_U_Configuration ()
 #endif // GTK_USE
 #endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
@@ -895,18 +896,18 @@ struct Stream_CamSave_DirectShow_Configuration
 struct Stream_CamSave_MediaFoundation_Configuration
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
- : Test_I_GTK_Configuration
+ : Test_U_GTK_Configuration
 #else
- : Test_I_Configuration
+ : Test_U_Configuration
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 {
   Stream_CamSave_MediaFoundation_Configuration ()
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-   : Test_I_GTK_Configuration ()
+   : Test_U_GTK_Configuration ()
 #else
-   : Test_I_Configuration ()
+   : Test_U_Configuration ()
 #endif // GTK_USE
 #endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
@@ -927,23 +928,23 @@ struct Stream_CamSave_MediaFoundation_Configuration
 struct Stream_CamSave_Configuration
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
- : Test_I_GTK_Configuration
+ : Test_U_GTK_Configuration
 #else
- : Test_I_Configuration
+ : Test_U_Configuration
 #endif // GTK_USE
 #else
- : Test_I_Configuration
+ : Test_U_Configuration
 #endif // GUI_SUPPORT
 {
   Stream_CamSave_Configuration ()
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-   : Test_I_GTK_Configuration ()
+   : Test_U_GTK_Configuration ()
 #else
-   : Test_I_Configuration ()
+   : Test_U_Configuration ()
 #endif // GTK_USE
 #else
-   : Test_I_Configuration ()
+   : Test_U_Configuration ()
 #endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
    , v4l_streamConfiguration ()
@@ -1085,10 +1086,10 @@ typedef Stream_CamSave_EventHandler_T<Stream_CamSave_LibCamera_ISessionNotify_t,
 
 #if defined (GUI_SUPPORT)
 struct Stream_CamSave_ProgressData
- : Test_I_UI_ProgressData
+ : Test_U_UI_ProgressData
 {
   Stream_CamSave_ProgressData ()
-   : Test_I_UI_ProgressData ()
+   : Test_U_UI_ProgressData ()
    , statistic ()
    , lastStatistic ()
    , timestamp (ACE_Time_Value::zero)
@@ -1100,10 +1101,10 @@ struct Stream_CamSave_ProgressData
 };
 
 struct Stream_CamSave_UI_CBData
- : Test_I_UI_CBData
+ : Test_U_UI_CBData
 {
   Stream_CamSave_UI_CBData ()
-   : Test_I_UI_CBData ()
+   : Test_U_UI_CBData ()
    , dispatch (NULL)
    , eventSourceId (0)
    , isFirst (true)
@@ -1227,10 +1228,10 @@ struct Stream_CamSave_LibCamera_UI_CBData
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_CamSave_UI_ThreadData
- : Test_I_UI_ThreadData
+ : Test_U_UI_ThreadData
 {
   Stream_CamSave_UI_ThreadData ()
-   : Test_I_UI_ThreadData ()
+   : Test_U_UI_ThreadData ()
    , CBData (NULL)
   {}
 
