@@ -124,55 +124,39 @@ Stream_Decoder_LibAVConverter_T<TaskType,
   // sanity check(s)
   if (unlikely (!context_))
     return; // nothing to do
+  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (frame_);
 
   // initialize return value(s)
   passMessageDownstream_out = false;
 
   int result = -1;
-//  unsigned int padding_bytes =
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//    AV_INPUT_BUFFER_PADDING_SIZE;
-//#else
-//// *TODO*: find out when this changed
-////    FF_INPUT_BUFFER_PADDING_SIZE;
-//      AV_INPUT_BUFFER_PADDING_SIZE;
-//#endif // ACE_WIN32 || ACE_WIN64
-  int line_sizes[AV_NUM_DATA_POINTERS];
-  uint8_t* data[AV_NUM_DATA_POINTERS];
-  ACE_OS::memset (&line_sizes, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
-  ACE_OS::memset (&data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-
-  try {
-    message_inout->defragment ();
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), returning\n"),
-                inherited::mod_->name ()));
-    goto error;
-  }
-  ACE_ASSERT (!message_inout->cont ());
+  int line_sizes_a[AV_NUM_DATA_POINTERS];
+  uint8_t* data_a[AV_NUM_DATA_POINTERS];
+  ACE_OS::memset (&line_sizes_a, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
+  ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
 
   // sanity check(s)
   ACE_ASSERT (buffer_);
 //  ACE_ASSERT (buffer_->capacity () >= frameSize_);
 
-  result = av_image_fill_linesizes (line_sizes,
+  result = av_image_fill_linesizes (line_sizes_a,
                                     inputFormat_,
                                     static_cast<int> (frame_->width));
   ACE_ASSERT (result >= 0);
   result =
-      av_image_fill_pointers (data,
+      av_image_fill_pointers (data_a,
                               inputFormat_,
                               static_cast<int> (frame_->height),
                               reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
-                              line_sizes);
+                              line_sizes_a);
   ACE_ASSERT (result >= 0);
   if (unlikely (!Stream_Module_Decoder_Tools::convert (context_,
                                                        frame_->width, frame_->height, inputFormat_,
-                                                       data,
+                                                       data_a,
                                                        frame_->width, frame_->height, static_cast<AVPixelFormat> (frame_->format),
-                                                       frame_->data)))
+                                                       frame_->data,
+                                                       inherited::configuration_->flipImage)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
@@ -284,7 +268,7 @@ Stream_Decoder_LibAVConverter_T<TaskType,
       // initialize conversion context
       ACE_ASSERT (!context_);
       flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-               SWS_BICUBIC);
+               SWS_FAST_BILINEAR);
       context_ =
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -426,7 +410,7 @@ error:
       } // end IF
 
       int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-                   SWS_BICUBIC);
+                   SWS_FAST_BILINEAR);
       context_ =
           sws_getCachedContext (NULL,
                                 frame_->width, frame_->height, inputFormat_,

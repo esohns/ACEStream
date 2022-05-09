@@ -87,34 +87,34 @@ Stream_CameraAR_DirectShow_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&convert_, NULL, 0);
   layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 
-  switch (inherited::configuration_->configuration_->renderer)
-  {
-#if defined (GTK_SUPPORT)
-    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
-      layout_in->append (&GTKDisplay_, NULL, 0);
-      break;
-#endif // GTK_SUPPORT
-    case STREAM_VISUALIZATION_VIDEORENDERER_GDI:
-      layout_in->append (&GDIDisplay_, NULL, 0);
-      break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
-      layout_in->append (&Direct2DDisplay_, NULL, 0);
-      break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
-      layout_in->append (&Direct3DDisplay_, NULL, 0);
-      break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
-      layout_in->append (&DirectShowDisplay_, NULL, 0);
-      break;
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown renderer (was: %d), aborting\n"),
-                  ACE_TEXT (stream_name_string_),
-                  inherited::configuration_->configuration_->renderer));
-      return false;
-    }
-  } // end SWITCH
+//  switch (inherited::configuration_->configuration_->renderer)
+//  {
+//#if defined (GTK_SUPPORT)
+//    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
+//      layout_in->append (&GTKDisplay_, NULL, 0);
+//      break;
+//#endif // GTK_SUPPORT
+//    case STREAM_VISUALIZATION_VIDEORENDERER_GDI:
+//      layout_in->append (&GDIDisplay_, NULL, 0);
+//      break;
+//    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
+//      layout_in->append (&Direct2DDisplay_, NULL, 0);
+//      break;
+//    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
+//      layout_in->append (&Direct3DDisplay_, NULL, 0);
+//      break;
+//    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
+//      layout_in->append (&DirectShowDisplay_, NULL, 0);
+//      break;
+//    default:
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: invalid/unknown renderer (was: %d), aborting\n"),
+//                  ACE_TEXT (stream_name_string_),
+//                  inherited::configuration_->configuration_->renderer));
+//      return false;
+//    }
+//  } // end SWITCH
 
   return true;
 }
@@ -150,11 +150,11 @@ Stream_CameraAR_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T&
 
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  iterator_2 =
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (Stream_Visualization_Tools::rendererToModuleName (configuration_in.configuration_->renderer));
+  //iterator_2 =
+  //  const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (Stream_Visualization_Tools::rendererToModuleName (configuration_in.configuration_->renderer));
   // sanity check(s)
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
-  ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
+  //ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
 
   // ---------------------------------------------------------------------------
   // step1: set up directshow filter graph

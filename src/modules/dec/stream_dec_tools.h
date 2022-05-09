@@ -191,7 +191,8 @@ class Stream_Module_Decoder_Tools
                        unsigned int,       // target width
                        unsigned int,       // target height
                        enum AVPixelFormat, // target pixel format
-                       uint8_t*[]);        // target buffer(s)
+                       uint8_t*[],         // target buffer(s)
+                       bool = false);      // flip vertically ?
   static bool scale (struct SwsContext*, // context ? : use sws_getCachedContext()
                      unsigned int,       // source width
                      unsigned int,       // source height
@@ -199,7 +200,8 @@ class Stream_Module_Decoder_Tools
                      uint8_t*[],         // source buffer(s)
                      unsigned int,       // target width
                      unsigned int,       // target height
-                     uint8_t*[]);        // target buffer(s)
+                     uint8_t*[],         // target buffer(s)
+                     bool = false);      // flip vertically ?
 #endif // FFMPEG_SUPPORT
 
 #if defined (OPENCV_SUPPORT)

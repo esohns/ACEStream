@@ -65,11 +65,39 @@ class Test_I_CameraAR_Module_PGE_T
 
   virtual bool OnUserCreate ();
   virtual bool OnUserUpdate (float); // elapsed time
+  virtual bool OnUserDestroy ();
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_CameraAR_Module_PGE_T ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_CameraAR_Module_PGE_T (const Test_I_CameraAR_Module_PGE_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_CameraAR_Module_PGE_T& operator= (const Test_I_CameraAR_Module_PGE_T&))
+
+  // override (part of) ACE_Task_Base
+  virtual int svc (void);
+
+  inline float getPixel (float* image_in, int x_in, int y_in)
+  {
+    if (x_in >= 0 && x_in < ScreenWidth () && y_in >= 0 && y_in < ScreenHeight ())
+      return image_in[y_in * ScreenWidth () + x_in];
+    else
+      return 0.0F;
+  }
+
+  bool processNextMessage (); // return value: stop PGE ?
+
+	float* previousImage;
+  float* currentImage;
+  float* previousFilteredImage;
+  float* currentFilteredImage;
+  float* previousMotionImage;
+  float* currentMotionImage;
+  float* flowFieldX;
+  float* flowFieldY;
+
+  float ballX; // position
+  float ballY;
+  float ballVelocityX; // velocity
+  float ballVelocityY;
 };
 
 // include template definition

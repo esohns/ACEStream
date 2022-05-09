@@ -77,6 +77,9 @@ extern "C"
 #include "libavutil/pixfmt.h"
 
 #include "libswscale/swscale.h"
+//#include <atomic>
+//using atomic_int    = std::atomic<int>;
+//#include "libswscale/swscale_internal.h"
 }
 #endif // __cplusplus
 #endif // FFMPEG_SUPPORT
@@ -767,7 +770,8 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
                                       unsigned int targetWidth_in,
                                       unsigned int targetHeight_in,
                                       enum AVPixelFormat targetPixelFormat_in,
-                                      uint8_t* targetBuffers_in[])
+                                      uint8_t* targetBuffers_in[],
+                                      bool flipVertically_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::convert"));
 
@@ -807,10 +811,17 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
   int result_2 = -1;
   int in_linesize[AV_NUM_DATA_POINTERS];
   int out_linesize[AV_NUM_DATA_POINTERS];
-  result_2 = av_image_fill_linesizes (in_linesize,
-                                      sourcePixelFormat_in,
-                                      static_cast<int> (sourceWidth_in));
+  result_2 =
+    av_image_fill_linesizes (in_linesize,
+                             sourcePixelFormat_in,
+                             static_cast<int> (sourceWidth_in));
   ACE_ASSERT (result_2 >= 0);
+  if (unlikely (flipVertically_in))
+    for (int i = 0; i < AV_NUM_DATA_POINTERS; ++i)
+    {
+      sourceBuffers_in[i] += in_linesize[i] * (sourceHeight_in - 1);
+      in_linesize[i] = -in_linesize[i];
+    } // end FOR
   result_2 = av_image_fill_linesizes (out_linesize,
                                       targetPixelFormat_in,
                                       static_cast<int> (targetWidth_in));
@@ -853,7 +864,8 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
                                     uint8_t* sourceBuffers_in[],
                                     unsigned int targetWidth_in,
                                     unsigned int targetHeight_in,
-                                    uint8_t* targetBuffers_in[])
+                                    uint8_t* targetBuffers_in[],
+                                    bool flipVertically_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::scale"));
 
@@ -882,10 +894,17 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
   ACE_OS::memset (&in_linesize, 0, sizeof (in_linesize));
   int out_linesize[AV_NUM_DATA_POINTERS];
   ACE_OS::memset (&out_linesize, 0, sizeof (out_linesize));
-  result_2 = av_image_fill_linesizes (in_linesize,
-                                      pixelFormat_in,
-                                      static_cast<int> (sourceWidth_in));
+  result_2 =
+    av_image_fill_linesizes (in_linesize,
+                             pixelFormat_in,
+                             static_cast<int> (sourceWidth_in));
   ACE_ASSERT (result_2 >= 0);
+  if (unlikely (flipVertically_in))
+    for (int i = 0; i < AV_NUM_DATA_POINTERS; ++i)
+    {
+      sourceBuffers_in[i] += in_linesize[i] * (sourceHeight_in - 1);
+      in_linesize[i] = -in_linesize[i];
+    } // end FOR
   result_2 = av_image_fill_linesizes (out_linesize,
                                       pixelFormat_in,
                                       static_cast<int> (targetWidth_in));

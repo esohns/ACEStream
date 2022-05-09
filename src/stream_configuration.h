@@ -105,6 +105,7 @@ struct Stream_ModuleHandlerConfiguration
 #endif // _DEBUG
    , demultiplex (false)
    , finishOnDisconnect (false)
+   , flipImage (false)
    , generateSessionMessages (true)
    , hasReentrantSynchronousSubDownstream (true)
    , inbound (true)
@@ -149,6 +150,7 @@ struct Stream_ModuleHandlerConfiguration
   bool                                        demultiplex;                          // message handler module
 //  struct Common_EventDispatchConfiguration*   dispatchConfiguration;
   bool                                        finishOnDisconnect;                   // head module(s)
+  bool                                        flipImage;                            // ffmpeg (converter)
   bool                                        generateSessionMessages;              // head module(s)
   // *WARNING*: when false, this 'locks down' the pipeline head module; i.e. it
   //            will hold the 'stream lock' during all message processing to

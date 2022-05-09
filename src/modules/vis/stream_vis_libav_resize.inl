@@ -76,6 +76,7 @@ Stream_Visualization_LibAVResize_T<TaskType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::buffer_);
+  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::frame_);
   ACE_ASSERT (!message_inout->cont ());
 
@@ -105,14 +106,16 @@ Stream_Visualization_LibAVResize_T<TaskType,
                                                      inherited::inputFormat_,
                                                      data_a,
                                                      inherited::frame_->width, inherited::frame_->height,
-                                                     inherited::frame_->data)))
+                                                     inherited::frame_->data,
+                                                     inherited::configuration_->flipImage)))
 #else
   if (unlikely (!Stream_Module_Decoder_Tools::scale (inherited::context_,
                                                      sourceResolution_.width, sourceResolution_.height,
                                                      inherited::inputFormat_,
                                                      data_a,
                                                      inherited::frame_->width, inherited::frame_->height,
-                                                     inherited::frame_->data)))
+                                                     inherited::frame_->data,
+                                                     inherited::configuration_->flipImage)))
 #endif // ACE_WIN32 || ACE_WIN64
   {
     ACE_DEBUG ((LM_ERROR,
