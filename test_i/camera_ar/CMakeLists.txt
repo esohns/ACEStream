@@ -11,14 +11,20 @@ if (UNIX)
 
  include (FindPkgConfig)
  pkg_check_modules (PKG_V4L REQUIRED libv4l2)
-endif (UNIX)
+elseif (WIN32)
+ include (DirectX)
+endif ()
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
+add_definitions (-DUNICODE)
+add_definitions (-D_UNICODE)
+
 if (FFMPEG_SUPPORT)
  include_directories (${ffmpeg_INCLUDE_DIRS})
 endif (FFMPEG_SUPPORT)
+include_directories (${CGE_INCLUDE_DIR})
 include_directories (${PGE_INCLUDE_DIR})
 if (UNIX)
  include_directories (${PKG_V4L_INCLUDE_DIRS})
@@ -30,14 +36,9 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 elseif (WIN32)
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "D:/projects/DShowBaseClasses")
-#      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-#      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
-
-# *TODO*: repair pkgconfig support
- include_directories ("${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses")
+ if (DIRECTSHOW_BASECLASSES_SUPPORT)
+  include_directories (${DS_BASECLASSES_INCLUDE_DIRS})
+ endif (DIRECTSHOW_BASECLASSES_SUPPORT)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
@@ -77,6 +78,9 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_camera_ar_message.cpp
      test_i_camera_ar_message.h
      test_i_camera_ar_message.inl
+     test_i_camera_ar_module_cge.cpp
+     test_i_camera_ar_module_cge.h
+     test_i_camera_ar_module_cge.inl
      test_i_camera_ar_module_pge.cpp
      test_i_camera_ar_module_pge.h
      test_i_camera_ar_module_pge.inl
@@ -124,14 +128,19 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_V4L_LIBRARIES})
 elseif (WIN32)
+ target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+
 # target_link_libraries (${EXECUTABLE} PUBLIC dxguid.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
 
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-#  target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/strmbasd.lib)
- else ()
-#  target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
- endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+ if (DIRECTSHOW_BASECLASSES_SUPPORT)
+# *NOTE*: need unicode build (see above)
+  if (CMAKE_BUILD_TYPE STREQUAL Debug)
+   target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/${CMAKE_BUILD_TYPE}/BaseClassesdu.lib)
+  else ()
+   target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/${CMAKE_BUILD_TYPE}/BaseClassesu.lib)
+  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+ endif (DIRECTSHOW_BASECLASSES_SUPPORT)
 endif ()
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 

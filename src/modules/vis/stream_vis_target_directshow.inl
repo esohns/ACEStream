@@ -1166,7 +1166,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   windowHandle_inout =
     CreateWindowEx (0,                                                // dwExStyle
 #if defined (UNICODE)
-                    ACE_TEXT_ALWAYS_CHAR ("EDIT"),                    // lpClassName
+                    ACE_TEXT_ALWAYS_WCHAR ("EDIT"),                   // lpClassName
                     ACE_TEXT_ALWAYS_WCHAR (inherited::mod_->name ()), // lpWindowName
 #else
                     ACE_TEXT_ALWAYS_CHAR ("EDIT"),                    // lpClassName
