@@ -1192,10 +1192,6 @@ Stream_CameraAR_Stream::Stream_CameraAR_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
-#if defined (CURSES_SUPPORT)
- , CursesDisplay_ (this,
-                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CURSES_WINDOW_DEFAULT_NAME_STRING))
-#endif // CURSES_SUPPORT
 #if defined (GTK_SUPPORT)
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
@@ -1204,10 +1200,6 @@ Stream_CameraAR_Stream::Stream_CameraAR_Stream ()
 //                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING))
  , X11Display_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
-#if defined (GLUT_SUPPORT)
- , OpenGLDisplay_ (this,
-                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
-#endif // GLUT_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraAR_Stream::Stream_CameraAR_Stream"));
 
@@ -1231,11 +1223,6 @@ Stream_CameraAR_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
   switch (inherited::configuration_->configuration_->renderer)
   {
-#if defined (CURSES_SUPPORT)
-    case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
-      layout_in->append (&CursesDisplay_, NULL, 0);
-      break;
-#endif // CURSES_SUPPORT
 #if defined (GTK_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
       layout_in->append (&GTKDisplay_, NULL, 0);
@@ -1247,11 +1234,6 @@ Stream_CameraAR_Stream::load (Stream_ILayout* layout_in,
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
       layout_in->append (&X11Display_, NULL, 0);
       break;
-#if defined (GLUT_SUPPORT)
-    case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
-      layout_in->append (&OpenGLDisplay_, NULL, 0);
-      break;
-#endif // GLUT_SUPPORT
     default:
     {
       ACE_DEBUG ((LM_ERROR,

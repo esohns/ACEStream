@@ -86,9 +86,9 @@
 #endif // FFMPEG_SUPPORT
 #endif // GUI_SUPPORT
 
-#include "Test_U_camsave_common.h"
-#include "Test_U_camsave_message.h"
-#include "Test_U_camsave_session_message.h"
+#include "test_u_camsave_common.h"
+#include "test_u_camsave_message.h"
+#include "test_u_camsave_session_message.h"
 
 // declare module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

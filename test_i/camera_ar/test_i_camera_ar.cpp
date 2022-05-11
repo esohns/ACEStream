@@ -1052,15 +1052,15 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Stream_CameraAR_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
-                                                            &heap_allocator,     // heap allocator handle
-                                                            true);               // block ?
+  Stream_CameraAR_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+                                                        &heap_allocator,     // heap allocator handle
+                                                        true);               // block ?
   Stream_CameraAR_Stream stream;
-  Stream_CameraAR_MessageHandler_Module message_handler (&stream,
-                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Stream_CameraAR_PGE_Module PGE (&stream,
+                                  ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING));
 
   stream_configuration.messageAllocator = &message_allocator;
-  stream_configuration.module = &message_handler;
+  stream_configuration.module = &PGE;
   stream_configuration.renderer = renderer_in;
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
@@ -1292,7 +1292,7 @@ clean:
 #else
   do_finalize_v4l (deviceIdentifier_in);
 
-  stream.remove (&message_handler,
+  stream.remove (&PGE,
                  true,
                  true);
 #endif // ACE_WIN32 || ACE_WIN64

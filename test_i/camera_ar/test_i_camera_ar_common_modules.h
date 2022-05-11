@@ -72,7 +72,9 @@
 
 #include "test_i_camera_ar_common.h"
 #include "test_i_camera_ar_message.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "test_i_camera_ar_module_cge.h"
+#endif // ACE_WIN32 || ACE_WIN64
 #include "test_i_camera_ar_module_pge.h"
 #include "test_i_camera_ar_session_message.h"
 
@@ -444,14 +446,8 @@ typedef Test_I_CameraAR_Module_CGE_T<Test_U_MediaFoundation_TaskBaseAsynch_t,
 //                                       Stream_CameraAR_V4L_SessionData,
 //                                       struct Stream_UserData> Stream_CameraAR_MessageHandler;
 
-typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
-                                       Common_TimePolicy_t,
-                                       struct Stream_CameraAR_V4L_ModuleHandlerConfiguration,
-                                       Stream_ControlMessage_t,
-                                       Stream_CameraAR_Message_t,
-                                       Stream_CameraAR_SessionMessage_t,
-                                       Stream_CameraAR_V4L_SessionData,
-                                       struct Stream_UserData> Stream_CameraAR_MessageHandler;
+typedef Test_I_CameraAR_Module_PGE_T<Test_U_TaskBaseAsynch_t,
+                                     struct Stream_MediaFramework_V4L_MediaType> Stream_CameraAR_PGE;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
@@ -679,6 +675,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_MediaFoundation_SessionData,      
 //                              libacestream_default_misc_messagehandler_module_name_string,
 //                              Stream_INotify_t,                                     // stream notification interface type
 //                              Stream_CameraAR_MessageHandler);                       // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                        // session event type
+                              struct Stream_CameraAR_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_pge_module_name_string,
+                              Stream_INotify_t,                                      // stream notification interface type
+                              Stream_CameraAR_PGE);                                  // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 
 #endif

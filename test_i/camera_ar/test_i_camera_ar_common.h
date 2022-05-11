@@ -698,15 +698,9 @@ struct Stream_CameraAR_Configuration
 {
   Stream_CameraAR_Configuration ()
    : Test_I_Configuration ()
-#if defined (CURSES_SUPPORT)
-   , cursesConfiguration ()
-#endif // CURSES_SUPPORT
    , streamConfiguration ()
   {}
 
-#if defined (CURSES_SUPPORT)
-  struct Common_UI_Curses_Configuration     cursesConfiguration;
-#endif // CURSES_SUPPORT
   // **************************** stream data **********************************
   Stream_CameraAR_StreamConfiguration_t streamConfiguration;
 };

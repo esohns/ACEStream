@@ -527,7 +527,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
-  struct AVOutputFormat* output_format_p =
+  const struct AVOutputFormat* output_format_p =
       av_guess_format (ACE_TEXT_ALWAYS_CHAR ("avi"), // short name
                        NULL,                         // file name
                        NULL);                        // MIME-type
@@ -807,7 +807,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #else
 #if defined (FFMPEG_SUPPORT)
       enum AVCodecID codec_id = AV_CODEC_ID_RAWVIDEO; // RGB
-      struct AVCodec* codec_p = NULL;
+      const struct AVCodec* codec_p = NULL;
       struct AVCodecContext* codec_context_p = NULL;
       struct AVStream* stream_p = NULL;
 //      int flags = (SWS_FAST_BILINEAR | SWS_ACCURATE_RND);
@@ -819,7 +819,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       ACE_ASSERT (formatContext_);
       ACE_ASSERT (formatContext_->oformat);
 
-      formatContext_->oformat->audio_codec = AV_CODEC_ID_NONE;
+      const_cast<struct AVOutputFormat*> (formatContext_->oformat)->audio_codec =
+        AV_CODEC_ID_NONE;
       switch (media_type_s.format)
       {
         // RGB formats
@@ -865,7 +866,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
           goto error;
         }
       } // end SWITCH
-      formatContext_->oformat->video_codec = codec_id;
+      const_cast<struct AVOutputFormat*> (formatContext_->oformat)->video_codec =
+        codec_id;
 
       codec_p = avcodec_find_encoder (codec_id);
       if (unlikely (!codec_p))
