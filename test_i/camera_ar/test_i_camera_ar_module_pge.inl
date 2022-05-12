@@ -61,31 +61,32 @@ Test_I_CameraAR_Module_PGE_T<TaskType,
 
   uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   float red_f, green_f, blue_f, luminance_f, difference_f;
+  int screen_width_i = inherited3::ScreenWidth (), screen_height_i = inherited3::ScreenHeight ();
 
   // backup previous frame data
-  ACE_OS::memmove (previousImage, currentImage, sizeof (float) * ScreenWidth () * ScreenHeight ());
-  ACE_OS::memmove (previousFilteredImage, currentFilteredImage, sizeof (float) * ScreenWidth () * ScreenHeight ());
-  ACE_OS::memmove (previousMotionImage, currentMotionImage, sizeof (float) * ScreenWidth () * ScreenHeight ());
+  ACE_OS::memmove (previousImage, currentImage, sizeof (float) * screen_width_i * screen_height_i);
+  ACE_OS::memmove (previousFilteredImage, currentFilteredImage, sizeof (float) * screen_width_i * screen_height_i);
+  ACE_OS::memmove (previousMotionImage, currentMotionImage, sizeof (float) * screen_width_i * screen_height_i);
 
   // update frame data
-  for (int y = 0; y < ScreenHeight (); y++)
-    for (int x = 0; x < ScreenWidth (); x++)
+  for (int y = 0; y < screen_height_i; y++)
+    for (int x = 0; x < screen_width_i; x++)
     {
       // store luminance values
       red_f = (float)data_p[2] / 255.0f;
       green_f = (float)data_p[1] / 255.0f;
       blue_f = (float)data_p[0] / 255.0f;
       luminance_f = 0.2987f * red_f + 0.5870f * green_f + 0.1140f * blue_f;
-      currentImage[y * ScreenWidth () + x] = luminance_f;
+      currentImage[y * screen_width_i + x] = luminance_f;
 
       // low-pass filter camera image
-      currentFilteredImage[y*ScreenWidth () + x] += (currentImage[y*ScreenWidth () + x] - currentFilteredImage[y*ScreenWidth () + x]) * 0.8f;
+      currentFilteredImage[y*screen_width_i + x] += (currentImage[y*screen_width_i + x] - currentFilteredImage[y*screen_width_i + x]) * 0.8f;
 
       // compute difference between two successive camera frames
       difference_f =
-        fabs (currentFilteredImage[y*ScreenWidth () + x] - previousFilteredImage[y*ScreenWidth () + x]);
+        fabs (currentFilteredImage[y*screen_width_i + x] - previousFilteredImage[y*screen_width_i + x]);
       // add threshold to filter out camera noise
-      currentMotionImage[y * ScreenWidth () + x] =
+      currentMotionImage[y * screen_width_i + x] =
         (difference_f >= 0.05f) ? difference_f : 0.0f;
 
       // draw image
@@ -98,18 +99,18 @@ Test_I_CameraAR_Module_PGE_T<TaskType,
   int patch_size_i = 9;
   int search_size_i = 7;
 
-  float patch_difference_max_f, patch_difference_x_f, patch_difference_y_f;
+  float patch_difference_max_f/*, patch_difference_x_f, patch_difference_y_f*/;
   float accumulated_difference_f, patch_pixel_f, base_pixel_f;
   int search_vector_x_i, search_vector_y_i, patch_pixel_x_i, patch_pixel_y_i;
   int base_pixel_x_i, base_pixel_y_i;
-  for (int x = 0; x < ScreenWidth (); x++)
-    for (int y = 0; y < ScreenHeight (); y++)
+  for (int x = 0; x < screen_width_i; x++)
+    for (int y = 0; y < screen_height_i; y++)
     {
       patch_difference_max_f = INFINITY;
-      patch_difference_x_f = 0.0f;
-      patch_difference_y_f = 0.0f;
-      flowFieldX[y * ScreenWidth () + x] = 0.0f;
-      flowFieldY[y * ScreenWidth () + x] = 0.0f;
+//      patch_difference_x_f = 0.0f;
+//      patch_difference_y_f = 0.0f;
+      flowFieldX[y * screen_width_i + x] = 0.0f;
+      flowFieldY[y * screen_width_i + x] = 0.0f;
 
       // search over a given rectangular area for a "patch" of old image
       // that "resembles" a patch of the new image
@@ -147,15 +148,15 @@ Test_I_CameraAR_Module_PGE_T<TaskType,
           if (accumulated_difference_f <= patch_difference_max_f)
           {
             patch_difference_max_f = accumulated_difference_f;
-            flowFieldX[y * ScreenWidth () + x] = (float)(search_vector_x_i - x);
-            flowFieldY[y * ScreenWidth () + x] = (float)(search_vector_y_i - y);
+            flowFieldX[y * screen_width_i + x] = (float)(search_vector_x_i - x);
+            flowFieldY[y * screen_width_i + x] = (float)(search_vector_y_i - y);
           } // end IF
         } // end FOR
     } // end FOR
 
   // modulate flow vector map with motion map, to remove vectors that
   // erroneously indicate large local motion
-  for (int i = 0; i < ScreenWidth () * ScreenHeight (); i++)
+  for (int i = 0; i < screen_width_i * screen_height_i; i++)
   {
     flowFieldX[i] *= currentMotionImage[i] > 0 ? 1.0f : 0.0f;
     flowFieldY[i] *= currentMotionImage[i] > 0 ? 1.0f : 0.0f;
@@ -170,8 +171,6 @@ Test_I_CameraAR_Module_PGE_T<TaskType,
                                                                bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_PGE_T::handleSessionMessage"));
-
-  int result = -1;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -211,7 +210,7 @@ Test_I_CameraAR_Module_PGE_T<TaskType,
 #else
                                resolution_s.width, resolution_s.height,
 #endif // ACE_WIN32 || ACE_WIN64
-                               1, 1,
+                               8, 8,
                                false,  // fullscreen ?
                                false,  // vsync ?
                                false); // cohesion ?
@@ -304,7 +303,7 @@ Test_I_CameraAR_Module_PGE_T<TaskType,
   while (ballY < 0) ballY += (float)inherited3::ScreenHeight ();
 
   // draw ball
-  inherited3::DrawRect (ballX, ballY, 32, 32, olc::Pixel (255, 0, 0, 255));
+  inherited3::DrawRect (ballX - 4, ballY - 4, 8, 8, olc::Pixel (255, 0, 0, 255));
 
   return !inherited3::GetKey (olc::Key::ESCAPE).bPressed;
 }

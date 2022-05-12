@@ -101,15 +101,11 @@ class Stream_CameraAR_EventHandler_T;
 
 enum Stream_CameraAR_ProgramMode
 {
-  Stream_CameraAR_PROGRAMMODE_PRINT_VERSION = 0,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  Stream_CameraAR_PROGRAMMODE_TEST_METHODS,
-#endif // ACE_WIN32 || ACE_WIN64
-  Stream_CameraAR_PROGRAMMODE_NORMAL,
+  STREAM_CAMERA_AR_PROGRAMMODE_PRINT_VERSION = 0,
+  STREAM_CAMERA_AR_PROGRAMMODE_NORMAL,
   ////////////////////////////////////////
-  Stream_CameraAR_PROGRAMMODE_MAX,
-  Stream_CameraAR_PROGRAMMODE_INVALID
+  STREAM_CAMERA_AR_PROGRAMMODE_MAX,
+  STREAM_CAMERA_AR_PROGRAMMODE_INVALID
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

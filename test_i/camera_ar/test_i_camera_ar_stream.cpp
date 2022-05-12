@@ -1221,28 +1221,28 @@ Stream_CameraAR_Stream::load (Stream_ILayout* layout_in,
   //layout_in->append (&statisticReport_, NULL, 0);
   layout_in->append (&convert_, NULL, 0);
   layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-  switch (inherited::configuration_->configuration_->renderer)
-  {
-#if defined (GTK_SUPPORT)
-    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
-      layout_in->append (&GTKDisplay_, NULL, 0);
-      break;
-#endif // GTK_SUPPORT
-//    case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
-//      layout_in->append (&WaylandDisplay_, NULL, 0);
+//  switch (inherited::configuration_->configuration_->renderer)
+//  {
+//#if defined (GTK_SUPPORT)
+//    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
+//      layout_in->append (&GTKDisplay_, NULL, 0);
 //      break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_X11:
-      layout_in->append (&X11Display_, NULL, 0);
-      break;
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown renderer (was: %d), aborting\n"),
-                  ACE_TEXT (stream_name_string_),
-                  inherited::configuration_->configuration_->renderer));
-      return false;
-    }
-  } // end SWITCH
+//#endif // GTK_SUPPORT
+////    case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
+////      layout_in->append (&WaylandDisplay_, NULL, 0);
+////      break;
+//    case STREAM_VISUALIZATION_VIDEORENDERER_X11:
+//      layout_in->append (&X11Display_, NULL, 0);
+//      break;
+//    default:
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: invalid/unknown renderer (was: %d), aborting\n"),
+//                  ACE_TEXT (stream_name_string_),
+//                  inherited::configuration_->configuration_->renderer));
+//      return false;
+//    }
+//  } // end SWITCH
 
   return true;
 }

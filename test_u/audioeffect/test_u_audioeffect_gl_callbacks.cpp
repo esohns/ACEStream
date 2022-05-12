@@ -120,9 +120,11 @@ glarea_realize_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (widget_in);
   ACE_ASSERT (userData_in);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
+#endif // ACE_WIN32 || ACE_WIN64
 
   GLuint* texture_id_p = NULL;
   GtkAllocation allocation;
@@ -147,9 +149,9 @@ glarea_realize_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
 
@@ -163,9 +165,9 @@ glarea_realize_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
 
@@ -186,10 +188,9 @@ glarea_realize_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBData* data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
@@ -1300,11 +1301,12 @@ glarea_configure_event_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::glarea_configure_event_cb"));
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
@@ -1315,22 +1317,20 @@ glarea_configure_event_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       break;
     }
     default:
@@ -1342,10 +1342,9 @@ glarea_configure_event_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBData* data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 

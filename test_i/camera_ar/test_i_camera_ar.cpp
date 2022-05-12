@@ -256,9 +256,9 @@ do_process_arguments (int argc_in,
   renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_X11;
 #endif // ACE_WIN32 || ACE_WIN64
   traceInformation_out = false;
-  mode_out = Stream_CameraAR_PROGRAMMODE_NORMAL;
+  mode_out = STREAM_CAMERA_AR_PROGRAMMODE_NORMAL;
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:lo:tvx");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:lo:tv");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("23m");
 #else
@@ -334,17 +334,9 @@ do_process_arguments (int argc_in,
       }
       case 'v':
       {
-        mode_out = Stream_CameraAR_PROGRAMMODE_PRINT_VERSION;
+        mode_out = STREAM_CAMERA_AR_PROGRAMMODE_PRINT_VERSION;
         break;
       }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-      case 'x':
-      {
-        mode_out = Stream_CameraAR_PROGRAMMODE_TEST_METHODS;
-        break;
-      }
-#endif // ACE_WIN32 || ACE_WIN64
       // error handling
       case ':':
       {
@@ -826,8 +818,6 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
   // *TODO*: auto-determine color depth of selected (default) screen (i.e.
   //         'Display' ":0")
   outputFormat_out = captureFormat_out;
-  if (!Stream_MediaFramework_Tools::isRGB (captureFormat_out.format.pixelformat))
-    outputFormat_out.format.pixelformat = V4L2_PIX_FMT_RGB32;
 
   return true;
 
@@ -1172,31 +1162,15 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   } // end IF
   stream_p = &stream;
 
-  switch (renderer_in)
-  {
-    case STREAM_VISUALIZATION_VIDEORENDERER_X11:
-    {
-      // *IMPORTANT NOTE*: there does not seem to be a way to feed RGB24 data to
-      //                   Xlib; XCreateImage() only 'likes' 32-bit data, regardless
-      //                   of what 'depth' values are set (in fact, it requires BGRA
-      //                   on little-endian platforms) --> convert
-      modulehandler_configuration_2 = modulehandler_configuration;
-      modulehandler_configuration_2.outputFormat.format.pixelformat =
-        V4L2_PIX_FMT_BGRA32;
-      break;
-    }
-#if defined (GLUT_SUPPORT)
-    case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
-    {
-      modulehandler_configuration_2 = modulehandler_configuration;
-      modulehandler_configuration_2.outputFormat.format.pixelformat =
-        V4L2_PIX_FMT_RGBA32;
-      break;
-    }
-#endif // GLUT_SUPPORT
-    default:
-      break;
-  } // end SWITCH
+//  if (!Stream_MediaFramework_Tools::isRGB (stream_configuration.format.format.pixelformat))
+//    modulehandler_configuration.outputFormat.format.pixelformat =
+//      V4L2_PIX_FMT_RGB32;
+  modulehandler_configuration.outputFormat.format.width = 80;
+  modulehandler_configuration.outputFormat.format.height = 60;
+
+  modulehandler_configuration_2 = modulehandler_configuration;
+  modulehandler_configuration_2.outputFormat.format.pixelformat =
+    V4L2_PIX_FMT_RGB24;
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
@@ -1303,121 +1277,6 @@ clean:
 
 COMMON_DEFINE_PRINTVERSION_FUNCTION(do_print_version,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-void
-do_test_methods (const std::string& deviceIdentifier_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::do_test_methods"));
-
-  enum v4l2_memory method_e = V4L2_MEMORY_MMAP;
-
-  int open_mode_i =
-      ((method_e == V4L2_MEMORY_MMAP) ? O_RDWR : O_RDONLY);
-  int fd = v4l2_open (ACE_TEXT_ALWAYS_CHAR (deviceIdentifier_in.c_str ()),
-                      open_mode_i);
-  if (unlikely (fd == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", returning\n"),
-                ACE_TEXT (deviceIdentifier_in.c_str ()),
-                open_mode_i));
-    return;
-  } // end IF
-
-  struct v4l2_requestbuffers request_buffers_s;
-  ACE_OS::memset (&request_buffers_s, 0, sizeof (struct v4l2_requestbuffers));
-  request_buffers_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  request_buffers_s.memory = method_e;
-  request_buffers_s.count = 1;
-
-  int result = v4l2_ioctl (fd,
-                           VIDIOC_REQBUFS,
-                           &request_buffers_s);
-  if (result == -1)
-  {
-    int error = ACE_OS::last_error ();
-    if (error == EINVAL)
-    {
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: V4L2_MEMORY_MMAP not supported, continuing\n"),
-                  ACE_TEXT (deviceIdentifier_in.c_str ())));
-      goto next;
-    } // end IF
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_ioctl(VIDIOC_REQBUFS): \"%m\", returning\n")));
-    goto error;
-  } // end IF
-  ACE_DEBUG ((LM_INFO,
-              ACE_TEXT ("%s: supports V4L2_MEMORY_MMAP\n"),
-              ACE_TEXT (deviceIdentifier_in.c_str ())));
-
-next:
-  method_e = V4L2_MEMORY_USERPTR;
-  ACE_OS::memset (&request_buffers_s, 0, sizeof (struct v4l2_requestbuffers));
-  request_buffers_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  request_buffers_s.memory = method_e;
-  request_buffers_s.count = 1;
-
-  result = v4l2_ioctl (fd,
-                       VIDIOC_REQBUFS,
-                       &request_buffers_s);
-  if (result == -1)
-  {
-    int error = ACE_OS::last_error ();
-    if (error == EINVAL)
-    {
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: V4L2_MEMORY_USERPTR not supported, continuing\n"),
-                  ACE_TEXT (deviceIdentifier_in.c_str ())));
-      goto next_2;
-    } // end IF
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_ioctl(VIDIOC_REQBUFS): \"%m\", returning\n")));
-    goto error;
-  } // end IF
-  ACE_DEBUG ((LM_INFO,
-              ACE_TEXT ("%s: supports V4L2_MEMORY_USERPTR\n"),
-              ACE_TEXT (deviceIdentifier_in.c_str ())));
-
-next_2:
-  method_e = V4L2_MEMORY_DMABUF;
-  ACE_OS::memset (&request_buffers_s, 0, sizeof (struct v4l2_requestbuffers));
-  request_buffers_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  request_buffers_s.memory = method_e;
-  request_buffers_s.count = 1;
-
-  result = v4l2_ioctl (fd,
-                       VIDIOC_REQBUFS,
-                       &request_buffers_s);
-  if (result == -1)
-  {
-    int error = ACE_OS::last_error ();
-    if (error == EINVAL)
-    {
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: V4L2_MEMORY_DMABUF not supported, continuing\n"),
-                  ACE_TEXT (deviceIdentifier_in.c_str ())));
-      goto next_3;
-    } // end IF
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_ioctl(VIDIOC_REQBUFS): \"%m\", returning\n")));
-    goto error;
-  } // end IF
-  ACE_DEBUG ((LM_INFO,
-              ACE_TEXT ("%s: supports V4L2_MEMORY_DMABUF\n"),
-              ACE_TEXT (deviceIdentifier_in.c_str ())));
-
-next_3:
-error:
-  result = v4l2_close (fd);
-  if (result == -1)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                fd));
-}
-#endif // ACE_WIN32 || ACE_WIN64
-
 int
 ACE_TMAIN (int argc_in,
            ACE_TCHAR* argv_in[])
@@ -1513,8 +1372,7 @@ ACE_TMAIN (int argc_in,
     Common_UI_Tools::getDefaultDisplay ();
   bool trace_information = false;
   enum Stream_CameraAR_ProgramMode program_mode_e =
-      Stream_CameraAR_PROGRAMMODE_NORMAL;
-  //bool run_stress_test = false;
+      STREAM_CAMERA_AR_PROGRAMMODE_NORMAL;
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
@@ -1596,7 +1454,7 @@ ACE_TMAIN (int argc_in,
   // step1f: handle specific program modes
   switch (program_mode_e)
   {
-    case Stream_CameraAR_PROGRAMMODE_PRINT_VERSION:
+    case STREAM_CAMERA_AR_PROGRAMMODE_PRINT_VERSION:
     {
       do_print_version (ACE::basename (argv_in[0]));
 
@@ -1611,19 +1469,7 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
       return EXIT_SUCCESS;
     }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-    case Stream_CameraAR_PROGRAMMODE_TEST_METHODS:
-    {
-      do_test_methods (device_identifier.identifier);
-
-      Common_Log_Tools::finalizeLogging ();
-      Common_Tools::finalize ();
-
-      return EXIT_SUCCESS;
-    }
-#endif // ACE_WIN32 || ACE_WIN64
-    case Stream_CameraAR_PROGRAMMODE_NORMAL:
+    case STREAM_CAMERA_AR_PROGRAMMODE_NORMAL:
       break;
     default:
     {
