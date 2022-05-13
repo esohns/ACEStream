@@ -210,7 +210,7 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
 #else
                                       resolution_s.width, resolution_s.height,
 #endif // ACE_WIN32 || ACE_WIN64
-                                      4, 6);
+                                      8, 8);
       if (unlikely (!result))
       {
         ACE_DEBUG ((LM_ERROR,
