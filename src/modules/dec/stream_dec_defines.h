@@ -52,6 +52,7 @@
 #if defined (OPENCV_SUPPORT)
 #define STREAM_DEC_DECODER_OPENCV_DECODER_DEFAULT_NAME_STRING        "OpenCV_Decoder"
 #endif // OPENCV_SUPPORT
+#define STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING           "RGB24HFlip"
 #define STREAM_DEC_DECODER_ZIP_DEFAULT_NAME_STRING                   "ZIP_Decoder"
 
 #include "ace/config-lite.h"

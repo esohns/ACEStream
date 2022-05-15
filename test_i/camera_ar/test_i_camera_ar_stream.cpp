@@ -49,10 +49,14 @@ Stream_CameraAR_DirectShow_Stream::Stream_CameraAR_DirectShow_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+#if defined (FFMPEG_SUPPORT)
  , convert_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+#endif // FFMPEG_SUPPORT
+ , flip_ (this,
+          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
 #if defined (GTK_SUPPORT)
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
@@ -84,10 +88,13 @@ Stream_CameraAR_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   layout_in->append (&source_, NULL, 0);
   //modules_out.push_back (&statisticReport_);
+#if defined (FFMPEG_SUPPORT)
   layout_in->append (&convert_, NULL, 0);
   layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+#endif // FFMPEG_SUPPORT
+  layout_in->append (&flip_, NULL, 0);
 
-//  switch (inherited::configuration_->configuration_->renderer)
+  //  switch (inherited::configuration_->configuration_->renderer)
 //  {
 //#if defined (GTK_SUPPORT)
 //    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:

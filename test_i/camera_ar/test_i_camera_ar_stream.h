@@ -104,8 +104,11 @@ class Stream_CameraAR_DirectShow_Stream
   // modules
   Stream_CameraAR_DirectShow_Source_Module           source_;
   Stream_CameraAR_DirectShow_StatisticReport_Module  statisticReport_;
+#if defined (FFMPEG_SUPPORT)
   Stream_CameraAR_DirectShow_LibAVConvert_Module     convert_; // RGB
   Stream_CameraAR_DirectShow_LibAVResize_Module      resize_; // --> window size/fullscreen
+#endif // FFMPEG_SUPPORT
+  Stream_CameraAR_DirectShow_HFlip_Module            flip_;
 #if defined (GTK_SUPPORT)
   Stream_CameraAR_DirectShow_GTK_Display_Module      GTKDisplay_;
 #endif // GTK_SUPPORT
