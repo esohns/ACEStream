@@ -41,8 +41,9 @@
 #else
 #include "linux/videodev2.h"
 
-#include "X11/X.h"
-#undef CursorShape
+//#include "X11/X.h"
+typedef unsigned long Window;
+//#undef CursorShape
 #include "wayland-client.h"
 
 #if defined (FFMPEG_SUPPORT)
@@ -56,7 +57,6 @@ extern "C"
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-//#include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_isubscribe.h"
