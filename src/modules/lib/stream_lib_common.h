@@ -67,12 +67,15 @@ enum Stream_MediaFramework_Type
 
 enum Stream_MediaFramework_SoundGeneratorType
 {
-  STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_CYCLOID = 0,
-  STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH,
+  STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH = 0,
   STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE,
   STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE,
   STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_TRIANGLE,
+  // -------------------------------------
   STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE,
+#if defined (LIBNOISE_SUPPORT)
+  STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PERLIN_NOISE,
+#endif // LIBNOISE_SUPPORT
   ////////////////////////////////////////
   STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_MAX,
   STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID
@@ -88,9 +91,18 @@ struct Stream_MediaFramework_SoundGeneratorConfiguration
   bool                                          isLittleEndianFormat;
   bool                                          isSignedFormat;
 
-  // waveform generators
   double                                        amplitude; // [0.0-1.0]
+
+  // waveform generators
   double                                        frequency;
+
+  // noise generators
+#if defined (LIBNOISE_SUPPORT)
+  double                                        step;
+  double                                        x; // coordinates
+  double                                        y;
+  double                                        z;
+#endif // LIBNOISE_SUPPORT
 
   enum Stream_MediaFramework_SoundGeneratorType type;
 };

@@ -28,27 +28,29 @@
 //#define MAXIMUM_PHASE_D 2.0 * M_PI
 static double acestream_noise_maximum_phase_d = 2.0 * M_PI;
 
+#if defined (LIBNOISE_SUPPORT)
 void
-Stream_Module_Decoder_Noise_Tools::cycloid (unsigned int sampleRate_in,
-                                            unsigned int bytesPerSample_in,
-                                            unsigned int channels_in,
-                                            bool formatIsFloat_in,
-                                            bool formatIsSigned_in,
-                                            bool formatIsLittleEndian_in,
-                                            ACE_UINT8* buffer_in,
-                                            unsigned int samplesToWrite_in,
-                                            double amplitude_in,
-                                            double frequency_in,
-                                            double& phase_inout)
+Stream_Module_Decoder_Noise_Tools::perlin_noise (noise::module::Perlin& module_in,
+                                                 unsigned int bytesPerSample_in,
+                                                 unsigned int channels_in,
+                                                 bool formatIsFloat_in,
+                                                 bool formatIsSigned_in,
+                                                 bool formatIsLittleEndian_in,
+                                                 ACE_UINT8* buffer_in,
+                                                 unsigned int samplesToWrite_in,
+                                                 double amplitude_in,
+                                                 double step_in,
+                                                 double& x_inout,
+                                                 double& y_inout,
+                                                 double& z_inout)
+
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Noise_Tools::cycloid"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Noise_Tools::perlin_noise"));
 
   // sanity check(s)
   ACE_ASSERT (bytesPerSample_in <= 16);
   ACE_ASSERT (amplitude_in >= 0.0 && amplitude_in <= 1.0);
 
-  double step_d =
-    (acestream_noise_maximum_phase_d * frequency_in) / static_cast<double> (sampleRate_in);
   ACE_UINT64 maximum_value_i =
     Common_Tools::max<ACE_UINT64> (bytesPerSample_in,
                                    formatIsSigned_in);
@@ -59,8 +61,8 @@ Stream_Module_Decoder_Noise_Tools::cycloid (unsigned int sampleRate_in,
   ACE_UINT8* data_p = buffer_in;
   for (unsigned int i = 0; i < samplesToWrite_in; ++i)
   {
-    value_d = std::sin (phase_inout) * std::cos (frequency_in * phase_inout * M_PI);
-    value_d = 
+    value_d = module_in.GetValue (x_inout, y_inout, z_inout);
+    value_d =
       (formatIsFloat_in ? value_d * amplitude_in
                         : (formatIsSigned_in ? value_d * static_cast<long double> (maximum_value_i) * amplitude_in
                                              : (value_d + 1.0) * (static_cast<long double> (maximum_value_i) / 2.0) * amplitude_in));
@@ -126,11 +128,10 @@ Stream_Module_Decoder_Noise_Tools::cycloid (unsigned int sampleRate_in,
           return;
         }
       } // end SWITCH
-    phase_inout += step_d;
-    if (unlikely (phase_inout >= acestream_noise_maximum_phase_d))
-      phase_inout -= acestream_noise_maximum_phase_d;
+    x_inout += step_in;
   } // end FOR
 }
+#endif // LIBNOISE_SUPPORT
 
 void
 Stream_Module_Decoder_Noise_Tools::sawtooth (unsigned int sampleRate_in,

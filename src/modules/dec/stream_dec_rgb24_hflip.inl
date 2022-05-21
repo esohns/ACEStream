@@ -111,6 +111,7 @@ Stream_Decoder_RGB24_HFlip_T<ACE_SYNCH_USE,
   uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   uint8_t* data_2;
   uint8_t r, g, b;
+#if defined (ACE_WIN64) || defined (ACE_WIN64)
   for (int y = 0; y < resolution_.cy; ++y)
   {
     data_2 = data_p;
@@ -127,11 +128,29 @@ Stream_Decoder_RGB24_HFlip_T<ACE_SYNCH_USE,
     } // end FOR
     data_p += (resolution_.cx / 2) * 3;
   } // end FOR
+#else
+  for (int y = 0; y < resolution_.height; ++y)
+  {
+    data_2 = data_p;
+    for (int x = 0; x < resolution_.width / 2; ++x)
+    {
+      r = data_p[0]; g = data_p[1]; b = data_p[2];
+      data_p[0] = data_2[((resolution_.width - x) * 3) - 3];
+      data_p[1] = data_2[((resolution_.width - x) * 3) - 2];
+      data_p[2] = data_2[((resolution_.width - x) * 3) - 1];
+      data_2[((resolution_.width - x) * 3) - 3] = r;
+      data_2[((resolution_.width - x) * 3) - 2] = g;
+      data_2[((resolution_.width - x) * 3) - 1] = b;
+      data_p += 3;
+    } // end FOR
+    data_p += (resolution_.width / 2) * 3;
+  } // end FOR
+#endif // ACE_WIN32 || ACE_WIN64
 
   return;
 
-error:
-  this->notify (STREAM_SESSION_MESSAGE_ABORT);
+//error:
+//  this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,

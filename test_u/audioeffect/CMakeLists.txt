@@ -10,6 +10,7 @@ if (UNIX)
 endif (UNIX)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
+include (libnoise)
 include (mpg123)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
 include (sox)
@@ -21,6 +22,9 @@ endif (UNIX)
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
+if (LIBNOISE_SUPPORT)
+ include_directories (${LIBNOISE_INCLUDE_DIRS})
+endif (LIBNOISE_SUPPORT)
 if (MPG123_SUPPORT)
  include_directories (${MPG123_INCLUDE_DIRS})
 endif (MPG123_SUPPORT)
@@ -349,6 +353,9 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
+ if (LIBNOISE_SUPPORT)
+  file (TO_CMAKE_PATH "${LIBNOISE_LIB_DIR}" LIBNOISE_PATH)
+ endif (LIBNOISE_SUPPORT)
  if (MPG123_SUPPORT)
   file (TO_CMAKE_PATH "${MPG123_LIB_DIR}" MPG123_PATH)
  endif (MPG123_SUPPORT)
@@ -362,6 +369,7 @@ elseif (WIN32)
                           ${FFMPEG_PATH}
                           ${IMAGEMAGICK_PATH}
                           ${LIBPNG_PATH}
+                          ${LIBNOISE_PATH}
                           ${MPG123_PATH}
                           ${SOX_PATH}
                           ${ZLIB_PATH}

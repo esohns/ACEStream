@@ -1,0 +1,37 @@
+set (LIBNOISE_SUPPORT_DEFAULT ON)
+set (LIBNOISE_DIR "$ENV{LIB_ROOT}/libnoise")
+set (LIBNOISE_INCLUDE_DIRS "${LIBNOISE_DIR}/include")
+if (UNIX)
+ set (LIBNOISE_LIBRARY "libnoise.so")
+ find_library (LIBNOISE_LIB ${LIBNOISE_LIBRARY}
+               PATHS ${LIBNOISE_DIR}
+               PATH_SUFFIXES build/gcc/${CMAKE_BUILD_TYPE}
+               DOC "searching for ${LIBNOISE_LIBRARY}"
+               NO_DEFAULT_PATH)
+ if (NOT LIBNOISE_LIB)
+  message (WARNING "could not find ${LIBNOISE_LIBRARY}, continuing")
+ else ()
+  message (STATUS "Found ${LIBNOISE_LIBRARY} library \"${LIBNOISE_LIB}\"")
+  set (LIBNOISE_FOUND TRUE)
+ endif (NOT LIBNOISE_LIB)
+elseif (WIN32)
+ set (LIBNOISE_LIBRARY "libnoise.lib")
+ find_library (LIBNOISE_LIB ${LIBNOISE_LIBRARY}
+               PATHS ${LIBNOISE_DIR}
+               PATH_SUFFIXES build/msvc/${CMAKE_BUILD_TYPE}
+               DOC "searching for ${LIBNOISE_LIBRARY}"
+               NO_DEFAULT_PATH)
+ if (NOT LIBNOISE_LIB)
+  message (WARNING "could not find ${LIBNOISE_LIBRARY}, continuing")
+ else ()
+  message (STATUS "Found ${LIBNOISE_LIBRARY} library \"${LIBNOISE_LIB}\"")
+  set (LIBNOISE_FOUND TRUE)
+  set (LIBNOISE_LIB_DIR "${LIBNOISE_DIR}/build/msvc/${CMAKE_BUILD_TYPE}")
+ endif (NOT LIBNOISE_LIB)
+endif ()
+if (LIBNOISE_FOUND)
+ option (LIBNOISE_SUPPORT "enable libnoise support" ${LIBNOISE_SUPPORT_DEFAULT})
+ if (LIBNOISE_SUPPORT)
+  add_definitions (-DLIBNOISE_SUPPORT)
+ endif (LIBNOISE_SUPPORT)
+endif (LIBNOISE_FOUND)

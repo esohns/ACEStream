@@ -2173,13 +2173,26 @@ ACE_TMAIN (int argc_in,
   directshow_configuration.generatorConfiguration.amplitude = 1.0;
   directshow_configuration.generatorConfiguration.frequency =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D;
+#if defined (LIBNOISE_SUPPORT)
+  directshow_configuration.generatorConfiguration.step = 0.01;
+  directshow_configuration.generatorConfiguration.x = 1.25;
+  directshow_configuration.generatorConfiguration.y = 0.75;
+  directshow_configuration.generatorConfiguration.z = 0.5;
+#endif // LIBNOISE_SUPPORT
   directshow_configuration.generatorConfiguration.type =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_TYPE;
   struct Test_U_AudioEffect_DirectShow_UI_CBData directshow_ui_cb_data;
+
   struct Test_U_AudioEffect_MediaFoundation_Configuration mediafoundation_configuration;
   mediafoundation_configuration.generatorConfiguration.amplitude = 1.0;
   mediafoundation_configuration.generatorConfiguration.frequency =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D;
+#if defined (LIBNOISE_SUPPORT)
+  mediafoundation_configuration.generatorConfiguration.step = 0.01;
+  mediafoundation_configuration.generatorConfiguration.x = 1.25;
+  mediafoundation_configuration.generatorConfiguration.y = 0.75;
+  mediafoundation_configuration.generatorConfiguration.z = 0.5;
+#endif // LIBNOISE_SUPPORT
   mediafoundation_configuration.generatorConfiguration.type =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_TYPE;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData mediafoundation_ui_cb_data;

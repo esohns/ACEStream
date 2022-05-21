@@ -84,6 +84,12 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
  , realDistribution_ ()
  , integerDistribution_ ()
  , signedIntegerDistribution_ ()
+#if defined (LIBNOISE_SUPPORT)
+ , noiseModule_ ()
+ , x_ (0.0)
+ , y_ (0.0)
+ , z_ (0.0)
+#endif // LIBNOISE_SUPPORT
  , bufferSize_ (0)
  , frameSize_ (0)
  , handler_ (this,
@@ -494,6 +500,13 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
           }
         } // end SWITCH
 
+#if defined (LIBNOISE_SUPPORT)
+      //noiseModule_.SetFrequency (inherited::configuration_->generatorConfiguration->frequency);
+      x_ = inherited::configuration_->generatorConfiguration->x;
+      y_ = inherited::configuration_->generatorConfiguration->y;
+      z_ = inherited::configuration_->generatorConfiguration->z;
+#endif // LIBNOISE_SUPPORT
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       DWORD task_index_i = 0;
       ACE_ASSERT (!task_);
@@ -660,21 +673,6 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
   // step2: write frames
   switch (inherited::configuration_->generatorConfiguration->type)
   {
-    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_CYCLOID:
-    {
-      Stream_Module_Decoder_Noise_Tools::cycloid (inherited::configuration_->generatorConfiguration->samplesPerSecond,
-                                                  inherited::configuration_->generatorConfiguration->bytesPerSample,
-                                                  inherited::configuration_->generatorConfiguration->numberOfChannels,
-                                                  inherited::configuration_->generatorConfiguration->isFloatFormat,
-                                                  inherited::configuration_->generatorConfiguration->isSignedFormat,
-                                                  inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
-                                                  reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                                  bufferSize_ / frameSize_,
-                                                  inherited::configuration_->generatorConfiguration->amplitude,
-                                                  inherited::configuration_->generatorConfiguration->frequency, 
-                                                  phase_);
-      break;
-    }
     case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH:
     {
       Stream_Module_Decoder_Noise_Tools::sawtooth (inherited::configuration_->generatorConfiguration->samplesPerSecond,
@@ -769,6 +767,23 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                                   integerDistribution_);
       break;
     }
+#if defined (LIBNOISE_SUPPORT)
+    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PERLIN_NOISE:
+    {
+      Stream_Module_Decoder_Noise_Tools::perlin_noise (noiseModule_,
+                                                       inherited::configuration_->generatorConfiguration->bytesPerSample,
+                                                       inherited::configuration_->generatorConfiguration->numberOfChannels,
+                                                       inherited::configuration_->generatorConfiguration->isFloatFormat,
+                                                       inherited::configuration_->generatorConfiguration->isSignedFormat,
+                                                       inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
+                                                       reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                                       bufferSize_ / frameSize_,
+                                                       inherited::configuration_->generatorConfiguration->amplitude,
+                                                       inherited::configuration_->generatorConfiguration->step,
+                                                       x_, y_, z_);
+      break;
+    }
+#endif // LIBNOISE_SUPPORT
     default:
     {
       ACE_DEBUG ((LM_ERROR,

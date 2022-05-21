@@ -24,11 +24,13 @@
 #include "ace/Basic_Types.h"
 #include "ace/Global_Macros.h"
 
+#if defined (LIBNOISE_SUPPORT)
+#include "noise/noise.h"
+#endif // LIBNOISE_SUPPORT
+
 class Stream_Module_Decoder_Noise_Tools
 {
  public:
-  // *WARNING*: make sure the data buffer contains enough space to hold the
-  //            sample data
   // *NOTE*: write random noise into the target buffer in the specified
   //         audio format
   template <typename DistributionType>
@@ -37,24 +39,28 @@ class Stream_Module_Decoder_Noise_Tools
                      unsigned int,       // #channels
                      bool,               // format is signed ? : unsigned
                      bool,               // format is little endian ? : big endian
-                     ACE_UINT8*,           // target buffer
+                     ACE_UINT8*,         // target buffer
                      unsigned int,       // #'data' samples to write
                      double,             // amplitude [0.0-1.0]
                      DistributionType&); // in/out: float/integer distribution handle
 
-  // *NOTE*: write a cycloid waveform into the target buffer in the specified
+#if defined (LIBNOISE_SUPPORT)
+  // *NOTE*: write perlin noise into the target buffer in the specified
   //         audio format
-  static void cycloid (unsigned int, // sample rate (Hz)
-                       unsigned int, // #bytes/(mono-)sample
-                       unsigned int, // #channels
-                       bool,         // format is floating point ? : integer
-                       bool,         // format is signed ? : unsigned
-                       bool,         // format is little endian ? : big endian
-                       ACE_UINT8*,   // target buffer
-                       unsigned int, // #'data' samples to write
-                       double,       // amplitude [0.0-1.0]
-                       double,       // frequency (Hz)
-                       double&);     // in/out: current phase
+  static void perlin_noise (noise::module::Perlin&, // generator module handle
+                            unsigned int,           // #bytes/(mono-)sample
+                            unsigned int,           // #channels
+                            bool,                   // format is floating point ? : integer
+                            bool,                   // format is signed ? : unsigned
+                            bool,                   // format is little endian ? : big endian
+                            ACE_UINT8*,             // target buffer
+                            unsigned int,           // #'data' samples to write
+                            double,                 // amplitude [0.0-1.0]
+                            double,                 // step
+                            double&,                // in/out: coordinate x
+                            double&,                // in/out: coordinate y
+                            double&);               // in/out: coordinate z
+#endif // LIBNOISE_SUPPORT
 
   // *NOTE*: write a sawtooth waveform into the target buffer in the specified
   //         audio format

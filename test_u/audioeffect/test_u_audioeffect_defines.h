@@ -111,7 +111,9 @@
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME         "liststore_resolution"
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME             "liststore_source"
 #define TEST_U_STREAM_UI_GTK_RADIOBUTTON_NOISE_NAME            "radiobutton_noise"
-#define TEST_U_STREAM_UI_GTK_RADIOBUTTON_CYCLOID_NAME          "radiobutton_cycloid"
+#if defined (LIBNOISE_SUPPORT)
+#define TEST_U_STREAM_UI_GTK_RADIOBUTTON_PERLIN_NAME           "radiobutton_perlin"
+#endif // LIBNOISE_SUPPORT
 #define TEST_U_STREAM_UI_GTK_RADIOBUTTON_SAWTOOTH_NAME         "radiobutton_sawtooth"
 #define TEST_U_STREAM_UI_GTK_RADIOBUTTON_SINUS_NAME            "radiobutton_sinus"
 #define TEST_U_STREAM_UI_GTK_RADIOBUTTON_SQUARE_NAME           "radiobutton_square"
