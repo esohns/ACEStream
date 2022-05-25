@@ -460,14 +460,14 @@ do_work (
 #endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.allocatorConfiguration =
     &allocator_configuration;
-  modulehandler_configuration.clone = true;
   modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
 #if defined (FFMPEG_SUPPORT)
   modulehandler_configuration.codecId = AV_CODEC_ID_H264;
 #endif // FFMPEG_SUPPORT
-#if defined (_DEBUG)
+//#if defined (_DEBUG)
 //  modulehandler_configuration.debug = true;
-#endif // _DEBUG
+//#endif // _DEBUG
+  modulehandler_configuration.defragmentMode = STREAM_DEFRAGMENT_CLONE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.direct3DConfiguration =
     &configuration_in.direct3DConfiguration;

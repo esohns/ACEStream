@@ -78,6 +78,16 @@ enum Stream_HeadModuleConcurrency : int
   STREAM_HEADMODULECONCURRENCY_MAX,
 };
 
+enum Stream_MessageDefragmentMode
+{
+  STREAM_DEFRAGMENT_CLONE = 0, // *NOTE*: includes defragmentation mode
+  STREAM_DEFRAGMENT_CONDENSE,
+  STREAM_DEFRAGMENT_DEFRAGMENT,
+  ////////////////////////////////////////
+  STREAM_DEFRAGMENT_INVALID,
+  STREAM_DEFRAGMENT_MAX,
+};
+
 #if defined (__llvm__)
 enum Stream_MessageType
 #else

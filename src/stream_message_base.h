@@ -31,32 +31,35 @@
 #include "common_idumpstate.h"
 
 #include "stream_common.h"
-//#include "stream_configuration.h"
+#include "stream_data_base.h"
 #include "stream_imessage.h"
 
 // forward declarations
 class ACE_Allocator;
 
-template <//typename AllocatorConfigurationType = struct Stream_AllocatorConfiguration,
+template <typename DataType = Stream_DataBase_T<Stream_CommandType_t>,
           typename MessageType = enum Stream_MessageType,
-          typename CommandType = int>
+          typename CommandType = Stream_CommandType_t>
 class Stream_MessageBase_T
  : public ACE_Message_Block
- , public Stream_IDataMessage_T<MessageType,
-                                CommandType>
- , public Common_ISet_T<MessageType>
+ , public Stream_IDataMessageBase_T<MessageType,
+                                    CommandType>
  , public Common_ISet_T<Stream_SessionId_t>
  , public Common_IDumpState
 {
   typedef ACE_Message_Block inherited;
 
  public:
+  // convenient types
+  typedef DataType DATA_T;
+
   virtual ~Stream_MessageBase_T ();
 
   // convenient types
   typedef MessageType MESSAGE_T;
   typedef CommandType COMMAND_T;
-  typedef Stream_IDataMessage_T<MessageType,
+  typedef Stream_IDataMessage_T<DataType,
+                                MessageType,
                                 CommandType> IDATA_MESSAGE_T;
 
   // implement (part of) Stream_IDataMessage_T
@@ -64,15 +67,15 @@ class Stream_MessageBase_T
   inline virtual Stream_MessageId_t id () const { return id_; }
   inline virtual Stream_SessionId_t sessionId () const { return sessionId_; }
   inline virtual MessageType type () const { return type_; }
+  inline virtual void set (const MessageType messageType_in) { type_ = messageType_in; }
   inline virtual CommandType command () const { ACE_ASSERT (inherited::data_block_); return static_cast<CommandType> (inherited::data_block_->msg_type ()); }
   virtual void defragment ();
-  virtual void initialize (Stream_SessionId_t,         // session id
-                           ACE_Data_Block*             // data block to use
+  virtual void initialize (Stream_SessionId_t, // session id
+                           ACE_Data_Block*     // data block to use
                            /*const ACE_Time_Value&*/); // scheduled execution time
 
   // implement Common_ISet_T
   inline virtual void set (const Stream_SessionId_t sessionId_in) { sessionId_ = sessionId_in; }
-  inline virtual void set (const MessageType messageType_in) { type_ = messageType_in; }
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -92,7 +95,7 @@ class Stream_MessageBase_T
  protected:
   // convenient types
   typedef ACE_Message_Block MESSAGE_BLOCK_T;
-  typedef Stream_MessageBase_T<//AllocatorConfigurationType,
+  typedef Stream_MessageBase_T<DataType,
                                MessageType,
                                CommandType> OWN_TYPE_T;
 
@@ -134,37 +137,34 @@ class Stream_MessageBase_T
 
 //////////////////////////////////////////
 
-#include "common_iget.h"
+//#include "common_iget.h"
 
-template <//typename AllocatorConfigurationType,
-          typename MessageType,
+template <typename DataType, // = Stream_CommandType_t
+          typename MessageType, // = enum Stream_MessageType
           ////////////////////////////////
           typename HeaderType,
-          typename CommandType = int>
+          typename CommandType = Stream_CommandType_t>
 class Stream_MessageBase_2
- : public Stream_MessageBase_T<//AllocatorConfigurationType,
+ : public Stream_MessageBase_T<DataType,
                                MessageType,
                                CommandType>
 // , public Common_IGet_T<HeaderType>
 // , public Common_IGet_T<ProtocolCommandType>
 {
-  typedef Stream_MessageBase_T<//AllocatorConfigurationType,
+  typedef Stream_MessageBase_T<DataType,
                                MessageType,
                                CommandType> inherited;
 
  public:
   virtual ~Stream_MessageBase_2 ();
 
-  // used for pre-allocated messages
-  virtual void initialize (Stream_SessionId_t, // session id
-                           ACE_Data_Block*);   // data block to use
-
 //  // implement Common_IGet_T
   virtual HeaderType get () const;
 
  protected:
   // convenient types
-  typedef Stream_MessageBase_2<MessageType,
+  typedef Stream_MessageBase_2<DataType,
+                               MessageType,
                                HeaderType,
                                CommandType> OWN_TYPE_T;
 

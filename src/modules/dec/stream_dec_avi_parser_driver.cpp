@@ -274,7 +274,7 @@ Stream_Decoder_AVIParserDriver::wait ()
   ACE_Message_Block* message_block_p = NULL;
   bool is_data = false;
   bool done = false;
-  IMESSAGE_T* message_p = NULL;
+//  IMESSAGE_T* message_p = NULL;
   ISESSIONMESSAGE_T* session_message_p = NULL;
   Stream_SessionMessageType session_message_type =
       STREAM_SESSION_MESSAGE_INVALID;
@@ -302,31 +302,34 @@ Stream_Decoder_AVIParserDriver::wait ()
 
     switch (message_block_p->msg_type ())
     {
-      case ACE_Message_Block::MB_DATA:
-      case ACE_Message_Block::MB_PROTO:
+      case STREAM_MESSAGE_DATA:
+      case STREAM_MESSAGE_OBJECT:
       {
-        message_p = dynamic_cast<IMESSAGE_T*> (message_block_p);
-        if (!message_p)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to dynamic_cast<Stream_IDataMessage_T>(%@), returning\n"),
-                      message_block_p));
-          return;
-        } // end IF
-
-        if (message_p->type () & STREAM_MESSAGE_DATA_MASK)
+//        message_p = dynamic_cast<IMESSAGE_T*> (message_block_p);
+//        if (!message_p)
+//        {
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("failed to dynamic_cast<Stream_IDataMessage_T>(%@), returning\n"),
+//                      message_block_p));
+//          return;
+//        } // end IF
+//        if (message_p->type () & STREAM_MESSAGE_DATA_MASK)
           is_data = true;
         break;
       }
       case STREAM_MESSAGE_SESSION_TYPE:
       {
         session_message_p = dynamic_cast<ISESSIONMESSAGE_T*> (message_block_p);
-        if (session_message_p)
+        if (!session_message_p)
         {
-          session_message_type = session_message_p->type ();
-          if (session_message_type == STREAM_SESSION_MESSAGE_END)
-            done = true; // session has finished --> abort
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to dynamic_cast<Stream_IMessage_T>(%@), returning\n"),
+                      message_block_p));
+          return;
         } // end IF
+        session_message_type = session_message_p->type ();
+        if (session_message_type == STREAM_SESSION_MESSAGE_END)
+          done = true; // session has finished --> abort
         break;
       }
       default:

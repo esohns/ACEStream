@@ -86,29 +86,108 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
 
-  if (inherited::configuration_->clone)
+  switch (inherited::configuration_->defragmentMode)
   {
-    DataMessageType* message_p =
-      static_cast<DataMessageType*> (message_inout->clone ());
-    ACE_ASSERT (message_p);
+    case STREAM_DEFRAGMENT_CLONE:
+    {
+      DataMessageType* message_p =
+        static_cast<DataMessageType*> (message_inout->clone ());
+      ACE_ASSERT (message_p);
 
-    message_p->defragment ();
+      message_p->defragment ();
 
-    int result = inherited::put_next (message_p, NULL);
-    if (unlikely (result == -1))
+      int result = inherited::put_next (message_p, NULL);
+      if (unlikely (result == -1))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Task_T::put_next(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+        message_p->release (); message_p = NULL;
+        goto error;
+      } // end IF
+
+      passMessageDownstream_out = false;
+      message_inout->release (); message_inout = NULL;
+      break;
+    }
+    case STREAM_DEFRAGMENT_CONDENSE:
+    { // sanity check(s)
+      if (!message_inout->cont ())
+        return; // nothing to do
+      ACE_ASSERT (inherited::configuration_->messageAllocator);
+      ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+
+      DataMessageType* message_p = NULL;
+      size_t total_length_i = message_inout->total_length ();
+      size_t allocated_bytes_i =
+        total_length_i + inherited::configuration_->allocatorConfiguration->paddingBytes;
+      try {
+        message_p =
+          static_cast<DataMessageType*> (inherited::configuration_->messageAllocator->malloc (allocated_bytes_i));
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+                    inherited::mod_->name (),
+                    allocated_bytes_i));
+        message_p = NULL;
+      }
+      ACE_ASSERT (message_p);
+      message_p->size (total_length_i);
+
+      ACE_Message_Block* message_block_p = message_inout;
+      int result = -1;
+      do
+      {
+        result = message_p->copy (message_block_p->rd_ptr (),
+                                  message_block_p->length ());
+        if (unlikely (result == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
+                      inherited::mod_->name ()));
+          message_p->release (); message_p = NULL;
+          goto error;
+        } // end IF
+        message_block_p = message_block_p->cont ();
+      } while (message_block_p);
+
+      if (message_inout->isInitialized ())
+      {
+        typename DataMessageType::DATA_T* data_container_p =
+          &const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
+        data_container_p->increase ();
+        message_p->initialize (data_container_p,
+                               message_inout->sessionId (),
+                               NULL);
+      } // end IF
+
+      result = inherited::put_next (message_p, NULL);
+      if (unlikely (result == -1))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Task_T::put_next(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+        message_p->release (); message_p = NULL;
+        goto error;
+      } // end IF
+
+      passMessageDownstream_out = false;
+      message_inout->release (); message_inout = NULL;
+      break;
+    }
+    case STREAM_DEFRAGMENT_DEFRAGMENT:
+      message_inout->defragment (); break;
+    default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Task_T::put_next(): \"%m\", aborting\n"),
-                  inherited::mod_->name ()));
-      message_p->release (); message_p = NULL;
+                  ACE_TEXT ("%s: invalid/unknown mode (was: %d), aborting\n"),
+                  inherited::mod_->name (),
+                  inherited::configuration_->defragmentMode));
+      passMessageDownstream_out = false;
+      message_inout->release (); message_inout = NULL;
       goto error;
-    } // end IF
-
-    passMessageDownstream_out = false;
-    message_inout->release (); message_inout = NULL;
-  } // end IF
-  else
-    message_inout->defragment ();
+    }
+  } // end SWITCH
 
   return;
 

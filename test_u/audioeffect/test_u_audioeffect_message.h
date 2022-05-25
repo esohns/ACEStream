@@ -142,10 +142,12 @@ class Test_U_AudioEffect_MediaFoundation_Message
 };
 #else
 class Test_U_AudioEffect_Message
- : public Stream_MessageBase_T<enum Stream_MessageType,
+ : public Stream_MessageBase_T<Stream_CommandType_t,
+                               enum Stream_MessageType,
                                Stream_CommandType_t>
 {
-  typedef Stream_MessageBase_T<enum Stream_MessageType,
+  typedef Stream_MessageBase_T<Stream_CommandType_t,
+                               enum Stream_MessageType,
                                Stream_CommandType_t> inherited;
 
   // grant access to specific private ctors

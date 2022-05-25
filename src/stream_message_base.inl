@@ -30,18 +30,18 @@
 #include "stream_macros.h"
 
 // initialize statics
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename CommandType>
 ACE_Atomic_Op<ACE_SYNCH_MUTEX, Stream_MessageId_t>
-Stream_MessageBase_T<//AllocatorConfigurationType,
+Stream_MessageBase_T<DataType,
                      MessageType,
                      CommandType>::currentId = 0;
 
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename CommandType>
-Stream_MessageBase_T<//AllocatorConfigurationType,
+Stream_MessageBase_T<DataType,
                      MessageType,
                      CommandType>::Stream_MessageBase_T (Stream_SessionId_t sessionId_in,
                                                          MessageType messageType_in)
@@ -67,10 +67,10 @@ Stream_MessageBase_T<//AllocatorConfigurationType,
   ACE_ASSERT (sessionId_in);
 }
 
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename CommandType>
-Stream_MessageBase_T<//AllocatorConfigurationType,
+Stream_MessageBase_T<DataType,
                      MessageType,
                      CommandType>::Stream_MessageBase_T (Stream_SessionId_t sessionId_in,
                                                          unsigned int requestedSize_in)
@@ -95,12 +95,12 @@ Stream_MessageBase_T<//AllocatorConfigurationType,
 }
 
 // *NOTE*: implicitly invoked by duplicate()
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename CommandType>
-Stream_MessageBase_T<//AllocatorConfigurationType,
+Stream_MessageBase_T<DataType,
                      MessageType,
-                     CommandType>::Stream_MessageBase_T (const Stream_MessageBase_T<//AllocatorConfigurationType,
+                     CommandType>::Stream_MessageBase_T (const Stream_MessageBase_T<DataType,
                                                                                     MessageType,
                                                                                     CommandType>& message_in)
  : inherited (message_in.data_block_->duplicate (), // make a "shallow" copy of
@@ -119,10 +119,10 @@ Stream_MessageBase_T<//AllocatorConfigurationType,
   inherited::wr_ptr (message_in.wr_ptr ());
 }
 
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename CommandType>
-Stream_MessageBase_T<//AllocatorConfigurationType,
+Stream_MessageBase_T<DataType,
                      MessageType,
                      CommandType>::Stream_MessageBase_T (Stream_SessionId_t sessionId_in,
                                                          ACE_Data_Block* dataBlock_in,
@@ -149,10 +149,10 @@ Stream_MessageBase_T<//AllocatorConfigurationType,
   //inherited::reset ();
 }
 
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename CommandType>
-Stream_MessageBase_T<//AllocatorConfigurationType,
+Stream_MessageBase_T<DataType,
                      MessageType,
                      CommandType>::Stream_MessageBase_T (Stream_SessionId_t sessionId_in,
                                                          ACE_Allocator* messageAllocator_in)
@@ -173,10 +173,10 @@ Stream_MessageBase_T<//AllocatorConfigurationType,
   inherited::reset ();
 }
 
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename CommandType>
-Stream_MessageBase_T<//AllocatorConfigurationType,
+Stream_MessageBase_T<DataType,
                      MessageType,
                      CommandType>::~Stream_MessageBase_T ()
 {
@@ -200,11 +200,11 @@ Stream_MessageBase_T<//AllocatorConfigurationType,
   inherited::priority_ = std::numeric_limits<unsigned long>::max ();
 }
 
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename CommandType>
 void
-Stream_MessageBase_T<//AllocatorConfigurationType,
+Stream_MessageBase_T<DataType,
                      MessageType,
                      CommandType>::initialize (Stream_SessionId_t sessionId_in,
                                                ACE_Data_Block* dataBlock_in)
@@ -217,24 +217,26 @@ Stream_MessageBase_T<//AllocatorConfigurationType,
   // *TODO*: work around each case and reactivate this test
   //ACE_ASSERT (!isInitialized_);
 
+  sessionId_ = sessionId_in;
+
   if (dataBlock_in)
   { ACE_ASSERT (inherited::data_block_ != dataBlock_in);
     inherited::data_block (dataBlock_in);
   } // end IF
   ACE_ASSERT (inherited::data_block_);
   inherited::data_block_->msg_type (STREAM_MESSAGE_DATA);
-  sessionId_ = sessionId_in;
+
   type_ = static_cast<MessageType> (STREAM_MESSAGE_DATA);
   //msg_execution_time ();
 
   isInitialized_ = true;
 }
 
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename CommandType>
 void
-Stream_MessageBase_T<//AllocatorConfigurationType,
+Stream_MessageBase_T<DataType,
                      MessageType,
                      CommandType>::defragment ()
 {
@@ -342,11 +344,11 @@ fill:
   } // end WHILE
 }
 
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename CommandType>
 ACE_Message_Block*
-Stream_MessageBase_T<//AllocatorConfigurationType,
+Stream_MessageBase_T<DataType,
                      MessageType,
                      CommandType>::duplicate (void) const
 {
@@ -401,33 +403,43 @@ retry:
   return message_p;
 }
 
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename CommandType>
 void
-Stream_MessageBase_T<//AllocatorConfigurationType,
+Stream_MessageBase_T<DataType,
                      MessageType,
                      CommandType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::dump_state"));
 
-  char buffer_a[BUFSIZ + 1];
-  ACE_OS::memset (buffer_a, 0, sizeof (char[BUFSIZ + 1]));
+  unsigned int fragments_i = 1;
+  ACE_Message_Block* message_block_p = inherited::cont ();
+  while (message_block_p)
+  {
+    message_block_p = message_block_p->cont ();
+    ++fragments_i;
+  } // end WHILE
+
+  char buffer_a[BUFSIZ];
+  ACE_OS::memset (buffer_a, 0, sizeof (char[BUFSIZ]));
   ACE_OS::memcpy (buffer_a,
                   inherited::rd_ptr (),
-                  std::min (inherited::length (), static_cast<size_t> (BUFSIZ)));
+                  std::min (inherited::length (), static_cast<size_t> (BUFSIZ - 1)));
   ACE_DEBUG ((LM_INFO,
-              ACE_TEXT ("message (id: %u, type: %d)\n%s\n"),
+              ACE_TEXT ("message (id: %u, type: %d): %u byte(s) in %u fragment(s)\n%s\n"),
               id_,
               type_,
-              buffer_a));
+              inherited::total_length (),
+              fragments_i,
+              ACE_TEXT (buffer_a)));
 }
 
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename CommandType>
 void
-Stream_MessageBase_T<//AllocatorConfigurationType,
+Stream_MessageBase_T<DataType,
                      MessageType,
                      CommandType>::MessageTypeToString (enum Stream_MessageType type_in,
                                                         std::string& string_out)
@@ -457,11 +469,11 @@ Stream_MessageBase_T<//AllocatorConfigurationType,
   } // end SWITCH
 }
 
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename CommandType>
 void
-Stream_MessageBase_T<//AllocatorConfigurationType,
+Stream_MessageBase_T<DataType,
                      MessageType,
                      CommandType>::resetMessageIdGenerator ()
 {
@@ -477,11 +489,11 @@ Stream_MessageBase_T<//AllocatorConfigurationType,
 
 //////////////////////////////////////////
 
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename HeaderType,
           typename CommandType>
-Stream_MessageBase_2<//AllocatorConfigurationType,
+Stream_MessageBase_2<DataType,
                      MessageType,
                      HeaderType,
                      CommandType>::Stream_MessageBase_2 (Stream_SessionId_t sessionId_in,
@@ -493,11 +505,11 @@ Stream_MessageBase_2<//AllocatorConfigurationType,
 
 }
 
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename HeaderType,
           typename CommandType>
-Stream_MessageBase_2<//AllocatorConfigurationType,
+Stream_MessageBase_2<DataType,
                      MessageType,
                      HeaderType,
                      CommandType>::Stream_MessageBase_2 (Stream_SessionId_t sessionId_in,
@@ -510,11 +522,11 @@ Stream_MessageBase_2<//AllocatorConfigurationType,
 }
 
 // *NOTE*: this is implicitly invoked by duplicate() as well
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename HeaderType,
           typename CommandType>
-Stream_MessageBase_2<//AllocatorConfigurationType,
+Stream_MessageBase_2<DataType,
                      MessageType,
                      HeaderType,
                      CommandType>::Stream_MessageBase_2 (const OWN_TYPE_T& message_in)
@@ -524,11 +536,11 @@ Stream_MessageBase_2<//AllocatorConfigurationType,
 
 }
 
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename HeaderType,
           typename CommandType>
-Stream_MessageBase_2<//AllocatorConfigurationType,
+Stream_MessageBase_2<DataType,
                      MessageType,
                      HeaderType,
                      CommandType>::Stream_MessageBase_2 (Stream_SessionId_t sessionId_in,
@@ -544,11 +556,11 @@ Stream_MessageBase_2<//AllocatorConfigurationType,
 
 }
 
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename HeaderType,
           typename CommandType>
-Stream_MessageBase_2<//AllocatorConfigurationType,
+Stream_MessageBase_2<DataType,
                      MessageType,
                      HeaderType,
                      CommandType>::~Stream_MessageBase_2 ()
@@ -558,31 +570,12 @@ Stream_MessageBase_2<//AllocatorConfigurationType,
   // *NOTE*: will be called just before (!) this is passed back to the allocator
 }
 
-template <//typename AllocatorConfigurationType,
-          typename MessageType,
-          typename HeaderType,
-          typename CommandType>
-void
-Stream_MessageBase_2<//AllocatorConfigurationType,
-                     MessageType,
-                     HeaderType,
-                     CommandType>::initialize (Stream_SessionId_t sessionId_in,
-                                               ACE_Data_Block* dataBlock_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::initialize"));
-
-//  ACE_ASSERT (!inherited::isInitialized_);
-
-  inherited::initialize (sessionId_in,
-                         dataBlock_in);
-}
-
-template <//typename AllocatorConfigurationType,
+template <typename DataType,
           typename MessageType,
           typename HeaderType,
           typename CommandType>
 HeaderType
-Stream_MessageBase_2<//AllocatorConfigurationType,
+Stream_MessageBase_2<DataType,
                      MessageType,
                      HeaderType,
                      CommandType>::get () const

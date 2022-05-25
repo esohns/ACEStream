@@ -34,17 +34,14 @@ class ACE_Message_Block;
 
 template <typename DataType,
           ////////////////////////////////
-          //typename AllocatorConfigurationType = struct Stream_AllocatorConfiguration,
           typename MessageType = enum Stream_MessageType,
-          typename CommandType = int>
+          typename CommandType = Stream_CommandType_t>
 class Stream_DataMessageBase_T
- : public Stream_MessageBase_T<//AllocatorConfigurationType,
+ : public Stream_MessageBase_T<DataType,
                                MessageType,
                                CommandType>
- , public Common_IGetR_T<DataType>
- , public Common_ISetPR_T<DataType>
 {
-  typedef Stream_MessageBase_T<//AllocatorConfigurationType,
+  typedef Stream_MessageBase_T<DataType,
                                MessageType,
                                CommandType> inherited;
 
@@ -54,9 +51,10 @@ class Stream_DataMessageBase_T
 
   // initialization-after-construction
   using inherited::initialize;
-  void initialize (DataType&,          // data
-                   Stream_SessionId_t, // session id
-                   ACE_Data_Block*);   // data block to use
+  virtual void initialize (DataType&,          // data
+                           Stream_SessionId_t, // session id
+                           ACE_Data_Block*);   // data block to use
+  inline virtual void initialize (DataType*&, Stream_SessionId_t, ACE_Data_Block*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   // implement Common_IGet_T
   inline virtual const DataType& getR () const { return data_; }
@@ -70,7 +68,6 @@ class Stream_DataMessageBase_T
  protected:
   // convenient types
   typedef Stream_DataMessageBase_T<DataType,
-                                   //AllocatorConfigurationType,
                                    MessageType,
                                    CommandType> OWN_TYPE_T;
 
@@ -112,17 +109,14 @@ class Stream_DataMessageBase_T
 
 template <typename DataType, // *NOTE*: this implements Common_IReferenceCount
           ////////////////////////////////
-          //typename AllocatorConfigurationType = struct Stream_AllocatorConfiguration,
           typename MessageType = enum Stream_MessageType,
-          typename CommandType = int>
+          typename CommandType = Stream_CommandType_t>
 class Stream_DataMessageBase_2
- : public Stream_MessageBase_T<//AllocatorConfigurationType,
+ : public Stream_MessageBase_T<DataType,
                                MessageType,
                                CommandType>
- , public Common_IGetR_T<DataType>
- , public Common_ISetPR_2_T<DataType>
 {
-  typedef Stream_MessageBase_T<//AllocatorConfigurationType,
+  typedef Stream_MessageBase_T<DataType,
                                MessageType,
                                CommandType> inherited;
 
@@ -132,6 +126,7 @@ class Stream_DataMessageBase_2
 
   // initialization-after-construction
   using inherited::initialize;
+  inline virtual void initialize (DataType&, Stream_SessionId_t, ACE_Data_Block*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   // *IMPORTANT NOTE*: fire-and-forget API (first argument)
   virtual void initialize (DataType*&,         // data handle
                            Stream_SessionId_t, // session id
@@ -142,7 +137,7 @@ class Stream_DataMessageBase_2
   virtual const DataType& getR () const;
   // implement Common_ISetPR_T
   // *IMPORTANT NOTE*: fire-and-forget API
-  virtual void setPR_2 (DataType*&); // data
+  virtual void setPR (DataType*&); // data
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -150,7 +145,6 @@ class Stream_DataMessageBase_2
  protected:
   // convenient types
   typedef Stream_DataMessageBase_2<DataType,
-                                   //AllocatorConfigurationType,
                                    MessageType,
                                    CommandType> OWN_TYPE_T;
 

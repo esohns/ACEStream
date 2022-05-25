@@ -47,14 +47,12 @@ template <typename DataType,
           typename SessionDataType> // derives off Stream_SessionData_T
 class Stream_CameraScreen_Message_T
  : public Stream_DataMessageBase_T<DataType,
-//                                   struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
-                                   int>
+                                   Stream_CommandType_t>
 {
   typedef Stream_DataMessageBase_T<DataType,
-//                                   struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
-                                   int> inherited;
+                                   Stream_CommandType_t> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
@@ -87,7 +85,7 @@ class Stream_CameraScreen_Message_T
  protected:
   // convenient types
   typedef Stream_CameraScreen_Message_T<DataType,
-                                   SessionDataType> OWN_TYPE_T;
+                                        SessionDataType> OWN_TYPE_T;
 
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
@@ -97,11 +95,11 @@ class Stream_CameraScreen_Message_T
   ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_Message_T ())
   // *NOTE*: to be used by message allocators
   Stream_CameraScreen_Message_T (Stream_SessionId_t,
-                            ACE_Data_Block*, // data block to use
-                            ACE_Allocator*,  // message allocator
-                            bool = true);    // increment running message counter ?
+                                 ACE_Data_Block*, // data block to use
+                                 ACE_Allocator*,  // message allocator
+                                 bool = true);    // increment running message counter ?
   Stream_CameraScreen_Message_T (Stream_SessionId_t,
-                            ACE_Allocator*); // message allocator
+                                 ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_Message_T& operator= (const Stream_CameraScreen_Message_T&))
 };
 

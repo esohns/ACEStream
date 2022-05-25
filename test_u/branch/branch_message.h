@@ -43,13 +43,13 @@ class Branch_SessionMessage;
 //////////////////////////////////////////
 
 class Branch_Message
- : public Stream_MessageBase_T<//struct Common_AllocatorConfiguration,
+ : public Stream_MessageBase_T<Stream_DataBase_T<Stream_CommandType_t>,
                                enum Stream_MessageType,
-                               int>
+                               Stream_CommandType_t>
 {
-  typedef Stream_MessageBase_T<//struct Common_AllocatorConfiguration,
+  typedef Stream_MessageBase_T<Stream_DataBase_T<Stream_CommandType_t>,
                                enum Stream_MessageType,
-                               int> inherited;
+                               Stream_CommandType_t> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,

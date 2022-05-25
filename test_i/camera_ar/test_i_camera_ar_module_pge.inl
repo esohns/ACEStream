@@ -436,6 +436,13 @@ Test_I_CameraAR_Module_PGE_T<TaskType,
     {
       start_pge = false;
       result_2 = inherited3::Start ();
+      if (unlikely (result_2 != olc::OK))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to olc::PixelGameEngine::Start(), aborting\n"),
+                    inherited::mod_->name ()));
+        return -1;
+      } // end IF
     } // end IF
 
     message_block_p = NULL;

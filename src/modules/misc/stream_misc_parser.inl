@@ -798,10 +798,14 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    if (headFragment_)
+    {
+      headFragment_->release (); headFragment_ = NULL;
+    } // end IF
     if (parserQueue_.deactivated ())
     {
       result = parserQueue_.activate ();
-      if (result == -1)
+      if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Message_Queue_T::activate(): \"%m\", aborting\n"),
@@ -809,6 +813,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
         return false;
       } // end IF
     } // end IF
+    parserQueue_.flush ();
   } // end IF
 
   // sanity check(s)

@@ -26,7 +26,7 @@
 #include "common_configuration.h"
 
 #include "stream_common.h"
-#include "stream_message_base.h"
+#include "stream_data_message_base.h"
 
 #include "stream_lib_imediatype.h"
 
@@ -47,12 +47,14 @@ class ACE_Data_Block;
 class ACE_Message_Block;
 
 class Test_I_Message
- : public Stream_MessageBase_T<enum Stream_MessageType,
-                               int>
+ : public Stream_DataMessageBase_T<Stream_DataBase_T<Stream_CommandType_t>,
+                                   enum Stream_MessageType,
+                                   Stream_CommandType_t>
  , public Stream_IMediaType
 {
-  typedef Stream_MessageBase_T<enum Stream_MessageType,
-                               int> inherited;
+  typedef Stream_DataMessageBase_T<Stream_DataBase_T<Stream_CommandType_t>,
+                                   enum Stream_MessageType,
+                                   Stream_CommandType_t> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,

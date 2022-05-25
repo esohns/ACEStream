@@ -97,9 +97,10 @@ class Stream_Decoder_AVIParserDriver
 
   // convenient typedefs
   // *TODO*: to be templatized
-  typedef Stream_IDataMessage_T<Stream_MessageType,
-                                int> IMESSAGE_T;
-  typedef Stream_IMessage_T<Stream_SessionMessageType> ISESSIONMESSAGE_T;
+//  typedef Stream_IDataMessage_T<void,
+//                                enum Stream_MessageType,
+//                                int> IMESSAGE_T;
+  typedef Stream_IMessage_T<enum Stream_SessionMessageType> ISESSIONMESSAGE_T;
 
   // helper methods
   bool scan_begin ();

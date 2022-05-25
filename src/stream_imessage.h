@@ -41,8 +41,9 @@ class Stream_IMessage_T
 
 template <typename MessageType,
           typename CommandType>
-class Stream_IDataMessage_T
+class Stream_IDataMessageBase_T
  : public Stream_IMessage_T<MessageType>
+ , public Common_ISet_T<MessageType>
 {
  public:
   virtual CommandType command () const = 0;
@@ -72,6 +73,29 @@ class Stream_IDataMessage_T
   virtual void defragment () = 0;
 
   virtual void initialize (Stream_SessionId_t,             // session id
+                           ACE_Data_Block*                 // data block to use
+                           /*const ACE_Time_Value&*/) = 0; // scheduled execution time
+};
+
+template <typename DataType,
+          typename MessageType,
+          typename CommandType>
+class Stream_IDataMessage_T
+ : public Stream_IDataMessageBase_T<MessageType,
+                                    CommandType>
+ , public Common_IGetR_T<DataType>
+ , public Common_ISetPR_T<DataType>
+{
+ public:
+  // use assignment of first argument
+  virtual void initialize (DataType&,                      // data
+                           Stream_SessionId_t,             // session id
+                           ACE_Data_Block*                 // data block to use
+                           /*const ACE_Time_Value&*/) = 0; // scheduled execution time
+
+  // *IMPORTANT NOTE*: fire-and-forget first argument
+  virtual void initialize (DataType*&,                     // data handle
+                           Stream_SessionId_t,             // session id
                            ACE_Data_Block*                 // data block to use
                            /*const ACE_Time_Value&*/) = 0; // scheduled execution time
 };

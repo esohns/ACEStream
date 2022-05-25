@@ -39,12 +39,15 @@ class Stream_DataBase_T
   typedef ACE_Refcountable_T<ACE_SYNCH_MUTEX> inherited;
 
  public:
+  // convenience types
+  typedef DataType DATA_T;
+
   Stream_DataBase_T ();
   // *IMPORTANT NOTE*: fire-and-forget API
   Stream_DataBase_T (DataType*&,   // data handle
                      bool = true); // delete in dtor ?
   Stream_DataBase_T (const Stream_DataBase_T&);
-  inline virtual ~Stream_DataBase_T () { if (data_ && delete_) delete data_; };
+  inline virtual ~Stream_DataBase_T () { if (data_ && delete_) delete data_; }
 
   // override assignment (support merge semantics)
   // *TODO*: enforce merge semantics
@@ -54,21 +57,18 @@ class Stream_DataBase_T
   virtual void dump_state () const;
 
   // implement Common_IGetSet_T
-  inline virtual const DataType& getR () const { ACE_ASSERT (data_); return *data_; };
+  inline virtual const DataType& getR () const { ACE_ASSERT (data_); return *data_; }
   virtual void setR (const DataType&);
   // *IMPORTANT NOTE*: fire-and-forget API
   virtual void setPR (DataType*&);
 
   // exposed interface
-  inline virtual unsigned int increase () { return static_cast<unsigned int> (inherited::increment ()); };
+  inline virtual unsigned int increase () { return static_cast<unsigned int> (inherited::increment ()); }
   virtual unsigned int decrease ();
-  inline virtual unsigned int count () const { return static_cast<unsigned int> (inherited::refcount_.value ()); };
+  inline virtual unsigned int count () const { return static_cast<unsigned int> (inherited::refcount_.value ()); }
   // *NOTE*: should block iff the count is > 0, and wait until the count reaches
   //         x the next time
-  inline virtual void wait (unsigned int = 0) const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
-
-  // convenience types
-  typedef DataType DATA_T;
+  inline virtual void wait (unsigned int = 0) const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
  private:
   DataType* data_;
