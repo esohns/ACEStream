@@ -23,6 +23,8 @@
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
 
+#include "common_macros.h"
+
 #include "stream_macros.h"
 
 template <ACE_SYNCH_DECL,

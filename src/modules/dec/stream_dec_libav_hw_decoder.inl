@@ -1343,6 +1343,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       } // end IF
       av_frame_unref (hwFrame_);
       ACE_ASSERT (frame_->data);
+
+      frame_p = frame_;
     } // end IF
     else
     {
