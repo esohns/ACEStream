@@ -20,6 +20,9 @@
 
 #include "ace/Log_Msg.h"
 
+#include "common_macros.h"
+
+#include "stream_common.h"
 #include "stream_defines.h"
 #include "stream_macros.h"
 
