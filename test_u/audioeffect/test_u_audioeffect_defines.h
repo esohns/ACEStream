@@ -93,6 +93,7 @@
 #define TEST_U_STREAM_UI_GTK_FRAME_EFFECT_NAME                 "frame_effect"
 #define TEST_U_STREAM_UI_GTK_FRAME_FILE_NAME                   "frame_file"
 #define TEST_U_STREAM_UI_GTK_FRAME_NOISE_NAME                  "frame_noise"
+#define TEST_U_STREAM_UI_GTK_FRAME_PERLIN_NAME                 "frame_perlin"
 #define TEST_U_STREAM_UI_GTK_FRAME_SAVE_NAME                   "frame_save"
 #define TEST_U_STREAM_UI_GTK_FRAME_SINUS_NAME                  "frame_sinus"
 #define TEST_U_STREAM_UI_GTK_GRID_NOISE_NAME                   "grid_noise"

@@ -117,8 +117,12 @@ extern "C"
   G_MODULE_EXPORT gboolean hscale_device_boost_change_value_cb (GtkRange*, GtkScrollType*, gdouble, gpointer);
   G_MODULE_EXPORT void hscale_device_boost_value_changed_cb (GtkRange*, gpointer);
   G_MODULE_EXPORT void hscale_device_volume_value_changed_cb (GtkRange*, gpointer);
-  G_MODULE_EXPORT void hscale_sinus_amplitude_value_changed_cb (GtkRange*, gpointer);
-  G_MODULE_EXPORT void hscale_sinus_frequency_value_changed_cb (GtkRange*, gpointer);
+  G_MODULE_EXPORT void hscale_amplitude_value_changed_cb (GtkRange*, gpointer);
+  G_MODULE_EXPORT void hscale_frequency_value_changed_cb (GtkRange*, gpointer);
+  G_MODULE_EXPORT void hscale_perlin_frequency_value_changed_cb (GtkRange*, gpointer);
+  G_MODULE_EXPORT void hscale_perlin_octaves_value_changed_cb (GtkRange*, gpointer);
+  G_MODULE_EXPORT void hscale_perlin_persistence_value_changed_cb (GtkRange*, gpointer);
+  G_MODULE_EXPORT void hscale_perlin_lacunarity_value_changed_cb (GtkRange*, gpointer);
   G_MODULE_EXPORT void hscale_volume_value_changed_cb (GtkRange*, gpointer);
   G_MODULE_EXPORT void radiobutton_2d_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void radiobutton_noise_toggled_cb (GtkToggleButton*, gpointer);

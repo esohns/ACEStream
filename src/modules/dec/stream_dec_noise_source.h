@@ -23,7 +23,7 @@
 
 #include <random>
 
-#if defined(LIBNOISE_SUPPORT)
+#if defined (LIBNOISE_SUPPORT)
 #include "noise/noise.h"
 #endif // LIBNOISE_SUPPORT
 
@@ -80,6 +80,9 @@ class Stream_Dec_Noise_Source_T
                                       struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_ITimerHandler
+#if defined (LIBNOISE_SUPPORT)
+ , public Common_IGetR_3_T<noise::module::Perlin>
+#endif // LIBNOISE_SUPPORT
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -139,6 +142,11 @@ class Stream_Dec_Noise_Source_T
   // implement Common_ITimerHandler
   inline virtual const long get_2 () const { return handler_.get_2 (); }
   virtual void handle (const void*); // asynchronous completion token handle
+
+#if defined (LIBNOISE_SUPPORT)
+  // implement Common_IGetR_3_T
+  inline virtual const noise::module::Perlin& getR_3 () const { return noiseModule_; }
+#endif // LIBNOISE_SUPPORT
 
  private:
   // convenient types

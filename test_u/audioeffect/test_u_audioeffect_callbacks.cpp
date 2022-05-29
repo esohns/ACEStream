@@ -7714,10 +7714,11 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
 #endif // ACE_WIN32 || ACE_WIN64
 } // hscale_volume_value_changed_cb
 
-void hscale_sinus_amplitude_value_changed_cb (GtkRange* range_in,
-                                              gpointer userData_in)
+void
+hscale_amplitude_value_changed_cb (GtkRange* range_in,
+                                   gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::hscale_sinus_amplitude_value_changed_cb"));
+  STREAM_TRACE (ACE_TEXT ("::hscale_amplitude_value_changed_cb"));
 
   // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
@@ -7790,10 +7791,10 @@ void hscale_sinus_amplitude_value_changed_cb (GtkRange* range_in,
 } // hscale_sinus_amplitude_value_changed_cb
 
 void
-hscale_sinus_frequency_value_changed_cb (GtkRange* range_in,
-                                         gpointer userData_in)
+hscale_frequency_value_changed_cb (GtkRange* range_in,
+                                   gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::hscale_sinus_frequency_value_changed_cb"));
+  STREAM_TRACE (ACE_TEXT ("::hscale_frequency_value_changed_cb"));
 
   // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
@@ -7863,7 +7864,327 @@ hscale_sinus_frequency_value_changed_cb (GtkRange* range_in,
   (*modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency =
     gtk_range_get_value (range_in);
 #endif // ACE_WIN32 || ACE_WIN64
-} // hscale_sinus_frequency_value_changed_cb
+} // hscale_frequency_value_changed_cb
+
+void
+hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
+                                          gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::hscale_perlin_frequency_value_changed_cb"));
+
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+
+  Stream_IStream_t* istream_p = NULL;
+  const Stream_Module_t* module_p = NULL;
+  Common_IGetR_3_T<noise::module::Perlin>* iget_p = NULL;
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->stream);
+      istream_p =
+        dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
+      istream_p =
+        dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBData* cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->stream);
+  istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (istream_p);
+
+  module_p =
+    istream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_IStream::find(%s), returning\n"),
+                ACE_TEXT (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING)));
+    return;
+  } // end IF
+  iget_p =
+    dynamic_cast<Common_IGetR_3_T<noise::module::Perlin>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  ACE_ASSERT (iget_p);
+  noise::module::Perlin& module_r =
+    const_cast<noise::module::Perlin&> (iget_p->getR_3 ());
+  module_r.SetFrequency (gtk_range_get_value (range_in));
+} // hscale_perlin_frequency_value_changed_cb
+
+void
+hscale_perlin_octaves_value_changed_cb (GtkRange* range_in,
+                                        gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::hscale_perlin_octaves_value_changed_cb"));
+
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+
+  Stream_IStream_t* istream_p = NULL;
+  const Stream_Module_t* module_p = NULL;
+  Common_IGetR_3_T<noise::module::Perlin>* iget_p = NULL;
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->stream);
+      istream_p =
+        dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
+      istream_p =
+        dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBData* cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->stream);
+  istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (istream_p);
+
+  module_p =
+    istream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_IStream::find(%s), returning\n"),
+                ACE_TEXT (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING)));
+    return;
+  } // end IF
+  iget_p =
+    dynamic_cast<Common_IGetR_3_T<noise::module::Perlin>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  ACE_ASSERT (iget_p);
+  noise::module::Perlin& module_r =
+    const_cast<noise::module::Perlin&> (iget_p->getR_3 ());
+  module_r.SetOctaveCount (static_cast<int> (gtk_range_get_value (range_in)));
+} // hscale_perlin_octaves_value_changed_cb
+
+void
+hscale_perlin_persistence_value_changed_cb (GtkRange* range_in,
+                                            gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::hscale_perlin_persistence_value_changed_cb"));
+
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+
+  Stream_IStream_t* istream_p = NULL;
+  const Stream_Module_t* module_p = NULL;
+  Common_IGetR_3_T<noise::module::Perlin>* iget_p = NULL;
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->stream);
+      istream_p =
+        dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
+      istream_p =
+        dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBData* cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->stream);
+  istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (istream_p);
+
+  module_p =
+    istream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_IStream::find(%s), returning\n"),
+                ACE_TEXT (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING)));
+    return;
+  } // end IF
+  iget_p =
+    dynamic_cast<Common_IGetR_3_T<noise::module::Perlin>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  ACE_ASSERT (iget_p);
+  noise::module::Perlin& module_r =
+    const_cast<noise::module::Perlin&> (iget_p->getR_3 ());
+  module_r.SetPersistence (gtk_range_get_value (range_in));
+} // hscale_perlin_persistence_value_changed_cb
+
+void
+hscale_perlin_lacunarity_value_changed_cb (GtkRange* range_in,
+                                           gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::hscale_perlin_lacunarity_value_changed_cb"));
+
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+
+  Stream_IStream_t* istream_p = NULL;
+  const Stream_Module_t* module_p = NULL;
+  Common_IGetR_3_T<noise::module::Perlin>* iget_p = NULL;
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->stream);
+      istream_p =
+        dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
+      istream_p =
+        dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBData* cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->stream);
+  istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (istream_p);
+
+  module_p =
+    istream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_IStream::find(%s), returning\n"),
+                ACE_TEXT (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING)));
+    return;
+  } // end IF
+  iget_p =
+    dynamic_cast<Common_IGetR_3_T<noise::module::Perlin>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  ACE_ASSERT (iget_p);
+  noise::module::Perlin& module_r =
+    const_cast<noise::module::Perlin&> (iget_p->getR_3 ());
+  module_r.SetLacunarity (gtk_range_get_value (range_in));
+} // hscale_perlin_lacunarity_value_changed_cb
 
 void
 togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
@@ -8403,7 +8724,14 @@ radiobutton_noise_toggled_cb (GtkToggleButton* toggleButton_in,
       break;
 #if defined (LIBNOISE_SUPPORT)
     case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PERLIN_NOISE:
+    {
+      frame_p =
+        GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_PERLIN_NAME)));
+      ACE_ASSERT (frame_p);
+      gtk_widget_unparent (GTK_WIDGET (frame_p));
       break;
+    }
 #endif // LIBNOISE_SUPPORT
     default:
     {
