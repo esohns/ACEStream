@@ -46,7 +46,7 @@
     <property name="upper">64</property>
     <property name="value">1</property>
     <property name="step_increment">0.10000000000000001</property>
-    <property name="page_increment">10</property>
+    <property name="page_increment">1</property>
   </object>
   <object class="GtkAdjustment" id="adjustment_perlin_lacunarity">
     <property name="lower">1.5</property>
@@ -83,6 +83,86 @@
     <property name="upper">100</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
+  </object>
+  <object class="GtkFileFilter" id="filefilter_wav">
+    <patterns>
+      <pattern>*.wav</pattern>
+    </patterns>
+  </object>
+  <object class="GtkFileChooserDialog" id="filechooserdialog_save">
+    <property name="can_focus">False</property>
+    <property name="modal">True</property>
+    <property name="type_hint">dialog</property>
+    <property name="filter">filefilter_wav</property>
+    <property name="local_only">False</property>
+    <property name="preview_widget_active">False</property>
+    <property name="show_hidden">True</property>
+    <property name="use_preview_label">False</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="filechooserdialog_box_save">
+        <property name="can_focus">False</property>
+        <child>
+          <placeholder/>
+        </child>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="filechooserdialog_buttonbox_save">
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkButton" id="button_cancel_save">
+                <property name="label">gtk-cancel</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="relief">half</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="button_select_save">
+                <property name="label">gtk-apply</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="relief">half</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="-6">button_cancel_save</action-widget>
+      <action-widget response="-5">button_select_save</action-widget>
+    </action-widgets>
   </object>
   <object class="GtkAboutDialog" id="dialog_about">
     <property name="can_focus">False</property>
@@ -1142,86 +1222,6 @@
     <action-widgets>
       <action-widget response="-6">button_cancel_file</action-widget>
       <action-widget response="-5">button_select_file</action-widget>
-    </action-widgets>
-  </object>
-  <object class="GtkFileFilter" id="filefilter_wav">
-    <patterns>
-      <pattern>*.wav</pattern>
-    </patterns>
-  </object>
-  <object class="GtkFileChooserDialog" id="filechooserdialog_save">
-    <property name="can_focus">False</property>
-    <property name="modal">True</property>
-    <property name="type_hint">dialog</property>
-    <property name="filter">filefilter_wav</property>
-    <property name="local_only">False</property>
-    <property name="preview_widget_active">False</property>
-    <property name="show_hidden">True</property>
-    <property name="use_preview_label">False</property>
-    <child internal-child="vbox">
-      <object class="GtkBox" id="filechooserdialog_box_save">
-        <property name="can_focus">False</property>
-        <child>
-          <placeholder/>
-        </child>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox" id="filechooserdialog_buttonbox_save">
-            <property name="can_focus">False</property>
-            <child>
-              <object class="GtkButton" id="button_cancel_save">
-                <property name="label">gtk-cancel</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="relief">half</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="button_select_save">
-                <property name="label">gtk-apply</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="relief">half</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="pack_type">end</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-      </object>
-    </child>
-    <action-widgets>
-      <action-widget response="-6">button_cancel_save</action-widget>
-      <action-widget response="-5">button_select_save</action-widget>
     </action-widgets>
   </object>
   <object class="GtkListStore" id="liststore_channels">
