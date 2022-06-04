@@ -1390,7 +1390,7 @@ continue_:
         stream_p->stop (false,  // wait for completion ?
                         false,  // recurse upstream ?
                         false); // high priority ?
-        connection_->waitForCompletion (false); // --> data only
+        istream_connection_p->waitForIdleState ();
 
         goto continue_2;
 

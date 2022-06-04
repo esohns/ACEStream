@@ -39,7 +39,6 @@
 
 //---------------------------------------
 #if defined (GTK_USE)
-#define TEST_I_UI_GTK_ACTION_SEND_NAME                 "action_send"
 #define TEST_I_UI_GTK_SCROLLEDWINDOW_ADJUSTMENT_V_NAME "adjustment_sw_v"
 #define TEST_I_UI_GTK_BUTTON_ABOUT_NAME                "about"
 #define TEST_I_UI_GTK_BUTTON_CONNECT_NAME              "button_connect"

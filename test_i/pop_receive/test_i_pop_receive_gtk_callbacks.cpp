@@ -406,11 +406,11 @@ idle_session_end_cb (gpointer userData_in)
   //// synch access
   //ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState->lock, G_SOURCE_REMOVE);
 
-  GtkAction* action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ACTION_SEND_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, TRUE);
+  GtkButton* button_p =
+    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_CONNECT_NAME)));
+  ACE_ASSERT (button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
   //GtkFrame* frame_p =
   //  GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
   //                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_CONFIGURATION_NAME)));
@@ -939,6 +939,7 @@ button_quit_clicked_cb (GtkWidget* widget_in,
       // *IMPORTANT NOTE*: cannot wait on the UI condition here, as it is
       //                   signal()ed by the current thread !
       //                   --> emit a signal to come back
+      ACE_OS::sleep (ACE_Time_Value (1, 0));
       g_signal_emit_by_name (G_OBJECT (widget_in), "clicked");
     } // end IF
   } // end lock scope

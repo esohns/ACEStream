@@ -445,19 +445,20 @@ do_work (
   struct POP_Request request_s;
   struct Stream_ModuleConfiguration module_configuration;
   struct Stream_POPReceive_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Stream_POPReceive_ModuleHandlerConfiguration modulehandler_configuration_2; // connection-
   Stream_POPReceive_EventHandler_t ui_event_handler (
 #if defined (GUI_SUPPORT)
-                                                   &CBData_in
+                                                     &CBData_in
 #if defined (GTK_USE)
 #elif defined (WXWIDGETS_USE)
-                                                   ,iapplication_in
+                                                     ,iapplication_in
 #endif
 #endif // GUI_SUPPORT
-                                                   );
+                                                    );
 
   Stream_POPReceive_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
-                                                        &heap_allocator,     // heap allocator handle
-                                                        true);               // block ?
+                                                          &heap_allocator,     // heap allocator handle
+                                                          true);               // block ?
   Stream_POPReceive_StreamConfiguration_t stream_configuration_connection;
   Test_I_POPReceive_ConnectionConfiguration_t connection_configuration;
   connection_configuration.allocatorConfiguration =
@@ -474,7 +475,7 @@ do_work (
   modulehandler_configuration.allocatorConfiguration =
     &configuration_in.allocatorConfiguration;
   modulehandler_configuration.concurrency =
-    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+    STREAM_HEADMODULECONCURRENCY_ACTIVE;
   modulehandler_configuration.connectionConfigurations =
     &connection_configurations;
   modulehandler_configuration.messageAllocator = &message_allocator;
@@ -503,10 +504,15 @@ do_work (
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
                                                    stream_configuration);
+
+  modulehandler_configuration_2 = modulehandler_configuration;
+  modulehandler_configuration_2.concurrency =
+    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+  modulehandler_configuration_2.subscriber = NULL;
   stream_configuration_2 = stream_configuration;
   stream_configuration_2.module = NULL;
   stream_configuration_connection.initialize (module_configuration,
-                                              modulehandler_configuration,
+                                              modulehandler_configuration_2,
                                               stream_configuration_2);
 
 #if defined (GUI_SUPPORT)

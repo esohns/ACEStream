@@ -70,9 +70,16 @@ Test_I_POPReceive_Stream::load (Stream_ILayout* layout_inout,
 
   deleteModules_out = false;
 
+  // update configuration
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
+  ACE_ASSERT ((*iterator).second.second->protocolConfiguration);
+  ACE_ASSERT (!(*iterator).second.second->protocolConfiguration->parser);
+  (*iterator).second.second->protocolConfiguration->parser =
+    dynamic_cast<POP_IParser*> (marshal_.writer ());
+  ACE_ASSERT ((*iterator).second.second->protocolConfiguration->parser);
+
   Net_ConnectionConfigurationsIterator_t iterator_2 =
     (*iterator).second.second->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != (*iterator).second.second->connectionConfigurations->end ());
