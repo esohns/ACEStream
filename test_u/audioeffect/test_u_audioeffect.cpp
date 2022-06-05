@@ -2272,6 +2272,12 @@ ACE_TMAIN (int argc_in,
   configuration.generatorConfiguration.amplitude = 1.0;
   configuration.generatorConfiguration.frequency =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D;
+#if defined (LIBNOISE_SUPPORT)
+  configuration.generatorConfiguration.step = 0.01;
+  configuration.generatorConfiguration.x = 1.25;
+  configuration.generatorConfiguration.y = 0.75;
+  configuration.generatorConfiguration.z = 0.5;
+#endif // LIBNOISE_SUPPORT
   configuration.generatorConfiguration.type =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_TYPE;
   struct Test_U_AudioEffect_UI_CBData ui_cb_data;
