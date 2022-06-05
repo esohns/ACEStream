@@ -252,15 +252,15 @@ template <typename NotificationType,
           typename SessionMessageType>
 void
 Stream_POPReceive_EventHandler_T<NotificationType,
-                               DataMessageType,
+                                 DataMessageType,
 #if defined (GUI_SUPPORT)
-                               UIStateType,
+                                 UIStateType,
 #if defined (WXWIDGETS_USE)
-                               InterfaceType,
+                                 InterfaceType,
 #endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
-                               SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
-                                                            const DataMessageType& message_in)
+                                 SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
+                                                              const DataMessageType& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_POPReceive_EventHandler_T::notify"));
 
@@ -290,6 +290,7 @@ Stream_POPReceive_EventHandler_T<NotificationType,
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
+  ACE_ASSERT (CBData_);
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     CBData_->progressData.statistic.bytes += message_in.total_length ();
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
@@ -299,15 +300,25 @@ Stream_POPReceive_EventHandler_T<NotificationType,
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-//  guint event_source_id = g_idle_add (idle_update_video_display_cb,
-//                                      CBData_);
-//  if (event_source_id == 0)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to g_idle_add(idle_update_video_display_cb): \"%m\", returning\n")));
-//    return;
-//  } // end IF
-//  CBData_->UIState.eventSourceIds.insert (event_source_id);
+  const typename DataMessageType::DATA_T& data_container_r =
+    message_in.getR ();
+  const typename DataMessageType::DATA_T::DATA_T& data_r =
+    data_container_r.getR ();
+  ACE_ASSERT (!data_r.text.empty ());
+  POP_TextConstIterator_t iterator = data_r.text.end ();
+  std::advance (iterator, -2);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+    CBData_->messageData = *iterator;
+    guint event_source_id = g_idle_add (idle_update_log_display_cb,
+                                        CBData_);
+    if (event_source_id == 0)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_idle_add(idle_update_log_display_cb): \"%m\", returning\n")));
+      return;
+    } // end IF
+    state_r.eventSourceIds.insert (event_source_id);
+  } // end lock scope
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 }

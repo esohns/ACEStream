@@ -2702,7 +2702,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                     ACE_TEXT (istream_p->name ().c_str ()),
                     inherited::mod_->name ()));
         typename inherited::STREAM_T* downstream_p = istream_p->downstream ();
-        ACE_ASSERT (downstream_p);
+        if (!downstream_p) // has already been unlinked (this is 'NetSourceH' module ?)
+          goto continue_2;
         typename inherited::ISTREAM_T* istream_2 =
           dynamic_cast<typename inherited::ISTREAM_T*> (downstream_p);
         if (unlikely (!istream_2))

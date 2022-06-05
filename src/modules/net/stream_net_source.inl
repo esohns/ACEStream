@@ -1331,12 +1331,15 @@ continue_:
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
           const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       typename inherited::ISTREAM_T* istream_p = NULL;
+      bool stop_b = true;
 
       if (inherited::isRunning ())
       {
         { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
           inherited::sessionEndSent_ = true;
         } // end lock scope
+        inherited::change (STREAM_STATE_SESSION_STOPPING);
+        stop_b = false;
       } // end IF
 
       if (inherited::timerId_ != -1)
@@ -1434,7 +1437,8 @@ continue_2:
         connection_->decrease (); connection_ = NULL;
       } // end IF
 
-      if (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
+      if ((inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT) &&
+          stop_b)
       { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
         itask_p->stop (false,  // wait for completion ?
                        false); // high priority ?

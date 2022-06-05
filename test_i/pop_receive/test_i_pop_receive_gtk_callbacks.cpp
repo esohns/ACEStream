@@ -371,7 +371,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_show_all (dialog_p);
 
   return G_SOURCE_REMOVE;
-}
+} // idle_initialize_UI_cb
 
 gboolean
 idle_finalize_UI_cb (gpointer userData_in)
@@ -387,7 +387,7 @@ idle_finalize_UI_cb (gpointer userData_in)
   gtk_main_quit ();
 
   return G_SOURCE_REMOVE;
-}
+} // idle_finalize_UI_cb
 
 gboolean
 idle_session_end_cb (gpointer userData_in)
@@ -418,7 +418,7 @@ idle_session_end_cb (gpointer userData_in)
   //gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
 
   return G_SOURCE_REMOVE;
-}
+} // idle_session_end_cb
 
 gboolean
 idle_update_info_display_cb (gpointer userData_in)
@@ -520,7 +520,85 @@ idle_update_info_display_cb (gpointer userData_in)
   } // end lock scope
 
   return G_SOURCE_CONTINUE;
-}
+} // idle_update_info_display_cb
+
+gboolean
+idle_update_log_display_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_update_log_display_cb"));
+
+  // sanity check(s)
+  struct Stream_POPReceive_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_POPReceive_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p);
+  Common_UI_GTK_BuildersIterator_t iterator =
+    ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
+
+  GtkTextView* view_p =
+      GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_NAME)));
+  ACE_ASSERT (view_p);
+  GtkTextBuffer* buffer_p = gtk_text_view_get_buffer (view_p);
+  ACE_ASSERT (buffer_p);
+
+  GtkTextIter text_iterator;
+  gtk_text_buffer_get_end_iter (buffer_p,
+                                &text_iterator);
+
+  gchar* converted_text = NULL;
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState->lock, G_SOURCE_REMOVE);
+    if (ui_cb_data_p->messageData.empty ())
+      return G_SOURCE_CONTINUE;
+
+    // step1: convert text
+    converted_text =
+      Common_UI_GTK_Tools::localeToUTF8 (ui_cb_data_p->messageData);
+    if (!converted_text)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Common_UI_GTK_Tools::localeToUTF8(\"%s\"), aborting\n"),
+                  ACE_TEXT (ui_cb_data_p->messageData.c_str ())));
+      return G_SOURCE_REMOVE;
+    } // end IF
+
+    // step2: display text
+    gtk_text_buffer_insert (buffer_p,
+                            &text_iterator,
+                            converted_text,
+                            -1);
+
+    g_free (converted_text); converted_text = NULL;
+
+    ui_cb_data_p->messageData.clear ();
+  } // end lock scope
+
+  // step3: scroll the view accordingly
+//  // move the iterator to the beginning of line, so it doesn't scroll
+//  // in horizontal direction
+//  gtk_text_iter_set_line_offset (&text_iterator, 0);
+
+//  // ...and place the mark at iter. The mark will stay there after insertion
+//  // because it has "right" gravity
+//  GtkTextMark* text_mark_p =
+//      gtk_text_buffer_get_mark (buffer_p,
+//                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCROLLMARK_NAME));
+////  gtk_text_buffer_move_mark (buffer_p,
+////                             text_mark_p,
+////                             &text_iterator);
+
+//  // scroll the mark onscreen
+//  gtk_text_view_scroll_mark_onscreen (view_p,
+//                                      text_mark_p);
+  GtkAdjustment* adjustment_p =
+      GTK_ADJUSTMENT (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCROLLEDWINDOW_ADJUSTMENT_V_NAME)));
+  ACE_ASSERT (adjustment_p);
+  gtk_adjustment_set_value (adjustment_p,
+                            gtk_adjustment_get_upper (adjustment_p));
+
+  return G_SOURCE_CONTINUE;
+} // idle_update_log_display_cb
 
 gboolean
 idle_update_progress_cb (gpointer userData_in)
@@ -618,7 +696,7 @@ idle_update_progress_cb (gpointer userData_in)
 
   // reschedule ?
   return (done ? G_SOURCE_REMOVE : G_SOURCE_CONTINUE);
-}
+} // idle_update_progress_cb
 
 //////////////////////////////////////////
 

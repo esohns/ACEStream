@@ -248,6 +248,7 @@ struct Stream_POPReceive_UI_CBData
   Stream_POPReceive_UI_CBData ()
    : Test_I_UI_CBData ()
    , configuration (NULL)
+   , messageData ()
    , progressData ()
    , stream (NULL)
    , subscribers ()
@@ -256,6 +257,7 @@ struct Stream_POPReceive_UI_CBData
   }
 
   struct Stream_POPReceive_Configuration* configuration;
+  std::string                             messageData;
   struct Stream_POPReceive_ProgressData   progressData;
   Test_I_POPReceive_Stream*               stream;
   Stream_POPReceive_Subscribers_t         subscribers;

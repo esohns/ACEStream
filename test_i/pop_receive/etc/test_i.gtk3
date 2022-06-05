@@ -23,6 +23,16 @@
     <property name="step_increment">1</property>
     <property name="page_increment">1</property>
   </object>
+  <object class="GtkAdjustment" id="adjustment_sw_h">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment_sw_v">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
   <object class="GtkAboutDialog" id="dialog_about">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -65,16 +75,6 @@
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkAdjustment" id="scrolledwindow_hadjustment">
-    <property name="upper">100</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="scrolledwindow_vadjustment">
-    <property name="upper">100</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
   </object>
   <object class="GtkDialog" id="dialog_main">
     <property name="visible">True</property>
@@ -428,8 +428,8 @@
                         <property name="height_request">0</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="hadjustment">scrolledwindow_hadjustment</property>
-                        <property name="vadjustment">scrolledwindow_vadjustment</property>
+                        <property name="hadjustment">adjustment_sw_h</property>
+                        <property name="vadjustment">adjustment_sw_v</property>
                         <property name="shadow_type">in</property>
                         <child>
                           <object class="GtkTextView" id="textview">
