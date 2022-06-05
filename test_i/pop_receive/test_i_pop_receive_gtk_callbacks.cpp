@@ -729,7 +729,7 @@ button_connect_clicked_cb (GtkButton* button_in,
   Net_ConnectionConfigurationsIterator_t iterator_3;
 
   int result = -1;
-  GtkTextIter start, end;
+//  GtkTextIter start, end;
   struct Stream_POPReceive_UI_ThreadData* thread_data_p = NULL;
   ACE_TCHAR thread_name[BUFSIZ];
   const char* thread_name_2 = NULL;

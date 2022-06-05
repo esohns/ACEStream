@@ -51,6 +51,10 @@ extern "C"
 }
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (LIBNOISE_SUPPORT)
+#include "noise/noise.h"
+#endif // LIBNOISE_SUPPORT
+
 #include "gdk/gdk.h"
 #include "gtk/gtk.h"
 #if defined (GTKGL_SUPPORT)
@@ -7879,7 +7883,9 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
 
   Stream_IStream_t* istream_p = NULL;
   const Stream_Module_t* module_p = NULL;
+#if defined (LIBNOISE_SUPPORT)
   Common_IGetR_3_T<noise::module::Perlin>* iget_p = NULL;
+#endif // LIBNOISE_SUPPORT
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -7929,6 +7935,7 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 
+#if defined (LIBNOISE_SUPPORT)
   module_p =
     istream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING));
   if (!module_p)
@@ -7944,6 +7951,7 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
   noise::module::Perlin& module_r =
     const_cast<noise::module::Perlin&> (iget_p->getR_3 ());
   module_r.SetFrequency (gtk_range_get_value (range_in));
+#endif // LIBNOISE_SUPPORT
 } // hscale_perlin_frequency_value_changed_cb
 
 void
@@ -7959,7 +7967,9 @@ hscale_perlin_octaves_value_changed_cb (GtkRange* range_in,
 
   Stream_IStream_t* istream_p = NULL;
   const Stream_Module_t* module_p = NULL;
+#if defined (LIBNOISE_SUPPORT)
   Common_IGetR_3_T<noise::module::Perlin>* iget_p = NULL;
+#endif // LIBNOISE_SUPPORT
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -8009,6 +8019,7 @@ hscale_perlin_octaves_value_changed_cb (GtkRange* range_in,
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 
+#if defined (LIBNOISE_SUPPORT)
   module_p =
     istream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING));
   if (!module_p)
@@ -8024,6 +8035,7 @@ hscale_perlin_octaves_value_changed_cb (GtkRange* range_in,
   noise::module::Perlin& module_r =
     const_cast<noise::module::Perlin&> (iget_p->getR_3 ());
   module_r.SetOctaveCount (static_cast<int> (gtk_range_get_value (range_in)));
+#endif // LIBNOISE_SUPPORT
 } // hscale_perlin_octaves_value_changed_cb
 
 void
@@ -8039,7 +8051,9 @@ hscale_perlin_persistence_value_changed_cb (GtkRange* range_in,
 
   Stream_IStream_t* istream_p = NULL;
   const Stream_Module_t* module_p = NULL;
+#if defined (LIBNOISE_SUPPORT)
   Common_IGetR_3_T<noise::module::Perlin>* iget_p = NULL;
+#endif // LIBNOISE_SUPPORT
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -8089,6 +8103,7 @@ hscale_perlin_persistence_value_changed_cb (GtkRange* range_in,
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 
+#if defined (LIBNOISE_SUPPORT)
   module_p =
     istream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING));
   if (!module_p)
@@ -8104,6 +8119,7 @@ hscale_perlin_persistence_value_changed_cb (GtkRange* range_in,
   noise::module::Perlin& module_r =
     const_cast<noise::module::Perlin&> (iget_p->getR_3 ());
   module_r.SetPersistence (gtk_range_get_value (range_in));
+#endif // LIBNOISE_SUPPORT
 } // hscale_perlin_persistence_value_changed_cb
 
 void
@@ -8119,7 +8135,9 @@ hscale_perlin_lacunarity_value_changed_cb (GtkRange* range_in,
 
   Stream_IStream_t* istream_p = NULL;
   const Stream_Module_t* module_p = NULL;
+#if defined (LIBNOISE_SUPPORT)
   Common_IGetR_3_T<noise::module::Perlin>* iget_p = NULL;
+#endif // LIBNOISE_SUPPORT
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -8169,6 +8187,7 @@ hscale_perlin_lacunarity_value_changed_cb (GtkRange* range_in,
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 
+#if defined (LIBNOISE_SUPPORT)
   module_p =
     istream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING));
   if (!module_p)
@@ -8184,6 +8203,7 @@ hscale_perlin_lacunarity_value_changed_cb (GtkRange* range_in,
   noise::module::Perlin& module_r =
     const_cast<noise::module::Perlin&> (iget_p->getR_3 ());
   module_r.SetLacunarity (gtk_range_get_value (range_in));
+#endif // LIBNOISE_SUPPORT
 } // hscale_perlin_lacunarity_value_changed_cb
 
 void

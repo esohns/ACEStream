@@ -54,6 +54,32 @@
     <property name="step_increment">10</property>
     <property name="page_increment">100</property>
   </object>
+  <object class="GtkAdjustment" id="adjustment_perlin_frequency">
+    <property name="upper">64</property>
+    <property name="value">1</property>
+    <property name="step_increment">0.10000000000000001</property>
+    <property name="page_increment">1</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment_perlin_lacunarity">
+    <property name="lower">1.5</property>
+    <property name="upper">3.5</property>
+    <property name="value">2.5</property>
+    <property name="step_increment">0.01</property>
+    <property name="page_increment">0.10000000000000001</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment_perlin_octaves">
+    <property name="lower">1</property>
+    <property name="upper">6</property>
+    <property name="value">6</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">1</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment_perlin_persistence">
+    <property name="upper">1</property>
+    <property name="value">0.5</property>
+    <property name="step_increment">0.01</property>
+    <property name="page_increment">0.10000000000000001</property>
+  </object>
   <object class="GtkAdjustment" id="adjustment_session_messages">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
@@ -1607,6 +1633,7 @@
                                             <property name="adjustment">adjustment_boost</property>
                                             <property name="restrict_to_fill_level">False</property>
                                             <property name="fill_level">0</property>
+                                            <property name="round_digits">0</property>
                                             <property name="digits">0</property>
                                             <property name="draw_value">False</property>
                                             <signal name="value-changed" handler="hscale_device_boost_value_changed_cb" swapped="no"/>
@@ -1669,119 +1696,115 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <child>
-                          <!-- n-columns=3 n-rows=3 -->
                           <object class="GtkTable" id="grid_noise">
                             <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <property name="column-homogeneous">True</property>
+                            <property name="can_focus">False</property>
                             <child>
                               <object class="GtkRadioButton" id="radiobutton_noise">
-                                <property name="label" translatable="yes">_Noise</property>
+                                <property name="label" translatable="yes">Random Noise</property>
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
-                                <property name="focus-on-click">False</property>
-                                <property name="receives-default">False</property>
-                                <property name="tooltip-text" translatable="yes">random noise</property>
-                                <property name="use-underline">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="tooltip_text" translatable="yes">random noise</property>
+                                <property name="use_underline">True</property>
+                                <property name="focus_on_click">False</property>
                                 <property name="active">True</property>
-                                <property name="draw-indicator">False</property>
+                                <property name="draw_indicator">False</property>
                                 <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
                               </object>
-                              <packing>
-                                <property name="left-attach">0</property>
-                                <property name="top-attach">0</property>
-                              </packing>
                             </child>
                             <child>
-                              <object class="GtkRadioButton" id="radiobutton_cycloid">
-                                <property name="label" translatable="yes">Cycloid</property>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <object class="GtkRadioButton" id="radiobutton_triangle">
+                                <property name="label" translatable="yes">Triangle</property>
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
-                                <property name="focus-on-click">False</property>
-                                <property name="receives-default">False</property>
-                                <property name="draw-indicator">False</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="focus_on_click">False</property>
+                                <property name="draw_indicator">False</property>
                                 <property name="group">radiobutton_noise</property>
                                 <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
                               </object>
                               <packing>
-                                <property name="left-attach">0</property>
-                                <property name="top-attach">1</property>
+                                <property name="left_attach">1</property>
+                                <property name="top_attach">2</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkRadioButton" id="radiobutton_sawtooth">
-                                <property name="label" translatable="yes">Sawtooth</property>
+                              <object class="GtkRadioButton" id="radiobutton_perlin">
+                                <property name="label" translatable="yes">Perlin Noise</property>
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
-                                <property name="focus-on-click">False</property>
-                                <property name="receives-default">False</property>
-                                <property name="draw-indicator">False</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="focus_on_click">False</property>
+                                <property name="draw_indicator">False</property>
                                 <property name="group">radiobutton_noise</property>
                                 <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
                               </object>
                               <packing>
-                                <property name="left-attach">1</property>
-                                <property name="top-attach">1</property>
+                                <property name="left_attach">1</property>
+                                <property name="right_attach">2</property>
                               </packing>
+                            </child>
+                            <child>
+                              <placeholder/>
                             </child>
                             <child>
                               <object class="GtkRadioButton" id="radiobutton_sinus">
                                 <property name="label" translatable="yes">S_inus</property>
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
-                                <property name="focus-on-click">False</property>
-                                <property name="receives-default">False</property>
-                                <property name="tooltip-text" translatable="yes">sine wave</property>
-                                <property name="use-underline">True</property>
-                                <property name="draw-indicator">False</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="tooltip_text" translatable="yes">sine wave</property>
+                                <property name="use_underline">True</property>
+                                <property name="focus_on_click">False</property>
+                                <property name="draw_indicator">False</property>
                                 <property name="group">radiobutton_noise</property>
                                 <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
                               </object>
                               <packing>
-                                <property name="left-attach">2</property>
-                                <property name="top-attach">1</property>
+                                <property name="top_attach">1</property>
+                                <property name="bottom_attach">2</property>
                               </packing>
                             </child>
                             <child>
                               <object class="GtkRadioButton" id="radiobutton_square">
                                 <property name="label" translatable="yes">Square</property>
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
-                                <property name="focus-on-click">False</property>
-                                <property name="receives-default">False</property>
-                                <property name="draw-indicator">False</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="focus_on_click">False</property>
+                                <property name="draw_indicator">False</property>
                                 <property name="group">radiobutton_noise</property>
                                 <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
                               </object>
                               <packing>
-                                <property name="left-attach">0</property>
-                                <property name="top-attach">2</property>
+                                <property name="left_attach">2</property>
+                                <property name="right_attach">3</property>
+                                <property name="top_attach">2</property>
+                                <property name="bottom_attach">3</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkRadioButton" id="radiobutton_triangle">
-                                <property name="label" translatable="yes">Triangle</property>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <object class="GtkRadioButton" id="radiobutton_sawtooth">
+                                <property name="label" translatable="yes">Sawtooth</property>
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
-                                <property name="focus-on-click">False</property>
-                                <property name="receives-default">False</property>
-                                <property name="draw-indicator">False</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="focus_on_click">False</property>
+                                <property name="draw_indicator">False</property>
                                 <property name="group">radiobutton_noise</property>
                                 <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
                               </object>
                               <packing>
-                                <property name="left-attach">1</property>
-                                <property name="top-attach">2</property>
+                                <property name="top_attach">2</property>
+                                <property name="bottom_attach">3</property>
                               </packing>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
                             </child>
                           </object>
                           <packing>
@@ -1861,7 +1884,119 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
-              <placeholder/>
+              <object class="GtkFrame" id="frame_perlin">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label_xalign">0</property>
+                <child>
+                  <object class="GtkAlignment" id="alignment_perlin">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkVBox" id="vbox_perlin">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <child>
+                          <object class="GtkHScale" id="hscale_perlin_amplitude">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="tooltip_text" translatable="yes">amplitude (%)</property>
+                            <property name="adjustment">adjustment_amplitude</property>
+                            <property name="restrict_to_fill_level">False</property>
+                            <property name="fill_level">0</property>
+                            <property name="round_digits">2</property>
+                            <property name="digits">2</property>
+                            <signal name="value-changed" handler="hscale_amplitude_value_changed_cb" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkHScale" id="hscale_perlin_frequency">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="tooltip_text" translatable="yes">frequency (Hz)</property>
+                            <property name="adjustment">adjustment_perlin_frequency</property>
+                            <property name="restrict_to_fill_level">False</property>
+                            <property name="round_digits">1</property>
+                            <signal name="value-changed" handler="hscale_perlin_frequency_value_changed_cb" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkHScale" id="hscale_perlin_octaves">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="tooltip_text" translatable="yes">octaves</property>
+                            <property name="adjustment">adjustment_perlin_octaves</property>
+                            <property name="restrict_to_fill_level">False</property>
+                            <property name="fill_level">0</property>
+                            <property name="round_digits">0</property>
+                            <property name="digits">0</property>
+                            <signal name="value-changed" handler="hscale_perlin_octaves_value_changed_cb" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">2</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkHScale" id="hscale_perlin_persistence">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="tooltip_text" translatable="yes">persistence</property>
+                            <property name="adjustment">adjustment_perlin_persistence</property>
+                            <property name="restrict_to_fill_level">False</property>
+                            <property name="fill_level">0</property>
+                            <property name="round_digits">2</property>
+                            <property name="digits">2</property>
+                            <signal name="value-changed" handler="hscale_perlin_persistence_value_changed_cb" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">3</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkHScale" id="hscale_perlin_lacunarity">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="tooltip_text" translatable="yes">lacunarity</property>
+                            <property name="adjustment">adjustment_perlin_lacunarity</property>
+                            <property name="restrict_to_fill_level">False</property>
+                            <property name="fill_level">0</property>
+                            <property name="round_digits">2</property>
+                            <property name="digits">2</property>
+                            <signal name="value-changed" handler="hscale_perlin_lacunarity_value_changed_cb" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">4</property>
+                          </packing>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child type="label_item">
+                  <placeholder/>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
               <object class="GtkFrame" id="frame_sinus">
@@ -1878,6 +2013,24 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <child>
+                          <object class="GtkHScale" id="hscale_sinus_amplitude">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="tooltip_text" translatable="yes">amplitude (%)</property>
+                            <property name="adjustment">adjustment_amplitude</property>
+                            <property name="restrict_to_fill_level">False</property>
+                            <property name="fill_level">0</property>
+                            <property name="round_digits">2</property>
+                            <property name="digits">2</property>
+                            <signal name="value-changed" handler="hscale_amplitude_value_changed_cb" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
                           <object class="GtkHScale" id="hscale_sinus_frequency">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -1889,22 +2042,7 @@
                             <property name="fill_level">0</property>
                             <property name="round_digits">0</property>
                             <property name="digits">0</property>
-                            <signal name="value-changed" handler="hscale_sinus_frequency_value_changed_cb" swapped="no"/>
-                          </object>
-                          <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkHScale" id="hscale_sinus_amplitude">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="tooltip_text" translatable="yes">amplitude (%)</property>
-                            <property name="adjustment">adjustment_amplitude</property>
-                            <property name="round_digits">1</property>
-                            <signal name="value-changed" handler="hscale_sinus_amplitude_value_changed_cb" swapped="no"/>
+                            <signal name="value-changed" handler="hscale_frequency_value_changed_cb" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">True</property>

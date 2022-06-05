@@ -5,7 +5,7 @@ if (UNIX)
  set (LIBNOISE_LIBRARY "libnoise.so")
  find_library (LIBNOISE_LIB ${LIBNOISE_LIBRARY}
                PATHS ${LIBNOISE_DIR}
-               PATH_SUFFIXES build/gcc/${CMAKE_BUILD_TYPE}
+               PATH_SUFFIXES build/gcc
                DOC "searching for ${LIBNOISE_LIBRARY}"
                NO_DEFAULT_PATH)
  if (NOT LIBNOISE_LIB)

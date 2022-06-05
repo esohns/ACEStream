@@ -2697,6 +2697,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         typename inherited::ISTREAM_T* istream_p =
             const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
         ACE_ASSERT (istream_p);
+        typename inherited::ISTREAM_T* istream_2 = NULL;
+
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s/%s: stream has ended, unlinking downstream\n"),
                     ACE_TEXT (istream_p->name ().c_str ()),
@@ -2704,8 +2706,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         typename inherited::STREAM_T* downstream_p = istream_p->downstream ();
         if (!downstream_p) // has already been unlinked (this is 'NetSourceH' module ?)
           goto continue_2;
-        typename inherited::ISTREAM_T* istream_2 =
-          dynamic_cast<typename inherited::ISTREAM_T*> (downstream_p);
+        istream_2 = dynamic_cast<typename inherited::ISTREAM_T*> (downstream_p);
         if (unlikely (!istream_2))
         {
           ACE_DEBUG ((LM_WARNING,
