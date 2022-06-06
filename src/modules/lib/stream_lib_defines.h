@@ -156,4 +156,14 @@
 #define STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE                     AUDCLNT_SHAREMODE_SHARED
 #endif // ACE_WIN32 || ACE_WIN64
 
+// Noise generator(s)
+// *IMPORTANT NOTE*: alpha >= 0 ('white' noise) && alpha <= 2.0 ('brown' noise)
+#define STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_ALPHA               1.0
+// *IMPORTANT NOTE*: #IIR filters
+#define STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_POLES               5
+
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_STEP              0.01
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_X                 1.25
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Y                 0.75
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Z                 0.5
 #endif

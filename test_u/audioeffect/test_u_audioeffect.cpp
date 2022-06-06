@@ -2177,10 +2177,14 @@ ACE_TMAIN (int argc_in,
   directshow_configuration.generatorConfiguration.frequency =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D;
 #if defined (LIBNOISE_SUPPORT)
-  directshow_configuration.generatorConfiguration.step = 0.01;
-  directshow_configuration.generatorConfiguration.x = 1.25;
-  directshow_configuration.generatorConfiguration.y = 0.75;
-  directshow_configuration.generatorConfiguration.z = 0.5;
+  directshow_configuration.generatorConfiguration.step =
+    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_STEP;
+  directshow_configuration.generatorConfiguration.x =
+    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_X;
+  directshow_configuration.generatorConfiguration.y =
+    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Y;
+  directshow_configuration.generatorConfiguration.z =
+    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Z;
 #endif // LIBNOISE_SUPPORT
   directshow_configuration.generatorConfiguration.type =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_TYPE;
@@ -2191,10 +2195,14 @@ ACE_TMAIN (int argc_in,
   mediafoundation_configuration.generatorConfiguration.frequency =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D;
 #if defined (LIBNOISE_SUPPORT)
-  mediafoundation_configuration.generatorConfiguration.step = 0.01;
-  mediafoundation_configuration.generatorConfiguration.x = 1.25;
-  mediafoundation_configuration.generatorConfiguration.y = 0.75;
-  mediafoundation_configuration.generatorConfiguration.z = 0.5;
+  mediafoundation_configuration.generatorConfiguration.step =
+    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_STEP;
+  mediafoundation_configuration.generatorConfiguration.x =
+    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_X;
+  mediafoundation_configuration.generatorConfiguration.y =
+    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Y;
+  mediafoundation_configuration.generatorConfiguration.z =
+    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Z;
 #endif // LIBNOISE_SUPPORT
   mediafoundation_configuration.generatorConfiguration.type =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_TYPE;
@@ -2276,10 +2284,14 @@ ACE_TMAIN (int argc_in,
   configuration.generatorConfiguration.frequency =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D;
 #if defined (LIBNOISE_SUPPORT)
-  configuration.generatorConfiguration.step = 0.01;
-  configuration.generatorConfiguration.x = 1.25;
-  configuration.generatorConfiguration.y = 0.75;
-  configuration.generatorConfiguration.z = 0.5;
+  configuration.generatorConfiguration.step =
+    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_STEP;
+  configuration.generatorConfiguration.x =
+    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_X;
+  configuration.generatorConfiguration.y =
+    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Y;
+  configuration.generatorConfiguration.z =
+    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Z;
 #endif // LIBNOISE_SUPPORT
   configuration.generatorConfiguration.type =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_TYPE;

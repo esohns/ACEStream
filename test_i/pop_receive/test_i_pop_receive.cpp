@@ -452,7 +452,7 @@ do_work (
 #if defined (GTK_USE)
 #elif defined (WXWIDGETS_USE)
                                                      ,iapplication_in
-#endif
+#endif // GTK_USE | WXWIDGETS_USE
 #endif // GUI_SUPPORT
                                                     );
 

@@ -86,8 +86,8 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
  , realDistribution_ ()
  , integerDistribution_ ()
  , signedIntegerDistribution_ ()
- , alpha_ (1.0)
- , numberOfPoles_ (5)
+ , alpha_ (STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_ALPHA)
+ , numberOfPoles_ (STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_POLES)
  , multipliers_ (NULL)
  , history_ (NULL)
 #if defined (LIBNOISE_SUPPORT)
@@ -137,6 +137,11 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                           MediaType>::~Stream_Dec_Noise_Source_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dec_Noise_Source_T::~Stream_Dec_Noise_Source_T"));
+
+  if (multipliers_)
+    delete [] multipliers_;
+  if (history_)
+    delete [] history_;
 
   long timer_id = handler_.get_2 ();
   if (unlikely (timer_id != -1))
@@ -516,7 +521,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       } // end FOR
       ACE_NEW_NORETURN (history_, double[numberOfPoles_]);
       ACE_ASSERT (history_);
-      ACE_OS::memset (history_, 0, sizeof (double[numberOfPoles_]));
+      ACE_OS::memset (history_, 0, sizeof (double) * numberOfPoles_);
       for (int i = 0; i < numberOfPoles_; i++)
       {
         double x =
