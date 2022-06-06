@@ -53,10 +53,11 @@ class Stream_Module_Decoder_Noise_Tools
                           ACE_UINT8*,      // target buffer
                           unsigned int,    // #'data' samples to write
                           double,          // amplitude [0.0-1.0]
-                          int&,            // in/out: key
-                          int,             // in: max key
-                          unsigned int,    // in: range
-                          unsigned int[]); // in/out white noise values
+                          double,          // in: alpha
+                          int,             // in: #poles
+                          std::uniform_real_distribution<long double>&, // in/out: RNG
+                          double[],        // in/out: multipliers
+                          double[]);       // in/out: history
 
 #if defined (LIBNOISE_SUPPORT)
   // *NOTE*: write perlin noise into the target buffer in the specified

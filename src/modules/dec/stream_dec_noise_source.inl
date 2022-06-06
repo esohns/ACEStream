@@ -86,10 +86,10 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
  , realDistribution_ ()
  , integerDistribution_ ()
  , signedIntegerDistribution_ ()
- , key_ (0)
- , keyMax_ (0x1F) // five bits set
- , range_ (0)
- , whiteValues_ ()
+ , alpha_ (1.0)
+ , numberOfPoles_ (5)
+ , multipliers_ (NULL)
+ , history_ (NULL)
 #if defined (LIBNOISE_SUPPORT)
  , noiseModule_ ()
  , x_ (0.0)
@@ -107,7 +107,6 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dec_Noise_Source_T::Stream_Dec_Noise_Source_T"));
 
-  ACE_OS::memset (whiteValues_, 0, sizeof (unsigned int[5]));
 }
 
 template <ACE_SYNCH_DECL,
@@ -298,6 +297,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       ACE_Time_Value interval;
       long timer_id = -1;
       suseconds_t buffer_time_us = 0;
+      double a = 1.0;
 
       // schedule regular statistic collection
       if (inherited::configuration_->statisticCollectionInterval !=
@@ -507,11 +507,24 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
           }
         } // end SWITCH
 
-      range_ =
-        Common_Tools::max<unsigned int> (inherited::configuration_->generatorConfiguration->bytesPerSample,
-                                         inherited::configuration_->generatorConfiguration->isSignedFormat);
-      for (int i = 0; i < 5; i++)
-        whiteValues_[i] = rand () % (range_ / 5);
+      ACE_NEW_NORETURN (multipliers_, double[numberOfPoles_]);
+      ACE_ASSERT (multipliers_);
+      for (int i = 0; i < numberOfPoles_; i++)
+      {
+        a = (i - alpha_ / 2) * a / (i + 1);
+        multipliers_[i] = a;
+      } // end FOR
+      ACE_NEW_NORETURN (history_, double[numberOfPoles_]);
+      ACE_ASSERT (history_);
+      ACE_OS::memset (history_, 0, sizeof (double[numberOfPoles_]));
+      for (int i = 0; i < numberOfPoles_; i++)
+      {
+        double x =
+          static_cast<double> (Common_Tools::getRandomNumber (realDistribution_)) -0.5;
+        for (int j = 0; j < numberOfPoles_; j++)
+          x -= multipliers_[j] * history_[j];
+        history_[i] = x;
+      } // end FOR
 
 #if defined (LIBNOISE_SUPPORT)
       //noiseModule_.SetFrequency (inherited::configuration_->generatorConfiguration->frequency);
@@ -791,10 +804,11 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                                      reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
                                                      bufferSize_ / frameSize_,
                                                      inherited::configuration_->generatorConfiguration->amplitude,
-                                                     key_,
-                                                     keyMax_,
-                                                     range_,
-                                                     whiteValues_);
+                                                     alpha_,
+                                                     numberOfPoles_,
+                                                     realDistribution_,
+                                                     multipliers_,
+                                                     history_);
       break;
     }
 #if defined (LIBNOISE_SUPPORT)

@@ -1216,7 +1216,8 @@ do_work (
   ALSA_configuration.periodSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_SIZE;
   ALSA_configuration.periodTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_TIME;
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration_2; // playback
-//  ALSA_configuration_2.asynch = false;
+//  if (Common_Error_Tools::inDebugSession ()) // gdb seems not to play too well with signals
+//    ALSA_configuration_2.asynch = false;
   ALSA_configuration_2.rateResample = true;
   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
