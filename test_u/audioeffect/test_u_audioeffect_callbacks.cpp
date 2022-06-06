@@ -8607,37 +8607,42 @@ radiobutton_noise_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_NOISE_NAME)));
   ACE_ASSERT (radio_button_p);
-#if defined (LIBNOISE_SUPPORT)
   GtkRadioButton* radio_button_2 =
     GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_PERLIN_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_PINK_NAME)));
   ACE_ASSERT (radio_button_2);
-#endif // LIBNOISE_SUPPORT
+#if defined (LIBNOISE_SUPPORT)
   GtkRadioButton* radio_button_3 =
     GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SAWTOOTH_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_PERLIN_NAME)));
   ACE_ASSERT (radio_button_3);
+#endif // LIBNOISE_SUPPORT
   GtkRadioButton* radio_button_4 =
     GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SINUS_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SAWTOOTH_NAME)));
   ACE_ASSERT (radio_button_4);
   GtkRadioButton* radio_button_5 =
     GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SQUARE_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SINUS_NAME)));
   ACE_ASSERT (radio_button_5);
-  //GtkRadioButton* radio_button_6 =
+  GtkRadioButton* radio_button_6 =
+    GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SQUARE_NAME)));
+  ACE_ASSERT (radio_button_6);
+  //GtkRadioButton* radio_button_7 =
   //  GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
   //                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_TRIANGLE_NAME)));
-  //ACE_ASSERT (radio_button_6);
+  //ACE_ASSERT (radio_button_7);
 
   enum Stream_MediaFramework_SoundGeneratorType noise_type_e =
     ((GTK_RADIO_BUTTON (toggleButton_in) == radio_button_p) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE
+  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_2) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PINK_NOISE
 #if defined (LIBNOISE_SUPPORT)
-  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_2) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PERLIN_NOISE
+  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_3) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PERLIN_NOISE
 #endif // LIBNOISE_SUPPORT
-  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_3) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH
-  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_4) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE
-  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_5) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE
+  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_4) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH
+  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_5) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE
+  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_6) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE
   :  STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_TRIANGLE);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -8741,6 +8746,7 @@ radiobutton_noise_toggled_cb (GtkToggleButton* toggleButton_in,
       break;
     }
     case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE:
+    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PINK_NOISE:
       break;
 #if defined (LIBNOISE_SUPPORT)
     case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PERLIN_NOISE:

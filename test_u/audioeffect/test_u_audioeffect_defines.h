@@ -112,6 +112,7 @@
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME         "liststore_resolution"
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME             "liststore_source"
 #define TEST_U_STREAM_UI_GTK_RADIOBUTTON_NOISE_NAME            "radiobutton_noise"
+#define TEST_U_STREAM_UI_GTK_RADIOBUTTON_PINK_NAME             "radiobutton_pink"
 #if defined (LIBNOISE_SUPPORT)
 #define TEST_U_STREAM_UI_GTK_RADIOBUTTON_PERLIN_NAME           "radiobutton_perlin"
 #endif // LIBNOISE_SUPPORT

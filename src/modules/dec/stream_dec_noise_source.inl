@@ -34,6 +34,8 @@ extern "C"
 #include "ace/OS.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "common_tools.h"
+
 #include "common_log_tools.h"
 
 #include "common_timer_manager_common.h"
@@ -84,6 +86,10 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
  , realDistribution_ ()
  , integerDistribution_ ()
  , signedIntegerDistribution_ ()
+ , key_ (0)
+ , keyMax_ (0x1F) // five bits set
+ , range_ (0)
+ , whiteValues_ ()
 #if defined (LIBNOISE_SUPPORT)
  , noiseModule_ ()
  , x_ (0.0)
@@ -101,6 +107,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dec_Noise_Source_T::Stream_Dec_Noise_Source_T"));
 
+  ACE_OS::memset (whiteValues_, 0, sizeof (unsigned int[5]));
 }
 
 template <ACE_SYNCH_DECL,
@@ -500,6 +507,12 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
           }
         } // end SWITCH
 
+      range_ =
+        Common_Tools::max<unsigned int> (inherited::configuration_->generatorConfiguration->bytesPerSample,
+                                         inherited::configuration_->generatorConfiguration->isSignedFormat);
+      for (int i = 0; i < 5; i++)
+        whiteValues_[i] = rand () % (range_ / 5);
+
 #if defined (LIBNOISE_SUPPORT)
       //noiseModule_.SetFrequency (inherited::configuration_->generatorConfiguration->frequency);
       x_ = inherited::configuration_->generatorConfiguration->x;
@@ -765,6 +778,23 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                                   bufferSize_ / frameSize_,
                                                   inherited::configuration_->generatorConfiguration->amplitude,
                                                   integerDistribution_);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PINK_NOISE:
+    {
+      Stream_Module_Decoder_Noise_Tools::pink_noise (inherited::configuration_->generatorConfiguration->samplesPerSecond,
+                                                     inherited::configuration_->generatorConfiguration->bytesPerSample,
+                                                     inherited::configuration_->generatorConfiguration->numberOfChannels,
+                                                     inherited::configuration_->generatorConfiguration->isSignedFormat,
+                                                     inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
+                                                     inherited::configuration_->generatorConfiguration->isFloatFormat,
+                                                     reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                                     bufferSize_ / frameSize_,
+                                                     inherited::configuration_->generatorConfiguration->amplitude,
+                                                     key_,
+                                                     keyMax_,
+                                                     range_,
+                                                     whiteValues_);
       break;
     }
 #if defined (LIBNOISE_SUPPORT)

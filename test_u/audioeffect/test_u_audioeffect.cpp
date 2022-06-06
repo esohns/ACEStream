@@ -1208,6 +1208,8 @@ do_work (
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration; // capture
   ALSA_configuration.asynch = STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH;
+  if (Common_Error_Tools::inDebugSession ()) // gdb seems not to play too well with signals
+    ALSA_configuration.asynch = false;
   ALSA_configuration.bufferSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_SIZE;
   ALSA_configuration.bufferTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_TIME;
   ALSA_configuration.periods = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIODS;

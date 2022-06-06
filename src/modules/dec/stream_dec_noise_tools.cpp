@@ -28,6 +28,173 @@
 //#define MAXIMUM_PHASE_D 2.0 * M_PI
 static double acestream_noise_maximum_phase_d = 2.0 * M_PI;
 
+void
+Stream_Module_Decoder_Noise_Tools::pink_noise (unsigned int sampleRate_in,
+                                               unsigned int bytesPerSample_in,
+                                               unsigned int channels_in,
+                                               bool formatIsSigned_in,
+                                               bool formatIsLittleEndian_in,
+                                               bool formatIsFloatingPoint_in,
+                                               ACE_UINT8* buffer_in,
+                                               unsigned int samplesToWrite_in,
+                                               double amplitude_in,
+                                               int& key_inout,
+                                               int keyMax_in,
+                                               unsigned int range_in,
+                                               unsigned int whiteValues_inout[])
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Noise_Tools::pink_noise"));
+
+  bool byte_swap_b =
+    (formatIsLittleEndian_in ? (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
+                             : (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN));
+  uint8_t* data_p = buffer_in;
+  uint64_t value;
+  int last_key_i, diff_i;
+  for (unsigned int i = 0; i < samplesToWrite_in; ++i)
+  {
+    last_key_i = key_inout;
+    ++key_inout;
+    if (key_inout > keyMax_in)
+      key_inout = 0;
+    diff_i = last_key_i ^ key_inout;
+    value = 0;
+    for (int j = 0; j < 5; ++j)
+    {
+      if (diff_i & (1 << i))
+        whiteValues_inout[i] = rand () % (range_in / 5);
+      value += whiteValues_inout[i];
+    } // end FOR
+    value = static_cast<uint64_t> (static_cast<double> (value) * amplitude_in);
+    for (unsigned int j = 0;
+         j < channels_in;
+         ++j, data_p += bytesPerSample_in)
+      switch (bytesPerSample_in)
+      {
+        case 1:
+        {
+          if (formatIsSigned_in)
+            *reinterpret_cast<int8_t*> (data_p) = static_cast<int8_t> (value);
+          else
+            *data_p = static_cast<uint8_t> (value);
+          break;
+        }
+        case 2:
+        {
+          if (formatIsSigned_in)
+          {
+            if (byte_swap_b)
+              *reinterpret_cast<int16_t*> (data_p) =
+                Common_Tools::byteSwap (static_cast<int16_t> (value));
+            else
+              *reinterpret_cast<int16_t*> (data_p) =
+                static_cast<int16_t> (value);
+          } // end IF
+          else
+          {
+            if (byte_swap_b)
+              *reinterpret_cast<uint16_t*> (data_p) =
+                Common_Tools::byteSwap (static_cast<uint16_t> (value));
+            else
+              *reinterpret_cast<uint16_t*> (data_p) =
+                static_cast<uint16_t> (value);
+          } // end ELSE
+          break;
+        }
+        case 4:
+        {
+          if (!formatIsFloatingPoint_in)
+          {
+            if (formatIsSigned_in)
+            {
+              if (byte_swap_b)
+                *reinterpret_cast<int32_t*> (data_p) =
+                  Common_Tools::byteSwap (static_cast<int32_t> (value));
+              else
+                *reinterpret_cast<int32_t*> (data_p) =
+                  static_cast<int32_t> (value);
+            } // end IF
+            else
+            {
+              if (byte_swap_b)
+                *reinterpret_cast<uint32_t*> (data_p) =
+                  Common_Tools::byteSwap (static_cast<uint32_t> (value));
+              else
+                *reinterpret_cast<uint32_t*> (data_p) =
+                  static_cast<uint32_t> (value);
+            } // end ELSE
+          } // end IF
+          else
+          { ACE_ASSERT (ACE_SIZEOF_FLOAT == 4);
+            float value_d = static_cast<float> (value);
+            if (byte_swap_b)
+              *reinterpret_cast<int32_t*> (data_p) =
+                Common_Tools::byteSwap (*reinterpret_cast<int32_t*> (&value_d));
+            else
+              *reinterpret_cast<int32_t*> (data_p) =
+                *reinterpret_cast<int32_t*> (&value_d);
+          } // end ELSE
+          break;
+        }
+        case 8:
+        {
+          if (!formatIsFloatingPoint_in)
+          {
+            if (formatIsSigned_in)
+            {
+              if (byte_swap_b)
+                *reinterpret_cast<int64_t*> (data_p) =
+                  Common_Tools::byteSwap (static_cast<int64_t> (value));
+              else
+                *reinterpret_cast<int64_t*> (data_p) =
+                  static_cast<int64_t> (value);
+            } // end IF
+            else
+            {
+              if (byte_swap_b)
+                *reinterpret_cast<uint64_t*> (data_p) =
+                  Common_Tools::byteSwap (static_cast<uint64_t> (value));
+              else
+                *reinterpret_cast<uint64_t*> (data_p) =
+                  static_cast<uint64_t> (value);
+            } // end ELSE
+          } // end IF
+          else
+          { ACE_ASSERT (ACE_SIZEOF_DOUBLE == 8);
+            double value_d = static_cast<double> (value);
+            if (byte_swap_b)
+              *reinterpret_cast<int64_t*> (data_p) =
+                Common_Tools::byteSwap (*reinterpret_cast<int64_t*> (&value_d));
+            else
+              *reinterpret_cast<int64_t*> (data_p) =
+                *reinterpret_cast<int64_t*> (&value_d);
+          } // end ELSE
+          break;
+        }
+        case 16:
+        { ACE_ASSERT (formatIsFloatingPoint_in);
+          ACE_ASSERT (ACE_SIZEOF_LONG_DOUBLE == 16);
+          ACE_ASSERT (false); // *TODO*: int64_t will not work here
+          long double value_d = static_cast<long double> (value);
+          if (byte_swap_b)
+            *reinterpret_cast<int64_t*> (data_p) =
+              Common_Tools::byteSwap (*reinterpret_cast<int64_t*> (&value_d));
+          else
+            *reinterpret_cast<int64_t*> (data_p) =
+              *reinterpret_cast<int64_t*> (&value_d);
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown value size (was: %u), returning\n"),
+                      bytesPerSample_in));
+          return;
+        }
+      } // end SWITCH
+  } // end FOR
+}
+
 #if defined (LIBNOISE_SUPPORT)
 void
 Stream_Module_Decoder_Noise_Tools::perlin_noise (noise::module::Perlin& module_in,

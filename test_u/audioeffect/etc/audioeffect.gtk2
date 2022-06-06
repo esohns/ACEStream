@@ -1706,6 +1706,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="tooltip_text" translatable="yes">random noise</property>
+                                <property name="relief">half</property>
                                 <property name="use_underline">True</property>
                                 <property name="focus_on_click">False</property>
                                 <property name="active">True</property>
@@ -1714,14 +1715,12 @@
                               </object>
                             </child>
                             <child>
-                              <placeholder/>
-                            </child>
-                            <child>
                               <object class="GtkRadioButton" id="radiobutton_triangle">
                                 <property name="label" translatable="yes">Triangle</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
+                                <property name="relief">half</property>
                                 <property name="focus_on_click">False</property>
                                 <property name="draw_indicator">False</property>
                                 <property name="group">radiobutton_noise</property>
@@ -1730,22 +1729,6 @@
                               <packing>
                                 <property name="left_attach">1</property>
                                 <property name="top_attach">2</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkRadioButton" id="radiobutton_perlin">
-                                <property name="label" translatable="yes">Perlin Noise</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">False</property>
-                                <property name="focus_on_click">False</property>
-                                <property name="draw_indicator">False</property>
-                                <property name="group">radiobutton_noise</property>
-                                <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
-                              </object>
-                              <packing>
-                                <property name="left_attach">1</property>
-                                <property name="right_attach">2</property>
                               </packing>
                             </child>
                             <child>
@@ -1758,6 +1741,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="tooltip_text" translatable="yes">sine wave</property>
+                                <property name="relief">half</property>
                                 <property name="use_underline">True</property>
                                 <property name="focus_on_click">False</property>
                                 <property name="draw_indicator">False</property>
@@ -1775,6 +1759,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
+                                <property name="relief">half</property>
                                 <property name="focus_on_click">False</property>
                                 <property name="draw_indicator">False</property>
                                 <property name="group">radiobutton_noise</property>
@@ -1796,6 +1781,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
+                                <property name="relief">half</property>
                                 <property name="focus_on_click">False</property>
                                 <property name="draw_indicator">False</property>
                                 <property name="group">radiobutton_noise</property>
@@ -1804,6 +1790,40 @@
                               <packing>
                                 <property name="top_attach">2</property>
                                 <property name="bottom_attach">3</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkRadioButton" id="radiobutton_perlin">
+                                <property name="label" translatable="yes">Perlin Noise</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="relief">half</property>
+                                <property name="focus_on_click">False</property>
+                                <property name="draw_indicator">False</property>
+                                <property name="group">radiobutton_noise</property>
+                                <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="left_attach">2</property>
+                                <property name="right_attach">3</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkRadioButton" id="radiobutton_pink">
+                                <property name="label" translatable="yes">Pink Noise</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="relief">half</property>
+                                <property name="focus_on_click">False</property>
+                                <property name="draw_indicator">False</property>
+                                <property name="group">radiobutton_noise</property>
+                                <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="left_attach">1</property>
+                                <property name="right_attach">2</property>
                               </packing>
                             </child>
                           </object>
