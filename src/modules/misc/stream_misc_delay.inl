@@ -320,6 +320,9 @@ continue_:
       switch (inherited::configuration_->delayConfiguration->mode)
       {
         case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
+        {
+          // ACE_FALLTHROUGH;
+        }
         case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
         {
           availableTokens_ =
@@ -328,10 +331,6 @@ continue_:
         }
         case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER:
         {
-          //inherited::configuration_->delayConfiguration->interval =
-          //  ACE_Time_Value::zero;
-          //inherited::configuration_->delayConfiguration->interval.msec (static_cast<long> (1000 / inherited::configuration_->delayConfiguration->averageTokensPerInterval));
-          //inherited::configuration_->delayConfiguration->averageTokensPerInterval = 1;
           availableTokens_ =
             inherited::configuration_->delayConfiguration->averageTokensPerInterval;
           break;
