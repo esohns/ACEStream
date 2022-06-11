@@ -43,6 +43,7 @@ extern "C"
 #include "stream_defines.h"
 #include "stream_macros.h"
 
+#include "stream_lib_defines.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_tools.h"
 #include "stream_lib_directsound_tools.h"
