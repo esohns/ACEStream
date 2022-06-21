@@ -78,21 +78,25 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_camera_ar_message.cpp
      test_i_camera_ar_message.h
      test_i_camera_ar_message.inl
-     test_i_camera_ar_module_pge.cpp
-     test_i_camera_ar_module_pge.h
-     test_i_camera_ar_module_pge.inl
      test_i_camera_ar_session_message.cpp
      test_i_camera_ar_session_message.h
      test_i_camera_ar_session_message.inl
      test_i_camera_ar_stream.cpp
      test_i_camera_ar_stream.h)
-if (WIN32)
+if (OLC_PGE_SUPPORT)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
+      test_i_camera_ar_module_pge.cpp
+      test_i_camera_ar_module_pge.h
+      test_i_camera_ar_module_pge.inl)
+endif (OLC_PGE_SUPPORT)
+if (WIN32 AND OLC_CGE_SUPPORT)
  set (${EXECUTABLE}_EXE_SRCS
       ${${EXECUTABLE}_EXE_SRCS}
       test_i_camera_ar_module_cge.cpp
       test_i_camera_ar_module_cge.h
       test_i_camera_ar_module_cge.inl)
-endif (WIN32)
+endif (WIN32 AND OLC_CGE_SUPPORT)
 
 if (UNIX)
 elseif (WIN32)

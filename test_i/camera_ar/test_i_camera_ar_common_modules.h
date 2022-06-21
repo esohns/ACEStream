@@ -74,9 +74,13 @@
 #include "test_i_camera_ar_common.h"
 #include "test_i_camera_ar_message.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (OLC_CGE_SUPPORT)
 #include "test_i_camera_ar_module_cge.h"
+#endif // OLC_CGE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (OLC_PGE_SUPPORT)
 #include "test_i_camera_ar_module_pge.h"
+#endif // OLC_PGE_SUPPORT
 #include "test_i_camera_ar_session_message.h"
 
 // declare module(s)
@@ -437,15 +441,23 @@ typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
 //                                       Stream_CameraAR_MediaFoundation_SessionData,
 //                                       struct Stream_UserData> Stream_CameraAR_MediaFoundation_MessageHandler;
 
+#if defined (OLC_CGE_SUPPORT)
 typedef Test_I_CameraAR_Module_CGE_T<Test_U_DirectShow_TaskBaseAsynch_t,
                                      struct _AMMediaType> Stream_CameraAR_DirectShow_CGE;
+#endif // OLC_CGE_SUPPORT
+#if defined (OLC_PGE_SUPPORT)
 typedef Test_I_CameraAR_Module_PGE_T<Test_U_DirectShow_TaskBaseAsynch_t,
                                      struct _AMMediaType> Stream_CameraAR_DirectShow_PGE;
+#endif // OLC_PGE_SUPPORT
 
+#if defined (OLC_CGE_SUPPORT)
 typedef Test_I_CameraAR_Module_CGE_T<Test_U_MediaFoundation_TaskBaseAsynch_t,
                                      IMFMediaType*> Stream_CameraAR_MediaFoundation_CGE;
+#endif // OLC_CGE_SUPPORT
+#if defined (OLC_PGE_SUPPORT)
 typedef Test_I_CameraAR_Module_PGE_T<Test_U_MediaFoundation_TaskBaseAsynch_t,
                                      IMFMediaType*> Stream_CameraAR_MediaFoundation_PGE;
+#endif // OLC_PGE_SUPPORT
 #else
 //typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
 //                                       Common_TimePolicy_t,
@@ -456,8 +468,10 @@ typedef Test_I_CameraAR_Module_PGE_T<Test_U_MediaFoundation_TaskBaseAsynch_t,
 //                                       Stream_CameraAR_V4L_SessionData,
 //                                       struct Stream_UserData> Stream_CameraAR_MessageHandler;
 
+#if defined (OLC_PGE_SUPPORT)
 typedef Test_I_CameraAR_Module_PGE_T<Test_U_TaskBaseAsynch_t,
                                      struct Stream_MediaFramework_V4L_MediaType> Stream_CameraAR_PGE;
+#endif // OLC_PGE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
@@ -672,25 +686,31 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,       // session 
 //                              Stream_INotify_t,                                 // stream notification interface type
 //                              Stream_CameraAR_MediaFoundation_MessageHandler);   // writer type
 
+#if defined (OLC_CGE_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                               // session event type
                               struct Stream_CameraAR_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_cge_module_name_string,
                               Stream_INotify_t,                                             // stream notification interface type
                               Stream_CameraAR_DirectShow_CGE);                              // writer type
+#endif // OLC_CGE_SUPPORT
+#if defined (OLC_PGE_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                               // session event type
                               struct Stream_CameraAR_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_pge_module_name_string,
                               Stream_INotify_t,                                             // stream notification interface type
                               Stream_CameraAR_DirectShow_PGE);                              // writer type
+#endif // OLC_PGE_SUPPORT
 
+#if defined (OLC_CGE_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_MediaFoundation_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                    // session event type
                               struct Stream_CameraAR_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_cge_module_name_string,
                               Stream_INotify_t,                                                  // stream notification interface type
                               Stream_CameraAR_MediaFoundation_CGE);                              // writer type
+#endif // OLC_CGE_SUPPORT
 #else
 //DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                           // session data type
 //                              enum Stream_SessionMessageType,                       // session event type
@@ -699,12 +719,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_MediaFoundation_SessionData,      
 //                              Stream_INotify_t,                                     // stream notification interface type
 //                              Stream_CameraAR_MessageHandler);                       // writer type
 
+#if defined (OLC_PGE_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                        // session event type
                               struct Stream_CameraAR_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_pge_module_name_string,
                               Stream_INotify_t,                                      // stream notification interface type
                               Stream_CameraAR_PGE);                                  // writer type
+#endif // OLC_PGE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #endif

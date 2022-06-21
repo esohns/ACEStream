@@ -976,17 +976,24 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                                                                               &heap_allocator,     // heap allocator handle
                                                                               true);               // block ?
   Stream_CameraAR_DirectShow_Stream directshow_stream;
+#if defined (OLC_CGE_SUPPORT)
   Stream_CameraAR_DirectShow_CGE_Module directshow_CGE (&directshow_stream,
                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_CGE_DEFAULT_NAME_STRING));
+
+#endif // OLC_CGE_SUPPORT
+#if defined (OLC_PGE_SUPPORT)
   Stream_CameraAR_DirectShow_PGE_Module directshow_PGE (&directshow_stream,
                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING));
+#endif // OLC_PGE_SUPPORT
 
   Stream_CameraAR_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                                         &heap_allocator,     // heap allocator handle
                                                                                         true);               // block ?
   Stream_CameraAR_MediaFoundation_Stream mediafoundation_stream;
+#if defined (OLC_CGE_SUPPORT)
   Stream_CameraAR_MediaFoundation_CGE_Module mediafoundation_CGE (&mediafoundation_stream,
                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_CGE_DEFAULT_NAME_STRING));
+#endif // OLC_CGE_SUPPORT
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -997,8 +1004,12 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_stream_configuration.messageAllocator =
           &directshow_message_allocator;
+#if defined (OLC_CGE_SUPPORT)
       directshow_stream_configuration.module = &directshow_CGE;
-      //directshow_stream_configuration.module = &directshow_PGE;
+#endif // OLC_CGE_SUPPORT
+#if defined (OLC_PGE_SUPPORT)
+      // directshow_stream_configuration.module = &directshow_PGE;
+#endif // OLC_PGE_SUPPORT
       directshow_stream_configuration.renderer = renderer_in;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
@@ -1049,11 +1060,15 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                                                         &heap_allocator,     // heap allocator handle
                                                         true);               // block ?
   Stream_CameraAR_Stream stream;
+#if defined (OLC_PGE_SUPPORT)
   Stream_CameraAR_PGE_Module PGE (&stream,
                                   ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING));
+#endif // OLC_PGE_SUPPORT
 
   stream_configuration.messageAllocator = &message_allocator;
+#if defined (OLC_PGE_SUPPORT)
   stream_configuration.module = &PGE;
+#endif // OLC_PGE_SUPPORT
   stream_configuration.renderer = renderer_in;
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,

@@ -207,7 +207,7 @@ Stream_Decoder_RGB24_HFlip_T<ACE_SYNCH_USE,
 
       break;
 
-error:
+//error:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #endif // ACE_WIN32 || ACE_WIN64
