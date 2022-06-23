@@ -9710,7 +9710,7 @@ continue_:
       if (!(*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.empty ())
       {
         guint card_i =
-          Stream_MediaFramework_ALSA_Tools::getCardNumber ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier);
+          static_cast<guint> (Stream_MediaFramework_ALSA_Tools::getCardNumber ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier));
 #if GTK_CHECK_VERSION(2,30,0)
         GValue value = G_VALUE_INIT;
 #else

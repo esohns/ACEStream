@@ -707,63 +707,16 @@ Stream_MediaFramework_ALSA_Tools::getCardNumber (const std::string& cardName_in)
     return return_value;
   } // end IF
 
-  void** hints_p = NULL;
-  int result =
-    snd_device_name_hint (-1,
-                          ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PCM_INTERFACE_NAME),
-                          &hints_p);
+  int result = snd_card_get_index (device_id_string.c_str ());
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_device_name_hint(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to snd_card_get_index(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT (device_id_string.c_str ()),
                 ACE_TEXT (snd_strerror (result))));
     return -1;
   } // end IF
-
-  char* string_p = NULL;
-  std::string hint_string;
-  for (void** i = hints_p; *i; ++i)
-  {
-    string_p = NULL;
-    string_p = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("NAME"));
-    if (!string_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to snd_device_name_get_hint(): \"%m\", aborting\n")));
-      goto clean;
-    } // end IF
-    hint_string = string_p;
-    free (string_p); string_p = NULL;
-
-    // filter hardware devices
-    if (ACE_OS::strcmp (hint_string.c_str (),
-                        device_id_string.c_str ()))
-      continue;
-
-    string_p = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("DESC"));
-    if (!string_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to snd_device_name_get_hint(): \"%m\", aborting\n")));
-      goto clean;
-    } // end IF
-    hint_string = string_p;
-    free (string_p); string_p = NULL;
-
-    converter.str (hint_string);
-    converter >> return_value;
-    break;
-  } // end FOR
-
-clean:
-  if (hints_p)
-  {
-    result = snd_device_name_free_hint (hints_p);
-    if (result < 0)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to snd_device_name_free_hint(): \"%s\", continuing\n"),
-                  ACE_TEXT (snd_strerror (result))));
-  } // end IF
+  return_value = result;
 
   return return_value;
 }
