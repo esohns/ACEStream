@@ -9709,14 +9709,17 @@ continue_:
 #else
       if (!(*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.empty ())
       {
-        std::string::size_type position_i =
-          (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.find (':', 0);
-        ACE_ASSERT (position_i != std::string::npos);
-        std::string device_id_string =
-          (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.substr (position_i + 1, std::string::npos);
-        std::istringstream converter (device_id_string);
         guint card_i = 0;
-        converter >> card_i;
+        std::string device_id_string =
+          (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier;
+        std::string::size_type position_i = device_id_string.find (':', 0);
+        if (position_i != std::string::npos)
+        {
+          device_id_string = device_id_string.substr (position_i + 1,
+                                                      std::string::npos);
+          std::istringstream converter (device_id_string);
+          converter >> card_i;
+        } // end IF
 #if GTK_CHECK_VERSION(2,30,0)
         GValue value = G_VALUE_INIT;
 #else
@@ -9724,8 +9727,7 @@ continue_:
         ACE_OS::memset (&value, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
         g_value_init (&value, G_TYPE_UINT);
-        g_value_set_uint (&value,
-                          card_i);
+        g_value_set_uint (&value, card_i);
         index_i =
           Common_UI_GTK_Tools::valueToIndex (gtk_combo_box_get_model (combo_box_p),
                                              value,
