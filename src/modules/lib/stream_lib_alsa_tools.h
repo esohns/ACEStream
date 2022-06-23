@@ -55,6 +55,7 @@ class Stream_MediaFramework_ALSA_Tools
   static bool getFormat (struct _snd_pcm*,                                  // device handle
                          struct Stream_MediaFramework_ALSA_Configuration&); // return value: configuration
 
+  static int getCardNumber (const std::string&); // card name
   static std::string getDeviceName (enum _snd_pcm_stream); // direction
   static std::string formatToString (const struct _snd_pcm*,            // device handle
                                      const struct _snd_pcm_hw_params*); // format

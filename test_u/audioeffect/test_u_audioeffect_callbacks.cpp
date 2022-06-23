@@ -9709,17 +9709,8 @@ continue_:
 #else
       if (!(*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.empty ())
       {
-        guint card_i = 0;
-        std::string device_id_string =
-          (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier;
-        std::string::size_type position_i = device_id_string.find (':', 0);
-        if (position_i != std::string::npos)
-        {
-          device_id_string = device_id_string.substr (position_i + 1,
-                                                      std::string::npos);
-          std::istringstream converter (device_id_string);
-          converter >> card_i;
-        } // end IF
+        guint card_i =
+          Stream_MediaFramework_ALSA_Tools::getCardNumber ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier);
 #if GTK_CHECK_VERSION(2,30,0)
         GValue value = G_VALUE_INIT;
 #else
