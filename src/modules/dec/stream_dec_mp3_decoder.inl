@@ -483,7 +483,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
         message_p->release (); message_p = NULL;
         result = 0;
 
-        inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
+        inherited::change (STREAM_STATE_SESSION_STOPPING);
         continue;
       }
       case MPG123_OK:

@@ -866,6 +866,28 @@ Stream_MediaFramework_MediaFoundation_Tools::to (const struct tWAVEFORMATEX& for
 }
 
 bool
+Stream_MediaFramework_MediaFoundation_Tools::isFloat (const IMFMediaType* mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::isFloat"));
+
+  bool result = false;
+
+  struct tWAVEFORMATEX* waveformatex_p = NULL;
+  UINT32 cbSize = 0;
+  HRESULT result_2 =
+    MFCreateWaveFormatExFromMFMediaType (const_cast<IMFMediaType*> (mediaType_in),
+                                         &waveformatex_p,
+                                         &cbSize,
+                                         MFWaveFormatExConvertFlag_Normal);
+  ACE_ASSERT (SUCCEEDED (result_2) && waveformatex_p);
+  result =
+    Stream_MediaFramework_DirectSound_Tools::isFloat (*waveformatex_p);
+  CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+
+  return result;
+}
+
+bool
 Stream_MediaFramework_MediaFoundation_Tools::setFormat (REFGUID format_in,
                                                         IMFMediaType* mediaType_inout)
 {

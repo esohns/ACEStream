@@ -75,6 +75,7 @@ class Stream_MediaFramework_MediaFoundation_Tools
                              IMFMediaType*);            // media type
   // *IMPORTANT NOTE*: make sure to Release() the return value
   static IMFMediaType* to (const struct tWAVEFORMATEX&); // media type
+  static bool isFloat (const IMFMediaType*);
   static struct _GUID toFormat (const IMFMediaType*);
   static Common_Image_Resolution_t toResolution (const IMFMediaType*);
   static unsigned int toFramerate (const IMFMediaType*);

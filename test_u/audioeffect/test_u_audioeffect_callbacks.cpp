@@ -12193,6 +12193,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
       STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID;
   unsigned int sample_size = 0; // bytes
   bool is_signed_format = true;
+  bool is_float_format = false;
   unsigned int channels = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
@@ -12206,12 +12207,11 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -12235,14 +12235,13 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_modulehandler_configuration_iterator =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       if (!mediafoundation_ui_cb_data_p->stream->isRunning ())
         return FALSE;
@@ -12275,6 +12274,8 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
       //         If the audio contains 16 bits per sample or higher, the audio
       //         samples are signed values. ..."
       is_signed_format = !(sample_size == 1);
+      is_float_format =
+        Stream_MediaFramework_MediaFoundation_Tools::isFloat ((*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat);
       break;
     }
     default:
@@ -12311,19 +12312,19 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
   const Stream_Module_t* module_p = NULL;
   module_p =
     istream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
-  if (!module_p)
+  if (unlikely (!module_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_IStream::find(%s), returning\n"),
                 ACE_TEXT (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
     return FALSE;
   } // end IF
-  Common_Math_FFT_Double_t* math_fft_p =
-    dynamic_cast<Common_Math_FFT_Double_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-  if (!math_fft_p)
+  Common_Math_FFT_Float_t* math_fft_p =
+    dynamic_cast<Common_Math_FFT_Float_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  if (unlikely (!math_fft_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<Common_Math_FFT_T<double>*>(%@), returning\n"),
+                ACE_TEXT ("failed to dynamic_cast<Common_Math_FFT_T<float>*>(%@), returning\n"),
                 const_cast<Stream_Module_t*> (module_p)->writer ()));
     return FALSE;
   } // end IF
@@ -12332,8 +12333,9 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
   gtk_widget_get_allocation (widget_in,
                              &allocation);
   double half_height = allocation.height / 2.0;
-  uint64_t maximum_value = Common_Tools::max<uint64_t> (sample_size,
-                                                        is_signed_format);
+  uint64_t maximum_value =
+    (is_float_format ? 1 : Common_Tools::max<uint64_t> (sample_size,
+                                                        is_signed_format));
   std::ostringstream converter;
   switch (mode)
   {
@@ -12351,7 +12353,10 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
     case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM:
     {
       // *TODO*: the value type depends on the format, so this isn't accurate
-      if (is_signed_format)
+      if (is_float_format)
+        converter <<
+          (static_cast<float> (allocation.height - y_in) * maximum_value) / static_cast<float> (allocation.height);
+      else if (is_signed_format)
         converter <<
           static_cast<int64_t> (((half_height - y_in) * static_cast<int64_t> (maximum_value)) / half_height);
       else

@@ -146,6 +146,7 @@ continue_:
     switch (inherited::configuration_->delayConfiguration->mode)
     {
       case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
+      case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES:
       {
         total_length_i = message_block_p->total_length ();
         available_tokens_i = std::min (static_cast<ACE_UINT64> (total_length_i),
@@ -175,6 +176,7 @@ continue_:
   switch (inherited::configuration_->delayConfiguration->mode)
   {
     case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
+    case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES:
     {
       ACE_Message_Block* message_block_2 = message_block_p;
       if (available_tokens_i < total_length_i)
@@ -182,7 +184,7 @@ continue_:
         message_block_2 = Stream_Tools::get (available_tokens_i,
                                              message_block_p,
                                              message_block_p);
-        if (!message_block_2)
+        if (unlikely (!message_block_2))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_Tools::get(%u), returning\n"),
@@ -325,11 +327,10 @@ continue_:
         }
         case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
         {
-          availableTokens_ =
-            inherited::configuration_->delayConfiguration->averageTokensPerInterval;
-          break;
+          // ACE_FALLTHROUGH;
         }
         case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER:
+        case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES:
         {
           availableTokens_ =
             inherited::configuration_->delayConfiguration->averageTokensPerInterval;

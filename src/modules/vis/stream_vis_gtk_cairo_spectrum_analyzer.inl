@@ -364,7 +364,10 @@ next:
     {
       message_block_p = message_block_p->cont ();
       if (message_block_p)
+      {
+        offset = 0;
         goto next;
+      } // end IF
     } // end IF
   } while (message_block_p);
 }

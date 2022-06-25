@@ -1014,7 +1014,8 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
   BYTE* data_p = 0;
   size_t bytes_to_write_i = 0;
   unsigned int offset_i = 0;
-  UINT32 buffer_size_i = 0;
+  UINT32 buffer_size_i = 0; // (in #frames)
+  //bool buffer_written_b = false;
 
   ACE_ASSERT (!task_);
   task_ =
@@ -1079,11 +1080,13 @@ next_buffer_2:
     message_block_p = get ();
     if (unlikely (!message_block_p))
     {
-      result_3 = audioRenderClient_->ReleaseBuffer (buffer_size_i - num_frames_available_i,
-                                                    /*flags_i*/0);
+      result_3 =
+        audioRenderClient_->ReleaseBuffer (buffer_size_i - num_frames_available_i,
+                                           /*flags_i*/0);
       ACE_ASSERT (SUCCEEDED (result_3));
       goto done;
     } // end IF
+    //buffer_written_b = false;
 
 continue_:
     bytes_to_write_i = std::min (message_block_p->length (),
@@ -1097,6 +1100,7 @@ continue_:
     message_block_p->rd_ptr (bytes_to_write_i);
     if (!message_block_p->length ())
     {
+      // buffer_written_b = true;
       if (unlikely (message_block_p->cont ()))
       {
         ACE_Message_Block* message_block_2 = message_block_p->cont ();
@@ -1109,10 +1113,11 @@ continue_:
       } // end ELSE
     } // end IF
 
-    if (!num_frames_available_i)
+    if (!num_frames_available_i/* || buffer_written_b*/)
     {
-      result_3 = audioRenderClient_->ReleaseBuffer (buffer_size_i,
-                                                    /*flags_i*/0);
+      result_3 =
+        audioRenderClient_->ReleaseBuffer (buffer_size_i - num_frames_available_i,
+                                           /*flags_i*/0);
       ACE_ASSERT (SUCCEEDED (result_3));
       goto next_buffer;
     } // end IF

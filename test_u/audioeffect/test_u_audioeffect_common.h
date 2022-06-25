@@ -644,6 +644,7 @@ struct Test_U_AudioEffect_Configuration
 #else
    : Test_U_Configuration ()
 #endif // GUI_SUPPORT
+   , delayConfiguration ()
    , generatorConfiguration ()
    , signalHandlerConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -652,6 +653,7 @@ struct Test_U_AudioEffect_Configuration
 #endif // ACE_WIN32 || ACE_WIN64
   {}
 
+  struct Stream_Miscellaneous_DelayConfiguration           delayConfiguration;
   struct Stream_MediaFramework_SoundGeneratorConfiguration generatorConfiguration;
   struct Test_U_AudioEffect_SignalHandlerConfiguration     signalHandlerConfiguration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -99,6 +99,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   HRESULT result = E_FAIL;
   bool has_directshow_source_b = true;
   bool add_resampler_b = false;
+  bool add_delay_b = false;
 
   switch (inherited::configuration_->configuration_->sourceType)
   {
@@ -156,6 +157,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_1LAYER3_DEFAULT_NAME_STRING)),
                       false);
       add_resampler_b = true;
+      add_delay_b = true;
       break;
     }
     default:
@@ -264,6 +266,17 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   if (!(*iterator).second.second->mute)
   {
+    if (add_delay_b)
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_DirectShow_Delay_Module (this,
+                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
+                      false);
+      ACE_ASSERT (module_p);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+    } // end IF
+
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     ACE_NEW_RETURN (module_p,
@@ -1043,6 +1056,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   HRESULT result = E_FAIL;
   bool has_mediafoundation_source_b = true;
   bool add_resampler_b = false;
+  bool add_delay_b = false;
 
   switch (inherited::configuration_->configuration_->sourceType)
   {
@@ -1097,6 +1111,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
                                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_1LAYER3_DEFAULT_NAME_STRING)),
                       false);
       add_resampler_b = true;
+      add_delay_b = true;
       break;
     }
     default:
@@ -1215,6 +1230,28 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
 
   if (!(*iterator).second.second->mute)
   {
+    if (add_resampler_b)
+    {
+#if defined (SOX_SUPPORT)
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_MediaFoundation_SoXResampler_Module (this,
+                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+#endif // SOX_SUPPORT
+    } // end IF
+
+    if (add_delay_b)
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_MediaFoundation_Delay_Module (this,
+                                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+    } // end IF
+
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     ACE_NEW_RETURN (module_p,
@@ -1233,18 +1270,6 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
     module_p = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-
-    if (add_resampler_b)
-    {
-#if defined (SOX_SUPPORT)
-      ACE_NEW_RETURN (module_p,
-                      Test_U_AudioEffect_MediaFoundation_SoXResampler_Module (this,
-                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
-                      false);
-      layout_in->append (module_p, branch_p, index_i);
-      module_p = NULL;
-#endif // SOX_SUPPORT
-    } // end IF
 
     switch (inherited::configuration_->configuration_->renderer)
     {

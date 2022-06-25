@@ -58,6 +58,7 @@ void acestream_visualization_gtk_cairo_size_allocate_cb (GtkWidget*, GdkRectangl
 
 gboolean acestream_visualization_gtk_cairo_idle_update_cb (gpointer);
 
+typedef Common_Math_FFT_T<float> Common_Math_FFT_Float_t;
 typedef Common_Math_FFT_T<double> Common_Math_FFT_Double_t;
 
 extern const char libacestream_default_vis_spectrum_analyzer_module_name_string[];

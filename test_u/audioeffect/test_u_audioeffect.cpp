@@ -1241,6 +1241,8 @@ do_work (
     {
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
+      directshow_modulehandler_configuration.delayConfiguration =
+        &directShowConfiguration_in.delayConfiguration;
       switch (directshow_stream_configuration.capturer)
       {
         case STREAM_DEVICE_CAPTURER_WAVEIN:
@@ -1372,13 +1374,22 @@ do_work (
     {
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
+      mediaFoundationConfiguration_in.delayConfiguration.averageTokensPerInterval =
+        8;
+      //mediaFoundationConfiguration_in.delayConfiguration.mode =
+      //  STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES;
+      mediaFoundationConfiguration_in.delayConfiguration.interval =
+        ACE_Time_Value (0, (1000000.0F / (float)44100));
+      mediafoundation_modulehandler_configuration.delayConfiguration =
+        &mediaFoundationConfiguration_in.delayConfiguration;
       switch (mediafoundation_stream_configuration.capturer)
       {
         case STREAM_DEVICE_CAPTURER_WAVEIN:
         {
           mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
             Stream_Device_Identifier::ID;
-          mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._id = 0; // *TODO*: 0 may not be the default device id
+          mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._id =
+            0; // *TODO*: 0 may not be the default device id
           break;
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:

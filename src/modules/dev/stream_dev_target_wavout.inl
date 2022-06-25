@@ -132,8 +132,7 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WavOut_T::handleDataMessage"));
 
   // sanity check(s)
-  if (unlikely (!handle_))
-    return;
+  ACE_ASSERT (handle_);
 
   passMessageDownstream_out = false;
 
@@ -151,6 +150,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Queue_Ex::dequeue(): \"%m\", returning\n"),
                 inherited::mod_->name ()));
+    message_inout->release (); message_inout = NULL;
     return;
   } // end IF
   ACE_ASSERT (header_p);
@@ -176,7 +176,9 @@ continue_:
   // step3: prepare header
   header_p->lpData = message_block_p->rd_ptr ();
   header_p->dwBufferLength = message_block_p->length ();
-  header_p->dwUser = reinterpret_cast<DWORD_PTR> (message_block_p);
+  header_p->dwUser =
+    (!message_block_p->cont () ? reinterpret_cast<DWORD_PTR> (static_cast<ACE_Message_Block*> (message_inout))
+                               : NULL);
   header_p->dwFlags = 0;
   result = waveOutPrepareHeader (handle_,
                                  header_p,
@@ -369,9 +371,7 @@ error:
 
       int result_2 = -1;
       struct wavehdr_tag* buffer_p = NULL;
-      for (unsigned int i = 0;
-           i < STREAM_DEV_WAVEOUT_DEFAULT_DEVICE_BUFFERS;
-           ++i)
+      while (!queue_.is_empty ())
       {
         result_2 = queue_.dequeue (buffer_p,
                                    NULL);
@@ -384,7 +384,7 @@ error:
         } // end IF
         ACE_ASSERT (buffer_p);
         delete buffer_p; buffer_p = NULL;
-      } // end FOR
+      } // end WHILE
 
       break;
     }
@@ -415,8 +415,9 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
 
   struct wavehdr_tag* buffer_p = NULL;
   int result = -1;
+  unsigned int i = 0;
 
-  for (unsigned int i = 0;
+  for (;
        i < STREAM_DEV_WAVEOUT_DEFAULT_DEVICE_BUFFERS;
        ++i)
   {
@@ -427,7 +428,7 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
                   inherited::mod_->name ()));
-      return false;
+      goto error;
     } // end IF
     ACE_OS::memset (buffer_p, 0, sizeof (struct wavehdr_tag));
 
@@ -439,9 +440,30 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: failed to ACE_Message_Queue_Ex::enqueue(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
       delete buffer_p;
-      return false;
+      goto error;
     } // end IF
   } // end FOR
 
   return true;
+
+error:
+  for (unsigned int j = 0;
+       j < i;
+       ++j)
+  {
+    buffer_p = NULL;
+    result = queue_.dequeue (buffer_p,
+                             NULL);
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Message_Queue_Ex::dequeue(): \"%m\", continuing\n"),
+                  inherited::mod_->name ()));
+      continue;
+    } // end IF
+    ACE_ASSERT (buffer_p);
+    delete buffer_p;
+  } // end FOR
+
+  return false;
 }

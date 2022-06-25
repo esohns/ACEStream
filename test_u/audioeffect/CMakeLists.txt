@@ -334,7 +334,7 @@ if (UNIX)
  set (RUNTIME_LIBRARY_DIR ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
 # set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
- set (ARGS "-m ${ARGS}") # use mediafoundation
+# set (ARGS "-m ${ARGS}") # use mediafoundation
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if (GUI_SUPPORT)
