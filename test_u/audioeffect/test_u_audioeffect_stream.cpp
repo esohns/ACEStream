@@ -2169,31 +2169,7 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
   } // end IF
-  if (add_delay_b)
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_U_ALSA_Delay_Module (this,
-                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
-                    false);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-  } // end IF
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_StatisticAnalysis_Module (this,
-                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
-                  false);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_Vis_SpectrumAnalyzer_Module (this,
-                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                  false);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+
   // *NOTE*: this processing stream may have branches, depending on:
   //         - whether the output is muted
   //         - whether the output is saved to file
@@ -2222,6 +2198,33 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
 
     if (!(*iterator).second.second->mute)
     {
+      if (add_delay_b)
+      {
+        ACE_NEW_RETURN (module_p,
+                        Test_U_ALSA_Delay_Module (this,
+                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
+                        false);
+        layout_in->append (module_p, branch_p, index_i);
+        module_p = NULL;
+      } // end IF
+
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_StatisticAnalysis_Module (this,
+                                                                   ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_Vis_SpectrumAnalyzer_Module (this,
+                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
       ACE_NEW_RETURN (module_p,
                       Test_U_AudioEffect_Target_ALSA_Module (this,
                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
@@ -2230,6 +2233,7 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
       ++index_i;
       module_p = NULL;
     } // end IF
+
     if (!(*iterator_3).second.second->fileIdentifier.empty ())
     {
       ACE_NEW_RETURN (module_p,

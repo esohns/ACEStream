@@ -354,7 +354,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
 
         if (unlikely (inherited::current () != STREAM_STATE_FINISHED))
         {
-          inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
+          inherited::change (STREAM_STATE_SESSION_STOPPING);
           message_block_p->release (); message_block_p = NULL;
           continue;
         } // end IF
@@ -377,16 +377,17 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                                   false); // forward upstream ?
           } // end IF
 
-          // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
-          //                   the stream may not have finish()ed
+          bool finish_b = false;
           { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-            if (!inherited::sessionEndSent_ && !inherited::sessionEndProcessed_)
-            {
-              inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
-              message_block_p->release (); message_block_p = NULL;
-              continue;
-            } // end IF
+            if (unlikely (!inherited::sessionEndSent_ && !inherited::sessionEndProcessed_))
+              finish_b = true;
           } // end lock scope
+          if (unlikely (finish_b))
+          {
+            message_block_p->release (); message_block_p = NULL;
+            inherited::finished (); // enqueue SESSION_END and continue
+            continue;
+          } // end IF
 
           // *NOTE*: this is racy; the penultimate thread may have left svc() and
           //         not have decremented thr_count_ yet. In this case, the
@@ -433,8 +434,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
         { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
           if (unlikely (!inherited::sessionEndSent_ && !inherited::sessionEndProcessed_))
           {
-            // enqueue(/process) STREAM_SESSION_END
-            inherited::finished ();
+            inherited::change (STREAM_STATE_SESSION_STOPPING);
             continue;
           } // end IF
         } // end lock scope
@@ -453,7 +453,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                       ACE_TEXT ("%s: session (id was: %u) aborted\n"),
                       inherited::mod_->name (),
                       session_data_r.sessionId));
-          inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
+          inherited::change (STREAM_STATE_SESSION_STOPPING);
           continue;
         } // end IF
       } // end lock scope
@@ -467,7 +467,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), aborting\n"),
                   inherited::mod_->name (),
                   bufferSize_));
-      inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
+      inherited::change (STREAM_STATE_SESSION_STOPPING);
       continue;
     } // end IF
 
@@ -496,7 +496,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                       ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
                       inherited::mod_->name ()));
           message_p->release (); message_p = NULL;
-          inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
+          inherited::change (STREAM_STATE_SESSION_STOPPING);
           continue;
         } // end IF
         message_p = NULL;
@@ -510,7 +510,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                     ACE_TEXT (file_path_string.c_str ()),
                     ACE_TEXT (mpg123_plain_strerror (error_i))));
         message_p->release (); message_p = NULL;
-        inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
+        inherited::change (STREAM_STATE_SESSION_STOPPING);
         continue;
       }
     } // end SWITCH

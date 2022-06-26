@@ -1216,8 +1216,8 @@ do_work (
   ALSA_configuration.periodSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_SIZE;
   ALSA_configuration.periodTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_TIME;
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration_2; // playback
-//  if (Common_Error_Tools::inDebugSession ()) // gdb seems not to play too well with signals
-//    ALSA_configuration_2.asynch = false;
+  if (Common_Error_Tools::inDebugSession ()) // gdb seems not to play too well with signals
+    ALSA_configuration_2.asynch = false;
   ALSA_configuration_2.rateResample = true;
   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
@@ -1243,13 +1243,20 @@ do_work (
         allocator_configuration_p;
       directshow_modulehandler_configuration.delayConfiguration =
         &directShowConfiguration_in.delayConfiguration;
+      directShowConfiguration_in.delayConfiguration.averageTokensPerInterval =
+        8;
+      //directShowConfiguration_in.delayConfiguration.mode =
+      //  STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES;
+      directShowConfiguration_in.delayConfiguration.interval =
+        ACE_Time_Value (0, (1000000.0F / (float)44100));
       switch (directshow_stream_configuration.capturer)
       {
         case STREAM_DEVICE_CAPTURER_WAVEIN:
         {
           directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
             Stream_Device_Identifier::ID;
-          directshow_modulehandler_configuration.deviceIdentifier.identifier._id = 0; // *TODO*: -1 means WAVE_MAPPER; 0 may not be the default device id
+          directshow_modulehandler_configuration.deviceIdentifier.identifier._id =
+            0; // *TODO*: -1 means WAVE_MAPPER; 0 may not be the default device id
           break;
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
@@ -1525,6 +1532,14 @@ do_work (
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
   stream_configuration.allocatorConfiguration = allocator_configuration_p;
 //  modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
+  modulehandler_configuration.delayConfiguration =
+    &configuration_in.delayConfiguration;
+  configuration_in.delayConfiguration.averageTokensPerInterval =
+    8;
+//  configuration_in.delayConfiguration.mode =
+//    STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES;
+  configuration_in.delayConfiguration.interval =
+    ACE_Time_Value (0, (1.0F / (float)44100) * 1000000.0F);
   modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;
   modulehandler_configuration.effect = effectName_in;
   modulehandler_configuration.generatorConfiguration =

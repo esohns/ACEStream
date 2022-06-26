@@ -1472,85 +1472,36 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   COMMON_GL_ASSERT;
-  glLoadIdentity (); // Reset the transformation matrix.
+  glLoadIdentity (); // Reset the transformation matrix
   COMMON_GL_ASSERT;
   glTranslatef (0.0F, 0.0F, -5.0F); // Move back into the screen 5 units
   COMMON_GL_ASSERT;
+  static GLfloat rotation = 0.0F;
+  glRotatef (rotation, 1.0F, 1.0F, 1.0F); // Rotate around the X,Y,Z axis'
+  COMMON_GL_ASSERT;
+  rotation -= static_cast<GLfloat> (ui_cb_data_base_p->objectRotation); // Modify rotation angle
+
+  static GLfloat vertices[] = {
+    -0.5f, 0.0f,  0.5f,  0.5f, 0.0f,  0.5f,  0.5f, 1.0f,  0.5f, -0.5f, 1.0f,  0.5f,
+    -0.5f, 1.0f, -0.5f,  0.5f, 1.0f, -0.5f,  0.5f, 0.0f, -0.5f, -0.5f, 0.0f, -0.5f,
+     0.5f, 0.0f,  0.5f,  0.5f, 0.0f, -0.5f,  0.5f, 1.0f, -0.5f,  0.5f, 1.0f,  0.5f,
+    -0.5f, 0.0f, -0.5f, -0.5f, 0.0f,  0.5f, -0.5f, 1.0f,  0.5f, -0.5f, 1.0f, -0.5f};
+  static GLfloat texture_coordinates[] = {
+     0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0,
+     0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0,
+     0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0,
+     0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0};
+  static GLubyte cube_indices[24] = {
+     0,1,2,3, 4,5,6,7, 3,2,5,4, 7,6,1,0, 8,9,10,11, 12,13,14,15};
 
   glBindTexture (GL_TEXTURE_2D, *texture_id_p);
   COMMON_GL_ASSERT;
-
-//  static GLfloat rot_x = 0.0f;
-//  static GLfloat rot_y = 0.0f;
-//  static GLfloat rot_z = 0.0f;
-//  glRotatef (rot_x, 1.0f, 0.0f, 0.0f); // Rotate On The X Axis
-//  glRotatef (rot_y, 0.0f, 1.0f, 0.0f); // Rotate On The Y Axis
-//  glRotatef (rot_z, 0.0f, 0.0f, 1.0f); // Rotate On The Z Axis
-  static GLfloat rotation = 0.0F;
-  glRotatef (rotation, 1.0F, 1.0F, 1.0F); // Rotate On The X,Y,Z Axis
-  COMMON_GL_ASSERT;
-
-//  glBegin (GL_QUADS);
-
-//  glTexCoord2i (0, 0); glVertex3f (  0.0f,   0.0f, 0.0f);
-//  glTexCoord2i (0, 1); glVertex3f (  0.0f, 100.0f, 0.0f);
-//  glTexCoord2i (1, 1); glVertex3f (100.0f, 100.0f, 0.0f);
-//  glTexCoord2i (1, 0); glVertex3f (100.0f,   0.0f, 0.0f);
-
-  static GLfloat vertices[] = {
-    -0.5f, 0.0f, 0.5f,   0.5f, 0.0f, 0.5f,   0.5f, 1.0f, 0.5f,  -0.5f, 1.0f, 0.5f,
-    -0.5f, 1.0f, -0.5f,  0.5f, 1.0f, -0.5f,  0.5f, 0.0f, -0.5f, -0.5f, 0.0f, -0.5f,
-    0.5f, 0.0f, 0.5f,   0.5f, 0.0f, -0.5f,  0.5f, 1.0f, -0.5f,  0.5f, 1.0f, 0.5f,
-    -0.5f, 0.0f, -0.5f,  -0.5f, 0.0f, 0.5f,  -0.5f, 1.0f, 0.5f, -0.5f, 1.0f, -0.5f};
-  static GLfloat texture_coordinates[] = {
-    0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0,
-    0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0,
-    0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0,
-    0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0 };
-  static GLubyte cube_indices[24] = {
-    0,1,2,3, 4,5,6,7, 3,2,5,4, 7,6,1,0,
-    8,9,10,11, 12,13,14,15};
-
   glTexCoordPointer (2, GL_FLOAT, 0, texture_coordinates);
   COMMON_GL_ASSERT;
   glVertexPointer (3, GL_FLOAT, 0, vertices);
   COMMON_GL_ASSERT;
   glDrawElements (GL_QUADS, 24, GL_UNSIGNED_BYTE, cube_indices);
   COMMON_GL_ASSERT;
-
-//  rot_x += 0.3f;
-//  rot_y += 0.20f;
-//  rot_z += 0.4f;
-  rotation -= (1.0f * ui_cb_data_base_p->objectRotation); // modify The Rotation Angle For The Cube
-
-  //GLuint vertex_array_id = 0;
-  //glGenVertexArrays (1, &vertex_array_id);
-  //glBindVertexArray (vertex_array_id);
-
-  //static const GLfloat vertex_buffer_data[] = {
-  //  -1.0f, -1.0f, 0.0f,
-  //  1.0f, -1.0f, 0.0f,
-  //  -1.0f,  1.0f, 0.0f,
-  //  -1.0f,  1.0f, 0.0f,
-  //  1.0f, -1.0f, 0.0f,
-  //  1.0f,  1.0f, 0.0f,
-  //};
-
-  //GLuint vertex_buffer;
-  //glGenBuffers (1, &vertex_buffer);
-  //glBindBuffer (GL_ARRAY_BUFFER, vertex_buffer);
-  //glBufferData (GL_ARRAY_BUFFER,
-  //              sizeof (vertex_buffer_data), vertex_buffer_data,
-  //              GL_STATIC_DRAW);
-
-  ////GLuint program_id = LoadShaders ("Passthrough.vertexshader",
-  ////                                 "SimpleTexture.fragmentshader");
-  ////GLuint tex_id = glGetUniformLocation (program_id, "renderedTexture");
-  ////GLuint time_id = glGetUniformLocation (program_id, "time");
-
-  //glBindFramebuffer (GL_FRAMEBUFFER, 0);
-  //glViewport (0, 0,
-  //            data_p->area3D.width, data_p->area3D.height);
 
   gtk_gl_area_swap_buffers (GTK_GL_AREA (widget_in));
 
