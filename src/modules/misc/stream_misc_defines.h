@@ -39,6 +39,8 @@
 // stream
 #define STREAM_MISC_DEFAULT_INPUT_STREAM_NAME_STRING                "InputStream"
 
+#define STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US                 10000 // us
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // DirectShow
 #define STREAM_MISC_DS_WIN32_FILTER_SOURCE_BUFFERS                  30 // ==> max. #frames(/sec)

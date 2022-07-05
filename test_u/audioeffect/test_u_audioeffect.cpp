@@ -1243,12 +1243,12 @@ do_work (
         allocator_configuration_p;
       directshow_modulehandler_configuration.delayConfiguration =
         &directShowConfiguration_in.delayConfiguration;
-      directShowConfiguration_in.delayConfiguration.averageTokensPerInterval =
-        8;
+      //directShowConfiguration_in.delayConfiguration.averageTokensPerInterval =
+      //  static_cast<ACE_UINT64> ((static_cast<float> (4 * 44100) * static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US)) / 1000000.0F);
       //directShowConfiguration_in.delayConfiguration.mode =
       //  STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES;
-      directShowConfiguration_in.delayConfiguration.interval =
-        ACE_Time_Value (0, (1000000.0F / (float)44100));
+      //directShowConfiguration_in.delayConfiguration.interval =
+      //  ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
       switch (directshow_stream_configuration.capturer)
       {
         case STREAM_DEVICE_CAPTURER_WAVEIN:
@@ -1381,12 +1381,12 @@ do_work (
     {
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
-      mediaFoundationConfiguration_in.delayConfiguration.averageTokensPerInterval =
-        8;
+      //mediaFoundationConfiguration_in.delayConfiguration.averageTokensPerInterval =
+      //  8;
       //mediaFoundationConfiguration_in.delayConfiguration.mode =
       //  STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES;
-      mediaFoundationConfiguration_in.delayConfiguration.interval =
-        ACE_Time_Value (0, (1000000.0F / (float)44100));
+      //mediaFoundationConfiguration_in.delayConfiguration.interval =
+      //  ACE_Time_Value (0, (1000000.0F / (float)44100));
       mediafoundation_modulehandler_configuration.delayConfiguration =
         &mediaFoundationConfiguration_in.delayConfiguration;
       switch (mediafoundation_stream_configuration.capturer)
@@ -1534,12 +1534,12 @@ do_work (
 //  modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   modulehandler_configuration.delayConfiguration =
     &configuration_in.delayConfiguration;
-  configuration_in.delayConfiguration.averageTokensPerInterval =
-    8;
+  //configuration_in.delayConfiguration.averageTokensPerInterval =
+  //  8;
 //  configuration_in.delayConfiguration.mode =
 //    STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES;
-  configuration_in.delayConfiguration.interval =
-    ACE_Time_Value (0, (1.0F / (float)44100) * 1000000.0F);
+  //configuration_in.delayConfiguration.interval =
+  //  ACE_Time_Value (0, (1.0F / (float)44100) * 1000000.0F);
   modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;
   modulehandler_configuration.effect = effectName_in;
   modulehandler_configuration.generatorConfiguration =

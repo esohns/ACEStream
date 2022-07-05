@@ -20,6 +20,15 @@
 
 #include <algorithm>
 
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#else
+#define ALSA_PCM_NEW_HW_PARAMS_API
+extern "C"
+{
+#include "alsa/asoundlib.h"
+}
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/Log_Msg.h"
 
 #include "common_time_common.h"
@@ -31,14 +40,10 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#define ALSA_PCM_NEW_HW_PARAMS_API
-extern "C"
-{
-#include "alsa/asoundlib.h"
-}
-
 #include "stream_lib_alsa_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
+
+#include "stream_misc_defines.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -306,15 +311,21 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_INVALID, // N/A
                                 media_type_s);
-      average_bytes_per_second_i = media_type_s.rate                                *
-                                   (snd_pcm_format_width (media_type_s.format) / 8) *
-                                   media_type_s.channels;
+      average_bytes_per_second_i =
+        media_type_s.rate                                *
+        (snd_pcm_format_width (media_type_s.format) / 8) *
+        media_type_s.channels;
 #endif // ACE_WIN32 || ACE_WIN64
-      availableTokens_ = average_bytes_per_second_i;
+      // *NOTE*: add 10% for good measure; fixes some (!) audio glitches when
+      //         playing back
+      average_bytes_per_second_i =
+        static_cast<ACE_UINT64> (static_cast<float> (average_bytes_per_second_i) * static_cast<float> (1.1));
+      availableTokens_ =
+        static_cast<ACE_UINT64> (static_cast<float> (average_bytes_per_second_i) * static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US) / 1000000.0F);
       inherited::configuration_->delayConfiguration->averageTokensPerInterval =
-        average_bytes_per_second_i;
+        availableTokens_;
       inherited::configuration_->delayConfiguration->interval =
-        ACE_Time_Value (1, 0);
+        ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
       inherited::configuration_->delayConfiguration->mode =
         STREAM_MISCELLANEOUS_DELAY_MODE_BYTES;
 
