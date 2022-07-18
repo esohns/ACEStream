@@ -1,3 +1,4 @@
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/doc/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/doc/scripts")
 include (Office)
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})

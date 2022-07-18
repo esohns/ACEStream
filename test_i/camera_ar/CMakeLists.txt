@@ -12,6 +12,7 @@ if (UNIX)
  include (FindPkgConfig)
  pkg_check_modules (PKG_V4L REQUIRED libv4l2)
 elseif (WIN32)
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
  include (DirectX)
 endif ()
 
