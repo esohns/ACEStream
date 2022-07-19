@@ -1589,9 +1589,7 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&source_, NULL, 0);
 //  layout_inout.append (&statisticReport_, NULL, 0);
 
-  if ((*iterator).second.second->codecId == AV_CODEC_ID_NONE)
-    layout_in->append (&converter_, NULL, 0); // output is uncompressed RGB
-  else
+  if ((*iterator).second.second->codecId != AV_CODEC_ID_NONE)
     layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
 
   if (display_b && save_to_file_b)
@@ -1615,10 +1613,10 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 //      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
-//        layout_in->append (&display_, branch_p, 0);
+//        layout_in->append (&display_, branch_p, index_i);
 //      else
 //        layout_in->append (&GTKPixbufDisplay_, branch_p, index_i);
-      layout_in->append (&GTKCairoDisplay_, branch_p, 0);
+      layout_in->append (&GTKCairoDisplay_, branch_p, index_i);
 #elif defined (WXWIDGETS_USE)
       layout_in->append (&display_, branch_p, index_i);
 #endif
@@ -1703,21 +1701,21 @@ Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T
   // ---------------------------------------------------------------------------
 
   // ******************* Camera Source ************************
-  source_impl_p =
-    dynamic_cast<Stream_CamSave_V4L_Source*> (source_.writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_V4L_CamSource> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
-  source_impl_p->setP (&(inherited::state_));
+//  source_impl_p =
+//    dynamic_cast<Stream_CamSave_V4L_Source*> (source_.writer ());
+//  if (!source_impl_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_V4L_CamSource> failed, aborting\n"),
+//                ACE_TEXT (stream_name_string_)));
+//    goto error;
+//  } // end IF
+//  source_impl_p->setP (&(inherited::state_));
 
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  source_.arg (inherited::sessionData_);
+//  // *NOTE*: push()ing the module will open() it
+//  //         --> set the argument that is passed along (head module expects a
+//  //             handle to the session data)
+//  source_.arg (inherited::sessionData_);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))

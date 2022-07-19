@@ -540,7 +540,7 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
     signals_out.sig_del (SIGUSR1);         // 10      /* User-defined signal 1 */
     ignoredSignals_out.sig_add (SIGUSR1);  // 10      /* User-defined signal 1 */
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
