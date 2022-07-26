@@ -139,9 +139,12 @@ stream_processing_function (void* arg_in)
   ACE_ASSERT (iterator != thread_data_p->CBData->UIState->builders.end ());
 
   // retrieve progress bar handle
+#if GTK_CHECK_VERSION (3,6,0)
+#else
   gdk_threads_enter ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 //    progress_bar_p =
-//      GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+  //      GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
 //                                                ACE_TEXT_ALWAYS_CHAR (TEST_USTREAM_UI_GTK_PROGRESSBAR_NAME)));
 //    ACE_ASSERT (progress_bar_p);
 
@@ -151,7 +154,10 @@ stream_processing_function (void* arg_in)
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_STATUSBAR_NAME)));
   ACE_ASSERT (statusbar_p);
 
+#if GTK_CHECK_VERSION (3,6,0)
+#else
   gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 
   converter.clear ();
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
@@ -181,11 +187,17 @@ stream_processing_function (void* arg_in)
   converter << session_data_p->sessionId;
 
   // generate context id
+#if GTK_CHECK_VERSION (3,6,0)
+#else
   gdk_threads_enter ();
+#endif // GTK_CHECK_VERSION (3,6,0)
   thread_data_p->CBData->UIState->contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_INFORMATION,
                                                                      gtk_statusbar_get_context_id (statusbar_p,
                                                                                                    converter.str ().c_str ())));
+#if GTK_CHECK_VERSION (3,6,0)
+#else
   gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 
   module_p =
     const_cast<Stream_Module_t*> (cb_data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));

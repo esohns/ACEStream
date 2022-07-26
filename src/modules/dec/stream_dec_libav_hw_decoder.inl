@@ -963,7 +963,11 @@ continue_:
       //                  inherited::mod_->name (),
       //                  formatWidth_, formatHeight_));
 
-      Common_Image_Resolution_t resolution_s = { formatWidth_, formatHeight_};
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      Common_Image_Resolution_t resolution_s = {static_cast<LONG> (formatWidth_), static_cast<LONG> (formatHeight_)};
+#else
+      Common_Image_Resolution_t resolution_s = {formatWidth_, formatHeight_};
+#endif // ACE_WIN32 || ACE_WIN64
       inherited2::setFormat (outputFormat_,
                              media_type_s);
       inherited2::setResolution (resolution_s,
