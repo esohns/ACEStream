@@ -51,6 +51,7 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , CBData_ ()
  , inSession_ (false)
+ , leftGLUTMainLoop_ (false)
  , window_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_OpenGL_GLUT_T::Stream_Visualization_OpenGL_GLUT_T"));
@@ -63,6 +64,8 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   CBData_.queue = inherited::msg_queue_;
+  CBData_.stream = dynamic_cast<Stream_IStreamControlBase*> (stream_in);
+  ACE_ASSERT (CBData_.stream);
 }
 
 template <ACE_SYNCH_DECL,
@@ -247,7 +250,11 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
         glutDestroyWindow (window_); window_ = 0;
       } // end IF
 
-      //glutLeaveMainLoop ();
+      if (!leftGLUTMainLoop_)
+        glutLeaveMainLoop ();
+
+      inherited::stop (false,  // wait for completion ?
+                       false); // high priority ?
 
       break;
     }
@@ -278,11 +285,8 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
 
   int result = -1;
   int result_2 = -1;
-//  ssize_t bytes_read = -1;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
-//  DataMessageType* message_p = NULL;
-  bool finished = false;
   bool stop_processing = false;
 
   //glutInitContextProfile (GLUT_CORE_PROFILE);
@@ -294,7 +298,10 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
   myargv[0] = ACE_OS::strdup ("Myappname");
   glutInit (&myargc, myargv);
 
-//  glutInitDisplayMode (GLUT_RGB | GLUT_DOUBLE);
+  glutSetOption (GLUT_ACTION_ON_WINDOW_CLOSE,
+                 GLUT_ACTION_GLUTMAINLOOP_RETURNS);
+
+  //  glutInitDisplayMode (GLUT_RGB | GLUT_DOUBLE);
   glutInitDisplayMode (GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH);
 
   // step1: start processing data...
@@ -314,20 +321,7 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
         // clean up
         message_block_p->release (); message_block_p = NULL;
 
-        // *NOTE*: when close()d manually (i.e. user abort), 'finished' will not
-        //         have been set at this stage
-
-        // signal the controller ?
-        if (!finished)
-        {
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("session aborted\n")));
-
-          finished = true;
-          inherited::finished ();
-
-          continue;
-        } // end IF
+        result_2 = 0; // OK
 
         break; // aborted
       } // end IF
@@ -343,21 +337,16 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
-
-        // signal the controller ?
-        if (!finished)
-        {
-          finished = true;
-          inherited::finished ();
-        } // end IF
-
         break;
       } // end IF
     } // end IF
 
-    if (inSession_)
+    if (inSession_ && !leftGLUTMainLoop_)
+    {
       glutMainLoop ();
-    // *TODO*
+      leftGLUTMainLoop_ = true;
+      window_ = 0;
+    } // end IF
   } while (true);
 
 //done:

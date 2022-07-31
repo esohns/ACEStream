@@ -9404,6 +9404,15 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
     (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("200"));  // delay (ms)
     (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.25")); // decay (% gain in)
   } // end ELSE IF
+  else if (effect_string == ACE_TEXT_ALWAYS_CHAR ("phaser"))
+  {
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.9"));  // gain in
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.85")); // gain out
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("4"));    // delay (ms)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.23")); // decay (% gain in)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("1.3"));  // speed
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-s"));   // modulation (sinusoidial)
+  } // end ELSE IF
   else
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("invalid/unknown effect (was: \"%s\"), using default options, continuing\n"),

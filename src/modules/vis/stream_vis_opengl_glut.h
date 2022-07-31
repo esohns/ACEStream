@@ -68,6 +68,7 @@ struct OpenGL_GLUT_WindowData
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Message_Queue_Base*                            queue;
+  Stream_IStreamControlBase*                         stream;
   GLuint                                             textureId;
 };
 
@@ -134,6 +135,7 @@ class Stream_Visualization_OpenGL_GLUT_T
 
   struct OpenGL_GLUT_WindowData CBData_;
   bool                          inSession_;
+  bool                          leftGLUTMainLoop_;
   int                           window_;
 };
 

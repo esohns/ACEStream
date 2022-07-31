@@ -28,12 +28,12 @@
 const char libacestream_default_vis_opengl_glut_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING);
 
-#define COS(X)   cos( (X) * 3.14159/180.0 )
-#define SIN(X)   sin( (X) * 3.14159/180.0 )
+//#define COS(X)   cos( (X) * 3.14159/180.0 )
+//#define SIN(X)   sin( (X) * 3.14159/180.0 )
 
-#define RED 1
-#define WHITE 2
-#define CYAN 3
+//#define RED 1
+//#define WHITE 2
+//#define CYAN 3
 
 //GLuint
 //libacestream_glut_make_ball (void)
@@ -109,26 +109,23 @@ libacestream_glut_reshape (int width_in, int height_in)
 }
 
 void
-libacestream_glut_key (unsigned char k, int x, int y)
+libacestream_glut_key (unsigned char key_in, int x_in, int y_in)
 {
-  //struct OpenGL_GLUT_WindowData* cb_data_p = 
-  //  static_cast<struct OpenGL_GLUT_WindowData*> (glutGetWindowData ());
-  //ACE_ASSERT (cb_data_p);
+  struct OpenGL_GLUT_WindowData* cb_data_p =
+    static_cast<struct OpenGL_GLUT_WindowData*> (glutGetWindowData ());
+  ACE_ASSERT (cb_data_p);
 
-  switch (k) {
-  case 27:  /* Escape */
-    //exit (0);
-    glutLeaveMainLoop ();
-
-    //ACE_ASSERT (cb_data_p->queue);
-    //ACE_Message_Block* message_block_p = NULL;
-    //ACE_NEW_NORETURN (message_block_p,
-    //                  ACE_Message_Block ());
-    //ACE_ASSERT (message_block_p);
-    //cb_data_p->queue->enqueue (message_block_p);
-
-    break;
-  }
+  switch (key_in)
+  {
+    case 27: /* Escape */
+    { ACE_ASSERT (cb_data_p->stream);
+      cb_data_p->stream->stop (false,  // wait for completion ?
+                               false,  // recurse upstream ?
+                               false); // high priority ?
+      glutLeaveMainLoop ();
+      break;
+    }
+  } // end SWITCH
 }
 
 void
@@ -168,9 +165,6 @@ libacestream_glut_draw (void)
   // *TODO*: find out why this reports GL_INVALID_OPERATION
   COMMON_GL_PRINT_ERROR;
 
-  glBindTexture (GL_TEXTURE_2D, cb_data_p->textureId);
-  COMMON_GL_ASSERT;
-
   glLoadIdentity (); // Reset the transformation matrix.
   COMMON_GL_ASSERT;
 
@@ -179,6 +173,9 @@ libacestream_glut_draw (void)
 
   static GLfloat cube_rotation = 0.0f;
   glRotatef (cube_rotation, 1.0f, 1.0f, 1.0f);		// Rotate The Cube On X, Y, and Z
+  COMMON_GL_ASSERT;
+
+  glBindTexture (GL_TEXTURE_2D, cb_data_p->textureId);
   COMMON_GL_ASSERT;
 
   glBegin (GL_QUADS);
@@ -227,6 +224,8 @@ libacestream_glut_draw (void)
 
   glBindTexture (GL_TEXTURE_2D, 0);
   COMMON_GL_ASSERT;
+//  glDeleteTextures (1, &cb_data_p->textureId);
+//  COMMON_GL_ASSERT;
 
   glFlush ();
   COMMON_GL_ASSERT;
