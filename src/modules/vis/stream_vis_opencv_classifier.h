@@ -96,8 +96,9 @@ class Stream_Visualization_OpenCVClassifier_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_OpenCVClassifier_T (const Stream_Visualization_OpenCVClassifier_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_OpenCVClassifier_T& operator= (const Stream_Visualization_OpenCVClassifier_T&))
 
-  cv::CascadeClassifier cascadeClassifier_;
-  MediaType             mediaType_;
+  cv::CascadeClassifier     cascadeClassifier_;
+  int                       format_; // OpenCV-
+  Common_Image_Resolution_t resolution_;
 };
 
 // include template definition

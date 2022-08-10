@@ -54,6 +54,7 @@ extern void libacestream_glut_reshape (int, int);
 extern void libacestream_glut_key (unsigned char, int, int);
 extern void libacestream_glut_draw (void);
 extern void libacestream_glut_idle (void);
+extern void libacestream_glut_close (void);
 extern void libacestream_glut_visible (int);
 
 extern const char libacestream_default_vis_opengl_glut_module_name_string[];

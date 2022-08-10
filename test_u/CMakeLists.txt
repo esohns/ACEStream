@@ -309,12 +309,13 @@ add_subdirectory (http_get)
 # *IMPORTANT NOTE* /END
 add_subdirectory (imagescreen)
 add_subdirectory (parser)
+add_subdirectory (qr_decode)
 add_subdirectory (riff_decoder)
 
 # phonies
 add_custom_target (test_u ALL
                    COMMENT "building test_u...")
-add_dependencies (test_u audioeffect branch camsave camerascreen document filecopy imagescreen parser RIFF_decoder)
+add_dependencies (test_u audioeffect branch camsave camerascreen document filecopy imagescreen parser QR_decode RIFF_decoder)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
 add_dependencies (test_u HTTP_GET)

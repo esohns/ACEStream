@@ -204,23 +204,35 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     resolution_s.height = STREAM_VIS_DEFAULT_WINDOW_HEIGHT;
     resolution_s.width = STREAM_VIS_DEFAULT_WINDOW_WIDTH;
 #endif // ACE_WIN32 || ACE_WIN64
-    GDK_THREADS_ENTER ();
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+    gdk_threads_enter ();
+#endif // GTK_CHECK_VERSION (3,6,0)
     if (unlikely (!inherited::initialize_GTK (resolution_s)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Vis_GTK_Window_T::initialize_GTK(), aborting\n"),
                   inherited::mod_->name ()));
-      GDK_THREADS_LEAVE ();
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+      gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
       return false;
     } // end IF
     ACE_ASSERT (inherited::window_);
-    GDK_THREADS_LEAVE ();
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+    gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
     CBData_.dispatch = this;
     CBData_.resizeNotification = this;
   } // end IF
   else
   {
-    GDK_THREADS_ENTER ();
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+    gdk_threads_enter ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 #if GTK_CHECK_VERSION (3,0,0)
     gdk_window_get_geometry (configuration_in.window,
                              NULL,
@@ -235,7 +247,10 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                              &height_,
                              NULL);
 #endif /* GTK_CHECK_VERSION (x,0,0) */
-    GDK_THREADS_LEAVE ();
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+    gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
     ACE_ASSERT (height_ && width_);
     halfHeight_ = height_ / 2;
   } // end ELSE
@@ -573,7 +588,10 @@ error:
         //inherited::control (ACE_Message_Block::MB_STOP);
         if (inherited::window_)
         {
-          GDK_THREADS_ENTER ();
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+          gdk_threads_enter ();
+#endif // GTK_CHECK_VERSION (3,6,0)
           //if (inherited::thr_count_ == 2)
 #if GTK_CHECK_VERSION (3,10,0)
           gtk_window_close (inherited::window_); inherited::window_ = NULL;
@@ -581,7 +599,10 @@ error:
           gtk_widget_destroy (GTK_WIDGET (inherited::window_)); inherited::window_ = NULL;
 #endif // GTK_CHECK_VERSION (3,10,0)
           gtk_main_quit ();
-          GDK_THREADS_LEAVE ();
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+          gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
         } // end IF
       } // end IF
 
@@ -615,7 +636,10 @@ error:
 
       if (inherited::window_)
       {
-        GDK_THREADS_ENTER ();
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+        gdk_threads_enter ();
+#endif // GTK_CHECK_VERSION (3,6,0)
         //if (inherited::thr_count_ == 2)
         if (inherited::thr_count_ > 0)
         {
@@ -626,7 +650,10 @@ error:
 #endif // GTK_CHECK_VERSION (3,10,0)
           gtk_main_quit ();
         } // end IF
-        GDK_THREADS_LEAVE ();
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+        gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
       } // end IF
 //      if (likely (inherited::mainLoop_ &&
 //                  g_main_loop_is_running (inherited::mainLoop_)))

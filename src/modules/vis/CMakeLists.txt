@@ -62,7 +62,7 @@ if (GTK_SUPPORT)
 endif (GTK_SUPPORT)
 if (OPENCV_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${OPENCV_INCLUDE_DIRS}>)
+                             "$<BUILD_INTERFACE:${OPENCV_INCLUDE_DIRS}>")
 endif (OPENCV_SUPPORT)
 if (WAYLAND_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC

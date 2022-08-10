@@ -97,9 +97,11 @@ stream_processing_function (void* arg_in)
   bool loop = thread_data_p->CBData->loop;
   Test_I_Source_StreamConfiguration_t::ITERATOR_T iterator_2;
   guint context_id = 0;
-
+#if GTK_CHECK_VERSION (3,6,0)
+#else
   gdk_threads_enter ();
   bool leave_gdk = true;
+#endif // GTK_CHECK_VERSION (3,6,0)
 
   //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, -1);
     Common_UI_GTK_BuildersIterator_t iterator =
@@ -158,8 +160,11 @@ stream_processing_function (void* arg_in)
     ACE_ASSERT (statusbar_p);
   //} // end lock scope
 
+#if GTK_CHECK_VERSION (3,6,0)
+#else
   gdk_threads_leave ();
   leave_gdk = false;
+#endif // GTK_CHECK_VERSION (3,6,0)
 
 loop:
   if (!iinitialize_p->initialize (thread_data_p->CBData->configuration->streamConfiguration))
@@ -178,13 +183,19 @@ loop:
   converter << session_thread_data_p->sessionId;
 
   // generate context id
+#if GTK_CHECK_VERSION (3,6,0)
+#else
   gdk_threads_enter ();
+#endif // GTK_CHECK_VERSION (3,6,0)
   context_id =
     gtk_statusbar_get_context_id (statusbar_p,
                                   converter.str ().c_str ());
   state_r.contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_DATA,
                                              context_id));
+#if GTK_CHECK_VERSION (3,6,0)
+#else
   gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 
   // *NOTE*: processing currently happens 'inline' (borrows calling thread)
   istream_control_p->start ();
@@ -203,12 +214,18 @@ loop:
   {
     if (static_cast<int> (thread_data_p->CBData->loop) != -1)
     {
+#if GTK_CHECK_VERSION (3,6,0)
+#else
       gdk_threads_enter ();
+#endif // GTK_CHECK_VERSION (3,6,0)
       gtk_spin_button_spin (spin_button_p,
                             GTK_SPIN_STEP_BACKWARD,
                             1.0);
+#if GTK_CHECK_VERSION (3,6,0)
+#else
       gdk_threads_leave ();
-    } // end IF
+#endif // GTK_CHECK_VERSION (3,6,0)
+    }  // end IF
 
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("iteration #%u complete\n"),
@@ -224,8 +241,11 @@ loop:
 #endif
 
 done:
+#if GTK_CHECK_VERSION (3,6,0)
+#else
   if (leave_gdk)
     gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, -1);

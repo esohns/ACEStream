@@ -24,8 +24,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-//#include "common_time_common.h"
-
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
@@ -95,7 +93,8 @@ class Stream_Visualization_OpenCV_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_OpenCV_T (const Stream_Visualization_OpenCV_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_OpenCV_T& operator= (const Stream_Visualization_OpenCV_T&))
 
-  MediaType mediaType_;
+  int                       format_; // OpenCV-
+  Common_Image_Resolution_t resolution_;
 };
 
 // include template definition

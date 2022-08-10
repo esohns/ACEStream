@@ -40,7 +40,7 @@ if (UNIX)
  endif (GUI_SUPPORT)
 elseif (WIN32)
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "D:/projects/DShowBaseClasses")
+      "$ENV{LIB_ROOT}/DShowBaseClasses")
 #      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 #      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")

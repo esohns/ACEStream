@@ -220,6 +220,7 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
       glGenTextures (1, &CBData_.textureId);
       COMMON_GL_ASSERT;
 
+      glutCloseFunc (libacestream_glut_close);
       glutDisplayFunc (libacestream_glut_draw);
       glutReshapeFunc (libacestream_glut_reshape);
       glutVisibilityFunc (libacestream_glut_visible);

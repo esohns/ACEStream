@@ -22,7 +22,7 @@
 #include "vfwmsgs.h"
 //// *NOTE*: wxWidgets may have #defined __WXDEBUG__
 //#undef __WXDEBUG__
-#include "wxdebug.h"
+//#include "wxdebug.h"
 
 #include "ace/Log_Msg.h"
 

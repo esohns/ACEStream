@@ -69,7 +69,7 @@ if (MPG123_SUPPORT)
 endif (MPG123_SUPPORT)
 if (OPENCV_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${OPENCV_INCLUDE_DIRS}>)
+                             "$<BUILD_INTERFACE:${OPENCV_INCLUDE_DIRS}>")
 endif (OPENCV_SUPPORT)
 if (ZLIB_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
@@ -280,9 +280,9 @@ endif (MPG123_SUPPORT)
 if (OPENCV_SUPPORT)
  set (source_files
       ${source_files}
-      stream_dec_opencv_decoder.cpp
-      stream_dec_opencv_decoder.h
-      stream_dec_opencv_decoder.inl)
+      stream_dec_opencv_qr_decoder.cpp
+      stream_dec_opencv_qr_decoder.h
+      stream_dec_opencv_qr_decoder.inl)
 endif (OPENCV_SUPPORT)
 if (ZLIB_SUPPORT)
  set (source_files
@@ -505,8 +505,8 @@ endif (MPG123_SUPPORT)
 if (OPENCV_SUPPORT)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS
       ${${PROJECT_NAME}_Decoder_LIB_HDRS}
-      stream_dec_opencv_decoder.h
-      stream_dec_opencv_decoder.inl)
+      stream_dec_opencv_qr_decoder.h
+      stream_dec_opencv_qr_decoder.inl)
 endif (OPENCV_SUPPORT)
 if (SOX_SUPPORT)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS ${${PROJECT_NAME}_Decoder_LIB_HDRS}

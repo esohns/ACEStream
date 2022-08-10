@@ -21,8 +21,9 @@
 //#include "opencv2/opencv.hpp"
 #include "opencv2/core/cvstd.hpp"
 #include "opencv2/core/mat.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+//#include "opencv2/ml.hpp"
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
@@ -39,23 +40,24 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename MediaType>
-Stream_Visualization_OpenCV_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              SessionDataContainerType,
+Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 SessionDataContainerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              MediaType>::Stream_Visualization_OpenCV_T (ISTREAM_T* stream_in)
+                                 MediaType>::Stream_Decoder_OpenCVQRDecoder_T (ISTREAM_T* stream_in)
 #else
-                              MediaType>::Stream_Visualization_OpenCV_T (typename inherited::ISTREAM_T* stream_in)
+                                 MediaType>::Stream_Decoder_OpenCVQRDecoder_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
+ , detector_ ()
  , format_ (0)
  , resolution_ ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_OpenCV_T::Stream_Visualization_OpenCV_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVQRDecoder_T::Stream_Decoder_OpenCVQRDecoder_T"));
 
 }
 
@@ -68,17 +70,17 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename MediaType>
 bool
-Stream_Visualization_OpenCV_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              SessionDataContainerType,
-                              MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                      Stream_IAllocator* allocator_in)
+Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 SessionDataContainerType,
+                                 MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                         Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_OpenCV_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVQRDecoder_T::initialize"));
 
   if (inherited::isInitialized_)
   {
@@ -99,19 +101,51 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename MediaType>
 void
-Stream_Visualization_OpenCV_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              SessionDataContainerType,
-                              MediaType>::handleDataMessage (DataMessageType*& message_inout,
-                                                             bool& passMessageDownstream_out)
+Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 SessionDataContainerType,
+                                 MediaType>::frame (cv::Mat& frame_inout,
+                                                    const cv::Mat& boundingBox_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_OpenCV_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVQRDecoder_T::frame"));
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  for (int i = 0; i < boundingBox_in.rows; i++)
+    cv::line (frame_inout,
+              cv::Point2i (boundingBox_in.at<float> (i, 0),
+                           boundingBox_in.at<float> (i, 1)),
+              cv::Point2i (boundingBox_in.at<float> ((i + 1) % boundingBox_in.rows, 0),
+                           boundingBox_in.at<float> ((i + 1) % boundingBox_in.rows, 1)),
+              cv::Scalar (255, 0, 0),
+              3);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename MediaType>
+void
+Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 SessionDataContainerType,
+                                 MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVQRDecoder_T::handleDataMessage"));
+
+  // step0: convert image frame to matrix
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
   cv::Mat frame_matrix (resolution_.cy,
                         resolution_.cx,
 #else
@@ -121,9 +155,27 @@ Stream_Visualization_OpenCV_T<ACE_SYNCH_USE,
                         format_,
                         message_inout->rd_ptr (),
                         cv::Mat::AUTO_STEP);
-//  cv::Mat image_BGR;
-//  cv::cvtColor (image_mat, image_BGR, cv::COLOR_BGRA2BGR);
-  cv::imshow (cv::String (ACE_TEXT_ALWAYS_CHAR ("ACEStream OpenCV display")),
+
+  // step1: convert to BGR (why ?)
+  //  cv::Mat image_BGR;
+  //  cv::cvtColor (image_mat, image_BGR, cv::COLOR_BGRA2BGR);
+
+  // step2: detect QR code(s)
+  cv::Mat bbox, rectified_image;
+  std::string data = detector_.detectAndDecode (frame_matrix,
+                                                bbox,
+                                                rectified_image);
+  if (data.length () > 0)
+  {
+    std::cout << "Decoded Data : " << data << std::endl;
+    frame (frame_matrix, bbox);
+    //rectified_image.convertTo (rectified_image, CV_8UC3);
+    //cv::imshow ("Rectified QRCode", rectified_image);
+  } // end IF
+  else
+    std::cout << "QR Code not detected" << std::endl;
+
+  cv::imshow (cv::String (ACE_TEXT_ALWAYS_CHAR ("frame")),
 //              image_BGR);
               frame_matrix);
   cv::waitKey (1);
@@ -138,17 +190,17 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename MediaType>
 void
-Stream_Visualization_OpenCV_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              SessionDataContainerType,
-                              MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                bool& passMessageDownstream_out)
+Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 SessionDataContainerType,
+                                 MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                   bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_OpenCV_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVQRDecoder_T::handleSessionMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -188,7 +240,7 @@ Stream_Visualization_OpenCV_T<ACE_SYNCH_USE,
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-      cv::namedWindow (cv::String (ACE_TEXT_ALWAYS_CHAR ("ACEStream OpenCV display")),
+      cv::namedWindow (cv::String (ACE_TEXT_ALWAYS_CHAR ("frame")),
                        cv::WINDOW_AUTOSIZE);
 //      cv::startWindowThread ();
 

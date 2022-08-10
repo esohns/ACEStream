@@ -270,6 +270,12 @@ libacestream_glut_idle (void)
 }
 
 void
+libacestream_glut_close ()
+{ // pressing the 'x' is the same as hitting 'Escape'
+  libacestream_glut_key (27, 0, 0);
+}
+
+void
 libacestream_glut_visible (int vis)
 {
   if (vis == GLUT_VISIBLE)

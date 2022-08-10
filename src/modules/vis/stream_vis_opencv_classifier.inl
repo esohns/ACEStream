@@ -54,7 +54,8 @@ Stream_Visualization_OpenCVClassifier_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , cascadeClassifier_ ()
- , mediaType_ ()
+ , format_ (0)
+ , resolution_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_OpenCVClassifier_T::Stream_Visualization_OpenCVClassifier_T"));
 
@@ -83,7 +84,8 @@ Stream_Visualization_OpenCVClassifier_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    ACE_OS::memset (&mediaType_, 0, sizeof (MediaType));
+    format_ = 0;
+    resolution_ = {0, 0};
   } // end IF
 
   bool result = false;
@@ -136,23 +138,15 @@ Stream_Visualization_OpenCVClassifier_T<ACE_SYNCH_USE,
 
   // step0: convert image frame to matrix
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType media_type_s;
-  inherited2::getMediaType (mediaType_,
-                            media_type_s);
-  Common_Image_Resolution_t resolution_s =
-    Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
-  cv::Mat frame_mat (resolution_s.cy,
-                     resolution_s.cx,
-                     Stream_Module_Decoder_Tools::mediaSubTypeToOpenCVFormat (media_type_s.subtype),
+  cv::Mat frame_matrix (resolution_.cy,
+                        resolution_.cx,
 #else
-#if defined (FFMPEG_SUPPORT)
-  cv::Mat frame_mat (mediaType_.resolution.height,
-                     mediaType_.resolution.width,
-                     Stream_Module_Decoder_Tools::AVPixelFormatToOpenCVFormat (mediaType_.format),
-#endif // FFMPEG_SUPPORT
+  cv::Mat frame_matrix (resolution_.height,
+                        resolution_.width,
 #endif // ACE_WIN32 || ACE_WIN64
-                     message_inout->rd_ptr (),
-                     cv::Mat::AUTO_STEP);
+                        format_,
+                        message_inout->rd_ptr (),
+                        cv::Mat::AUTO_STEP);
 
   // step1: convert to grayscale (why ?)
 //  cv::Mat frame_gray;
@@ -162,7 +156,7 @@ Stream_Visualization_OpenCVClassifier_T<ACE_SYNCH_USE,
   // step2: detect feature(s)
   std::vector<cv::Rect> features_a;
   cascadeClassifier_.detectMultiScale (//frame_gray,   // image
-                                       frame_mat,
+                                       frame_matrix,
                                        features_a,   // features
                                        1.1,          // scale factor
                                        3,            // min. neighbours
@@ -174,7 +168,7 @@ Stream_Visualization_OpenCVClassifier_T<ACE_SYNCH_USE,
   for (unsigned int i = 0;
        i < features_a.size ();
        ++i)
-    cv::rectangle (frame_mat,              // image
+    cv::rectangle (frame_matrix,           // image
                    features_a[i],          // rectangle
                    cv::Scalar (255, 0, 0), // color (blue)
                    1,                      // thickness
@@ -184,7 +178,7 @@ Stream_Visualization_OpenCVClassifier_T<ACE_SYNCH_USE,
   // step4: show result
   cv::imshow (cv::String (ACE_TEXT_ALWAYS_CHAR ("frame")),
 //              image_BGR);
-              frame_mat);
+              frame_matrix);
   cv::waitKey (1);
 }
 
@@ -222,8 +216,30 @@ Stream_Visualization_OpenCVClassifier_T<ACE_SYNCH_USE,
         inherited::sessionData_->getR ();
       ACE_ASSERT (!session_data_r.formats.empty ());
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+#else
+#if defined (FFMPEG_SUPPORT)
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
       inherited2::getMediaType (session_data_r.formats.back (),
-                                mediaType_);
+                                STREAM_MEDIATYPE_VIDEO,
+                                media_type_s);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      format_ =
+        Stream_Module_Decoder_Tools::mediaSubTypeToOpenCVFormat (media_type_s.subtype),
+      resolution_ =
+        Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#else
+#if defined (FFMPEG_SUPPORT)
+      format_ =
+        Stream_Module_Decoder_Tools::AVPixelFormatToOpenCVFormat (media_type_s.format),
+      resolution_ = media_type_s.resolution;
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
       cv::namedWindow (cv::String (ACE_TEXT_ALWAYS_CHAR ("frame")),
                        cv::WINDOW_AUTOSIZE);

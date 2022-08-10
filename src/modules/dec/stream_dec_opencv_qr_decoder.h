@@ -18,8 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DEC_OPENCV_DECODER_T_H
-#define STREAM_DEC_OPENCV_DECODER_T_H
+#ifndef STREAM_DEC_OPENCV_QR_DECODER_T_H
+#define STREAM_DEC_OPENCV_QR_DECODER_T_H
+
+#include "opencv2/objdetect.hpp"
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -34,7 +36,7 @@
 class ACE_Message_Block;
 class Stream_IAllocator;
 
-extern const char libacestream_default_dec_opencv_decoder_module_name_string[];
+extern const char libacestream_default_dec_opencv_qr_decoder_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -47,7 +49,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataContainerType,
           typename MediaType> // session data-
-class Stream_Decoder_OpenCVDecoder_T
+class Stream_Decoder_OpenCVQRDecoder_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -73,11 +75,11 @@ class Stream_Decoder_OpenCVDecoder_T
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Decoder_OpenCVDecoder_T (ISTREAM_T*); // stream handle
+  Stream_Decoder_OpenCVQRDecoder_T (ISTREAM_T*); // stream handle
 #else
-  Stream_Decoder_OpenCVDecoder_T (typename inherited::ISTREAM_T*); // stream handle
+  Stream_Decoder_OpenCVQRDecoder_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  inline virtual ~Stream_Decoder_OpenCVDecoder_T () {}
+  inline virtual ~Stream_Decoder_OpenCVQRDecoder_T () {}
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -90,14 +92,20 @@ class Stream_Decoder_OpenCVDecoder_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_OpenCVDecoder_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_OpenCVDecoder_T (const Stream_Decoder_OpenCVDecoder_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_OpenCVDecoder_T& operator= (const Stream_Decoder_OpenCVDecoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_OpenCVQRDecoder_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_OpenCVQRDecoder_T (const Stream_Decoder_OpenCVQRDecoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_OpenCVQRDecoder_T& operator= (const Stream_Decoder_OpenCVQRDecoder_T&))
 
-  MediaType mediaType_;
+  // helper methods
+  void frame (cv::Mat&,        // image frame
+              const cv::Mat&); // bounding box
+
+  cv::QRCodeDetector        detector_;
+  int                       format_; // OpenCV-
+  Common_Image_Resolution_t resolution_;
 };
 
 // include template definition
-#include "stream_dec_opencv_decoder.inl"
+#include "stream_dec_opencv_qr_decoder.inl"
 
 #endif
