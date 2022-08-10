@@ -868,7 +868,7 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
   outputFormat_out = captureFormat_out;
-  outputFormat_out.format.pixelformat = V4L2_PIX_FMT_RGB32;
+  outputFormat_out.format.pixelformat = V4L2_PIX_FMT_BGR24;
 
   return true;
 
