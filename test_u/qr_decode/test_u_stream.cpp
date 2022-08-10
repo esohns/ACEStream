@@ -55,8 +55,8 @@ Test_U_Stream::load (Stream_ILayout* layout_inout,
                   false);
 #else
   ACE_NEW_RETURN (module_p,
-                  Test_U_Source_Module (this,
-                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)),
+                  Test_U_V4L_Source_Module (this,
+                                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING)),
                   false);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (module_p);
@@ -76,8 +76,8 @@ Test_U_Stream::load (Stream_ILayout* layout_inout,
                   false);
 #else
   ACE_NEW_RETURN (module_p,
-                  Test_U_Distributor_Module (this,
-                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
+                  Test_U_LibAVConverter_Module (this,
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)),
                   false);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (module_p);
@@ -90,8 +90,8 @@ Test_U_Stream::load (Stream_ILayout* layout_inout,
                   false);
 #else
   ACE_NEW_RETURN (module_p,
-                  Test_U_Distributor_Module (this,
-                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
+                  Test_U_QRDecoder_Module (this,
+                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_OPENCV_QR_DECODER_DEFAULT_NAME_STRING)),
                   false);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (module_p);
@@ -111,9 +111,57 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
-  //inherited::dump_state ();
+  // ---------------------------------------------------------------------------
+  // step1: allocate a new session state, reset stream
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
+    false;
+  bool reset_setup_pipeline = true;
+  if (!inherited::initialize (configuration_in))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    return false;
+  } // end IF
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
+    setup_pipeline;
+  reset_setup_pipeline = false;
 
-  return inherited::initialize (configuration_in);
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+  // ACE_ASSERT ((*iterator).second.second->direct3DConfiguration);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  QRDecode_DirectShow_SessionData* session_data_p =
+    &const_cast<QRDecode_DirectShow_SessionData&> (inherited::sessionData_->getR ());
+#else
+  QRDecode_SessionData* session_data_p =
+    &const_cast<QRDecode_SessionData&> (inherited::sessionData_->getR ());
+#endif // ACE_WIN32 || ACE_WIN64
+
+  // ---------------------------------------------------------------------------
+  // step5: update session data
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format, media_type_s);
+#else
+  struct Stream_MediaFramework_V4L_MediaType media_type_s =
+    configuration_in.configuration_->format;
+#endif // ACE_WIN32 || ACE_WIN64
+  session_data_p->formats.push_back (media_type_s);
+
+  // step7: assemble stream
+  if (configuration_in.configuration_->setupPipeline)
+    if (!inherited::setup (NULL))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
+                  ACE_TEXT (stream_name_string_)));
+      return false;
+    } // end IF
+
+  return true;
 }

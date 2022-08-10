@@ -262,7 +262,7 @@ DATASTREAM_MODULE_INPUT_ONLY (QRDecode_DirectShow_SessionData,                  
 #else
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVConverter_T<Test_U_TaskBaseSynch_t,
-                                        struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_U_LibAVConverter;
+                                        struct Stream_MediaFramework_V4L_MediaType> Test_U_LibAVConverter;
 DATASTREAM_MODULE_INPUT_ONLY (struct QRDecode_SessionData,                                 // session data type
                               enum Stream_SessionMessageType,                              // session event type
                               struct QRDecode_ModuleHandlerConfiguration,                  // module handler configuration type

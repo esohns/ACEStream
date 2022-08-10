@@ -114,7 +114,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         // *TODO*: remove type inference
         typename MessageType::DATA_T& data_r =
             const_cast<typename MessageType::DATA_T&> (message_p->getR ());
-        data_r.device = fd_in;
+        data_r.fileDescriptor = fd_in;
         data_r.index = i;
         data_r.method = method_in;
         buffer.m.userptr =
@@ -200,7 +200,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         // *TODO*: remove type inference
         typename MessageType::DATA_T& data_r =
             const_cast<typename MessageType::DATA_T&> (message_p->getR ());
-        data_r.device = fd_in;
+        data_r.fileDescriptor = fd_in;
         data_r.index = i;
         data_r.method = method_in;
 

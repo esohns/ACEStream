@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <iostream>
+
 //#include "opencv2/opencv.hpp"
 #include "opencv2/core/cvstd.hpp"
 #include "opencv2/core/mat.hpp"
@@ -165,17 +167,17 @@ Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
   std::string data = detector_.detectAndDecode (frame_matrix,
                                                 bbox,
                                                 rectified_image);
-  if (data.length () > 0)
+  if (data.size () > 0)
   {
     std::cout << "Decoded Data : " << data << std::endl;
     frame (frame_matrix, bbox);
     //rectified_image.convertTo (rectified_image, CV_8UC3);
     //cv::imshow ("Rectified QRCode", rectified_image);
   } // end IF
-  else
-    std::cout << "QR Code not detected" << std::endl;
+  //else
+  //  std::cout << "QR Code not detected" << std::endl;
 
-  cv::imshow (cv::String (ACE_TEXT_ALWAYS_CHAR ("frame")),
+  cv::imshow (cv::String (ACE_TEXT_ALWAYS_CHAR ("ACEStream OpenCV display")),
 //              image_BGR);
               frame_matrix);
   cv::waitKey (1);
@@ -240,7 +242,7 @@ Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-      cv::namedWindow (cv::String (ACE_TEXT_ALWAYS_CHAR ("frame")),
+      cv::namedWindow (cv::String (ACE_TEXT_ALWAYS_CHAR ("ACEStream OpenCV display")),
                        cv::WINDOW_AUTOSIZE);
 //      cv::startWindowThread ();
 

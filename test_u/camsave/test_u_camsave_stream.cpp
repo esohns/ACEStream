@@ -383,7 +383,7 @@ continue_:
 
   result_2 =
     (*iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
-                                                         &filter_p);
+                                                          &filter_p);
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,

@@ -24,7 +24,7 @@
 #else
 #include "libv4l2.h"
 #include "linux/videodev2.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_control_message.h"
 #include "stream_macros.h"
@@ -283,9 +283,9 @@ Stream_CamSave_Message_T<DataType,
   } // end IF
 
   int reference_count = inherited::reference_count ();
-  if ((reference_count > 1)           || // not the last reference
-      (inherited::data_.device == -1) || // not a device data buffer (-clone)
-      inherited::data_.release)          // clean up (device data)
+  if ((reference_count > 1)                   || // not the last reference
+      (inherited::data_.fileDescriptor == -1) || // not a device data buffer (-clone)
+      inherited::data_.release)                  // clean up (device data)
     return inherited::release ();
 
   // sanity check(s)
@@ -333,17 +333,17 @@ Stream_CamSave_Message_T<DataType,
   //         the driver
   //         --> maintain a mapping: buffer index <--> buffer handle
 //        buffer.reserved = reinterpret_cast<unsigned long> (message_block_p);
-  int result = v4l2_ioctl (inherited::data_.device,
+  int result = v4l2_ioctl (inherited::data_.fileDescriptor,
                            VIDIOC_QBUF,
                            &buffer_s);
   if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
-                inherited::data_.device, ACE_TEXT ("VIDIOC_QBUF")));
+                inherited::data_.fileDescriptor, ACE_TEXT ("VIDIOC_QBUF")));
 
   return NULL;
 }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

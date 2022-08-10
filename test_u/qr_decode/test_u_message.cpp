@@ -21,6 +21,12 @@
 
 #include "test_u_message.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "libv4l2.h"
+#include "linux/videodev2.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
@@ -52,6 +58,19 @@ Test_U_Message::Test_U_Message (Stream_SessionId_t sessionId_in,
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_Message::Test_U_Message"));
 
+}
+
+Test_U_Message::~Test_U_Message ()
+{
+  STREAM_TRACE (ACE_TEXT ("Test_U_Message::~Test_U_Message"));
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // release media sample ?
+  if (inherited::data_.sample)
+  {
+    inherited::data_.sample->Release (); inherited::data_.sample = NULL;
+  } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 Test_U_Message::Test_U_Message (Stream_SessionId_t sessionId_in,
@@ -115,3 +134,79 @@ Test_U_Message::duplicate (void) const
 
   return message_p;
 }
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+ACE_Message_Block*
+Test_U_Message::release (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_U_Message::release"));
+
+  // release any continuations first
+  if (inherited::cont_)
+  {
+    inherited::cont_->release (); inherited::cont_ = NULL;
+  } // end IF
+
+  int reference_count = inherited::reference_count ();
+  if ((reference_count > 1)                   || // not the last reference
+      (inherited::data_.fileDescriptor == -1) || // not a device data buffer (-clone)
+      inherited::data_.release)                  // clean up (device data)
+    return inherited::release ();
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::data_block_);
+
+  //  // *IMPORTANT NOTE*: handle race condition here
+  //  { ACE_GUARD_RETURN (ACE_Lock, aGuard, *inherited::data_block_->locking_strategy (), NULL);
+  //    if (inherited::size ()) // is device-data ?
+  //      goto requeue;
+
+  //    return inherited::release ();
+  //  } // end lock scope
+
+  //requeue:
+  struct v4l2_buffer buffer_s;
+  ACE_OS::memset (&buffer_s, 0, sizeof (struct v4l2_buffer));
+  buffer_s.index = inherited::data_.index;
+  buffer_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  buffer_s.memory = inherited::data_.method;
+  switch (inherited::data_.method)
+  {
+    case V4L2_MEMORY_USERPTR:
+    {
+      buffer_s.m.userptr =
+        reinterpret_cast<unsigned long> (inherited::rd_ptr ());
+      buffer_s.length = inherited::size ();
+      break;
+    }
+    case V4L2_MEMORY_MMAP:
+    {
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown method (was: %d), returning\n"),
+                  inherited::data_.method));
+      return NULL;
+    }
+  } // end SWITCH
+  // *NOTE*: in oder to retrieve the buffer instance handle from the device
+  //         buffer when it has written the frame data, the address of the
+  //         ACE_Message_Block (!) could be embedded in the 'reserved' field(s).
+  //         Unfortunately, this does not work, the fields seem to be zeroed by
+  //         the driver
+  //         --> maintain a mapping: buffer index <--> buffer handle
+  //        buffer.reserved = reinterpret_cast<unsigned long> (message_block_p);
+  int result = v4l2_ioctl (inherited::data_.fileDescriptor,
+                           VIDIOC_QBUF,
+                           &buffer_s);
+  if (unlikely (result == -1))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
+                inherited::data_.fileDescriptor, ACE_TEXT ("VIDIOC_QBUF")));
+
+  return NULL;
+}
+#endif // ACE_WIN32 || ACE_WIN64

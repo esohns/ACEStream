@@ -29,11 +29,7 @@
 
 #include "stream_control_message.h"
 #include "stream_data_base.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_data_message_base.h"
-#else
-#include "stream_message_base.h"
-#endif // ACE_WIN32 || ACE_WIN64
 #include "stream_messageallocatorheap_base.h"
 
 #include "test_u_stream_common.h"
@@ -61,13 +57,13 @@ class Test_U_Message
                                    Stream_CommandType_t> inherited;
 #else
 class Test_U_Message
- : public Stream_MessageBase_T<Stream_DataBase_T<Stream_CommandType_t>,
-                               enum Stream_MessageType,
-                               Stream_CommandType_t>
+ : public Stream_DataMessageBase_T<struct Test_U_V4L2_MessageData,
+                                   enum Stream_MessageType,
+                                   Stream_CommandType_t>
 {
-  typedef Stream_MessageBase_T<Stream_DataBase_T<Stream_CommandType_t>,
-                               enum Stream_MessageType,
-                               Stream_CommandType_t> inherited;
+  typedef Stream_DataMessageBase_T<struct Test_U_V4L2_MessageData,
+                                   enum Stream_MessageType,
+                                   Stream_CommandType_t> inherited;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // grant access to specific private ctors
@@ -94,12 +90,18 @@ class Test_U_Message
                   ACE_Data_Block*,    // data block to use
                   ACE_Allocator*,     // message allocator
                   bool = true);       // increment running message counter ?
-  inline virtual ~Test_U_Message () {}
+  virtual ~Test_U_Message ();
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
   // *NOTE*: this uses our allocator (if any) to create a new message
   virtual ACE_Message_Block* duplicate (void) const;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  // insert this buffer back into the device incoming queue
+  virtual ACE_Message_Block* release (void);
+#endif // ACE_WIN32 || ACE_WIN64
 
   // implement Stream_MessageBase_T
   //virtual HTTP_Method_t command () const; // return value: message type

@@ -144,13 +144,13 @@ typedef Stream_DataBase_T<struct Stream_CameraScreen_MediaFoundation_MessageData
 struct Stream_CameraScreen_MessageData
 {
   Stream_CameraScreen_MessageData ()
-   : device (-1)
+   : fileDescriptor (-1)
    , index (0)
    , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , release (false)
   {}
 
-  int              device; // (capture) device file descriptor
+  int              fileDescriptor; // (capture) device file descriptor
   __u32            index;  // 'index' field of v4l2_buffer
   enum v4l2_memory method;
   bool             release;

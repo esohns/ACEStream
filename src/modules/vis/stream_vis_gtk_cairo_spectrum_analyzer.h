@@ -139,12 +139,6 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
 
   // override ACE_Task_Base members
   virtual int svc (void);
-//  // override Stream_TaskBaseSynch_T members
-//  virtual void stop (bool = true,   // wait for completion ?
-//                     bool = false); // high priority ? (i.e. do not wait for queued messages)
-
-  //// implement Common_ICounter (triggers frame rendering)
-  //virtual void reset ();
 
   bool initialize_Cairo (GdkWindow*, // target window
                          cairo_t*&); // return value: cairo context
@@ -162,11 +156,6 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   int                                                width_;
 
   enum Stream_Visualization_SpectrumAnalyzer_2DMode* mode2D_;
-  //typename inherited::MESSAGE_QUEUE_T                queue_;
-
-  //Common_Timer_ResetCounterHandler                   renderHandler_;
-  //long                                               renderHandlerTimerId_;
-
   Common_Math_FFT_SampleIterator                     sampleIterator_;
 };
 

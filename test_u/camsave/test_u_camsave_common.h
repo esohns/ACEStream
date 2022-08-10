@@ -206,13 +206,13 @@ typedef Stream_DataBase_T<struct Stream_CamSave_MediaFoundation_MessageData> Str
 struct Stream_CamSave_V4L_MessageData
 {
   Stream_CamSave_V4L_MessageData ()
-   : device (-1)
+   : fileDescriptor (-1)
    , index (0)
    , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , release (false)
   {}
 
-  int         device; // (capture) device file descriptor
+  int         fileDescriptor; // (capture) device file descriptor
   __u32       index;  // 'index' field of v4l2_buffer
   v4l2_memory method;
   bool        release;

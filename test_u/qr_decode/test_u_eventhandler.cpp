@@ -42,18 +42,16 @@ Test_U_EventHandler::start (Stream_SessionId_t sessionId_in,
 
   ACE_UNUSED_ARG (sessionId_in);
   ACE_UNUSED_ARG (sessionData_in);
-
 }
 #else
 void
 Test_U_EventHandler::start (Stream_SessionId_t sessionId_in,
-                            const struct Test_U_SessionData& sessionData_in)
+                            const QRDecode_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_EventHandler::start"));
 
   ACE_UNUSED_ARG (sessionId_in);
   ACE_UNUSED_ARG (sessionData_in);
-
 }
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -77,10 +75,10 @@ Test_U_EventHandler::notify (Stream_SessionId_t sessionId_in,
 
   ACE_ASSERT (message_in.isInitialized ());
 
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("received message (id: %u, session id: %u)\n"),
-              message_in.id (),
-              sessionId_in));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("received message (id: %u, session id: %u)\n"),
+  //            message_in.id (),
+  //            sessionId_in));
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

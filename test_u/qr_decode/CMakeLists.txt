@@ -3,6 +3,16 @@ include (ffmpeg)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
 include (opencv)
 
+if (UNIX)
+# include (CheckLibraryExists)
+# check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
+ set (CMAKE_THREAD_PREFER_PTHREAD ON)
+ find_package (Threads)
+
+ include (FindPkgConfig)
+ pkg_check_modules (PKG_V4L REQUIRED libv4l2)
+endif (UNIX)
+
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
@@ -77,6 +87,7 @@ endif (WIN32 AND NOT BUILD_TEST_U)
 
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+ target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_V4L_LIBRARIES})
 endif (UNIX)
 
 if (FFMPEG_SUPPORT)
@@ -115,10 +126,13 @@ install (TARGETS ${EXECUTABLE}
 if (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIB_PATH)
+ file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
+ file (TO_CMAKE_PATH "${OPENCV_LIB_DIR}" OPENCV_PATH)
+ file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${ACE_LIB_PATH})
-
+                           ${FFMPEG_PATH}
+                           ${OPENCV_PATH}
+                           ${ACE_PATH})
  if (GUI_SUPPORT)
   if (GTK_SUPPORT)
    file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)

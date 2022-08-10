@@ -742,7 +742,10 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                 inherited::mod_->name (),
                 inherited::grp_id_));
 
-    GDK_THREADS_ENTER ();
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+    gdk_threads_enter ();
+#endif // GTK_CHECK_VERSION (3,6,0)
     GtkWidget* widget_p = GTK_WIDGET (inherited::window_);
 
     // *NOTE*: GTK3 seems not to support drawing on a window itself
@@ -768,7 +771,10 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo(), aborting\n"),
                   inherited::mod_->name ()));
-      GDK_THREADS_LEAVE ();
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+      gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
       result = -1;
       goto done;
     } // end IF
@@ -804,7 +810,10 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET_MS,
                    acestream_visualization_gtk_cairo_idle_update_cb,
                    &CBData_);
-    GDK_THREADS_LEAVE ();
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+    gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 
     result = inherited::svc ();
 
@@ -860,76 +869,6 @@ done:
 
   return result;
 }
-
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename TimerManagerType,
-//          typename MediaType,
-//          typename ValueType>
-//void
-//Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
-//                                                  TimePolicyType,
-//                                                  ConfigurationType,
-//                                                  ControlMessageType,
-//                                                  DataMessageType,
-//                                                  SessionMessageType,
-//                                                  SessionDataType,
-//                                                  SessionDataContainerType,
-//                                                  TimerManagerType,
-//                                                  MediaType,
-//                                                  ValueType>::stop (bool waitForCompletion_in,
-//                                                                    bool highPriority_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::stop"));
-//
-//  ACE_UNUSED_ARG (highPriority_in);
-//
-//  int result = -1;
-//  ACE_Message_Block* message_block_p = NULL;
-//  ACE_NEW_NORETURN (message_block_p,
-//                    ACE_Message_Block (0,                                  // size
-//                                       ACE_Message_Block::MB_STOP,         // type
-//                                       NULL,                               // continuation
-//                                       NULL,                               // data
-//                                       NULL,                               // buffer allocator
-//                                       NULL,                               // locking strategy
-//                                       ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
-//                                       ACE_Time_Value::zero,               // execution time
-//                                       ACE_Time_Value::max_time,           // deadline time
-//                                       NULL,                               // data block allocator
-//                                       NULL));                             // message allocator
-//  if (unlikely (!message_block_p))
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
-//                inherited::mod_->name ()));
-//    return;
-//  } // end IF
-//
-//  result = this->putq (message_block_p, NULL);
-//  if (unlikely (result == -1))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to ACE_Task_Base::putq(): \"%m\", continuing\n"),
-//                inherited::mod_->name ()));
-//    message_block_p->release (); message_block_p = NULL;
-//  } // end IF
-//
-//  if (likely (waitForCompletion_in))
-//  {
-//    result = inherited::TASK_T::wait ();
-//    if (unlikely (result == -1))
-//         ACE_DEBUG ((LM_ERROR,
-//                     ACE_TEXT ("%s: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),
-//                     inherited::mod_->name ()));
-//  } // end IF
-//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

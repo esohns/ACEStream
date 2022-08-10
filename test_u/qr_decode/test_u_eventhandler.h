@@ -25,8 +25,8 @@
 
 #include "stream_common.h"
 
-#include "Test_U_message.h"
-#include "Test_U_session_message.h"
+#include "test_u_message.h"
+#include "test_u_session_message.h"
 
 // forward declarations
 //struct Test_U_UI_CBData;
@@ -44,8 +44,8 @@ class Test_U_EventHandler
   virtual void start (Stream_SessionId_t,                      // session id
                       const QRDecode_DirectShow_SessionData&); // session data
 #else
-  virtual void start (Stream_SessionId_t,                 // session id
-                      const struct Test_U_SessionData&); // session data
+  virtual void start (Stream_SessionId_t,           // session id
+                      const QRDecode_SessionData&); // session data
 #endif // ACE_WIN32 || ACE_WIN64
   virtual void notify (Stream_SessionId_t,                     // session id
                        const enum Stream_SessionMessageType&); // event (state/status change, ...)

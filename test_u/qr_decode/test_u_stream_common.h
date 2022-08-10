@@ -40,6 +40,13 @@
 #include "stream_dev_common.h"
 #include "stream_dev_defines.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (FFMPEG_SUPPORT)
+#include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
+
 // forward declarations
 //struct Test_U_AllocatorConfiguration;
 class Test_U_Message;
@@ -91,15 +98,33 @@ class QRDecode_DirectShow_SessionData
 };
 typedef Stream_SessionData_T<QRDecode_DirectShow_SessionData> QRDecode_DirectShow_SessionData_t;
 #else
-struct QRDecode_SessionData
- : Stream_SessionData
+class QRDecode_SessionData
+ : public Stream_SessionDataMediaBase_T<struct Stream_SessionData,
+                                        struct Stream_MediaFramework_V4L_MediaType,
+                                        struct Test_U_StreamState,
+                                        struct Stream_Statistic,
+                                        struct Stream_UserData>
 {
+ public:
   QRDecode_SessionData ()
-   : Stream_SessionData ()
-   , stream (NULL)
+   : Stream_SessionDataMediaBase_T<struct Stream_SessionData,
+                                   struct Stream_MediaFramework_V4L_MediaType,
+                                   struct Test_U_StreamState,
+                                   struct Stream_Statistic,
+                                   struct Stream_UserData> ()
   {}
 
-  struct QRDecode_SessionData& operator+= (const struct QRDecode_SessionData& rhs_in)
+  QRDecode_SessionData& operator= (const QRDecode_SessionData& rhs_in)
+  {
+    Stream_SessionDataMediaBase_T<struct Stream_SessionData,
+                                  struct Stream_MediaFramework_V4L_MediaType,
+                                  struct Test_U_StreamState,
+                                  struct Stream_Statistic,
+                                  struct Stream_UserData>::operator= (rhs_in);
+
+    return *this;
+  }
+  QRDecode_SessionData& operator+= (const QRDecode_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
@@ -107,6 +132,7 @@ struct QRDecode_SessionData
     return *this;
   }
 };
+typedef Stream_SessionData_T<QRDecode_SessionData> QRDecode_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -132,7 +158,18 @@ struct QRDecode_StreamConfiguration
 {
   QRDecode_StreamConfiguration ()
    : Stream_Configuration ()
-  {}
+   , format ()
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ACE_OS::memset (&format, 0, sizeof (struct _AMMediaType));
+#endif // ACE_WIN32 || ACE_WIN64
+  }
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType format;
+#else
+  struct Stream_MediaFramework_V4L_MediaType format;
+#endif // ACE_WIN32 || ACE_WIN64
 };
 struct QRDecode_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T< // stream_name_string_,
@@ -145,11 +182,15 @@ struct QRDecode_ModuleHandlerConfiguration
    : Stream_ModuleHandlerConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , builder (NULL)
+#else
+   , buffers (STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS)
 #endif // ACE_WIN32 || ACE_WIN64
    , deviceIdentifier ()
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
    , outputFormat ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
    , preview (STREAM_DEV_CAM_VIDEOFORWINDOW_DEFAULT_PREVIEW_MODE)
+#else
+   , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
 #endif // ACE_WIN32 || ACE_WIN64
    , pushStatisticMessages (true)
    , subscriber (NULL)
@@ -164,18 +205,23 @@ struct QRDecode_ModuleHandlerConfiguration
   }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  IGraphBuilder*                  builder; // DirectShow source
+  IGraphBuilder*                             builder; // DirectShow source
+#else
+  __u32                                      buffers; // v4l device buffers
 #endif // ACE_WIN32 || ACE_WIN64
-  struct Stream_Device_Identifier deviceIdentifier;
+  struct Stream_Device_Identifier            deviceIdentifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType             outputFormat; // DirectShow source
-  bool                            preview; // VfW source
+  struct _AMMediaType                        outputFormat; // DirectShow source
+  bool                                       preview; // VfW source
+#else
+  struct Stream_MediaFramework_V4L_MediaType outputFormat;
+  enum v4l2_memory                           method;
 #endif // ACE_WIN32 || ACE_WIN64
-  bool                            pushStatisticMessages;
-  Test_U_Notification_t*          subscriber;
-  Test_U_Subscribers_t*           subscribers;
+  bool                                       pushStatisticMessages;
+  Test_U_Notification_t*                     subscriber;
+  Test_U_Subscribers_t*                      subscribers;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                            window;
+  HWND                                       window;
 #endif // ACE_WIN32 || ACE_WIN64
 };
 
