@@ -1955,14 +1955,20 @@ stream_processing_function (void* arg_in)
     converter << session_ui_cb_data_p->sessionId;
 
     // retrieve status bar handle
+#if GTK_CHECK_VERSION (3,6,0)
+#else
     gdk_threads_enter ();
+#endif // GTK_CHECK_VERSION (3,6,0)
     statusbar_p =
       GTK_STATUSBAR (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_STATUSBAR_NAME)));
     ACE_ASSERT (statusbar_p);
     context_id = gtk_statusbar_get_context_id (statusbar_p,
                                                converter.str ().c_str ());
+#if GTK_CHECK_VERSION (3,6,0)
+#else
     gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 
     // set context ID
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

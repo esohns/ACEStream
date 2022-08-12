@@ -173,9 +173,12 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     return;
   }
 
+#if GTK_CHECK_VERSION (3,6,0)
+#else
   bool leave_gdk = false;
   gdk_threads_enter ();
   leave_gdk = true;
+#endif // GTK_CHECK_VERSION (3,6,0)
 
   GdkPixbuf* pixbuf_p =
     gdk_pixbuf_new_from_data (reinterpret_cast<guchar*> (message_inout->rd_ptr ()),
@@ -223,11 +226,15 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   g_object_unref (pixbuf_p); pixbuf_p = NULL;
 
 continue_:
+#if GTK_CHECK_VERSION (3,6,0)
+ ;
+#else
   if (likely (leave_gdk))
   {
     gdk_threads_leave ();
     leave_gdk = false;
   } // end IF
+#endif // GTK_CHECK_VERSION (3,6,0)
 }
 
 template <ACE_SYNCH_DECL,
@@ -264,7 +271,10 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
       gint width_i, height_i;
 
+#if GTK_CHECK_VERSION (3,6,0)
+#else
       gdk_threads_enter ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 
 #if GTK_CHECK_VERSION (3,0,0)
       width_i = gdk_window_get_width (inherited::configuration_->window);
@@ -281,7 +291,10 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       sourceResolution_.height = height_i;
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if GTK_CHECK_VERSION (3,6,0)
+#else
       gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 
 continue_:
       break;
@@ -300,9 +313,12 @@ continue_:
 
       gint width_i = 0, height_i = 0;
 
+#if GTK_CHECK_VERSION (3,6,0)
+#else
       gdk_threads_enter ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 
-#if GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION (3,0,0)
       if (context_)
       {
         cairo_destroy (context_); context_ = NULL;
@@ -330,7 +346,10 @@ continue_:
       ACE_ASSERT (context_);
 #endif // GTK_CHECK_VERSION (3,0,0)
 
+#if GTK_CHECK_VERSION (3,6,0)
+#else
       gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 
       inherited2::resizing_ = false;
 

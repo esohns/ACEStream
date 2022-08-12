@@ -2030,11 +2030,17 @@ stream_processing_function (void* arg_in)
 #endif // ACE_WIN32 || ACE_WIN64
 
   // generate context id
+#if GTK_CHECK_VERSION (3,6,0)
+#else
   gdk_threads_enter ();
+#endif // GTK_CHECK_VERSION (3,6,0)
   thread_data_p->CBData->UIState->contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_INFORMATION,
                                                                      gtk_statusbar_get_context_id (statusbar_p,
                                                                                                    converter.str ().c_str ())));
+#if GTK_CHECK_VERSION (3,6,0)
+#else
   gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 
   ACE_ASSERT (stream_p && stream_2);
   stream_p->start ();

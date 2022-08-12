@@ -752,13 +752,13 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     //         --> draw into a drawing area instead
     // *TODO*: GTK2 does support drawing on a window, but resizing it does not
     //         extend the canvas...
-#if GTK_CHECK_VERSION(3,0,0)
-    GtkWidget* box_p = gtk_vbox_new (FALSE, 0);
+#if GTK_CHECK_VERSION (3,0,0)
+    GtkWidget* box_p = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add (GTK_CONTAINER (inherited::window_), box_p);
     GtkWidget* drawing_area_p = gtk_drawing_area_new ();
     gtk_box_pack_start (GTK_BOX (box_p), drawing_area_p, TRUE, TRUE, 0);
     widget_p = drawing_area_p;
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
     gtk_widget_set_app_paintable (widget_p, TRUE);
     gtk_widget_set_double_buffered (widget_p, FALSE);
     gtk_widget_show_all (GTK_WIDGET (inherited::window_));

@@ -163,7 +163,10 @@ Stream_Filecopy_EventHandler::end (Stream_SessionId_t sessionId_in)
     // sanity check(s)
     ACE_ASSERT (iterator != state_r.builders.end ());
 
+#if GTK_CHECK_VERSION (3,6,0)
+#else
     gdk_threads_enter ();
+#endif // GTK_CHECK_VERSION (3,6,0)
     table_p =
       GTK_TABLE (gtk_builder_get_object ((*iterator).second.second,
                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TABLE_OPTIONS_NAME)));
@@ -180,7 +183,10 @@ Stream_Filecopy_EventHandler::end (Stream_SessionId_t sessionId_in)
                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_STOP_NAME)));
     ACE_ASSERT (action_p);
     gtk_action_set_sensitive (action_p, FALSE);
+#if GTK_CHECK_VERSION (3,6,0)
+#else
     gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
     state_r.eventStack.push (COMMON_UI_EVENT_FINISHED);
   } // end lock scope
 #endif // GTK_USE

@@ -147,7 +147,7 @@ Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVQRDecoder_T::handleDataMessage"));
 
   // step0: convert image frame to matrix
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   cv::Mat frame_matrix (resolution_.cy,
                         resolution_.cx,
 #else
