@@ -19,5 +19,10 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "stream_module_mysqlreader.h"
+
+#include "stream_module_db_defines.h"
+
+//STREAM_Db_Export const char libacestream_default_db_mysql_source_module_name_string[] =
+const char libacestream_default_db_mysql_source_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_DB_MYSQL_SOURCE_DEFAULT_NAME_STRING);

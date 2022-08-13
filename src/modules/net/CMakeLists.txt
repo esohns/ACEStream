@@ -2,7 +2,7 @@ add_library (${PROJECT_NAME}_Network STATIC "")
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
-message (STATUS "BUILD_PATH_SUFFIX: ${BUILD_PATH_SUFFIX}")
+#message (STATUS "BUILD_PATH_SUFFIX: ${BUILD_PATH_SUFFIX}")
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
@@ -20,6 +20,8 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACENetwork/${BUILD_PATH_SUFFIX}>)
+ target_include_directories (${PROJECT_NAME}_Network PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACENetwork/src>)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACENetwork/src/client_server>)
@@ -31,6 +33,8 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
 
+ target_include_directories (${PROJECT_NAME}_Network PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC

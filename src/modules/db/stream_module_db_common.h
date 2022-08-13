@@ -11,8 +11,8 @@ struct Stream_Module_DataBase_LoginOptions
 {
   Stream_Module_DataBase_LoginOptions ()
    : database ()
-    , host (static_cast<u_short> (MODULE_DB_MYSQL_DEFAULT_PORT),
-            static_cast<ACE_UINT32> (INADDR_LOOPBACK))
+   , host (static_cast<u_short> (MODULE_DB_MYSQL_DEFAULT_PORT),
+           static_cast<ACE_UINT32> (INADDR_LOOPBACK))
    , password ()
    , UNIXSocket ()
    , useNamedPipe (false)

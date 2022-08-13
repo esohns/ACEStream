@@ -19,6 +19,11 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "stream_module_xpathquery.h"
 
+//#include "stream_module_html_defines.h"
+#define MODULE_XPATH_QUERY_DEFAULT_NAME_STRING "XPathQuery"
+
+//Stream_HTML_Export const char libacestream_default_xpath_query_module_name_string[] =
+const char libacestream_default_xpath_query_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_XPATH_QUERY_DEFAULT_NAME_STRING);

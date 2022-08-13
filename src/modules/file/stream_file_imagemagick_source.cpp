@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "stream_file_imagemagick_source.h"
 
 #include "stream_file_defines.h"

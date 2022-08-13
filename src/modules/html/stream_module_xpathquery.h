@@ -27,7 +27,10 @@
 #include "stream_task_base_synch.h"
 
 // definitions
+// *TODO*: move this somewhere else
 #define STREAM_MODULE_XPATHQUERY_QUERY_STRING "/html/body/div[@id=\"container\"]/div[@id=\"container_content\"]/div[@id=\"mitte\"]/div[@id=\"mitte_links\"]/div[@id=\"archiv_woche\"]/ul/li/a"
+
+extern const char libacestream_default_xpath_query_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

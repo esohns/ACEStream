@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "stream_module_htmlparser.h"
 
 //#include "stream_module_html_defines.h"

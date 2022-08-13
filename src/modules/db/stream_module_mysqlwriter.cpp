@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "stream_module_mysqlwriter.h"
 
 #include "stream_module_db_defines.h"

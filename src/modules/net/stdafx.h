@@ -43,3 +43,9 @@
 #include "stream_macros.h"
 
 #include "stream_net_common.h"
+
+#if defined (HAVE_CONFIG_H)
+#include "ACENetwork_config.h"
+#endif // HAVE_CONFIG_H
+
+#include "net_common.h"

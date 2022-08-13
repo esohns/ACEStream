@@ -25,16 +25,17 @@
 #include "ace/Synch_Traits.h"
 
 #if defined (_MSC_VER)
-#include <mysql.h>
+#include "mysql.h"
 #else
-#include <mysql/mysql.h>
+#include "mysql/mysql.h"
 #endif
 
 #include "common_istatistic.h"
-#include "common_time_common.h"
 
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
+
+extern const char libacestream_default_db_mysql_source_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           ////////////////////////////////

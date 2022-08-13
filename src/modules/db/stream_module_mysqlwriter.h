@@ -30,8 +30,6 @@
 
 #include "ace/Global_Macros.h"
 
-//#include "common_time_common.h"
-
 #include "stream_task_base_asynch.h"
 
 extern const char libacestream_default_db_mysql_target_module_name_string[];

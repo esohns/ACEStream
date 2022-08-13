@@ -2259,7 +2259,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<ACE_UINT64>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT64>::max ()));
 
   //spin_button_p =
   //  GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
