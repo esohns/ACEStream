@@ -42,8 +42,8 @@
 #endif // HAVE_CONFIG_H
 
 #include "common.h"
-//#include "common_file_tools.h"
-#include "common_tools.h"
+
+#include "common_event_tools.h"
 
 #include "common_log_tools.h"
 #include "common_logger.h"
@@ -839,10 +839,10 @@ do_work (const std::string& bootstrapFileName_in,
           (!useReactor_in ? numberOfDispatchThreads_in : 0);
   event_dispatch_configuration_s.numberOfReactorThreads =
           (useReactor_in ? numberOfDispatchThreads_in : 0);
-  if (!Common_Tools::initializeEventDispatch (event_dispatch_configuration_s))
+  if (!Common_Event_Tools::initializeEventDispatch (event_dispatch_configuration_s))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
+                ACE_TEXT ("failed to Common_Event_Tools::initializeEventDispatch(), returning\n")));
     goto error;
   } // end IF
 
@@ -913,7 +913,7 @@ do_work (const std::string& bootstrapFileName_in,
   // step1a: initialize worker(s)
   event_dispatch_state_s.configuration =
       &event_dispatch_configuration_s;
-  if (!Common_Tools::startEventDispatch (event_dispatch_state_s))
+  if (!Common_Event_Tools::startEventDispatch (event_dispatch_state_s))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start event dispatch, returning\n")));
@@ -963,8 +963,8 @@ do_work (const std::string& bootstrapFileName_in,
   connection_manager_p->stop (false, true);
   connection_manager_p->abort ();
   connection_manager_p->wait ();
-  Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
-                                       true);
+  Common_Event_Tools::finalizeEventDispatch (event_dispatch_state_s,
+                                             true); // wait ?
   timer_manager_p->stop ();
 
   //		{ // synch access
@@ -1000,8 +1000,8 @@ do_work (const std::string& bootstrapFileName_in,
 
 error:
   if (finalize_event_dispatch)
-    Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
-                                         true);
+    Common_Event_Tools::finalizeEventDispatch (event_dispatch_state_s,
+                                               true); // wait ?
   if (stop_timers)
     timer_manager_p->stop ();
   if (stream_base_p)

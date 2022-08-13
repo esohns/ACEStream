@@ -19,12 +19,11 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "http_get_signalhandler.h"
 
 #include "ace/Log_Msg.h"
 
-#include "common_tools.h"
+#include "common_event_tools.h"
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -154,10 +153,11 @@ HTTPGet_SignalHandler::handle (const struct Common_Signal& signal_in)
     connection_manager_p->wait ();
 
     // step3: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
-                                         false);                                    // wait ?
-
     ACE_ASSERT (inherited::configuration_);
+    ACE_ASSERT (inherited::configuration_->dispatchState);
+    Common_Event_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
+                                               false);                                    // wait ?
+
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 	COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?

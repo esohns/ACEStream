@@ -23,6 +23,8 @@
 
 #include "ace/Log_Msg.h"
 
+#include "common_event_tools.h"
+
 #include "stream_macros.h"
 
 Test_I_SignalHandler::Test_I_SignalHandler ()
@@ -100,6 +102,8 @@ Test_I_SignalHandler::handle (const struct Common_Signal& signal_in)
   } // end SWITCH
 
   // ------------------------------------
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->dispatchState);
 
   // print statistic ?
   if (statistic)
@@ -129,7 +133,7 @@ Test_I_SignalHandler::handle (const struct Common_Signal& signal_in)
                                              false); // high priority ?
 
     if (inherited::configuration_->stopEventDispatchOnShutdown)
-      Common_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
-                                           false); // wait for completion ?
+      Common_Event_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
+                                                 false); // wait for completion ?
   } // end IF
 }

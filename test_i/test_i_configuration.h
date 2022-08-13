@@ -26,9 +26,10 @@
 #include "ace/config-lite.h"
 #include "ace/Time_Value.h"
 
-#include "common.h"
 #include "common_configuration.h"
 #include "common_file_common.h"
+
+#include "common_event_common.h"
 
 #include "common_parser_common.h"
 

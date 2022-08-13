@@ -145,7 +145,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //#else
 //  GDK_THREADS_ENTER ();
 //#endif // GTK_CHECK_VERSION (3,6,0)
-#if GTK_CHECK_VERSION(2, 8, 0)
+#if GTK_CHECK_VERSION (2,8,0)
   context_ = gdk_cairo_create (configuration_in.window);
 #else
   ACE_ASSERT (false); // *TODO*

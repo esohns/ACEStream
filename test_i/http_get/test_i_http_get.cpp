@@ -38,7 +38,8 @@
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
 #include "common.h"
-#include "common_tools.h"
+
+#include "common_event_tools.h"
 
 #include "common_log_tools.h"
 #include "common_logger.h"
@@ -684,10 +685,10 @@ do_work (unsigned int bufferSize_in,
           (!useReactor_in ? numberOfDispatchThreads_in : 0);
   configuration.dispatchConfiguration.numberOfReactorThreads =
           (useReactor_in ? numberOfDispatchThreads_in : 0);
-  if (!Common_Tools::initializeEventDispatch (configuration.dispatchConfiguration))
+  if (!Common_Event_Tools::initializeEventDispatch (configuration.dispatchConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
+                ACE_TEXT ("failed to Common_Event_Tools::initializeEventDispatch(), returning\n")));
     delete stream_p; stream_p = NULL;
     return;
   } // end IF
@@ -765,7 +766,7 @@ do_work (unsigned int bufferSize_in,
   // - perform statistics collecting/reporting
 
   // step1a: initialize worker(s)
-  if (!Common_Tools::startEventDispatch (dispatch_state_s))
+  if (!Common_Event_Tools::startEventDispatch (dispatch_state_s))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start event dispatch, returning\n")));
@@ -778,8 +779,8 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize stream, returning\n")));
-    Common_Tools::finalizeEventDispatch (dispatch_state_s,
-                                         true);
+    Common_Event_Tools::finalizeEventDispatch (dispatch_state_s,
+                                               true); // wait ?
     timer_manager_p->stop ();
     delete stream_p; stream_p = NULL;
     return;
@@ -806,8 +807,8 @@ do_work (unsigned int bufferSize_in,
   connection_manager_p->stop (false, true);
   connection_manager_p->abort ();
   connection_manager_p->wait ();
-  Common_Tools::finalizeEventDispatch (dispatch_state_s,
-                                       true);
+  Common_Event_Tools::finalizeEventDispatch (dispatch_state_s,
+                                             true); // wait ?
 
   // step3: clean up
   timer_manager_p->stop ();

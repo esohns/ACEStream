@@ -45,9 +45,9 @@
 #if defined (HAVE_CONFIG_H)
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
-
 #include "common_file_tools.h"
-#include "common_tools.h"
+
+#include "common_event_tools.h"
 
 #include "common_log_tools.h"
 #include "common_logger.h"
@@ -605,10 +605,10 @@ do_work (
           (!useReactor_in ? TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS : 0);
   configuration_in.dispatchConfiguration.numberOfReactorThreads =
           (useReactor_in ? TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS : 0);
-  if (!Common_Tools::initializeEventDispatch (configuration_in.dispatchConfiguration))
+  if (!Common_Event_Tools::initializeEventDispatch (configuration_in.dispatchConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
+                ACE_TEXT ("failed to Common_Event_Tools::initializeEventDispatch(), returning\n")));
     goto clean;
     return;
   } // end IF
@@ -620,7 +620,7 @@ do_work (
                              &user_data_s);
 
   // start event loop(s)
-  if (!Common_Tools::startEventDispatch (dispatch_state))
+  if (!Common_Event_Tools::startEventDispatch (dispatch_state))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start event dispatch, returning\n")));
@@ -704,8 +704,8 @@ clean:
   connection_manager_p->abort ();
   connection_manager_p->wait ();
 
-  Common_Tools::finalizeEventDispatch (dispatch_state,
-                                       true);
+  Common_Event_Tools::finalizeEventDispatch (dispatch_state,
+                                             true); // wait ?
 
   timer_manager_p->stop ();
 

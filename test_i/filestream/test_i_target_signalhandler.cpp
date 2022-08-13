@@ -23,8 +23,9 @@
 
 #include "ace/Log_Msg.h"
 
+#include "common_event_tools.h"
+
 #include "common_timer_manager_common.h"
-#include "common_tools.h"
 
 #include "stream_macros.h"
 
@@ -41,9 +42,6 @@ void
 Stream_Target_SignalHandler::handle (const struct Common_Signal& signal_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::handle"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
 
   int result = -1;
   bool close_all = false;
@@ -103,6 +101,8 @@ Stream_Target_SignalHandler::handle (const struct Common_Signal& signal_in)
   } // end SWITCH
 
   // ------------------------------------
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->dispatchState);
 
   // print statistic ?
   if (statistic &&
@@ -177,8 +177,8 @@ Stream_Target_SignalHandler::handle (const struct Common_Signal& signal_in)
     connection_manager_p->wait ();
 
     // step5: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
-                                         false);                                    // wait ?
+    Common_Event_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
+                                               false);                                    // wait ?
 
     // *IMPORTANT NOTE*: there is no real reason to wait here
   } // end IF

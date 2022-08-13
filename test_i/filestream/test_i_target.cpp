@@ -36,7 +36,8 @@
 #if defined (HAVE_CONFIG_H)
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
-#include "common_tools.h"
+
+#include "common_event_tools.h"
 
 #include "common_log_tools.h"
 #include "common_logger.h"
@@ -609,10 +610,10 @@ do_work (unsigned int bufferSize_in,
     numberOfDispatchThreads_in;
   event_dispatch_configuration_s.numberOfReactorThreads =
     numberOfDispatchThreads_in;
-  if (!Common_Tools::initializeEventDispatch (event_dispatch_configuration_s))
+  if (!Common_Event_Tools::initializeEventDispatch (event_dispatch_configuration_s))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
+                ACE_TEXT ("failed to Common_Event_Tools::initializeEventDispatch(), returning\n")));
     return;
   } // end IF
 
@@ -744,7 +745,7 @@ do_work (unsigned int bufferSize_in,
 
   // step1b: initialize worker(s)
 //  int group_id = -1;
-  if (!Common_Tools::startEventDispatch (event_dispatch_state_s))
+  if (!Common_Event_Tools::startEventDispatch (event_dispatch_state_s))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start event dispatch, returning\n")));
@@ -787,8 +788,8 @@ do_work (unsigned int bufferSize_in,
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("failed to allocate memory, returning\n")));
 
-        Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
-                                             true);
+        Common_Event_Tools::finalizeEventDispatch (event_dispatch_state_s,
+                                                   true); // wait ?
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -812,8 +813,8 @@ do_work (unsigned int bufferSize_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));
 
-        Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
-                                             true);
+        Common_Event_Tools::finalizeEventDispatch (event_dispatch_state_s,
+                                                   true); // wait ?
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -872,8 +873,8 @@ do_work (unsigned int bufferSize_in,
                                                                    false,
                                                                    false).c_str ())));
 
-        Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
-                                             true);
+        Common_Event_Tools::finalizeEventDispatch (event_dispatch_state_s,
+                                                   true); // wait ?
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -905,8 +906,8 @@ do_work (unsigned int bufferSize_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize listener, returning\n")));
 
-        Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
-                                             true);
+        Common_Event_Tools::finalizeEventDispatch (event_dispatch_state_s,
+                                                   true); // wait ?
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -956,7 +957,7 @@ do_work (unsigned int bufferSize_in,
 
   // *NOTE*: from this point on, clean up any remote connections !
 
-  Common_Tools::dispatchEvents (event_dispatch_state_s);
+  Common_Event_Tools::dispatchEvents (event_dispatch_state_s);
 
   // clean up
   // *NOTE*: listener has stopped, interval timer has been cancelled,

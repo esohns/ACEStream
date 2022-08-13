@@ -21,6 +21,8 @@
 #ifndef STREAM_MODULE_DEC_NOISE_TOOLS_H
 #define STREAM_MODULE_DEC_NOISE_TOOLS_H
 
+#include <random>
+
 #include "ace/Basic_Types.h"
 #include "ace/Global_Macros.h"
 

@@ -22,5 +22,5 @@
 #include "stream_base.h"
 
  // initialize statics
-ACE_Atomic_Op<ACE_SYNCH_MUTEX, Stream_SessionId_t>
-Stream_Base::currentSessionId = 0;
+ACE_Atomic_Op<ACE_SYNCH_MUTEX,
+              Stream_SessionId_t> Stream_Base::currentSessionId = 0;

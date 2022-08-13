@@ -23,6 +23,8 @@
 
 #include "ace/Log_Msg.h"
 
+#include "common_event_tools.h"
+
 #include "stream_macros.h"
 
 #include "test_i_commandspeech_common.h"
@@ -102,6 +104,9 @@ Test_I_SignalHandler::handle (const struct Common_Signal& signal_in)
   } // end SWITCH
 
   // ------------------------------------
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->dispatchState);
+  ACE_ASSERT (inherited::configuration_->stream);
 
   // print statistic ?
   if (statistic)
@@ -127,16 +132,16 @@ Test_I_SignalHandler::handle (const struct Common_Signal& signal_in)
 
     Test_I_InputManager_t* input_manager_p =
       Test_I_InputManager_t::SINGLETON_T::instance ();
+    ACE_ASSERT (input_manager_p);
     input_manager_p->stop (false,  // wait for completion ?
                            false); // N/A
 
-    ACE_ASSERT (inherited::configuration_->stream);
     inherited::configuration_->stream->stop (false, // wait for completion ?
                                              false, // recurse upstream ?
                                              true); // high priority ?
 
     if (inherited::configuration_->stopEventDispatchOnShutdown)
-      Common_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
-                                           false); // wait for completion ?
+      Common_Event_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
+                                                 false); // wait for completion ?
   } // end IF
 }

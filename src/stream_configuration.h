@@ -243,6 +243,8 @@ struct Stream_ModuleConfiguration
   Stream_IStream_t* stream; // *WARNING*: automatically set; DON'T TOUCH
 };
 
+struct Common_AllocatorConfiguration;
+struct Common_EventDispatchConfiguration;
 struct Stream_Configuration
 {
   Stream_Configuration ()

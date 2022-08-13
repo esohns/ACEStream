@@ -23,7 +23,7 @@
 
 #include "ace/Log_Msg.h"
 
-#include "common_tools.h"
+#include "common_event_tools.h"
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -47,9 +47,6 @@ void
 Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler::handle"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
 
   bool statistic = false;
   bool shutdown = false;
@@ -111,6 +108,9 @@ Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
   } // end SWITCH
 
   // ------------------------------------
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->dispatchState);
+  ACE_ASSERT (inherited::configuration_->stream);
 
   // print statistic ?
   if (statistic)
@@ -137,7 +137,6 @@ Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
     // [- UI dispatch]
 
     // step1: stop processing stream
-    ACE_ASSERT (inherited::configuration_->stream);
     inherited::configuration_->stream->stop (false, // don't block
                                              true); // locked access
 
@@ -158,8 +157,8 @@ Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
 #endif // GUI_SUPPORT
 
     // step4: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
-                                         false);                                    // wait ?
+    Common_Event_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
+                                               false);                                    // wait ?
 
     // *IMPORTANT NOTE*: there is no reason to wait here
   } // end IF

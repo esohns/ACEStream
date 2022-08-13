@@ -45,8 +45,8 @@
 #endif // HAVE_CONFIG_H
 
 #include "common.h"
-//#include "common_file_tools.h"
-#include "common_tools.h"
+
+#include "common_event_tools.h"
 
 #include "common_log_tools.h"
 #if defined (GUI_SUPPORT)
@@ -669,10 +669,10 @@ do_work (unsigned int bufferSize_in,
       (useReactor_in ? numberOfDispatchThreads_in : 0);
   CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads =
       (!useReactor_in ? numberOfDispatchThreads_in : 0);
-  if (!Common_Tools::initializeEventDispatch (CBData_in.configuration->dispatchConfiguration))
+  if (!Common_Event_Tools::initializeEventDispatch (CBData_in.configuration->dispatchConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
+                ACE_TEXT ("failed to Common_Event_Tools::initializeEventDispatch(), returning\n")));
     goto clean;
   } // end IF
   CBData_in.dispatchState.configuration =
@@ -785,7 +785,7 @@ do_work (unsigned int bufferSize_in,
   // - perform statistics collecting/reporting
 
   // step1a: initialize worker(s)
-  if (!Common_Tools::startEventDispatch (CBData_in.dispatchState))
+  if (!Common_Event_Tools::startEventDispatch (CBData_in.dispatchState))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start event dispatch, returning\n")));
@@ -881,8 +881,8 @@ do_work (unsigned int bufferSize_in,
   return;
 
 clean:
-  Common_Tools::finalizeEventDispatch (CBData_in.dispatchState,
-                                       true);
+  Common_Event_Tools::finalizeEventDispatch (CBData_in.dispatchState,
+                                             true); // wait ?
   timer_manager_p->stop ();
   if (!interfaceDefinitionFile_in.empty ())
 #if defined (GUI_SUPPORT)

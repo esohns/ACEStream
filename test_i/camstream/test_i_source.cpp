@@ -42,7 +42,6 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -50,7 +49,8 @@
 #endif // HAVE_CONFIG_H
 
 #include "common_file_tools.h"
-#include "common_tools.h"
+
+#include "common_event_tools.h"
 
 #include "common_log_tools.h"
 #if defined (GUI_SUPPORT)
@@ -833,10 +833,10 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   else
     camstream_configuration_p->dispatchConfiguration.numberOfProactorThreads =
       numberOfProactorDispatchThreads_in;
-  if (!Common_Tools::initializeEventDispatch (camstream_configuration_p->dispatchConfiguration))
+  if (!Common_Event_Tools::initializeEventDispatch (camstream_configuration_p->dispatchConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
+                ACE_TEXT ("failed to Common_Event_Tools::initializeEventDispatch(), returning\n")));
     return;
   } // end IF
   struct Common_EventDispatchState event_dispatch_state_s;
@@ -1798,7 +1798,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   } // end IF
 
   // step1b: initialize worker(s)
-  if (!Common_Tools::startEventDispatch (event_dispatch_state_s))
+  if (!Common_Event_Tools::startEventDispatch (event_dispatch_state_s))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start event dispatch, returning\n")));
@@ -1873,8 +1873,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                   ACE_TEXT ("failed to initialize stream, aborting\n")));
 
       // clean up
-      Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
-                                           true);
+      Common_Event_Tools::finalizeEventDispatch (event_dispatch_state_s,
+                                                 true); // wait ?
 
       goto clean;
     } // end IF
@@ -1906,8 +1906,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 
 //    connection_manager_p->abort ();
   iconnection_manager_p->wait ();
-  Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
-                                       true);
+  Common_Event_Tools::finalizeEventDispatch (event_dispatch_state_s,
+                                             true); // wait ?
 
   // step3: clean up
 clean:

@@ -36,7 +36,8 @@
 #if defined (HAVE_CONFIG_H)
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
-#include "common_tools.h"
+
+#include "common_event_tools.h"
 
 #include "common_log_tools.h"
 #include "common_logger.h"
@@ -454,10 +455,10 @@ do_work (unsigned int bufferSize_in,
   else
     CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads =
       numberOfProactorDispatchThreads_in;
-  if (!Common_Tools::initializeEventDispatch (CBData_in.configuration->dispatchConfiguration))
+  if (!Common_Event_Tools::initializeEventDispatch (CBData_in.configuration->dispatchConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
+                ACE_TEXT ("failed to Common_Event_Tools::initializeEventDispatch(), returning\n")));
     return;
   } // end IF
 
@@ -738,7 +739,7 @@ do_work (unsigned int bufferSize_in,
 
   // step1b: initialize worker(s)
 //  int group_id = -1;
-  if (!Common_Tools::startEventDispatch (event_dispatch_state_s))
+  if (!Common_Event_Tools::startEventDispatch (event_dispatch_state_s))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start event dispatch, returning\n")));
@@ -780,8 +781,8 @@ loop:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to initialize stream, returning\n")));
-      Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
-                                           true);
+      Common_Event_Tools::finalizeEventDispatch (event_dispatch_state_s,
+                                                 true); // wait ?
       timer_manager_p->stop ();
       delete CBData_in.stream; CBData_in.stream = NULL;
       delete CBData_in.UDPStream; CBData_in.UDPStream = NULL;
@@ -817,12 +818,12 @@ loop:
     iconnection_manager_p->stop (false, true);
     iconnection_manager_p->abort ();
     iconnection_manager_p->wait ();
-    Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
-                                         true);
+    Common_Event_Tools::finalizeEventDispatch (event_dispatch_state_s,
+                                               true); // wait ?
 #if defined (GUI_SUPPORT)
   } // end IF
   else
-    Common_Tools::dispatchEvents (event_dispatch_state_s);
+    Common_Event_Tools::dispatchEvents (event_dispatch_state_s);
 #endif // GUI_SUPPORT
 
   // step3: clean up
