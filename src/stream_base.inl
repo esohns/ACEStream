@@ -2882,9 +2882,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 
     // mark asynchronous tasks with an asterisk
     task_p =
-      static_cast<COMMON_TASK_BASE_T*> (const_cast<MODULE_T*> (module_p)->writer ());
-    ACE_ASSERT (task_p);
-    if (task_p->get ())
+      dynamic_cast<COMMON_TASK_BASE_T*> (const_cast<MODULE_T*> (module_p)->writer ());
+    if (task_p && task_p->get ())
       stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR ("*"));
 
     stream_layout_string.append (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ())));
