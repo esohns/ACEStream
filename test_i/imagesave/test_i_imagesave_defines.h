@@ -43,7 +43,8 @@
 
 //---------------------------------------
 #if defined (GTK_USE)
-#define TEST_I_UI_GTK_ADJUSTMENT_NAME                  "scrolledwindow_vadjustment"
+#define TEST_I_UI_GTK_ADJUSTMENT_SW_V_NAME             "scrolledwindow_vadjustment"
+#define TEST_I_UI_GTK_ADJUSTMENT_SCALE_NAME            "adjustment_scale"
 #define TEST_I_UI_GTK_BUTTON_ABOUT_NAME                "about"
 #define TEST_I_UI_GTK_BUTTON_CLEAR_NAME                "clear"
 #define TEST_I_UI_GTK_BUTTON_CUT_NAME                  "button_cut"
@@ -72,6 +73,7 @@
 #define TEST_I_UI_GTK_LISTSTORE_FORMAT_NAME            "liststore_format"
 #define TEST_I_UI_GTK_LISTSTORE_RESOLUTION_NAME        "liststore_resolution"
 #define TEST_I_UI_GTK_PROGRESSBAR_NAME                 "progressbar"
+#define TEST_I_UI_GTK_SCALE_NAME                       "scale"
 #define TEST_I_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME       "spinbutton_buffersize"
 #define TEST_I_UI_GTK_SPINBUTTON_DATA_NAME             "spinbutton_data"
 #define TEST_I_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME     "spinbutton_data_messages"

@@ -545,7 +545,7 @@ do_work (
 #if defined (FFMPEG_SUPPORT)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  (*stream_iterator).second.second->outputFormat.video.format = AV_PIX_FMT_RGB24;
+  (*stream_iterator).second.second->outputFormat.video.format = AV_PIX_FMT_BGR24;
 #else
   (*stream_iterator).second.second->outputFormat.video.format = AV_PIX_FMT_RGB32;
 #endif // GTK_USE

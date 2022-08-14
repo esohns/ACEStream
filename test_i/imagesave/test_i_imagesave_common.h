@@ -424,6 +424,7 @@ struct Test_I_ImageSave_UI_CBData
    , configuration (NULL)
    , dispatch (NULL)
    , eventSourceId (0)
+   , numberOfFrames (0)
    , progressData ()
    , stream (NULL)
    , subscribers ()
@@ -434,6 +435,7 @@ struct Test_I_ImageSave_UI_CBData
   struct Test_I_ImageSave_Configuration* configuration;
   Common_IDispatch*                      dispatch;
   guint                                  eventSourceId; // display update-
+  unsigned int                           numberOfFrames;
   struct Test_I_ImageSave_ProgressData   progressData;
   Test_I_Stream*                         stream;
   Test_I_Subscribers_t                   subscribers;

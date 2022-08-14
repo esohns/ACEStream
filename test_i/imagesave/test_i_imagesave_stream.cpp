@@ -110,6 +110,10 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
 
   layout_in->append (&defragment_, NULL, 0);
 
+#if defined(FFMPEG_SUPPORT)
+  layout_in->append (&decoder2_, NULL, 0);
+#endif // FFMPEG_SUPPORT
+
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
 
@@ -122,9 +126,6 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (idistributor_p);
   idistributor_p->initialize (configuration_->configuration_->branches);
 
-#if defined (FFMPEG_SUPPORT)
-  layout_in->append (&decoder2_, branch_p, index_i);
-#endif // FFMPEG_SUPPORT
   //layout_in->append (&report_, NULL, 0);
   layout_in->append (&resize_, branch_p, index_i);
 #if defined (GUI_SUPPORT)

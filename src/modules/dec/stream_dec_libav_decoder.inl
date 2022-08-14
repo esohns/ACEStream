@@ -783,7 +783,10 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         } // end lock scope
       } // end IF
       else
+      {
         inherited2::free_ (media_type_2);
+        formatsIndex_ = session_data_r.formats.size ();
+      } // end ELSE
 
       goto continue_;
 
@@ -815,10 +818,10 @@ continue_:
         {
           typename SessionDataContainerType::DATA_T::MEDIAFORMATS_ITERATOR_T iterator =
             session_data_r.formats.begin ();
-          std::advance (iterator, formatsIndex_);
+          std::advance (iterator, formatsIndex_ + 1);
           session_data_r.formats.erase (iterator, session_data_r.formats.end ());
-          formatsIndex_ = 0;
         } // end IF
+        ACE_ASSERT (!session_data_r.formats.empty ());
         inherited2::getMediaType (session_data_r.formats.back (),
                                   STREAM_MEDIATYPE_VIDEO,
                                   media_type_2);

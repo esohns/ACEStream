@@ -78,6 +78,7 @@ Test_I_EventHandler_T<NotificationType,
  , interface_ (interface_in)
 #endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
+ , numberOfFrames_ (0)
  , sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_EventHandler_T::Test_I_EventHandler_T"));
@@ -130,6 +131,7 @@ Test_I_EventHandler_T<NotificationType,
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
+  //numberOfFrames_ = 0;
   sessionData_ =
     &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_in);
 
@@ -229,6 +231,15 @@ Test_I_EventHandler_T<NotificationType,
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
 #if defined (GTK_USE)
+    CBData_->numberOfFrames = numberOfFrames_;
+    event_source_id = g_idle_add (idle_update_frames_cb,
+                                  CBData_);
+    if (event_source_id == 0)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_idle_add(idle_update_frames_cb): \"%m\", continuing\n")));
+    else
+      state_r.eventSourceIds.insert (event_source_id);
+  
     event_source_id = g_idle_add (idle_session_end_cb,
                                   CBData_);
     if (event_source_id == 0)
@@ -242,8 +253,8 @@ Test_I_EventHandler_T<NotificationType,
 #endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
-  if (sessionData_)
-    sessionData_ = NULL;
+  numberOfFrames_ = 0;
+  sessionData_ = NULL;
 }
 
 template <typename NotificationType,
@@ -274,7 +285,8 @@ Test_I_EventHandler_T<NotificationType,
   // sanity check(s)
 #if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
-#if defined (GTK_USE)
+  ACE_ASSERT (CBData_->configuration);
+#if defined(GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -282,6 +294,8 @@ Test_I_EventHandler_T<NotificationType,
   ACE_ASSERT (interface_);
 #endif
 #endif // GUI_SUPPORT
+
+  numberOfFrames_++;
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -295,25 +309,28 @@ Test_I_EventHandler_T<NotificationType,
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
+  Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator =
+    CBData_->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != CBData_->configuration->streamConfiguration.end ());
+  if ((*stream_iterator).second.second->frameNumber == numberOfFrames_)
+  { ACE_ASSERT (sessionData_);
+    ACE_ASSERT (!sessionData_->formats.empty ());
+    std::string filename_string = Common_File_Tools::getWorkingDirectory ();
+    filename_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+    filename_string += ACE_TEXT_ALWAYS_CHAR ("output.bmp");
+    uint8_t* buffers_a[1];
+    buffers_a[0] = reinterpret_cast<uint8_t*> (message_in.rd_ptr ());
+    Common_Image_Tools::saveBMP (sessionData_->formats.front ().video.resolution,
+                                 AV_PIX_FMT_RGB24,
+                                 buffers_a,
+                                 filename_string);
+  } // end IF
+
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     CBData_->progressData.statistic.bytes += message_in.total_length ();
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
 #endif // GTK_USE || WXWIDGETS_USE
-#endif // GUI_SUPPORT
-
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-//  guint event_source_id = g_idle_add (idle_update_video_display_cb,
-//                                      CBData_);
-//  if (event_source_id == 0)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to g_idle_add(idle_update_video_display_cb): \"%m\", returning\n")));
-//    return;
-//  } // end IF
-//  CBData_->UIState.eventSourceIds.insert (event_source_id);
-#endif // GTK_USE
 #endif // GUI_SUPPORT
 }
 

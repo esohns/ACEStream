@@ -84,6 +84,7 @@ class Test_I_EventHandler_T
   InterfaceType*                               interface_;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
+  unsigned int                                 numberOfFrames_;
   typename SessionMessageType::DATA_T::DATA_T* sessionData_;
 };
 

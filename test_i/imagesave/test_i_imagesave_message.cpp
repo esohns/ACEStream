@@ -30,7 +30,7 @@ Test_I_Message::Test_I_Message (Stream_SessionId_t sessionId_in,
                                 unsigned int size_in)
  : inherited (sessionId_in,
               size_in)
- , mediaType_ (STREAM_MEDIATYPE_INVALID)
+ , mediaType_ (STREAM_MEDIATYPE_VIDEO)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message::Test_I_Message"));
 
@@ -38,6 +38,7 @@ Test_I_Message::Test_I_Message (Stream_SessionId_t sessionId_in,
 
 Test_I_Message::Test_I_Message (const Test_I_Message& message_in)
  : inherited (message_in)
+ , mediaType_ (message_in.mediaType_)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message::Test_I_Message"));
 
@@ -51,6 +52,7 @@ Test_I_Message::Test_I_Message (Stream_SessionId_t sessionId_in,
               dataBlock_in,               // use (don't own (!) memory of-) this data block
               messageAllocator_in,        // message block allocator
               incrementMessageCounter_in)
+ , mediaType_ (STREAM_MEDIATYPE_VIDEO)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message::Test_I_Message"));
 
@@ -60,6 +62,7 @@ Test_I_Message::Test_I_Message (Stream_SessionId_t sessionId_in,
                                 ACE_Allocator* messageAllocator_in)
  : inherited (sessionId_in,
               messageAllocator_in) // message block allocator
+ , mediaType_ (STREAM_MEDIATYPE_VIDEO)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message::Test_I_Message"));
 

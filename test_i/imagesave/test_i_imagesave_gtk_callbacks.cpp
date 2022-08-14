@@ -273,6 +273,33 @@ idle_update_display_cb (gpointer userData_in)
 }
 
 gboolean
+idle_update_frames_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_update_frames_cb"));
+
+  // sanity check(s)
+  struct Test_I_ImageSave_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ImageSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  Common_UI_GTK_BuildersIterator_t iterator =
+    cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
+   GtkAdjustment* adjustment_p =
+    GTK_ADJUSTMENT (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ADJUSTMENT_SCALE_NAME)));
+  ACE_ASSERT (adjustment_p);
+  gtk_adjustment_set_upper (adjustment_p,
+                            static_cast<gdouble> (cb_data_p->numberOfFrames));
+   GtkScale* scale_p =
+    GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCALE_NAME)));
+  ACE_ASSERT (scale_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (scale_p), TRUE);
+
+  return G_SOURCE_REMOVE;
+}
+
+gboolean
 idle_initialize_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_UI_cb"));
@@ -750,10 +777,6 @@ idle_session_end_cb (gpointer userData_in)
   struct Test_I_ImageSave_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_I_ImageSave_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
-
-  // synch access
-//  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState->lock, G_SOURCE_REMOVE);
-
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
@@ -1808,16 +1831,13 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_resolution_changed_cb"));
 
+  // sanity check(s)
   struct Test_I_ImageSave_UI_CBData* cb_data_p =
     static_cast<struct Test_I_ImageSave_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (cb_data_p);
-
   Common_UI_GTK_BuildersIterator_t iterator =
     cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
-
   Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator;
   ACE_ASSERT (cb_data_p->configuration);
   stream_iterator =
@@ -2058,16 +2078,22 @@ filechooserbutton_target_cb (GtkFileChooserButton* fileChooserButton_in,
 //} // filechooserdialog_cb
 
 void
-scalebutton_frame_value_changed_cb (GtkScaleButton* button_in,
-                                    gdouble value_in,
-                                    gpointer userData_in)
+scale_value_changed_cb (GtkRange* range_in,
+                        gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::scalebutton_frame_value_changed_cb"));
+  STREAM_TRACE (ACE_TEXT ("::scale_value_changed_cb"));
 
-  ACE_UNUSED_ARG (button_in);
-  ACE_UNUSED_ARG (value_in);
-  ACE_UNUSED_ARG (userData_in);
-} // scalebutton_frame_value_changed_cb
+  // sanity check(s)
+  struct Test_I_ImageSave_UI_CBData* cb_data_p =
+    reinterpret_cast<struct Test_I_ImageSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->configuration);
+  Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator =
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_p->configuration->streamConfiguration.end ());
+  (*stream_iterator).second.second->frameNumber =
+    static_cast<unsigned int> (gtk_range_get_value (range_in));
+} // scale_value_changed_cb
 
 gboolean
 key_cb (GtkWidget* widget_in,
@@ -2080,16 +2106,11 @@ key_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (eventKey_in);
-
   struct Test_I_ImageSave_UI_CBData* cb_data_p =
       reinterpret_cast<struct Test_I_ImageSave_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (cb_data_p);
-
   Common_UI_GTK_BuildersIterator_t iterator =
     cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
 
   switch (eventKey_in->keyval)

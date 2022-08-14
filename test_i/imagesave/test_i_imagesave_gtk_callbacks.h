@@ -30,6 +30,7 @@ gboolean idle_initialize_UI_cb (gpointer);
 gboolean idle_finalize_UI_cb (gpointer);
 gboolean idle_session_end_cb (gpointer);
 gboolean idle_update_display_cb (gpointer);
+gboolean idle_update_frames_cb (gpointer);
 gboolean idle_update_info_display_cb (gpointer);
 gboolean idle_update_progress_cb (gpointer);
 
@@ -55,7 +56,7 @@ G_MODULE_EXPORT gboolean drawingarea_key_press_event_cb (GtkWidget*, GdkEventKey
 G_MODULE_EXPORT gboolean key_cb (GtkWidget*, GdkEventKey*, gpointer);
 G_MODULE_EXPORT void filechooserbutton_source_cb (GtkFileChooserButton*, gpointer);
 G_MODULE_EXPORT void filechooserbutton_target_cb (GtkFileChooserButton*, gpointer);
-G_MODULE_EXPORT void scalebutton_frame_value_changed_cb (GtkScaleButton*, gdouble, gpointer);
+G_MODULE_EXPORT void scale_value_changed_cb (GtkRange*, gpointer);
 
 #ifdef __cplusplus
 }

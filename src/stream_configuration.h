@@ -105,6 +105,7 @@ struct Stream_ModuleHandlerConfiguration
    , demultiplex (false)
    , finishOnDisconnect (false)
    , flipImage (false)
+   , frameNumber (0)
    , generateSessionMessages (true)
    , hasReentrantSynchronousSubDownstream (true)
    , inbound (true)
@@ -147,6 +148,7 @@ struct Stream_ModuleHandlerConfiguration
 //  struct Common_EventDispatchConfiguration*   dispatchConfiguration;
   bool                                        finishOnDisconnect;                   // head module(s)
   bool                                        flipImage;                            // ffmpeg (converter)
+  unsigned int                                frameNumber;                          // frame grabber
   bool                                        generateSessionMessages;              // head module(s)
   // *WARNING*: when false, this 'locks down' the pipeline head module; i.e. it
   //            will hold the 'stream lock' during all message processing to
