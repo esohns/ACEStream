@@ -131,6 +131,7 @@ struct HTTPGet_ModuleHandlerConfiguration
    , HTTPForm ()
    , HTTPHeaders ()
    , inbound (true)
+   , parserConfiguration (NULL)
    , printProgressDot (false)
    , pushStatisticMessages (true)
    , streamConfiguration (NULL)
@@ -144,22 +145,23 @@ struct HTTPGet_ModuleHandlerConfiguration
     passive = false;
   };
 
-  bool                            closeAfterReception;      // HTTP get module
-  struct HTTPGet_Configuration*   configuration;
-  Net_IINETConnection_t*          connection;               // TCP target/IO module
-  Net_ConnectionConfigurations_t* connectionConfigurations;
-  HTTPGet_ConnectionManager_t*    connectionManager;        // TCP IO module
-  HTTP_Form_t                     HTTPForm;                 // HTTP get module
-  HTTP_Headers_t                  HTTPHeaders;              // HTTP get module
-  bool                            inbound;                  // net io module
-  bool                            printProgressDot;         // file writer module
-  bool                            pushStatisticMessages;
-  HTTPGet_StreamConfiguration_t*  streamConfiguration;      // net source module
-  HTTPGet_Notification_t*         subscriber;
-  HTTPGet_Subscribers_t*          subscribers;
-  std::string                     targetFileName;           // file writer module
-  std::string                     URL;                      // HTTP get module
-  bool                            waitForConnect;
+  bool                             closeAfterReception;      // HTTP get module
+  struct HTTPGet_Configuration*    configuration;
+  Net_IINETConnection_t*           connection;               // TCP target/IO module
+  Net_ConnectionConfigurations_t*  connectionConfigurations;
+  HTTPGet_ConnectionManager_t*     connectionManager;        // TCP IO module
+  HTTP_Form_t                      HTTPForm;                 // HTTP get module
+  HTTP_Headers_t                   HTTPHeaders;              // HTTP get module
+  bool                             inbound;                  // net io module
+  struct HTTP_ParserConfiguration* parserConfiguration;      // parser module(s)
+  bool                             printProgressDot;         // file writer module
+  bool                             pushStatisticMessages;
+  HTTPGet_StreamConfiguration_t*   streamConfiguration;      // net source module
+  HTTPGet_Notification_t*          subscriber;
+  HTTPGet_Subscribers_t*           subscribers;
+  std::string                      targetFileName;           // file writer module
+  std::string                      URL;                      // HTTP get module
+  bool                             waitForConnect;
 };
 
 struct HTTPGet_StreamState

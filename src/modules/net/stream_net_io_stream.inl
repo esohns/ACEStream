@@ -829,7 +829,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Net_ISocketHandler::initiate_read(), aborting\n"),
                     ACE_TEXT (inherited::name_.c_str ())));
-        connection_p->close ();
+        connection_p->abort ();
       } // end IF
     connection_p->decrease ();
   } // end IF

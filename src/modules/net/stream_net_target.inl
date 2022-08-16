@@ -126,9 +126,9 @@ close:
   if (unlikely (isOpen_ &&
                 !isPassive_))
   { ACE_ASSERT (connection_);
-    connection_->close ();
+    connection_->abort ();
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: closed connection to %s in dtor --> check implementation !\n"),
+                ACE_TEXT ("%s: aborted connection to %s in dtor --> check implementation !\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Net_Common_Tools::IPAddressToString (address_, false, false).c_str ())));
   } // end IF
@@ -178,9 +178,9 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
         !isPassive_)
     { ACE_ASSERT (connection_);
       Net_ConnectionId_t id = connection_->id ();
-      connection_->close ();
+      connection_->abort ();
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
+                  ACE_TEXT ("%s: aborted connection to %s (id was: %u)\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
                   id));
@@ -295,9 +295,9 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       if (unlikely (isOpen_ &&
                     !isPassive_))
       { ACE_ASSERT (connection_);
-        connection_->close ();
+        connection_->abort ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: session %u aborted, closed connection to %s\n"),
+                    ACE_TEXT ("%s: session %u aborted, aborted connection to %s\n"),
                     inherited::mod_->name (),
                     session_data_r.sessionId,
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (address_, false, false).c_str ())));
@@ -518,9 +518,9 @@ error:
           !isPassive_)
       { ACE_ASSERT (connection_);
         Net_ConnectionId_t id = connection_->id ();
-        connection_->close ();
+        connection_->abort ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
+                    ACE_TEXT ("%s: aborted connection to %s (id was: %u)\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
                     id));
@@ -685,9 +685,9 @@ continue_2:
                     !isPassive_))
       { ACE_ASSERT (connection_);
         Net_ConnectionId_t id = connection_->id ();
-        connection_->close ();
+        connection_->abort ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
+                    ACE_TEXT ("%s: aborted connection to %s (id was: %u)\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
                     id));

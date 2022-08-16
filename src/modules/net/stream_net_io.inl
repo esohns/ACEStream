@@ -196,16 +196,16 @@ continue_:
       if (likely (connection_p))
       {
         try {
-          connection_p->close ();
+          connection_p->abort ();
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Net_IConnection_T::close() (id was: %u), continuing\n"),
+                      ACE_TEXT ("%s: caught exception in Net_IConnection_T::abort() (id was: %u), continuing\n"),
                       inherited::mod_->name (),
                       connection_p->id ()));
           return;
         }
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed connection (id was: %u)\n"),
+                    ACE_TEXT ("%s: aborted connection (id was: %u)\n"),
                     inherited::mod_->name (),
                     connection_p->id ()));
       } // end IF

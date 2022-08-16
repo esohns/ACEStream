@@ -51,11 +51,14 @@ struct Test_I_HTTPGet_Configuration
 {
   Test_I_HTTPGet_Configuration ()
    : Test_I_Configuration ()
+   , parserConfiguration ()
    , signalHandlerConfiguration ()
    , connectionConfigurations ()
    , streamConfiguration ()
   {}
 
+  // **************************** parser data **********************************
+  struct HTTP_ParserConfiguration                  parserConfiguration;
   // **************************** signal data **********************************
   struct Test_I_HTTPGet_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************

@@ -161,9 +161,9 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
     if (!isPassive_ &&
         isOpen_)
     {
-      connection_->close ();
+      connection_->abort ();
       ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: closed connection in dtor --> check implementation !\n"),
+                  ACE_TEXT ("%s: aborted connection in dtor --> check implementation !\n"),
                   inherited::mod_->name ()));
     } // end IF
 
@@ -214,10 +214,10 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                          local_address, peer_address);
 
       Net_ConnectionId_t id = connection_->id ();
-      connection_->close ();
+      connection_->abort ();
       isOpen_ = false;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
+                  ACE_TEXT ("%s: aborted connection to %s (id was: %u)\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Net_Common_Tools::IPAddressToString (peer_address, false, false).c_str ()),
                   id));
@@ -283,9 +283,9 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       if (isOpen_ &&
           !isPassive_)
       { ACE_ASSERT (connection_);
-        connection_->close ();
+        connection_->abort ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: session (id was: %u) aborted, closed connection\n"),
+                    ACE_TEXT ("%s: session (id was: %u) aborted, aborted connection\n"),
                     inherited::mod_->name (),
                     session_data_r.sessionId));
       } // end IF
@@ -578,9 +578,9 @@ error:
           !isPassive_)
       { ACE_ASSERT (connection_);
         Net_ConnectionId_t id = connection_->id ();
-        connection_->close ();
+        connection_->abort ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
+                    ACE_TEXT ("%s: aborted connection to %s (id was: %u)\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (peer_SAP).c_str ()),
                     id));
@@ -701,9 +701,9 @@ continue_2:
           !isPassive_)
       { ACE_ASSERT (connection_);
         Net_ConnectionId_t id = connection_->id ();
-        connection_->close ();
+        connection_->abort ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed connection (id was: %u)\n"),
+                    ACE_TEXT ("%s: aborted connection (id was: %u)\n"),
                     inherited::mod_->name (),
                     id));
       } // end IF
@@ -809,9 +809,9 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
     if (isOpen_ &&
         !isPassive_)
     {
-      connection_->close ();
+      connection_->abort ();
       ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: closed connection in dtor --> check implementation !\n"),
+                  ACE_TEXT ("%s: aborted connection in dtor --> check implementation !\n"),
                   inherited::mod_->name ()));
     } // end IF
 
@@ -867,9 +867,9 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         !isPassive_)
     { ACE_ASSERT (connection_);
       Net_ConnectionId_t id = connection_->id ();
-      connection_->close ();
+      connection_->abort ();
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: closed connection (id was: %u)\n"),
+                  ACE_TEXT ("%s: aborted connection (id was: %u)\n"),
                   inherited::mod_->name (),
                   id));
     } // end IF
@@ -947,9 +947,9 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
           !isPassive_)
       { ACE_ASSERT (connection_);
         Net_ConnectionId_t id = connection_->id ();
-        connection_->close ();
+        connection_->abort ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: session (id was: %u) aborted, closed connection (id was: %u)\n"),
+                    ACE_TEXT ("%s: session (id was: %u) aborted, aborted connection (id was: %u)\n"),
                     inherited::mod_->name (),
                     session_data_r.sessionId, id));
       } // end IF
@@ -1274,9 +1274,9 @@ error:
           !isPassive_)
       { ACE_ASSERT (connection_);
         Net_ConnectionId_t id = connection_->id ();
-        connection_->close ();
+        connection_->abort ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
+                    ACE_TEXT ("%s: aborted connection to %s (id was: %u)\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (peer_SAP).c_str ()),
                     id));
@@ -1424,9 +1424,9 @@ continue_2:
           !isPassive_)
       { ACE_ASSERT (connection_);
         Net_ConnectionId_t id = connection_->id ();
-        connection_->close ();
+        connection_->abort ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed connection (id was: %u)\n"),
+                    ACE_TEXT ("%s: aborted connection (id was: %u)\n"),
                     inherited::mod_->name (),
                     id));
       } // end IF

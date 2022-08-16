@@ -230,6 +230,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
    , libreOfficeSheetStartColumn (0)
    , libreOfficeSheetStartRow (TEST_I_DEFAULT_LIBREOFFICE_START_ROW - 1)
    , mode (STREAM_MODULE_HTMLPARSER_MODE_SAX)
+   , parserConfiguration (NULL)
    , stockItems ()
    , streamConfiguration (NULL)
    , URL ()
@@ -250,6 +251,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
   unsigned int                                     libreOfficeSheetStartColumn; // spreadsheet writer module
   unsigned int                                     libreOfficeSheetStartRow; // spreadsheet writer module
   enum Stream_Module_HTMLParser_Mode               mode; // HTML parser module
+  struct HTTP_ParserConfiguration*                 parserConfiguration;
   Test_I_StockItems_t                              stockItems; // HTTP get module
   Test_I_HTTPGet_StreamConfiguration_t*            streamConfiguration; // net source module
   std::string                                      URL; // HTTP get module
@@ -287,13 +289,13 @@ struct Test_I_HTTPGet_Configuration
 {
   Test_I_HTTPGet_Configuration ()
    : Test_I_Configuration ()
-   //, allocatorConfiguration ()
+   , parserConfiguration ()
    , connectionConfigurations ()
    , streamConfiguration ()
   {}
 
-  // *NOTE*: use the stream configurations' allocator configuration
-  //struct Common_Parser_FlexAllocatorConfiguration allocatorConfiguration;
+  // **************************** parser data **********************************
+  struct HTTP_ParserConfiguration      parserConfiguration;
   Net_ConnectionConfigurations_t       connectionConfigurations;
   Test_I_HTTPGet_StreamConfiguration_t streamConfiguration;
 };

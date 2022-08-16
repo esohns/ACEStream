@@ -911,7 +911,7 @@ do_work (int argc_in,
          enum Stream_Device_Capturer capturer_in,
          const struct Stream_Device_Identifier& deviceIdentifier_in)
 {
-  int result = -1;
+//  int result = -1;
   struct QRDecode_ModuleHandlerConfiguration modulehandler_configuration;
   struct Common_AllocatorConfiguration allocator_configuration;
   struct Stream_ModuleConfiguration module_configuration;

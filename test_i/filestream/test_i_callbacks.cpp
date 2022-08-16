@@ -2609,7 +2609,7 @@ action_listen_activate_cb (GtkAction* action_in,
 #endif
           if (connection_p)
           {
-            connection_p->close ();
+            connection_p->abort ();
             connection_p->decrease ();
           } // end ELSE
           ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
@@ -2656,7 +2656,7 @@ action_listen_activate_cb (GtkAction* action_in,
 #endif
           if (connection_p)
           {
-            connection_p->close ();
+            connection_p->abort ();
             connection_p->decrease (); connection_p = NULL;
           } // end ELSE
           ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
@@ -2805,7 +2805,7 @@ action_listen_activate_cb (GtkAction* action_in,
 #endif
       if (connection_p)
       {
-        connection_p->close ();
+        connection_p->abort ();
         connection_p->decrease ();
       } // end ELSE
       ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;

@@ -79,8 +79,8 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
       ACE_ASSERT (session_data_r.connection);
       if (session_data_r.connection)
       {
-        session_data_r.connection->close ();
-        session_data_r.connection = NULL;
+        session_data_r.connection->abort ();
+        session_data_r.connection->decrease (); session_data_r.connection = NULL;
       } // end IF
       return; // done
     } // end IF

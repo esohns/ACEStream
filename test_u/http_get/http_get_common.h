@@ -115,7 +115,7 @@ struct HTTPGet_Configuration
   // **************************** socket data **********************************
   Net_ConnectionConfigurations_t                  connectionConfigurations;
   // **************************** stream data **********************************
-  struct Common_FlexBisonParserConfiguration      parserConfiguration;
+  struct HTTP_ParserConfiguration                 parserConfiguration;
   HTTPGet_StreamConfiguration_t                   streamConfiguration;
 };
 

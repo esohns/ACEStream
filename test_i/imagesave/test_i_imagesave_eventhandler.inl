@@ -31,6 +31,8 @@
 #include "common_ui_common.h"
 #endif // GUI_SUPPORT
 
+#include "common_image_tools.h"
+
 #include "stream_macros.h"
 
 #include "test_i_imagesave_common.h"
@@ -320,10 +322,14 @@ Test_I_EventHandler_T<NotificationType,
     filename_string += ACE_TEXT_ALWAYS_CHAR ("output.bmp");
     uint8_t* buffers_a[1];
     buffers_a[0] = reinterpret_cast<uint8_t*> (message_in.rd_ptr ());
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     Common_Image_Tools::saveBMP (sessionData_->formats.front ().video.resolution,
                                  AV_PIX_FMT_RGB24,
                                  buffers_a,
                                  filename_string);
+#else
+    ACE_ASSERT (false); // *TODO*
+#endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);

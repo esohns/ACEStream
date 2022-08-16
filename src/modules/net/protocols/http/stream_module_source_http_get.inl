@@ -165,7 +165,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                         ACE_TEXT ("%s: received all content, closing connection\n"),
                         inherited::mod_->name ()));
             ACE_ASSERT (session_data_r.connection);
-            session_data_r.connection->close ();
+            session_data_r.connection->abort ();
 
             // notify downstream
             // *NOTE*: the HTTP parser already sends STREAM_SESSION_MESSAGE_STEP

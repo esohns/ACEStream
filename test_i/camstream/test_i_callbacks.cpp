@@ -5492,8 +5492,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
                 directshow_udp_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_ui_cb_data_p->configuration->handle));
               if (connection_p)
               {
-                connection_p->close ();
-                connection_p->decrease ();
+                connection_p->abort ();
+                connection_p->decrease (); connection_p = NULL;
               } // end ELSE
               directshow_ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
             } // end IF
@@ -5513,8 +5513,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
                 mediafoundation_udp_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_ui_cb_data_p->configuration->handle));
               if (connection_p)
               {
-                connection_p->close ();
-                connection_p->decrease ();
+                connection_p->abort ();
+                connection_p->decrease (); connection_p = NULL;
               } // end ELSE
               mediafoundation_ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
             } // end IF
@@ -5541,8 +5541,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             udp_connection_manager_p->get (static_cast<Net_ConnectionId_t> (ui_cb_data_p->configuration->handle));
           if (connection_p)
           {
-            connection_p->close ();
-            connection_p->decrease ();
+            connection_p->abort ();
+            connection_p->decrease (); connection_p = NULL;
           } // end ELSE
           ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
@@ -5935,8 +5935,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             directshow_udp_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_ui_cb_data_p->configuration->handle));
           if (connection_p)
           {
-            connection_p->close ();
-            connection_p->decrease ();
+            connection_p->abort ();
+            connection_p->decrease (); connection_p = NULL;
           } // end ELSE
           directshow_ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
@@ -5950,8 +5950,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             mediafoundation_udp_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_ui_cb_data_p->configuration->handle));
           if (connection_p)
           {
-            connection_p->close ();
-            connection_p->decrease ();
+            connection_p->abort ();
+            connection_p->decrease (); connection_p = NULL;
           } // end ELSE
           mediafoundation_ui_cb_data_p->configuration->handle =
             ACE_INVALID_HANDLE;
@@ -5977,8 +5977,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         connection_manager_p->get (static_cast<Net_ConnectionId_t> (ui_cb_data_p->configuration->handle));
       if (connection_p)
       {
-        connection_p->close ();
-        connection_p->decrease ();
+        connection_p->abort ();
+        connection_p->decrease (); connection_p = NULL;
       } // end ELSE
       ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
     } // end IF

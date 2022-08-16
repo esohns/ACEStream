@@ -233,6 +233,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
    , loginOptions ()
    , mode (STREAM_MODULE_HTMLPARSER_MODE_SAX)
    , peerAddress ()
+   , parserConfiguration (NULL)
    , printProgressDot (false)
    , pushStatisticMessages (true)
    , streamConfiguration (NULL)
@@ -257,6 +258,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
   struct Stream_Module_DataBase_LoginOptions loginOptions; // db writer module
   enum Stream_Module_HTMLParser_Mode         mode; // html parser module
   ACE_INET_Addr                              peerAddress; // db writer module
+  struct HTTP_ParserConfiguration*           parserConfiguration;      // parser module(s)
   bool                                       printProgressDot; // file writer module
   bool                                       pushStatisticMessages;
   Test_I_StreamConfiguration_t*              streamConfiguration; // net source module
