@@ -21,8 +21,7 @@
 
 #include "stream_module_xpathquery.h"
 
-//#include "stream_module_html_defines.h"
-#define MODULE_XPATH_QUERY_DEFAULT_NAME_STRING "XPathQuery"
+#include "stream_html_defines.h"
 
 //Stream_HTML_Export const char libacestream_default_xpath_query_module_name_string[] =
 const char libacestream_default_xpath_query_module_name_string[] =

@@ -127,7 +127,7 @@ class Stream_Module_HTMLParser_T
   Stream_Module_HTMLParser_T (ISTREAM_T*);                     // stream handle
 #else
   Stream_Module_HTMLParser_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_HTMLParser_T ();
 
   virtual bool initialize (const ConfigurationType&,

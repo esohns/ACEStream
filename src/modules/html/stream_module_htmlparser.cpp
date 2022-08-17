@@ -21,8 +21,7 @@
 
 #include "stream_module_htmlparser.h"
 
-//#include "stream_module_html_defines.h"
-#define MODULE_HTML_PARSER_DEFAULT_NAME_STRING "HTMLParser"
+#include "stream_html_defines.h"
 
 //Stream_HTML_Export const char libacestream_default_html_parser_module_name_string[] =
 const char libacestream_default_html_parser_module_name_string[] =

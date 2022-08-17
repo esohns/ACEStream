@@ -17,12 +17,12 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "stdafx.h"
 
-#include "stream_module_htmlwriter.h"
+#ifndef STREAM_HTML_DEFINES_H
+#define STREAM_HTML_DEFINES_H
 
-#include "stream_html_defines.h"
+#define MODULE_HTML_PARSER_DEFAULT_NAME_STRING "HTMLParser"
+#define MODULE_HTML_WRITER_DEFAULT_NAME_STRING "HTMLWriter"
+#define MODULE_XPATH_QUERY_DEFAULT_NAME_STRING "XPathQuery"
 
-//Stream_HTML_Export const char libacestream_default_html_writer_module_name_string[] =
-const char libacestream_default_html_writer_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (MODULE_HTML_WRITER_DEFAULT_NAME_STRING);
+#endif

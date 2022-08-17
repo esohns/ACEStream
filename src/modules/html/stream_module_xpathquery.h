@@ -65,7 +65,12 @@ class Stream_Module_XPathQuery_T
                                  struct Stream_UserData> inherited;
 
  public:
-  Stream_Module_XPathQuery_T ();
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_XPathQuery_T (ISTREAM_T*); // stream handle
+#else
+  Stream_Module_XPathQuery_T (typename inherited::ISTREAM_T*); // stream handle
+#endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Module_XPathQuery_T () {}
 
   //virtual bool initialize (const ConfigurationType&);

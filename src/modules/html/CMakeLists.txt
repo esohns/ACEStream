@@ -35,6 +35,7 @@ target_include_directories (${PROJECT_NAME}_HTML PUBLIC
 
 ############## next target ################
 set (source_files
+     stream_html_defines.h
      stream_html_tools.cpp
      stream_html_tools.h)
 if (LIBXML2_SUPPORT)
@@ -95,7 +96,7 @@ export (TARGETS ${PROJECT_NAME}_HTML
 
 ############### install files ################
 set (source_files
-#     stream_html_exports.h
+     stream_html_defines.h
      stream_html_tools.h)
 if (LIBXML2_SUPPORT)
  set (source_files
