@@ -87,7 +87,7 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
     message_inout->getR ();
   typename DataMessageType::DATA_T::DATA_T& data_r =
     const_cast<typename DataMessageType::DATA_T::DATA_T&> (data_container_r.getR ());
-  if (!data_r.HTMLDocument)
+  if (!data_r.document)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no document, cannot proceed, returning\n"),
@@ -96,7 +96,7 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
   } // end IF
 
   // step1: create a query context
-  xmlXPathContextPtr xpath_context_p = xmlXPathNewContext (data_r.HTMLDocument);
+  xmlXPathContextPtr xpath_context_p = xmlXPathNewContext (data_r.document);
   if (!xpath_context_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -161,8 +161,6 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_XPathQuery_T::handleSessionMessage"));
 
-  int result = -1;
-
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
@@ -171,8 +169,8 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
   ACE_ASSERT (message_inout);
 
   // *TODO*: remove type inferences
-  const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-    inherited::sessionData_->getR ();
+//  const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+//    inherited::sessionData_->getR ();
 
   switch (message_inout->type ())
   {

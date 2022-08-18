@@ -18,17 +18,17 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_HTMLPARSER_H
-#define STREAM_MODULE_HTMLPARSER_H
+#ifndef STREAM_MODULE_XMLPARSER_H
+#define STREAM_MODULE_XMLPARSER_H
 
 #include "ace/Global_Macros.h"
 
-#include "libxml/HTMLparser.h"
+#include "libxml/tree.h"
 #include "libxml/xmlerror.h"
 
 #include "stream_task_base_synch.h"
 
-extern const char libacestream_default_html_parser_module_name_string[];
+extern const char libacestream_default_xml_parser_module_name_string[];
 
 // SAX callbacks
 //void Stream_Export
@@ -51,28 +51,28 @@ extern const char libacestream_default_html_parser_module_name_string[];
 //                      const xmlChar*); // name
 
 void
-stream_html_parser_sax_default_error_cb (void*,       // context
-                                         const char*, // message
-                                         ...);        // arguments
+stream_xml_parser_sax_default_error_cb (void*,       // context
+                                        const char*, // message
+                                        ...);        // arguments
 void
-stream_html_parser_sax_default_structured_error_cb (void*,        // user data
-                                                    xmlErrorPtr); // error
+stream_xml_parser_sax_default_structured_error_cb (void*,        // user data
+                                                   xmlErrorPtr); // error
 
 // definitions
-#define STREAM_MODULE_HTMLPARSER_DEFAULT_MODE STREAM_MODULE_HTMLPARSER_MODE_DOM
+#define STREAM_MODULE_XML_PARSER_DEFAULT_MODE STREAM_MODULE_XML_PARSER_MODE_DOM
 
 // types
-enum Stream_Module_HTMLParser_Mode
+enum Stream_Module_XML_Parser_Mode
 {
-  STREAM_MODULE_HTMLPARSER_MODE_INVALID = -1,
+  STREAM_MODULE_XML_PARSER_MODE_INVALID = -1,
   ////////////////////////////////////////
-  STREAM_MODULE_HTMLPARSER_MODE_DOM = 0, // document (tree)
-  STREAM_MODULE_HTMLPARSER_MODE_SAX      // stream (state machine)
+  STREAM_MODULE_XML_PARSER_MODE_DOM = 0, // document (tree)
+  STREAM_MODULE_XML_PARSER_MODE_SAX      // stream (state machine)
 };
 
-struct Stream_Module_HTMLParser_SAXParserContextBase
+struct Stream_Module_XMLParser_SAXParserContextBase
 {
-  Stream_Module_HTMLParser_SAXParserContextBase ()
+  Stream_Module_XMLParser_SAXParserContextBase ()
    : accumulate (false)
    , characters ()
    , parserContext (NULL)
@@ -83,7 +83,7 @@ struct Stream_Module_HTMLParser_SAXParserContextBase
   //         --> buffer it in this member
   bool                       accumulate;
   std::string                characters;
-  htmlParserCtxtPtr          parserContext;
+  xmlParserCtxtPtr           parserContext;
   struct Stream_SessionData* sessionData;
 };
 
@@ -100,7 +100,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           ////////////////////////////////
           typename ParserContextType>
-class Stream_Module_HTMLParser_T
+class Stream_Module_XMLParser_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -124,11 +124,11 @@ class Stream_Module_HTMLParser_T
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Module_HTMLParser_T (ISTREAM_T*);                     // stream handle
+  Stream_Module_XMLParser_T (ISTREAM_T*);                     // stream handle
 #else
-  Stream_Module_HTMLParser_T (typename inherited::ISTREAM_T*); // stream handle
+  Stream_Module_XMLParser_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  virtual ~Stream_Module_HTMLParser_T ();
+  virtual ~Stream_Module_XMLParser_T ();
 
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
@@ -144,20 +144,20 @@ class Stream_Module_HTMLParser_T
 
   DataMessageType*                   headFragment_;
   ParserContextType                  parserContext_;
-  htmlSAXHandler                     SAXHandler_;
+  xmlSAXHandler                      SAXHandler_;
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T (const Stream_Module_HTMLParser_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T& operator= (const Stream_Module_HTMLParser_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_XMLParser_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_XMLParser_T (const Stream_Module_XMLParser_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_XMLParser_T& operator= (const Stream_Module_XMLParser_T&))
 
   // helper methods
   bool resetParser ();
 
-  enum Stream_Module_HTMLParser_Mode mode_;
+  enum Stream_Module_XML_Parser_Mode mode_;
 };
 
 // include template definition
-#include "stream_module_htmlparser.inl"
+#include "stream_module_xmlparser.inl"
 
 #endif

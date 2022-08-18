@@ -19,7 +19,6 @@
  ***************************************************************************/
 
 #include "libxml/HTMLparser.h"
-#include "libxml/tree.h"
 
 #include "ace/Log_Msg.h"
 
@@ -38,7 +37,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename SessionDataType,
           typename ParserContextType>
-Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
+Stream_Module_XMLParser_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
@@ -47,17 +46,17 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            SessionDataContainerType,
                            SessionDataType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                           ParserContextType>::Stream_Module_HTMLParser_T (ISTREAM_T* stream_in)
+                           ParserContextType>::Stream_Module_XMLParser_T (ISTREAM_T* stream_in)
 #else
-                           ParserContextType>::Stream_Module_HTMLParser_T (typename inherited::ISTREAM_T* stream_in)
+                           ParserContextType>::Stream_Module_XMLParser_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , headFragment_ (NULL)
  , parserContext_ ()
  , SAXHandler_ ()
- , mode_ (STREAM_MODULE_HTMLPARSER_DEFAULT_MODE)
+ , mode_ (STREAM_MODULE_XML_PARSER_DEFAULT_MODE)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::Stream_Module_HTMLParser_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_XMLParser_T::Stream_Module_XMLParser_T"));
 
 }
 
@@ -70,7 +69,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename SessionDataType,
           typename ParserContextType>
-Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
+Stream_Module_XMLParser_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
@@ -78,9 +77,9 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            SessionMessageType,
                            SessionDataContainerType,
                            SessionDataType,
-                           ParserContextType>::~Stream_Module_HTMLParser_T ()
+                           ParserContextType>::~Stream_Module_XMLParser_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::~Stream_Module_HTMLParser_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_XMLParser_T::~Stream_Module_XMLParser_T"));
 
   if (inherited::isInitialized_)
   {
@@ -89,10 +88,10 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
       if (parserContext_.parserContext->myDoc)
         xmlFreeDoc (parserContext_.parserContext->myDoc);
 
-      htmlFreeParserCtxt (parserContext_.parserContext);
+      xmlFreeParserCtxt (parserContext_.parserContext);
     } // end IF
 
-//    htmlCleanupParser ();
+//    xmlCleanupParser ();
   } // end IF
 
   if (headFragment_)
@@ -109,7 +108,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename ParserContextType>
 void
-Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
+Stream_Module_XMLParser_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
@@ -120,7 +119,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            ParserContextType>::handleDataMessage (DataMessageType*& message_inout,
                                                                   bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_XMLParser_T::handleDataMessage"));
 
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
@@ -145,14 +144,14 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
   do
   {
 //    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("parsing HTML (message ID: %d, %d byte(s))...\n"),
+//                ACE_TEXT ("parsing XML (message ID: %d, %d byte(s))...\n"),
 //                message_p->id (),
 //                message_p->length ()));
 
-    result = htmlParseChunk (parserContext_.parserContext, // context
-                             message_block_p->rd_ptr (),   // chunk
-                             message_block_p->length (),   // size
-                             0);                           // terminate ?
+    result = xmlParseChunk (parserContext_.parserContext, // context
+                            message_block_p->rd_ptr (),   // chunk
+                            message_block_p->length (),   // size
+                            0);                           // terminate ?
     if (unlikely (result))
     {
       xmlParserErrors parse_errors = static_cast<xmlParserErrors> (result);
@@ -180,7 +179,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename ParserContextType>
 void
-Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
+Stream_Module_XMLParser_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
@@ -191,7 +190,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            ParserContextType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                      bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_XMLParser_T::handleSessionMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -234,10 +233,10 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
       int result = -1;
 
       // *IMPORTANT NOTE*: no more data will arrive for this document
-      result = htmlParseChunk (parserContext_.parserContext,
-                               ACE_TEXT_ALWAYS_CHAR (""),
-                               0,
-                               1); // terminate
+      result = xmlParseChunk (parserContext_.parserContext,
+                              ACE_TEXT_ALWAYS_CHAR (""),
+                              0,
+                              1); // terminate
       xmlErrorPtr error_p = xmlGetLastError ();
       if (result)
       {
@@ -264,8 +263,8 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
   //                ACE_TEXT ("parsing HTML...DONE\n")));
 
       // *TODO*: remove type inference
-      ACE_ASSERT (!data_r.HTMLDocument);
-      data_r.HTMLDocument = parserContext_.parserContext->myDoc;
+      ACE_ASSERT (!data_r.document);
+      data_r.document = parserContext_.parserContext->myDoc;
       parserContext_.parserContext->myDoc = NULL;
 
       // reset parser
@@ -292,11 +291,11 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
       //stream_p->buf = buffer_p;
       //xmlBufResetInput (buffer_p->buffer, stream_p);
       //inputPush (parserContext_.parserContext, stream_p);
-      htmlFreeParserCtxt (parserContext_.parserContext);
+      xmlFreeParserCtxt (parserContext_.parserContext);
       parserContext_.parserContext = NULL;
       if (!resetParser ())
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_Module_HTMLParser_T::resetParser(), continuing\n"),
+                    ACE_TEXT ("%s: failed to Stream_Module_XMLParser_T::resetParser(), continuing\n"),
                     inherited::mod_->name ()));
       //if (parserContext_.parserContext)
       //  htmlCtxtReset (parserContext_.parserContext);
@@ -334,7 +333,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename ParserContextType>
 bool
-Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
+Stream_Module_XMLParser_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
@@ -345,7 +344,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            ParserContextType>::initialize (const ConfigurationType& configuration_in,
                                                            Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_XMLParser_T::initialize"));
 
   static bool is_first_run = true;
   if (is_first_run)
@@ -366,13 +365,13 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
         xmlFreeDoc (parserContext_.parserContext->myDoc); parserContext_.parserContext->myDoc = NULL;
       } // end IF
 
-      htmlFreeParserCtxt (parserContext_.parserContext); parserContext_.parserContext = NULL;
+      xmlFreeParserCtxt (parserContext_.parserContext); parserContext_.parserContext = NULL;
     } // end IF
 
-//    htmlCleanupParser ();
+//    xmlCleanupParser ();
   } // end IF
 
-//  htmlInitParser ();
+//  xmlInitParser ();
 //  xmlKeepBlanksDefault (1);
 //  xmlLineNumbersDefault (1);
 //  xmlSubstituteEntitiesDefault (1);
@@ -386,7 +385,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inferences
   mode_ = configuration_in.mode;
-  if (mode_ == STREAM_MODULE_HTMLPARSER_MODE_SAX)
+  if (mode_ == STREAM_MODULE_XML_PARSER_MODE_SAX)
   {
     //htmlDefaultSAXHandlerInit ();
     xmlSAX2InitHtmlDefaultSAXHandler (&SAXHandler_);
@@ -399,12 +398,12 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
-  initGenericErrorDefaultFunc ((xmlGenericErrorFunc*)&::stream_html_parser_sax_default_error_cb);
+  initGenericErrorDefaultFunc ((xmlGenericErrorFunc*)&::stream_xml_parser_sax_default_error_cb);
 
   if (!resetParser ())
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_HTMLParser_T::resetParser(), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_Module_XMLParser_T::resetParser(), aborting\n"),
                 inherited::mod_->name ()));
     return false;
   } // end IF
@@ -423,7 +422,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename ParserContextType>
 bool
-Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
+Stream_Module_XMLParser_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
@@ -433,20 +432,19 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            SessionDataType,
                            ParserContextType>::resetParser ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::resetParser"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_XMLParser_T::resetParser"));
 
   // sanity check(s)
   ACE_ASSERT (!parserContext_.parserContext);
 
   parserContext_.parserContext =
-    htmlCreatePushParserCtxt (((mode_ == STREAM_MODULE_HTMLPARSER_MODE_SAX) ? &SAXHandler_
-                                                                            : NULL), // SAX handler
-                              ((mode_ == STREAM_MODULE_HTMLPARSER_MODE_SAX) ? &parserContext_
-                                                                            : NULL), // user data (SAX)
-                              NULL,                                                  // chunk
-                              0,                                                     // size
-                              NULL,                                                  // filename
-                              XML_CHAR_ENCODING_NONE);                               // encoding
+    xmlCreatePushParserCtxt (((mode_ == STREAM_MODULE_XML_PARSER_MODE_SAX) ? &SAXHandler_
+                                                                           : NULL), // SAX handler
+                             ((mode_ == STREAM_MODULE_XML_PARSER_MODE_SAX) ? &parserContext_
+                                                                           : NULL), // user data (SAX)
+                             NULL,                                                  // chunk
+                             0,                                                     // size
+                             NULL);                                                 // filename
   if (!parserContext_.parserContext)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -455,29 +453,27 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
     return false;
   } // end IF
   int parser_options =
-    (HTML_PARSE_RECOVER   | // relaxed parsing
-     HTML_PARSE_NODEFDTD  | // do not default a doctype if not found
-//           HTML_PARSE_NOERROR   |   // suppress error reports
-//           HTML_PARSE_NOWARNING |   // suppress warning reports
-     HTML_PARSE_PEDANTIC  | // pedantic error reporting
-     HTML_PARSE_NOBLANKS  | // remove blank nodes
-//       HTML_PARSE_NONET      |     // forbid network access
-     HTML_PARSE_NOIMPLIED | // do not add implied html/body... elements
-     HTML_PARSE_COMPACT   | // compact small text nodes
-//           HTML_PARSE_IGNORE_ENC);  // ignore internal document encoding hint
+    (XML_PARSE_RECOVER   | // relaxed parsing
+//           XML_PARSE_NOERROR   |   // suppress error reports
+//           XML_PARSE_NOWARNING |   // suppress warning reports
+     XML_PARSE_PEDANTIC  | // pedantic error reporting
+     XML_PARSE_NOBLANKS  | // remove blank nodes
+//       XML_PARSE_NONET      |     // forbid network access
+     XML_PARSE_COMPACT   | // compact small text nodes
+//       XML_PARSE_IGNORE_ENC);  // ignore internal document encoding hint
      XML_PARSE_HUGE);       // parse large documents
-  int result = htmlCtxtUseOptions (parserContext_.parserContext,
-                                   parser_options);
+  int result = xmlCtxtUseOptions (parserContext_.parserContext,
+                                  parser_options);
   if (result)
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: failed to htmlCtxtUseOptions(%d) (result was: %d), continuing\n"),
+                ACE_TEXT ("%s: failed to xmlCtxtUseOptions(%d) (result was: %d), continuing\n"),
                 inherited::mod_->name (),
                 parser_options, result));
 
   xmlSetGenericErrorFunc (parserContext_.parserContext,
-                          &::stream_html_parser_sax_default_error_cb);
+                          &::stream_xml_parser_sax_default_error_cb);
   xmlSetStructuredErrorFunc (parserContext_.parserContext,
-                             &::stream_html_parser_sax_default_structured_error_cb);
+                             &::stream_xml_parser_sax_default_structured_error_cb);
 
   return true;
 }

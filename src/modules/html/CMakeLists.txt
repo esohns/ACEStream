@@ -48,6 +48,9 @@ if (LIBXML2_SUPPORT)
       stream_module_htmlwriter.cpp
       stream_module_htmlwriter.h
       stream_module_htmlwriter.inl
+      stream_module_xmlparser.cpp
+      stream_module_xmlparser.h
+      stream_module_xmlparser.inl
       stream_module_xpathquery.cpp
       stream_module_xpathquery.h
       stream_module_xpathquery.inl)
@@ -107,6 +110,8 @@ if (LIBXML2_SUPPORT)
       stream_module_htmlparser.inl
       stream_module_htmlwriter.h
       stream_module_htmlwriter.inl
+      stream_module_xmlparser.h
+      stream_module_xmlparser.inl
       stream_module_xpathquery.h
       stream_module_xpathquery.inl)
 endif (LIBXML2_SUPPORT)
