@@ -17,6 +17,15 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "stdafx.h"
 
-#include "test_i_http_get_stream.h"
+#ifndef STREAM_HTML_COMMON_H
+#define STREAM_HTML_COMMON_H
+
+#include <string>
+#include <utility>
+#include <vector>
+
+typedef std::vector<std::pair<std::string, std::string> > Stream_HTML_XPathNameSpaces_t;
+typedef Stream_HTML_XPathNameSpaces_t::const_iterator Stream_HTML_XPathNameSpacesConstIterator_t;
+
+#endif

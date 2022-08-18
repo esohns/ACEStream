@@ -28,7 +28,7 @@
 
 // definitions
 // *TODO*: move this somewhere else
-#define STREAM_MODULE_XPATHQUERY_QUERY_STRING "/html/body/div[@id=\"container\"]/div[@id=\"container_content\"]/div[@id=\"mitte\"]/div[@id=\"mitte_links\"]/div[@id=\"archiv_woche\"]/ul/li/a"
+//#define STREAM_MODULE_XPATHQUERY_QUERY_STRING "/html/body/div[@id=\"container\"]/div[@id=\"container_content\"]/div[@id=\"mitte\"]/div[@id=\"mitte_links\"]/div[@id=\"archiv_woche\"]/ul/li/a"
 
 extern const char libacestream_default_xpath_query_module_name_string[];
 
@@ -73,11 +73,9 @@ class Stream_Module_XPathQuery_T
 #endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Module_XPathQuery_T () {}
 
-  //virtual bool initialize (const ConfigurationType&);
-
   // implement (part of) Stream_ITaskBase
-//  virtual void handleDataMessage (MessageType*&, // data message handle
-//                                  bool&);        // return value: pass message downstream ?
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   // implement this so we can print overall statistics after session completes
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?

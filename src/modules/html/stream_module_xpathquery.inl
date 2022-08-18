@@ -27,6 +27,8 @@
 
 #include "stream_macros.h"
 
+#include "stream_html_common.h"
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -53,23 +55,90 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
 
 }
 
-//template <typename SessionMessageType,
-//          typename MessageType,
-//          typename ModuleHandlerConfigurationType,
-//          typename SessionDataType>
-//void
-//Stream_Module_XPathQuery_T<SessionMessageType,
-//                           MessageType,
-//                           ModuleHandlerConfigurationType,
-//                           SessionDataType>::handleDataMessage (MessageType*& message_inout,
-//                                                                bool& passMessageDownstream_out)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_XPathQuery_T::handleDataMessage"));
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType>
+void
+Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionDataContainerType,
+                           SessionDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_XPathQuery_T::handleDataMessage"));
 
-//  // don't care (implies yes per default, if part of a stream)
-//  ACE_UNUSED_ARG (passMessageDownstream_out);
-//  ACE_UNUSED_ARG (message_inout);
-//}
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  if (inherited::configuration_->xPathQueryString.empty ())
+    return;
+  const typename DataMessageType::DATA_T& data_container_r =
+    message_inout->getR ();
+  typename DataMessageType::DATA_T::DATA_T& data_r =
+    const_cast<typename DataMessageType::DATA_T::DATA_T&> (data_container_r.getR ());
+  if (!data_r.HTMLDocument)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: no document, cannot proceed, returning\n"),
+                inherited::mod_->name ()));
+    return;
+  } // end IF
+
+  // step1: create a query context
+  xmlXPathContextPtr xpath_context_p = xmlXPathNewContext (data_r.HTMLDocument);
+  if (!xpath_context_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to xmlXPathNewContext(); \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    return;
+  } // end IF
+
+  // step2: register given namespaces
+  int result = -1;
+  for (Stream_HTML_XPathNameSpacesConstIterator_t iterator = inherited::configuration_->xPathNameSpaces.begin ();
+       iterator != inherited::configuration_->xPathNameSpaces.end ();
+       ++iterator)
+  {
+    result = xmlXPathRegisterNs (xpath_context_p,
+                                 BAD_CAST ((*iterator).first.c_str ()),
+                                 BAD_CAST ((*iterator).second.c_str ()));
+    if (unlikely (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to xmlXPathRegisterNs(\"%s\" --> \"%s\"), continuing\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT ((*iterator).first.c_str ()),
+                  ACE_TEXT ((*iterator).second.c_str ())));
+  } // end FOR
+
+  ACE_ASSERT (!data_r.xPathObject);
+  data_r.xPathObject = 
+    xmlXPathEvalExpression (BAD_CAST (inherited::configuration_->xPathQueryString.c_str ()),
+                            xpath_context_p);
+  if (!data_r.xPathObject)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to xmlXPathEvalExpression(\"%s\"); \"%m\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (inherited::configuration_->xPathQueryString.c_str ())));
+    xmlXPathFreeContext (xpath_context_p); xpath_context_p = NULL;
+    return;
+  } // end IF
+
+  // clean up
+  xmlXPathFreeContext (xpath_context_p); xpath_context_p = NULL;
+}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -98,87 +167,17 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (message_inout);
 
   // *TODO*: remove type inferences
-  const typename SessionMessageType::DATA_T& session_data_container_r =
-      message_inout->getR ();
-  SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (session_data_container_r.getR ());
+  const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    inherited::sessionData_->getR ();
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_MESSAGE_END:
+    case STREAM_SESSION_MESSAGE_STEP:
     {
-      // sanity check(s)
-      if (!session_data_r.parserContext)
-        return;
-      ACE_ASSERT (session_data_r.parserContext->parserContext);
-      if (!session_data_r.parserContext->parserContext->myDoc)
-        return;
-      ACE_ASSERT (inherited::configuration_);
-      ACE_ASSERT (!inherited::configuration_->xPathQueryString.empty ());
-      ACE_ASSERT (!session_data_r.xPathObject);
-
-      result =
-          htmlParseChunk (session_data_r.parserContext->parserContext, // context
-                          ACE_TEXT_ALWAYS_CHAR (""),                   // chunk
-                          0,                                           // size
-                          1);                                          // terminate ?
-      if (result)
-      {
-        xmlParserErrors error = static_cast<xmlParserErrors> (result);
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("failed to htmlParseChunk() (error was: %d), continuing\n"),
-                    error));
-      } // end IF
-
-      if (!session_data_r.parserContext->parserContext->wellFormed)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("HTML document not well formed, continuing\n")));
-      if (session_data_r.parserContext->parserContext->errNo)
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("HTML document had errors ((last) error was: %d), continuing\n"),
-                    session_data_r.parserContext->parserContext->errNo));
-
-      xmlXPathContextPtr xpath_context_p =
-          xmlXPathNewContext (session_data_r.parserContext->parserContext->myDoc);
-      if (!xpath_context_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to xmlXPathNewContext(); \"%m\", returning\n")));
-        return;
-      } // end IF
-      xmlChar* query_string_p =
-          BAD_CAST (inherited::configuration_->xPathQueryString.c_str ());
-      session_data_r.xPathObject = 
-        xmlXPathEvalExpression (query_string_p,
-                                xpath_context_p);
-      if (!session_data_r.xPathObject)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to xmlXPathEvalExpression(\"%s\"); \"%m\", returning\n"),
-                    ACE_TEXT (query_string_p)));
-        xmlXPathFreeContext (xpath_context_p); xpath_context_p = NULL;
-        return;
-      } // end IF
-      ACE_ASSERT (session_data_r.xPathObject->nodesetval);
-
-      //for (int i = 0;
-      //      i < xpath_object_p->nodesetval->nodeNr;
-      //      i++)
-      //{
-      //  ACE_ASSERT (xpath_object_p->nodesetval->nodeTab);
-      //  ACE_ASSERT (xpath_object_p->nodesetval->nodeTab[i]);
-      //  ACE_ASSERT (xpath_object_p->nodesetval->nodeTab[i]->children);
-      //  std::cout << ACE_TEXT_ALWAYS_CHAR (xpath_object_p->nodesetval->nodeTab[i]->children[0].content)
-      //            << std::endl;
-      //} // end FOR
-
-      // clean up
-      //xmlXPathFreeObject (xpath_object_p); xpath_object_p = NULL;
-      xmlXPathFreeContext (xpath_context_p); xpath_context_p = NULL;
-
       break;
     }
     default:

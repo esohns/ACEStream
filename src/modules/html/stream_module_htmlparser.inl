@@ -121,8 +121,6 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
-  xmlParserErrors parse_errors = XML_ERR_OK;
-  xmlErrorPtr error_p = NULL;
 
   // send the whole document downstream
   passMessageDownstream_out = false;
@@ -136,6 +134,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
       message_block_p = message_block_p->cont ();
     message_block_p->cont (message_inout);
   } // end ELSE
+  message_block_p = message_inout;
 
   // sanity check(s)
   ACE_ASSERT (parserContext_.parserContext);
@@ -148,22 +147,18 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 //                message_p->length ()));
 
     result = htmlParseChunk (parserContext_.parserContext, // context
-                             message_inout->rd_ptr (),     // chunk
-                             message_inout->length (),     // size
+                             message_block_p->rd_ptr (),   // chunk
+                             message_block_p->length (),   // size
                              0);                           // terminate ?
-    if (result)
+    if (unlikely (result))
     {
-      parse_errors = static_cast<xmlParserErrors> (result);
-      error_p = xmlGetLastError ();
-      ACE_Log_Priority log_priority_e = LM_ERROR;
-#if defined (LIBXML2_SUPPORT)
-      log_priority_e =
-        Stream_HTML_Tools::errorLevelToLogPriority (error_p->level);
-#endif // LIBXML2_SUPPORT
-      ACE_DEBUG ((log_priority_e,
-                  ACE_TEXT ("failed to htmlParseChunk() (result was: %d): \"%s\", continuing\n"),
-                  parse_errors,
-                  ACE_TEXT (error_p->message)));
+      xmlParserErrors parse_errors = static_cast<xmlParserErrors> (result);
+      xmlErrorPtr error_p = xmlGetLastError ();
+      ACE_DEBUG ((Stream_HTML_Tools::errorLevelToLogPriority (error_p ? error_p->level : XML_ERR_ERROR),
+                  ACE_TEXT ("%s: failed to htmlParseChunk() (result was: %d): \"%s\", continuing\n"),
+                  inherited::mod_->name (),
+                  result,
+                  error_p ? ACE_TEXT (error_p->message) : ACE_TEXT ("")));
       xmlCtxtResetLastError (parserContext_.parserContext);
     } // end IF
     message_block_p = message_block_p->cont ();
@@ -234,34 +229,33 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
       typename DataMessageType::DATA_T::DATA_T& data_r =
         const_cast<typename DataMessageType::DATA_T::DATA_T&> (data_container_r.getR ());
       int result = -1;
-      xmlParserErrors parse_errors = XML_ERR_OK;
-      xmlErrorPtr error_p = NULL;
 
       // *IMPORTANT NOTE*: no more data will arrive for this document
       result = htmlParseChunk (parserContext_.parserContext,
                                ACE_TEXT_ALWAYS_CHAR (""),
                                0,
                                1); // terminate
+      xmlErrorPtr error_p = xmlGetLastError ();
       if (result)
       {
-        parse_errors = static_cast<xmlParserErrors> (result);
-        error_p = xmlGetLastError ();
-        ACE_DEBUG ((Stream_HTML_Tools::errorLevelToLogPriority (error_p->level),
-                    ACE_TEXT ("failed to htmlParseChunk() (result was: %d): \"%s\", continuing\n"),
-                    parse_errors,
-                    ACE_TEXT (error_p->message)));
-        xmlCtxtResetLastError (parserContext_.parserContext);
+        xmlParserErrors parse_errors = static_cast<xmlParserErrors> (result);
+        ACE_DEBUG ((Stream_HTML_Tools::errorLevelToLogPriority (error_p ? error_p->level : XML_ERR_ERROR),
+                    ACE_TEXT ("%s: failed to htmlParseChunk() (result was: %d): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
+                    result,
+                    error_p ? ACE_TEXT (error_p->message) : ACE_TEXT ("")));
       } // end IF
       if (!parserContext_.parserContext->wellFormed)
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: HTML document not well-formed, continuing\n"),
+                    ACE_TEXT ("%s: document not well-formed, continuing\n"),
                     inherited::mod_->name ()));
-      error_p = xmlGetLastError ();
-      if (error_p->code)
+      if (error_p &&
+          error_p->code)
         ACE_DEBUG ((Stream_HTML_Tools::errorLevelToLogPriority (error_p->level),
-                    ACE_TEXT ("%s: HTML document had errors (last error was: \"%s\"), continuing\n"),
+                    ACE_TEXT ("%s: document had errors (last error was: %d: \"%s\"), continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (error_p->message)));
+                    error_p->code, ACE_TEXT (error_p->message)));
+      xmlCtxtResetLastError (parserContext_.parserContext);
 
   //    ACE_DEBUG ((LM_DEBUG,
   //                ACE_TEXT ("parsing HTML...DONE\n")));
