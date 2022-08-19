@@ -87,6 +87,7 @@ class Stream_Module_MessageHandler_T
                                       enum Stream_SessionMessageType,
                                       DataMessageType,
                                       SessionMessageType> INOTIFY_T;
+  typedef Common_ISubscribe_T<INOTIFY_T> ISUBSCRIBE_T;
   typedef std::list<INOTIFY_T*> SUBSCRIBERS_T;
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -95,7 +96,130 @@ class Stream_Module_MessageHandler_T
 #else
   Stream_Module_MessageHandler_T (typename inherited::ISTREAM_T*); // stream handle
 #endif
-  virtual ~Stream_Module_MessageHandler_T ();
+  inline virtual ~Stream_Module_MessageHandler_T () {}
+
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL); // report cache usage ?
+
+  // implement (part of) Stream_ITaskBase_T
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+  // implement Common_ISubscribe_T
+  virtual void subscribe (INOTIFY_T*);   // new subscriber
+  virtual void unsubscribe (INOTIFY_T*); // existing subscriber
+
+  // implement Stream_IModuleHandler_T
+  virtual bool postClone (ACE_Module<ACE_SYNCH_USE,
+                                     TimePolicyType>*, // handle to 'original'
+                          bool = false);               // initialize from 'original' ?
+
+  // implement Common_IClone_T
+  virtual ACE_Task<ACE_SYNCH_USE,
+                   TimePolicyType>* clone () const;
+
+ protected:
+  // convenient types
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType> STREAM_TASK_T;
+ typedef typename SUBSCRIBERS_T::iterator SUBSCRIBERS_ITERATOR_T;
+
+  // *IMPORTANT NOTE*: this must be 'recursive', so that callees may unsubscribe
+  //                   from within the notification callbacks
+  typename ACE_SYNCH_USE::RECURSIVE_MUTEX lock_;
+  SUBSCRIBERS_T                           subscribers_;
+
+ private:
+  // convenient types
+  typedef Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+                                         TimePolicyType,
+                                         ConfigurationType,
+                                         ControlMessageType,
+                                         DataMessageType,
+                                         SessionMessageType,
+                                         SessionDataType,
+                                         UserDataType> OWN_TYPE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T (const Stream_Module_MessageHandler_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T& operator= (const Stream_Module_MessageHandler_T&))
+
+  // helper types
+  struct SUBSCRIBERS_IS_EQUAL_P
+  {
+    inline bool operator() (INOTIFY_T* first, INOTIFY_T* second) { return (first == second); }
+  };
+};
+
+//////////////////////////////////////////
+
+// *IMPORTANT NOTE*: this one uses an external subscriber list/lock
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename SessionDataType, // not (!) reference-counted
+          ////////////////////////////////
+          typename UserDataType>
+class Stream_Module_MessageHandler_2
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType>
+ , public Common_ISubscribe_T<Stream_ISessionDataNotify_T<SessionDataType,
+                                                          enum Stream_SessionMessageType,
+                                                          DataMessageType,
+                                                          SessionMessageType> >
+ // *IMPORTANT NOTE*: derived classes need to implement the cloning mechanism
+ , public Common_IClone_T<ACE_Task<ACE_SYNCH_USE,
+                                   TimePolicyType> >
+{
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType> inherited;
+
+ public:
+  // convenient types
+  typedef Stream_ISessionDataNotify_T<SessionDataType,
+                                      enum Stream_SessionMessageType,
+                                      DataMessageType,
+                                      SessionMessageType> INOTIFY_T;
+  typedef Common_ISubscribe_T<INOTIFY_T> ISUBSCRIBE_T;
+  typedef std::list<INOTIFY_T*> SUBSCRIBERS_T;
+
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_MessageHandler_2 (ISTREAM_T*);                     // stream handle
+#else
+  Stream_Module_MessageHandler_2 (typename inherited::ISTREAM_T*); // stream handle
+#endif
+  virtual ~Stream_Module_MessageHandler_2 ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -141,7 +265,7 @@ class Stream_Module_MessageHandler_T
 
  private:
   // convenient types
-  typedef Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+  typedef Stream_Module_MessageHandler_2<ACE_SYNCH_USE,
                                          TimePolicyType,
                                          ConfigurationType,
                                          ControlMessageType,
@@ -150,9 +274,9 @@ class Stream_Module_MessageHandler_T
                                          SessionDataType,
                                          UserDataType> OWN_TYPE_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T (const Stream_Module_MessageHandler_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T& operator= (const Stream_Module_MessageHandler_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_2 ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_2 (const Stream_Module_MessageHandler_2&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_2& operator= (const Stream_Module_MessageHandler_2&))
 
   // helper types
   struct SUBSCRIBERS_IS_EQUAL_P

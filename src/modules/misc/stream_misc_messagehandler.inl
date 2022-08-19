@@ -46,39 +46,11 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                UserDataType>::Stream_Module_MessageHandler_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
- , delete_ (false)
- , lock_ (NULL)
- , subscribers_ (NULL)
+ , lock_ ()
+ , subscribers_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::Stream_Module_MessageHandler_T"));
 
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename UserDataType>
-Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataType,
-                               UserDataType>::~Stream_Module_MessageHandler_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::~Stream_Module_MessageHandler_T"));
-
-  // clean up
-  if (delete_)
-  {
-    delete lock_;
-    delete subscribers_;
-  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -101,6 +73,415 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                                           Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::initialize"));
+
+  if (inherited::isInitialized_)
+  {
+    { ACE_GUARD_RETURN (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, lock_, false);
+      subscribers_.clear ();
+    } // end lock scope
+  } // end IF
+
+  if (configuration_in.subscriber)
+    subscribe (configuration_in.subscriber);
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename UserDataType>
+void
+Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataType,
+                               UserDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                 bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::handleDataMessage"));
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+
+  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+
+  { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, lock_);
+    // *WARNING* callees unsubscribe()ing within the callback invalidate the
+    //           iterator
+    //           --> use a modified for-loop (advance before invoking the
+    //               callback; works for MOST containers; notably std::list)
+    // *NOTE*: this works because the lock is recursive
+    for (SUBSCRIBERS_ITERATOR_T iterator = subscribers_.begin ();
+         iterator != subscribers_.end ();
+         )
+    {
+      try {
+        // *TODO*: remove type inference
+        (*iterator++)->notify (session_data_r.sessionId,
+                               *message_inout);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in Common_INotify_T::notify (), continuing\n"),
+                    inherited::mod_->name ()));
+      }
+    } // end FOR
+  } // end lock scope
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename UserDataType>
+void
+Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataType,
+                               UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                    bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::handleSessionMessage"));
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+
+  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+
+  switch (message_inout->type ())
+  {
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+      { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, lock_);
+        // *NOTE*: this works because the lock is recursive
+        // *WARNING* if callees unsubscribe() within the callback bad things
+        //           happen, as the current iterator is invalidated
+        //           --> use a slightly modified for-loop (advance first before
+        //               invoking the callback (works for MOST containers...)
+        for (SUBSCRIBERS_ITERATOR_T iterator = subscribers_.begin ();
+             iterator != subscribers_.end ();
+             )
+        {
+          try {
+            // *TODO*: remove type inference
+            (*iterator++)->start (session_data_r.sessionId,
+                                  session_data_r);
+          } catch (...) {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: caught exception in Common_INotify_T::start(), continuing\n"),
+                        inherited::mod_->name ()));
+            goto error;
+          }
+        } // end FOR
+      } // end lock scope
+
+      break;
+
+error:
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      return;
+    }
+    case STREAM_SESSION_MESSAGE_END:
+    {
+      { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, lock_);
+        // *WARNING* if callees unsubscribe() within the callback bad things
+        //           happen, as the current iterator is invalidated
+        //           --> use a slightly modified for-loop (advance first before
+        //               invoking the callback (works for MOST containers...)
+        // *NOTE*: this works because the lock is recursive
+        for (SUBSCRIBERS_ITERATOR_T iterator = subscribers_.begin ();
+             iterator != subscribers_.end ();
+             )
+        {
+          try {
+            // *TODO*: remove type inference
+            (*(iterator++))->end (session_data_r.sessionId);
+          } catch (...) {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: caught exception in Common_INotify_T::end(), continuing\n"),
+                        inherited::mod_->name ()));
+          }
+        } // end FOR
+      } // end lock scope
+
+      break;
+    }
+    default:
+    {
+      { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, lock_);
+        // *WARNING* callees unsubscribe()ing within the callback invalidate the
+        //           iterator
+        //           --> use a slightly modified for-loop (advance before
+        //               invoking the callback; works for MOST containers)
+        // *NOTE*: this works because the lock is recursive
+        for (SUBSCRIBERS_ITERATOR_T iterator = subscribers_.begin ();
+             iterator != subscribers_.end ();
+             )
+        {
+          try {
+            // *TODO*: remove type inference
+            (*(iterator++))->notify (session_data_r.sessionId,
+                                     *message_inout);
+          } catch (...) {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: caught exception in Common_INotify_T::notify(), continuing\n"),
+                        inherited::mod_->name ()));
+          }
+        } // end FOR
+      } // end lock scope
+
+      break;
+    }
+  } // end SWITCH
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename UserDataType>
+void
+Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataType,
+                               UserDataType>::subscribe (INOTIFY_T* interfaceHandle_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::subscribe"));
+
+  // sanity check(s)
+  ACE_ASSERT (interfaceHandle_in);
+
+  { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, lock_);
+    subscribers_.push_back (interfaceHandle_in);
+    subscribers_.sort ();
+    subscribers_.unique (SUBSCRIBERS_IS_EQUAL_P ());
+  } // end lock scope
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename UserDataType>
+void
+Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataType,
+                               UserDataType>::unsubscribe (INOTIFY_T* interfaceHandle_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::unsubscribe"));
+
+  // sanity check(s)
+  ACE_ASSERT (interfaceHandle_in);
+
+  { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, lock_);
+    SUBSCRIBERS_ITERATOR_T iterator = subscribers_.begin ();
+    for (;
+         iterator != subscribers_.end ();
+         iterator++)
+      if ((*iterator) == interfaceHandle_in)
+        break;
+
+    if (iterator != subscribers_.end ())
+      subscribers_.erase (iterator);
+    else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid argument (was: %@), continuing\n"),
+                  inherited::mod_->name (),
+                  interfaceHandle_in));
+  } // end lock scope
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename UserDataType>
+ACE_Task<ACE_SYNCH_USE,
+         TimePolicyType>*
+Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataType,
+                               UserDataType>::clone () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::clone"));
+
+  ACE_Task<ACE_SYNCH_USE,
+           TimePolicyType>* result_p = NULL;
+
+  ACE_NEW_NORETURN (result_p,
+                    OWN_TYPE_T (NULL));
+  if (unlikely (!result_p))
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
+                inherited::mod_->name ()));
+
+  return result_p;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename UserDataType>
+bool
+Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataType,
+                               UserDataType>::postClone (ACE_Module<ACE_SYNCH_USE,
+                                                                    TimePolicyType>* original_in,
+                                                         bool initialize_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::postClone"));
+
+  // sanity check(s)
+  ACE_ASSERT (original_in);
+  if (!initialize_in)
+    return true;
+  OWN_TYPE_T* message_handler_impl_p =
+    static_cast<OWN_TYPE_T*> (original_in->writer ());
+  ACE_ASSERT (message_handler_impl_p->configuration_);
+
+  if (!initialize (*message_handler_impl_p->configuration_,
+                   message_handler_impl_p->allocator_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Module_MessageHandler_T::initialize(), aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+
+  return true;
+}
+
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename UserDataType>
+Stream_Module_MessageHandler_2<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                               UserDataType>::Stream_Module_MessageHandler_2 (ISTREAM_T* stream_in)
+#else
+                               UserDataType>::Stream_Module_MessageHandler_2 (typename inherited::ISTREAM_T* stream_in)
+#endif // ACE_WIN32 || ACE_WIN64
+ : inherited (stream_in)
+ , delete_ (false)
+ , lock_ (NULL)
+ , subscribers_ (NULL)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_2::Stream_Module_MessageHandler_2"));
+
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename UserDataType>
+Stream_Module_MessageHandler_2<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataType,
+                               UserDataType>::~Stream_Module_MessageHandler_2 ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_2::~Stream_Module_MessageHandler_2"));
+
+  // clean up
+  if (delete_)
+  {
+    delete lock_;
+    delete subscribers_;
+  } // end IF
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename UserDataType>
+bool
+Stream_Module_MessageHandler_2<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataType,
+                               UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                          Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_2::initialize"));
 
   // sanity check(s)
   ACE_ASSERT ((configuration_in.subscribers && configuration_in.lock) ||
@@ -192,7 +573,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename UserDataType>
 void
-Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+Stream_Module_MessageHandler_2<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -202,7 +583,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                UserDataType>::handleDataMessage (DataMessageType*& message_inout,
                                                                  bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_2::handleDataMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -244,7 +625,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename UserDataType>
 void
-Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+Stream_Module_MessageHandler_2<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -254,7 +635,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                     bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_2::handleSessionMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -361,7 +742,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename UserDataType>
 void
-Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+Stream_Module_MessageHandler_2<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -370,7 +751,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                SessionDataType,
                                UserDataType>::subscribe (INOTIFY_T* interfaceHandle_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::subscribe"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_2::subscribe"));
 
   // sanity check(s)
   ACE_ASSERT (lock_ && subscribers_);
@@ -392,7 +773,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename UserDataType>
 void
-Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+Stream_Module_MessageHandler_2<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -401,7 +782,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                SessionDataType,
                                UserDataType>::unsubscribe (INOTIFY_T* interfaceHandle_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::unsubscribe"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_2::unsubscribe"));
 
   // sanity check(s)
   ACE_ASSERT (lock_ && subscribers_);
@@ -435,7 +816,7 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 ACE_Task<ACE_SYNCH_USE,
          TimePolicyType>*
-Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+Stream_Module_MessageHandler_2<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -444,7 +825,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                SessionDataType,
                                UserDataType>::clone () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::clone"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_2::clone"));
 
   ACE_Task<ACE_SYNCH_USE,
            TimePolicyType>* result_p = NULL;
@@ -468,7 +849,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename UserDataType>
 bool
-Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+Stream_Module_MessageHandler_2<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -479,7 +860,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                                                     TimePolicyType>* original_in,
                                                          bool initialize_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::postClone"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_2::postClone"));
 
   // sanity check(s)
   ACE_ASSERT (original_in);
@@ -493,7 +874,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                    message_handler_impl_p->allocator_))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_MessageHandler_T::initialize(), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_Module_MessageHandler_2::initialize(), aborting\n"),
                 inherited::mod_->name ()));
     return false;
   } // end IF
