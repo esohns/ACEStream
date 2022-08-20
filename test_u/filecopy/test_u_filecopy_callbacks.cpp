@@ -339,7 +339,12 @@ idle_initialize_UI_cb (gpointer userData_in)
                                                    idle_update_log_display_cb,
                                                    userData_in);
     if (event_source_id > 0)
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("added event source (id: %u)\n"),
+                  event_source_id));
       state_r.eventSourceIds.insert (event_source_id);
+    } // end IF
     else
     {
       ACE_DEBUG ((LM_ERROR,
@@ -352,7 +357,12 @@ idle_initialize_UI_cb (gpointer userData_in)
                      idle_update_info_display_cb,
                      userData_in);
     if (event_source_id > 0)
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("added event source (id: %u)\n"),
+                  event_source_id));
       state_r.eventSourceIds.insert (event_source_id);
+    } // end IF
     else
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1002,26 +1012,16 @@ action_start_activate_cb (GtkAction* action_in,
 #endif
   ACE_hthread_t thread_handle = ACE_INVALID_HANDLE;
   ACE_TCHAR thread_name[BUFSIZ];
-  ACE_OS::memset (thread_name, 0, sizeof (thread_name));
-//  char* thread_name_p = NULL;
-//  ACE_NEW_NORETURN (thread_name_p,
-//                    ACE_TCHAR[BUFSIZ]);
-//  if (!thread_name_p)
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
-
-//    // clean up
-//    delete thread_data_p;
-
-//    return;
-//  } // end IF
-//  ACE_OS::memset (thread_name_p, 0, sizeof (thread_name_p));
-//  ACE_OS::strcpy (thread_name_p,
-//                  ACE_TEXT (TEST_U_STREAM_FILECOPY_THREAD_NAME));
-//  const char* thread_name_2 = thread_name_p;
+  ACE_OS::memset (thread_name, 0, sizeof (ACE_TCHAR[BUFSIZ]));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::strcpy (thread_name,
                   ACE_TEXT (TEST_U_STREAM_THREAD_NAME));
+#else
+  ACE_ASSERT (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH <= BUFSIZ);
+  ACE_OS::strncpy (thread_name,
+                   ACE_TEXT (TEST_U_STREAM_THREAD_NAME),
+                   std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT (TEST_U_STREAM_THREAD_NAME)))));
+#endif // ACE_WIN32 || ACE_WIN64
   const char* thread_name_2 = thread_name;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
@@ -1081,6 +1081,10 @@ action_start_activate_cb (GtkAction* action_in,
 
     return;
   } // end IF
+  else
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("added event source (id: %u)\n"),
+                event_source_id));
   data_p->progressData.pendingActions[event_source_id] =
       ACE_Thread_ID (thread_id,
                      thread_handle);
@@ -1227,24 +1231,28 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_quit_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  ACE_UNUSED_ARG (userData_in);
-  //struct Stream_Filecopy_UI_CBData* data_p =
-  // static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
-  //// sanity check(s)
-  //ACE_ASSERT (data_p);
 
-  //// step1: remove event sources
-  //{
-  //  ACE_Guard<ACE_Thread_Mutex> aGuard (data_p->UIState.lock);
-  //  for (Common_UI_GTKEventSourceIdsIterator_t iterator = data_p->UIState.eventSourceIds.begin ();
-  //       iterator != data_p->UIState.eventSourceIds.end ();
-  //       iterator++)
-  //    if (!g_source_remove (*iterator))
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-  //                  *iterator));
-  //  data_p->UIState.eventSourceIds.clear ();
-  //} // end lock scope
+  // sanity check(s)
+  struct Stream_Filecopy_UI_CBData* data_p =
+   static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->UIState);
+
+  // step1: remove event sources
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, data_p->UIState->lock, -1);
+    for (Common_UI_GTK_EventSourceIdsIterator_t iterator = data_p->UIState->eventSourceIds.begin ();
+         iterator != data_p->UIState->eventSourceIds.end ();
+         iterator++)
+      if (unlikely (!g_source_remove (*iterator)))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+                    *iterator));
+      else
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("removed event source (id was: %u), continuing\n"),
+                    *iterator));
+    data_p->UIState->eventSourceIds.clear ();
+  } // end lock scope
 
   // step2: initiate shutdown sequence
   int result = ACE_OS::raise (SIGINT);

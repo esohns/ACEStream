@@ -4263,9 +4263,9 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    cb_data_p->configuration->videoStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+    cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->videoStreamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   if (!gtk_toggle_button_get_active (toggleButton_in))
   {
@@ -4291,7 +4291,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
       }
     } // end SWITCH
 #else
-//    (*iterator_2).second.second->display.device.clear ();
+    (*iterator_2).second.second->display.device.clear ();
 #endif
     return;
   } // end IF
@@ -4342,8 +4342,8 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-//  (*iterator_2).second.second->display.device = g_value_get_string (&value);
-#endif
+  (*iterator_2).second.second->display.device = g_value_get_string (&value);
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 }
 

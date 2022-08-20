@@ -43,17 +43,6 @@ HTTPGet_Stream_T<TCPConnectorType,
 
 template <typename TCPConnectorType,
           typename SSLConnectorType>
-HTTPGet_Stream_T<TCPConnectorType,
-                 SSLConnectorType>::~HTTPGet_Stream_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("HTTPGet_Stream_T::~HTTPGet_Stream_T"));
-
-  // *NOTE*: this implements an ordered shutdown on destruction
-  inherited::shutdown ();
-}
-
-template <typename TCPConnectorType,
-          typename SSLConnectorType>
 bool
 HTTPGet_Stream_T<TCPConnectorType,
                  SSLConnectorType>::load (Stream_ILayout* layout_inout,

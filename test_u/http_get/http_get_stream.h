@@ -81,7 +81,7 @@ class HTTPGet_Stream_T
 
  public:
   HTTPGet_Stream_T ();
-  virtual ~HTTPGet_Stream_T ();
+  inline virtual ~HTTPGet_Stream_T () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*, // layout handle

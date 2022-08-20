@@ -536,7 +536,6 @@ do_work (unsigned int bufferSize_in,
 
   // step0a: initialize configuration and stream
   Stream_IStreamControlBase* istream_base_p = NULL;
-  Common_IInitialize_T<HTTPGet_StreamConfiguration_t>* iinitialize_p = NULL;
   Stream_IStream_t* istream_p = NULL;
   HTTPGet_Stream_t stream;
   HTTPGet_AsynchStream_t asynch_stream;
@@ -544,14 +543,13 @@ do_work (unsigned int bufferSize_in,
     istream_p = &stream;
   else
     istream_p = &asynch_stream;
-
+  Common_IInitialize_T<HTTPGet_StreamConfiguration_t>* iinitialize_p = NULL;
   HTTPGet_EventHandler event_handler (&CBData_in,
                                       interfaceDefinitionFile_in.empty ());
   HTTPGet_Module_EventHandler_Module event_handler_module (istream_p,
                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   struct Common_Parser_FlexAllocatorConfiguration allocator_configuration;
-
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (allocator_configuration))
@@ -569,8 +567,7 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (connection_manager_p);
 
   // *********************** socket configuration data ************************
-  struct HTTPGet_ModuleHandlerConfiguration modulehandler_configuration_2;
-  HTTPGet_StreamConfiguration_t stream_configuration_network;
+  struct HTTPGet_ModuleHandlerConfiguration modulehandler_configuration_2; // net-
   HTTPGet_ConnectionConfiguration_t connection_configuration;
   connection_configuration.socketConfiguration.address = remoteHost_in;
   connection_configuration.socketConfiguration.useLoopBackDevice =
@@ -582,7 +579,8 @@ do_work (unsigned int bufferSize_in,
   connection_configuration.allocatorConfiguration = &allocator_configuration;
   connection_configuration.allocatorConfiguration->defaultBufferSize = bufferSize_in;
   connection_configuration.messageAllocator = &message_allocator;
-  connection_configuration.streamConfiguration = &stream_configuration_network;
+  connection_configuration.streamConfiguration =
+    &CBData_in.configuration->streamConfiguration_2;
 
   CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                             &connection_configuration));
@@ -632,12 +630,12 @@ do_work (unsigned int bufferSize_in,
 
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.concurrency =
-    STREAM_HEADMODULECONCURRENCY_ACTIVE;
+    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
   steam_configuration_2 = steam_configuration;
   steam_configuration_2.module = NULL;
-  stream_configuration_network.initialize (module_configuration,
-                                           modulehandler_configuration_2,
-                                           steam_configuration_2);
+  CBData_in.configuration->streamConfiguration_2.initialize (module_configuration,
+                                                             modulehandler_configuration_2,
+                                                             steam_configuration_2);
 
   if (bufferSize_in)
     CBData_in.configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
@@ -847,33 +845,12 @@ do_work (unsigned int bufferSize_in,
 
   timer_manager_p->stop ();
 
-  //		{ // synch access
-  //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
-
-  //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-  //					 iterator != CBData_in.event_source_ids.end();
-  //					 iterator++)
-  //				g_source_remove(*iterator);
-  //		} // end lock scope
-  //timer_manager_p->stop ();
-
-  //  { // synch access
-  //    ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
-
-  //		for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-  //				 iterator != CBData_in.event_source_ids.end();
-  //				 iterator++)
-  //			g_source_remove(*iterator);
-  //	} // end lock scope
-
-  //if (!interfaceDefinitionFile_in.empty ())
-  //{
-  //  int result = event_handler_module.close (ACE_Module_Base::M_DELETE_NONE);
-  //  if (result == -1)
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
-  //                event_handler_module.name ()));
-  //} // end IF
+  stream.remove (&event_handler_module,
+                 true,   // lock ?
+                 false); // reset ?
+  asynch_stream.remove (&event_handler_module,
+                        true,   // lock ?
+                        false); // reset ?
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));

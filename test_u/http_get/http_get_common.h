@@ -107,6 +107,7 @@ struct HTTPGet_Configuration
    , connectionConfigurations ()
    , parserConfiguration ()
    , streamConfiguration ()
+   , streamConfiguration_2 ()
   {}
 
   struct Common_Parser_FlexAllocatorConfiguration allocatorConfiguration;
@@ -117,6 +118,7 @@ struct HTTPGet_Configuration
   // **************************** stream data **********************************
   struct HTTP_ParserConfiguration                 parserConfiguration;
   HTTPGet_StreamConfiguration_t                   streamConfiguration;
+  HTTPGet_StreamConfiguration_t                   streamConfiguration_2; // net-
 };
 
 //////////////////////////////////////////

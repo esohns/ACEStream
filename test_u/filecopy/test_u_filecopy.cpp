@@ -432,9 +432,8 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
   struct Stream_Filecopy_ModuleHandlerConfiguration moduleheandler_configuration;
   moduleheandler_configuration.allocatorConfiguration = &allocator_configuration;
-  if (!UIDefinitionFile_in.empty ())
-    moduleheandler_configuration.concurrency =
-        STREAM_HEADMODULECONCURRENCY_ACTIVE;
+//  if (!UIDefinitionFile_in.empty ())
+//    moduleheandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   moduleheandler_configuration.printProgressDot = UIDefinitionFile_in.empty ();
   moduleheandler_configuration.fileIdentifier.identifier = fileName_in;
   moduleheandler_configuration.statisticReportingInterval =
@@ -490,6 +489,7 @@ do_work (unsigned int bufferSize_in,
     ACE_ASSERT (gtk_manager_p);
     Common_UI_GTK_State_t& state_r =
       const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+    CBData_in.UIState = &state_r;
     CBData_in.configuration->GTKConfiguration.eventHooks.finiHook =
         idle_finalize_UI_cb;
     CBData_in.configuration->GTKConfiguration.eventHooks.initHook =
@@ -535,7 +535,7 @@ do_work (unsigned int bufferSize_in,
 #endif
 
 #if defined (GTK_USE)
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->wait ();
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->wait (false);
 #endif // GTK_USE
   } // end IF
   else

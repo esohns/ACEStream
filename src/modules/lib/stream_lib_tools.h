@@ -133,6 +133,7 @@ class Stream_MediaFramework_Tools
   static enum _snd_pcm_format ffmpegFormatToALSAFormat (enum AVSampleFormat); // format
   static __u32 ffmpegFormatToV4lFormat (enum AVPixelFormat); // format
   static enum AVPixelFormat v4lFormatToffmpegFormat (__u32); // format (fourcc)
+  static enum AVCodecID v4lFormatToffmpegCodecId (__u32); // format (fourcc)
 #endif // FFMPEG_SUPPORT
   static unsigned int frameSize (const std::string&,                                 // device identifier
                                  const struct Stream_MediaFramework_V4L_MediaType&); // format

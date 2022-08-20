@@ -20,9 +20,8 @@
     <property name="deletable">False</property>
     <property name="program_name">filecopy</property>
     <property name="version">0.1</property>
-    <property name="copyright" translatable="yes">Copyright (C) 2015 by Erik Sohns &lt;eriksohns@123mail.org&gt;
-</property>
-    <property name="website">http://www.github.com/esohns/libACEStream</property>
+    <property name="copyright" translatable="yes">Copyright (C) 2015 by Erik Sohns &lt;erik.sohns@posteo.de&gt;</property>
+    <property name="website">http://www.github.com/esohns/ACEStream</property>
     <property name="website_label" translatable="yes">github project site</property>
     <property name="authors">Erik Sohns</property>
     <property name="logo_icon_name">image-missing</property>

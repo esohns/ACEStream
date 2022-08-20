@@ -21,6 +21,15 @@
 
 #include "test_i_avsave_stream.h"
 
+#if defined (FFMPEG_SUPPORT)
+#ifdef __cplusplus
+extern "C"
+{
+#include "libavcodec/codec_id.h"
+}
+#endif /* __cplusplus */
+#endif // FFMPEG_SUPPORT
+
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
@@ -1522,7 +1531,13 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
 
   layout_in->append (&source_, NULL, 0);
 //  layout_inout.append (&statisticReport_, NULL, 0);
-  layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
+
+  // add decoder iff format needs decoding
+  enum AVCodecID codec_id =
+    Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (configuration_->configuration_->format.video.format.pixelformat);
+  if (codec_id != AV_CODEC_ID_NONE)
+    layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
+
   if (display_b || save_to_file_b)
   {
     if (display_b && save_to_file_b)
