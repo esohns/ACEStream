@@ -122,6 +122,7 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
                   ACE_TEXT ((*iterator).second.c_str ())));
   } // end FOR
 
+  // step3: perform query
   ACE_ASSERT (!data_r.xPathObject);
   data_r.xPathObject = 
     xmlXPathEvalExpression (BAD_CAST (inherited::configuration_->xPathQueryString.c_str ()),
@@ -136,7 +137,7 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  // clean up
+  // step4: clean up
   xmlXPathFreeContext (xpath_context_p); xpath_context_p = NULL;
 }
 
