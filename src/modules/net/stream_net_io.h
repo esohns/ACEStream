@@ -80,8 +80,8 @@ class Stream_Module_Net_IOReader_T // --> input
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
+                                 StreamControlType,
+                                 StreamNotificationType,
                                  UserDataType>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -90,8 +90,8 @@ class Stream_Module_Net_IOReader_T // --> input
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
+                                 StreamControlType,
+                                 StreamNotificationType,
                                  UserDataType> inherited;
 
  public:

@@ -52,7 +52,7 @@ template <ACE_SYNCH_DECL, // state machine-/task
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           ////////////////////////////////
@@ -70,11 +70,11 @@ class Stream_HeadModuleTaskBase_T
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             UserDataType>
  , public Stream_StateMachine_Control_T<ACE_SYNCH_USE>
- , public Stream_IStreamControl_T<SessionControlType,
+ , public Stream_IStreamControl_T<StreamControlType,
                                   SessionEventType,
                                   enum Stream_StateMachine_ControlState,
                                   StreamStateType>
@@ -89,7 +89,7 @@ class Stream_HeadModuleTaskBase_T
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             UserDataType> inherited;
   typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> inherited2;
@@ -135,7 +135,7 @@ class Stream_HeadModuleTaskBase_T
                      bool = false,        // N/A
                      bool = false) const; // N/A
 
-  virtual void control (SessionControlType, // control type
+  virtual void control (StreamControlType, // control type
                         bool = false);      // N/A
   // *WARNING*: currently, the default stream implementation forwards all
   //            notifications to the head module. This implementation generates
@@ -177,11 +177,11 @@ class Stream_HeadModuleTaskBase_T
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             UserDataType> TASK_BASE_T;
   typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> STATE_MACHINE_T;
-  typedef Stream_IStreamControl_T<SessionControlType,
+  typedef Stream_IStreamControl_T<StreamControlType,
                                   SessionEventType,
                                   enum Stream_StateMachine_ControlState,
                                   StreamStateType> ISTREAM_CONTROL_T;
@@ -212,6 +212,7 @@ class Stream_HeadModuleTaskBase_T
   using inherited::isInitialized_;
 
   bool                                abortSent_;
+  bool                                endSeen_;
   bool                                isHighPriorityStop_;
   typename inherited::MESSAGE_QUEUE_T queue_;
   bool                                sessionEndProcessed_;
@@ -231,7 +232,7 @@ class Stream_HeadModuleTaskBase_T
                                       DataMessageType,
                                       SessionMessageType,
                                       ConfigurationType,
-                                      SessionControlType,
+                                      StreamControlType,
                                       SessionEventType,
                                       StreamStateType,
                                       SessionDataType,

@@ -144,6 +144,6 @@ typedef HTTPGet_Stream_T<HTTPGet_TCPConnector_t,
                          HTTPGet_TCPConnector_t> HTTPGet_Stream_t;
 #endif // SSL_SUPPORT
 typedef HTTPGet_Stream_T<HTTPGet_TCPAsynchConnector_t,
-                         HTTPGet_TCPAsynchConnector_t> HTTPGet_AsynchStream_t;
+/* *TODO* SSL support */ HTTPGet_TCPAsynchConnector_t> HTTPGet_AsynchStream_t;
 
 #endif

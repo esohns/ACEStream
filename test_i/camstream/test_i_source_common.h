@@ -503,8 +503,6 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
 #if defined (GUI_SUPPORT)
     ACE_OS::memset (&area, 0, sizeof (struct v4l2_rect));
 #endif // GUI_SUPPORT
-
-    finishOnDisconnect = true;
   }
 
 #if defined (GUI_SUPPORT)

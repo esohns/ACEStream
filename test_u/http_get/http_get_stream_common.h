@@ -141,8 +141,9 @@ struct HTTPGet_ModuleHandlerConfiguration
    , URL ()
    , waitForConnect (true)
   {
-    //crunchMessages = HTTP_DEFAULT_CRUNCH_MESSAGES; // HTTP parser module
-    passive = false;
+    closeAfterReception = true; // http get module closes the connection after data has arrived
+    passive = false; // net source module maintains the connection
+    stopOnUnlink = true; // (downstream) head modules stop the active session after connection closes and the stream is unlinked
   };
 
   bool                             closeAfterReception;      // HTTP get module

@@ -135,6 +135,8 @@ class Stream_Layout_T
   bool append (MODULE_T*,           // module handle
                const std::string&); // branch name {"": 'main' branch}
   bool remove (const std::string&); // nodule name
+  bool replace (const std::string&, // nodule name
+                MODULE_T*);         // replacement
 
   // *NOTE*: returns the layout sorted depth-first (aka 'pre-order', or
   //         'element-before-children')

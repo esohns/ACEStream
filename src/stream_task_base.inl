@@ -34,7 +34,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename UserDataType>
 Stream_TaskBase_T<ACE_SYNCH_USE,
@@ -43,7 +43,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionControlType,
+                  StreamControlType,
                   SessionEventType,
                   UserDataType>::Stream_TaskBase_T (ISTREAM_T* stream_in,
                                                     MESSAGE_QUEUE_T* queue_in)
@@ -76,7 +76,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename UserDataType>
 Stream_TaskBase_T<ACE_SYNCH_USE,
@@ -85,7 +85,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionControlType,
+                  StreamControlType,
                   SessionEventType,
                   UserDataType>::~Stream_TaskBase_T ()
 {
@@ -104,7 +104,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename UserDataType>
 bool
@@ -114,7 +114,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionControlType,
+                  StreamControlType,
                   SessionEventType,
                   UserDataType>::initialize (const ConfigurationType& configuration_in,
                                              Stream_IAllocator* allocator_in)
@@ -159,7 +159,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename UserDataType>
 const Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>* const
@@ -169,7 +169,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionControlType,
+                  StreamControlType,
                   SessionEventType,
                   UserDataType>::getP () const
 {
@@ -228,7 +228,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename UserDataType>
 void
@@ -238,7 +238,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionControlType,
+                  StreamControlType,
                   SessionEventType,
                   UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                        bool& passMessageDownstream_out)
@@ -474,6 +474,7 @@ continue_3:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+#if defined (_DEBUG)
       try {
         this->dump_state ();
       } catch (...) {
@@ -481,6 +482,7 @@ continue_3:
                     ACE_TEXT ("%s: caught exception in Comon_IDumpState::dump_state(), continuing\n"),
                     inherited::mod_->name ()));
       }
+#endif // _DEBUG
 
       if (!linked_        &&
           freeSessionData_) // --> head modules finalize this in close()
@@ -513,7 +515,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename UserDataType>
 void
@@ -523,7 +525,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionControlType,
+                  StreamControlType,
                   SessionEventType,
                   UserDataType>::handleProcessingError (const ACE_Message_Block* const messageBlock_in)
 {
@@ -542,7 +544,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename UserDataType>
 DataMessageType*
@@ -552,7 +554,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionControlType,
+                  StreamControlType,
                   SessionEventType,
                   UserDataType>::allocateMessage (unsigned int requestedSize_in)
 {
@@ -620,7 +622,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename UserDataType>
 void
@@ -630,7 +632,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionControlType,
+                  StreamControlType,
                   SessionEventType,
                   UserDataType>::handleMessage (ACE_Message_Block* messageBlock_in,
                                                 bool& stopProcessing_out)
@@ -672,8 +674,16 @@ error:
 
       enum Stream_SessionMessageType session_message_type =
         session_message_p->type ();
+
+      // *IMPORTANT NOTE*: if linked, do not deliver session end messages; this
+      //                   ensures that only one session end message is
+      //                   delivered per session
+      if (unlikely (linked_ &&
+                    (session_message_type == STREAM_SESSION_MESSAGE_END)))
+        break;
+
       bool post_process_b = false;
-      // pre-process !UNLINK/!END messages
+      // post-process UNLINK, END messages, pre-process all others
       if (unlikely ((session_message_type == STREAM_SESSION_MESSAGE_UNLINK) ||
                     (session_message_type == STREAM_SESSION_MESSAGE_END)))
         post_process_b = true;
@@ -831,7 +841,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename UserDataType>
 bool
@@ -841,9 +851,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionControlType,
+                  StreamControlType,
                   SessionEventType,
-                  UserDataType>::putControlMessage (SessionControlType messageType_in,
+                  UserDataType>::putControlMessage (StreamControlType messageType_in,
                                                     bool sendUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::putControlMessage"));
@@ -920,7 +930,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename UserDataType>
 bool
@@ -930,7 +940,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionControlType,
+                  StreamControlType,
                   SessionEventType,
                   UserDataType>::putSessionMessage (SessionEventType eventType_in,
                                                     typename SessionMessageType::DATA_T*& sessionData_inout,
@@ -1025,7 +1035,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename UserDataType>
 void
@@ -1035,7 +1045,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionControlType,
+                  StreamControlType,
                   SessionEventType,
                   UserDataType>::notify (SessionEventType sessionEvent_in)
 {
@@ -1078,7 +1088,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename UserDataType>
 void
@@ -1088,7 +1098,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionControlType,
+                  StreamControlType,
                   SessionEventType,
                   UserDataType>::control (int messageType_in,
                                           bool highPriority_in)

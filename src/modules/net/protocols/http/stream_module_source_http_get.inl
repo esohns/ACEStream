@@ -251,16 +251,21 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                     ACE_TEXT ((*iterator).second.c_str ())));
         goto error;
       } // end IF
+      if (unlikely (host_name_string.empty ()))
+      { // *TODO*: no hostname provided in URL (e.g. https:///400.shtml)
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: location header URL: \"%s\" provides no hostname, continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT ((*iterator).second.c_str ())));
+      } // end IF
       if (likely ((host_name_string != host_name_string_2) ||
                   (use_SSL != use_SSL_2)))
-      { // *TODO*
+      { // *TODO*: this is not really an error
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: URL (was: \"%s\") redirects to a different host, and/or requires a HTTP(S) connection, cannot proceed\n"),
+                    ACE_TEXT ("%s: URL (was: \"%s\") redirects (URL: \"%s\") to a different host, and/or requires a HTTP(S) connection, cannot proceed\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (inherited::configuration_->URL.c_str ())));
-
-        passMessageDownstream_out = false;
-
+                    ACE_TEXT (inherited::configuration_->URL.c_str ()),
+                    ACE_TEXT ((*iterator).second.c_str ())));
         goto error;
       } // end IF
 

@@ -52,7 +52,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           ////////////////////////////////
           typename UserDataType>
@@ -140,7 +140,7 @@ class Stream_TaskBase_T
   // convenience methods to send (session-specific) notifications downstream
   // *NOTE*: these invoke put(), so the messages are processed by 'this' module
   //         as well
-  bool putControlMessage (SessionControlType, // control type
+  bool putControlMessage (StreamControlType, // control type
                           bool = false);      // send upstream ? : downstream
   // *NOTE*: "fire-and-forget" the second argument
   bool putSessionMessage (SessionEventType,                      // session message type
@@ -177,7 +177,7 @@ class Stream_TaskBase_T
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             UserDataType> OWN_TYPE_T;
   typedef Stream_ISessionNotify_T<typename SessionMessageType::DATA_T::DATA_T,

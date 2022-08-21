@@ -156,7 +156,6 @@ class Stream_Module_Net_Source_Writer_T
   HANDLES_T                              handles_;
   bool                                   isOpen_;
   bool                                   isPassive_;
-  bool                                   unlink_;
 };
 
 //////////////////////////////////////////
@@ -250,7 +249,6 @@ class Stream_Module_Net_SourceH_T
   HANDLES_T                              handles_;
   bool                                   isOpen_;
   bool                                   isPassive_;
-  bool                                   unlink_;
 };
 
 // include template definition

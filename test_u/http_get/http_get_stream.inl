@@ -102,10 +102,6 @@ HTTPGet_Stream_T<TCPConnectorType,
 
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   struct HTTPGet_SessionData* session_data_p = NULL;
-  Stream_Module_t* module_p = NULL;
-  HTTPGet_HTTPParser* HTTPParser_impl_p = NULL;
-
-//  bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
 
@@ -134,36 +130,6 @@ HTTPGet_Stream_T<TCPConnectorType,
 
   // ---------------------------------------------------------------------------
 
-  // ******************* HTTP Marshal ************************
-  module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("Marshal")));
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT ("Marshal")));
-    goto failed;
-  } // end IF
-
-  HTTPParser_impl_p =
-    dynamic_cast<HTTPGet_HTTPParser*> (module_p->writer ());
-  if (!HTTPParser_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<HTTPGet_HTTPParser> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto failed;
-  } // end IF
-  HTTPParser_impl_p->setP (&(inherited::state_));
-
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  module_p->arg (inherited::sessionData_);
-
-  // ---------------------------------------------------------------------------
-
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup ())
     {
@@ -177,6 +143,7 @@ HTTPGet_Stream_T<TCPConnectorType,
 
   if (HTTP_Tools::URLRequiresSSL ((*iterator).second.second->URL))
   {
+    Stream_Module_t* module_p = NULL;
     ACE_NEW_RETURN (module_p,
                     SSL_SOURCE_MODULE_T (this,
                                          ACE_TEXT_ALWAYS_CHAR (MODULE_NET_SOURCE_DEFAULT_NAME_STRING)),
@@ -222,7 +189,6 @@ HTTPGet_Stream_T<TCPConnectorType,
   } // end IF
 
   inherited::isInitialized_ = true;
-  //inherited::dump_state ();
 
   return true;
 

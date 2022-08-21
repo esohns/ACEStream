@@ -258,7 +258,8 @@ class Stream_Base_T
                                                     bool = false) const; // recurse upstream (if any) ?
   inline virtual std::string name () const { return name_; }
   inline virtual void name (const std::string& name_in) { name_ = name_in; }
-  virtual bool link (typename ISTREAM_T::STREAM_T*);
+  virtual bool link (typename ISTREAM_T::STREAM_T*); // upstream
+  // *NOTE*: unlinks inherited::linked_us_, i.e. any link()ed up(!)stream
   virtual void _unlink ();
   // *WARNING*: these APIs are not thread-safe
   //            --> grab the lock() first and/or really know what you are doing
@@ -305,6 +306,10 @@ class Stream_Base_T
   // *NOTE*: returns: the last module (if any), inherited::tail() otherwise
   virtual ACE_Module<ACE_SYNCH_USE, TimePolicyType>* tail ();
   inline virtual int get (ACE_Message_Block*& messageBlock_inout, ACE_Time_Value* timeout_in) { return (inherited::linked_us_ ? inherited::linked_us_->get (messageBlock_inout, timeout_in) : inherited::get (messageBlock_inout, timeout_in)); }
+  // *NOTE*: need to update the layout as well...
+  virtual int replace (const ACE_TCHAR*,           // module name
+                       MODULE_T*,                  // replacement
+                       int = MODULE_T::M_DELETE);  // delete the replaced module ?
 
   // *NOTE*: the ACE implementation close(s) the removed module. This is not the
   //         intended behavior when the module is being used by several streams
@@ -312,8 +317,6 @@ class Stream_Base_T
   bool remove (MODULE_T*,    // module handle
                bool = true,  // lock ?
                bool = true); // close()/reset() removed module(s) for re-use ?
-  // *NOTE*: make sure the original API is not hidden
-  using inherited::remove;
 
   inline bool isInitialized () const { return isInitialized_; }
 
@@ -370,6 +373,9 @@ class Stream_Base_T
   // *NOTE*: derived classes must call this in their dtor
   void shutdown ();
   bool setup (ACE_Notification_Strategy* = NULL); // head module reader task' queue notification handle
+
+  // *NOTE*: make sure the original API is not hidden
+  using inherited::remove;
 
   CONFIGURATION_T*          configuration_;
   // *NOTE*: derived classes set this iff (!) their initialization succeeded;

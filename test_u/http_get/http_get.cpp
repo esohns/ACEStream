@@ -598,14 +598,12 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
   struct HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
-  modulehandler_configuration.closeAfterReception = true;
   modulehandler_configuration.configuration = CBData_in.configuration;
   modulehandler_configuration.connectionConfigurations =
     &CBData_in.configuration->connectionConfigurations;
   modulehandler_configuration.connectionManager = connection_manager_p;
   modulehandler_configuration.parserConfiguration =
     &CBData_in.configuration->parserConfiguration;
-  modulehandler_configuration.passive = false;
   modulehandler_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
   //modulehandler_configuration.stream = istream_p;
@@ -663,10 +661,12 @@ do_work (unsigned int bufferSize_in,
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   // step0b: initialize event dispatch
+  CBData_in.configuration->dispatchConfiguration.dispatch =
+    (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR : COMMON_EVENT_DISPATCH_PROACTOR);
   CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads =
-      (useReactor_in ? numberOfDispatchThreads_in : 0);
+    (useReactor_in ? numberOfDispatchThreads_in : 0);
   CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads =
-      (!useReactor_in ? numberOfDispatchThreads_in : 0);
+    (!useReactor_in ? numberOfDispatchThreads_in : 0);
   if (!Common_Event_Tools::initializeEventDispatch (CBData_in.configuration->dispatchConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -674,7 +674,7 @@ do_work (unsigned int bufferSize_in,
     goto clean;
   } // end IF
   CBData_in.dispatchState.configuration =
-      &CBData_in.configuration->dispatchConfiguration;
+    &CBData_in.configuration->dispatchConfiguration;
 
   //// step0d: initialize regular (global) statistic reporting
   //Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,

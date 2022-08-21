@@ -2348,7 +2348,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     //         (connection closed abruptly by peer)
     //         (see: stream_headmoduletask_base.inl:2699), so second _unlink()
     //         in stream_net_target.inl:667 fails
-    ACE_DEBUG ((LM_DEBUG,
+    ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: no upstream; cannot unlink, returning\n"),
                 ACE_TEXT (name_.c_str ())));
     return;
@@ -3472,6 +3472,69 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
+int
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              StreamName,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::replace (const ACE_TCHAR* name_in,
+                                            MODULE_T* module_in,
+                                            int flags_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::replace"));
+
+  // step1: update the layout to reflect this change
+  if (!layout_.replace (ACE_TEXT_ALWAYS_CHAR (name_in),
+                        module_in))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Layout::replace(\"%s\"), aborting\n"),
+                ACE_TEXT (name_.c_str ()),
+                name_in));
+    return -1;
+  } // end IF
+
+  // step2: update the stream itself
+  int result = inherited::replace (name_in,
+                                   module_in,
+                                   flags_in);
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Stream::replace(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (name_.c_str ()),
+                name_in));
+    return -1;
+  } // end IF
+
+  return 0;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 ACE_Module<ACE_SYNCH_USE, TimePolicyType>*
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -3538,7 +3601,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // sanity check(s)
   if (unlikely (inherited::linked_us_))
   {
-    ACE_DEBUG ((LM_DEBUG,
+    ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: already linked, aborting\n"),
                 ACE_TEXT (name_.c_str ())));
     return -1;

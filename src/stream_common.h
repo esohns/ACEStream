@@ -118,13 +118,13 @@ enum Stream_ControlType : int
 {
   // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
   STREAM_CONTROL_USER_MASK   = 0x400, // user-defined message mask
-  STREAM_CONTROL_END,                 // end session (i.e. user cancel)
+  STREAM_CONTROL_END,                 // [internal] linked downstream head module(s) only
   STREAM_CONTROL_ABORT,
   STREAM_CONTROL_CONNECT,
   STREAM_CONTROL_DISCONNECT  = ACE_Message_Block::MB_HANGUP,
-  STREAM_CONTROL_LINK        = 0x404,
-  STREAM_CONTROL_RESIZE,
-  STREAM_CONTROL_UNLINK      = ACE_Message_Block::MB_BREAK,
+  STREAM_CONTROL_LINK        = 0x404,                       // --> translated to session message (see also: Stream_HeadModuleTaskBase_T::control)
+  STREAM_CONTROL_RESIZE,                                    // --> translated to session message (see also: Stream_HeadModuleTaskBase_T::control)
+  STREAM_CONTROL_UNLINK      = ACE_Message_Block::MB_BREAK, // --> translated to session message (see also: Stream_HeadModuleTaskBase_T::control)
   STREAM_CONTROL_FLUSH       = ACE_Message_Block::MB_FLUSH,
   STREAM_CONTROL_RESET       = ACE_Message_Block::MB_NORMAL,
   STREAM_CONTROL_STEP        = 0x406, // e.g. take screenshot, split target file, etc.

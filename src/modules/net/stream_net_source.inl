@@ -120,7 +120,6 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
  , handles_ ()
  , isOpen_ (false)
  , isPassive_ (false)
- , unlink_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Writer_T::Stream_Module_Net_Source_Writer_T"));
 
@@ -145,19 +144,6 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 
   if (connection_)
   {
-    if (unlink_)
-    {
-      typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p =
-        dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
-      ACE_ASSERT (istream_connection_p);
-      typename inherited::ISTREAM_T* istream_p =
-        &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-      istream_p->_unlink ();
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: unlinked i/o stream(s) in dtor --> check implementation !\n"),
-                  inherited::mod_->name ()));
-    } // end IF
-
     if (!isPassive_ &&
         isOpen_)
     {
@@ -192,17 +178,6 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    if (unlink_)
-    { ACE_ASSERT (connection_);
-      typename ConnectorType::ISTREAM_CONNECTION_T* stream_connection_p =
-        dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
-      ACE_ASSERT (stream_connection_p);
-      typename inherited::ISTREAM_T* istream_p =
-        &const_cast<typename ConnectorType::STREAM_T&> (stream_connection_p->stream ());
-      istream_p->_unlink ();
-      unlink_ = false;
-    } // end IF
-
     handles_.clear ();
 
     if (!isPassive_ &&
@@ -320,23 +295,12 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
-      // sanity check(s)
-      if (!inherited::linked_)
-        break;
-
-      // *NOTE*: most probable reasons:
-      //         - upstream has been stop()ped because the session has ended
-      //           due to user interaction (see below). On STOP the state
-      //           machine currently invokes finished(), which unlink()s any
-      //           upstream automatically
-      //         - the stream has been stop()ped because the connection has
-      //           close()d, finished()-ing the upstream connection stream,
-      //           which in turn unlink()s any downstream during shutdown
-      //         in the latter case, do not unlink
-      // *TODO*: the stream could have several substreams that are (un-)linked
-      //         dynamically and independently; to avoid race conditions a
-      //         context reference test is required here
-      unlink_ = false;
+#if defined (_DEBUG)
+      const typename inherited::TASK_BASE_T::ISTREAM_T* const istream_p =
+        inherited::getP ();
+      ACE_ASSERT (istream_p);
+      istream_p->dump_state ();
+#endif // _DEBUG
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -525,7 +489,8 @@ link:
       ACE_ASSERT (istream_connection_p);
       stream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-      istream_p = const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
+      istream_p =
+        const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
       ACE_ASSERT (istream_p);
       if (!istream_p->link (stream_p))
       {
@@ -534,10 +499,6 @@ link:
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      unlink_ = true;
-#if defined (_DEBUG)
-      stream_p->dump_state ();
-#endif // _DEBUG
 
       //// update session data in the current session message
       //// *WARNING*: this works iff (!) the STREAM_SESSION_LINK message has
@@ -555,17 +516,6 @@ link:
       goto continue_;
 
 error:
-      if (unlink_)
-      {
-        typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p =
-          dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
-        ACE_ASSERT (istream_connection_p);
-        typename inherited::ISTREAM_T* istream_p =
-          &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-        istream_p->_unlink ();
-        unlink_ = false;
-      } // end IF
-
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         Stream_ConnectionStatesIterator_t iterator = session_data_r.connectionStates.find (handle_h);
         if (iterator != session_data_r.connectionStates.end ())
@@ -609,7 +559,6 @@ continue_:
 
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
           const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-      typename inherited::ISTREAM_T* istream_p = NULL;
 
       // *NOTE*: control reaches this point because either:
       //         - the connection has been closed and the processing stream is
@@ -669,33 +618,15 @@ flush:
       } // end IF
 
 continue_2:
-      if (unlink_)
+      if (!handles_.empty ())
       {
-        // *NOTE*: forward the session end message early
-        int result = inherited::put_next (message_inout, NULL);
-        if (unlikely (result == -1))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", continuing\n"),
-                      inherited::mod_->name ()));
-
-        // clean up
-        message_inout = NULL;
-        passMessageDownstream_out = false;
-
-        istream_p =
-            const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
-        ACE_ASSERT (istream_p);
-        istream_p->_unlink ();
-        istream_p->dump_state ();
-        unlink_ = false;
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+          Stream_ConnectionStatesIterator_t iterator = session_data_r.connectionStates.find (handles_.back ());
+          ACE_ASSERT (iterator != session_data_r.connectionStates.end ());
+          session_data_r.connectionStates.erase (iterator);
+        } // end lock scope
+        handles_.pop_back ();
       } // end IF
-
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        Stream_ConnectionStatesIterator_t iterator = session_data_r.connectionStates.find (handles_.back ());
-        ACE_ASSERT (iterator != session_data_r.connectionStates.end ());
-        session_data_r.connectionStates.erase (iterator);
-      } // end lock scope
-      handles_.pop_back ();
 
       if (isOpen_ &&
           !isPassive_)
@@ -757,7 +688,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
  , handles_ ()
  , isOpen_ (false)
  , isPassive_ (false)
- , unlink_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::Stream_Module_Net_SourceH_T"));
 
@@ -793,19 +723,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
   if (connection_)
   {
-    if (unlink_)
-    {
-      typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p =
-        dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
-      ACE_ASSERT (istream_connection_p);
-      typename inherited::ISTREAM_T* istream_p =
-        &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-      istream_p->_unlink ();
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: unlinked i/o stream(s) in dtor --> check implementation !\n"),
-                  inherited::mod_->name ()));
-    } // end IF
-
     if (isOpen_ &&
         !isPassive_)
     {
@@ -850,17 +767,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    if (unlink_)
-    { ACE_ASSERT (connection_);
-      typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p =
-        dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
-      ACE_ASSERT (istream_connection_p);
-      typename inherited::ISTREAM_T* istream_p =
-        &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-      istream_p->_unlink ();
-      unlink_ = false;
-    } // end IF
-
     handles_.clear ();
 
     if (isOpen_ &&
@@ -984,23 +890,12 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
-      // sanity check(s)
-      if (!inherited::linked_)
-        break;
-
-      // *NOTE*: most probable reasons:
-      //         - upstream has been stop()ped because the session has ended
-      //           due to user interaction (see below). On STOP the state
-      //           machine currently invokes finished(), which unlink()s any
-      //           upstream automatically
-      //         - the stream has been stop()ped because the connection has
-      //           close()d, finished()-ing the upstream connection stream,
-      //           which in turn unlink()s any downstream during shutdown
-      //         in the latter case, do not unlink
-      // *TODO*: the stream could have several substreams that are (un-)linked
-      //         dynamically and independently; to avoid race conditions a
-      //         context reference test is required here
-      unlink_ = false;
+#if defined (_DEBUG)
+      const typename inherited::TASK_BASE_T::ISTREAM_T* const istream_p =
+        inherited::getP ();
+      ACE_ASSERT (istream_p);
+      istream_p->dump_state ();
+#endif // _DEBUG
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -1232,10 +1127,6 @@ link:
                     stream_p));
         goto error;
       } // end IF
-      unlink_ = true;
-#if defined (_DEBUG)
-      stream_p->dump_state ();
-#endif // _DEBUG
 
       //// update session data in the current session message
       //// *WARNING*: this works iff (!) the STREAM_SESSION_LINK message has been
@@ -1252,17 +1143,6 @@ link:
       goto continue_;
 
 error:
-      if (unlink_)
-      { ACE_ASSERT (connection_);
-        istream_connection_p =
-          dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
-        ACE_ASSERT (istream_connection_p);
-        typename inherited::ISTREAM_T* istream_p =
-          &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-        istream_p->_unlink ();
-        unlink_ = false;
-      } // end IF
-
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         Stream_ConnectionStatesIterator_t iterator = session_data_r.connectionStates.find (handle_h);
         ACE_ASSERT (iterator != session_data_r.connectionStates.end ());
@@ -1330,17 +1210,7 @@ continue_:
 
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
           const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-      typename inherited::ISTREAM_T* istream_p = NULL;
-      bool stop_b = true;
-
-      if (inherited::isRunning ())
-      {
-        { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-          inherited::sessionEndSent_ = true;
-        } // end lock scope
-        inherited::change (STREAM_STATE_SESSION_STOPPING);
-        stop_b = false;
-      } // end IF
+//      typename inherited::ISTREAM_T* istream_p = NULL;
 
       if (inherited::timerId_ != -1)
       {
@@ -1404,15 +1274,6 @@ flush:
       } // end IF
 
 continue_2:
-      if (unlink_)
-      {
-        istream_p =
-            const_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (inherited::getP ());
-        ACE_ASSERT (istream_p);
-        istream_p->_unlink ();
-        unlink_ = false;
-      } // end IF
-
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         Stream_ConnectionStatesIterator_t iterator = session_data_r.connectionStates.find (handles_.back ());
         ACE_ASSERT (iterator != session_data_r.connectionStates.end ());
@@ -1437,8 +1298,7 @@ continue_2:
         connection_->decrease (); connection_ = NULL;
       } // end IF
 
-      if ((inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT) &&
-          stop_b)
+      if (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
       { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
         itask_p->stop (false,  // wait for completion ?
                        false); // high priority ?

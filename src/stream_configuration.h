@@ -103,7 +103,6 @@ struct Stream_ModuleHandlerConfiguration
 #endif // _DEBUG
    , defragmentMode (STREAM_DEFRAGMENT_INVALID)
    , demultiplex (false)
-   , finishOnDisconnect (false)
    , flipImage (false)
    , frameNumber (0)
    , generateSessionMessages (true)
@@ -125,6 +124,7 @@ struct Stream_ModuleHandlerConfiguration
    , splitOnStep (false)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , statisticReportingInterval (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S, 0)
+   , stopOnUnlink (false)
    , timerManager (NULL)
   {}
 
@@ -146,7 +146,6 @@ struct Stream_ModuleHandlerConfiguration
   enum Stream_MessageDefragmentMode           defragmentMode;                       // defragment module
   bool                                        demultiplex;                          // message handler module
 //  struct Common_EventDispatchConfiguration*   dispatchConfiguration;
-  bool                                        finishOnDisconnect;                   // head module(s)
   bool                                        flipImage;                            // ffmpeg (converter)
   unsigned int                                frameNumber;                          // frame grabber
   bool                                        generateSessionMessages;              // head module(s)
@@ -191,6 +190,7 @@ struct Stream_ModuleHandlerConfiguration
   bool                                        splitOnStep;                          // file sink module(s)
   ACE_Time_Value                              statisticCollectionInterval;          // source/statistic/... module(s)
   ACE_Time_Value                              statisticReportingInterval;           // [ACE_Time_Value::zero: off]
+  bool                                        stopOnUnlink;                         // (downstream) head module(s)
   Common_ITimerCB_t*                          timerManager;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -107,9 +107,9 @@ stream_processing_function (void* arg_in)
     dynamic_cast<Common_IGetR_2_T<HTTPGet_SessionData_t>*> (thread_data_p->CBData->stream);
   ACE_ASSERT (iget_p);
   //  GtkStatusbar* statusbar_p = NULL;
-  const HTTPGet_SessionData_t* session_data_container_p = NULL;
-  const struct HTTPGet_SessionData* session_ui_cb_data_p = NULL;
-  std::ostringstream converter;
+//  const HTTPGet_SessionData_t* session_data_container_p = NULL;
+//  const struct HTTPGet_SessionData* session_ui_cb_data_p = NULL;
+//  std::ostringstream converter;
   bool result_2 = false;
 //  guint context_id = 0;
 
@@ -130,29 +130,28 @@ stream_processing_function (void* arg_in)
                   ACE_TEXT (thread_data_p->CBData->stream->name ().c_str ())));
       goto done;
     } // end IF
+
+//    session_data_container_p = &iget_p->getR_2 ();
+//    ACE_ASSERT (session_data_container_p);
+//    session_ui_cb_data_p =
+//      &const_cast<struct HTTPGet_SessionData&> (session_data_container_p->getR ());
+//    ACE_ASSERT (session_ui_cb_data_p);
+//    converter.clear ();
+//    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+//    converter << session_ui_cb_data_p->sessionId;
+    // set context id
+    //    gdk_threads_enter ();
+    //    statusbar_p =
+    //      GTK_STATUSBAR (gtk_builder_get_object ((*iterator).second.second,
+    //                                             ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_STATUSBAR)));
+    //    ACE_ASSERT (statusbar_p);
+    //    ui_cb_data_p->CBData->configuration->moduleHandlerConfiguration.contextID =
+    //        gtk_statusbar_get_context_id (statusbar_p,
+    //                                      converter.str ().c_str ());
+    //    gdk_threads_leave ();
+    //  } // end lock scope
+
     istream_control_p->start ();
-
-    session_data_container_p = &iget_p->getR_2 ();
-    ACE_ASSERT (session_data_container_p);
-    session_ui_cb_data_p =
-      &const_cast<struct HTTPGet_SessionData&> (session_data_container_p->getR ());
-    ACE_ASSERT (session_ui_cb_data_p);
-    converter.clear ();
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter << session_ui_cb_data_p->sessionId;
-
-//    // set context id
-//    gdk_threads_enter ();
-//    statusbar_p =
-//      GTK_STATUSBAR (gtk_builder_get_object ((*iterator).second.second,
-//                                             ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_STATUSBAR)));
-//    ACE_ASSERT (statusbar_p);
-//    ui_cb_data_p->CBData->configuration->moduleHandlerConfiguration.contextID =
-//        gtk_statusbar_get_context_id (statusbar_p,
-//                                      converter.str ().c_str ());
-//    gdk_threads_leave ();
-//  } // end lock scope
-
   //    if (!stream_p->isRunning ())
   //    {
   //      ACE_DEBUG ((LM_ERROR,
@@ -1088,9 +1087,6 @@ button_execute_clicked_cb (GtkButton* button_in,
       GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                          ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_ENTRY_URL)));
   ACE_ASSERT (entry_p);
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("URL: \"%s\"\n"),
-              ACE_TEXT (gtk_entry_get_text (entry_p))));
   (*iterator_2).second.second->URL = gtk_entry_get_text (entry_p);
   // step1: parse URL
   ACE_INET_Addr host_address;
@@ -1132,6 +1128,16 @@ button_execute_clicked_cb (GtkButton* button_in,
     hostname_string;
   NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.useLoopBackDevice =
     NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address.is_loopback ();
+
+  // sanity check(s)
+  if ((ui_cb_data_p->dispatchState.configuration->dispatch == COMMON_EVENT_DISPATCH_PROACTOR) &&
+      use_SSL)
+  {
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("URL: \"%s\", requires SSL, but asynchronous SSL support is not implemented yet (--> use reactor), continuing\n"),
+                ACE_TEXT ((*iterator_2).second.second->URL.c_str ())));
+//    return;
+  } // end IF
 
   // save to file ?
   check_button_p =

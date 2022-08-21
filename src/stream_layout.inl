@@ -433,6 +433,35 @@ restart:
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename DistributorModuleType>
+bool
+Stream_Layout_T<ACE_SYNCH_USE,
+                TimePolicyType,
+                DistributorModuleType>::replace (const std::string& name_in,
+                                                 MODULE_T* module_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::replace"));
+
+  bool result = false;
+
+  for (typename inherited::iterator iterator = inherited::begin ();
+       iterator != inherited::end ();
+       ++iterator)
+  {
+    if (unlikely (!ACE_OS::strcmp ((*iterator)->name (),
+                                   ACE_TEXT (name_in.c_str ()))))
+    {
+      iterator.node->data = module_in;
+      result = true;
+      break;
+    } // end IF
+  } // end FOR
+
+  return result;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename DistributorModuleType>
 Stream_ModuleList_t
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,

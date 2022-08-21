@@ -38,7 +38,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -52,7 +52,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -68,6 +68,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
               NULL) // queue handle (see below)
  , inherited2 (NULL)
  , abortSent_ (false)
+ , endSeen_ (false)
  , isHighPriorityStop_ (false)
  , queue_ (STREAM_QUEUE_MAX_SLOTS, // maximum #slots
            NULL)                   // notification handle
@@ -107,7 +108,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -121,7 +122,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -181,7 +182,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -196,7 +197,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -380,7 +381,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -395,7 +396,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -461,7 +462,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -476,7 +477,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -641,7 +642,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -656,7 +657,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -702,7 +703,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -717,7 +718,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -942,7 +943,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -957,7 +958,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -1013,7 +1014,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -1028,7 +1029,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -1041,6 +1042,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   switch (message_in.type ())
   {
+    case STREAM_CONTROL_MESSAGE_END:
+    {
+      endSeen_ = true;
+
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received end from upstream\n"),
+                  inherited::mod_->name ()));
+      break;
+    }
     case STREAM_CONTROL_MESSAGE_ABORT:
     {
       unsigned int result = 0; 
@@ -1059,10 +1069,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         return;
       } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
-                  inherited::mod_->name (),
-                  result));
+      else if (result)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
+                    inherited::mod_->name (),
+                    result));
       break;
     }
     default:
@@ -1076,7 +1087,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -1091,7 +1102,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -1120,7 +1131,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -1135,7 +1146,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -1157,9 +1168,16 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_MESSAGE_ABORT:
+    case STREAM_SESSION_MESSAGE_UNLINK:
     {
-      //inherited2::change (STREAM_STATE_SESSION_STOPPING);
+      if (endSeen_ && // <-- there was (!) an upstream
+          inherited::configuration_->stopOnUnlink)
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: received unlink from upstream, updating state\n"),
+                    inherited::mod_->name ()));
+        inherited2::change (STREAM_STATE_SESSION_STOPPING);
+      } // end IF
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -1201,12 +1219,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 error:
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
-      break;
-    }
-    case STREAM_SESSION_MESSAGE_DISCONNECT:
-    {
-      if (inherited::configuration_->finishOnDisconnect)
-        inherited2::change (STREAM_STATE_FINISHED);
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
@@ -1258,7 +1270,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -1273,7 +1285,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -1290,6 +1302,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   if (unlikely (inherited::isInitialized_))
   {
     abortSent_ = false;
+    endSeen_ = false;
     isHighPriorityStop_ = false;
     // *NOTE*: sessionEndProcessed_ and sessionEndSent_ are reset in onChange()
 
@@ -1355,7 +1368,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -1370,15 +1383,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
                             TimerManagerType,
-                            UserDataType>::control (SessionControlType control_in,
-                                                    bool /* forwardUpStream_in */)
+                            UserDataType>::control (StreamControlType control_in,
+                                                    bool forwardUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::control"));
 
@@ -1389,6 +1402,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   SessionEventType message_type_e = STREAM_SESSION_MESSAGE_INVALID;
   switch (control_in)
   { // control
+    case STREAM_CONTROL_END:
     case STREAM_CONTROL_ABORT:
     case STREAM_CONTROL_CONNECT:
     case STREAM_CONTROL_DISCONNECT:
@@ -1398,7 +1412,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     case STREAM_CONTROL_STEP_2:
     {
       if (!inherited::putControlMessage (control_in,
-                                         false))
+                                         forwardUpStream_in))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_TaskBase_T::putControlMessage(%d), continuing\n"),
                     inherited::mod_->name (),
@@ -1408,9 +1422,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       break;
     }
     // session notification
-    case STREAM_CONTROL_END:
-      message_type_e = STREAM_SESSION_MESSAGE_END;
-      goto send_session_message;
     case STREAM_CONTROL_LINK:
       message_type_e = STREAM_SESSION_MESSAGE_LINK;
       goto send_session_message;
@@ -1487,7 +1498,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -1502,7 +1513,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -1571,7 +1582,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         inherited::sessionData_;
       ACE_ASSERT (streamState_);
       // *NOTE*: "fire-and-forget" the second argument
-      if (unlikely (!inherited::putSessionMessage (static_cast<enum Stream_SessionMessageType> (notification_in),
+      if (unlikely (!inherited::putSessionMessage (notification_in,
                                                    session_data_container_p,
                                                    streamState_->userData,
                                                    expedite_in))) // expedited ?
@@ -1605,7 +1616,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -1620,7 +1631,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -1696,7 +1707,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -1711,7 +1722,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -1770,7 +1781,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -1785,7 +1796,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -1820,7 +1831,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -1835,7 +1846,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -1870,7 +1881,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -1885,7 +1896,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -1921,7 +1932,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -1936,7 +1947,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -2005,7 +2016,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -2020,7 +2031,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -2118,7 +2129,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -2133,7 +2144,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -2211,7 +2222,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -2226,7 +2237,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
@@ -2601,6 +2612,120 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       } // end lock scope
       inherited2::signal ();
 
+      bool release_lock = false;
+      SessionDataContainerType* session_data_container_p = NULL;
+      typename inherited::ISTREAM_T* istream_p =
+        const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
+      ACE_ASSERT (istream_p);
+      typename inherited::STREAM_T* downstream_p = istream_p->downstream ();
+
+      // *IMPORTANT NOTE*: notify any downstream head modules of the state
+      //                   change
+      if (unlikely (inherited::linked_ &&
+                    downstream_p       &&
+                    !endSeen_)) // --> send ONCE (from upstream head) only
+      {
+        ISTREAM_CONTROL_T* istream_control_p =
+          dynamic_cast<ISTREAM_CONTROL_T*> (downstream_p);
+        if (unlikely (!istream_control_p))
+        {
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s:%s: downstream does not implement Stream_IStreamControl_T; cannot notify state change, continuing\n"),
+                      ACE_TEXT (istream_p->name ().c_str ()),
+                      inherited::mod_->name ()));
+          goto continue_;
+        } // end IF
+
+        try {
+          istream_control_p->control (STREAM_CONTROL_END,
+                                      false); // recurse upstream ?
+        } catch (...) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s:%s: caught exception in Stream_IStreamControl_T::control(STREAM_CONTROL_END), aborting\n"),
+                      ACE_TEXT (istream_p->name ().c_str ()),
+                      inherited::mod_->name ()));
+          return false;
+        }
+      } // end IF
+
+continue_:
+      // unlink downstream if necessary
+      if (unlikely (inherited::linked_ &&
+                    downstream_p))
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s/%s: stream has ended, unlinking downstream\n"),
+                    ACE_TEXT (istream_p->name ().c_str ()),
+                    inherited::mod_->name ()));
+
+        typename inherited::ISTREAM_T* istream_2 =
+          dynamic_cast<typename inherited::ISTREAM_T*> (downstream_p);
+        if (unlikely (!istream_2))
+        {
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s/%s: downstream does not implement Stream_IStream_T; cannot unlink, continuing\n"),
+                      ACE_TEXT (istream_p->name ().c_str ()),
+                      inherited::mod_->name ()));
+          goto continue_2;
+        } // end IF
+
+        // step1: unlink downstream
+        try {
+          istream_2->_unlink ();
+        } catch (...) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: caught exception in Stream_IStream_T::_unlink(), aborting\n"),
+                      ACE_TEXT (istream_2->name ().c_str ())));
+          return false;
+        }
+
+continue_2:
+        // step2: 'downstream' has been unlinked; notify 'upstream' (i.e.
+        //         'this') about this fact as well
+
+        // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
+        //         condition when the connection is close()d asynchronously
+        //         --> see above: line 2015
+        if (unlikely (!inherited::configuration_->hasReentrantSynchronousSubDownstream))
+        { ACE_ASSERT (streamLock_);
+          try {
+            release_lock = streamLock_->lock (true,  // block ?
+                                              true); // forward upstream (if any) ?
+          } catch (...) {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true,true), aborting\n"),
+                        inherited::mod_->name ()));
+            return false;
+          }
+        } // end IF
+
+        ACE_ASSERT (inherited::sessionData_);
+        inherited::sessionData_->increase ();
+        session_data_container_p = inherited::sessionData_;
+        ACE_ASSERT (streamState_);
+        // *NOTE*: "fire-and-forget" the second argument
+        if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_UNLINK, // session message type
+                                                     session_data_container_p,      // session data
+                                                     streamState_->userData,        // user data handle
+                                                     false)))                       // expedited ?
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_UNLINK), continuing\n"),
+                      inherited::mod_->name ()));
+
+        if (unlikely (release_lock))
+        { ACE_ASSERT (streamLock_);
+          try {
+            streamLock_->unlock (false, // unlock ?
+                                 true); // forward upstream (if any) ?
+          } catch (...) {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false,true), aborting\n"),
+                        inherited::mod_->name ()));
+            return false;
+          }
+        } // end IF
+      } // end IF
+
       switch (inherited::configuration_->concurrency)
       {
         case STREAM_HEADMODULECONCURRENCY_ACTIVE:
@@ -2688,112 +2813,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
     case STREAM_STATE_FINISHED:
     {
-      bool release_lock = false;
-      SessionDataContainerType* session_data_container_p = NULL;
-
-      // unlink downstream if necessary
-      if (unlikely (inherited::linked_))
-      {
-        typename inherited::ISTREAM_T* istream_p =
-            const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
-        ACE_ASSERT (istream_p);
-        typename inherited::ISTREAM_T* istream_2 = NULL;
-
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s/%s: stream has ended, unlinking downstream\n"),
-                    ACE_TEXT (istream_p->name ().c_str ()),
-                    inherited::mod_->name ()));
-        typename inherited::STREAM_T* downstream_p = istream_p->downstream ();
-        if (!downstream_p) // has already been unlinked (this is 'NetSourceH' module ?)
-          goto continue_2;
-        istream_2 = dynamic_cast<typename inherited::ISTREAM_T*> (downstream_p);
-        if (unlikely (!istream_2))
-        {
-          ACE_DEBUG ((LM_WARNING,
-                      ACE_TEXT ("%s: downstream does not implement Stream_IStream_T, cannot unlink\n"),
-                      ACE_TEXT (istream_p->name ().c_str ())));
-          goto continue_2;
-        } // end IF
-
-        // step1: unlink downstream
-        try {
-          istream_2->_unlink ();
-        } catch (...) {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Stream_IStream_T::_unlink(), aborting\n"),
-                      ACE_TEXT (istream_2->name ().c_str ())));
-          return false;
-        }
-
-continue_2:
-        // step2: 'downstream' has been unlinked; notify 'upstream' (i.e.
-        //         'this') about this fact as well
-
-        // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
-        //         condition when the connection is close()d asynchronously
-        //         --> see above: line 2015
-        if (unlikely (!inherited::configuration_->hasReentrantSynchronousSubDownstream))
-        { ACE_ASSERT (streamLock_);
-          try {
-            release_lock = streamLock_->lock (true,  // block ?
-                                              true); // forward upstream (if any) ?
-          } catch (...) {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true,true), aborting\n"),
-                        inherited::mod_->name ()));
-            return false;
-          }
-        } // end IF
-
-        ACE_ASSERT (inherited::sessionData_);
-        inherited::sessionData_->increase ();
-        session_data_container_p = inherited::sessionData_;
-        ACE_ASSERT (streamState_);
-        // *NOTE*: "fire-and-forget" the second argument
-        if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_UNLINK, // session message type
-                                                     session_data_container_p,      // session data
-                                                     streamState_->userData,        // user data handle
-                                                     false)))                       // expedited ?
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_UNLINK), continuing\n"),
-                      inherited::mod_->name ()));
-
-        if (unlikely (release_lock))
-        { ACE_ASSERT (streamLock_);
-          try {
-            streamLock_->unlock (false, // unlock ?
-                                 true); // forward upstream (if any) ?
-          } catch (...) {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false,true), aborting\n"),
-                        inherited::mod_->name ()));
-            return false;
-          }
-        } // end IF
-
-        // step3: notify downstream of session end
-        ISTREAM_CONTROL_T* istream_control_p =
-          dynamic_cast<ISTREAM_CONTROL_T*> (downstream_p);
-        if (unlikely (!istream_control_p))
-        {
-          ACE_DEBUG ((LM_WARNING,
-                      ACE_TEXT ("%s: downstream does not implement Stream_IStreamControl_T, cannot notify session end\n"),
-                      ACE_TEXT (istream_p->name ().c_str ())));
-          goto continue_;
-        } // end IF
-
-        try {
-          istream_control_p->control (STREAM_CONTROL_END,
-                                      false); // recurse upstream ?
-        } catch (...) {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::control(STREAM_CONTROL_END), aborting\n"),
-                      ACE_TEXT (istream_p->name ().c_str ())));
-          return false;
-        }
-      } // end IF
-
-continue_:
       if (likely (inherited::sessionData_))
       {
         inherited::sessionData_->decrease (); inherited::sessionData_ = NULL;
@@ -2821,7 +2840,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename SessionControlType,
+          typename StreamControlType,
           typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
@@ -2836,7 +2855,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            SessionControlType,
+                            StreamControlType,
                             SessionEventType,
                             StreamStateType,
                             SessionDataType,
