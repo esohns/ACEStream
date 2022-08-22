@@ -168,9 +168,14 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
     case STREAM_SESSION_MESSAGE_DISCONNECT:
       event_e = COMMON_UI_EVENT_DISCONNECT; break;
     case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      event_e = COMMON_UI_EVENT_ABORT;
+      endSession ();
+      break;
+    }
     case STREAM_SESSION_MESSAGE_LINK:
     case STREAM_SESSION_MESSAGE_UNLINK:
-      event_e = COMMON_UI_EVENT_CONTROL; break;
+      event_e = COMMON_UI_EVENT_SESSION; break;
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
       const HTTPGet_SessionData_t& session_data_container_r =
@@ -259,6 +264,32 @@ HTTPGet_EventHandler::end (Stream_SessionId_t sessionId_in)
   ACE_ASSERT (CBData_);
 #endif // GUI_SUPPORT
 
+  endSession ();
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+    state_r.eventStack.push (COMMON_UI_EVENT_FINISHED);
+  } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+}
+
+void
+HTTPGet_EventHandler::endSession ()
+{
+  STREAM_TRACE (ACE_TEXT ("HTTPGet_EventHandler::end"));
+
+  // sanity check(s)
+#if defined (GUI_SUPPORT)
+  ACE_ASSERT (CBData_);
+#endif // GUI_SUPPORT
+
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -275,7 +306,6 @@ HTTPGet_EventHandler::end (Stream_SessionId_t sessionId_in)
                   ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
     else
       state_r.eventSourceIds.insert (event_source_id);
-    state_r.eventStack.push (COMMON_UI_EVENT_STOPPED);
   } // end lock scope
 #endif // GTK_USE
 #endif // GUI_SUPPORT

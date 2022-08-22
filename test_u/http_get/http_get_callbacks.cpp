@@ -759,7 +759,6 @@ idle_update_info_display_cb (gpointer userData_in)
   // sanity check(s)
   struct HTTPGet_UI_CBData* ui_cb_data_p =
     static_cast<struct HTTPGet_UI_CBData*> (userData_in);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -785,8 +784,39 @@ idle_update_info_display_cb (gpointer userData_in)
 //         !iterator_2.done ();
 //         iterator_2.next (event_p))
     { ACE_ASSERT (event_p);
+      spin_button_p = NULL;
       switch (*event_p)
       {
+        case COMMON_UI_EVENT_DATA:
+        {
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_DATA)));
+          ACE_ASSERT (spin_button_p);
+          gtk_spin_button_set_value (spin_button_p,
+                                     static_cast<gdouble> (ui_cb_data_p->progressData.statistic.bytes));
+
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_DATAMESSAGES)));
+          ACE_ASSERT (spin_button_p);
+
+          break;
+        }
+        case COMMON_UI_EVENT_SESSION:
+        case COMMON_UI_EVENT_FINISHED:
+        case COMMON_UI_EVENT_STARTED:
+        case COMMON_UI_EVENT_ABORT:
+        case COMMON_UI_EVENT_STEP:
+        {
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_SESSIONMESSAGES)));
+          ACE_ASSERT (spin_button_p);
+
+          is_session_message = true;
+          break;
+        }
         case COMMON_UI_EVENT_CONNECT:
         {
           spin_button_p =
@@ -814,35 +844,6 @@ idle_update_info_display_cb (gpointer userData_in)
                                 GTK_SPIN_STEP_BACKWARD,
                                 1.0);
 
-          spin_button_p =
-            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_SESSIONMESSAGES)));
-          ACE_ASSERT (spin_button_p);
-
-          is_session_message = true;
-          break;
-        }
-        case COMMON_UI_EVENT_DATA:
-        {
-          spin_button_p =
-            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_DATA)));
-          ACE_ASSERT (spin_button_p);
-          gtk_spin_button_set_value (spin_button_p,
-                                     static_cast<gdouble> (ui_cb_data_p->progressData.statistic.bytes));
-
-          spin_button_p =
-            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_DATAMESSAGES)));
-          ACE_ASSERT (spin_button_p);
-
-          break;
-        }
-        case COMMON_UI_EVENT_CONTROL:
-        case COMMON_UI_EVENT_STARTED:
-        case COMMON_UI_EVENT_STOPPED:
-        case COMMON_UI_EVENT_STEP:
-        {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_SESSIONMESSAGES)));
@@ -879,93 +880,6 @@ idle_update_info_display_cb (gpointer userData_in)
   return G_SOURCE_CONTINUE;
 }
 
-//gboolean
-//idle_update_log_display_cb (gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::idle_update_log_display_cb"));
-//
-//  struct HTTPGet_UI_CBData* ui_cb_data_p =
-//    static_cast<struct HTTPGet_UI_CBData*> (userData_in);
-//
-//  // sanity check(s)
-//  ACE_ASSERT (ui_cb_data_p);
-//
-//  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->logStackLock, G_SOURCE_REMOVE);
-//
-//  Common_UI_GTK_BuildersConstIterator_t iterator =
-//      ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-//  // sanity check(s)
-//  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
-//
-//  GtkTextView* view_p =
-//    GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
-//                                           ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_TEXTVIEW_LOG)));
-//  ACE_ASSERT (view_p);
-//  GtkTextBuffer* buffer_p = gtk_text_view_get_buffer (view_p);
-//  ACE_ASSERT (buffer_p);
-//
-//  GtkTextIter text_iterator;
-//  gtk_text_buffer_get_end_iter (buffer_p,
-//                                &text_iterator);
-//
-//  gchar* string_p = NULL;
-//  // sanity check
-//  if (ui_cb_data_p->logStack.empty ())
-//    return G_SOURCE_CONTINUE;
-//
-//  // step1: convert text
-//  for (Common_MessageStackConstIterator_t iterator_2 = ui_cb_data_p->logStack.begin ();
-//       iterator_2 != ui_cb_data_p->logStack.end ();
-//       ++iterator_2)
-//  {
-//    string_p = Common_UI_Tools::Locale2UTF8 (*iterator_2);
-//    if (!string_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to convert message text (was: \"%s\"), aborting\n"),
-//                  ACE_TEXT ((*iterator_2).c_str ())));
-//      return G_SOURCE_REMOVE;
-//    } // end IF
-//
-//    // step2: display text
-//    gtk_text_buffer_insert (buffer_p,
-//                            &text_iterator,
-//                            string_p,
-//                            -1);
-//
-//    // clean up
-//    g_free (string_p);
-//  } // end FOR
-//
-//  ui_cb_data_p->logStack.clear ();
-//
-//  // step3: scroll the view accordingly
-////  // move the iterator to the beginning of line, so it doesn't scroll
-////  // in horizontal direction
-////  gtk_text_iter_set_line_offset (&text_iterator, 0);
-//
-////  // ...and place the mark at iter. The mark will stay there after insertion
-////  // because it has "right" gravity
-////  GtkTextMark* text_mark_p =
-////      gtk_text_buffer_get_mark (buffer_p,
-////                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SCROLLMARK_NAME));
-//////  gtk_text_buffer_move_mark (buffer_p,
-//////                             text_mark_p,
-//////                             &text_iterator);
-//
-////  // scroll the mark onscreen
-////  gtk_text_view_scroll_mark_onscreen (view_p,
-////                                      text_mark_p);
-//  //GtkAdjustment* adjustment_p =
-//  //    GTK_ADJUSTMENT (gtk_builder_get_object ((*iterator).second.second,
-//  //                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ADJUSTMENT_NAME)));
-//  //ACE_ASSERT (adjustment_p);
-//  //gtk_adjustment_set_value (adjustment_p,
-//  //                          adjustment_p->upper - adjustment_p->page_size));
-//
-//  return G_SOURCE_CONTINUE;
-//}
-
 gboolean
 idle_update_progress_cb (gpointer userData_in)
 {
@@ -974,16 +888,13 @@ idle_update_progress_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (userData_in);
 
+  // sanity check(s)
   struct HTTPGet_ProgressData* progress_data_p =
     static_cast<struct HTTPGet_ProgressData*> (userData_in);
-  // sanity check(s)
   ACE_ASSERT (progress_data_p->state);
-
   Common_UI_GTK_BuildersConstIterator_t iterator =
     progress_data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != progress_data_p->state->builders.end ());
-
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_PROGRESSBAR)));
@@ -1598,132 +1509,6 @@ checkbutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
                             gtk_toggle_button_get_active (toggleButton_in));
 }
 
-//G_MODULE_EXPORT gboolean
-//key_cb (GtkWidget* widget_in,
-//        GdkEventKey* event_in,
-//        gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::key_cb"));
-//
-//  ACE_UNUSED_ARG (widget_in);
-//
-//  struct HTTPGet_UI_CBData* ui_cb_data_p =
-//      reinterpret_cast<struct HTTPGet_UI_CBData*> (userData_in);
-//
-//  // sanity check(s)
-//  ACE_ASSERT (event_in);
-//  ACE_ASSERT (ui_cb_data_p);
-//
-//  Common_UI_GTK_BuildersConstIterator_t iterator =
-//    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-//  // sanity check(s)
-//  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
-//
-//  switch (event_in->keyval)
-//  {
-//    case GDK_KEY_Escape:
-//    case GDK_KEY_f:
-//    case GDK_KEY_F:
-//    {
-//      GtkCheckButton* check_button_p =
-//        GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-//                                                  ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_CHECKBUTTON_FULLSCREEN)));
-//      ACE_ASSERT (check_button_p);
-//      gboolean is_active_b =
-//        gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_button_p));
-//
-//      if (event_in->keyval == GDK_KEY_Escape)
-//      {
-//        if (is_active_b)
-//          goto continue_;
-//        break; // <-- not in fullscreen mode, nothing to do
-//      } // end IF
-//
-//      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-//                                    !is_active_b);
-//
-//continue_:
-//      // sanity check(s)
-//      ACE_ASSERT (ui_cb_data_p->liveVideoStream);
-//      if (!ui_cb_data_p->liveVideoStream->isRunning ())
-//        break;
-//
-//      const Stream_Module_t* module_p =
-//        ui_cb_data_p->liveVideoStream->find (ACE_TEXT_ALWAYS_CHAR ("Display"));
-//      if (!module_p)
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("%s: failed to Stream_IStream::find(\"Display\"), aborting\n"),
-//                    ACE_TEXT (ui_cb_data_p->liveVideoStream->name ().c_str ())));
-//        return FALSE;
-//      } // end IF
-//      Stream_Module_Visualization_IFullscreen* ifullscreen_p =
-//        dynamic_cast<Stream_Module_Visualization_IFullscreen*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-//      if (!ifullscreen_p)
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("Display: failed to dynamic_cast<Stream_Module_Visualization_IFullscreen*>(0x%@), aborting\n"),
-//                    const_cast<Stream_Module_t*> (module_p)->writer ()));
-//        return FALSE;
-//      } // end IF
-//      try {
-//        ifullscreen_p->toggle ();
-//      } catch (...) {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("Display: failed to Stream_Module_Visualization_IFullscreen::toggle(), aborting\n")));
-//        return FALSE;
-//      }
-//
-//      break;
-//    }
-//    default:
-//      return FALSE; // propagate
-//  } // end SWITCH
-//
-//  return TRUE; // done (do not propagate further)
-//}
-//gboolean
-//dialog_main_key_press_event_cb (GtkWidget* widget_in,
-//                                GdkEventKey* event_in,
-//                                gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::dialog_main_key_press_event_cb"));
-//
-//  return key_cb (widget_in, event_in, userData_in);
-//};
-
-//G_MODULE_EXPORT gint
-//button_clear_clicked_cb (GtkWidget* widget_in,
-//                         gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::button_clear_clicked_cb"));
-//
-//  ACE_UNUSED_ARG (widget_in);
-//  struct HTTPGet_UI_CBData* ui_cb_data_p =
-//    static_cast<struct HTTPGet_UI_CBData*> (userData_in);
-//
-//  // sanity check(s)
-//  ACE_ASSERT (ui_cb_data_p);
-//
-//  Common_UI_GTK_BuildersConstIterator_t iterator =
-//    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-//  // sanity check(s)
-//  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
-//
-////  GtkTextView* view_p =
-////    GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
-////                                           ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_TEXTVIEW_LOG)));
-////  ACE_ASSERT (view_p);
-////  GtkTextBuffer* buffer_p =
-//////    gtk_text_buffer_new (NULL); // text tag table --> create new
-////    gtk_text_view_get_buffer (view_p);
-////  ACE_ASSERT (buffer_p);
-////  gtk_text_buffer_set_text (buffer_p,
-////                            ACE_TEXT_ALWAYS_CHAR (""), 0);
-//
-//  return TRUE; // done (do not propagate further)
-//}
-
 G_MODULE_EXPORT void
 button_about_clicked_cb (GtkButton* button_in,
                          gpointer userData_in)
@@ -1777,23 +1562,13 @@ button_quit_clicked_cb (GtkButton* button_in,
 
   // this is the "delete-event" / "destroy" handler
   // --> destroy the main dialog widget
-  int result = -1;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  result = ACE_OS::raise (SIGINT);
-  if (result == -1)
+  int result = ACE_OS::raise (SIGINT);
+  if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to raise(SIGINT): \"%m\", continuing\n")));
-#else
-  pid_t pid = ACE_OS::getpid ();
-  result = ACE_OS::kill (pid, SIGINT);
-  if (result == -1)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to kill(%d, SIGINT): \"%m\", continuing\n"),
-                pid));
-#endif
+                ACE_TEXT ("failed to ACE_OS::raise(SIGINT): \"%m\", continuing\n")));
 
-//  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("leaving GTK...\n")));
+  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?
+                                                      false); // N/A
 }
 #ifdef __cplusplus
 }

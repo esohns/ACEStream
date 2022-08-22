@@ -61,6 +61,9 @@ class HTTPGet_EventHandler
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_EventHandler (const HTTPGet_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_EventHandler& operator= (const HTTPGet_EventHandler&))
 
+  // helper methods
+  void endSession ();
+
   bool                      consoleMode_;
 #if defined (GUI_SUPPORT)
   struct HTTPGet_UI_CBData* CBData_;

@@ -837,11 +837,10 @@ do_work (unsigned int bufferSize_in,
 
   // step3: clean up
   connection_manager_p->stop (false, true);
-  //Common_Tools::finalizeEventDispatch (useReactor_in,
-  //                                     !useReactor_in,
-  //                                     group_id);
   connection_manager_p->abort ();
   connection_manager_p->wait ();
+  Common_Event_Tools::finalizeEventDispatch (CBData_in.dispatchState,
+                                             true); // wait ?
 
   timer_manager_p->stop ();
 

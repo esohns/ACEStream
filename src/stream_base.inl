@@ -1319,12 +1319,15 @@ Stream_Base_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (state_.sessionData);
 
+      enum Stream_StateMachine_ControlState state_e =
+        istatemachine_p->current ();
+
       // *NOTE*: there are two scenarios in this case:
       //         - session initialization failed and is being notified here
       //           --> stop session: set aborted flag and send SESSION_ABORT
       //         - session abort is complete
       //           --> end session normally
-      if ((istatemachine_p->current () == STREAM_STATE_SESSION_STARTING) &&
+      if ((state_e == STREAM_STATE_SESSION_STARTING) &&
           !state_.sessionData->aborted)
       { // == first case; handled by head module writer task
         notify (notification_in,
@@ -1333,6 +1336,11 @@ Stream_Base_T<ACE_SYNCH_USE,
       } // end IF
 
       // == second case
+      // *NOTE*: if there was upstream activity (e.g. network i/o) involved, the
+      //         state may already be 'stopping'
+      if (state_e >= STREAM_STATE_SESSION_STOPPING)
+        goto session_end;
+
       try
       {
         istatemachine_p->change (STREAM_STATE_SESSION_STOPPING);
