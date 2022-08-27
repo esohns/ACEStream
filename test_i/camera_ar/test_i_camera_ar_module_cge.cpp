@@ -27,6 +27,8 @@
 const char libacestream_default_cge_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 int len = 0, done = 0, bits = 0, which = 0,
   sample_size = 0, position = 0, rate = 0;
 Sint16 *stream[2];
@@ -34,3 +36,4 @@ Sint16 *stream[2];
 std::atomic<bool> olcConsoleGameEngine::m_bAtomActive(false);
 std::condition_variable olcConsoleGameEngine::m_cvGameFinished;
 std::mutex olcConsoleGameEngine::m_muxGame;
+#endif // ACE_WIN32 || ACE_WIN64

@@ -243,6 +243,12 @@ set_property (TARGET ${PROJECT_NAME}_MediaFramework PROPERTY FOLDER "modules")
 add_dependencies (${PROJECT_NAME}_MediaFramework Common)
 add_dependencies (${PROJECT_NAME}_MediaFramework ${PROJECT_NAME})
 
+if (FFMPEG_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC
+                        ${ffmpeg_LIBRARIES})
+ target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC
+                        ${ffmpeg_2_LIBRARIES})
+endif (FFMPEG_SUPPORT)
 if (UNIX)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC X11)
  if (LIBCAMERA_SUPPORT)
@@ -257,6 +263,8 @@ elseif (WIN32)
  endif (DEFINED ENV{DXSDK_DIR})
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC dsound.lib)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC mfuuid.lib)
+ target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC strmiids.lib)
+ target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC wmcodecdspuuid.lib)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/${CMAKE_BUILD_TYPE}/BaseClasses${LIB_FILE_SUFFIX}.lib)
 
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${ACE_LIBRARY})

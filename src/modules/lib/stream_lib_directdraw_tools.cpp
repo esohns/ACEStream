@@ -25,9 +25,9 @@
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
-#include <uuids.h>
+#include "uuids.h"
 #endif // UUIDS_H
-#include <mfapi.h>
+#include "mfapi.h"
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"

@@ -8,7 +8,11 @@
 #include "dvdmedia.h"
 #undef NANOSECONDS
 #include "reftime.h"
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
 #include "uuids.h"
+#endif // UUIDS_H
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/config-lite.h"

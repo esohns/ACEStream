@@ -305,11 +305,7 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   // draw ball
   inherited3::Fill (ballX - 4, ballY - 4, ballX + 4, ballY + 4, PIXEL_SOLID, FG_RED);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  return !inherited3::GetKey (olc::Key::ESCAPE).bPressed;
-#else
-  return !inherited3::GetKey (SDLK_ESCAPE).bPressed;
-#endif // ACE_WIN32 || ACE_WIN64
+  return !inherited3::GetKey (VK_ESCAPE).bPressed;
 }
 
 template <typename TaskType,

@@ -34,7 +34,7 @@
 //#undef GetObject
 //#include "evr.h"
 #define __CGUID_H__
-#include "strmif.h"
+//#include "strmif.h"
 #include "mediaobj.h"
 
 #if defined(SOX_SUPPORT)

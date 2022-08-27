@@ -35,7 +35,6 @@
 //            whichever header file the compiler scans first is the one whose
 //            definition of IKsPropertySet is used by the compiler. ..."
 //#include <dsound.h>
-//#include <dxva.h>
 #include "control.h"
 #undef GetObject
 #include "evr.h"

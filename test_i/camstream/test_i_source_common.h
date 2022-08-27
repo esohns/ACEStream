@@ -312,7 +312,7 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
    , windowController2 (NULL)
 #endif // GUI_SUPPORT
   {
-    finishOnDisconnect = true;
+    //finishOnDisconnect = true;
 
     //mediaFramework = STREAM_MEDIAFRAMEWORK_DIRECTSHOW;
   }
@@ -441,7 +441,7 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
    , subscribers (NULL)
    , windowController (NULL)
   {
-    finishOnDisconnect = true;
+    //finishOnDisconnect = true;
 
     HRESULT result = MFCreateMediaType (&outputFormat);
     if (FAILED (result))

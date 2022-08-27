@@ -981,10 +981,10 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_CGE_DEFAULT_NAME_STRING));
 
 #endif // OLC_CGE_SUPPORT
-#if defined (OLC_PGE_SUPPORT)
-  Stream_CameraAR_DirectShow_PGE_Module directshow_PGE (&directshow_stream,
-                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING));
-#endif // OLC_PGE_SUPPORT
+//#if defined (OLC_PGE_SUPPORT)
+//  Stream_CameraAR_DirectShow_PGE_Module directshow_PGE (&directshow_stream,
+//                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING));
+//#endif // OLC_PGE_SUPPORT
 
   Stream_CameraAR_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                                         &heap_allocator,     // heap allocator handle

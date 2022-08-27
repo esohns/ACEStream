@@ -441,17 +441,26 @@ if (WIN32)
  add_dependencies (${LIBRARY_MF} Common)
  add_dependencies (${LIBRARY_MF} ${PROJECT_NAME})
 
- target_link_libraries (${LIBRARY_MF} ${ACE_LIBRARY})
+ target_link_libraries (${LIBRARY_MF} PUBLIC Mf.lib)
+ target_link_libraries (${LIBRARY_MF} PUBLIC Mfplat.lib)
 
- target_link_libraries (${LIBRARY_MF} Common)
- target_link_libraries (${LIBRARY_MF} CommonLog)
+ # *TODO*: get rid of this
+if (FFMPEG_SUPPORT)
+ target_link_libraries (${LIBRARY_MF} PUBLIC ${ffmpeg_LIBRARIES})
+ target_link_libraries (${LIBRARY_MF} PUBLIC ${ffmpeg_2_LIBRARIES})
+endif (FFMPEG_SUPPORT)
 
- target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME})
- target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME}_Device)
- target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME}_MediaFramework)
- target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME}_Miscellaneous)
+ target_link_libraries (${LIBRARY_MF} PUBLIC ${ACE_LIBRARY})
 
- target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME}_Test_I)
+ target_link_libraries (${LIBRARY_MF} PUBLIC Common)
+ target_link_libraries (${LIBRARY_MF} PUBLIC CommonLog)
+
+ target_link_libraries (${LIBRARY_MF} PUBLIC ${PROJECT_NAME})
+# target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME}_Device)
+ target_link_libraries (${LIBRARY_MF} PUBLIC ${PROJECT_NAME}_MediaFramework)
+# target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME}_Miscellaneous)
+
+ target_link_libraries (${LIBRARY_MF} PUBLIC ${PROJECT_NAME}_Test_I)
 
  set_target_properties (${LIBRARY_MF} PROPERTIES DEFINE_SYMBOL STREAM_HAS_DLL)
  set_target_properties (${LIBRARY_MF} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

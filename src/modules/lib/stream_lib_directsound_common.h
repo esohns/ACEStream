@@ -31,6 +31,7 @@
 //            If an application must include both ksproxy.h and dsound.h,
 //            whichever header file the compiler scans first is the one whose
 //            definition of IKsPropertySet is used by the compiler. ..."
+#define INITGUID
 #include "dsound.h"
 
 union Stream_MediaFramework_DirectSound_AudioEffectOptions
