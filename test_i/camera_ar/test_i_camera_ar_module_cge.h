@@ -23,8 +23,11 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "mmeapi.h"
-#endif // ACE_WIN32 || ACE_WIN64
+
 #include "olcConsoleGameEngine.h"
+#else
+#include "olcConsoleGameEngineSDL.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 #include "ace/Message_Block.h"

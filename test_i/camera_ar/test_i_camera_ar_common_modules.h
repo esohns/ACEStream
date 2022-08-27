@@ -73,14 +73,9 @@
 
 #include "test_i_camera_ar_common.h"
 #include "test_i_camera_ar_message.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if defined (OLC_CGE_SUPPORT)
 #include "test_i_camera_ar_module_cge.h"
 #endif // OLC_CGE_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
-#if defined (OLC_PGE_SUPPORT)
-#include "test_i_camera_ar_module_pge.h"
-#endif // OLC_PGE_SUPPORT
 #include "test_i_camera_ar_session_message.h"
 
 // declare module(s)
@@ -212,6 +207,15 @@ typedef Stream_Visualization_LibAVResize_T<Test_U_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_V4L_MediaType> Stream_CameraAR_LibAVResize;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+
+typedef Stream_Decoder_RGB24_HFlip_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Stream_CameraAR_V4L_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Stream_CameraAR_Message_t,
+                                     Stream_CameraAR_SessionMessage_t,
+                                     Stream_CameraAR_V4L_SessionData_t,
+                                     struct Stream_MediaFramework_V4L_MediaType> Stream_CameraAR_V4L_HFlip;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
@@ -395,31 +399,31 @@ typedef Stream_Vis_Target_GDI_T<ACE_MT_SYNCH,
                                 Stream_CameraAR_MediaFoundation_SessionData_t,
                                 IMFMediaType*> Stream_CameraAR_MediaFoundation_GDI_Display;
 #else
-#if defined (GTK_SUPPORT)
-typedef Stream_Module_Vis_GTK_Window_T<ACE_MT_SYNCH,
-                                       Common_TimePolicy_t,
-                                       struct Stream_CameraAR_V4L_ModuleHandlerConfiguration,
-                                       Stream_ControlMessage_t,
-                                       Stream_CameraAR_Message_t,
-                                       Stream_CameraAR_SessionMessage_t,
-                                       struct Stream_MediaFramework_V4L_MediaType> Stream_CameraAR_GTK_Display;
-#endif // GTK_SUPPORT
-typedef Stream_Module_Vis_Wayland_Window_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           struct Stream_CameraAR_V4L_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Stream_CameraAR_Message_t,
-                                           Stream_CameraAR_SessionMessage_t,
-                                           Stream_CameraAR_V4L_SessionData_t,
-                                           struct Stream_MediaFramework_V4L_MediaType> Stream_CameraAR_Wayland_Display;
-typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
-                                       Common_TimePolicy_t,
-                                       struct Stream_CameraAR_V4L_ModuleHandlerConfiguration,
-                                       Stream_ControlMessage_t,
-                                       Stream_CameraAR_Message_t,
-                                       Stream_CameraAR_SessionMessage_t,
-                                       Stream_CameraAR_V4L_SessionData_t,
-                                       struct Stream_MediaFramework_V4L_MediaType> Stream_CameraAR_X11_Display;
+//#if defined (GTK_SUPPORT)
+//typedef Stream_Module_Vis_GTK_Window_T<ACE_MT_SYNCH,
+//                                       Common_TimePolicy_t,
+//                                       struct Stream_CameraAR_V4L_ModuleHandlerConfiguration,
+//                                       Stream_ControlMessage_t,
+//                                       Stream_CameraAR_Message_t,
+//                                       Stream_CameraAR_SessionMessage_t,
+//                                       struct Stream_MediaFramework_V4L_MediaType> Stream_CameraAR_GTK_Display;
+//#endif // GTK_SUPPORT
+//typedef Stream_Module_Vis_Wayland_Window_T<ACE_MT_SYNCH,
+//                                           Common_TimePolicy_t,
+//                                           struct Stream_CameraAR_V4L_ModuleHandlerConfiguration,
+//                                           Stream_ControlMessage_t,
+//                                           Stream_CameraAR_Message_t,
+//                                           Stream_CameraAR_SessionMessage_t,
+//                                           Stream_CameraAR_V4L_SessionData_t,
+//                                           struct Stream_MediaFramework_V4L_MediaType> Stream_CameraAR_Wayland_Display;
+//typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
+//                                       Common_TimePolicy_t,
+//                                       struct Stream_CameraAR_V4L_ModuleHandlerConfiguration,
+//                                       Stream_ControlMessage_t,
+//                                       Stream_CameraAR_Message_t,
+//                                       Stream_CameraAR_SessionMessage_t,
+//                                       Stream_CameraAR_V4L_SessionData_t,
+//                                       struct Stream_MediaFramework_V4L_MediaType> Stream_CameraAR_X11_Display;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -468,10 +472,16 @@ typedef Test_I_CameraAR_Module_PGE_T<Test_U_MediaFoundation_TaskBaseAsynch_t,
 //                                       Stream_CameraAR_V4L_SessionData,
 //                                       struct Stream_UserData> Stream_CameraAR_MessageHandler;
 
-#if defined (OLC_PGE_SUPPORT)
-typedef Test_I_CameraAR_Module_PGE_T<Test_U_TaskBaseAsynch_t,
-                                     struct Stream_MediaFramework_V4L_MediaType> Stream_CameraAR_PGE;
-#endif // OLC_PGE_SUPPORT
+//#if defined (OLC_PGE_SUPPORT)
+//typedef Test_I_CameraAR_Module_PGE_T<Test_U_TaskBaseAsynch_t,
+//                                     struct Stream_MediaFramework_V4L_MediaType> Stream_CameraAR_PGE;
+//#endif // OLC_PGE_SUPPORT
+
+#if defined (OLC_CGE_SUPPORT)
+typedef Test_I_CameraAR_Module_CGE_T<Test_U_TaskBaseAsynch_t,
+                                     struct Stream_MediaFramework_V4L_MediaType> Stream_CameraAR_CGE;
+#endif // OLC_CGE_SUPPORT
+
 #endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
@@ -537,6 +547,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                  
                               Stream_CameraAR_LibAVResize);                      // writer type
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                         // session data type
+                              enum Stream_SessionMessageType,                          // session event type
+                              struct Stream_CameraAR_V4L_ModuleHandlerConfiguration,   // module handler configuration type
+                              libacestream_default_dec_rgb24_hflip_module_name_string,
+                              Stream_INotify_t,                                        // stream notification interface type
+                              Stream_CameraAR_V4L_HFlip);                              // writer type
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 DATASTREAM_MODULE_DUPLEX (Stream_CameraAR_DirectShow_SessionData,                // session data type
@@ -641,34 +658,34 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_MediaFoundation_SessionData,      
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CameraAR_MediaFoundation_GDI_Display); // writer type
 #else
-#if defined (GTK_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CameraAR_V4L_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_gtk_window_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CameraAR_GTK_Display);                        // writer type
-#endif // GTK_SUPPORT
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CameraAR_V4L_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_wayland_window_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CameraAR_Wayland_Display);                          // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CameraAR_V4L_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_x11_window_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CameraAR_X11_Display);                          // writer type
-#if defined (GLUT_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,       // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CameraAR_V4L_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_opengl_glut_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CameraAR_OpenGL_Display);              // writer type
-#endif // GLUT_SUPPORT
+//#if defined (GTK_SUPPORT)
+//DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                   // session data type
+//                              enum Stream_SessionMessageType,                   // session event type
+//                              struct Stream_CameraAR_V4L_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_vis_gtk_window_module_name_string,
+//                              Stream_INotify_t,                                 // stream notification interface type
+//                              Stream_CameraAR_GTK_Display);                        // writer type
+//#endif // GTK_SUPPORT
+//DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                   // session data type
+//                              enum Stream_SessionMessageType,                   // session event type
+//                              struct Stream_CameraAR_V4L_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_vis_wayland_window_module_name_string,
+//                              Stream_INotify_t,                                 // stream notification interface type
+//                              Stream_CameraAR_Wayland_Display);                          // writer type
+//DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                   // session data type
+//                              enum Stream_SessionMessageType,                   // session event type
+//                              struct Stream_CameraAR_V4L_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_vis_x11_window_module_name_string,
+//                              Stream_INotify_t,                                 // stream notification interface type
+//                              Stream_CameraAR_X11_Display);                          // writer type
+//#if defined (GLUT_SUPPORT)
+//DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,       // session data type
+//                              enum Stream_SessionMessageType,                   // session event type
+//                              struct Stream_CameraAR_V4L_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_vis_opengl_glut_module_name_string,
+//                              Stream_INotify_t,                                 // stream notification interface type
+//                              Stream_CameraAR_OpenGL_Display);              // writer type
+//#endif // GLUT_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -719,14 +736,23 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_MediaFoundation_SessionData,      
 //                              Stream_INotify_t,                                     // stream notification interface type
 //                              Stream_CameraAR_MessageHandler);                       // writer type
 
-#if defined (OLC_PGE_SUPPORT)
+//#if defined (OLC_PGE_SUPPORT)
+//DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                       // session data type
+//                              enum Stream_SessionMessageType,                        // session event type
+//                              struct Stream_CameraAR_V4L_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_pge_module_name_string,
+//                              Stream_INotify_t,                                      // stream notification interface type
+//                              Stream_CameraAR_PGE);                                  // writer type
+//#endif // OLC_PGE_SUPPORT
+
+#if defined (OLC_CGE_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                        // session event type
                               struct Stream_CameraAR_V4L_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_pge_module_name_string,
+                              libacestream_default_cge_module_name_string,
                               Stream_INotify_t,                                      // stream notification interface type
-                              Stream_CameraAR_PGE);                                  // writer type
-#endif // OLC_PGE_SUPPORT
+                              Stream_CameraAR_CGE);                                  // writer type
+#endif // OLC_CGE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #endif

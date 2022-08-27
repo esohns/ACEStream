@@ -1199,14 +1199,16 @@ Stream_CameraAR_Stream::Stream_CameraAR_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
-#if defined (GTK_SUPPORT)
- , GTKDisplay_ (this,
-                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
-#endif // GTK_SUPPORT
-// , WaylandDisplay_ (this,
-//                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING))
- , X11Display_ (this,
-                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
+ , flip_ (this,
+          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
+//#if defined (GTK_SUPPORT)
+// , GTKDisplay_ (this,
+//                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
+//#endif // GTK_SUPPORT
+//// , WaylandDisplay_ (this,
+////                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING))
+// , X11Display_ (this,
+//                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraAR_Stream::Stream_CameraAR_Stream"));
 
@@ -1228,6 +1230,7 @@ Stream_CameraAR_Stream::load (Stream_ILayout* layout_in,
   //layout_in->append (&statisticReport_, NULL, 0);
   layout_in->append (&convert_, NULL, 0);
   layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+  layout_in->append (&flip_, NULL, 0);
 //  switch (inherited::configuration_->configuration_->renderer)
 //  {
 //#if defined (GTK_SUPPORT)

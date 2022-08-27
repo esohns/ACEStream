@@ -255,11 +255,12 @@ class Stream_CameraAR_Stream
   Stream_CameraAR_StatisticReport_Module statisticReport_;
   Stream_CameraAR_LibAVConvert_Module    convert_; // --> BGRA (Xlib)
   Stream_CameraAR_LibAVResize_Module     resize_; // --> window size/fullscreen
-#if defined (GTK_SUPPORT)
-  Stream_CameraAR_GTK_Display_Module     GTKDisplay_;
-#endif // GTK_SUPPORT
-//  Stream_CameraAR_Wayland_Display_Module WaylandDisplay_;
-  Stream_CameraAR_X11_Display_Module     X11Display_;
+  Stream_CameraAR_V4L_HFlip_Module       flip_;
+//#if defined (GTK_SUPPORT)
+//  Stream_CameraAR_GTK_Display_Module     GTKDisplay_;
+//#endif // GTK_SUPPORT
+////  Stream_CameraAR_Wayland_Display_Module WaylandDisplay_;
+//  Stream_CameraAR_X11_Display_Module     X11Display_;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

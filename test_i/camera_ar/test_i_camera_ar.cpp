@@ -1060,15 +1060,22 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                                                         &heap_allocator,     // heap allocator handle
                                                         true);               // block ?
   Stream_CameraAR_Stream stream;
-#if defined (OLC_PGE_SUPPORT)
-  Stream_CameraAR_PGE_Module PGE (&stream,
-                                  ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING));
-#endif // OLC_PGE_SUPPORT
+//#if defined (OLC_PGE_SUPPORT)
+//  Stream_CameraAR_PGE_Module PGE (&stream,
+//                                  ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING));
+//#endif // OLC_PGE_SUPPORT
+#if defined (OLC_CGE_SUPPORT)
+  Stream_CameraAR_CGE_Module CGE (&stream,
+                                  ACE_TEXT_ALWAYS_CHAR (STREAM_CGE_DEFAULT_NAME_STRING));
+#endif // OLC_CGE_SUPPORT
 
   stream_configuration.messageAllocator = &message_allocator;
-#if defined (OLC_PGE_SUPPORT)
-  stream_configuration.module = &PGE;
-#endif // OLC_PGE_SUPPORT
+//#if defined (OLC_PGE_SUPPORT)
+//  stream_configuration.module = &PGE;
+//#endif // OLC_PGE_SUPPORT
+#if defined (OLC_CGE_SUPPORT)
+  stream_configuration.module = &CGE;
+#endif // OLC_CGE_SUPPORT
   stream_configuration.renderer = renderer_in;
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
@@ -1284,9 +1291,16 @@ clean:
 #else
   do_finalize_v4l (deviceIdentifier_in);
 
-  stream.remove (&PGE,
+//#if defined (OLC_PGE_SUPPORT)
+//  stream.remove (&PGE,
+//                 true,
+//                 true);
+//#endif // OLC_PGE_SUPPORT
+#if defined (OLC_CGE_SUPPORT)
+  stream.remove (&CGE,
                  true,
                  true);
+#endif // OLC_CGE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_DEBUG ((LM_DEBUG,

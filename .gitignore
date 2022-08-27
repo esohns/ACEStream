@@ -74,8 +74,12 @@ CMakeLists.txt.user*
 
 # data
 test_u/imagescreen/data/
+
+test_i/camera_ar/olcfont_consolas.bmp
+
 test_i/speechcommand/etc/deepspeech-0.9.3-models.pbmm
 test_i/speechcommand/etc/deepspeech-0.9.3-models.scorer
 test_i/speechcommand/etc/model.pbmm
 test_i/speechcommand/etc/de-aashishag-1-prune-kenlm.scorer
+
 *.jpg

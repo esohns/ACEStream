@@ -11,6 +11,7 @@ if (UNIX)
 
  include (FindPkgConfig)
  pkg_check_modules (PKG_V4L REQUIRED libv4l2)
+ pkg_check_modules (PKG_SDL REQUIRED sdl2)
 elseif (WIN32)
  set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
  include (DirectX)
@@ -95,13 +96,13 @@ if (OLC_PGE_SUPPORT)
       test_i_camera_ar_module_pge.h
       test_i_camera_ar_module_pge.inl)
 endif (OLC_PGE_SUPPORT)
-if (WIN32 AND OLC_CGE_SUPPORT)
+if (OLC_CGE_SUPPORT)
  set (${EXECUTABLE}_EXE_SRCS
       ${${EXECUTABLE}_EXE_SRCS}
       test_i_camera_ar_module_cge.cpp
       test_i_camera_ar_module_cge.h
       test_i_camera_ar_module_cge.inl)
-endif (WIN32 AND OLC_CGE_SUPPORT)
+endif (OLC_CGE_SUPPORT)
 
 if (UNIX)
 elseif (WIN32)
@@ -141,6 +142,7 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
  target_link_libraries (${EXECUTABLE} PUBLIC stdc++fs)
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_V4L_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_SDL_LIBRARIES})
 elseif (WIN32)
  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
 
