@@ -640,9 +640,9 @@ continue_:
                       STREAM_SESSION_MESSAGE_DISCONNECT));
 
         // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
-        stream_p->stop (false,  // wait for completion ?
-                        false,  // recurse upstream ?
-                        false); // high priority ?
+//        stream_p->stop (false,  // wait for completion ?
+//                        false,  // recurse upstream ?
+//                        false); // high priority ?
         connection_->waitForCompletion (false); // --> data only
 
         goto continue_2;
