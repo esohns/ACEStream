@@ -644,7 +644,7 @@ typedef Net_IConnector_T<ACE_INET_Addr,
 
 // outbound
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
+typedef Net_Client_Connector_T<ACE_MT_SYNCH,
                                Test_I_Source_DirectShow_TCPConnection_t,
                                Net_SOCK_Connector,
                                ACE_INET_Addr,
@@ -672,7 +672,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_DirectShow_AsynchTCPConnectio
                                      Test_I_Source_DirectShow_Net_TCPStream_t,
                                      struct Net_UserData> Test_I_Source_DirectShow_TCPAsynchConnector_t;
 
-typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
+typedef Net_Client_Connector_T<ACE_MT_SYNCH,
                                Test_I_Source_DirectShow_UDPConnection_t,
                                Net_SOCK_Dgram,
                                ACE_INET_Addr,
@@ -691,7 +691,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_DirectShow_AsynchUDPConnectio
                                      Test_I_Source_DirectShow_Net_UDPStream_t,
                                      struct Net_UserData> Test_I_Source_DirectShow_UDPAsynchConnector_t;
 
-typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
+typedef Net_Client_Connector_T<ACE_MT_SYNCH,
                                Test_I_Source_MediaFoundation_TCPConnection_t,
                                Net_SOCK_Connector,
                                ACE_INET_Addr,
@@ -719,7 +719,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_MediaFoundation_AsynchTCPConn
                                      Test_I_Source_MediaFoundation_Net_TCPStream_t,
                                      struct Net_UserData> Test_I_Source_MediaFoundation_TCPAsynchConnector_t;
 
-typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
+typedef Net_Client_Connector_T<ACE_MT_SYNCH,
                                Test_I_Source_MediaFoundation_UDPConnection_t,
                                Net_SOCK_Dgram,
                                ACE_INET_Addr,
@@ -738,7 +738,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_MediaFoundation_AsynchUDPConn
                                      Test_I_Source_MediaFoundation_Net_UDPStream_t,
                                      struct Net_UserData> Test_I_Source_MediaFoundation_UDPAsynchConnector_t;
 #else
-typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
+typedef Net_Client_Connector_T<ACE_MT_SYNCH,
                                Test_I_Source_V4L_TCPConnection_t,
                                Net_SOCK_Connector,
                                ACE_INET_Addr,
@@ -766,7 +766,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L_AsynchTCPConnection_t,
                                      Test_I_Source_V4L_Net_TCPStream_t,
                                      struct Net_UserData> Test_I_Source_V4L_TCPAsynchConnector_t;
 
-typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
+typedef Net_Client_Connector_T<ACE_MT_SYNCH,
                                Test_I_Source_V4L_UDPConnection_t,
                                Net_SOCK_Dgram,
                                ACE_INET_Addr,

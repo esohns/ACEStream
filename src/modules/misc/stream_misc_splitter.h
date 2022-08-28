@@ -168,9 +168,8 @@ class Stream_Module_Splitter_T
 
  private:
   // convenient types
-  typedef Stream_IDataMessage_T<typename DataMessageType::DATA_T,
-                                typename DataMessageType::MESSAGE_T,
-                                typename DataMessageType::COMMAND_T> IDATA_MESSAGE_T;
+  typedef Stream_IDataMessageBase_T<typename DataMessageType::MESSAGE_T,
+                                    typename DataMessageType::COMMAND_T> IDATA_MESSAGE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T (const Stream_Module_Splitter_T&))

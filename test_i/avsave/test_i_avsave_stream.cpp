@@ -54,10 +54,10 @@ extern "C"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 Stream_AVSave_DirectShow_Stream::Stream_AVSave_DirectShow_Stream ()
  : inherited ()
- , source_ (this,
-            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_VIDEOFORWINDOW_DEFAULT_NAME_STRING))
  //, source_ (this,
- //           ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
+ //           ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_VIDEOFORWINDOW_DEFAULT_NAME_STRING))
+ , source_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
  //, statisticReport_ (this,
  //                    ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , decoder_ (this,
@@ -123,7 +123,9 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //layout_in->append (&statisticReport_, NULL, 0);
   //layout_in->append (&direct3DDisplay_, NULL, 0);
   //modules_out.push_back (&directShowDisplay_);
-  layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
+
+  if (Stream_MediaFramework_Tools::isCompressedVideo (inherited::configuration_->configuration_->format.video.subtype))
+    layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
   if (display_b || save_to_file_b)
   {
     if (display_b && save_to_file_b)

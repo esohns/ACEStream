@@ -103,8 +103,8 @@ class Stream_AVSave_DirectShow_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_DirectShow_Stream& operator= (const Stream_AVSave_DirectShow_Stream&))
 
   // modules
-  Stream_AVSave_VfW_Source_Module                 source_;
-  //Stream_AVSave_DirectShow_Source_Module          source_;
+  //Stream_AVSave_VfW_Source_Module                 source_;
+  Stream_AVSave_DirectShow_Source_Module          source_;
   //Stream_AVSave_DirectShow_StatisticReport_Module statisticReport_;
 #if defined (FFMPEG_SUPPORT)
   Stream_AVSave_DirectShow_LibAVDecoder_Module    decoder_; // --> uncompress to RGB

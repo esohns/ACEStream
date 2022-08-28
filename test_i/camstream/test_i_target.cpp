@@ -1087,6 +1087,7 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (iterator != configuration.streamConfiguration.end ());
 
   modulehandler_configuration_2 = modulehandler_configuration;
+  modulehandler_configuration_2.crunch = true;
   configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING),
                                                             std::make_pair (&module_configuration,
                                                                             &modulehandler_configuration_2)));

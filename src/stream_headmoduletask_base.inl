@@ -761,7 +761,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   const SessionDataType* session_data_p = &inherited::sessionData_->getR ();
   bool stop_processing_b = false;
   bool done_b = false;
-  bool finish_b = true;
 
   do
   {
@@ -813,6 +812,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
         // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
         //                   the stream may not have finish()ed at this point
+        bool finish_b = true;
         { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
           if (sessionEndSent_ || sessionEndProcessed_)
             finish_b = false;
@@ -905,7 +905,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
         if (unlikely (stop_processing_b)) // <-- SESSION_END has been processed || finished || serious error
         { stop_processing_b = false; // reset, just in case...
-          finish_b = true;
+          bool finish_b = true;
           { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
             if (unlikely (sessionEndSent_ || sessionEndProcessed_))
               finish_b = false;

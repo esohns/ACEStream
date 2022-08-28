@@ -122,9 +122,9 @@ Stream_Decoder_LibAVConverter_T<TaskType,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVConverter_T::handleDataMessage"));
 
   // sanity check(s)
-  if (unlikely (!context_))
-    return; // nothing to do
   ACE_ASSERT (inherited::configuration_);
+  if (!context_) // *TODO*: remove this test altogether
+    return;
   ACE_ASSERT (frame_);
 
   // initialize return value(s)
@@ -257,7 +257,8 @@ Stream_Decoder_LibAVConverter_T<TaskType,
       inherited2::getMediaType (inherited::configuration_->outputFormat,
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_3);
-      if (unlikely (inputFormat_ == media_type_3.format))
+      if (unlikely ((inputFormat_ == media_type_3.format) &&
+                    !inherited::configuration_->flipImage))
       {
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: output format is input format, nothing to do\n"),
@@ -291,12 +292,12 @@ Stream_Decoder_LibAVConverter_T<TaskType,
       // sanity check(s)
       if (unlikely (media_type_3.format == AV_PIX_FMT_NONE))
         goto continue_;
-      ACE_ASSERT (inputFormat_ != media_type_3.format);
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: converting pixel format %s to %s\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inputFormat_).c_str ()),
-                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_3.format).c_str ())));
+      if (likely (inputFormat_ != media_type_3.format))
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: converting pixel format %s to %s\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inputFormat_).c_str ()),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_3.format).c_str ())));
 
       // initialize frame buffer
       ACE_ASSERT (!frame_);

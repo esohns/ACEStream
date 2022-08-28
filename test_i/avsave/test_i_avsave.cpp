@@ -1254,6 +1254,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      //directshow_video_modulehandler_configuration.flipImage = true;
       directshow_video_modulehandler_configuration.messageAllocator =
         &directshow_message_allocator;
       directshow_video_modulehandler_configuration_2 =
@@ -1264,6 +1265,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         directshow_video_modulehandler_configuration;
       directshow_video_modulehandler_configuration_5 =
         directshow_video_modulehandler_configuration;
+      directshow_video_modulehandler_configuration_5.flipImage = true;
 
       // capture
       directshow_audio_modulehandler_configuration_2 =
@@ -1458,6 +1460,12 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_video_modulehandler_configuration_5.outputFormat =
         *media_type_p;
       delete media_type_p; media_type_p = NULL;
+
+#if defined(GUI_SUPPORT)
+      directShowCBData_in.progressData.audioFrameSize =
+        (Stream_MediaFramework_DirectShow_Tools::toFrameBits (directshow_audio_stream_configuration.format.audio) / 8) *
+        Stream_MediaFramework_DirectShow_Tools::toChannels (directshow_audio_stream_configuration.format.audio);
+#endif // GUI_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1477,6 +1485,21 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT ((*mediafoundation_stream_iterator).second.second->session);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+
+#if defined(GUI_SUPPORT)
+      UINT32 bits_per_sample_i = 0;
+      HRESULT result =
+        mediafoundation_stream_configuration.format.audio->GetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
+                                                                      &bits_per_sample_i);
+      ACE_ASSERT (SUCCEEDED (result) && bits_per_sample_i);
+      UINT32 number_of_channels_i = 0;
+      result =
+        mediafoundation_stream_configuration.format.audio->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
+                                                                      &number_of_channels_i);
+      ACE_ASSERT (SUCCEEDED (result) && number_of_channels_i);
+      mediaFoundationCBData_in.progressData.audioFrameSize =
+        (bits_per_sample_i / 8) * number_of_channels_i;
+#endif // GUI_SUPPORT
       break;
     }
     default:

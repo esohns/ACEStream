@@ -479,7 +479,7 @@ typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
                                    Test_I_Source_V4L_SessionMessage,
                                    Test_I_Source_V4L_TCPConnectionManager_t,
                                    Test_I_Source_V4L_TCPConnector_t> Test_I_Source_V4L_TCPStream_t;
-#if defined (SSL_USE)
+#if defined (SSL_SUPPORT)
 typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
                                    Test_I_Source_V4L_StreamConfiguration_t,
                                    Common_Timer_Manager_t,
@@ -491,7 +491,7 @@ typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
                                    Test_I_Source_V4L_SessionMessage,
                                    Test_I_Source_V4L_TCPConnectionManager_t,
                                    Test_I_Source_V4L_SSLConnector_t> Test_I_Source_V4L_SSLTCPStream_t;
-#endif // SSL_USE
+#endif // SSL_SUPPORT
 typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
                                    Test_I_Source_V4L_StreamConfiguration_t,
                                    Common_Timer_Manager_t,

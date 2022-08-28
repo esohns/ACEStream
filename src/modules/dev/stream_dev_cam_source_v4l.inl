@@ -687,37 +687,52 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
     {
       case ACE_Message_Block::MB_STOP:
       {
-        // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
-        //         not have been set at this stage
-
-        // signal the controller ?
-        if (!has_finished)
+        if (unlikely (inherited::isHighPriorityStop_))
         {
-          has_finished = true;
-          // enqueue(/process) STREAM_SESSION_END
-          inherited::finished (false); // recurse upstream ?
+          if (likely (!inherited::abortSent_))
+            inherited::control (STREAM_CONTROL_ABORT,
+                                false); // forward upstream ?
         } // end IF
 
-        if (inherited::thr_count_ > 1)
+        // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
+        //                   the stream may not have finish()ed at this point
+        bool finish_b = true;
+        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+          if (inherited::sessionEndSent_ || inherited::sessionEndProcessed_)
+            finish_b = false;
+        } // end lock scope
+        if (likely (finish_b))
         {
-          result_2 = inherited::putq (message_block_p, NULL);
-          if (result_2 == -1)
+          // enqueue(/process) STREAM_SESSION_END
+          inherited::finished (false); // recurse upstream ?
+          message_block_p->release (); message_block_p = NULL;
+          continue;
+        } // end IF
+
+        // *NOTE*: this is racy; the penultimate thread may have left svc() and
+        //         not have decremented thr_count_ yet. In this case, the
+        //         stop-message might remain in the queue during shutdown (or,
+        //         even worse-) during re-initialization...
+        // *TODO*: ward against this scenario
+        if (unlikely (inherited::thr_count_ > 1))
+        {
+          result_2 =
+            (inherited::isHighPriorityStop_ ? inherited::ungetq (message_block_p, NULL)
+                                            : inherited::putq (message_block_p, NULL));
+          if (unlikely (result_2 == -1))
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
                         inherited::mod_->name ()));
             message_block_p->release (); message_block_p = NULL;
+            return -1;
           } // end IF
-          message_block_p = NULL;
         } // end IF
         else
         {
           message_block_p->release (); message_block_p = NULL;
         } // end ELSE
-
-        // has STREAM_SESSION_END been processed ?
-        if (!inherited::sessionEndProcessed_)
-          continue; // process STREAM_SESSION_END
+        inherited::isHighPriorityStop_ = false;
 
         result = 0;
 
@@ -771,8 +786,17 @@ continue_:
                     inherited::mod_->name (),
                     session_data_r.sessionId));
         has_finished = true;
-        // enqueue(/process) STREAM_SESSION_END
-        inherited::finished (false); // recurse upstream ?
+
+        bool finish_b = true;
+        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+          if (inherited::sessionEndSent_ || inherited::sessionEndProcessed_)
+            finish_b = false;
+        } // end lock scope
+        if (likely (finish_b))
+        {
+          // enqueue(/process) STREAM_SESSION_END
+          inherited::finished (false); // recurse upstream ?
+        } // end IF
       } // end IF
     } // end lock scope
 

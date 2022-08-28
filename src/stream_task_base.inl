@@ -466,11 +466,6 @@ continue_3:
       sessionDataLock_ = session_data_p->lock;
 
       break;
-
-//error:
-      notify (STREAM_SESSION_MESSAGE_ABORT);
-
-      break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {

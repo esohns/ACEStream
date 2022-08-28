@@ -164,15 +164,15 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
-  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
-
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+
+      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, lock_);
         // *NOTE*: this works because the lock is recursive
         // *WARNING* if callees unsubscribe() within the callback bad things
@@ -205,6 +205,11 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+
+      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, lock_);
         // *WARNING* if callees unsubscribe() within the callback bad things
         //           happen, as the current iterator is invalidated
@@ -242,7 +247,7 @@ error:
         {
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->notify (session_data_r.sessionId,
+            (*(iterator++))->notify (message_inout->sessionId (),
                                      *message_inout);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,

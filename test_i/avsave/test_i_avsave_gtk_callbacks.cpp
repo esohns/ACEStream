@@ -4929,26 +4929,6 @@ combobox_video_source_changed_cb (GtkWidget* widget_in,
 
       buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
 
-      //if (directshow_cb_data_p->configuration->direct3DConfiguration.handle)
-      //{
-      //  directshow_cb_data_p->configuration->direct3DConfiguration.handle->Release (); directshow_cb_data_p->configuration->direct3DConfiguration.handle = NULL;
-      //} // end IF
-      IDirect3DDeviceManager9* direct3D_manager_p = NULL;
-      UINT reset_token_i = 0;
-      //if (!Stream_MediaFramework_DirectDraw_Tools::getDevice (directshow_cb_data_p->configuration->direct3DConfiguration,
-      //                                                        direct3D_manager_p,
-      //                                                        reset_token_i))
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("failed to Stream_MediaFramework_DirectDraw_Tools::getDevice(), returning\n")));
-      //  return;
-      //} // end IF
-      //ACE_ASSERT (directshow_cb_data_p->configuration->direct3DConfiguration.handle);
-      //if (direct3D_manager_p)
-      //{
-      //  direct3D_manager_p->Release (); direct3D_manager_p = NULL;
-      //} // end IF
-
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

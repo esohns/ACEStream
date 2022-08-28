@@ -186,14 +186,17 @@ add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Visualization)
 
 add_dependencies (${EXECUTABLE_SOURCE} ACENetwork)
 
-target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+if (UNIX)
+ target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+endif (UNIX)
 if (FFMPEG_SUPPORT)
- target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${ffmpeg_LIBRARIES})
+# target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${ffmpeg_LIBRARIES})
+# target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${ffmpeg_2_LIBRARIES})
 endif (FFMPEG_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${PKG_V4L2_LIBRARIES})
 elseif (WIN32)
-# set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+ set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
 
  target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC evr.lib)
  target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC mfplat.lib)
@@ -310,6 +313,7 @@ elseif (WIN32)
  endif (GUI_SUPPORT)
  if (FFMPEG_SUPPORT)
   file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
+  file (TO_CMAKE_PATH "${ffmpeg_2_LIB_DIR}" FFMPEG_2_PATH)
  endif (FFMPEG_SUPPORT)
  if (IMAGEMAGICK_SUPPORT)
   file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
@@ -322,7 +326,7 @@ elseif (WIN32)
  endif (WXWIDGETS_SUPPORT)
  file (TO_CMAKE_PATH "${SSL_LIB_DIR}" SSL_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
- set (RUNTIME_LIBRARY_DIRS ${FFMPEG_PATH}
+ set (RUNTIME_LIBRARY_DIRS ${FFMPEG_PATH} ${FFMPEG_2_PATH}
                            ${IMAGEMAGICK_PATH}
                            ${GTK_PATH}
                            ${WXWIDGETS_PATH}

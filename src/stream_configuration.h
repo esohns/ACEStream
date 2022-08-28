@@ -145,8 +145,7 @@ struct Stream_ModuleHandlerConfiguration
 #endif // _DEBUG
   enum Stream_MessageDefragmentMode           defragmentMode;                       // defragment module
   bool                                        demultiplex;                          // message handler module
-//  struct Common_EventDispatchConfiguration*   dispatchConfiguration;
-  bool                                        flipImage;                            // ffmpeg (converter)
+  bool                                        flipImage;                            // (vertical-) ffmpeg converter
   unsigned int                                frameNumber;                          // frame grabber
   bool                                        generateSessionMessages;              // head module(s)
   // *WARNING*: when false, this 'locks down' the pipeline head module; i.e. it
