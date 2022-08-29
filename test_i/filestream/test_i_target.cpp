@@ -605,12 +605,11 @@ do_work (unsigned int bufferSize_in,
   //  useLoopBack_in;
 
   // step0b: initialize event dispatch
-  struct Common_EventDispatchConfiguration event_dispatch_configuration_s;
-  event_dispatch_configuration_s.numberOfProactorThreads =
+  CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads =
     numberOfDispatchThreads_in;
-  event_dispatch_configuration_s.numberOfReactorThreads =
+  CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads =
     numberOfDispatchThreads_in;
-  if (!Common_Event_Tools::initializeEventDispatch (event_dispatch_configuration_s))
+  if (!Common_Event_Tools::initializeEventDispatch (CBData_in.configuration->dispatchConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Event_Tools::initializeEventDispatch(), returning\n")));
@@ -957,8 +956,6 @@ do_work (unsigned int bufferSize_in,
 
   // *NOTE*: from this point on, clean up any remote connections !
 
-  Common_Event_Tools::dispatchEvents (event_dispatch_state_s);
-
   // clean up
   // *NOTE*: listener has stopped, interval timer has been cancelled,
   // and connections have been aborted...
@@ -972,16 +969,21 @@ do_work (unsigned int bufferSize_in,
   //		} // end lock scope
 #if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty ())
+  {
 #if defined (GTK_USE)
-    gtk_manager_p->wait ();
+    gtk_manager_p->wait (false);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  timer_manager_p->stop ();
+  } // end IF
+  else
+    Common_Event_Tools::dispatchEvents (event_dispatch_state_s);
 
   // wait for connection processing to complete
   connection_manager_p->stop (false, true);
   connection_manager_p->abort ();
   connection_manager_p->wait ();
+
+  timer_manager_p->stop ();
 
   result = event_handler.close (ACE_Module_Base::M_DELETE_NONE);
   if (result == -1)
