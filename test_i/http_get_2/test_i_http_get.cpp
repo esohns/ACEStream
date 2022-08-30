@@ -779,7 +779,7 @@ do_work (const std::string& bootstrapFileName_in,
     modulehandler_configuration.libreOfficeHost.set (port_in,
                                                      hostName_in.c_str (),
                                                      1,
-                                                     ACE_ADDRESS_FAMILY_INET);
+                                                     AF_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,

@@ -225,7 +225,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
    , HTTPHeaders ()
    , libreOfficeHost (TEST_I_DEFAULT_PORT,
                       ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST),
-                      ACE_ADDRESS_FAMILY_INET)
+                      AF_INET)
    , libreOfficeRc ()
    , libreOfficeSheetStartColumn (0)
    , libreOfficeSheetStartRow (TEST_I_DEFAULT_LIBREOFFICE_START_ROW - 1)

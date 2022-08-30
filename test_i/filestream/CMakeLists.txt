@@ -312,7 +312,7 @@ target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
 #endif (WIN32)
 #add_precompiled_header (${EXECUTABLE_TARGET} stdafx.h FORCEINCLUDE SOURCE_CXX stdafx.cpp)
 target_precompile_headers (${EXECUTABLE_TARGET}
-                           PUBLIC stdafx.h)
+                           REUSE_FROM ${EXECUTABLE_SOURCE})
 
 ##########################################
 

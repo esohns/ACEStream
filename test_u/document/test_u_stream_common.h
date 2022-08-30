@@ -109,7 +109,7 @@ struct Test_U_Document_ModuleHandlerConfiguration
    , fileName ()
    , libreOfficeHost (STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_SERVER_PORT,
                       ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST),
-                      ACE_ADDRESS_FAMILY_INET)
+                      AF_INET)
    , libreOfficeRc ()
    , printProgressDot (false)
    , pushStatisticMessages (true)

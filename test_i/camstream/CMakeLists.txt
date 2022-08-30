@@ -190,13 +190,13 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 endif (UNIX)
 if (FFMPEG_SUPPORT)
-# target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${ffmpeg_LIBRARIES})
-# target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${ffmpeg_2_LIBRARIES})
+ target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${ffmpeg_LIBRARIES})
+ target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${ffmpeg_2_LIBRARIES})
 endif (FFMPEG_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${PKG_V4L2_LIBRARIES})
 elseif (WIN32)
- set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+# set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
 
  target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC evr.lib)
  target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC mfplat.lib)
@@ -288,7 +288,7 @@ elseif (WIN32)
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
 endif ()
 
-set (COMMAND "$<TARGET_FILE:${EXECUTABLE_SOURCE}>")
+#set (COMMAND "$<TARGET_FILE:${EXECUTABLE_SOURCE}>")
 set (ENVIRONMENT "")
 if (UNIX)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_SOURCE}" COMMAND)
@@ -300,7 +300,6 @@ if (UNIX)
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
  file (TO_NATIVE_PATH ${PROJECT_SOURCE_DIR}/test_i/camstream WORKING_DIRECTORY)
 elseif (WIN32)
-# file (TO_NATIVE_PATH "${COMMAND}" COMMAND)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_SOURCE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if (GUI_SUPPORT)
@@ -326,8 +325,9 @@ elseif (WIN32)
  endif (WXWIDGETS_SUPPORT)
  file (TO_CMAKE_PATH "${SSL_LIB_DIR}" SSL_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
- set (RUNTIME_LIBRARY_DIRS ${FFMPEG_PATH} ${FFMPEG_2_PATH}
-                           ${IMAGEMAGICK_PATH}
+ set (RUNTIME_LIBRARY_DIRS ${IMAGEMAGICK_PATH}
+                           ${FFMPEG_PATH}
+                           ${FFMPEG_2_PATH}
                            ${GTK_PATH}
                            ${WXWIDGETS_PATH}
                            ${SSL_PATH}
@@ -404,7 +404,7 @@ if (WIN32)
 
 # add PCH
  target_precompile_headers (${LIBRARY_DS}
-                            PUBLIC stdafx.h)
+                            REUSE_FROM ${EXECUTABLE_SOURCE})
 
 # add all targets to the build-tree export set
  export (TARGETS ${LIBRARY_DS}
@@ -471,7 +471,7 @@ endif (FFMPEG_SUPPORT)
 
 # add PCH
  target_precompile_headers (${LIBRARY_MF}
-                            PUBLIC stdafx.h)
+                            REUSE_FROM ${EXECUTABLE_SOURCE})
 
 # add all targets to the build-tree export set
  export (TARGETS ${LIBRARY_MF}
@@ -601,7 +601,7 @@ target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${PROJECT_NAME}_Test_I)
 
 # add PCH
 target_precompile_headers (${EXECUTABLE_TARGET}
-                           PUBLIC stdafx.h)
+                           REUSE_FROM ${EXECUTABLE_SOURCE})
 
 install (TARGETS ${EXECUTABLE_TARGET}
          EXPORT ${PROJECT_NAME}Targets
