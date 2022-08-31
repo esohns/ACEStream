@@ -299,11 +299,15 @@ Stream_Visualization_LibAVResize_T<TaskType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       resolution_s.cx = media_type_3.resolution.cx;
       resolution_s.cy = media_type_3.resolution.cy;
+      ACE_OS::memset (&media_type_s, 0, sizeof (MediaType));
+      inherited::getMediaType (media_type_r,
+                               STREAM_MEDIATYPE_VIDEO,
+                               media_type_s);
 #else
       resolution_s.width = media_type_3.resolution.width;
       resolution_s.height = media_type_3.resolution.height;
-#endif // ACE_WIN32 || ACE_WIN64
       media_type_s = media_type_r;
+#endif // ACE_WIN32 || ACE_WIN64
       inherited::setResolution (resolution_s,
                                 media_type_s);
       ACE_ASSERT (session_data_r.lock);

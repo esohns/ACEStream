@@ -371,6 +371,8 @@ error:
 
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
+      if (!inherited::configuration_->handleResize)
+        break;
 
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (inherited::configuration_->outputFormat,

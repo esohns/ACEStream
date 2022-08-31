@@ -106,6 +106,7 @@ struct Stream_ModuleHandlerConfiguration
    , flipImage (false)
    , frameNumber (0)
    , generateSessionMessages (true)
+   , handleResize (true)
    , hasReentrantSynchronousSubDownstream (true)
    , inbound (true)
    , lock (NULL)
@@ -148,6 +149,8 @@ struct Stream_ModuleHandlerConfiguration
   bool                                        flipImage;                            // (vertical-) ffmpeg converter
   unsigned int                                frameNumber;                          // frame grabber
   bool                                        generateSessionMessages;              // head module(s)
+  // *IMPORTANT NOTE*: handle session resize messages ?
+  bool                                        handleResize;                         // ffmpeg converter
   // *WARNING*: when false, this 'locks down' the pipeline head module; i.e. it
   //            will hold the 'stream lock' during all message processing to
   //            support (down)stream synchronization. This really only makes

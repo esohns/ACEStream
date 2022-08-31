@@ -970,6 +970,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_modulehandler_configuration_4 =
         directshow_modulehandler_configuration;
       directshow_modulehandler_configuration_4.flipImage = true;
+      directshow_modulehandler_configuration_4.handleResize = false;
 
       directshow_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                               std::make_pair (&module_configuration,
