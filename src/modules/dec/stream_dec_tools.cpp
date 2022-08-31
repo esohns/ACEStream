@@ -871,8 +871,7 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
 
   // *TODO*: define a balanced scaler parametrization that suits most
   //         applications, or expose this as a parameter
-  int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-               SWS_BICUBIC);
+  int flags = (SWS_FAST_BILINEAR);
   struct SwsContext* context_p =
       (context_in ? context_in
                   : sws_getCachedContext (NULL,

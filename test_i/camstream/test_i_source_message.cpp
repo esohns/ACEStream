@@ -71,17 +71,6 @@ Test_I_Source_DirectShow_Stream_Message::Test_I_Source_DirectShow_Stream_Message
 
 }
 
-Test_I_Source_DirectShow_Stream_Message::~Test_I_Source_DirectShow_Stream_Message ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_Message::~Test_I_Source_DirectShow_Stream_Message"));
-
-  // release media sample ?
-  if (inherited::data_.sample)
-  {
-    inherited::data_.sample->Release (); inherited::data_.sample = NULL;
-  } // end IF
-}
-
 ACE_Message_Block*
 Test_I_Source_DirectShow_Stream_Message::duplicate (void) const
 {

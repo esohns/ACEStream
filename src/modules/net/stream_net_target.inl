@@ -601,6 +601,19 @@ continue_:
 
       ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
 
+      if (unlikely (isOpen_ &&
+                    !isPassive_))
+      { ACE_ASSERT (connection_);
+        Net_ConnectionId_t id = connection_->id ();
+        connection_->abort ();
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborted connection to %s (id was: %u)\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+                    id));
+      } // end IF
+      isOpen_ = false;
+
       if (likely (connection_))
       {
         // wait for data (!) processing to complete
@@ -628,22 +641,22 @@ continue_:
         // *NOTE*: stop()ping the connection stream will also unlink it
         //         --> send the disconnect notification early
         // notify downstream
-        if (likely (session_data_container_p))
-          session_data_container_p->increase ();
-        if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_DISCONNECT,
-                                                     session_data_container_p,
-                                                     NULL,
-                                                     false))) // expedited ?
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
-                      inherited::name (),
-                      STREAM_SESSION_MESSAGE_DISCONNECT));
+        //if (likely (session_data_container_p))
+        //  session_data_container_p->increase ();
+        //if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_DISCONNECT,
+        //                                             session_data_container_p,
+        //                                             NULL,
+        //                                             false))) // expedited ?
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
+        //              inherited::name (),
+        //              STREAM_SESSION_MESSAGE_DISCONNECT));
 
         // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
 //        stream_p->stop (false,  // wait for completion ?
 //                        false,  // recurse upstream ?
 //                        false); // high priority ?
-        connection_->waitForCompletion (false); // --> data only
+        //connection_->waitForCompletion (false); // --> data only
 
         goto continue_2;
 
@@ -680,19 +693,6 @@ continue_2:
         stream_p->_unlink ();
         unlink_ = false;
       } // end IF
-
-      if (unlikely (isOpen_ &&
-                    !isPassive_))
-      { ACE_ASSERT (connection_);
-        Net_ConnectionId_t id = connection_->id ();
-        connection_->abort ();
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: aborted connection to %s (id was: %u)\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
-                    id));
-      } // end IF
-      isOpen_ = false;
 
       if (likely (connection_))
       {

@@ -64,7 +64,7 @@ class Test_I_Source_DirectShow_Stream_Message
  public:
   Test_I_Source_DirectShow_Stream_Message (Stream_SessionId_t, // session id
                                            unsigned int);      // size
-  virtual ~Test_I_Source_DirectShow_Stream_Message ();
+  inline virtual ~Test_I_Source_DirectShow_Stream_Message () {}
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet

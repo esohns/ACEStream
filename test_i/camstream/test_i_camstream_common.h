@@ -53,6 +53,7 @@ extern "C"
 #endif // GUI_SUPPORT
 
 #include "common.h"
+#include "common_inotify.h"
 #include "common_istatistic.h"
 #include "common_isubscribe.h"
 
@@ -222,16 +223,8 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
    , fullScreen (false)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-   , pixelBuffer (NULL)
-   , pixelBufferLock (NULL)
+   , window (NULL)
 #endif // GTK_USE
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    , window ()
-#else
-#if defined (GTK_USE)
-    , window (NULL)
-#endif // GTK_USE
-#endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -257,16 +250,8 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
   bool                                                 fullScreen;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  GdkPixbuf*                                           pixelBuffer;
-  ACE_SYNCH_MUTEX*                                     pixelBufferLock;
-#endif // GTK_USE
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                                                 window;
-#else
-#if defined (GTK_USE)
   GdkWindow*                                           window;
 #endif // GTK_USE
-#endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
 };
 
@@ -328,7 +313,8 @@ struct Test_I_CamStream_UI_CBData
    , configuration (NULL)
    , isFirst (true)
 #if defined (GTK_USE)
-   , pixelBuffer (NULL)
+   , dispatch (NULL)
+   //, pixelBuffer (NULL)
 #endif // GTK_USE
    , progressData ()
   {}
@@ -336,7 +322,8 @@ struct Test_I_CamStream_UI_CBData
   struct Test_I_CamStream_Configuration*  configuration;
   bool                                    isFirst; // first activation ?
 #if defined (GTK_USE)
-  GdkPixbuf*                              pixelBuffer;
+  Common_IDispatch*                       dispatch;
+  //GdkPixbuf*                              pixelBuffer;
 #endif // GTK_USE
   struct Test_I_CamStream_UI_ProgressData progressData;
 };

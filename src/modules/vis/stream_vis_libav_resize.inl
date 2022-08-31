@@ -76,7 +76,7 @@ Stream_Visualization_LibAVResize_T<TaskType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::buffer_);
-  ACE_ASSERT (inherited::configuration_);
+  //ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::frame_);
   ACE_ASSERT (!message_inout->cont ());
 
@@ -107,7 +107,7 @@ Stream_Visualization_LibAVResize_T<TaskType,
                                                      data_a,
                                                      inherited::frame_->width, inherited::frame_->height,
                                                      inherited::frame_->data,
-                                                     inherited::configuration_->flipImage)))
+                                                     false))) // flip image ?
 #else
   if (unlikely (!Stream_Module_Decoder_Tools::scale (inherited::context_,
                                                      sourceResolution_.width, sourceResolution_.height,
@@ -115,7 +115,7 @@ Stream_Visualization_LibAVResize_T<TaskType,
                                                      data_a,
                                                      inherited::frame_->width, inherited::frame_->height,
                                                      inherited::frame_->data,
-                                                     inherited::configuration_->flipImage)))
+                                                     false))) // flip image ?
 #endif // ACE_WIN32 || ACE_WIN64
   {
     ACE_DEBUG ((LM_ERROR,

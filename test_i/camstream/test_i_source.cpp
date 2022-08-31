@@ -567,7 +567,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   outputFormat_inout = *media_type_p;
   delete (media_type_p); media_type_p = NULL;
 
-  // *NOTE*: the default save format is RGB32
+  // *NOTE*: the default output format is RGB24
   ACE_ASSERT (InlineIsEqualGUID (outputFormat_inout.majortype, MEDIATYPE_Video));
   outputFormat_inout.subtype = MEDIASUBTYPE_RGB32;
   outputFormat_inout.bFixedSizeSamples = TRUE;
@@ -727,6 +727,9 @@ void
 do_finalize_directshow (struct Test_I_Source_DirectShow_UI_CBData& CBData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_finalize_directshow"));
+
+  // sanity check(s)
+  ACE_ASSERT (CBData_in.configuration);
 
   if (CBData_in.streamConfiguration)
   {
@@ -913,8 +916,10 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
-  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // visualization
+  //struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // visualization
   struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // network io
+  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_4; // converter
+  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_5; // resize
   Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration;
   struct Test_I_Source_DirectShow_StreamConfiguration directshow_stream_configuration_2;
   Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration_3;
@@ -923,8 +928,10 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
 
   struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
-  struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // visualization
+  //struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // visualization
   struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_3; // network io
+  struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_4; // converter
+  struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_5; // resize
   Test_I_Source_MediaFoundation_StreamConfiguration_t mediafoundation_stream_configuration;
   struct Test_I_Source_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration_2;
   Test_I_Source_MediaFoundation_StreamConfiguration_t mediafoundation_stream_configuration_3;
@@ -944,8 +951,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     {
       directshow_modulehandler_configuration.deviceIdentifier =
         deviceIdentifier_in;
-      directshow_modulehandler_configuration_2.display =
-        Common_UI_Tools::getDefaultDisplay ();
+      //directshow_modulehandler_configuration_2.display =
+      //  Common_UI_Tools::getDefaultDisplay ();
 
       directshow_stream_configuration_2.allocatorConfiguration = allocator_configuration_p;
       directshow_stream_configuration_2.messageAllocator = allocator_p;
@@ -956,9 +963,25 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                   directshow_modulehandler_configuration,
                                                   directshow_stream_configuration_2);
 
-      directshow_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING),
+      //directshow_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING),
+      //                                                        std::make_pair (&module_configuration,
+      //                                                                        &directshow_modulehandler_configuration_2)));
+
+      directshow_modulehandler_configuration_4 =
+        directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_4.flipImage = true;
+
+      directshow_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                               std::make_pair (&module_configuration,
-                                                                              &directshow_modulehandler_configuration_2)));
+                                                                              &directshow_modulehandler_configuration_4)));
+
+
+      directshow_modulehandler_configuration_5 =
+        directshow_modulehandler_configuration;
+
+      directshow_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                              std::make_pair (&module_configuration,
+                                                                              &directshow_modulehandler_configuration_4)));
 
       directShowCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                       directshow_stream_configuration));
@@ -998,8 +1021,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       //  ((mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? mediaFoundationCBData_in.stream
       //                                                                      : mediaFoundationCBData_in.UDPStream);
 
-      mediafoundation_modulehandler_configuration_2.display =
-        Common_UI_Tools::getDefaultDisplay ();
+      //mediafoundation_modulehandler_configuration_2.display =
+      //  Common_UI_Tools::getDefaultDisplay ();
 
       mediafoundation_stream_configuration_2.allocatorConfiguration = allocator_configuration_p;
       mediafoundation_stream_configuration_2.mediaFoundationConfiguration =
@@ -1018,9 +1041,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       mediafoundation_modulehandler_configuration.direct3DConfiguration =
         &mediaFoundationCBData_in.configuration->direct3DConfiguration;
 
-      mediafoundation_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING),
-                                                                   std::make_pair (&module_configuration,
-                                                                                   &mediafoundation_modulehandler_configuration_2)));
+      //mediafoundation_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING),
+      //                                                             std::make_pair (&module_configuration,
+      //                                                                             &mediafoundation_modulehandler_configuration_2)));
 
       mediaFoundationCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                            mediafoundation_stream_configuration));
@@ -1234,6 +1257,14 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                   directShowCBData_in.streamConfiguration,
                                   (*directshow_stream_iterator).second.configuration_->format,
                                   (*directshow_modulehandler_iterator).second.second->outputFormat);
+
+      Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_modulehandler_iterator).second.second->outputFormat,
+                                                    directshow_modulehandler_configuration_4.outputFormat);
+      Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
+                                                         directshow_modulehandler_configuration_4.outputFormat);
+      Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration_4.outputFormat,
+                                                    directshow_modulehandler_configuration_5.outputFormat);
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

@@ -92,6 +92,11 @@ struct Test_I_DirectShow_MessageData
    , sample (NULL)
    , sampleTime (0)
   {}
+  virtual ~Test_I_DirectShow_MessageData ()
+  {
+    if (sample)
+      sample->Release ();
+  }
 
   // audio/video
   IMediaSample* sample;
@@ -107,6 +112,11 @@ struct Test_I_MediaFoundation_MessageData
    , sample (NULL)
    , sampleTime (0)
   {}
+  virtual ~Test_I_MediaFoundation_MessageData ()
+  {
+    if (sample)
+      sample->Release ();
+  }
 
   // audio/video
   IMFSample* sample;

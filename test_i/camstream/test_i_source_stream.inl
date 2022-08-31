@@ -138,26 +138,63 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                   false);
   layout_out->append (module_p, NULL, 0);
   module_p = NULL;
-  //ACE_NEW_RETURN (module_p,
-  //                Test_I_Source_DirectShow_Converter_Module (this,
-  //                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)),
-  //                false);
-  //layout_out->append (module_p, NULL, 0);
-  //module_p = NULL;
+
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Source_DirectShow_Distributor_Module (this,
+                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
+                  false);
+  unsigned int index_i = 0;
+  typename inherited::MODULE_T* branch_p = module_p;
+  Stream_IDistributorModule* idistributor_p =
+    dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
+  ACE_ASSERT (idistributor_p);
+  configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+  idistributor_p->initialize (configuration_->configuration_->branches);
+
+  layout_out->append (module_p, NULL, 0);
+  module_p = NULL;
+
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Source_DirectShow_Converter_Module (this,
+                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)),
+                  false);
+  layout_out->append (module_p, branch_p, index_i);
+  module_p = NULL;
+
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Source_DirectShow_Resize_Module (this,
+                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING)),
+                  false);
+  layout_out->append (module_p, branch_p, index_i);
+  module_p = NULL;
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Source_DirectShow_GTK_Cairo_Module (this,
+                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)),
+                  false);
+  layout_out->append (module_p, branch_p, index_i);
+  module_p = NULL;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
+  // continue main branch
   ACE_NEW_RETURN (module_p,
                   TARGET_MODULE_T (this,
                                    ACE_TEXT_ALWAYS_CHAR (MODULE_NET_TARGET_DEFAULT_NAME_STRING)),
                   false);
   layout_out->append (module_p, NULL, 0);
   module_p = NULL;
-  if ((*iterator).second.second->window)
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_I_Source_DirectShow_Display_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)),
-                    false);
-    layout_out->append (module_p, NULL, 0);
-  } // end IF
+
+  //if ((*iterator).second.second->window)
+  //{
+  //  ACE_NEW_RETURN (module_p,
+  //                  Test_I_Source_DirectShow_Display_Module (this,
+  //                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)),
+  //                  false);
+  //  layout_out->append (module_p, NULL, 0);
+  //} // end IF
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //  //else
 //  //{
@@ -206,7 +243,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   SessionDataType* session_data_p = NULL;
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator /*, iterator_2*/;
   Test_I_Stream_DirectShow_CamSource* source_impl_p = NULL;
   Stream_Module_t* module_p = NULL;
   struct _AllocatorProperties allocator_properties;
@@ -231,11 +268,11 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 
   iterator =
     const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  iterator_2 =
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
+  //iterator_2 =
+  //  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
   // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
-  ACE_ASSERT (iterator_2 != configuration_in.end ());
+  //ACE_ASSERT (iterator_2 != configuration_in.end ());
 
   // ---------------------------------------------------------------------------
   // step1: set up directshow filter graph
@@ -335,7 +372,7 @@ continue_:
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
                                                             configuration_in.configuration_->format,
                                                             (*iterator).second.second->outputFormat,
-                                                            (*iterator).second.second->window,
+                                                            NULL,//(*iterator).second.second->window,
                                                             (*iterator).second.second->builder,
                                                             graph_configuration))
   {
@@ -493,8 +530,8 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step2: update stream module configuration(s)
-  (*iterator_2).second.second->builder = (*iterator).second.second->builder;
-  (*iterator_2).second.second->builder->AddRef ();
+  //(*iterator_2).second.second->builder = (*iterator).second.second->builder;
+  //(*iterator_2).second.second->builder->AddRef ();
 
   // ---------------------------------------------------------------------------
   // step3: allocate a new session state, reset stream
@@ -528,25 +565,25 @@ continue_:
   // step4: initialize module(s)
 
   // ******************* Camera Source ************************
-  module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)));
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)));
-    return false;
-  } // end IF
-  source_impl_p =
-    dynamic_cast<Test_I_Stream_DirectShow_CamSource*> (module_p->writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Test_I_Stream_DirectShow_CamSource> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    return false;
-  } // end IF
+  //module_p =
+  //  const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)));
+  //if (!module_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
+  //              ACE_TEXT (stream_name_string_),
+  //              ACE_TEXT (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)));
+  //  return false;
+  //} // end IF
+  //source_impl_p =
+  //  dynamic_cast<Test_I_Stream_DirectShow_CamSource*> (module_p->writer ());
+  //if (!source_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: dynamic_cast<Test_I_Stream_DirectShow_CamSource> failed, aborting\n"),
+  //              ACE_TEXT (stream_name_string_)));
+  //  return false;
+  //} // end IF
 
   // ---------------------------------------------------------------------------
   // step5: update session data
@@ -857,14 +894,14 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                   false);
   layout_inout->append (module_p, NULL, 0);
   module_p = NULL;
-  if ((*iterator).second.second->window)
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_I_Source_MediaFoundation_Display_Module (this,
-                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
-                    false);
-    layout_inout->append (module_p, NULL, 0);
-  } // end IF
+  //if ((*iterator).second.second->window)
+  //{
+  //  ACE_NEW_RETURN (module_p,
+  //                  Test_I_Source_MediaFoundation_Display_Module (this,
+  //                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
+  //                  false);
+  //  layout_inout->append (module_p, NULL, 0);
+  //} // end IF
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //  //else
 //  //{
@@ -1024,7 +1061,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._guid,
                                                                configuration_in.configuration_->format,
                                                                source_impl_p,
-                                                               (*iterator).second.second->window,
+                                                               NULL,//(*iterator).second.second->window,
                                                                (*iterator).second.second->sampleGrabberNodeId,
                                                                session_data_r.rendererNodeId,
                                                                topology_p))
