@@ -413,7 +413,11 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                                 media_type_2);
 
       if (codecId_ == AV_CODEC_ID_NONE)
-        break;
+      {
+        if (media_type_s.codec == AV_CODEC_ID_NONE)
+          break;
+        codecId_ = media_type_s.codec;
+      } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: using codec \"%s\" (id: %d)\n"),
                   inherited::mod_->name (),

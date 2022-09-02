@@ -605,8 +605,9 @@ retry:
                   requestedSize_in));
   } // end IF
   // *TODO*: remove type inference
-  message_p->initialize ((session_data_p ? session_data_p->sessionId : 0), // session id
-                         NULL);                                            // data block [NULL --> do not change]
+  if (session_data_p)
+    message_p->initialize (session_data_p->sessionId, // session id
+                           NULL);                     // data block [NULL --> do not change]
 
   return message_p;
 }

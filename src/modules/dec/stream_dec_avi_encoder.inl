@@ -781,7 +781,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       inherited2:: getMediaType (session_data_r.formats.back (),
                                  STREAM_MEDIATYPE_INVALID, // N/A
                                  media_type_s);
-      inherited2::getMediaType (media_type_s,
+      inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_INVALID, // N/A
                                 format_);
       frameSize_ =
