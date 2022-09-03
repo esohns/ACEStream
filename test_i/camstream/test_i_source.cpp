@@ -1675,8 +1675,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   gtk_manager_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-  (*modulehandler_iterator).second.second->pixelBufferLock =
-      &ui_state_p->lock;
+//  (*modulehandler_iterator).second.second->pixelBufferLock =
+//      &ui_state_p->lock;
   v4l2CBData_in.UIState = ui_state_p;
 #endif // GTK_USE
 #endif // GUI_SUPPORT

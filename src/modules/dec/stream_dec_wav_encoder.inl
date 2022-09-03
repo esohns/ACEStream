@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "stream_lib_common.h"
 #include <fstream>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -402,14 +403,13 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (unlikely (!inherited::sessionData_))
     return;
-
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 #else
   ACE_ASSERT (inherited::sessionData_);
 #endif // ACE_WIN32 || ACE_WIN64
 
   int result = -1;
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
   switch (message_inout->type ())
   {
@@ -417,15 +417,10 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-      // sanity check(s)
-      ACE_ASSERT (inherited::configuration_);
-      if (unlikely (inherited::configuration_->fileIdentifier.empty ()))
-        return;
-
-      SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-      struct Stream_MediaFramework_ALSA_MediaType& media_type_r =
-          session_data_r.formats.back ();
+      struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+      inherited::getMediaType (session_data_r.formats.back (),
+                               STREAM_MEDIATYPE_AUDIO,
+                               media_type_s);
 
 #if defined (SOX_SUPPORT)
 //      sox_comments_t comments = ;
@@ -434,12 +429,12 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 //      oob_data.comments = comments;
 //      oob_data.instr;
 //      oob_data.loops;
-      Stream_MediaFramework_ALSA_Tools::to (media_type_r,
+      Stream_MediaFramework_ALSA_Tools::to (media_type_s,
                                             encodingInfo_,
                                             signalInfo_);
       ACE_ASSERT (!outputFile_);
       outputFile_ =
-          sox_open_write (inherited::configuration_->fileIdentifier.identifier.c_str (),
+          sox_open_write (session_data_r.targetFileName.c_str (),
                           &signalInfo_,
                           &encodingInfo_,
                           //ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_WAV_MediaType_STRING),
@@ -451,13 +446,13 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to sox_open_write(\"%s\"): \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (inherited::configuration_->fileIdentifier.identifier.c_str ())));
+                    ACE_TEXT (session_data_r.targetFileName.c_str ())));
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: opened file stream \"%s\"\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (inherited::configuration_->fileIdentifier.identifier.c_str ())));
+                  ACE_TEXT (session_data_r.targetFileName.c_str ())));
 #endif // SOX_SUPPORT
       goto continue_;
 
@@ -614,7 +609,7 @@ continue_2:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: closed file stream \"%s\" (wrote: %Q byte(s))\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (inherited::configuration_->fileIdentifier.identifier.c_str ()),
+                    ACE_TEXT (session_data_r.targetFileName.c_str ()),
                     bytes_written));
       } // end IF
 #endif // SOX_SUPPORT

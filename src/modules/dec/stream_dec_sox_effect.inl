@@ -597,6 +597,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
           effect_options_string += ACE_TEXT_ALWAYS_CHAR (" ");
         } // end FOR
         setlocale (LC_NUMERIC, ACE_TEXT_ALWAYS_CHAR ("C"));
+        // *IMPORTANT NOTE*: this uses strtod, which is locale-dependent
         result = sox_effect_options (effect_p,
                                      index,
                                      effect_options_a);
@@ -607,8 +608,10 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
                       inherited::mod_->name (),
                       ACE_TEXT (inherited::configuration_->effect.c_str ()),
                       ACE_TEXT (sox_strerror (result))));
+          // *TODO*: set locale back to what it was before
           goto error;
         } // end IF
+        // *TODO*: set locale back to what it was before
       } // end IF
       result = sox_add_effect (chain_,
                                effect_p,

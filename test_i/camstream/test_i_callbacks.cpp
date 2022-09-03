@@ -66,6 +66,8 @@
 
 #include "stream_lib_tools.h"
 
+#include "stream_vis_defines.h"
+
 #include "net_connection_configuration.h"
 
 #include "test_i_camstream_defines.h"
@@ -2857,7 +2859,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                                     NULL,
                                     0, 0,
                                     0, 0, allocation.width, allocation.height);
-#endif
+#endif // GTK_CHECK_VERSION (3,0,0)
   if (!V4L_ui_cb_data_p->pixelBuffer)
   { // *NOTE*: most probable reason: window is not mapped
     ACE_DEBUG ((LM_ERROR,
@@ -2865,7 +2867,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
   (*iterator_4).second.second->pixelBuffer = V4L_ui_cb_data_p->pixelBuffer;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // step11: select default capture source (if any)
   //         --> populate the option-comboboxes
@@ -7947,9 +7949,9 @@ drawingarea_video_resize_end (gpointer userData_in)
     }
   } // end SWITCH
 #else
-//  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
-//    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
-//  stream_p = ui_cb_data_p->videoStream;
+  struct Test_I_Source_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L_UI_CBData*> (ui_cb_data_base_p);
+  stream_p = ui_cb_data_p->stream;
 //  ACE_ASSERT (ui_cb_data_p->configuration);
 //  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
 //    ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -7970,12 +7972,12 @@ drawingarea_video_resize_end (gpointer userData_in)
 //      allocation_s.height;
 //  (*iterator_3).second.second->outputFormat.video.format.width =
 //      allocation_s.width;
-//
-//  if (!ui_cb_data_p->videoStream->isRunning ())
-//    return G_SOURCE_REMOVE;
-//
-//  module_name =
-//    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING);
+
+  if (!ui_cb_data_p->stream->isRunning ())
+    return G_SOURCE_REMOVE;
+
+  module_name =
+    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
   ACE_ASSERT (stream_p);
@@ -8034,7 +8036,7 @@ drawingarea_video_resize_end (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  ui_cb_data_p->videoStream->control (STREAM_CONTROL_RESIZE, false);
+  ui_cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_DEBUG ((LM_DEBUG,

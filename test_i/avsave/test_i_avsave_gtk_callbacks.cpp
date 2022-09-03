@@ -4556,7 +4556,7 @@ button_cut_clicked_cb (GtkButton* button_in,
   cb_data_p->videoStream->control (STREAM_CONTROL_STEP,
                               false);
 #endif
-} // action_cut_activate_cb
+} // button_cut_clicked_cb
 
 void
 button_report_clicked_cb (GtkButton* button_in,

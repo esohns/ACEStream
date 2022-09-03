@@ -1139,12 +1139,12 @@ Test_I_Target_TCPStream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
   //Test_I_Target_Module_AVIDecoder_Module            decoder_;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Target_StatisticReport_Module (this,
-                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
-                  false);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
+//  ACE_NEW_RETURN (module_p,
+//                  Test_I_Target_StatisticReport_Module (this,
+//                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+//                  false);
+//  layout_in->append (module_p, NULL, 0);
+//  module_p = NULL;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
@@ -1284,12 +1284,12 @@ Test_I_Target_UDPStream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
   //Test_I_Target_Module_AVIDecoder_Module            decoder_;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Target_StatisticReport_Module (this,
-                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
-                  false);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
+//  ACE_NEW_RETURN (module_p,
+//                  Test_I_Target_StatisticReport_Module (this,
+//                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+//                  false);
+//  layout_in->append (module_p, NULL, 0);
+//  module_p = NULL;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,

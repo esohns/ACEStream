@@ -23,7 +23,7 @@
 
 #include "gtk/gtk.h"
 
-#define TEST_I_DEFAULT_OUTPUT_FILE             "output.tmp"
+#define TEST_I_DEFAULT_OUTPUT_FILE             "output.wav"
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -66,7 +66,7 @@
 #define TEST_I_UI_GTK_FILEFILTER_WAV_NAME              "filefilter_wav"
 #define TEST_I_UI_GTK_FRAME_DISPLAY_NAME               "frame_display"
 #define TEST_I_UI_GTK_FRAME_SAVE_NAME                  "frame_save"
-#define TEST_I_UI_GTK_FRAME_VIDEO_NAME                 "frame_video"
+#define TEST_I_UI_GTK_FRAME_SOURCE_NAME                "frame_source"
 #define TEST_I_UI_GTK_LISTSTORE_ADAPTER_NAME           "liststore_adapter"
 #define TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME           "liststore_display"
 #define TEST_I_UI_GTK_LISTSTORE_STREAM_NAME            "liststore_stream"

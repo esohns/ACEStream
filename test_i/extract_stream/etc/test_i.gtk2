@@ -56,7 +56,12 @@
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkFileFilter" id="filefilter_avi"/>
+  <object class="GtkAdjustment" id="adjustment5">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkFileFilter" id="filefilter_wav"/>
   <object class="GtkFileChooserDialog" id="filechooserdialog_save">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -65,7 +70,7 @@
     <property name="modal">True</property>
     <property name="type_hint">dialog</property>
     <property name="action">select-folder</property>
-    <property name="filter">filefilter_avi</property>
+    <property name="filter">filefilter_wav</property>
     <property name="local_only">False</property>
     <property name="preview_widget_active">False</property>
     <property name="show_hidden">True</property>
@@ -107,42 +112,6 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkListStore" id="liststore_audio_format">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name GUID -->
-      <column type="gchararray"/>
-      <!-- column-name value -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_audio_resolution">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name value -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_audio_samplerate">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name value -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_audio_source">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name device -->
-      <column type="gchararray"/>
-      <!-- column-name card -->
-      <column type="guint"/>
-    </columns>
-  </object>
   <object class="GtkListStore" id="liststore_display">
     <columns>
       <!-- column-name text -->
@@ -151,43 +120,13 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkListStore" id="liststore_video_format">
+  <object class="GtkListStore" id="liststore_stream">
     <columns>
       <!-- column-name text -->
       <column type="gchararray"/>
-      <!-- column-name GUID -->
-      <column type="gchararray"/>
-      <!-- column-name value -->
+      <!-- column-name index -->
       <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_video_framerate">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name numerator -->
-      <column type="guint"/>
-      <!-- column-name denominator -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_video_resolution">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name width -->
-      <column type="guint"/>
-      <!-- column-name height -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_video_source">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name device -->
-      <column type="gchararray"/>
-      <!-- column-name card -->
+      <!-- column-name codec_id -->
       <column type="guint"/>
     </columns>
   </object>
@@ -269,16 +208,17 @@
                             <property name="can_focus">False</property>
                             <property name="layout_style">spread</property>
                             <child>
-                              <object class="GtkToggleButton" id="togglebutton_record">
-                                <property name="label">gtk-media-record</property>
+                              <object class="GtkToggleButton" id="togglebutton_play">
+                                <property name="label">gtk-media-play</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="tooltip_text" translatable="yes">start recording</property>
+                                <property name="tooltip_markup">start</property>
+                                <property name="tooltip_text" translatable="yes">start</property>
                                 <property name="relief">half</property>
                                 <property name="use_stock">True</property>
                                 <property name="focus_on_click">False</property>
-                                <signal name="toggled" handler="togglebutton_record_toggled_cb" swapped="no"/>
+                                <signal name="toggled" handler="togglebutton_play_toggled_cb" swapped="no"/>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -443,23 +383,27 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <child>
-                          <object class="GtkFrame" id="frame_audio">
+                          <object class="GtkFrame" id="frame_source">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="label_xalign">0</property>
                             <child>
-                              <object class="GtkVBox" id="vbox11">
+                              <object class="GtkVBox" id="vbox12">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <child>
-                                  <object class="GtkComboBox" id="combobox_audio_source">
+                                  <object class="GtkFileChooserButton" id="filechooserbutton_source">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="tooltip_text" translatable="yes">audio source</property>
-                                    <property name="model">liststore_audio_source</property>
-                                    <property name="has_frame">False</property>
+                                    <property name="tooltip_markup">source file</property>
+                                    <property name="tooltip_text" translatable="yes">source file</property>
+                                    <property name="create_folders">False</property>
+                                    <property name="local_only">False</property>
+                                    <property name="preview_widget_active">False</property>
+                                    <property name="show_hidden">True</property>
+                                    <property name="use_preview_label">False</property>
                                     <property name="focus_on_click">False</property>
-                                    <signal name="changed" handler="combobox_audio_source_changed_cb" swapped="no"/>
+                                    <signal name="file-set" handler="filechooserbutton_source_file_set_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
@@ -468,18 +412,17 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkVBox" id="vbox6">
+                                  <object class="GtkVBox" id="vbox7">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <child>
-                                      <object class="GtkComboBox" id="combobox_audio_format">
+                                      <object class="GtkComboBox" id="combobox_stream">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="tooltip_text" translatable="yes">audio format</property>
-                                        <property name="model">liststore_audio_format</property>
-                                        <property name="has_frame">False</property>
-                                        <property name="focus_on_click">False</property>
-                                        <signal name="changed" handler="combobox_audio_format_changed_cb" swapped="no"/>
+                                        <property name="tooltip_markup">stream</property>
+                                        <property name="tooltip_text" translatable="yes">stream</property>
+                                        <property name="model">liststore_stream</property>
+                                        <signal name="changed" handler="combobox_stream_changed_cb" swapped="no"/>
                                       </object>
                                       <packing>
                                         <property name="expand">True</property>
@@ -488,33 +431,55 @@
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkComboBox" id="combobox_audio_samplerate">
+                                      <object class="GtkHBox" id="hbox5">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="tooltip_text" translatable="yes">audio samplerate</property>
-                                        <property name="model">liststore_audio_samplerate</property>
-                                        <property name="has_frame">False</property>
-                                        <property name="focus_on_click">False</property>
-                                        <signal name="changed" handler="combobox_audio_samplerate_changed_cb" swapped="no"/>
+                                        <child>
+                                          <object class="GtkToggleButton" id="togglebutton_slow">
+                                            <property name="label" translatable="yes">_Slow</property>
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="receives_default">True</property>
+                                            <property name="tooltip_markup">slow down ?</property>
+                                            <property name="tooltip_text" translatable="yes">slow down ?</property>
+                                            <property name="relief">half</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="focus_on_click">False</property>
+                                            <signal name="toggled" handler="togglebutton_slow_toggled_cb" swapped="no"/>
+                                          </object>
+                                          <packing>
+                                            <property name="expand">False</property>
+                                            <property name="fill">True</property>
+                                            <property name="position">0</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkSpinButton" id="spinbutton_slow">
+                                            <property name="visible">True</property>
+                                            <property name="sensitive">False</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="tooltip_markup">slowdown (%)</property>
+                                            <property name="tooltip_text" translatable="yes">slowdown (%)</property>
+                                            <property name="has_frame">False</property>
+                                            <property name="invisible_char">●</property>
+                                            <property name="primary_icon_activatable">False</property>
+                                            <property name="secondary_icon_activatable">False</property>
+                                            <property name="primary_icon_sensitive">True</property>
+                                            <property name="secondary_icon_sensitive">True</property>
+                                            <property name="adjustment">adjustment5</property>
+                                            <property name="numeric">True</property>
+                                          </object>
+                                          <packing>
+                                            <property name="expand">True</property>
+                                            <property name="fill">True</property>
+                                            <property name="position">1</property>
+                                          </packing>
+                                        </child>
                                       </object>
                                       <packing>
                                         <property name="expand">True</property>
                                         <property name="fill">True</property>
                                         <property name="position">1</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkComboBox" id="combobox_audio_resolution">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="tooltip_text" translatable="yes">audio resolution</property>
-                                        <property name="model">liststore_audio_resolution</property>
-                                        <signal name="changed" handler="combobox_audio_resolution_changed_cb" swapped="no"/>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">True</property>
-                                        <property name="fill">True</property>
-                                        <property name="position">2</property>
                                       </packing>
                                     </child>
                                   </object>
@@ -537,94 +502,6 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkFrame" id="frame_video">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="label_xalign">0</property>
-                            <child>
-                              <object class="GtkVBox" id="vbox12">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <child>
-                                  <object class="GtkComboBox" id="combobox_video_source">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="tooltip_text" translatable="yes">video source</property>
-                                    <property name="model">liststore_video_source</property>
-                                    <signal name="changed" handler="combobox_video_source_changed_cb" swapped="no"/>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">True</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkVBox" id="vbox7">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <child>
-                                      <object class="GtkComboBox" id="combobox_video_format">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="tooltip_text" translatable="yes">video format</property>
-                                        <property name="model">liststore_video_format</property>
-                                        <signal name="changed" handler="combobox_video_format_changed_cb" swapped="no"/>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">True</property>
-                                        <property name="fill">True</property>
-                                        <property name="position">0</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkComboBox" id="combobox_video_resolution">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="tooltip_text" translatable="yes">video resolution</property>
-                                        <property name="model">liststore_video_resolution</property>
-                                        <signal name="changed" handler="combobox_video_resolution_changed_cb" swapped="no"/>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">True</property>
-                                        <property name="fill">True</property>
-                                        <property name="position">1</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkComboBox" id="combobox_video_framerate">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="tooltip_text" translatable="yes">video framerate</property>
-                                        <property name="model">liststore_video_framerate</property>
-                                        <signal name="changed" handler="combobox_video_framerate_changed_cb" swapped="no"/>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">True</property>
-                                        <property name="fill">True</property>
-                                        <property name="position">2</property>
-                                      </packing>
-                                    </child>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">True</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
-                              </object>
-                            </child>
-                            <child type="label_item">
-                              <placeholder/>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
-                        <child>
                           <object class="GtkFrame" id="frame_save">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
@@ -643,6 +520,7 @@
                                     <property name="relief">half</property>
                                     <property name="use_stock">True</property>
                                     <property name="focus_on_click">False</property>
+                                    <property name="active">True</property>
                                     <signal name="toggled" handler="togglebutton_save_toggled_cb" swapped="no"/>
                                   </object>
                                   <packing>
@@ -662,7 +540,7 @@
                                         <property name="tooltip_text" translatable="yes">filename</property>
                                         <property name="has_frame">False</property>
                                         <property name="invisible_char">●</property>
-                                        <property name="text" translatable="yes">output.avi</property>
+                                        <property name="text" translatable="yes">output.wav</property>
                                         <property name="primary_icon_stock">gtk-save</property>
                                         <property name="primary_icon_activatable">False</property>
                                         <property name="secondary_icon_activatable">False</property>
@@ -681,7 +559,7 @@
                                         <property name="can_focus">False</property>
                                         <property name="tooltip_text" translatable="yes">file directory</property>
                                         <property name="action">select-folder</property>
-                                        <property name="filter">filefilter_avi</property>
+                                        <property name="filter">filefilter_wav</property>
                                         <property name="local_only">False</property>
                                         <property name="preview_widget_active">False</property>
                                         <property name="show_hidden">True</property>
@@ -713,7 +591,7 @@
                           <packing>
                             <property name="expand">True</property>
                             <property name="fill">True</property>
-                            <property name="position">2</property>
+                            <property name="position">1</property>
                           </packing>
                         </child>
                         <child>
@@ -826,7 +704,7 @@
                           <packing>
                             <property name="expand">True</property>
                             <property name="fill">True</property>
-                            <property name="position">3</property>
+                            <property name="position">2</property>
                           </packing>
                         </child>
                       </object>

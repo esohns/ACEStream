@@ -164,7 +164,7 @@ struct Test_I_ExtractStream_ModuleHandlerConfiguration
 #if defined (FFMPEG_SUPPORT)
    , codecId (AV_CODEC_ID_NONE)
 #endif // FFMPEG_SUPPORT
-   , effect (ACE_TEXT_ALWAYS_CHAR ("tempo"))
+   , effect (ACE_TEXT_ALWAYS_CHAR ("tempo")) // preserve pitch
    , effectOptions ()
    , manageSoX (true)
    , outputFormat ()

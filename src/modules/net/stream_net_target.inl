@@ -596,8 +596,8 @@ continue_:
 
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
-      typename SessionMessageType::DATA_T* session_data_container_p =
-        inherited::sessionData_;
+//      typename SessionMessageType::DATA_T* session_data_container_p =
+//        inherited::sessionData_;
 
       ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
 

@@ -490,11 +490,14 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
    , connectionManager (NULL)
    , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , outputFormat ()
-   //, sourceFormat ()
+#if defined (GTK_SUPPORT)
+   , pixelBuffer (NULL)
+   , pixelBufferLock (NULL)
+#endif // GTK_SUPPORT
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , streamConfiguration (NULL)
    , subscriber (NULL)
-   , subscribers (NULL)
+//   , subscribers (NULL)
 #if defined (GUI_SUPPORT)
    , window (NULL)
 #endif // GUI_SUPPORT
@@ -505,30 +508,32 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
   }
 
 #if defined (GUI_SUPPORT)
-  struct v4l2_rect                              area;
+  struct v4l2_rect                                   area;
 #endif // GUI_SUPPORT
-  __u32                                         buffers; // v4l device buffers
-  Net_IINETConnection_t*                        connection; // TCP target/IO module
-  Net_ConnectionConfigurations_t*               connectionConfigurations;
-  Test_I_Source_V4L_TCPConnectionManager_t*     connectionManager; // TCP IO module
-  enum v4l2_memory                              method; // v4l2 camera source
+  __u32                                              buffers; // v4l device buffers
+  Net_IINETConnection_t*                             connection; // TCP target/IO module
+  Net_ConnectionConfigurations_t*                    connectionConfigurations;
+  Test_I_Source_V4L_TCPConnectionManager_t*          connectionManager; // TCP IO module
+  enum v4l2_memory                                   method; // v4l2 camera source
   struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat; // display module
-  //struct Stream_MediaFramework_V4L_MediaType     sourceFormat; // source module
-  ACE_Time_Value                                statisticCollectionInterval;
+#if defined (GTK_SUPPORT)
+  GdkPixbuf*                                         pixelBuffer;
+  ACE_SYNCH_MUTEX*                                   pixelBufferLock;
+#endif // GTK_SUPPORT
+  ACE_Time_Value                                     statisticCollectionInterval;
   // *TODO*: remove this ASAP
-  Test_I_Source_V4L_StreamConfiguration_t*      streamConfiguration;
-  Test_I_Source_V4L_ISessionNotify_t*           subscriber;
-  Test_I_Source_V4L_Subscribers_t*              subscribers;
+  Test_I_Source_V4L_StreamConfiguration_t*           streamConfiguration;
+  Test_I_Source_V4L_ISessionNotify_t*                subscriber;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  GdkWindow*                                    window;
+  GdkWindow*                                         window;
 #elif defined (WXWIDGETS_USE)
-  wxWindow*                                     window;
+  wxWindow*                                          window;
 #elif defined (QT_USE)
-  XID                                           window;
+  XID                                                window;
 #else
-  void*                                         window;
-#endif
+  void*                                              window;
+#endif // GTK_USE || WXWIDGETS_USE || QT_USE
 #endif // GUI_SUPPORT
 };
 #endif // ACE_WIN32 || ACE_WIN64
@@ -849,17 +854,22 @@ struct Test_I_Source_V4L_UI_CBData
    : Test_I_CamStream_UI_CBData ()
    , configuration (NULL)
    , fileDescriptor (-1)
+#if defined (GTK_SUPPORT)
+   , pixelBuffer (NULL)
+   , pixelBufferLock ()
+#endif // GTK_SUPPORT
    , stream (NULL)
-   , subscribers ()
-   , subscribersLock ()
+//   , subscribers ()
    , UDPStream (NULL)
   {}
 
   struct Test_I_Source_V4L_Configuration* configuration;
   int                                     fileDescriptor; // (capture) device file descriptor
+#if defined (GTK_SUPPORT)
+  GdkPixbuf*                              pixelBuffer;
+  ACE_SYNCH_MUTEX                         pixelBufferLock;
+#endif // GTK_SUPPORT
   Test_I_Source_V4L_StreamBase_t*         stream;
-  Test_I_Source_V4L_Subscribers_t         subscribers;
-  ACE_SYNCH_RECURSIVE_MUTEX               subscribersLock;
   Test_I_Source_V4L_StreamBase_t*         UDPStream;
 };
 #endif // ACE_WIN32 || ACE_WIN64

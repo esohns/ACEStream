@@ -207,9 +207,9 @@ stream_processing_function (void* arg_in)
   GtkProgressBar* progress_bar_p = NULL;
   GtkStatusbar* statusbar_p = NULL;
   std::ostringstream converter;
-  Stream_IStreamControlBase* stream_p = NULL, *stream_2 = NULL;
-  Stream_Module_t* module_p = NULL;
-  bool result_2 = false;
+  Stream_IStreamControlBase* stream_p = NULL;
+//  Stream_Module_t* module_p = NULL;
+//  bool result_2 = false;
 
   struct Test_I_ExtractStream_UI_CBData* cb_data_p =
     static_cast<struct Test_I_ExtractStream_UI_CBData*> (thread_data_p->CBData);
@@ -925,7 +925,7 @@ idle_session_end_cb (gpointer userData_in)
 
   GtkFrame* frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_VIDEO_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SOURCE_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
   frame_p =
@@ -1509,6 +1509,11 @@ togglebutton_play_toggled_cb (GtkToggleButton* toggleButton_in,
     cb_data_p->configuration->streamConfiguration.configuration_->slowDown = -1;
 
   GtkEntry* entry_p = NULL;
+  filename_string.clear ();
+  toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME)));
+  ACE_ASSERT (toggle_button_p);
   if (!gtk_toggle_button_get_active (toggle_button_p))
     goto continue_;
   file_chooser_button_p =
@@ -1619,7 +1624,7 @@ continue_:
 
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_VIDEO_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SOURCE_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
   frame_p =
