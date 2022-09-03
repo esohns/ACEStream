@@ -26,6 +26,13 @@
 #include <set>
 #include <sstream>
 
+#ifdef __cplusplus
+extern "C"
+{
+#include "libavformat/avformat.h"
+}
+#endif /* __cplusplus */
+
 #include "ace/config-lite.h"
 
 #include "gdk/gdkkeysyms.h"
@@ -55,33 +62,6 @@
 
 // global variables
 bool un_toggling_stream = false;
-
-//int
-//dirent_selector (const dirent* dirEntry_in)
-//{
-//  // *IMPORTANT NOTE*: select all files
-//
-//  // sanity check --> ignore dot/double-dot
-//  if (ACE_OS::strncmp (dirEntry_in->d_name,
-//                       ACE_TEXT_ALWAYS_CHAR ("video"),
-//                       ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR ("video"))) != 0)
-//  {
-////     ACE_DEBUG ((LM_DEBUG,
-////                 ACE_TEXT ("ignoring \"%s\"...\n"),
-////                 ACE_TEXT (dirEntry_in->d_name)));
-//    return 0;
-//  } // end IF
-//
-//  return 1;
-//}
-//
-//int
-//dirent_comparator (const dirent** d1,
-//                   const dirent** d2)
-//{
-//  return ACE_OS::strcmp ((*d1)->d_name,
-//                         (*d2)->d_name);
-//}
 
 bool
 load_display_adapters (GtkListStore* listStore_in)
@@ -138,6 +118,63 @@ load_display_devices (GtkListStore* listStore_in)
   } // end FOR
 
   return true;
+}
+
+void
+load_media_streams (const std::string& filename_in,
+                    GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_media_streams"));
+
+  // sanity check(s)
+  ACE_ASSERT (listStore_in);
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  GtkTreeIter iterator;
+  struct AVFormatContext* context_p = avformat_alloc_context ();
+  if (unlikely (!context_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to avformat_alloc_context(): \"%m\", returning\n")));
+    return;
+  } // end IF
+  int result =
+    avformat_open_input (&context_p,
+                         filename_in.c_str (),
+                         NULL,
+                         NULL);
+  if (unlikely (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to avformat_open_input(\"%s\"): \"%m\", returning\n"),
+                ACE_TEXT (filename_in.c_str ())));
+    avformat_free_context (context_p);
+    return;
+  } // end IF
+  result = avformat_find_stream_info (context_p,
+                                      NULL);
+  if (unlikely (result < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to avformat_find_stream_info(\"%s\"): \"%m\", returning\n"),
+                ACE_TEXT (filename_in.c_str ())));
+    avformat_free_context (context_p);
+    return;
+  } // end IF
+  for (unsigned int i = 0;
+       i < context_p->nb_streams;
+       ++i)
+  {
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, avcodec_get_name (context_p->streams[i]->codecpar->codec_id),
+                        1, i,
+                        2, context_p->streams[i]->codecpar->codec_id,
+                        -1);
+  } // end FOR
+  avformat_free_context (context_p); context_p = NULL;
 }
 
 //////////////////////////////////////////
@@ -359,6 +396,34 @@ idle_initialize_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
 
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_STREAM_NAME)));
+  ACE_ASSERT (list_store_p);
+  gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
+                                        1, GTK_SORT_ASCENDING);
+  GtkComboBox* combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_STREAM_NAME)));
+  ACE_ASSERT (combo_box_p);
+  GtkCellRenderer* cell_renderer_p = gtk_cell_renderer_text_new ();
+  if (!cell_renderer_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p),
+                              cell_renderer_p,
+                              true);
+  // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
+  //         is GInitiallyUnowned and the floating reference has been
+  //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p),
+                                  cell_renderer_p,
+                                  "text", 0,
+                                  NULL);
+
   GtkEntry* entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_SAVE_NAME)));
@@ -448,7 +513,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 //  gtk_toggle_button_set_active (toggle_button_p,
 //                                is_display_b);
 
-  GtkListStore* list_store_p =
+  list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_ADAPTER_NAME)));
   ACE_ASSERT (list_store_p);
@@ -460,11 +525,11 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end IF
   gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
                                         1, GTK_SORT_DESCENDING);
-  GtkComboBox* combo_box_p =
+  combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_ADAPTER_NAME)));
   ACE_ASSERT (combo_box_p);
-  GtkCellRenderer* cell_renderer_p = gtk_cell_renderer_text_new ();
+  cell_renderer_p = gtk_cell_renderer_text_new ();
   if (!cell_renderer_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -1411,7 +1476,6 @@ togglebutton_play_toggled_cb (GtkToggleButton* toggleButton_in,
   gtk_widget_set_sensitive (GTK_WIDGET (progress_bar_p), TRUE);
 
   // step2: update configuration
-  // *NOTE*: the source device configuration is kept up-to-date automatically
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME)));
@@ -1427,6 +1491,22 @@ togglebutton_play_toggled_cb (GtkToggleButton* toggleButton_in,
     gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (file_chooser_button_p));
   ACE_ASSERT (Common_File_Tools::isReadable (filename_string));
   (*stream_iterator).second.second->fileIdentifier.identifier = filename_string;
+
+  toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_SLOW_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  if (gtk_toggle_button_get_active (toggle_button_p))
+  {
+    GtkSpinButton* spin_button_p =
+      GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_SLOW_NAME)));
+    ACE_ASSERT (spin_button_p);
+    cb_data_p->configuration->streamConfiguration.configuration_->slowDown =
+      gtk_spin_button_get_value_as_int (spin_button_p);
+  } // end IF
+  else
+    cb_data_p->configuration->streamConfiguration.configuration_->slowDown = -1;
 
   GtkEntry* entry_p = NULL;
   if (!gtk_toggle_button_get_active (toggle_button_p))
@@ -1562,6 +1642,28 @@ error:
   //gtk_widget_set_sensitive (GTK_WIDGET (frame_p),
   //                          true);
 } // toggleaction_play_toggled_cb
+
+void
+togglebutton_slow_toggled_cb (GtkToggleButton* toggleButton_in,
+                              gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::togglebutton_slow_toggled_cb"));
+
+  // sanity check(s)
+  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  Common_UI_GTK_BuildersIterator_t iterator =
+    cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
+  GtkSpinButton* spin_button_p =
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_SLOW_NAME)));
+  ACE_ASSERT (spin_button_p);
+  
+  gtk_widget_set_sensitive (GTK_WIDGET (spin_button_p),
+                            gtk_toggle_button_get_active (toggleButton_in));
+} // toggleaction_save_toggled_cb
 
 void
 togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
@@ -1873,6 +1975,60 @@ button_quit_clicked_cb (GtkButton* button_in,
                 ACE_TEXT ("failed to ACE_OS::raise(%S): \"%m\", continuing\n"),
                 SIGINT));
 } // button_quit_clicked_cb
+
+void
+combobox_stream_changed_cb (GtkWidget* widget_in,
+                            gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::combobox_stream_changed_cb"));
+
+  // sanity check(s)
+  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  Common_UI_GTK_BuildersIterator_t iterator =
+    cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
+  ACE_ASSERT (cb_data_p->configuration);
+  Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T stream_iterator =
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_p->configuration->streamConfiguration.end ());
+
+  GtkTreeIter iterator_4;
+  gboolean result = gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                                   &iterator_4);
+  ACE_ASSERT (result);
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_STREAM_NAME)));
+  ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION (2,30,0)
+  GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+#endif // GTK_CHECK_VERSION (2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
+  GValue value_2 = G_VALUE_INIT;
+#else
+  GValue value_2;
+  ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
+#endif // GTK_CHECK_VERSION (2,30,0)
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_4,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
+  (*stream_iterator).second.second->streamIndex =
+    static_cast<int> (g_value_get_uint (&value));
+  g_value_unset (&value);
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_4,
+                            2, &value_2);
+  ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
+  (*stream_iterator).second.second->codecId =
+    static_cast<enum AVCodecID> (g_value_get_uint (&value_2));
+  g_value_unset (&value_2);
+} // combobox_stream_changed_cb
 
 void
 combobox_display_changed_cb (GtkWidget* widget_in,
@@ -2543,24 +2699,20 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 //} // drawingarea_video_size_allocate_cb
 
 void
-filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
-                      gpointer userData_in)
+filechooserbutton_source_file_set_cb (GtkFileChooserButton* fileChooserButton_in,
+                                      gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_cb"));
+  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_source_file_set_cb"));
 
   // sanity check(s)
   ACE_ASSERT (fileChooserButton_in);
   struct Test_I_ExtractStream_UI_CBData* cb_data_p =
     static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
   ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->UIState);
   Common_UI_GTK_BuildersIterator_t iterator =
     cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
-  ACE_ASSERT (cb_data_p->configuration);
-  Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T stream_iterator =
-    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != cb_data_p->configuration->streamConfiguration.end ());
-
   GFile* file_p =
     gtk_file_chooser_get_file (GTK_FILE_CHOOSER (fileChooserButton_in));
   if (!file_p)
@@ -2587,17 +2739,14 @@ filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
   } // end IF
   g_free (string_p); string_p = NULL;
 
-  GtkEntry* entry_p =
-    GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_SAVE_NAME)));
-  ACE_ASSERT (entry_p);
-  const gchar* string_2 = gtk_entry_get_text (entry_p);
-  filename_string += ACE_DIRECTORY_SEPARATOR_STR;
-  filename_string += Common_UI_GTK_Tools::UTF8ToLocale (string_2, -1);
-
-  (*stream_iterator).second.second->targetFileName =
-    filename_string;
-} // filechooserbutton_cb
+  // populate stream combobox
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_STREAM_NAME)));
+  ACE_ASSERT (list_store_p);
+  load_media_streams (filename_string,
+                      list_store_p);
+} // filechooserbutton_source_file_set_cb
 
 //void
 //filechooserdialog_cb (GtkFileChooser* fileChooser_in,
@@ -2671,15 +2820,15 @@ key_cb (GtkWidget* widget_in,
   return TRUE; // done (do not propagate further)
 } // key_cb
 
-gboolean
-drawingarea_audio_key_press_event_cb (GtkWidget* widget_in,
-                                      GdkEventKey* eventKey_in,
-                                      gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_key_press_event_cb"));
-
-  return key_cb (widget_in, eventKey_in, userData_in);
-} // drawingarea_audio_key_press_event_cb
+//gboolean
+//drawingarea_audio_key_press_event_cb (GtkWidget* widget_in,
+//                                      GdkEventKey* eventKey_in,
+//                                      gpointer userData_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_key_press_event_cb"));
+//
+//  return key_cb (widget_in, eventKey_in, userData_in);
+//} // drawingarea_audio_key_press_event_cb
 
 gboolean
 dialog_main_key_press_event_cb (GtkWidget* widget_in,

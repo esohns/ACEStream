@@ -49,26 +49,25 @@ G_MODULE_EXPORT void togglebutton_display_toggled_cb (GtkToggleButton*, gpointer
 G_MODULE_EXPORT void togglebutton_fullscreen_toggled_cb (GtkToggleButton*, gpointer);
 G_MODULE_EXPORT void togglebutton_play_toggled_cb (GtkToggleButton*, gpointer);
 G_MODULE_EXPORT void togglebutton_save_toggled_cb (GtkToggleButton*, gpointer);
-
+G_MODULE_EXPORT void togglebutton_slow_toggled_cb (GtkToggleButton*, gpointer);
 G_MODULE_EXPORT void button_about_clicked_cb (GtkButton*, gpointer);
 G_MODULE_EXPORT void button_quit_clicked_cb (GtkButton*, gpointer);
-G_MODULE_EXPORT void combobox_video_source_changed_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT void combobox_video_format_changed_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT void combobox_video_resolution_changed_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT void combobox_video_framerate_changed_cb (GtkWidget*, gpointer);
-//G_MODULE_EXPORT gboolean dialog_main_key_press_event_cb (GtkWidget*, GdkEventKey*, gpointer);
+G_MODULE_EXPORT void combobox_display_changed_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void combobox_stream_changed_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT gboolean dialog_main_key_press_event_cb (GtkWidget*, GdkEventKey*, gpointer);
 //G_MODULE_EXPORT void drawingarea_configure_event_cb (GtkWindow*, GdkEvent*, gpointer);
-#if GTK_CHECK_VERSION (3,0,0)
-G_MODULE_EXPORT gboolean drawingarea_audio_draw_cb (GtkWidget*, cairo_t*, gpointer);
-G_MODULE_EXPORT gboolean drawingarea_video_draw_cb (GtkWidget*, cairo_t*, gpointer);
-#else
-G_MODULE_EXPORT gboolean drawingarea_audio_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
-G_MODULE_EXPORT gboolean drawingarea_video_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
-#endif // GTK_CHECK_VERSION (3,0,0)
-G_MODULE_EXPORT void drawingarea_audio_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
-G_MODULE_EXPORT void drawingarea_video_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
-G_MODULE_EXPORT gboolean drawingarea_audio_key_press_event_cb (GtkWidget*, GdkEventKey*, gpointer);
+//#if GTK_CHECK_VERSION (3,0,0)
+//G_MODULE_EXPORT gboolean drawingarea_audio_draw_cb (GtkWidget*, cairo_t*, gpointer);
+//G_MODULE_EXPORT gboolean drawingarea_video_draw_cb (GtkWidget*, cairo_t*, gpointer);
+//#else
+//G_MODULE_EXPORT gboolean drawingarea_audio_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
+//G_MODULE_EXPORT gboolean drawingarea_video_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
+//#endif // GTK_CHECK_VERSION (3,0,0)
+//G_MODULE_EXPORT void drawingarea_audio_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
+//G_MODULE_EXPORT void drawingarea_video_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
+//G_MODULE_EXPORT gboolean drawingarea_audio_key_press_event_cb (GtkWidget*, GdkEventKey*, gpointer);
 //G_MODULE_EXPORT gboolean key_cb (GtkWidget*, GdkEventKey*, gpointer);
+G_MODULE_EXPORT void filechooserbutton_source_file_set_cb (GtkFileChooserButton*, gpointer);
 //G_MODULE_EXPORT void filechooserbutton_save_cb (GtkFileChooserButton*, gpointer);
 //G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
 #ifdef __cplusplus

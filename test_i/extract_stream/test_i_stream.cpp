@@ -101,12 +101,28 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
 
-  ACE_NEW_RETURN (module_p,
-                  Test_I_AudioTagger_Module (this,
-                                             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING)),
-                  false);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
+  if (inherited::configuration_->configuration_->slowDown != -1)
+  {
+    ACE_NEW_RETURN (module_p,
+                    Test_I_AudioEffect_Module (this,
+                                               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
+                    false);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+
+    (*iterator).second.second->effectOptions.clear ();
+    (*iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-m")); // optimize for music
+    std::ostringstream converter;
+    converter << static_cast<float> (inherited::configuration_->configuration_->slowDown) / 100.0;
+    (*iterator).second.second->effectOptions.push_back (converter.str ());
+
+   ACE_NEW_RETURN (module_p,
+                   Test_I_AudioTagger_Module (this,
+                                              ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING)),
+                   false);
+   layout_in->append (module_p, NULL, 0);
+   module_p = NULL;
+  } // end IF
 
   ACE_NEW_RETURN (module_p,
                   Test_I_Distributor_Module (this,

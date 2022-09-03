@@ -164,7 +164,11 @@ struct Test_I_ExtractStream_ModuleHandlerConfiguration
 #if defined (FFMPEG_SUPPORT)
    , codecId (AV_CODEC_ID_NONE)
 #endif // FFMPEG_SUPPORT
+   , effect (ACE_TEXT_ALWAYS_CHAR ("tempo"))
+   , effectOptions ()
+   , manageSoX (true)
    , outputFormat ()
+   , streamIndex (-1)
    , subscriber (NULL)
    , targetFileName ()
   {}
@@ -172,7 +176,11 @@ struct Test_I_ExtractStream_ModuleHandlerConfiguration
 #if defined (FFMPEG_SUPPORT)
   enum AVCodecID                                codecId;
 #endif // FFMPEG_SUPPORT
+  std::string                                   effect;
+  std::vector<std::string>                      effectOptions;
+  bool                                          manageSoX;
   struct Stream_MediaFramework_FFMPEG_MediaType outputFormat;
+  int                                           streamIndex;
   Test_I_ISessionNotify_t*                      subscriber;
   std::string                                   targetFileName;
 };
@@ -200,9 +208,12 @@ struct Test_I_ExtractStream_StreamConfiguration
 {
   Test_I_ExtractStream_StreamConfiguration ()
    : Stream_Configuration ()
+   , slowDown (-1)
   {
     printFinalReport = true;
   }
+
+  int slowDown;
 };
 
 typedef Stream_IStreamControl_T<enum Stream_ControlType,

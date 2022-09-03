@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <locale>
+
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
@@ -594,6 +596,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
           effect_options_string += *iterator;
           effect_options_string += ACE_TEXT_ALWAYS_CHAR (" ");
         } // end FOR
+        setlocale (LC_NUMERIC, ACE_TEXT_ALWAYS_CHAR ("C"));
         result = sox_effect_options (effect_p,
                                      index,
                                      effect_options_a);

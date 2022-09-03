@@ -1,4 +1,6 @@
 include (ffmpeg)
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
+include (sox)
 
 if (UNIX)
 # include (CheckLibraryExists)
@@ -13,6 +15,9 @@ string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 if (FFMPEG_SUPPORT)
  include_directories (${ffmpeg_INCLUDE_DIRS})
 endif (FFMPEG_SUPPORT)
+if (SOX_SUPPORT)
+ include_directories (${SOX_INCLUDE_DIRS})
+endif (SOX_SUPPORT)
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
@@ -117,6 +122,9 @@ endif (UNIX)
 if (FFMPEG_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)
+if (SOX_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
+endif (SOX_SUPPORT)
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
 target_link_libraries (${EXECUTABLE} PUBLIC Common)
@@ -230,10 +238,11 @@ elseif (WIN32)
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
+ file (TO_CMAKE_PATH "${SOX_LIB_DIR}" SOX_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
- #                          ${LIBPNG_PATH}
                            ${FFMPEG_PATH}
+                           ${SOX_PATH}
                            ${ACE_PATH})
 endif ()
 create_target_launcher (${EXECUTABLE}

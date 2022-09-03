@@ -123,7 +123,13 @@ Test_I_Decoder_T<ACE_SYNCH_USE,
   } // end IF
 
   context_ = avformat_alloc_context ();
-  ACE_ASSERT (context_);
+  if (unlikely (!context_))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to avformat_alloc_context(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -163,6 +169,7 @@ Test_I_Decoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::configuration_->fileIdentifier.identifierDiscriminator == Common_File_Identifier::FILE);
+  ACE_ASSERT (inherited::configuration_->streamIndex > -1);
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (context_);
 
@@ -173,11 +180,11 @@ Test_I_Decoder_T<ACE_SYNCH_USE,
   int message_type = -1;
   DataMessageType* message_p = NULL;
   bool stop_processing = false;
-  int stream_index_i = -1;
   struct AVPacket packet_s;
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (inherited::sessionData_->getR ());
   struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+  enum Stream_MediaType_Type message_media_type_s = STREAM_MEDIATYPE_INVALID;
 
   // read file
   result =
@@ -204,30 +211,36 @@ Test_I_Decoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (inherited::configuration_->fileIdentifier.identifier.c_str ())));
     return -1;
   } // end IF
-  for (int i = 0;
-       i < context_->nb_streams;
-       ++i)
-  {
-    if (context_->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
-    {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: audio stream uses codec %d \"%s\", continuing\n"),
-                  inherited::mod_->name (),
-                  context_->streams[i]->codecpar->codec_id, ACE_TEXT (avcodec_get_name (context_->streams[i]->codecpar->codec_id))));
-      stream_index_i = i;
-      media_type_s.audio.codec = context_->streams[i]->codecpar->codec_id;
-      break;
-    } // end IF
-  } // end FOR
-  if (stream_index_i == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: no audio stream in \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (inherited::configuration_->fileIdentifier.identifier.c_str ())));
-    return -1;
-  } // end IF
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: processing stream %d: codec %d \"%s\", continuing\n"),
+              inherited::mod_->name (),
+              inherited::configuration_->streamIndex,
+              context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id,
+              ACE_TEXT (avcodec_get_name (context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id))));
+  inherited::configuration_->codecId =
+    context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
+  media_type_s.audio.codec =
+    context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
   session_data_r.formats.push_back (media_type_s);
+  
+  switch (context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_type)
+  {
+    case AVMEDIA_TYPE_AUDIO:
+      message_media_type_s = STREAM_MEDIATYPE_AUDIO;
+      break;
+    case AVMEDIA_TYPE_VIDEO:
+      message_media_type_s = STREAM_MEDIATYPE_VIDEO;
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown codec type (was: %d), aborting\n"),
+                  inherited::mod_->name (),
+                  context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_type));
+      return -1;
+    }
+  } // end SWITCH
 
   do
   {
@@ -361,12 +374,21 @@ skip:
       inherited::stop (false, false, false);
       continue;
     } // end IF
-    if (packet_s.stream_index != stream_index_i)
+    if (packet_s.stream_index != inherited::configuration_->streamIndex)
       goto skip;
     result = message_p->copy (reinterpret_cast<char*> (packet_s.data),
                               packet_s.size);
-    ACE_ASSERT (result == 0);
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%u): \"%m\", aborting\n"),
+                  inherited::mod_->name (),
+                  packet_s.size));
+      message_p->release (); message_p = NULL;
+      inherited::stop (false, false, false);
+    } // end IF
     //message_p->wr_ptr (packet_s.size);
+    message_p->setMediaType (message_media_type_s);
     av_packet_unref (&packet_s);
 
     result = inherited::put_next (message_p, NULL);

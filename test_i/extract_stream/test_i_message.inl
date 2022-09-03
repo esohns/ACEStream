@@ -37,6 +37,7 @@ Test_I_Message_T<DataType>::Test_I_Message_T (Stream_SessionId_t sessionId_in,
 template <typename DataType>
 Test_I_Message_T<DataType>::Test_I_Message_T (const OWN_TYPE_T& message_in)
  : inherited (message_in)
+ , mediaType_ (message_in.mediaType_)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message_T::Test_I_Message_T"));
 
