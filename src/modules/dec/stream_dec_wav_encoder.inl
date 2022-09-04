@@ -18,7 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "stream_lib_common.h"
 #include <fstream>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -41,9 +40,12 @@
 
 #include "stream_macros.h"
 
+#include "stream_lib_common.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "stream_lib_alsa_tools.h"
+
+#include "stream_dec_defines.h"
 
 #if defined (SOX_SUPPORT)
 inline static sox_bool
@@ -437,7 +439,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
           sox_open_write (session_data_r.targetFileName.c_str (),
                           &signalInfo_,
                           &encodingInfo_,
-                          //ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_WAV_MediaType_STRING),
+//                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_WAV_STRING),
                           NULL,
                           &oob_data,
                           sox_overwrite_permitted);
