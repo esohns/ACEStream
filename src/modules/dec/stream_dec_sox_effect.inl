@@ -588,6 +588,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       } // end IF
       if (!inherited::configuration_->effectOptions.empty ())
       {
+        char* string_p = NULL;
         for (std::vector<std::string>::const_iterator iterator = inherited::configuration_->effectOptions.begin ();
              iterator != inherited::configuration_->effectOptions.end ();
              ++iterator, ++index)
@@ -596,7 +597,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
           effect_options_string += *iterator;
           effect_options_string += ACE_TEXT_ALWAYS_CHAR (" ");
         } // end FOR
-        setlocale (LC_NUMERIC, ACE_TEXT_ALWAYS_CHAR ("C"));
+        string_p = setlocale (LC_NUMERIC, ACE_TEXT_ALWAYS_CHAR ("C"));
+        ACE_ASSERT (string_p);
         // *IMPORTANT NOTE*: this uses strtod, which is locale-dependent
         result = sox_effect_options (effect_p,
                                      index,
@@ -609,9 +611,10 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
                       ACE_TEXT (inherited::configuration_->effect.c_str ()),
                       ACE_TEXT (sox_strerror (result))));
           // *TODO*: set locale back to what it was before
+          setlocale (LC_NUMERIC, string_p);
           goto error;
         } // end IF
-        // *TODO*: set locale back to what it was before
+        setlocale (LC_NUMERIC, string_p);
       } // end IF
       result = sox_add_effect (chain_,
                                effect_p,
