@@ -51,6 +51,7 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
                       MediaType>::Stream_Decoder_FAAD_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
+ , buffer_ (NULL)
  , configuration_ ()
  , context_ (NULL)
  , sampleSize_ (0)
@@ -78,6 +79,9 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
                       MediaType>::~Stream_Decoder_FAAD_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_FAAD_T::~Stream_Decoder_FAAD_T"));
+
+  if (unlikely (buffer_))
+    buffer_->release ();
 
   if (unlikely (context_))
     NeAACDecClose (context_);
@@ -158,7 +162,6 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = message_inout;
   void* result_p = NULL;
   struct NeAACDecFrameInfo frame_info_s;
-  DataMessageType* message_p = NULL;
   int result = -1;
   void* data_p = NULL;
 
@@ -201,47 +204,53 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
 
   while (message_block_p)
   {
-    message_p =
-      inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-    if (unlikely (!message_p))
+    if (!buffer_)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to allocate message(%u), aborting\n"),
-                  inherited::mod_->name (),
-                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
-      goto error;
+      buffer_ =
+        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+      if (unlikely (!buffer_))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to allocate message(%u), aborting\n"),
+                    inherited::mod_->name (),
+                    inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+        goto error;
+      } // end IF
     } // end IF
 
     ACE_OS::memset (&frame_info_s, 0, sizeof (struct NeAACDecFrameInfo));
-    data_p = message_p->wr_ptr ();
+    data_p = buffer_->wr_ptr ();
     result_p =
       NeAACDecDecode2 (context_,
                        &frame_info_s,
                        reinterpret_cast<unsigned char*> (message_block_p->rd_ptr ()),
                        message_block_p->length (),
                        &data_p,
-                       message_p->size ());
+                       buffer_->size ());
     if (unlikely (!result_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to NeAACDecDecode2(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (NeAACDecGetErrorMessage (frame_info_s.error))));
-      message_p->release (); message_p = NULL;
+      buffer_->release (); buffer_ = NULL;
       goto error;
     } // end IF
     ACE_ASSERT (frame_info_s.bytesconsumed == message_block_p->length ());
-    ACE_ASSERT (frame_info_s.samples);
-    message_p->wr_ptr (frame_info_s.samples * sampleSize_);
-
-    result = inherited::put_next (message_p, NULL);
-    if (unlikely (result == -1))
+    if (likely (frame_info_s.samples))
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Task_T::put_next(): \"%m\", aborting\n"),
-                  inherited::mod_->name ()));
-      message_p->release (); message_p = NULL;
-      goto error;
+      buffer_->wr_ptr (frame_info_s.samples * sampleSize_);
+
+      result = inherited::put_next (buffer_, NULL);
+      if (unlikely (result == -1))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Task_T::put_next(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+        buffer_->release (); buffer_ = NULL;
+        goto error;
+      } // end IF
+      buffer_ = NULL;
     } // end IF
 
 //continue_:
@@ -448,6 +457,11 @@ error:
 //    }
     case STREAM_SESSION_MESSAGE_END:
     {
+      if (buffer_)
+      {
+        buffer_->release (); buffer_ = NULL;
+      } // end IF
+
       break;
     }
     default:

@@ -2201,20 +2201,20 @@ Stream_MediaFramework_Tools::ffmpegFormatToALSAFormat (enum AVSampleFormat forma
   switch (format_in)
   {
     case AV_SAMPLE_FMT_U8:
+    case AV_SAMPLE_FMT_U8P:
       return SND_PCM_FORMAT_U8;
     case AV_SAMPLE_FMT_S16:
+    case AV_SAMPLE_FMT_S16P:
       return SND_PCM_FORMAT_S16;
     case AV_SAMPLE_FMT_S32:
+    case AV_SAMPLE_FMT_S32P:
       return SND_PCM_FORMAT_S32;
     case AV_SAMPLE_FMT_FLT:
+    case AV_SAMPLE_FMT_FLTP:
       return SND_PCM_FORMAT_FLOAT;
     case AV_SAMPLE_FMT_DBL:
-      return SND_PCM_FORMAT_FLOAT64;
-    case AV_SAMPLE_FMT_U8P:
-    case AV_SAMPLE_FMT_S16P:
-    case AV_SAMPLE_FMT_S32P:
-    case AV_SAMPLE_FMT_FLTP:
     case AV_SAMPLE_FMT_DBLP:
+      return SND_PCM_FORMAT_FLOAT64;
     case AV_SAMPLE_FMT_S64:
     case AV_SAMPLE_FMT_S64P:
     default:

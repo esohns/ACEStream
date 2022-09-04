@@ -98,6 +98,7 @@ class Stream_Decoder_FAAD_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_FAAD_T (const Stream_Decoder_FAAD_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_FAAD_T& operator= (const Stream_Decoder_FAAD_T&))
 
+  ACE_Message_Block*           buffer_;
   struct NeAACDecConfiguration configuration_;
   NeAACDecHandle               context_;
   uint32_t                     sampleSize_; // out-

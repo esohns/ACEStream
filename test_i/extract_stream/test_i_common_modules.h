@@ -32,6 +32,9 @@
 #include "stream_file_sink.h"
 #include "stream_file_source.h"
 
+#if defined (FAAD_SUPPORT)
+#include "stream_dec_faad_decoder.h"
+#endif // FAAD_SUPPORT
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_audio_decoder.h"
 #include "stream_dec_libav_decoder.h"
@@ -116,6 +119,17 @@ typedef Stream_Decoder_LibAVConverter_T<Test_I_TaskBaseSynch_t,
 typedef Stream_Visualization_LibAVResize_T<Test_I_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_LibAVResize;
 #endif // FFMPEG_SUPPORT
+
+#if defined (FAAD_SUPPORT)
+typedef Stream_Decoder_FAAD_T<ACE_MT_SYNCH,
+                              Common_TimePolicy_t,
+                              struct Test_I_ExtractStream_ModuleHandlerConfiguration,
+                              Stream_ControlMessage_t,
+                              Test_I_Message_t,
+                              Test_I_SessionMessage_t,
+                              Test_I_ExtractStream_SessionData_t,
+                              struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_AACDecoder;
+#endif // FAAD_SUPPORT
 
 typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
@@ -238,6 +252,15 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                 
                               Stream_INotify_t,                                         // stream notification interface type
                               Test_I_LibAVResize);                                      // writer type
 #endif // FFMPEG_SUPPORT
+
+#if defined (FAAD_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                          // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_I_ExtractStream_ModuleHandlerConfiguration,    // module handler configuration type
+                              libacestream_default_dec_faad_decoder_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_I_AACDecoder);                                 // writer type
+#endif // FAAD_SUPPORT
 
 //DATASTREAM_MODULE_DUPLEX (Test_I_ExtractStream_SessionData,                // session data type
 //                          enum Stream_SessionMessageType,                   // session event type

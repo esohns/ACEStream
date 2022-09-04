@@ -220,18 +220,29 @@ Test_I_Decoder_T<ACE_SYNCH_USE,
               ACE_TEXT (avcodec_get_name (context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id))));
   inherited::configuration_->codecId =
     context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
-  media_type_s.audio.codec =
-    context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
-  session_data_r.formats.push_back (media_type_s);
   
   switch (context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_type)
   {
     case AVMEDIA_TYPE_AUDIO:
+    {
       message_media_type_s = STREAM_MEDIATYPE_AUDIO;
+      media_type_s.audio.channels =
+        context_->streams[inherited::configuration_->streamIndex]->codecpar->channels;
+      media_type_s.audio.format =
+        static_cast<enum AVSampleFormat> (context_->streams[inherited::configuration_->streamIndex]->codecpar->format);
+      media_type_s.audio.sampleRate =
+        context_->streams[inherited::configuration_->streamIndex]->codecpar->sample_rate;
+      media_type_s.audio.codec =
+        context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
       break;
+    }
     case AVMEDIA_TYPE_VIDEO:
+    {
       message_media_type_s = STREAM_MEDIATYPE_VIDEO;
+      media_type_s.video.codec =
+        context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
       break;
+    }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -241,6 +252,7 @@ Test_I_Decoder_T<ACE_SYNCH_USE,
       return -1;
     }
   } // end SWITCH
+  session_data_r.formats.push_back (media_type_s);
 
   do
   {

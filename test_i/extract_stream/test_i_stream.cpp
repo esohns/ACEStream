@@ -94,10 +94,16 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
 
   // layout_in->append (&statisticReport_, NULL, 0);
 
-  ACE_NEW_RETURN (module_p,
-                  Test_I_LibAVAudioDecoder_Module (this,
-                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING)),
-                  false);
+  if ((*iterator).second.second->codecId == AV_CODEC_ID_AAC)
+    ACE_NEW_RETURN (module_p,
+                    Test_I_AACDecoder_Module (this,
+                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FAAD_DEFAULT_NAME_STRING)),
+                    false);
+  else
+    ACE_NEW_RETURN (module_p,
+                    Test_I_LibAVAudioDecoder_Module (this,
+                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING)),
+                    false);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
 
