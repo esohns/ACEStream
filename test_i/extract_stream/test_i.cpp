@@ -333,6 +333,7 @@ do_work (const std::string& sourceFilename_in,
 
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_ExtractStream_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_I_ExtractStream_ModuleHandlerConfiguration modulehandler_configuration_2; // wav encoder
   struct Test_I_ExtractStream_StreamConfiguration stream_configuration;
 
 #if defined (GUI_SUPPORT)
@@ -346,7 +347,7 @@ do_work (const std::string& sourceFilename_in,
   Test_I_EventHandler_t ui_event_handler;
 #endif // GUI_SUPPORT
 
-  Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T stream_iterator;
+//  Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T stream_iterator;
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   //modulehandler_configuration.display = displayDevice_in;
   modulehandler_configuration.subscriber = &ui_event_handler;
@@ -356,6 +357,8 @@ do_work (const std::string& sourceFilename_in,
   modulehandler_configuration.outputFormat.audio.sampleRate = 48000;
   modulehandler_configuration.targetFileName =
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
+  modulehandler_configuration_2 = modulehandler_configuration;
+  modulehandler_configuration_2.manageSoX = false;
   CBData_in.progressData.audioFrameSize =
     av_get_bytes_per_sample (modulehandler_configuration.outputFormat.audio.format);
 
@@ -380,13 +383,13 @@ do_work (const std::string& sourceFilename_in,
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
                                                    stream_configuration);
-  //configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEIN_CAPTURE_DEFAULT_NAME_STRING),
-  //                                                             std::make_pair (&module_configuration,
-  //                                                                             &modulehandler_configuration_2)));
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_2)));
 
-  stream_iterator =
-    configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != configuration_in.streamConfiguration.end ());
+//  stream_iterator =
+//    configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+//  ACE_ASSERT (stream_iterator != configuration_in.streamConfiguration.end ());
 
   struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
@@ -486,7 +489,7 @@ do_work (const std::string& sourceFilename_in,
   else
   {
 #endif // GUI_SUPPORT
-    Stream_IStreamControlBase* stream_p = NULL, *stream_2 = NULL;
+    Stream_IStreamControlBase* stream_p = NULL;
 
     if (!stream.initialize (configuration_in.streamConfiguration))
     {
