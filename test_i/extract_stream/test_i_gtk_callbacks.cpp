@@ -111,8 +111,8 @@ load_display_devices (GtkListStore* listStore_in)
   {
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-//                        0, (*iterator_2).description.c_str (),
-                        0, (*iterator_2).device.c_str (),
+                        0, (*iterator_2).description.c_str (),
+//                        0, (*iterator_2).device.c_str (),
                         1, (*iterator_2).device.c_str (),
                         -1);
   } // end FOR
