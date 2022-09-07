@@ -94,49 +94,89 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
 
   // layout_in->append (&statisticReport_, NULL, 0);
 
-  if ((*iterator).second.second->codecId == AV_CODEC_ID_AAC)
-    ACE_NEW_RETURN (module_p,
-                    Test_I_AACDecoder_Module (this,
-                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FAAD_DEFAULT_NAME_STRING)),
-                    false);
-  else
-    ACE_NEW_RETURN (module_p,
-                    Test_I_LibAVAudioDecoder_Module (this,
-                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING)),
-                    false);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
-
-  if (inherited::configuration_->configuration_->slowDown != -1)
+  switch (inherited::configuration_->configuration_->mode)
   {
-    ACE_NEW_RETURN (module_p,
-                    Test_I_AudioEffect_Module (this,
-                                               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
-                    false);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
+    case TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY:
+    {
+      if ((*iterator).second.second->codecId == AV_CODEC_ID_AAC)
+        ACE_NEW_RETURN (module_p,
+                        Test_I_AACDecoder_Module (this,
+                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FAAD_DEFAULT_NAME_STRING)),
+                        false);
+      else
+        ACE_NEW_RETURN (module_p,
+                        Test_I_LibAVAudioDecoder_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING)),
+                        false);
+      layout_in->append (module_p, NULL, 0);
+      module_p = NULL;
 
-    (*iterator).second.second->effectOptions.clear ();
-    (*iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-m")); // optimize for music
-    std::ostringstream converter;
-    converter << static_cast<float> (inherited::configuration_->configuration_->slowDown) / 100.0;
-    (*iterator).second.second->effectOptions.push_back (converter.str ());
-  } // end IF
+      if (inherited::configuration_->configuration_->slowDown != -1)
+      {
+        ACE_NEW_RETURN (module_p,
+                        Test_I_AudioEffect_Module (this,
+                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
+                        false);
+        layout_in->append (module_p, NULL, 0);
+        module_p = NULL;
 
-  ACE_NEW_RETURN (module_p,
-                  Test_I_AudioTagger_Module (this,
-                                             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING)),
-                  false);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
+        (*iterator).second.second->effectOptions.clear ();
+        (*iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-m")); // optimize for music
+        std::ostringstream converter;
+        converter << static_cast<float> (inherited::configuration_->configuration_->slowDown) / 100.0;
+        (*iterator).second.second->effectOptions.push_back (converter.str ());
+      } // end IF
+
+      ACE_NEW_RETURN (module_p,
+                      Test_I_AudioTagger_Module (this,
+                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, NULL, 0);
+      module_p = NULL;
+
+      //configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+      configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+
+      break;
+    }
+    case TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_VIDEO_ONLY:
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_I_LibAVDecoder_Module (this,
+                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING)),
+                      //Test_I_LibAVHWDecoder_Module (this,
+                      //                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_HW_DECODER_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, NULL, 0);
+      module_p = NULL;
+
+      ACE_NEW_RETURN (module_p,
+                      Test_I_VideoTagger_Module (this,
+                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, NULL, 0);
+      module_p = NULL;
+
+      configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+      configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+    
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown program mode (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->mode));
+      return false;
+    }
+  } // end SWITCH
 
   ACE_NEW_RETURN (module_p,
                   Test_I_Distributor_Module (this,
                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
                   false);
   branch_p = module_p;
-  //configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
-  configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
   Stream_IDistributorModule* idistributor_p =
     dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
   ACE_ASSERT (idistributor_p);
@@ -144,42 +184,85 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
 
-//      layout_in->append (&converter_, branch_p, index_i); // output is
-//      uncompressed 24-bit RGB
-//      layout_in->append (&resizer_, branch_p, index_i); // output is window
-//      size/fullscreen
-//#if defined (GUI_SUPPORT)
-//#if defined (GTK_USE)
-////      if (configuration_->configuration->renderer !=
-///STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW) /        layout_in->append
-///(&display_, branch_p, 0); /      else /        layout_in->append
-///(&display_2_, branch_p, index_i);
-//      layout_in->append (&GTKCairoDisplay_, branch_p, index_i);
-//#elif defined (WXWIDGETS_USE)
-//      layout_in->append (&display_, branch_p, index_i);
-//#endif // GTK_USE || WXWIDGETS_USE
-//#else
-//      ACE_ASSERT ((*iterator).second.second->fullScreen &&
-//      !(*iterator).second.second->display.identifier.empty ()); ACE_ASSERT
-//      (false); // *TODO*
-//#endif // GUI_SUPPORT
-  //++index_i;
+  switch (inherited::configuration_->configuration_->mode)
+  {
+    case TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY:
+    {
+      //++index_i;
 
-  ACE_NEW_RETURN (module_p,
-                  Test_I_WAVEncoder_Module (this,
-                                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
-                  false);
-  layout_in->append (module_p, branch_p, index_i);
-  module_p = NULL;
+      ACE_NEW_RETURN (module_p,
+                      Test_I_WAVEncoder_Module (this,
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_NEW_RETURN (module_p,
-                  Test_I_FileWriter_Module (this,
-                                            ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
-                  false);
-  layout_in->append (module_p, branch_p, index_i);
-  module_p = NULL;
+      ACE_NEW_RETURN (module_p,
+                      Test_I_FileWriter_Module (this,
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
+      ++index_i;
+
+      break;
+    }
+    case TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_VIDEO_ONLY:
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_I_LibAVConverter_Module (this,
+                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+
+      ACE_NEW_RETURN (module_p,
+                      Test_I_LibAVResize_Module (this,
+                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#elif defined (WXWIDGETS_USE)
+#endif // GTK_USE || WXWIDGETS_USE
+#else
+      ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
+      ACE_ASSERT (false); // *TODO*
+#endif // GUI_SUPPORT
+      ++index_i;
+
+      ACE_NEW_RETURN (module_p,
+                      Test_I_AVIEncoder_Module (this,
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_NEW_RETURN (module_p,
+                      Test_I_FileWriter_Module (this,
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+#endif // ACE_WIN32 || ACE_WIN64
+      ++index_i;
+
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown program mode (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->mode));
+      return false;
+    }
+  } // end SWITCH
 
   return true;
 }

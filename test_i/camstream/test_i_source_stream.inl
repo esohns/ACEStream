@@ -1037,7 +1037,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     result =
       MFSetAttributeSize (configuration_in.configuration_->format,
                           MF_MT_FRAME_RATE,
-                          STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE, 1);
+                          STREAM_DEV_CAM_DEFAULT_CAPTURE_FRAME_RATE, 1);
     ACE_ASSERT (SUCCEEDED (result));
     result =
         MFSetAttributeSize (configuration_in.configuration_->format,

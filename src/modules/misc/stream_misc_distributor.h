@@ -93,19 +93,19 @@ class Stream_Miscellaneous_Distributor_ReaderTask_T
                                                         DataMessageType,
                                                         SessionMessageType,
                                                         SessionDataType> WRITER_TASK_T;
-//  typedef std::list<ACE_Message_Block*> MESSAGE_LIST_T;
-//  typedef typename MESSAGE_LIST_T::iterator MESSAGE_LIST_ITERATOR_T;
-//  typedef std::map<enum Stream_ControlMessageType, MESSAGE_LIST_T> CONTROL_MESSAGES_T;
-//  typedef typename CONTROL_MESSAGES_T::iterator CONTROL_MESSAGES_ITERATOR_T;
-//  typedef std::map<enum Stream_SessionMessageType, MESSAGE_LIST_T> SESSION_MESSAGES_T;
-//  typedef typename SESSION_MESSAGES_T::iterator SESSION_MESSAGES_ITERATOR_T;
+  typedef std::list<ACE_Message_Block*> MESSAGE_LIST_T;
+  typedef typename MESSAGE_LIST_T::iterator MESSAGE_LIST_ITERATOR_T;
+  typedef std::map<enum Stream_ControlMessageType, MESSAGE_LIST_T> CONTROL_MESSAGES_T;
+  typedef typename CONTROL_MESSAGES_T::iterator CONTROL_MESSAGES_ITERATOR_T;
+  typedef std::map<enum Stream_SessionMessageType, MESSAGE_LIST_T> SESSION_MESSAGES_T;
+  typedef typename SESSION_MESSAGES_T::iterator SESSION_MESSAGES_ITERATOR_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_ReaderTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_ReaderTask_T (const Stream_Miscellaneous_Distributor_ReaderTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_ReaderTask_T& operator= (const Stream_Miscellaneous_Distributor_ReaderTask_T&))
 
-//  CONTROL_MESSAGES_T controlMessages_;
-//  SESSION_MESSAGES_T sessionMessages_;
+  CONTROL_MESSAGES_T controlMessages_;
+  SESSION_MESSAGES_T sessionMessages_;
 };
 
 template <ACE_SYNCH_DECL,

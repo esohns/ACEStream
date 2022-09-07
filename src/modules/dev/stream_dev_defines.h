@@ -58,7 +58,7 @@
 // general
 #define STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT                480
 #define STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH                 640
-#define STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE                       30 // fps
+#define STREAM_DEV_CAM_DEFAULT_CAPTURE_FRAME_RATE                 30 // fps
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define STREAM_DEV_MIC_DEFAULT_FORMAT                             WAVE_FORMAT_PCM

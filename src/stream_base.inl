@@ -1904,7 +1904,7 @@ Stream_Base_T<ACE_SYNCH_USE,
           if (likely (task_p->msg_queue_->is_empty ()))
             break; // nothing to do
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s/%s writer: waiting to process %d byte(s) in %u message(s)...\n"),
+                      ACE_TEXT ("%s/%s writer: waiting to process %Q byte(s) in %u message(s)...\n"),
                       ACE_TEXT (name_.c_str ()),
                       (*iterator)->name (),
                       task_p->msg_queue_->message_bytes (),
@@ -2091,7 +2091,7 @@ Stream_Base_T<ACE_SYNCH_USE,
         if (likely (!message_count))
           break;
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s/%s writer: waiting to process %d byte(s) in %u message(s)...\n"),
+                    ACE_TEXT ("%s/%s writer: waiting to process %Q byte(s) in %u message(s)...\n"),
                     ACE_TEXT (name_.c_str ()), (*iterator_2)->name (),
                     task_p->msg_queue_->message_bytes (), message_count));
 
@@ -2146,7 +2146,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       if (!message_count)
         break;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s/%s reader: waiting to process %d byte(s) in %u message(s)...\n"),
+                  ACE_TEXT ("%s/%s reader: waiting to process %Q byte(s) in %u message(s)...\n"),
                   ACE_TEXT (name_.c_str ()), (*iterator_2)->name (),
                   task_p->msg_queue_->message_bytes (), message_count));
 

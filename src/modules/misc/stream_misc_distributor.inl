@@ -928,8 +928,8 @@ Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_SYNCH_USE,
                                               SessionMessageType,
                                               SessionDataType>::Stream_Miscellaneous_Distributor_ReaderTask_T (ISTREAM_T* stream_in)
  : inherited ()
-// , controlMessages_ ()
-// , sessionMessages_ ()
+ , controlMessages_ ()
+ , sessionMessages_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_ReaderTask_T::Stream_Miscellaneous_Distributor_ReaderTask_T"));
 
@@ -955,20 +955,20 @@ Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_ReaderTask_T::~Stream_Miscellaneous_Distributor_ReaderTask_T"));
 
-//  for (CONTROL_MESSAGES_ITERATOR_T iterator = controlMessages_.begin ();
-//       iterator != controlMessages_.end ();
-//       ++iterator)
-//    for (MESSAGE_LIST_ITERATOR_T iterator2 = (*iterator).second.begin ();
-//         iterator2 != (*iterator).second.end ();
-//         ++iterator2)
-//      (*iterator2)->release ();
-//  for (SESSION_MESSAGES_ITERATOR_T iterator = sessionMessages_.begin ();
-//       iterator != sessionMessages_.end ();
-//       ++iterator)
-//    for (MESSAGE_LIST_ITERATOR_T iterator2 = (*iterator).second.begin ();
-//         iterator2 != (*iterator).second.end ();
-//         ++iterator2)
-//      (*iterator2)->release ();
+  for (CONTROL_MESSAGES_ITERATOR_T iterator = controlMessages_.begin ();
+       iterator != controlMessages_.end ();
+       ++iterator)
+    for (MESSAGE_LIST_ITERATOR_T iterator2 = (*iterator).second.begin ();
+         iterator2 != (*iterator).second.end ();
+         ++iterator2)
+      (*iterator2)->release ();
+  for (SESSION_MESSAGES_ITERATOR_T iterator = sessionMessages_.begin ();
+       iterator != sessionMessages_.end ();
+       ++iterator)
+    for (MESSAGE_LIST_ITERATOR_T iterator2 = (*iterator).second.begin ();
+         iterator2 != (*iterator).second.end ();
+         ++iterator2)
+      (*iterator2)->release ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -993,84 +993,83 @@ Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_p = messageBlock_in;
 
   // sanity check(s)
-  ACE_Task_Base* task_base_p = inherited::sibling ();
-  ACE_ASSERT (task_base_p);
-  WRITER_TASK_T* writer_p = static_cast<WRITER_TASK_T*> (task_base_p);
+  WRITER_TASK_T* writer_p = static_cast<WRITER_TASK_T*> (inherited::sibling ());
+  ACE_ASSERT (writer_p);
   if (unlikely (!writer_p->numberOfBranches_))
     goto continue_;
 
-//  switch (messageBlock_in->msg_type ())
-//  {
-//    case STREAM_MESSAGE_CONTROL:
-//    {
-//      ControlMessageType* message_2 =
-//        static_cast<ControlMessageType*> (messageBlock_in);
-//      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, writer_p->lock_, -1);
-//        CONTROL_MESSAGES_ITERATOR_T iterator =
-//          controlMessages_.find (message_2->type ());
-//        if (iterator == controlMessages_.end ())
-//        { // retain the message until all of its' copies have arrived
-//          MESSAGE_LIST_T list_a;
-//          list_a.push_back (messageBlock_in);
-//          controlMessages_.insert (std::make_pair (message_2->type (),
-//                                                   list_a));
-//          return 0;
-//        } // end IF
+  switch (messageBlock_in->msg_type ())
+  {
+    case STREAM_MESSAGE_CONTROL:
+    {
+      ControlMessageType* message_2 =
+        static_cast<ControlMessageType*> (messageBlock_in);
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, writer_p->lock_, -1);
+        CONTROL_MESSAGES_ITERATOR_T iterator =
+          controlMessages_.find (message_2->type ());
+        if (iterator == controlMessages_.end ())
+        { // retain the message until all of its' copies have arrived
+          MESSAGE_LIST_T list_a;
+          list_a.push_back (messageBlock_in);
+          controlMessages_.insert (std::make_pair (message_2->type (),
+                                                   list_a));
+          return 0;
+        } // end IF
 
-//        (*iterator).second.push_back (messageBlock_in);
-//        // *IMPORTANT NOTE*: account for 'main' branch
-//        if ((*iterator).second.size () < (writer_p->numberOfBranches_ + 1))
-//          return 0;
-//        ACE_ASSERT ((*iterator).second.size () == (writer_p->numberOfBranches_ + 1));
+        (*iterator).second.push_back (messageBlock_in);
+        // *IMPORTANT NOTE*: account for 'main' branch
+        if ((*iterator).second.size () < (writer_p->numberOfBranches_ + 1))
+          return 0;
+        ACE_ASSERT ((*iterator).second.size () == (writer_p->numberOfBranches_ + 1));
 
-//        message_p = (*iterator).second.front ();
-//        (*iterator).second.pop_front ();
-//        for (MESSAGE_LIST_ITERATOR_T iterator2 = (*iterator).second.begin ();
-//             iterator2 != (*iterator).second.end ();
-//             ++iterator2)
-//          (*iterator2)->release ();
-//        controlMessages_.erase (iterator);
-//      } // end lock scope
-//      break;
-//    }
-//    case STREAM_MESSAGE_SESSION:
-//    {
-//      SessionMessageType* message_2 =
-//        static_cast<SessionMessageType*> (messageBlock_in);
-//      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, writer_p->lock_, -1);
-//        SESSION_MESSAGES_ITERATOR_T iterator =
-//          sessionMessages_.find (message_2->type ());
-//        if (iterator == sessionMessages_.end ())
-//        { // retain the message until all of its' copies have arrived
-//          MESSAGE_LIST_T list_a;
-//          list_a.push_back (messageBlock_in);
-//          sessionMessages_.insert (std::make_pair (message_2->type (),
-//                                                   list_a));
-//          return 0;
-//        } // end IF
+        message_p = (*iterator).second.front ();
+        (*iterator).second.pop_front ();
+        for (MESSAGE_LIST_ITERATOR_T iterator2 = (*iterator).second.begin ();
+             iterator2 != (*iterator).second.end ();
+             ++iterator2)
+          (*iterator2)->release ();
+        controlMessages_.erase (iterator);
+      } // end lock scope
+      break;
+    }
+    case STREAM_MESSAGE_SESSION:
+    {
+      SessionMessageType* message_2 =
+        static_cast<SessionMessageType*> (messageBlock_in);
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, writer_p->lock_, -1);
+        SESSION_MESSAGES_ITERATOR_T iterator =
+          sessionMessages_.find (message_2->type ());
+        if (iterator == sessionMessages_.end ())
+        { // retain the message until all of its' copies have arrived
+          MESSAGE_LIST_T list_a;
+          list_a.push_back (messageBlock_in);
+          sessionMessages_.insert (std::make_pair (message_2->type (),
+                                                   list_a));
+          return 0;
+        } // end IF
 
-//        (*iterator).second.push_back (messageBlock_in);
-//        // *IMPORTANT NOTE*: account for 'main' branch
-//        if ((*iterator).second.size () < (writer_p->numberOfBranches_ + 1))
-//          return 0;
-//        ACE_ASSERT ((*iterator).second.size () == (writer_p->numberOfBranches_ + 1));
+        (*iterator).second.push_back (messageBlock_in);
+        // *IMPORTANT NOTE*: account for 'main' branch
+        if ((*iterator).second.size () < (writer_p->numberOfBranches_ + 1))
+          return 0;
+        ACE_ASSERT ((*iterator).second.size () == (writer_p->numberOfBranches_ + 1));
 
-//        message_p = (*iterator).second.front ();
-//        (*iterator).second.pop_front ();
-//        for (MESSAGE_LIST_ITERATOR_T iterator2 = (*iterator).second.begin ();
-//             iterator2 != (*iterator).second.end ();
-//             ++iterator2)
-//          (*iterator2)->release ();
-//        sessionMessages_.erase (iterator);
-//      } // end lock scope
-//      break;
-//    }
-//    case STREAM_MESSAGE_DATA:
-//    case STREAM_MESSAGE_OBJECT:
-//      break;
-//    default:
-//      break;
-//  } // end SWITCH
+        message_p = (*iterator).second.front ();
+        (*iterator).second.pop_front ();
+        for (MESSAGE_LIST_ITERATOR_T iterator2 = (*iterator).second.begin ();
+             iterator2 != (*iterator).second.end ();
+             ++iterator2)
+          (*iterator2)->release ();
+        sessionMessages_.erase (iterator);
+      } // end lock scope
+      break;
+    }
+    case STREAM_MESSAGE_DATA:
+    case STREAM_MESSAGE_OBJECT:
+      break;
+    default:
+      break;
+  } // end SWITCH
 
 continue_:
   return inherited::put_next (message_p, timeValue_in);

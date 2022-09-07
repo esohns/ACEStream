@@ -38,6 +38,7 @@
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_audio_decoder.h"
 #include "stream_dec_libav_decoder.h"
+#include "stream_dec_libav_hw_decoder.h"
 #include "stream_dec_libav_converter.h"
 #endif // FFMPEG_SUPPORT
 #if defined (SOX_SUPPORT)
@@ -105,6 +106,7 @@ typedef Stream_Decoder_LibAVAudioDecoder_T<ACE_MT_SYNCH,
                                            Test_I_SessionMessage_t,
                                            Test_I_ExtractStream_SessionData_t,
                                            struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_LibAVAudioDecoder;
+
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Test_I_ExtractStream_ModuleHandlerConfiguration,
@@ -113,6 +115,14 @@ typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Test_I_SessionMessage_t,
                                       Test_I_ExtractStream_SessionData_t,
                                       struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_LibAVDecoder;
+typedef Stream_LibAV_HW_Decoder_T<ACE_MT_SYNCH,
+                                  Common_TimePolicy_t,
+                                  struct Test_I_ExtractStream_ModuleHandlerConfiguration,
+                                  Stream_ControlMessage_t,
+                                  Test_I_Message_t,
+                                  Test_I_SessionMessage_t,
+                                  Test_I_ExtractStream_SessionData_t,
+                                  struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_LibAVHWDecoder;
 
 typedef Stream_Decoder_LibAVConverter_T<Test_I_TaskBaseSynch_t,
                                         struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_LibAVConverter;
@@ -139,14 +149,14 @@ typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Test_I_SessionMessage_t,
                                STREAM_MEDIATYPE_AUDIO,
                                struct Stream_UserData> Test_I_AudioTagger;
-//typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
-//                               Common_TimePolicy_t,
-//                               struct Test_I_ExtractStream_ModuleHandlerConfiguration,
-//                               Stream_ControlMessage_t,
-//                               Test_I_Message_t,
-//                               Test_I_SessionMessage_t,
-//                               STREAM_MEDIATYPE_VIDEO,
-//                               struct Stream_UserData> Test_I_VideoTagger;
+typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Test_I_ExtractStream_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Test_I_Message_t,
+                               Test_I_SessionMessage_t,
+                               STREAM_MEDIATYPE_VIDEO,
+                               struct Stream_UserData> Test_I_VideoTagger;
 
 typedef Stream_Decoder_SoXEffect_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
@@ -200,8 +210,18 @@ typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     struct Stream_MediaFramework_FFMPEG_MediaType,
                                     struct Stream_UserData> Test_I_WAVEncoder;
 
-typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
-                                   Common_TimePolicy_t,
+typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
+                                               Common_TimePolicy_t,
+                                               struct Test_I_ExtractStream_ModuleHandlerConfiguration,
+                                               Stream_ControlMessage_t,
+                                               Test_I_Message_t,
+                                               Test_I_SessionMessage_t,
+                                               Test_I_ExtractStream_SessionData_t,
+                                               Test_I_ExtractStream_SessionData,
+                                               struct Stream_MediaFramework_FFMPEG_MediaType,
+                                               struct Stream_UserData> Test_I_AVIEncoder_Writer_t;
+
+typedef Stream_Module_FileWriter_2<Common_TimePolicy_t,
                                    struct Test_I_ExtractStream_ModuleHandlerConfiguration,
                                    Stream_ControlMessage_t,
                                    Test_I_Message_t,
@@ -238,6 +258,12 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                 
                               libacestream_default_dec_libav_decoder_module_name_string,
                               Stream_INotify_t,                                          // stream notification interface type
                               Test_I_LibAVDecoder);                                      // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                          // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_I_ExtractStream_ModuleHandlerConfiguration,    // module handler configuration type
+                              libacestream_default_dec_libav_hw_decoder_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_I_LibAVHWDecoder);                                    // writer type
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                            // session data type
                               enum Stream_SessionMessageType,                              // session event type
                               struct Test_I_ExtractStream_ModuleHandlerConfiguration,      // module handler configuration type
@@ -284,12 +310,12 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                 
                               libacestream_default_lib_tagger_module_name_string,
                               Stream_INotify_t,                                         // stream notification interface type
                               Test_I_AudioTagger);                                      // writer type
-//DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                         // session data type
-//                              enum Stream_SessionMessageType,                           // session event type
-//                              struct Test_I_ExtractStream_ModuleHandlerConfiguration,   // module handler configuration type
-//                              libacestream_default_lib_tagger_module_name_string,
-//                              Stream_INotify_t,                                         // stream notification interface type
-//                              Test_I_VideoTagger);                                      // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                         // session data type
+                              enum Stream_SessionMessageType,                           // session event type
+                              struct Test_I_ExtractStream_ModuleHandlerConfiguration,   // module handler configuration type
+                              libacestream_default_lib_tagger_module_name_string,
+                              Stream_INotify_t,                                         // stream notification interface type
+                              Test_I_VideoTagger);                                      // writer type
 
 DATASTREAM_MODULE_DUPLEX (Test_I_ExtractStream_SessionData,                         // session data type
                           enum Stream_SessionMessageType,                           // session event type
@@ -306,6 +332,15 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                 
                               libacestream_default_dec_wav_encoder_module_name_string,
                               Stream_INotify_t,                                        // stream notification interface type
                               Test_I_WAVEncoder);                                      // writer type
+
+DATASTREAM_MODULE_DUPLEX (Test_I_ExtractStream_SessionData,                        // session data type
+                          enum Stream_SessionMessageType,                          // session event type
+                          struct Test_I_ExtractStream_ModuleHandlerConfiguration,  // module handler configuration type
+                          libacestream_default_dec_avi_encoder_module_name_string,
+                          Stream_INotify_t,                                        // stream notification interface type
+                          Test_I_AVIEncoder_Writer_t::READER_T,                    // reader type
+                          Test_I_AVIEncoder_Writer_t,                              // writer type
+                          Test_I_AVIEncoder);                                      // name
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                         // session event type

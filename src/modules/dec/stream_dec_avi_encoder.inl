@@ -123,29 +123,25 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
 
   switch (messageBlock_in->msg_type ())
   {
-    case STREAM_MESSAGE_CONTROL:
+    case STREAM_MESSAGE_SESSION:
     {
-      ControlMessageType* message_p =
-        static_cast<ControlMessageType*> (messageBlock_in);
+      SessionMessageType* message_p =
+        static_cast<SessionMessageType*> (messageBlock_in);
 
       switch (message_p->type ())
       {
-        case STREAM_CONTROL_MESSAGE_END:
+        case STREAM_SESSION_MESSAGE_END:
         {
-          SessionDataType* session_data_p =
-              reinterpret_cast<SessionDataType*> (messageBlock_in->rd_ptr ());
-          ACE_ASSERT (session_data_p);
+          const SessionDataContainerType& session_data_r = message_p->getR ();
+          const SessionDataType& session_data_2 = session_data_r.getR ();
 
           // *TODO*: remove type inference
-          if (!session_data_p->targetFileName.empty ())
-            if (unlikely (!postProcessHeader (session_data_p->targetFileName)))
-            {
+          if (!session_data_2.targetFileName.empty ())
+            if (unlikely (!postProcessHeader (session_data_2.targetFileName)))
               ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_ReaderTask_T::postProcessHeader(\"%s\"), aborting\n"),
+                          ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_ReaderTask_T::postProcessHeader(\"%s\"), continuing\n"),
                           inherited::mod_->name (),
-                          ACE_TEXT (session_data_p->targetFileName.c_str ())));
-              return -1;
-            } // end IF
+                          ACE_TEXT (session_data_2.targetFileName.c_str ())));
           break;
         }
         default:
@@ -188,16 +184,9 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (!targetFilename_in.empty ());
 
   bool result = false;
-  ACE_Task_Base* task_base_p = inherited::sibling ();
-  ACE_ASSERT (task_base_p);
-  WRITER_TASK_T* writer_p = dynamic_cast<WRITER_TASK_T*> (task_base_p);
-  if (unlikely (!writer_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to dynamic_cast<Stream_Decoder_AVIEncoder_WriterTask_T>: \"%m\", aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
+  WRITER_TASK_T* writer_p = static_cast<WRITER_TASK_T*> (inherited::sibling ());
+  ACE_ASSERT (writer_p);
+
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: post-processing AVI file header (was: \"%s\")\n"),
               inherited::mod_->name (),
@@ -212,7 +201,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
   // *NOTE*: how (4) implies correction of cb values for LISTs RIFF, hdrl, strl
   //         and movi
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  unsigned int value_i;
+  ACE_UINT32 value_i;
   std::ios::streamoff list_movi_offset = STREAM_DEC_AVI_JUNK_CHUNK_ALIGN;
   //std::ios::streamoff chunk_idx1_offset = 0;
   // *NOTE*: "...A joint file position is maintained for both the input sequence
@@ -779,10 +768,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
       inherited2:: getMediaType (session_data_r.formats.back (),
-                                 STREAM_MEDIATYPE_INVALID, // N/A
+                                 STREAM_MEDIATYPE_VIDEO, // *TODO*: aggregate to support A/V
                                  media_type_s);
       inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_INVALID, // N/A
+                                STREAM_MEDIATYPE_VIDEO, // *TODO*: aggregate to support A/V
                                 format_);
       frameSize_ =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1170,7 +1159,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   inherited2::getMediaType (session_data_r.formats.back (),
-                            STREAM_MEDIATYPE_INVALID, // N/A
+                            STREAM_MEDIATYPE_VIDEO, // *TODO*: aggregate to support A/V
                             media_type_s);
   struct _riffchunk RIFF_chunk;
   struct _rifflist RIFF_list;

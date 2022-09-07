@@ -435,9 +435,9 @@ continue_:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
-        ACE_TCHAR buffer[PATH_MAX];
-        ACE_OS::memset (buffer, 0, sizeof (buffer));
-        result = path_.addr_to_string (buffer, sizeof (buffer));
+        ACE_TCHAR buffer_a[PATH_MAX];
+        ACE_OS::memset (buffer_a, 0, sizeof (ACE_TCHAR[PATH_MAX]));
+        result = path_.addr_to_string (buffer_a, sizeof (ACE_TCHAR[PATH_MAX]));
         if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
@@ -461,7 +461,7 @@ continue_:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: closed target file \"%s\" (wrote: %q byte(s))\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (buffer),
+                    buffer_a,
                     file_information.size_));
       } // end IF
       break;
@@ -754,9 +754,9 @@ continue_:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
-      ACE_TCHAR buffer[PATH_MAX];
-      ACE_OS::memset (buffer, 0, sizeof (buffer));
-      result = path_.addr_to_string (buffer, sizeof (buffer));
+      ACE_TCHAR buffer_a[PATH_MAX];
+      ACE_OS::memset (buffer_a, 0, sizeof (ACE_TCHAR[PATH_MAX]));
+      result = path_.addr_to_string (buffer_a, sizeof (ACE_TCHAR[PATH_MAX]));
       if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
@@ -783,7 +783,7 @@ continue_:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: closed target file \"%s\" (wrote: %q byte(s))\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (buffer),
+                    buffer_a,
                     file_information.size_));
       } // end IF
 
@@ -795,7 +795,7 @@ continue_:
       std::regex regular_expression (regex_string,
                                      std::regex::ECMAScript);
       std::cmatch match_results;
-      if (unlikely (!std::regex_match (buffer,
+      if (unlikely (!std::regex_match (buffer_a,
                                        match_results,
                                        regular_expression,
                                        std::regex_constants::match_default)))
@@ -803,7 +803,7 @@ continue_:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid file name (was: \"%s\"), returning\n"),
                     inherited::mod_->name (),
-                    buffer));
+                    buffer_a));
         return;
       } // end IF
 //      ACE_ASSERT (match_results.ready () && !match_results.empty ());
@@ -859,9 +859,9 @@ continue_:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
-        ACE_TCHAR buffer[PATH_MAX];
-        ACE_OS::memset (buffer, 0, sizeof (buffer));
-        result = path_.addr_to_string (buffer, sizeof (buffer));
+        ACE_TCHAR buffer_a[PATH_MAX];
+        ACE_OS::memset (buffer_a, 0, sizeof (ACE_TCHAR[PATH_MAX]));
+        result = path_.addr_to_string (buffer_a, sizeof (ACE_TCHAR[PATH_MAX]));
         if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
@@ -885,7 +885,7 @@ continue_:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: closed target file \"%s\" (wrote: %q byte(s))\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (buffer),
+                    buffer_a,
                     file_information.size_));
       } // end IF
       break;

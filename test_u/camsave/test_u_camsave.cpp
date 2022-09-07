@@ -587,7 +587,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
       struct tagVIDEOINFOHEADER* video_info_header_p =
         reinterpret_cast<struct tagVIDEOINFOHEADER*> (captureFormat_inout.pbFormat);
       video_info_header_p->AvgTimePerFrame =
-        /*UNITS*/ 10000000 / STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE;
+        /*UNITS*/ 10000000 / STREAM_DEV_CAM_DEFAULT_CAPTURE_FRAME_RATE;
       video_info_header_p->dwBitRate =
         (video_info_header_p->bmiHeader.biSizeImage * 8) *                    // bits / frame
          (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps

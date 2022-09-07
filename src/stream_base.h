@@ -172,9 +172,16 @@ class Stream_Base_T
                                 Stream_INotify_T<NotificationType>,
                                 DISTRIBUTOR_READER_TASK_T,
                                 DISTRIBUTOR_WRITER_TASK_T> DISTRIBUTOR_MODULE_T;
+  typedef Stream_TailWriterTask_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  NotificationType> TAIL_WRITER_T;
   typedef Stream_Layout_T<ACE_SYNCH_USE,
                           TimePolicyType,
-                          DISTRIBUTOR_MODULE_T> LAYOUT_T;
+                          DISTRIBUTOR_MODULE_T,
+                          TAIL_WRITER_T> LAYOUT_T;
   typedef typename LAYOUT_T::ITERATOR_T LAYOUT_ITERATOR_T;
   typedef ACE_Stream_Iterator<ACE_SYNCH_USE,
                               TimePolicyType> ITERATOR_T;
@@ -338,12 +345,6 @@ class Stream_Base_T
                                   NotificationType> HEAD_WRITER_T;
   typedef ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType> TAIL_READER_T;
-  typedef Stream_TailWriterTask_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  NotificationType> TAIL_WRITER_T;
   typedef Common_IGetR_T<SessionDataContainerType> ISESSION_DATA_T;
   typedef Stream_IModuleHandler_T<ACE_SYNCH_USE,
                                   TimePolicyType,

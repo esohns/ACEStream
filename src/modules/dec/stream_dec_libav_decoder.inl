@@ -633,7 +633,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                         session_data_r.codecConfigurationDataSize);
         context_->extradata_size = session_data_r.codecConfigurationDataSize;
       } // end IF
-      context_->time_base = { 1, 30 };
+      ACE_ASSERT (media_type_s.frameRate.num);
+      ACE_ASSERT (media_type_s.frameRate.den == 1);
+      context_->time_base = {1, media_type_s.frameRate.num};
       context_->ticks_per_frame =
         (((codecId_ == AV_CODEC_ID_H264) ||
           (codecId_ == AV_CODEC_ID_MPEG2VIDEO)) ? 2 : 1);
@@ -777,6 +779,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       { ACE_ASSERT (session_data_r.lock);
         inherited2::setFormat (outputFormat_,
                                media_type_2);
+        inherited2::setFramerate (media_type_s.frameRate,
+                                  media_type_2);
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
           session_data_r.formats.push_back (media_type_2);
           formatsIndex_ = session_data_r.formats.size () - 1;

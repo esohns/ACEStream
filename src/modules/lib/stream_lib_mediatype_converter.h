@@ -140,6 +140,10 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat& mediaType_inout) { Stream_MediaFramework_MediaFoundation_Tools::setFormat (Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (format_in), mediaType_inout.video); }
   inline void setFormat (enum AVPixelFormat format_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setFormat (Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (format_in), mediaType_inout); }
   inline void setFormat (enum AVPixelFormat format_in, IMFMediaType* mediaType_inout) { Stream_MediaFramework_MediaFoundation_Tools::setFormat (Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (format_in), mediaType_inout); }
+
+  void setFramerate (const struct AVRational&, struct _AMMediaType&);
+  inline void setFramerate (const struct AVRational& rate_in, struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_out) { setFramerate (rate_in, mediaType_out.video); }
+  inline void setFramerate (const struct AVRational& rate_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out) { mediaType_out.video.frameRate = rate_in; }
 #endif // FFMPEG_SUPPORT
 #else
   // ALSA

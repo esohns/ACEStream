@@ -88,7 +88,8 @@ class Stream_IDistributorModule;
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 class Stream_Layout_T
  : public tree<ACE_Module<ACE_SYNCH_USE,
                           TimePolicyType>*,
@@ -147,7 +148,7 @@ class Stream_Layout_T
  private:
   // convenient types
   typedef ACE_Thru_Task<ACE_SYNCH_USE, TimePolicyType> TAIL_READER_T;
-  typedef ACE_Stream_Tail<ACE_SYNCH_USE, TimePolicyType> TAIL_WRITER_T;
+  typedef TailTaskWriterType TAIL_WRITER_T;
   typedef typename inherited::iterator_base BASE_ITERATOR_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Layout_T (const Stream_Layout_T&))

@@ -164,6 +164,7 @@ struct Test_I_ExtractStream_ModuleHandlerConfiguration
 #if defined (FFMPEG_SUPPORT)
    , codecId (AV_CODEC_ID_NONE)
 #endif // FFMPEG_SUPPORT
+   , deviceType (AV_HWDEVICE_TYPE_NONE)
    , effect (ACE_TEXT_ALWAYS_CHAR ("tempo")) // preserve pitch
    , effectOptions ()
    , manageSoX (true)
@@ -176,6 +177,7 @@ struct Test_I_ExtractStream_ModuleHandlerConfiguration
 #if defined (FFMPEG_SUPPORT)
   enum AVCodecID                                codecId;
 #endif // FFMPEG_SUPPORT
+  enum AVHWDeviceType                           deviceType;
   std::string                                   effect;
   std::vector<std::string>                      effectOptions;
   bool                                          manageSoX;
@@ -208,12 +210,14 @@ struct Test_I_ExtractStream_StreamConfiguration
 {
   Test_I_ExtractStream_StreamConfiguration ()
    : Stream_Configuration ()
+   , mode (TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY)
    , slowDown (-1)
   {
     printFinalReport = true;
   }
 
-  int slowDown;
+  enum Test_I_ExtractStream_ProgramMode mode;
+  int                                   slowDown;
 };
 
 typedef Stream_IStreamControl_T<enum Stream_ControlType,
@@ -239,7 +243,9 @@ struct Test_I_ExtractStream_Configuration
 #endif // GTK_USE
 #endif // GUI_SUPPORT
    , streamConfiguration ()
-  {}
+  {
+    allocatorConfiguration.defaultBufferSize = 1048576; // 1 mB
+  }
 
   // **************************** stream data **********************************
   Test_I_ExtractStream_StreamConfiguration_t streamConfiguration;

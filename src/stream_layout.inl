@@ -35,10 +35,12 @@
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::Stream_Layout_T ()
+                DistributorModuleType,
+                TailTaskWriterType>::Stream_Layout_T ()
  : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::Stream_Layout_T"));
@@ -47,11 +49,13 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 bool
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::setup (STREAM_T& stream_in)
+                DistributorModuleType,
+                TailTaskWriterType>::setup (STREAM_T& stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::setup"));
 
@@ -116,11 +120,13 @@ error:
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 void
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::unset (STREAM_T& stream_in)
+                DistributorModuleType,
+                TailTaskWriterType>::unset (STREAM_T& stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::unset"));
 
@@ -200,12 +206,14 @@ end:
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 ACE_Module<ACE_SYNCH_USE, TimePolicyType>*
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::find (const std::string& name_in,
-                                              bool sanitizeModuleNames_in) const
+                DistributorModuleType,
+                TailTaskWriterType>::find (const std::string& name_in,
+                                           bool sanitizeModuleNames_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::find"));
 
@@ -231,11 +239,13 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 Stream_ModuleList_t
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::prev (const std::string& name_in) const
+                DistributorModuleType,
+                TailTaskWriterType>::prev (const std::string& name_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::prev"));
 
@@ -265,11 +275,13 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 Stream_ModuleList_t
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::next (const std::string& name_in) const
+                DistributorModuleType,
+                TailTaskWriterType>::next (const std::string& name_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::next"));
 
@@ -308,13 +320,15 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 bool
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::append (MODULE_T* module_in,
-                                                MODULE_T* distributorModule_in,
-                                                unsigned int index_in)
+                DistributorModuleType,
+                TailTaskWriterType>::append (MODULE_T* module_in,
+                                             MODULE_T* distributorModule_in,
+                                             unsigned int index_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::append"));
 
@@ -367,12 +381,14 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 bool
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::append (MODULE_T* module_in,
-                                                const std::string& branchName_in)
+                DistributorModuleType,
+                TailTaskWriterType>::append (MODULE_T* module_in,
+                                             const std::string& branchName_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::append"));
 
@@ -403,11 +419,13 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 bool
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::remove (const std::string& name_in)
+                DistributorModuleType,
+                TailTaskWriterType>::remove (const std::string& name_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::remove"));
 
@@ -432,12 +450,14 @@ restart:
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 bool
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::replace (const std::string& name_in,
-                                                 MODULE_T* module_in)
+                DistributorModuleType,
+                TailTaskWriterType>::replace (const std::string& name_in,
+                                              MODULE_T* module_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::replace"));
 
@@ -461,11 +481,13 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 Stream_ModuleList_t
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::list (bool mainBranchOnly_in) const
+                DistributorModuleType,
+                TailTaskWriterType>::list (bool mainBranchOnly_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::list"));
 
@@ -492,11 +514,13 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 void
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::dump_state () const
+                DistributorModuleType,
+                TailTaskWriterType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::dump_state"));
 
@@ -551,11 +575,13 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 bool
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::setup (NODE_T& node_in)
+                DistributorModuleType,
+                TailTaskWriterType>::setup (NODE_T& node_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::setup"));
 
@@ -662,11 +688,13 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 ACE_Module<ACE_SYNCH_USE, TimePolicyType>*
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::makeSubStreamTail () const
+                DistributorModuleType,
+                TailTaskWriterType>::makeSubStreamTail () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::makeSubStreamTail"));
 
@@ -704,12 +732,14 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 bool
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::find (MODULE_T* module_in,
-                                              typename inherited::iterator_base& result_out) const
+                DistributorModuleType,
+                TailTaskWriterType>::find (MODULE_T* module_in,
+                                           typename inherited::iterator_base& result_out) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::find"));
 
@@ -733,13 +763,15 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 void
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::prev (NODE_T& node_in,
-                                              const std::string& name_in,
-                                              Stream_ModuleList_t& list_inout) const
+                DistributorModuleType,
+                TailTaskWriterType>::prev (NODE_T& node_in,
+                                           const std::string& name_in,
+                                           Stream_ModuleList_t& list_inout) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::prev"));
 
@@ -763,13 +795,15 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename DistributorModuleType>
+          typename DistributorModuleType,
+          typename TailTaskWriterType>
 bool
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::has_branch (NODE_T& node_in,
-                                                    const std::string& branchName_in,
-                                                    unsigned int& index_out) const
+                DistributorModuleType,
+                TailTaskWriterType>::has_branch (NODE_T& node_in,
+                                                 const std::string& branchName_in,
+                                                 unsigned int& index_out) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::has_branch"));
 

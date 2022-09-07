@@ -532,6 +532,21 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_ASSERT (media_type_p);
   mediaType_out = *media_type_p;
 }
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::setFramerate (const struct AVRational& rate_in,
+                                                                     struct _AMMediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::setFramerate"));
+
+  // sanity check(s)
+  ACE_ASSERT (rate_in.den == 1);
+
+  Stream_MediaFramework_DirectShow_Tools::setFramerate (rate_in.num,
+                                                        mediaType_out);
+}
+
 #endif // FFMPEG_SUPPORT
 #else
 #if defined (FFMPEG_SUPPORT)

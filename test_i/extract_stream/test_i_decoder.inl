@@ -241,6 +241,13 @@ Test_I_Decoder_T<ACE_SYNCH_USE,
       message_media_type_s = STREAM_MEDIATYPE_VIDEO;
       media_type_s.video.codec =
         context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
+      media_type_s.video.format =
+        static_cast<enum AVPixelFormat> (context_->streams[inherited::configuration_->streamIndex]->codecpar->format);
+      media_type_s.video.resolution =
+      { context_->streams[inherited::configuration_->streamIndex]->codecpar->width,
+        context_->streams[inherited::configuration_->streamIndex]->codecpar->height };
+      media_type_s.video.frameRate =
+        context_->streams[inherited::configuration_->streamIndex]->avg_frame_rate;
       break;
     }
     default:
@@ -356,18 +363,6 @@ Test_I_Decoder_T<ACE_SYNCH_USE,
     } // end ELSE IF
 
 continue_:
-    message_p = inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-    if (unlikely (!message_p))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), aborting\n"),
-                  inherited::mod_->name (),
-                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
-      inherited::stop (false, false, false);
-      continue;
-    } // end IF
-    message_p->size (inherited::configuration_->allocatorConfiguration->defaultBufferSize - inherited::configuration_->allocatorConfiguration->paddingBytes);
-
     av_init_packet (&packet_s);
     //result =
     //  av_packet_from_data (&packet_s,
@@ -382,12 +377,25 @@ skip:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to av_read_frame(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
-      message_p->release (); message_p = NULL;
       inherited::stop (false, false, false);
       continue;
     } // end IF
     if (packet_s.stream_index != inherited::configuration_->streamIndex)
       goto skip;
+    
+    ACE_ASSERT (packet_s.size);
+    message_p = inherited::allocateMessage (packet_s.size + inherited::configuration_->allocatorConfiguration->paddingBytes);
+    if (unlikely (!message_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), aborting\n"),
+                  inherited::mod_->name (),
+                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+      inherited::stop (false, false, false);
+      continue;
+    } // end IF
+    message_p->size (packet_s.size);
+
     result = message_p->copy (reinterpret_cast<char*> (packet_s.data),
                               packet_s.size);
     if (unlikely (result == -1))
@@ -398,6 +406,7 @@ skip:
                   packet_s.size));
       message_p->release (); message_p = NULL;
       inherited::stop (false, false, false);
+      continue;
     } // end IF
     //message_p->wr_ptr (packet_s.size);
     message_p->setMediaType (message_media_type_s);
@@ -411,6 +420,7 @@ skip:
                   inherited::mod_->name ()));
       message_p->release (); message_p = NULL;
       inherited::stop (false, false, false);
+      continue;
     } // end IF
     message_p = NULL;
   } while (true);

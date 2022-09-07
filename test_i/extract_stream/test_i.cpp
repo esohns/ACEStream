@@ -112,6 +112,14 @@ print_usage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-a          : extract audio [")
+            << true
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-b          : extract video [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : source filename")
             << std::endl;
   std::string path = configuration_path;
@@ -143,6 +151,7 @@ print_usage (const std::string& programName_in)
 bool
 process_arguments (int argc_in,
                    ACE_TCHAR** argv_in, // cannot be const...
+                   enum Test_I_ExtractStream_ProgramMode& mode_out,
                    std::string& sourceFileName_out,
 #if defined (GUI_SUPPORT)
                    std::string& UIFile_out,
@@ -156,6 +165,7 @@ process_arguments (int argc_in,
     Common_File_Tools::getWorkingDirectory ();
 
   // initialize results
+  mode_out = TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY;
   sourceFileName_out.clear ();
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -168,7 +178,7 @@ process_arguments (int argc_in,
   logToFile_out = false;
   traceInformation_out = false;
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("f:g::lt");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("abf:g::ltv");
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
                                ACE_TEXT (options_string.c_str ()),
@@ -182,6 +192,16 @@ process_arguments (int argc_in,
   {
     switch (option)
     {
+      case 'a':
+      {
+        mode_out = TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY;
+        break;
+      }
+      case 'b':
+      {
+        mode_out = TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_VIDEO_ONLY;
+        break;
+      }
       case 'f':
       {
         sourceFileName_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
@@ -206,6 +226,11 @@ process_arguments (int argc_in,
       case 't':
       {
         traceInformation_out = true;
+        break;
+      }
+      case 'v':
+      {
+        mode_out = TEST_I_EXTRACTSTREAM_PROGRAMMODE_PRINT_VERSION;
         break;
       }
       // error handling
@@ -290,7 +315,8 @@ initialize_signals (ACE_Sig_Set& signals_out,
 }
 
 void
-do_work (const std::string& sourceFilename_in,
+do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
+         const std::string& sourceFilename_in,
          const std::string& targetFilename_in,
          struct Test_I_ExtractStream_Configuration& configuration_in,
 #if defined (GUI_SUPPORT)
@@ -318,8 +344,13 @@ do_work (const std::string& sourceFilename_in,
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_MediaFramework_Tools::initialize (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
+#endif // ACE_WIN32 || ACE_WIN64
+
   // ********************** module configuration data **************************
   struct Stream_AllocatorConfiguration allocator_configuration; // video
+  allocator_configuration.defaultBufferSize = 131072; // 128 kB
   struct Stream_AllocatorConfiguration allocator_configuration_2; // audio
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
@@ -349,14 +380,21 @@ do_work (const std::string& sourceFilename_in,
 
 //  Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T stream_iterator;
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  modulehandler_configuration.deviceType = AV_HWDEVICE_TYPE_DXVA2;
+#else
+  modulehandler_configuration.deviceType = AV_HWDEVICE_TYPE_VAAPI;
+#endif // ACE_WIN32 || ACE_WIN64
   //modulehandler_configuration.display = displayDevice_in;
   modulehandler_configuration.subscriber = &ui_event_handler;
   //modulehandler_configuration.subscribers = &CBData_in.subscribers;
   modulehandler_configuration.outputFormat.audio.channels = 2;
   modulehandler_configuration.outputFormat.audio.format = AV_SAMPLE_FMT_S16;
   modulehandler_configuration.outputFormat.audio.sampleRate = 48000;
-  modulehandler_configuration.targetFileName =
-    ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
+  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_RGB24;
+  modulehandler_configuration.outputFormat.video.frameRate.num = 30;
+  modulehandler_configuration.outputFormat.video.resolution = {640, 480};
+  modulehandler_configuration.targetFileName = targetFilename_in;
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.manageSoX = false;
   CBData_in.progressData.audioFrameSize =
@@ -378,7 +416,7 @@ do_work (const std::string& sourceFilename_in,
 
   stream_configuration.allocatorConfiguration =
     &allocator_configuration;
-  //stream_configuration.module_2 = &directshow_encoder;
+  stream_configuration.mode = mode_in;
 
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
@@ -583,10 +621,11 @@ ACE_TMAIN (int argc_in,
 
   // step1a set defaults
   std::string configuration_path = Common_File_Tools::getWorkingDirectory ();
+  enum Test_I_ExtractStream_ProgramMode program_mode_e =
+    TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY;
   std::string source_filename;
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   std::string target_filename = path;
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -601,8 +640,6 @@ ACE_TMAIN (int argc_in,
   //struct Common_UI_DisplayDevice display_device_s =
   //  Common_UI_Tools::getDefaultDisplay ();
   bool trace_information = false;
-  enum Test_I_ExtractStream_ProgramMode program_mode_e =
-    TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   bool result_2 = false;
@@ -611,7 +648,8 @@ ACE_TMAIN (int argc_in,
 
   // step1b: parse/process/validate configuration
   if (!process_arguments (argc_in,
-                          argv_in,
+                          argv_in, 
+                          program_mode_e,
                           source_filename,
 #if defined (GUI_SUPPORT)
                           UI_definition_filename,
@@ -738,9 +776,19 @@ ACE_TMAIN (int argc_in,
       return EXIT_SUCCESS;
     }
     case TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY:
+    {
+      target_filename +=
+        ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_AUDIO_FILE);
+      break;
+    }
     case TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_VIDEO_ONLY:
     case TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AV:
+    {
+      target_filename +=
+        ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_AUDIO_VIDEO_FILE);
       break;
+    }
+    break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1034,7 +1082,8 @@ ACE_TMAIN (int argc_in,
   ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work
-  do_work (source_filename,
+  do_work (program_mode_e,
+           source_filename,
            target_filename,
            //display_device_s,
            configuration,

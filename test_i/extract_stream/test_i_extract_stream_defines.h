@@ -23,7 +23,8 @@
 
 #include "gtk/gtk.h"
 
-#define TEST_I_DEFAULT_OUTPUT_FILE             "output.wav"
+#define TEST_I_DEFAULT_OUTPUT_AUDIO_FILE       "output.wav"
+#define TEST_I_DEFAULT_OUTPUT_AUDIO_VIDEO_FILE "output.avi"
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
