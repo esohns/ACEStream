@@ -391,7 +391,7 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   modulehandler_configuration.outputFormat.audio.channels = 2;
   modulehandler_configuration.outputFormat.audio.format = AV_SAMPLE_FMT_S16;
   modulehandler_configuration.outputFormat.audio.sampleRate = 48000;
-  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_RGB24;
+  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_RGB32;
   modulehandler_configuration.outputFormat.video.frameRate.num = 30;
   modulehandler_configuration.outputFormat.video.resolution = {640, 480};
   modulehandler_configuration.targetFileName = targetFilename_in;

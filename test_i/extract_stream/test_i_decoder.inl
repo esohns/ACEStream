@@ -241,6 +241,20 @@ Test_I_Decoder_T<ACE_SYNCH_USE,
       message_media_type_s = STREAM_MEDIATYPE_VIDEO;
       media_type_s.video.codec =
         context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
+      if (context_->streams[inherited::configuration_->streamIndex]->codecpar->extradata_size)
+      { ACE_ASSERT (!session_data_r.codecConfigurationDataSize);
+        session_data_r.codecConfigurationDataSize =
+          context_->streams[inherited::configuration_->streamIndex]->codecpar->extradata_size;
+        session_data_r.codecConfigurationData =
+          reinterpret_cast<ACE_UINT8*> (av_malloc (session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE));
+        ACE_ASSERT (session_data_r.codecConfigurationData);
+        ACE_OS::memset (session_data_r.codecConfigurationData,
+                        0,
+                        session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE);
+        ACE_OS::memcpy (session_data_r.codecConfigurationData,
+                        context_->streams[inherited::configuration_->streamIndex]->codecpar->extradata,
+                        session_data_r.codecConfigurationDataSize);
+      } // end IF
       media_type_s.video.format =
         static_cast<enum AVPixelFormat> (context_->streams[inherited::configuration_->streamIndex]->codecpar->format);
       media_type_s.video.resolution =
