@@ -19,4 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_i_decoder.h"
+#include "stream_dec_libav_source.h"
+
+#include "stream_dec_defines.h"
+
+const char libacestream_default_dec_libav_source_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING);

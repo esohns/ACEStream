@@ -67,9 +67,6 @@ set (${EXECUTABLE}_EXE_SRCS
      ../test_i_defines.h
      test_i.cpp
      test_i_common_modules.h
-     test_i_decoder.cpp
-     test_i_decoder.h
-     test_i_decoder.inl
      test_i_eventhandler.cpp
      test_i_eventhandler.h
      test_i_eventhandler.inl

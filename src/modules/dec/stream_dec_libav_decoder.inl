@@ -971,8 +971,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (outputFormat_).c_str ()),
                 context_->width, context_->height));
 
-    int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-      SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
+    int flags = (SWS_FAST_BILINEAR); // interpolation
     transformContext_ =
       sws_getCachedContext (NULL,
                             context_->width, context_->height, context_->pix_fmt,
@@ -1109,14 +1108,16 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 //#if defined (_DEBUG)
 //    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
 //    if (!Common_File_Tools::store (filename_string,
-//                                   data[0],
+//                                   data_a[0],
 //                                   frameSize_))
 //    {
 //      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
+//                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), aborting\n"),
 //                  ACE_TEXT (filename_string.c_str ())));
-//      goto error;
-//    } // end IF
+//      av_frame_unref (frame_);
+//      message_block_p->release ();
+//      return false;
+//    }  // end IF
 //#endif // _DEBUG
   } // end IF
   else
@@ -1136,18 +1137,19 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                            0); // own image data
     message_block_p->wr_ptr (frameSize_);
 
-//#if defined (_DEBUG)
-//    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.yuv");
-//    if (!Common_Image_Tools::storeToFile (context_->width, context_->height, context_->pix_fmt,
-//                                          static_cast<uint8_t**> (frame_->data),
-//                                          filename_string))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to Common_Image_Tools::storeToFile(\"%s\"), returning\n"),
-//                  ACE_TEXT (filename_string.c_str ())));
-//      goto error;
-//    } // end IF
-//#endif // _DEBUG
+#if defined (_DEBUG)
+    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.yuv");
+    if (!Common_File_Tools::store (filename_string,
+                                   static_cast<uint8_t*> (frame_->data[0]),
+                                   frameSize_))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), aborting\n"),
+                  ACE_TEXT (filename_string.c_str ())));
+      av_frame_unref (frame_);
+      return false;
+    }  // end IF
+#endif // _DEBUG
   } // end ELSE
   ACE_ASSERT (message_block_p);
   message_inout = static_cast<DataMessageType*> (message_block_p);

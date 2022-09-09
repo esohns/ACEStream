@@ -21,7 +21,6 @@
 #ifdef __cplusplus
 extern "C"
 {
-#include "libavformat/avformat.h"
 #include "libavutil/channel_layout.h"
 #include "libavutil/frame.h"
 #include "libavutil/imgutils.h"
@@ -62,27 +61,27 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType,
           typename UserDataType>
-Test_I_Decoder_T<ACE_SYNCH_USE,
-                 ControlMessageType,
-                 DataMessageType,
-                 SessionMessageType,
-                 ConfigurationType,
-                 StreamControlType,
-                 StreamNotificationType,
-                 StreamStateType,
-                 SessionDataType,
-                 SessionDataContainerType,
-                 StatisticContainerType,
-                 TimerManagerType,
+Stream_LibAV_Source_T<ACE_SYNCH_USE,
+                      ControlMessageType,
+                      DataMessageType,
+                      SessionMessageType,
+                      ConfigurationType,
+                      StreamControlType,
+                      StreamNotificationType,
+                      StreamStateType,
+                      SessionDataType,
+                      SessionDataContainerType,
+                      StatisticContainerType,
+                      TimerManagerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                 UserDataType>::Test_I_Decoder_T (ISTREAM_T* stream_in)
+                      UserDataType>::Stream_LibAV_Source_T (ISTREAM_T* stream_in)
 #else
-                 UserDataType>::Test_I_Decoder_T (typename inherited::ISTREAM_T* stream_in)
+                      UserDataType>::Stream_LibAV_Source_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , context_ (NULL)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Decoder_T::Test_I_Decoder_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_LibAV_Source_T::Stream_LibAV_Source_T"));
 
 }
 
@@ -100,22 +99,22 @@ template <ACE_SYNCH_DECL,
           typename TimerManagerType,
           typename UserDataType>
 bool
-Test_I_Decoder_T<ACE_SYNCH_USE,
-                 ControlMessageType,
-                 DataMessageType,
-                 SessionMessageType,
-                 ConfigurationType,
-                 StreamControlType,
-                 StreamNotificationType,
-                 StreamStateType,
-                 SessionDataType,
-                 SessionDataContainerType,
-                 StatisticContainerType,
-                 TimerManagerType,
-                 UserDataType>::initialize (const ConfigurationType& configuration_in,
-                                            Stream_IAllocator* allocator_in)
+Stream_LibAV_Source_T<ACE_SYNCH_USE,
+                      ControlMessageType,
+                      DataMessageType,
+                      SessionMessageType,
+                      ConfigurationType,
+                      StreamControlType,
+                      StreamNotificationType,
+                      StreamStateType,
+                      SessionDataType,
+                      SessionDataContainerType,
+                      StatisticContainerType,
+                      TimerManagerType,
+                      UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                 Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Decoder_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_LibAV_Source_T::initialize"));
 
   if (inherited::isInitialized_)
   {
@@ -149,21 +148,21 @@ template <ACE_SYNCH_DECL,
           typename TimerManagerType,
           typename UserDataType>
 int
-Test_I_Decoder_T<ACE_SYNCH_USE,
-                 ControlMessageType,
-                 DataMessageType,
-                 SessionMessageType,
-                 ConfigurationType,
-                 StreamControlType,
-                 StreamNotificationType,
-                 StreamStateType,
-                 SessionDataType,
-                 SessionDataContainerType,
-                 StatisticContainerType,
-                 TimerManagerType,
-                 UserDataType>::svc (void)
+Stream_LibAV_Source_T<ACE_SYNCH_USE,
+                      ControlMessageType,
+                      DataMessageType,
+                      SessionMessageType,
+                      ConfigurationType,
+                      StreamControlType,
+                      StreamNotificationType,
+                      StreamStateType,
+                      SessionDataType,
+                      SessionDataContainerType,
+                      StatisticContainerType,
+                      TimerManagerType,
+                      UserDataType>::svc (void)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Decoder_T::svc"));
+  STREAM_TRACE (ACE_TEXT ("Stream_LibAV_Source_T::svc"));
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);

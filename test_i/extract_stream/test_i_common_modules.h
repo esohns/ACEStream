@@ -30,7 +30,6 @@
 #include "stream_streammodule_base.h"
 
 #include "stream_file_sink.h"
-#include "stream_file_source.h"
 
 #if defined (FAAD_SUPPORT)
 #include "stream_dec_faad_decoder.h"
@@ -40,6 +39,7 @@
 #include "stream_dec_libav_decoder.h"
 #include "stream_dec_libav_hw_decoder.h"
 #include "stream_dec_libav_converter.h"
+#include "stream_dec_libav_source.h"
 #endif // FFMPEG_SUPPORT
 #if defined (SOX_SUPPORT)
 #include "stream_dec_sox_effect.h"
@@ -60,7 +60,6 @@
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
-#include "test_i_decoder.h"
 #include "test_i_extract_stream_common.h"
 
 // declare module(s)
@@ -83,19 +82,19 @@ typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                 enum Stream_SessionMessageType,
                                 struct Stream_UserData> Test_I_TaskBaseAsynch_t;
 
-typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
-                                    Stream_ControlMessage_t,
-                                    Test_I_Message_t,
-                                    Test_I_SessionMessage_t,
-                                    struct Test_I_ExtractStream_ModuleHandlerConfiguration,
-                                    enum Stream_ControlType,
-                                    enum Stream_SessionMessageType,
-                                    struct Stream_State,
-                                    Test_I_ExtractStream_SessionData,
-                                    Test_I_ExtractStream_SessionData_t,
-                                    struct Stream_Statistic,
-                                    Common_Timer_Manager_t,
-                                    struct Stream_UserData> Test_I_FileSource;
+typedef Stream_LibAV_Source_T<ACE_MT_SYNCH,
+                              Stream_ControlMessage_t,
+                              Test_I_Message_t,
+                              Test_I_SessionMessage_t,
+                              struct Test_I_ExtractStream_ModuleHandlerConfiguration,
+                              enum Stream_ControlType,
+                              enum Stream_SessionMessageType,
+                              struct Test_I_ExtractStream_StreamState,
+                              Test_I_ExtractStream_SessionData,
+                              Test_I_ExtractStream_SessionData_t,
+                              struct Stream_Statistic,
+                              Common_Timer_Manager_t,
+                              struct Stream_UserData> Test_I_Source;
 
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVAudioDecoder_T<ACE_MT_SYNCH,
@@ -238,12 +237,12 @@ typedef Stream_Module_MessageHandler_T <ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                       // session data type
-                              enum Stream_SessionMessageType,                         // session event type
-                              struct Test_I_ExtractStream_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_file_source_module_name_string,
-                              Stream_INotify_t,                                       // stream notification interface type
-                              Test_I_FileSource);                                     // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                          // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_I_ExtractStream_ModuleHandlerConfiguration,    // module handler configuration type
+                              libacestream_default_dec_libav_source_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_I_Source);                                            // module name
 
 #if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                          // session data type

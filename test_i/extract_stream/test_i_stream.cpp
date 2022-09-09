@@ -47,7 +47,6 @@ extern "C"
 #include "stream_vis_tools.h"
 
 #include "test_i_common_modules.h"
-#include "test_i_decoder.h"
 
 Test_I_Stream::Test_I_Stream ()
  : inherited ()
@@ -86,8 +85,8 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   //module_p = NULL;
 
   ACE_NEW_RETURN (module_p,
-                  Test_I_Decoder_Module (this,
-                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING)),
+                  Test_I_Source_Module (this,
+                                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING)),
                   false);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;

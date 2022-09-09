@@ -18,31 +18,25 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_DECODER_T_H
-#define TEST_I_DECODER_T_H
+#ifndef STREAM_LIBAV_SOURCE_T_H
+#define STREAM_LIBAV_SOURCE_T_H
 
 #ifdef __cplusplus
 extern "C"
 {
-#include "libavcodec/avcodec.h"
-#include "libavutil/pixfmt.h"
+#include "libavformat/avformat.h"
 }
 #endif /* __cplusplus */
 
 #include "ace/Global_Macros.h"
 
-#include "common_timer_manager_common.h"
+#include "common_time_common.h"
 
 #include "stream_headmoduletask_base.h"
-#include "stream_streammodule_base.h"
 
-#include "stream_dec_libav_decoder.h"
-
-#include "test_i_extract_stream_common.h"
-#include "test_i_message.h"
+extern const char libacestream_default_dec_libav_source_module_name_string[];
 
 // forward declaration(s)
-class ACE_Message_Block;
 class Stream_IAllocator;
 
 template <ACE_SYNCH_DECL,
@@ -65,7 +59,7 @@ template <ACE_SYNCH_DECL,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename UserDataType>
-class Test_I_Decoder_T
+class Stream_LibAV_Source_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
@@ -99,11 +93,11 @@ class Test_I_Decoder_T
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Decoder_T (ISTREAM_T*); // stream handle
+  Stream_LibAV_Source_T (ISTREAM_T*); // stream handle
 #else
-  Test_I_Decoder_T (typename inherited::ISTREAM_T*); // stream handle
+  Stream_LibAV_Source_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  inline virtual ~Test_I_Decoder_T () {}
+  inline virtual ~Stream_LibAV_Source_T () {}
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -111,7 +105,7 @@ class Test_I_Decoder_T
 
  private:
   // convenient types
-  typedef Test_I_Decoder_T<ACE_SYNCH_USE,
+  typedef Stream_LibAV_Source_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
@@ -125,9 +119,9 @@ class Test_I_Decoder_T
                            TimerManagerType,
                            UserDataType> OWN_TYPE_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Decoder_T ())
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Decoder_T (const Test_I_Decoder_T&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Decoder_T& operator= (const Test_I_Decoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_LibAV_Source_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_LibAV_Source_T (const Stream_LibAV_Source_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_LibAV_Source_T& operator= (const Stream_LibAV_Source_T&))
 
   // helper methods
   virtual int svc (void);
@@ -136,29 +130,6 @@ class Test_I_Decoder_T
 };
 
 // include template definition
-#include "test_i_decoder.inl"
-
-//////////////////////////////////////////
-
-typedef Test_I_Decoder_T<ACE_MT_SYNCH,
-                         Stream_ControlMessage_t,
-                         Test_I_Message_t,
-                         Test_I_SessionMessage_t,
-                         struct Test_I_ExtractStream_ModuleHandlerConfiguration,
-                         enum Stream_ControlType,
-                         enum Stream_SessionMessageType,
-                         struct Test_I_ExtractStream_StreamState,
-                         Test_I_ExtractStream_SessionData,
-                         Test_I_ExtractStream_SessionData_t,
-                         struct Stream_Statistic,
-                         Common_Timer_Manager_t,
-                         struct Stream_UserData> Test_I_Decoder;
-
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                          // session data type
-                              enum Stream_SessionMessageType,                            // session event type
-                              struct Test_I_ExtractStream_ModuleHandlerConfiguration,    // module handler configuration type
-                              libacestream_default_dec_libav_decoder_module_name_string,
-                              Stream_INotify_t,                                          // stream notification interface type
-                              Test_I_Decoder);                                           // module name
+#include "stream_dec_libav_source.inl"
 
 #endif

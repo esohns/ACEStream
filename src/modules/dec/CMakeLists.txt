@@ -223,7 +223,10 @@ if (FFMPEG_SUPPORT)
       stream_dec_libav_hw_decoder.inl
       stream_dec_libav_img_decoder.cpp
       stream_dec_libav_img_decoder.h
-      stream_dec_libav_img_decoder.inl)
+      stream_dec_libav_img_decoder.inl
+      stream_dec_libav_source.cpp
+      stream_dec_libav_source.h
+      stream_dec_libav_source.inl)
  if (UNIX)
   set (source_files
        ${source_files}
@@ -464,7 +467,9 @@ if (FFMPEG_SUPPORT)
       stream_dec_libav_hw_decoder.h
       stream_dec_libav_hw_decoder.inl
       stream_dec_libav_img_decoder.h
-      stream_dec_libav_img_decoder.inl)
+      stream_dec_libav_img_decoder.inl
+      stream_dec_libav_source.h
+      stream_dec_libav_source.inl)
  if (UNIX)
   set (${PROJECT_NAME}_Decoder_LIB_HDRS
        ${${PROJECT_NAME}_Decoder_LIB_HDRS}
