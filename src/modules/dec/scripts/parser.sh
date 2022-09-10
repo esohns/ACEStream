@@ -15,7 +15,7 @@ command -v bison >/dev/null 2>&1 || { echo "bison is not installed, aborting" >&
 PROJECT_ROOT=$(dirname $0)/..
 SCRIPTS_DIRECTORY=${PROJECT_ROOT}/scripts
 
-SOURCE_FILE=${SCRIPTS_DIRECTORY}/parser.y
+SOURCE_FILE=${SCRIPTS_DIRECTORY}/avi_parser.y
 [ ! -f ${SOURCE_FILE} ] && echo "ERROR: file ${SOURCE_FILE} not found, aborting" && exit 1
 #bison --verbose --graph=parser_graph.txt --xml=parser_graph.xml ${SOURCE_FILE} --report=all --report-file=parser_report.txt --warnings=all --warnings=no-precedence
 bison --verbose --graph=parser_graph.txt --xml=parser_graph.xml ${SOURCE_FILE} --report=all --report-file=parser_report.txt --warnings=all

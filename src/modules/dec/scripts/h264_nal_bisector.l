@@ -36,7 +36,7 @@ void Stream_Decoder_H264_NAL_Bisector_set_column (int, yyscan_t);
 /* *NOTE*: the 'line' directives confuse gdb */
 /* *NOTE*: 'noline' not supported (on Linux, flex 2.5.39)
            --> use --noline and (manually) remove '#line's introduced by %top */
-%option ansi-definitions ansi-prototypes
+/* %option ansi-definitions ansi-prototypes */
 /* *IMPORTANT NOTE*: 'read' requires 'unistd'(.h) */
 %option reentrant pointer prefix="Stream_Decoder_H264_NAL_Bisector_" nomain nounistd
 /* *TODO*: find out why 'read' does not compile (on Linux, flex 2.5.39) */

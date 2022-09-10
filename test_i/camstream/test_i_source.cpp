@@ -1108,7 +1108,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   stream_configuration.format.format.height =
     STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
   stream_configuration.format.frameRate.numerator =
-    STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE;
+    STREAM_DEV_CAM_DEFAULT_CAPTURE_FRAME_RATE;
   stream_configuration.messageAllocator = allocator_p;
   stream_configuration.module = &event_handler_module;
 

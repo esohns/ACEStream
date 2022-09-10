@@ -311,7 +311,7 @@ next:
   {
     isOpen_ = true;
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: processing file \"%s\" (%u byte(s))\n"),
+                ACE_TEXT ("%s: processing file \"%s\" (%Q byte(s))\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (file_path_string.c_str ()),
                 Common_File_Tools::size (file_path_string)));

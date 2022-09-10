@@ -195,6 +195,10 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.video.resolution = resolution_in; }
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout.resolution = resolution_in; }
   inline void free_ (struct Stream_MediaFramework_FFMPEG_MediaType&) {}
+  inline void setFramerate (const struct AVRational& rate_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out) { mediaType_out.frameRate = rate_in; }
+  inline void setFramerate (const struct AVRational& rate_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out) { mediaType_out.video.frameRate = rate_in; }
+  inline void setFramerate (const struct AVRational& rate_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_out) { mediaType_out.frameRate.numerator = rate_in.num; mediaType_out.frameRate.denominator = rate_in.den; }
+  inline void setFramerate (const struct AVRational& rate_in, struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_out) { mediaType_out.video.frameRate.numerator = rate_in.num; mediaType_out.video.frameRate.denominator = rate_in.den; }
 #endif // FFMPEG_SUPPORT
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_inout) { mediaType_inout.video.format.width = resolution_in.width; mediaType_inout.video.format.height = resolution_in.height; }
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.width = resolution_in.width; mediaType_inout.format.height = resolution_in.height; }
@@ -205,6 +209,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   // libCamera
 #if defined (FFMPEG_SUPPORT)
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_LibCamera_MediaType& mediaType_inout) { mediaType_inout.format = Stream_MediaFramework_Tools::ffmpegFormatToLibCameraFormat (format_in); }
+  inline void setFramerate (const struct AVRational& rate_in, struct Stream_MediaFramework_LibCamera_MediaType& mediaType_out) { mediaType_out.frameRateNumerator = rate_in.num; mediaType_out.frameRateDenominator = rate_in.den; }
 #endif // FFMPEG_SUPPORT
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_LibCamera_MediaType& mediaType_inout) { mediaType_inout.resolution.width = resolution_in.width; mediaType_inout.resolution.height = resolution_in.height; }
   inline void free_ (struct Stream_MediaFramework_LibCamera_MediaType&) {}

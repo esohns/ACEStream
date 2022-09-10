@@ -2009,7 +2009,8 @@ combobox_stream_changed_cb (GtkWidget* widget_in,
   GtkTreeIter iterator_4;
   gboolean result = gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
                                                    &iterator_4);
-  ACE_ASSERT (result);
+  if (!result)
+    return; // nothing to do
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_STREAM_NAME)));

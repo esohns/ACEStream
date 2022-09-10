@@ -20,7 +20,7 @@
 /* %define api.location.type         {} */
 /* %define namespace                    {yy} */
 /* %define api.namespace                "yy" */
-%name-prefix                         "yy"
+%name-prefix                         "avi_"
 /* %define api.prefix                "yy" */
 %pure-parser
 /* %define api.pure                  true */
@@ -69,16 +69,19 @@ class Stream_Decoder_AVIParserDriver;
 struct YYSTYPE
 {
   struct RIFF_chunk_meta chunk_meta;
-  unsigned int                 size;
+  ACE_UINT32             size;
 };
 
 typedef void* yyscan_t;
 
 #define YYDEBUG 1
-extern int yydebug;
+extern int avi_debug;
 //#define YYERROR_VERBOSE
 //#define YYPRINT 1
 //#define YYTOKEN_TABLE 1
+
+#define YYINITDEPTH 1000
+#define YYMAXDEPTH 100000
 }
 
 // calling conventions / parameter passing
@@ -147,16 +150,13 @@ using namespace std;
 //#define YYPRINT(file, type, value) yyprint (file, type, value)
 }
 
-/* *NOTE*: 'SIZE' is a typedef on Win32 */
-%token <size>      RIFF    "riff"
-%token <size>      _SIZE   "size"
-%token <size>      _FOURCC "fourcc"
-%token <size>      LIST    "list"
-%token <size>      DATA    "data"
-%token <size>      END 0   "end_of_buffer"
+%token <size> RIFF  "riff"
+%token <size> LIST  "list"
+%token <chunk_meta> CHUNK "chunk"
+%token <size> END 0 "end_of_buffer"
 
-%type <chunk_meta> riff_list_meta chunk
-%type <size>       buffer chunks
+%type <chunk_meta> riff_list
+%type <size>       riff_chunks riff_chunk chunks
 
 //%precedence DATA
 //%precedence _SIZE
@@ -199,59 +199,59 @@ extern int yyparse (Stream_Decoder_AVIParserDriver*, yyscan_t);
                                         ACE_TEXT ("discarding tagless symbol...\n"))); } <> */
 
 %%
-%start          buffer;
-buffer:         riff_list_meta chunks    { $$ = 4 + 4 + 4 + $2;
-                                           driver->chunks_.insert ($1);
+%start          riff_chunks;
+riff_chunks:    /* empty */
+                | riff_chunk riff_chunks { $$ = $1 + $2; }
+riff_chunk:     /* empty */
+                | riff_list              {
+                                           driver->chunks_.push_back ($1);
                                            const char* char_p =
                                              reinterpret_cast<const char*> (&$1.riff_list_identifier);
-                                           ACE_DEBUG ((LM_DEBUG,
+/*                                           ACE_DEBUG ((LM_DEBUG,
                                                        ACE_TEXT ("found RIFF chunk: \"%c%c%c%c\": %u byte(s)\n"),
                                                        char_p[3], char_p[2], char_p[1], char_p[0],
-                                                       $1.size)); };
-                | "end_of_buffer"        /* default */
-riff_list_meta: "riff" "size" "fourcc"   { $$ = $$; };
-                | "list" "size" "fourcc" { $$ = $$; };
-chunks:         riff_list_meta chunks    { $$ = 4 + 4 + 4 + $2;
-                                           driver->chunks_.insert ($1);
+                                                       $1.size)); */
+                                         }
+                  chunks                 { $$ = 4 + 4 + 4 + $3; };
+riff_list:      "riff"                   { $$ = $$; };
+                | "list"                 { $$ = $$; };
+chunks:         /* empty */
+                | riff_list              {
+                                           driver->chunks_.push_back ($1);
                                            const char* char_p =
                                              reinterpret_cast<const char*> (&$1.riff_list_identifier);
-                                           ACE_DEBUG ((LM_DEBUG,
+/*                                           ACE_DEBUG ((LM_DEBUG,
                                                        ACE_TEXT ("found LIST chunk: \"%c%c%c%c\": %u byte(s)\n"),
                                                        char_p[3], char_p[2], char_p[1], char_p[0],
-                                                       $1.size)); };
-                | chunk chunks           { $$ = 4 + 4 + $1.size + $2; };
-                | "end_of_buffer"        /* default */
-chunk:          "fourcc" "size" "data"   { //$$ = $$;
-                                           driver->chunks_.insert ($$);
+                                                       $1.size)); */
+                                         }
+                  chunks                 { $$ = 4 + 4 + 4 + $3; };
+                | "chunk"                {
+                                           driver->chunks_.push_back ($1);
                                            const char* char_p =
-                                             reinterpret_cast<const char*> (&$$.identifier);
-                                           ACE_DEBUG ((LM_DEBUG,
+                                             reinterpret_cast<const char*> (&$1.identifier);
+/*                                           ACE_DEBUG ((LM_DEBUG,
                                                        ACE_TEXT ("found chunk: \"%c%c%c%c\": %u byte(s)\n"),
                                                        char_p[3], char_p[2], char_p[1], char_p[0],
-                                                       $$.size));
+                                                       $1.size)); */
 
-                                           if ($$.identifier == FOURCC ('s', 't', 'r', 'f'))
+                                           if ($1.identifier == FOURCC ('s', 't', 'r', 'f'))
                                            {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                             ACE_ASSERT (false);
-#else
                                              ACE_ASSERT (driver->frameSize_);
                                              char_p =
-                                               (driver->extractFrames_ ? driver->fragment_->base () + (driver->fragmentOffset_ - $$.size)
-                                                                       : driver->fragment_->rd_ptr () - $$.size);
+                                               driver->fragment_->base () + (driver->fragmentOffset_ - $1.size);
                                              // *NOTE*: hard-coded offset into struct tagBITMAPINFOHEADER
                                              *driver->frameSize_ =
                                                *reinterpret_cast<const unsigned int*> (char_p + 4 + 4 + 4 + 2 + 2 + 4);
                                              ACE_DEBUG ((LM_DEBUG,
                                                          ACE_TEXT ("frame size is: %u byte(s)\n"),
                                                          *driver->frameSize_));
-#endif
                                            } // end IF
 
                                            if (driver->parseHeaderOnly_)
                                            {
                                              char_p =
-                                               reinterpret_cast<const char*> (&$$.identifier);
+                                               reinterpret_cast<const char*> (&$1.identifier);
                                              // *NOTE*: in memory, the fourcc is stored back-to-front
                                              static std::string regex_string =
                                                ACE_TEXT_ALWAYS_CHAR ("^([[:alpha:]]{2})([[:digit:]]{2})$");
@@ -269,7 +269,8 @@ chunk:          "fourcc" "size" "data"   { //$$ = $$;
                                                driver->finished_ = true;
                                                YYACCEPT;
                                              } // end IF
-                                           } };
+                                           } }
+                  chunks                 { $$ = 4 + 4 + $1.size + $3; };
 /*              | %empty                               empty */
 //              |                                        /* empty */
 %%
@@ -328,9 +329,9 @@ yyprint (FILE* file_in,
   std::string format_string;
   switch (type_in)
   {
-    case _FOURCC:
-    case _SIZE:
-    case DATA:
+    case RIFF:
+    case LIST:
+    case CHUNK:
     {
       format_string = ACE_TEXT_ALWAYS_CHAR (" %s");
       break;

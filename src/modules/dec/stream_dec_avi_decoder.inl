@@ -18,7 +18,17 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "mmiscapi.h"
+#include "aviriff.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/Log_Msg.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "common_image_defines.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_macros.h"
 
@@ -41,7 +51,7 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
                             SessionDataContainerType>::Stream_Decoder_AVIDecoder_T (ISTREAM_T* stream_in)
 #else
                             SessionDataContainerType>::Stream_Decoder_AVIDecoder_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , driver_ (COMMON_PARSER_DEFAULT_LEX_TRACE,
             COMMON_PARSER_DEFAULT_YACC_TRACE)
@@ -153,8 +163,8 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
 
   int result = -1;
   ACE_Message_Block* message_block_p, *message_block_2 = NULL;
-  unsigned int skipped_bytes = 0;
-  unsigned int length = 0;
+  ACE_UINT64 skipped_bytes = 0;
+  ACE_UINT64 length = 0;
   Stream_Decoder_RIFFChunksIterator_t iterator;
 
   // initialize return value(s)
@@ -189,27 +199,52 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
   else
     buffer_ = message_inout;
 
+  message_block_p = NULL; 
   if (frameSize_)
   {
 dispatch:
     // AVI header has been parsed
 
     // --> wait for more data ?
-    unsigned int buffered_bytes = buffer_->total_length ();
+    size_t buffered_bytes = buffer_->total_length ();
     if (buffered_bytes < frameSize_)
       return; // done
 
     // forward frame
-    message_block_p = message_inout->duplicate ();
-    if (unlikely (!message_block_p))
+    if (buffered_bytes > frameSize_)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to MessageType::duplicate(): \"%m\", returning\n"),
-                  inherited::mod_->name ()));
-      return;
+      message_block_2 = buffer_;
+      ACE_UINT64 bytes_to_skip = 0;
+
+      do
+      {
+        skipped_bytes += message_block_2->length ();
+        if (skipped_bytes >= frameSize_)
+          break;
+        message_block_2 = message_block_2->cont ();
+        ACE_ASSERT (message_block_2);
+      } while (true);
+      if (skipped_bytes > frameSize_)
+      {
+        ACE_Message_Block* message_block_3 = message_block_2->duplicate ();
+        if (unlikely (!message_block_3))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to MessageType::duplicate(): \"%m\", returning\n"),
+                      inherited::mod_->name ()));
+          return;
+        } // end IF
+
+        bytes_to_skip =
+          message_block_2->length () - (skipped_bytes - frameSize_);
+        message_block_3->rd_ptr (bytes_to_skip);
+        message_block_2->length (bytes_to_skip);
+        if (message_block_2->cont ())
+          message_block_2->cont ()->release ();
+        message_block_2->cont (NULL);
+        message_block_p = message_block_3;
+      } // end IF
     } // end IF
-    message_inout->wr_ptr (message_inout->base () +
-                           (buffered_bytes - frameSize_));
     ACE_ASSERT (buffer_->total_length () == frameSize_);
     result = inherited::put_next (buffer_, NULL);
     if (unlikely (result == -1))
@@ -221,10 +256,9 @@ dispatch:
       buffer_->release (); buffer_ = NULL;
       return;
     } // end IF
-    message_block_p->rd_ptr (buffered_bytes - frameSize_);
     buffer_ = message_block_p;
 
-    return;
+    goto dispatch;
   } // end IF
 
   // "crunch" messages for easier parsing ?
@@ -266,14 +300,17 @@ dispatch:
   // initialize driver ?
   if (!isDriverInitialized_)
   {
+    ACE_ASSERT (inherited::configuration_);
+    ACE_ASSERT (inherited::configuration_->parserConfiguration);
+
     // *TODO*: remove type inference
     driver_.initialize (frameSize_,
-                        true,                    // parse header only
-                        false,                   // do not extract the frames
+                        inherited::configuration_->parserConfiguration->extractHeaderOnly,
+                        inherited::configuration_->parserConfiguration->extractFrames,
                         debugScanner_,
                         debugParser_,
                         inherited::msg_queue (),
-                        true);
+                        inherited::configuration_->parserConfiguration->useYYScanBuffer);
     isDriverInitialized_ = true;
   } // end IF
 
@@ -299,7 +336,17 @@ dispatch:
 
   // find offset of the first (frame) data chunk
   ACE_ASSERT (!driver_.chunks_.empty ());
-  iterator = driver_.chunks_.end (); --iterator;
+  struct RIFF_chunk_meta temp;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  temp.riff_list_identifier = FCC ('movi');
+#else
+  temp.riff_list_identifier = FOURCC ('m', 'o', 'v', 'i');
+#endif // ACE_WIN32 || ACE_WIN64
+  //  iterator = driver_.chunks_.find (temp);
+  iterator = std::find (driver_.chunks_.begin (),
+                        driver_.chunks_.end (),
+                        temp);
+  ACE_ASSERT (iterator != driver_.chunks_.end ());
 
   // discard all header buffers up until the first frame
   message_block_p = buffer_;
@@ -330,12 +377,12 @@ next:
     message_block_p = message_block_p->cont ();
   } while (true);
   message_block_2 = buffer_;
-  do
+  while (buffer_ != message_block_p)
   {
     message_block_2 = buffer_;
     buffer_ = buffer_->cont ();
-    message_block_2->release ();
-  } while (buffer_ != message_block_p);
+    message_block_2->cont (NULL); message_block_2->release ();
+  } // end WHILE
   ACE_ASSERT (buffer_->length () >= 4);
   buffer_->rd_ptr (4);
   if (!buffer_->length ())

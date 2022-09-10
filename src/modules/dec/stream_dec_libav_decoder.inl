@@ -1137,19 +1137,19 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                            0); // own image data
     message_block_p->wr_ptr (frameSize_);
 
-#if defined (_DEBUG)
-    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.yuv");
-    if (!Common_File_Tools::store (filename_string,
-                                   static_cast<uint8_t*> (frame_->data[0]),
-                                   frameSize_))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), aborting\n"),
-                  ACE_TEXT (filename_string.c_str ())));
-      av_frame_unref (frame_);
-      return false;
-    }  // end IF
-#endif // _DEBUG
+//#if defined (_DEBUG)
+//    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.yuv");
+//    if (!Common_File_Tools::store (filename_string,
+//                                   static_cast<uint8_t*> (frame_->data[0]),
+//                                   frameSize_))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), aborting\n"),
+//                  ACE_TEXT (filename_string.c_str ())));
+//      av_frame_unref (frame_);
+//      return false;
+//    }  // end IF
+//#endif // _DEBUG
   } // end ELSE
   ACE_ASSERT (message_block_p);
   message_inout = static_cast<DataMessageType*> (message_block_p);

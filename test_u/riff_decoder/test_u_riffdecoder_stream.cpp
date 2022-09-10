@@ -50,7 +50,7 @@ Test_U_RIFFDecoder_Stream::load (Stream_ILayout* layout_inout,
 
   layout_inout->append (&source_, NULL, 0);
   layout_inout->append (&decoder_, NULL, 0);
-  layout_inout->append (&statistic_, NULL, 0);
+//  layout_inout->append (&statistic_, NULL, 0);
 
   delete_out = false;
 

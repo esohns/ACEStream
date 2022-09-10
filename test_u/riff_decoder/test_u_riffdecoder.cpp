@@ -224,9 +224,9 @@ do_work (bool debug_in,
 
   // ********************** module configuration data **************************
   struct Test_U_RIFFDecoder_ModuleHandlerConfiguration modulehandler_configuration;
+  modulehandler_configuration.allocatorConfiguration =
+    &configuration.allocatorConfiguration;
   modulehandler_configuration.fileIdentifier.identifier = fileName_in;
-//  modulehandler_configuration.streamConfiguration =
-//    &configuration.streamConfiguration;
   modulehandler_configuration.parserConfiguration =
       &configuration.parserConfiguration;
 
@@ -270,24 +270,18 @@ do_work (bool debug_in,
 //    } // end IF
   stream.wait (true, false, false);
 
-  module_p = const_cast<Stream_Module_t*> (stream.find (ACE_TEXT ("Decoder")));
+  module_p = const_cast<Stream_Module_t*> (stream.find (ACE_TEXT ("AVI_Decoder")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::find(\"%s\"): \"%m\", returning\n"),
-                ACE_TEXT ("Decoder")));
+                ACE_TEXT ("AVI_Decoder")));
     goto end;
   } // end IF
   task_p =
-    dynamic_cast<Test_U_RIFFDecoder_Module_Decoder*> (module_p->writer ());
-  if (!task_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<Test_U_RIFFDecoder_Module_Decoder*>(0x%@), returning\n"),
-                module_p->writer ()));
-    goto end;
-  } // end IF
-  ACE_ASSERT (task_p->driver_.finished_);
+    static_cast<Test_U_RIFFDecoder_Module_Decoder*> (module_p->writer ());
+  ACE_ASSERT (task_p);
+//  ACE_ASSERT (task_p->driver_.finished_);
 
   for (Stream_Decoder_RIFFChunksIterator_t iterator = task_p->driver_.chunks_.begin ();
        iterator != task_p->driver_.chunks_.end ();

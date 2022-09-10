@@ -83,8 +83,8 @@ class Stream_Decoder_AVIParserDriver
   bool                        finished_; // done ?
   ACE_Message_Block*          fragment_;
   unsigned int                fragmentCount_;
-  unsigned int                fragmentOffset_; // parsed fragment bytes
-  unsigned int                offset_; // parsed (file/stream) bytes
+  ACE_UINT64                  fragmentOffset_; // parsed fragment bytes
+  ACE_UINT64                  offset_; // parsed (file/stream) bytes
   bool                        parseHeaderOnly_;
 
   // target

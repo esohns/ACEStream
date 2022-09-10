@@ -257,8 +257,8 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
       media_type_s.video.format =
         static_cast<enum AVPixelFormat> (context_->streams[inherited::configuration_->streamIndex]->codecpar->format);
       media_type_s.video.resolution =
-      { context_->streams[inherited::configuration_->streamIndex]->codecpar->width,
-        context_->streams[inherited::configuration_->streamIndex]->codecpar->height };
+        { static_cast<unsigned int> (context_->streams[inherited::configuration_->streamIndex]->codecpar->width),
+          static_cast<unsigned int> (context_->streams[inherited::configuration_->streamIndex]->codecpar->height) };
       media_type_s.video.frameRate =
         context_->streams[inherited::configuration_->streamIndex]->avg_frame_rate;
       break;

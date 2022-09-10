@@ -97,8 +97,7 @@ Stream_Decoder_AVIParserDriver::initialize (unsigned int& frameSize_in,
     finished_ = false;
     if (fragment_)
     {
-      fragment_->release ();
-      fragment_ = NULL;
+      fragment_->release (); fragment_ = NULL;
     } // end IF
     fragmentCount_ = 0;
     fragmentOffset_ = 0;
@@ -173,10 +172,10 @@ Stream_Decoder_AVIParserDriver::parse (ACE_Message_Block* data_in)
     // parse data fragment
     try {
       //result = parser_.parse ();
-      result = yyparse (this, scannerState_);
+      result = avi_parse (this, scannerState_);
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in ::yyparse(), continuing\n")));
+                  ACE_TEXT ("caught exception in ::avi_parse(), continuing\n")));
     }
     switch (result)
     {

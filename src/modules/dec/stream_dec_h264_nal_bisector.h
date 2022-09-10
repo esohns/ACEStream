@@ -13,7 +13,7 @@ Stream_Decoder_H264_NAL_Bisector_lex (yyscan_t yyscanner)
 // ... and declare it for the parser's sake
 YY_DECL;
 
-class Common_IScanner;
+class Common_IScannerBase;
 
 void Stream_Decoder_H264_NAL_Bisector_set_column (int, yyscan_t);
 
@@ -38,7 +38,7 @@ void Stream_Decoder_H264_NAL_Bisector_set_column (int, yyscan_t);
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 6
-#define YY_FLEX_SUBMINOR_VERSION 1
+#define YY_FLEX_SUBMINOR_VERSION 4
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -59,38 +59,230 @@ void Stream_Decoder_H264_NAL_Bisector_set_column (int, yyscan_t);
 /* %endif */
 
 /* %if-c-only */
+#ifdef yy_create_buffer
+#define Stream_Decoder_H264_NAL_Bisector__create_buffer_ALREADY_DEFINED
+#else
+#define yy_create_buffer Stream_Decoder_H264_NAL_Bisector__create_buffer
+#endif
 
+    
+#ifdef yy_delete_buffer
+#define Stream_Decoder_H264_NAL_Bisector__delete_buffer_ALREADY_DEFINED
+#else
+#define yy_delete_buffer Stream_Decoder_H264_NAL_Bisector__delete_buffer
+#endif
 
+    
+#ifdef yy_scan_buffer
+#define Stream_Decoder_H264_NAL_Bisector__scan_buffer_ALREADY_DEFINED
+#else
+#define yy_scan_buffer Stream_Decoder_H264_NAL_Bisector__scan_buffer
+#endif
 
+    
+#ifdef yy_scan_string
+#define Stream_Decoder_H264_NAL_Bisector__scan_string_ALREADY_DEFINED
+#else
+#define yy_scan_string Stream_Decoder_H264_NAL_Bisector__scan_string
+#endif
 
+    
+#ifdef yy_scan_bytes
+#define Stream_Decoder_H264_NAL_Bisector__scan_bytes_ALREADY_DEFINED
+#else
+#define yy_scan_bytes Stream_Decoder_H264_NAL_Bisector__scan_bytes
+#endif
 
+    
+#ifdef yy_init_buffer
+#define Stream_Decoder_H264_NAL_Bisector__init_buffer_ALREADY_DEFINED
+#else
+#define yy_init_buffer Stream_Decoder_H264_NAL_Bisector__init_buffer
+#endif
 
+    
+#ifdef yy_flush_buffer
+#define Stream_Decoder_H264_NAL_Bisector__flush_buffer_ALREADY_DEFINED
+#else
+#define yy_flush_buffer Stream_Decoder_H264_NAL_Bisector__flush_buffer
+#endif
 
+    
+#ifdef yy_load_buffer_state
+#define Stream_Decoder_H264_NAL_Bisector__load_buffer_state_ALREADY_DEFINED
+#else
+#define yy_load_buffer_state Stream_Decoder_H264_NAL_Bisector__load_buffer_state
+#endif
 
+    
+#ifdef yy_switch_to_buffer
+#define Stream_Decoder_H264_NAL_Bisector__switch_to_buffer_ALREADY_DEFINED
+#else
+#define yy_switch_to_buffer Stream_Decoder_H264_NAL_Bisector__switch_to_buffer
+#endif
 
+    
+#ifdef yypush_buffer_state
+#define Stream_Decoder_H264_NAL_Bisector_push_buffer_state_ALREADY_DEFINED
+#else
+#define yypush_buffer_state Stream_Decoder_H264_NAL_Bisector_push_buffer_state
+#endif
 
+    
+#ifdef yypop_buffer_state
+#define Stream_Decoder_H264_NAL_Bisector_pop_buffer_state_ALREADY_DEFINED
+#else
+#define yypop_buffer_state Stream_Decoder_H264_NAL_Bisector_pop_buffer_state
+#endif
 
+    
+#ifdef yyensure_buffer_stack
+#define Stream_Decoder_H264_NAL_Bisector_ensure_buffer_stack_ALREADY_DEFINED
+#else
+#define yyensure_buffer_stack Stream_Decoder_H264_NAL_Bisector_ensure_buffer_stack
+#endif
 
+    
+#ifdef yylex
+#define Stream_Decoder_H264_NAL_Bisector_lex_ALREADY_DEFINED
+#else
+#define yylex Stream_Decoder_H264_NAL_Bisector_lex
+#endif
 
+    
+#ifdef yyrestart
+#define Stream_Decoder_H264_NAL_Bisector_restart_ALREADY_DEFINED
+#else
+#define yyrestart Stream_Decoder_H264_NAL_Bisector_restart
+#endif
 
+    
+#ifdef yylex_init
+#define Stream_Decoder_H264_NAL_Bisector_lex_init_ALREADY_DEFINED
+#else
+#define yylex_init Stream_Decoder_H264_NAL_Bisector_lex_init
+#endif
 
+    
+#ifdef yylex_init_extra
+#define Stream_Decoder_H264_NAL_Bisector_lex_init_extra_ALREADY_DEFINED
+#else
+#define yylex_init_extra Stream_Decoder_H264_NAL_Bisector_lex_init_extra
+#endif
 
+    
+#ifdef yylex_destroy
+#define Stream_Decoder_H264_NAL_Bisector_lex_destroy_ALREADY_DEFINED
+#else
+#define yylex_destroy Stream_Decoder_H264_NAL_Bisector_lex_destroy
+#endif
 
+    
+#ifdef yyget_debug
+#define Stream_Decoder_H264_NAL_Bisector_get_debug_ALREADY_DEFINED
+#else
+#define yyget_debug Stream_Decoder_H264_NAL_Bisector_get_debug
+#endif
 
+    
+#ifdef yyset_debug
+#define Stream_Decoder_H264_NAL_Bisector_set_debug_ALREADY_DEFINED
+#else
+#define yyset_debug Stream_Decoder_H264_NAL_Bisector_set_debug
+#endif
 
+    
+#ifdef yyget_extra
+#define Stream_Decoder_H264_NAL_Bisector_get_extra_ALREADY_DEFINED
+#else
+#define yyget_extra Stream_Decoder_H264_NAL_Bisector_get_extra
+#endif
 
+    
+#ifdef yyset_extra
+#define Stream_Decoder_H264_NAL_Bisector_set_extra_ALREADY_DEFINED
+#else
+#define yyset_extra Stream_Decoder_H264_NAL_Bisector_set_extra
+#endif
 
+    
+#ifdef yyget_in
+#define Stream_Decoder_H264_NAL_Bisector_get_in_ALREADY_DEFINED
+#else
+#define yyget_in Stream_Decoder_H264_NAL_Bisector_get_in
+#endif
 
+    
+#ifdef yyset_in
+#define Stream_Decoder_H264_NAL_Bisector_set_in_ALREADY_DEFINED
+#else
+#define yyset_in Stream_Decoder_H264_NAL_Bisector_set_in
+#endif
 
+    
+#ifdef yyget_out
+#define Stream_Decoder_H264_NAL_Bisector_get_out_ALREADY_DEFINED
+#else
+#define yyget_out Stream_Decoder_H264_NAL_Bisector_get_out
+#endif
 
+    
+#ifdef yyset_out
+#define Stream_Decoder_H264_NAL_Bisector_set_out_ALREADY_DEFINED
+#else
+#define yyset_out Stream_Decoder_H264_NAL_Bisector_set_out
+#endif
 
+    
+#ifdef yyget_leng
+#define Stream_Decoder_H264_NAL_Bisector_get_leng_ALREADY_DEFINED
+#else
+#define yyget_leng Stream_Decoder_H264_NAL_Bisector_get_leng
+#endif
 
+    
+#ifdef yyget_text
+#define Stream_Decoder_H264_NAL_Bisector_get_text_ALREADY_DEFINED
+#else
+#define yyget_text Stream_Decoder_H264_NAL_Bisector_get_text
+#endif
 
+    
+#ifdef yyget_lineno
+#define Stream_Decoder_H264_NAL_Bisector_get_lineno_ALREADY_DEFINED
+#else
+#define yyget_lineno Stream_Decoder_H264_NAL_Bisector_get_lineno
+#endif
 
+    
+#ifdef yyset_lineno
+#define Stream_Decoder_H264_NAL_Bisector_set_lineno_ALREADY_DEFINED
+#else
+#define yyset_lineno Stream_Decoder_H264_NAL_Bisector_set_lineno
+#endif
 
+    
+        
+#ifdef yyget_column
+#define Stream_Decoder_H264_NAL_Bisector_get_column_ALREADY_DEFINED
+#else
+#define yyget_column Stream_Decoder_H264_NAL_Bisector_get_column
+#endif
 
+        
+#ifdef yyset_column
+#define Stream_Decoder_H264_NAL_Bisector_set_column_ALREADY_DEFINED
+#else
+#define yyset_column Stream_Decoder_H264_NAL_Bisector_set_column
+#endif
 
-
+    
+    
+#ifdef yywrap
+#define Stream_Decoder_H264_NAL_Bisector_wrap_ALREADY_DEFINED
+#else
+#define yywrap Stream_Decoder_H264_NAL_Bisector_wrap
+#endif
 
 
 /* %endif */
@@ -100,11 +292,30 @@ void Stream_Decoder_H264_NAL_Bisector_set_column (int, yyscan_t);
 
 
 
+#ifdef yyalloc
+#define Stream_Decoder_H264_NAL_Bisector_alloc_ALREADY_DEFINED
+#else
+#define yyalloc Stream_Decoder_H264_NAL_Bisector_alloc
+#endif
 
+    
+#ifdef yyrealloc
+#define Stream_Decoder_H264_NAL_Bisector_realloc_ALREADY_DEFINED
+#else
+#define yyrealloc Stream_Decoder_H264_NAL_Bisector_realloc
+#endif
+
+    
+#ifdef yyfree
+#define Stream_Decoder_H264_NAL_Bisector_free_ALREADY_DEFINED
+#else
+#define yyfree Stream_Decoder_H264_NAL_Bisector_free
+#endif
 
 
 
 /* %if-c-only */
+
 
 /* %endif */
 
@@ -136,7 +347,7 @@ void Stream_Decoder_H264_NAL_Bisector_set_column (int, yyscan_t);
 #if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 
 /* C99 says to define __STDC_LIMIT_MACROS before including stdint.h,
- * if you want the limit (max/min) macros for int types.
+ * if you want the limit (max/min) macros for int types. 
  */
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS 1
@@ -153,7 +364,7 @@ typedef uint32_t flex_uint32_t;
 typedef signed char flex_int8_t;
 typedef short int flex_int16_t;
 typedef int flex_int32_t;
-typedef unsigned char flex_uint8_t;
+typedef unsigned char flex_uint8_t; 
 typedef unsigned short int flex_uint16_t;
 typedef unsigned int flex_uint32_t;
 
@@ -186,12 +397,17 @@ typedef unsigned int flex_uint32_t;
 #define UINT32_MAX             (4294967295U)
 #endif
 
+#ifndef SIZE_MAX
+#define SIZE_MAX               (~(size_t)0)
+#endif
+
 #endif /* ! C99 */
 
 #endif /* ! FLEXINT_H */
 
 /* %endif */
 
+/* begin standard C++ headers. */
 /* %if-c++-only */
 /* %endif */
 
@@ -203,10 +419,6 @@ typedef unsigned int flex_uint32_t;
 #else
 #define yynoreturn
 #endif
-
-
-
-
 
 /* %not-for-header */
 
@@ -223,8 +435,6 @@ typedef unsigned int flex_uint32_t;
 #define YY_TYPEDEF_YY_SCANNER_T
 typedef void* yyscan_t;
 #endif
-
-
 
 
 
@@ -269,17 +479,6 @@ typedef void* yyscan_t;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 /* Size of default input buffer. */
 #ifndef YY_BUF_SIZE
 #ifdef __ia64__
@@ -316,76 +515,68 @@ typedef size_t yy_size_t;
 
 
 
-
-
-
-
-
-
 #ifndef YY_STRUCT_YY_BUFFER_STATE
 #define YY_STRUCT_YY_BUFFER_STATE
 struct yy_buffer_state
-  {
+	{
 /* %if-c-only */
-  FILE *yy_input_file;
+	FILE *yy_input_file;
 /* %endif */
 
 /* %if-c++-only */
 /* %endif */
 
 
-  char *yy_ch_buf;		/* input buffer */
-  char *yy_buf_pos;		/* current position in input buffer */
+	char *yy_ch_buf;		/* input buffer */
+	char *yy_buf_pos;		/* current position in input buffer */
 
-  /* Size of input buffer in bytes, not including room for EOB
-   * characters.
-   */
-  int yy_buf_size;
+	/* Size of input buffer in bytes, not including room for EOB
+	 * characters.
+	 */
+	int yy_buf_size;
 
-  /* Number of characters read into yy_ch_buf, not including EOB
-   * characters.
-   */
-  int yy_n_chars;
+	/* Number of characters read into yy_ch_buf, not including EOB
+	 * characters.
+	 */
+	int yy_n_chars;
 
-  /* Whether we "own" the buffer - i.e., we know we created it,
-   * and can realloc() it to grow it, and should free() it to
-   * delete it.
-   */
-  int yy_is_our_buffer;
+	/* Whether we "own" the buffer - i.e., we know we created it,
+	 * and can realloc() it to grow it, and should free() it to
+	 * delete it.
+	 */
+	int yy_is_our_buffer;
 
-  /* Whether this is an "interactive" input source; if so, and
-   * if we're using stdio for input, then we want to use getc()
-   * instead of fread(), to make sure we stop fetching input after
-   * each newline.
-   */
-  int yy_is_interactive;
+	/* Whether this is an "interactive" input source; if so, and
+	 * if we're using stdio for input, then we want to use getc()
+	 * instead of fread(), to make sure we stop fetching input after
+	 * each newline.
+	 */
+	int yy_is_interactive;
 
-  /* Whether we're considered to be at the beginning of a line.
-   * If so, '^' rules will be active on the next match, otherwise
-   * not.
-   */
-  int yy_at_bol;
+	/* Whether we're considered to be at the beginning of a line.
+	 * If so, '^' rules will be active on the next match, otherwise
+	 * not.
+	 */
+	int yy_at_bol;
 
     int yy_bs_lineno; /**< The line count. */
     int yy_bs_column; /**< The column count. */
 
 
-  /* Whether to try to fill the input buffer when we reach the
-   * end of it.
-   */
-  int yy_fill_buffer;
+	/* Whether to try to fill the input buffer when we reach the
+	 * end of it.
+	 */
+	int yy_fill_buffer;
 
-  int yy_buffer_status;
+	int yy_buffer_status;
 
-  };
+	};
 #endif /* !YY_STRUCT_YY_BUFFER_STATE */
 
 /* %if-c-only Standard (non-C++) definition */
 /* %not-for-header */
 
 /* %endif */
-
-
 
 
 
@@ -396,33 +587,25 @@ struct yy_buffer_state
 
 /* %endif */
 
-void Stream_Decoder_H264_NAL_Bisector_restart (FILE *input_file ,yyscan_t yyscanner );
-void Stream_Decoder_H264_NAL_Bisector__switch_to_buffer (YY_BUFFER_STATE new_buffer ,yyscan_t yyscanner );
-YY_BUFFER_STATE Stream_Decoder_H264_NAL_Bisector__create_buffer (FILE *file,int size ,yyscan_t yyscanner );
-void Stream_Decoder_H264_NAL_Bisector__delete_buffer (YY_BUFFER_STATE b ,yyscan_t yyscanner );
-void Stream_Decoder_H264_NAL_Bisector__flush_buffer (YY_BUFFER_STATE b ,yyscan_t yyscanner );
-void Stream_Decoder_H264_NAL_Bisector_push_buffer_state (YY_BUFFER_STATE new_buffer ,yyscan_t yyscanner );
-void Stream_Decoder_H264_NAL_Bisector_pop_buffer_state (yyscan_t yyscanner );
+void yyrestart ( FILE *input_file , yyscan_t yyscanner );
+void yy_switch_to_buffer ( YY_BUFFER_STATE new_buffer , yyscan_t yyscanner );
+YY_BUFFER_STATE yy_create_buffer ( FILE *file, int size , yyscan_t yyscanner );
+void yy_delete_buffer ( YY_BUFFER_STATE b , yyscan_t yyscanner );
+void yy_flush_buffer ( YY_BUFFER_STATE b , yyscan_t yyscanner );
+void yypush_buffer_state ( YY_BUFFER_STATE new_buffer , yyscan_t yyscanner );
+void yypop_buffer_state ( yyscan_t yyscanner );
 
 
 
-
-
-YY_BUFFER_STATE Stream_Decoder_H264_NAL_Bisector__scan_buffer (char *base,yy_size_t size ,yyscan_t yyscanner );
-YY_BUFFER_STATE Stream_Decoder_H264_NAL_Bisector__scan_string (yyconst char *yy_str ,yyscan_t yyscanner );
-YY_BUFFER_STATE Stream_Decoder_H264_NAL_Bisector__scan_bytes (yyconst char *bytes,int len ,yyscan_t yyscanner );
+YY_BUFFER_STATE yy_scan_buffer ( char *base, yy_size_t size , yyscan_t yyscanner );
+YY_BUFFER_STATE yy_scan_string ( const char *yy_str , yyscan_t yyscanner );
+YY_BUFFER_STATE yy_scan_bytes ( const char *bytes, int len , yyscan_t yyscanner );
 
 /* %endif */
 
-void *Stream_Decoder_H264_NAL_Bisector_alloc (yy_size_t ,yyscan_t yyscanner );
-void *Stream_Decoder_H264_NAL_Bisector_realloc (void *,yy_size_t ,yyscan_t yyscanner );
-void Stream_Decoder_H264_NAL_Bisector_free (void * ,yyscan_t yyscanner );
-
-
-
-
-
-
+void *yyalloc ( yy_size_t , yyscan_t yyscanner );
+void *yyrealloc ( void *, yy_size_t , yyscan_t yyscanner );
+void yyfree ( void * , yyscan_t yyscanner );
 
 
 
@@ -445,15 +628,28 @@ void Stream_Decoder_H264_NAL_Bisector_free (void * ,yyscan_t yyscanner );
 
 
 
-
-
 #ifdef YY_HEADER_EXPORT_START_CONDITIONS
 #define INITIAL 0
 #define end_of_frame 1
 
 #endif
 
-#define YY_EXTRA_TYPE Common_IScanner*
+
+#ifndef YY_NO_UNISTD_H
+/* Special case for "unistd.h", since it is non-ANSI. We include it way
+ * down here because we want the user's section 1 to have been scanned first.
+ * The user has a chance to override it with an option.
+ */
+/* %if-c-only */
+#include <unistd.h>
+/* %endif */
+/* %if-c++-only */
+/* %endif */
+#endif
+
+
+
+#define YY_EXTRA_TYPE Common_IScannerBase*
 
 
 /* %if-c-only Reentrant structure and macros (non-C++). */
@@ -470,9 +666,9 @@ void Stream_Decoder_H264_NAL_Bisector_free (void * ,yyscan_t yyscanner );
 
 
 
-int Stream_Decoder_H264_NAL_Bisector_lex_init (yyscan_t* scanner);
+int yylex_init (yyscan_t* scanner);
 
-int Stream_Decoder_H264_NAL_Bisector_lex_init_extra (YY_EXTRA_TYPE user_defined,yyscan_t* scanner);
+int yylex_init_extra ( YY_EXTRA_TYPE user_defined, yyscan_t* scanner);
 
 /* %endif */
 
@@ -482,66 +678,66 @@ int Stream_Decoder_H264_NAL_Bisector_lex_init_extra (YY_EXTRA_TYPE user_defined,
    These are made visible to non-reentrant scanners for convenience. */
 
 
-int Stream_Decoder_H264_NAL_Bisector_lex_destroy (yyscan_t yyscanner );
+int yylex_destroy ( yyscan_t yyscanner );
 
 
 
-int Stream_Decoder_H264_NAL_Bisector_get_debug (yyscan_t yyscanner );
+int yyget_debug ( yyscan_t yyscanner );
 
 
 
-void Stream_Decoder_H264_NAL_Bisector_set_debug (int debug_flag ,yyscan_t yyscanner );
+void yyset_debug ( int debug_flag , yyscan_t yyscanner );
 
 
 
-YY_EXTRA_TYPE Stream_Decoder_H264_NAL_Bisector_get_extra (yyscan_t yyscanner );
+YY_EXTRA_TYPE yyget_extra ( yyscan_t yyscanner );
 
 
 
-void Stream_Decoder_H264_NAL_Bisector_set_extra (YY_EXTRA_TYPE user_defined ,yyscan_t yyscanner );
+void yyset_extra ( YY_EXTRA_TYPE user_defined , yyscan_t yyscanner );
 
 
 
-FILE *Stream_Decoder_H264_NAL_Bisector_get_in (yyscan_t yyscanner );
+FILE *yyget_in ( yyscan_t yyscanner );
 
 
 
-void Stream_Decoder_H264_NAL_Bisector_set_in  (FILE * _in_str ,yyscan_t yyscanner );
+void yyset_in  ( FILE * _in_str , yyscan_t yyscanner );
 
 
 
-FILE *Stream_Decoder_H264_NAL_Bisector_get_out (yyscan_t yyscanner );
+FILE *yyget_out ( yyscan_t yyscanner );
 
 
 
-void Stream_Decoder_H264_NAL_Bisector_set_out  (FILE * _out_str ,yyscan_t yyscanner );
+void yyset_out  ( FILE * _out_str , yyscan_t yyscanner );
 
 
 
-      int Stream_Decoder_H264_NAL_Bisector_get_leng (yyscan_t yyscanner );
+			int yyget_leng ( yyscan_t yyscanner );
 
 
 
-char *Stream_Decoder_H264_NAL_Bisector_get_text (yyscan_t yyscanner );
+char *yyget_text ( yyscan_t yyscanner );
 
 
 
-int Stream_Decoder_H264_NAL_Bisector_get_lineno (yyscan_t yyscanner );
+int yyget_lineno ( yyscan_t yyscanner );
 
 
 
-void Stream_Decoder_H264_NAL_Bisector_set_lineno (int _line_number ,yyscan_t yyscanner );
-
-
-
-
-int Stream_Decoder_H264_NAL_Bisector_get_column  (yyscan_t yyscanner );
+void yyset_lineno ( int _line_number , yyscan_t yyscanner );
 
 
 
 
+int yyget_column  ( yyscan_t yyscanner );
 
-void Stream_Decoder_H264_NAL_Bisector_set_column (int _column_no ,yyscan_t yyscanner );
+
+
+
+
+void yyset_column ( int _column_no , yyscan_t yyscanner );
 
 
 
@@ -554,9 +750,9 @@ void Stream_Decoder_H264_NAL_Bisector_set_column (int _column_no ,yyscan_t yysca
 
 #ifndef YY_SKIP_YYWRAP
 #ifdef __cplusplus
-extern "C" int Stream_Decoder_H264_NAL_Bisector_wrap (yyscan_t yyscanner );
+extern "C" int yywrap ( yyscan_t yyscanner );
 #else
-extern int Stream_Decoder_H264_NAL_Bisector_wrap (yyscan_t yyscanner );
+extern int yywrap ( yyscan_t yyscanner );
 #endif
 #endif
 
@@ -565,11 +761,11 @@ extern int Stream_Decoder_H264_NAL_Bisector_wrap (yyscan_t yyscanner );
 /* %endif */
 
 #ifndef yytext_ptr
-static void yy_flex_strncpy (char *,yyconst char *,int ,yyscan_t yyscanner);
+static void yy_flex_strncpy ( char *, const char *, int , yyscan_t yyscanner);
 #endif
 
 #ifdef YY_NEED_STRLEN
-static int yy_flex_strlen (yyconst char * ,yyscan_t yyscanner);
+static int yy_flex_strlen ( const char * , yyscan_t yyscanner);
 #endif
 
 #ifndef YY_NO_INPUT
@@ -632,9 +828,9 @@ static int yy_flex_strlen (yyconst char * ,yyscan_t yyscanner);
 
 
 
-extern int Stream_Decoder_H264_NAL_Bisector_lex (yyscan_t yyscanner);
+extern int yylex (yyscan_t yyscanner);
 
-#define YY_DECL int Stream_Decoder_H264_NAL_Bisector_lex (yyscan_t yyscanner)
+#define YY_DECL int yylex (yyscan_t yyscanner)
 /* %endif */
 /* %if-c++-only C++ definition */
 /* %endif */
@@ -672,6 +868,151 @@ extern int Stream_Decoder_H264_NAL_Bisector_lex (yyscan_t yyscanner);
 #ifdef YY_DECL_IS_OURS
 #undef YY_DECL_IS_OURS
 #undef YY_DECL
+#endif
+
+#ifndef Stream_Decoder_H264_NAL_Bisector__create_buffer_ALREADY_DEFINED
+#undef yy_create_buffer
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector__delete_buffer_ALREADY_DEFINED
+#undef yy_delete_buffer
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector__scan_buffer_ALREADY_DEFINED
+#undef yy_scan_buffer
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector__scan_string_ALREADY_DEFINED
+#undef yy_scan_string
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector__scan_bytes_ALREADY_DEFINED
+#undef yy_scan_bytes
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector__init_buffer_ALREADY_DEFINED
+#undef yy_init_buffer
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector__flush_buffer_ALREADY_DEFINED
+#undef yy_flush_buffer
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector__load_buffer_state_ALREADY_DEFINED
+#undef yy_load_buffer_state
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector__switch_to_buffer_ALREADY_DEFINED
+#undef yy_switch_to_buffer
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_push_buffer_state_ALREADY_DEFINED
+#undef yypush_buffer_state
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_pop_buffer_state_ALREADY_DEFINED
+#undef yypop_buffer_state
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_ensure_buffer_stack_ALREADY_DEFINED
+#undef yyensure_buffer_stack
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_lex_ALREADY_DEFINED
+#undef yylex
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_restart_ALREADY_DEFINED
+#undef yyrestart
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_lex_init_ALREADY_DEFINED
+#undef yylex_init
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_lex_init_extra_ALREADY_DEFINED
+#undef yylex_init_extra
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_lex_destroy_ALREADY_DEFINED
+#undef yylex_destroy
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_get_debug_ALREADY_DEFINED
+#undef yyget_debug
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_set_debug_ALREADY_DEFINED
+#undef yyset_debug
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_get_extra_ALREADY_DEFINED
+#undef yyget_extra
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_set_extra_ALREADY_DEFINED
+#undef yyset_extra
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_get_in_ALREADY_DEFINED
+#undef yyget_in
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_set_in_ALREADY_DEFINED
+#undef yyset_in
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_get_out_ALREADY_DEFINED
+#undef yyget_out
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_set_out_ALREADY_DEFINED
+#undef yyset_out
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_get_leng_ALREADY_DEFINED
+#undef yyget_leng
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_get_text_ALREADY_DEFINED
+#undef yyget_text
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_get_lineno_ALREADY_DEFINED
+#undef yyget_lineno
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_set_lineno_ALREADY_DEFINED
+#undef yyset_lineno
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_get_column_ALREADY_DEFINED
+#undef yyget_column
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_set_column_ALREADY_DEFINED
+#undef yyset_column
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_wrap_ALREADY_DEFINED
+#undef yywrap
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_get_lval_ALREADY_DEFINED
+#undef yyget_lval
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_set_lval_ALREADY_DEFINED
+#undef yyset_lval
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_get_lloc_ALREADY_DEFINED
+#undef yyget_lloc
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_set_lloc_ALREADY_DEFINED
+#undef yyset_lloc
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_alloc_ALREADY_DEFINED
+#undef yyalloc
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_realloc_ALREADY_DEFINED
+#undef yyrealloc
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_free_ALREADY_DEFINED
+#undef yyfree
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_text_ALREADY_DEFINED
+#undef yytext
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_leng_ALREADY_DEFINED
+#undef yyleng
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_in_ALREADY_DEFINED
+#undef yyin
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_out_ALREADY_DEFINED
+#undef yyout
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector__flex_debug_ALREADY_DEFINED
+#undef yy_flex_debug
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_lineno_ALREADY_DEFINED
+#undef yylineno
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_tables_fload_ALREADY_DEFINED
+#undef yytables_fload
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_tables_destroy_ALREADY_DEFINED
+#undef yytables_destroy
+#endif
+#ifndef Stream_Decoder_H264_NAL_Bisector_TABLES_NAME_ALREADY_DEFINED
+#undef yyTABLES_NAME
 #endif
 
 

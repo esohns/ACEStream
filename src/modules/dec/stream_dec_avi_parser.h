@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.0.2.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Skeleton interface for Bison GLR parsers in C
 
-   Copyright (C) 2002-2013 Free Software Foundation, Inc.
+   Copyright (C) 2002-2015, 2018-2021 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -30,25 +30,21 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_YY_STREAM_DEC_AVI_PARSER_H_INCLUDED
-# define YY_YY_STREAM_DEC_AVI_PARSER_H_INCLUDED
+#ifndef YY_AVI_STREAM_DEC_AVI_PARSER_H_INCLUDED
+# define YY_AVI_STREAM_DEC_AVI_PARSER_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 1
 #endif
 #if YYDEBUG
-//extern int yydebug;
+extern int avi_debug;
 #endif
 /* "%code requires" blocks.  */
-
 
 // *NOTE*: add double include protection, required for GNU Bison 2.4.2
 // *TODO*: remove this ASAP
 //#ifndef STREAM_DEC_AVI_PARSER_H
 //#define STREAM_DEC_AVI_PARSER_H
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <mmsyscom.h>
-#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dec_riff_common.h"
 //#include "stream_dec_exports.h"
@@ -63,8 +59,8 @@ class Stream_Decoder_AVIParserDriver;
 //#undef YYSTYPE
 struct YYSTYPE
 {
-  RIFF_chunk_meta chunk_meta;
-  unsigned int    size;
+  struct RIFF_chunk_meta chunk_meta;
+  ACE_UINT32             size;
 };
 
 typedef void* yyscan_t;
@@ -75,20 +71,24 @@ extern int avi_debug;
 //#define YYPRINT 1
 //#define YYTOKEN_TABLE 1
 
+#define YYINITDEPTH 1000
+#define YYMAXDEPTH 100000
 
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    END = 0,
-    RIFF = 258,
-    _SIZE = 259,
-    _FOURCC = 260,
-    LIST = 261,
-    DATA = 262
+    YYEMPTY = -2,
+    END = 0,                       /* "end_of_buffer"  */
+    YYerror = 256,                 /* error  */
+    YYUNDEF = 257,                 /* "invalid token"  */
+    RIFF = 258,                    /* "riff"  */
+    LIST = 259,                    /* "list"  */
+    CHUNK = 260                    /* "chunk"  */
   };
+  typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
@@ -114,9 +114,8 @@ struct YYLTYPE
 
 
 
-int yyparse (Stream_Decoder_AVIParserDriver* driver, yyscan_t yyscanner);
+int avi_parse (Stream_Decoder_AVIParserDriver* driver, yyscan_t yyscanner);
 /* "%code provides" blocks.  */
-
 
 extern void yy_debug (int);
 extern void yyerror (YYLTYPE*, Stream_Decoder_AVIParserDriver*, yyscan_t, const char*);
@@ -128,5 +127,4 @@ extern int yyparse (Stream_Decoder_AVIParserDriver*, yyscan_t);
 //#endif // STREAM_DEC_AVI_PARSER_H
 
 
-
-#endif /* !YY_YY_STREAM_DEC_AVI_PARSER_H_INCLUDED  */
+#endif /* !YY_AVI_STREAM_DEC_AVI_PARSER_H_INCLUDED  */

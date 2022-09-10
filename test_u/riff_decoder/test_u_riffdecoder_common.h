@@ -61,6 +61,19 @@ struct Test_U_RIFFDecoder_AllocatorConfiguration
   }
 };
 
+struct Test_U_ParserConfiguration
+  : Common_FlexBisonParserConfiguration
+{
+  Test_U_ParserConfiguration ()
+   : Common_FlexBisonParserConfiguration ()
+   , extractHeaderOnly (false)
+   , extractFrames (true)
+  {}
+
+  bool extractHeaderOnly;
+  bool extractFrames;
+};
+
 //extern const char stream_name_string_[];
 struct Test_U_RIFFDecoder_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
@@ -71,7 +84,10 @@ struct Test_U_RIFFDecoder_ModuleHandlerConfiguration
 {
   Test_U_RIFFDecoder_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
+   , parserConfiguration (NULL)
   {}
+
+  struct Test_U_ParserConfiguration* parserConfiguration; // parser module(s)
 };
 
 struct Test_U_RIFFDecoder_SessionData
@@ -102,12 +118,14 @@ struct Test_U_RIFFDecoder_Configuration
 {
   Test_U_RIFFDecoder_Configuration ()
    : Test_U_Configuration ()
+   , allocatorConfiguration ()
    , parserConfiguration ()
    , streamConfiguration ()
   {}
 
-  struct Common_FlexBisonParserConfiguration parserConfiguration;
-  Test_U_RIFFDecoder_StreamConfiguration_t   streamConfiguration;
+  struct Test_U_RIFFDecoder_AllocatorConfiguration allocatorConfiguration;
+  struct Test_U_ParserConfiguration                parserConfiguration;
+  Test_U_RIFFDecoder_StreamConfiguration_t         streamConfiguration;
 };
 
 //template <typename AllocatorConfigurationType,

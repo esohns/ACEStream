@@ -175,8 +175,8 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
       //glClearDepth (1.0);                                 // Depth Buffer Setup
       //COMMON_GL_ASSERT;
       /* speedups */
-      //glDisable (GL_CULL_FACE);
-      //glFrontFace (GL_CW);
+      glEnable (GL_CULL_FACE);
+      glFrontFace (GL_CCW);
       //glCullFace (GL_BACK);
       //  glEnable (GL_DITHER);
       //  glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);

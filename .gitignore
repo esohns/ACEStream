@@ -83,3 +83,5 @@ test_i/speechcommand/etc/model.pbmm
 test_i/speechcommand/etc/de-aashishag-1-prune-kenlm.scorer
 
 *.jpg
+*.rgb
+*.yuv
