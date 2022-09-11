@@ -67,11 +67,9 @@ struct Test_U_ParserConfiguration
   Test_U_ParserConfiguration ()
    : Common_FlexBisonParserConfiguration ()
    , extractHeaderOnly (false)
-   , extractFrames (true)
   {}
 
   bool extractHeaderOnly;
-  bool extractFrames;
 };
 
 //extern const char stream_name_string_[];

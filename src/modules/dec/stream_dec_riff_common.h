@@ -50,7 +50,7 @@ struct RIFF_chunk_meta
 //  }
 //};
 //typedef std::set<RIFF_chunk_meta, less_RIFF_chunk_meta> Stream_Decoder_RIFFChunks_t;
-typedef std::vector<RIFF_chunk_meta> Stream_Decoder_RIFFChunks_t;
+typedef std::vector<struct RIFF_chunk_meta> Stream_Decoder_RIFFChunks_t;
 typedef Stream_Decoder_RIFFChunks_t::const_iterator Stream_Decoder_RIFFChunksIterator_t;
 
 #endif

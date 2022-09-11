@@ -2,19 +2,20 @@
 #define RIFF_Scanner_HEADER_H 1
 #define RIFF_Scanner_IN_HEADER 1
 
-#undef YYTOKENTYPE
+//#undef avi_tokentype
 #include "stream_dec_avi_parser.h"
 
 #define YY_DECL                                           \
-yytokentype                                               \
-RIFF_Scanner_lex (YYSTYPE* yylval_param,                  \
-                  YYLTYPE* yylloc_param,                  \
+enum avi_tokentype                                        \
+RIFF_Scanner_lex (AVI_STYPE* yylval_param,                \
+                  AVI_LTYPE* yylloc_param,                \
                   Stream_Decoder_AVIParserDriver* driver, \
-                  yyscan_t yyscanner)
+                  void* yyscanner)
 // ... and declare it for the parser's sake
 YY_DECL;
 
 void RIFF_Scanner_set_column (int, yyscan_t);
+void RIFF_Scanner_reset_hold_char (yyscan_t);
 
 //#define FLEXINT_H
 

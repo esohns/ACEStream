@@ -24,12 +24,9 @@
 #include "ace/Global_Macros.h"
 #include "ace/Message_Block.h"
 
-//#include "common_time_common.h"
-
 #include "stream_task_base_asynch.h"
 
 #include "stream_dec_avi_parser_driver.h"
-//#include "stream_dec_common.h"
 
 extern const char libacestream_default_dec_avi_decoder_module_name_string[];
 
@@ -56,6 +53,7 @@ class Stream_Decoder_AVIDecoder_T
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData>
+ , public Stream_Decoder_AVIParserDriver
 {
   typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                                   TimePolicyType,
@@ -66,6 +64,7 @@ class Stream_Decoder_AVIDecoder_T
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData> inherited;
+  typedef Stream_Decoder_AVIParserDriver inherited2;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -86,22 +85,17 @@ class Stream_Decoder_AVIDecoder_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  Stream_Decoder_AVIParserDriver driver_;
-
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T (const Stream_Decoder_AVIDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T& operator= (const Stream_Decoder_AVIDecoder_T&))
 
-  Stream_IAllocator* allocator_;
-  ACE_Message_Block* buffer_; // <-- continuation chain
-  //bool               crunchMessages_;
-  unsigned int       frameSize_;
+  virtual bool frame (const struct RIFF_chunk_meta&); // frame chunk
+  virtual bool betweenFrameChunk (const struct RIFF_chunk_meta&); // in-between frames chunk
 
-  // driver
-  bool               debugParser_;
-  bool               debugScanner_;
-  bool               isDriverInitialized_;
+  ACE_Message_Block* buffer_; // <-- continuation chain
+  unsigned int       frameSize_;
+  bool               headerParsed_;
 };
 
 // include template definition

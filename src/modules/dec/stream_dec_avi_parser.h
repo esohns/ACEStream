@@ -33,10 +33,18 @@
 #ifndef YY_AVI_STREAM_DEC_AVI_PARSER_H_INCLUDED
 # define YY_AVI_STREAM_DEC_AVI_PARSER_H_INCLUDED
 /* Debug traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 1
-#endif
+#ifndef AVI_DEBUG
+# if defined YYDEBUG
 #if YYDEBUG
+#   define AVI_DEBUG 1
+#  else
+#   define AVI_DEBUG 0
+#  endif
+# else /* ! defined YYDEBUG */
+#  define AVI_DEBUG 1
+# endif /* ! defined YYDEBUG */
+#endif  /* ! defined AVI_DEBUG */
+#if AVI_DEBUG
 extern int avi_debug;
 #endif
 /* "%code requires" blocks.  */
@@ -50,18 +58,15 @@ extern int avi_debug;
 //#include "stream_dec_exports.h"
 
 // forward declarations
-
 class Stream_Decoder_AVIParserDriver;
-//class RIFF_Scanner;
-#undef YYTOKENTYPE
-//enum yytokentype;
-//struct YYLTYPE;
-//#undef YYSTYPE
-struct YYSTYPE
+struct AVI_STYPE
 {
   struct RIFF_chunk_meta chunk_meta;
   ACE_UINT32             size;
 };
+#define AVI_STYPE_IS_DECLARED
+#define YYSTYPE AVI_STYPE
+#define YYLTYPE AVI_LTYPE
 
 typedef void* yyscan_t;
 
@@ -76,40 +81,40 @@ extern int avi_debug;
 
 
 /* Token kinds.  */
-#ifndef YYTOKENTYPE
-# define YYTOKENTYPE
-  enum yytokentype
+#ifndef AVI_TOKENTYPE
+# define AVI_TOKENTYPE
+  enum avi_tokentype
   {
-    YYEMPTY = -2,
+    AVI_EMPTY = -2,
     END = 0,                       /* "end_of_buffer"  */
-    YYerror = 256,                 /* error  */
-    YYUNDEF = 257,                 /* "invalid token"  */
+    AVI_error = 256,               /* error  */
+    AVI_UNDEF = 257,               /* "invalid token"  */
     RIFF = 258,                    /* "riff"  */
     LIST = 259,                    /* "list"  */
     CHUNK = 260                    /* "chunk"  */
   };
-  typedef enum yytokentype yytoken_kind_t;
+  typedef enum avi_tokentype avi_token_kind_t;
 #endif
 
 /* Value type.  */
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef  struct YYSTYPE  YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
-# define YYSTYPE_IS_DECLARED 1
+#if ! defined AVI_STYPE && ! defined AVI_STYPE_IS_DECLARED
+typedef  struct YYSTYPE  AVI_STYPE;
+# define AVI_STYPE_IS_TRIVIAL 1
+# define AVI_STYPE_IS_DECLARED 1
 #endif
 
 /* Location type.  */
-#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
-typedef struct YYLTYPE YYLTYPE;
-struct YYLTYPE
+#if ! defined AVI_LTYPE && ! defined AVI_LTYPE_IS_DECLARED
+typedef struct AVI_LTYPE AVI_LTYPE;
+struct AVI_LTYPE
 {
   int first_line;
   int first_column;
   int last_line;
   int last_column;
 };
-# define YYLTYPE_IS_DECLARED 1
-# define YYLTYPE_IS_TRIVIAL 1
+# define AVI_LTYPE_IS_DECLARED 1
+# define AVI_LTYPE_IS_TRIVIAL 1
 #endif
 
 
@@ -118,7 +123,7 @@ int avi_parse (Stream_Decoder_AVIParserDriver* driver, yyscan_t yyscanner);
 /* "%code provides" blocks.  */
 
 extern void yy_debug (int);
-extern void yyerror (YYLTYPE*, Stream_Decoder_AVIParserDriver*, yyscan_t, const char*);
+extern void yyerror (AVI_LTYPE*, Stream_Decoder_AVIParserDriver*, yyscan_t, const char*);
 extern int yyparse (Stream_Decoder_AVIParserDriver*, yyscan_t);
 //extern void yyprint (FILE*, yytokentype, YYSTYPE);
 

@@ -33,16 +33,23 @@
 
 #include "stream_dec_defines.h"
 #include "stream_dec_riff_common.h"
- //#include "stream_dec_riff_scanner.h"
 
 // forward declaration(s)
 class ACE_Message_Queue_Base;
-//class Stream_Dec_RIFF_Scanner;
 typedef void* yyscan_t;
 typedef struct yy_buffer_state* YY_BUFFER_STATE;
-struct YYLTYPE;
+struct AVI_LTYPE;
+
+class Stream_Decoder_IAVIParser
+{
+ public:
+  // *NOTE*: to be invoked by the parser (ONLY !)
+  virtual bool frame (const struct RIFF_chunk_meta&) = 0; // frame chunk
+  virtual bool betweenFrameChunk (const struct RIFF_chunk_meta&) = 0; // in-between frames chunk
+};
 
 class Stream_Decoder_AVIParserDriver
+ : public Stream_Decoder_IAVIParser
 {
 //  friend class Stream_Decoder_RIFF_Scanner;
 
@@ -54,7 +61,6 @@ class Stream_Decoder_AVIParserDriver
   // target data, needs to be set before invoking parse() !
   void initialize (unsigned int&,                                         // target data (frame size)
                    bool,                                                  // parse header only ? : parse the whole (file) stream
-                   bool,                                                  // extract frames ? (see below)
                    bool = COMMON_PARSER_DEFAULT_LEX_TRACE,                // debug scanner ?
                    bool = COMMON_PARSER_DEFAULT_YACC_TRACE,               // debug parser ?
                    ACE_Message_Queue_Base* = NULL,                        // data buffer queue (yywrap)
@@ -66,20 +72,17 @@ class Stream_Decoder_AVIParserDriver
   //void error (const yy::location&, // location
   //            const std::string&); // message
   void error (const std::string&); // message
-  void error (const YYLTYPE&,      // location
+  void error (const AVI_LTYPE&,    // location
               const std::string&); // message
 
   // *NOTE*: to be invoked by the scanner (ONLY !)
-  bool switchBuffer ();
+  bool switchBuffer (ACE_Message_Block* = NULL); // fragment to switch to directly : fragment_->cont ()
   bool getDebugScanner () const;
   void wait ();
 
   // *NOTE*: current (unscanned) data fragment
   Stream_Decoder_RIFFChunks_t chunks_;
-  // *NOTE*: the scanner automatically inserts buffers that 'point' to the
-  //         (chunk) data. This setting additionally 'discards' all (chunk) meta
-  //         data
-  bool                        extractFrames_;
+  bool                        inFrames_;
   bool                        finished_; // done ?
   ACE_Message_Block*          fragment_;
   unsigned int                fragmentCount_;
@@ -90,27 +93,22 @@ class Stream_Decoder_AVIParserDriver
   // target
   unsigned int*               frameSize_;
 
+ protected:
+  yyscan_t                    scannerState_;
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIParserDriver ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIParserDriver (const Stream_Decoder_AVIParserDriver&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIParserDriver& operator= (const Stream_Decoder_AVIParserDriver&))
 
   // convenient typedefs
-  // *TODO*: to be templatized
-//  typedef Stream_IDataMessage_T<void,
-//                                enum Stream_MessageType,
-//                                int> IMESSAGE_T;
   typedef Stream_IMessage_T<enum Stream_SessionMessageType> ISESSIONMESSAGE_T;
 
   // helper methods
   bool scan_begin ();
   void scan_end ();
 
-  // context
-  //bool                        trace_;
-
   // scanner
-  yyscan_t                    scannerState_;
   YY_BUFFER_STATE             bufferState_;
   ACE_Message_Queue_Base*     messageQueue_;
   bool                        useYYScanBuffer_;

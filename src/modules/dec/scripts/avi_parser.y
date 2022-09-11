@@ -5,7 +5,7 @@
 %locations
 %no-lines
 %output                           "stream_dec_avi_parser.cpp"
-%require                          "2.4.1"
+%require                          "3.8.1"
 %skeleton                         "glr.c"
 /* %skeleton                         "lalr1.cc" */
 %token-table
@@ -20,15 +20,13 @@
 /* %define api.location.type         {} */
 /* %define namespace                    {yy} */
 /* %define api.namespace                "yy" */
-%name-prefix                         "avi_"
-/* %define api.prefix                "yy" */
-%pure-parser
-/* %define api.pure                  true */
-/* *TODO*: implement a push parser */
-/* %define api.push-pull             push */
+/* %name-prefix                         "avi_" */
+%define api.prefix                   {avi_}
+/* %pure-parser */
+ %define api.pure                    true
+/* %define api.push-pull                push */
 /* %define api.token.constructor */
 /* %define api.token.prefix          {} */
-%token-table
 /* %define api.value.type            variant */
 %define api.value.type               { struct YYSTYPE }
 /* %define api.value.union.name      YYSTYPE */
@@ -38,8 +36,8 @@
 /* %define lr.type                   lalr */
 
 /* %define parse.assert              {true} */
-%error-verbose
-/* %define parse.error               verbose */
+/* %error-verbose */
+%define parse.error                  verbose
 /* %define parse.lac                 {full} */
 /* %define parse.lac                 {none} */
 /* %define parser_class_name         {Stream_Decoder_AVIParser} */
@@ -59,18 +57,15 @@
 //#include "stream_dec_exports.h"
 
 // forward declarations
-
 class Stream_Decoder_AVIParserDriver;
-//class RIFF_Scanner;
-#undef YYTOKENTYPE
-//enum yytokentype;
-//struct YYLTYPE;
-//#undef YYSTYPE
-struct YYSTYPE
+struct AVI_STYPE
 {
   struct RIFF_chunk_meta chunk_meta;
   ACE_UINT32             size;
 };
+#define AVI_STYPE_IS_DECLARED
+#define YYSTYPE AVI_STYPE
+#define YYLTYPE AVI_LTYPE
 
 typedef void* yyscan_t;
 
@@ -150,13 +145,13 @@ using namespace std;
 //#define YYPRINT(file, type, value) yyprint (file, type, value)
 }
 
-%token <size> RIFF  "riff"
-%token <size> LIST  "list"
+%token <chunk_meta> RIFF  "riff"
+%token <chunk_meta> LIST  "list"
 %token <chunk_meta> CHUNK "chunk"
 %token <size> END 0 "end_of_buffer"
 
 %type <chunk_meta> riff_list
-%type <size>       riff_chunks riff_chunk chunks
+%type <size>       chunks
 
 //%precedence DATA
 //%precedence _SIZE
@@ -165,7 +160,7 @@ using namespace std;
 
 %code provides {
 extern void yy_debug (int);
-extern void yyerror (YYLTYPE*, Stream_Decoder_AVIParserDriver*, yyscan_t, const char*);
+extern void yyerror (AVI_LTYPE*, Stream_Decoder_AVIParserDriver*, yyscan_t, const char*);
 extern int yyparse (Stream_Decoder_AVIParserDriver*, yyscan_t);
 //extern void yyprint (FILE*, yytokentype, YYSTYPE);
 
@@ -199,42 +194,20 @@ extern int yyparse (Stream_Decoder_AVIParserDriver*, yyscan_t);
                                         ACE_TEXT ("discarding tagless symbol...\n"))); } <> */
 
 %%
-%start          riff_chunks;
-riff_chunks:    /* empty */
-                | riff_chunk riff_chunks { $$ = $1 + $2; }
-riff_chunk:     /* empty */
+%start          chunks;
+riff_list:      "riff"                   { $$ = $1; };
+                | "list"                 { $$ = $1; };
+chunks:         %empty                   { $$ = 0; }
                 | riff_list              {
                                            driver->chunks_.push_back ($1);
-                                           const char* char_p =
-                                             reinterpret_cast<const char*> (&$1.riff_list_identifier);
-/*                                           ACE_DEBUG ((LM_DEBUG,
-                                                       ACE_TEXT ("found RIFF chunk: \"%c%c%c%c\": %u byte(s)\n"),
-                                                       char_p[3], char_p[2], char_p[1], char_p[0],
-                                                       $1.size)); */
-                                         }
-                  chunks                 { $$ = 4 + 4 + 4 + $3; };
-riff_list:      "riff"                   { $$ = $$; };
-                | "list"                 { $$ = $$; };
-chunks:         /* empty */
-                | riff_list              {
-                                           driver->chunks_.push_back ($1);
-                                           const char* char_p =
-                                             reinterpret_cast<const char*> (&$1.riff_list_identifier);
-/*                                           ACE_DEBUG ((LM_DEBUG,
-                                                       ACE_TEXT ("found LIST chunk: \"%c%c%c%c\": %u byte(s)\n"),
-                                                       char_p[3], char_p[2], char_p[1], char_p[0],
-                                                       $1.size)); */
+                                           if (driver->inFrames_)
+                                             driver->betweenFrameChunk ($1);
                                          }
                   chunks                 { $$ = 4 + 4 + 4 + $3; };
                 | "chunk"                {
                                            driver->chunks_.push_back ($1);
-                                           const char* char_p =
-                                             reinterpret_cast<const char*> (&$1.identifier);
-/*                                           ACE_DEBUG ((LM_DEBUG,
-                                                       ACE_TEXT ("found chunk: \"%c%c%c%c\": %u byte(s)\n"),
-                                                       char_p[3], char_p[2], char_p[1], char_p[0],
-                                                       $1.size)); */
 
+                                           const char* char_p = NULL;
                                            if ($1.identifier == FOURCC ('s', 't', 'r', 'f'))
                                            {
                                              ACE_ASSERT (driver->frameSize_);
@@ -242,37 +215,39 @@ chunks:         /* empty */
                                                driver->fragment_->base () + (driver->fragmentOffset_ - $1.size);
                                              // *NOTE*: hard-coded offset into struct tagBITMAPINFOHEADER
                                              *driver->frameSize_ =
-                                               *reinterpret_cast<const unsigned int*> (char_p + 4 + 4 + 4 + 2 + 2 + 4);
+                                               *reinterpret_cast<const ACE_UINT32*> (char_p + 4 + 4 + 4 + 2 + 2 + 4);
                                              ACE_DEBUG ((LM_DEBUG,
                                                          ACE_TEXT ("frame size is: %u byte(s)\n"),
                                                          *driver->frameSize_));
                                            } // end IF
 
-                                           if (driver->parseHeaderOnly_)
+                                           char_p =
+                                             reinterpret_cast<const char*> (&$1.identifier);
+                                           // *NOTE*: in memory, the fourcc is stored back-to-front
+                                           static std::string regex_string =
+                                              ACE_TEXT_ALWAYS_CHAR ("^([[:alpha:]]{2})([[:digit:]]{2})$");
+                                           std::regex regex (regex_string);
+                                           std::cmatch match_results;
+                                           if (std::regex_match (char_p,
+                                                                 match_results,
+                                                                 regex,
+                                                                 std::regex_constants::match_default))
                                            {
-                                             char_p =
-                                               reinterpret_cast<const char*> (&$1.identifier);
-                                             // *NOTE*: in memory, the fourcc is stored back-to-front
-                                             static std::string regex_string =
-                                               ACE_TEXT_ALWAYS_CHAR ("^([[:alpha:]]{2})([[:digit:]]{2})$");
-                                             std::regex regex (regex_string);
-                                             std::cmatch match_results;
-                                             if (std::regex_match (char_p,
-                                                                   match_results,
-                                                                   regex,
-                                                                   std::regex_constants::match_default))
-                                             {
-                                               ACE_ASSERT (match_results.ready () && !match_results.empty ());
-                                               ACE_ASSERT (match_results[1].matched);
-                                               ACE_ASSERT (match_results[2].matched);
+                                             ACE_ASSERT (match_results.ready () && !match_results.empty ());
+                                             ACE_ASSERT (match_results[1].matched);
+                                             ACE_ASSERT (match_results[2].matched);
 
+                                             if (driver->parseHeaderOnly_)
                                                driver->finished_ = true;
+                                             driver->inFrames_ = true;
+                                             if (!driver->frame ($1) ||
+                                                 driver->parseHeaderOnly_)
                                                YYACCEPT;
-                                             } // end IF
-                                           } }
+                                           } // end IF
+                                           else if (driver->inFrames_)
+                                             driver->betweenFrameChunk ($1);
+                                         }
                   chunks                 { $$ = 4 + 4 + $1.size + $3; };
-/*              | %empty                               empty */
-//              |                                        /* empty */
 %%
 
 /* void
@@ -301,7 +276,7 @@ yy_debug (int debug_in)
 }
 
 void
-yyerror (YYLTYPE* location_in,
+yyerror (AVI_LTYPE* location_in,
          Stream_Decoder_AVIParserDriver* driver_in,
          yyscan_t context_in,
          const char* message_in)
@@ -319,7 +294,7 @@ yyerror (YYLTYPE* location_in,
 
 void
 yyprint (FILE* file_in,
-         yytokentype type_in,
+         avi_tokentype type_in,
          YYSTYPE value_in)
 {
   STREAM_TRACE (ACE_TEXT ("::yyprint"));

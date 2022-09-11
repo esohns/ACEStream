@@ -281,10 +281,10 @@ do_work (bool debug_in,
   task_p =
     static_cast<Test_U_RIFFDecoder_Module_Decoder*> (module_p->writer ());
   ACE_ASSERT (task_p);
-//  ACE_ASSERT (task_p->driver_.finished_);
+//  ACE_ASSERT (task_p->finished_);
 
-  for (Stream_Decoder_RIFFChunksIterator_t iterator = task_p->driver_.chunks_.begin ();
-       iterator != task_p->driver_.chunks_.end ();
+  for (Stream_Decoder_RIFFChunksIterator_t iterator = task_p->chunks_.begin ();
+       iterator != task_p->chunks_.end ();
        ++iterator)
   {
     char_p = reinterpret_cast<const char*> (&(*iterator).identifier);
@@ -292,14 +292,14 @@ do_work (bool debug_in,
     if (((*iterator).identifier == FOURCC ('R', 'I', 'F', 'F')) ||
         ((*iterator).identifier == FOURCC ('L', 'I', 'S', 'T')))
       ACE_DEBUG ((LM_INFO,
-                  ACE_TEXT ("@%u: fourCC: \"%c%c%c%c\"/\"%c%c%c%c\"; size: %u byte(s)\n"),
+                  ACE_TEXT ("@%Q: fourCC: \"%c%c%c%c\"/\"%c%c%c%c\"; size: %u byte(s)\n"),
                   (*iterator).offset,
                   char_p[3], char_p[2], char_p[1], char_p[0],
                   char_2[3], char_2[2], char_2[1], char_2[0],
                   (*iterator).size));
     else
       ACE_DEBUG ((LM_INFO,
-                  ACE_TEXT ("@%u: fourCC: \"%c%c%c%c\"; size: %u byte(s)\n"),
+                  ACE_TEXT ("@%Q: fourCC: \"%c%c%c%c\"; size: %u byte(s)\n"),
                   (*iterator).offset,
                   char_p[3], char_p[2], char_p[1], char_p[0],
                   (*iterator).size));

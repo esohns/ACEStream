@@ -36,7 +36,7 @@
 Stream_Decoder_AVIParserDriver::Stream_Decoder_AVIParserDriver (bool traceScanning_in,
                                                                 bool traceParsing_in)
  : chunks_ ()
- , extractFrames_ (false)
+ , inFrames_ (false)
  , finished_ (false)
  , fragment_ (NULL)
  , fragmentCount_ (0)
@@ -44,7 +44,6 @@ Stream_Decoder_AVIParserDriver::Stream_Decoder_AVIParserDriver (bool traceScanni
  , offset_ (0)
  , parseHeaderOnly_ (false)
  , frameSize_ (NULL)
- //, trace_ (traceParsing_in)
  , scannerState_ (NULL)
  , bufferState_ (NULL)
  , messageQueue_ (NULL)
@@ -82,7 +81,6 @@ Stream_Decoder_AVIParserDriver::~Stream_Decoder_AVIParserDriver ()
 void
 Stream_Decoder_AVIParserDriver::initialize (unsigned int& frameSize_in,
                                             bool parseHeaderOnly_in,
-                                            bool extractFrames_in,
                                             bool traceScanning_in,
                                             bool traceParsing_in,
                                             ACE_Message_Queue_Base* messageQueue_in,
@@ -93,7 +91,7 @@ Stream_Decoder_AVIParserDriver::initialize (unsigned int& frameSize_in,
   if (initialized_)
   {
     chunks_.clear ();
-    extractFrames_ = false;
+    inFrames_ = false;
     finished_ = false;
     if (fragment_)
     {
@@ -110,7 +108,6 @@ Stream_Decoder_AVIParserDriver::initialize (unsigned int& frameSize_in,
   } // end IF
 
   // set parse target
-  extractFrames_ = extractFrames_in;
   frameSize_ = &frameSize_in;
   parseHeaderOnly_ = parseHeaderOnly_in;
 
@@ -219,24 +216,32 @@ Stream_Decoder_AVIParserDriver::getDebugScanner () const
 }
 
 bool
-Stream_Decoder_AVIParserDriver::switchBuffer ()
+Stream_Decoder_AVIParserDriver::switchBuffer (ACE_Message_Block* fragment_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIParserDriver::switchBuffer"));
 
   // sanity check(s)
   ACE_ASSERT (scannerState_);
 
+  if (unlikely (fragment_in))
+  {
+    fragment_ = fragment_in;
+    goto continue_;
+  } // end IF
+
   if (fragment_->cont () == NULL)
     wait (); // <-- wait for data
   if (!fragment_->cont ())
   {
     // *NOTE*: most probable reason: received session end
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("no data after Stream_Decoder_AVIParserDriver::wait(), aborting\n")));
+    if (!finished_)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("no data after Stream_Decoder_AVIParserDriver::wait(), aborting\n")));
     return false;
   } // end IF
   fragment_ = fragment_->cont ();
 
+continue_:
   // switch to the next fragment
 
   // clean state
@@ -257,8 +262,6 @@ Stream_Decoder_AVIParserDriver::switchBuffer ()
     return false;
   } // end IF
 
-//  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("switched input buffers...\n")));
   ++fragmentCount_;
 
   return true;
@@ -304,16 +307,7 @@ Stream_Decoder_AVIParserDriver::wait ()
       case STREAM_MESSAGE_DATA:
       case STREAM_MESSAGE_OBJECT:
       {
-//        message_p = dynamic_cast<IMESSAGE_T*> (message_block_p);
-//        if (!message_p)
-//        {
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to dynamic_cast<Stream_IDataMessage_T>(%@), returning\n"),
-//                      message_block_p));
-//          return;
-//        } // end IF
-//        if (message_p->type () & STREAM_MESSAGE_DATA_MASK)
-          is_data = true;
+        is_data = true;
         break;
       }
       case STREAM_MESSAGE_SESSION_TYPE:
@@ -328,13 +322,17 @@ Stream_Decoder_AVIParserDriver::wait ()
         } // end IF
         session_message_type = session_message_p->type ();
         if (session_message_type == STREAM_SESSION_MESSAGE_END)
+        {
+          finished_ = true;
           done = true; // session has finished --> abort
+        } // end IF
         break;
       }
       default:
         break;
     } // end SWITCH
-    if (is_data) break;
+    if (is_data)
+      break;
 
     // session message --> put it back
     result = messageQueue_->enqueue_tail (message_block_p, NULL);
@@ -352,13 +350,16 @@ Stream_Decoder_AVIParserDriver::wait ()
   if (message_block_p)
   {
     // sanity check(s)
-    ACE_ASSERT (fragment_);
-
-    ACE_Message_Block* message_block_2 = fragment_;
-    for (;
-         message_block_2->cont ();
-         message_block_2 = message_block_2->cont ());
-    message_block_2->cont (message_block_p);
+    if (fragment_)
+    {
+      ACE_Message_Block* message_block_2 = fragment_;
+      for (;
+           message_block_2->cont ();
+           message_block_2 = message_block_2->cont ());
+      message_block_2->cont (message_block_p);
+    } // end IF
+    else
+      fragment_ = message_block_p;
   } // end IF
 }
 
@@ -419,7 +420,7 @@ Stream_Decoder_AVIParserDriver::error (const std::string& message_in)
 }
 
 void
-Stream_Decoder_AVIParserDriver::error (const YYLTYPE& location_in,
+Stream_Decoder_AVIParserDriver::error (const AVI_LTYPE& location_in,
                                        const std::string& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIParserDriver::error"));

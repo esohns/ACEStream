@@ -195,17 +195,17 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
               inherited::mod_->name (),
               ACE_TEXT (targetFilename_in.c_str ())));
   // *NOTE*: things left to do (in order):
-  //         - correct cb value of 'RIFF' _rifflist(s) (6)
+  //         - correct cb value of 'RIFF' _rifflist(s) (7)
   //         - set dwTotalFrames in _avimainheader     (1)
   //         - set dwLength in _avistreamheader        (2)
-  //         - correct cb value of 'movi' _rifflist    (3)
-  //         - correct cb value of 'idx1' _rifflist    (4)
-  //         [- insert version 2 (super-)index]        (5)
-  // *NOTE*: how (4) implies correction of cb values for LISTs RIFF, hdrl, strl
-  //         and movi
-  ACE_UINT32 value_i;
-  std::ios::streamoff list_movi_offset = STREAM_DEC_AVI_JUNK_CHUNK_ALIGN;
-  //std::ios::streamoff chunk_idx1_offset = 0;
+  //         - set dwTotalFrames in 'dmlh'             (3)
+  //         - correct cb value of 'movi' _rifflist    (4)
+  //         - correct cb value of 'idx1' _rifflist    (5)
+  //         [- insert version 2 (super-)index]        (6)
+  ACE_UINT32 value_i = 0;
+  std::ios::streamoff list_movi_offset = STREAM_DEC_AVI_JUNK_CHUNK_ALIGN - 12;
+  std::ios::streamoff list_dmlh_offset = 224;
+  // std::ios::streamoff chunk_idx1_offset = 0;
   // *NOTE*: "...A joint file position is maintained for both the input sequence
   //         and the output sequence. ...", i.e. std::fstream::read()/write()
   //         modify both seekg/seekp
@@ -316,6 +316,32 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
                 sizeof (struct _avistreamheader));
   if (unlikely (stream.fail ()))
     goto error;
+
+  stream.seekg (list_dmlh_offset,
+                ios::beg);
+                //ios_base::beg);
+  if (unlikely (stream.fail ()))
+    goto error;
+  stream.read (buffer_a, sizeof (struct _riffchunk));
+  if (unlikely (stream.eof () || stream.fail ()))
+    goto error;
+  RIFF_chunk_p = reinterpret_cast<struct _riffchunk*> (buffer_a);
+  ACE_ASSERT (RIFF_chunk_p->fcc == ckidAVIEXTHEADER);
+  value_i = writer_p->frameOffsets_.size ();
+  value_i =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
+  write_offset = list_dmlh_offset + 4 + 4;
+  stream.seekp (write_offset,
+                ios::beg);
+                // ios_base::beg);
+  if (unlikely (stream.fail ()))
+    goto error;
+  stream.write (reinterpret_cast<char*> (&value_i),
+                sizeof (ACE_UINT32));
+  if (unlikely (stream.fail ()))
+    goto error;
+
   stream.seekg (list_movi_offset,
                 ios::beg);
                 //ios_base::beg);
@@ -345,6 +371,66 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
                 sizeof (struct _rifflist));
   if (unlikely (stream.fail ()))
     goto error;
+
+  // update AVIX/movi lists
+  typename WRITER_TASK_T::RIFF_OFFSETS_AND_SIZES_ITERATOR_T iterator =
+    writer_p->RIFFOffsetsAndSizes_.begin ();
+  ++iterator;
+  for (;
+       iterator != writer_p->RIFFOffsetsAndSizes_.end ();
+       ++iterator)
+  {
+    // update RIFF header
+    stream.seekg ((*iterator).first,
+                  ios::beg);
+                  // ios_base::beg);
+    if (unlikely (stream.fail ()))
+      goto error;
+    stream.read (buffer_a, sizeof (struct _rifflist));
+    if (unlikely (stream.eof () || stream.fail ()))
+      goto error;
+    RIFF_list_p = reinterpret_cast<struct _rifflist*> (buffer_a);
+    ACE_ASSERT (RIFF_list_p->fccListType == FCC ('AVIX'));
+    value_i =
+      ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG ((*iterator).second)
+                                             : (*iterator).second);
+    write_offset = (*iterator).first;
+    stream.seekp (write_offset,
+                  ios::beg);
+                  //ios_base::beg);
+    if (unlikely (stream.fail ()))
+      goto error;
+    stream.write (reinterpret_cast<char*> (RIFF_list_p),
+                  sizeof (struct _rifflist));
+    if (unlikely (stream.fail ()))
+      goto error;
+
+    // update 'movi' header
+    read_offset = (*iterator).first + sizeof (struct _rifflist);
+    stream.seekg (read_offset,
+                  ios::beg);
+                  // ios_base::beg);
+    if (unlikely (stream.fail ()))
+      goto error;
+    stream.read (buffer_a, sizeof (struct _rifflist));
+    if (unlikely (stream.eof () || stream.fail ()))
+      goto error;
+    RIFF_list_p = reinterpret_cast<struct _rifflist*> (buffer_a);
+    ACE_ASSERT (RIFF_list_p->fccListType == FCC ('movi'));
+    value_i =
+      ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG ((*iterator).second - (sizeof (struct _rifflist) + 4 + 4)) // subtract RIFF list and 'movi' LIST head
+                                             : (*iterator).second - (sizeof (struct _rifflist) + 4 + 4));
+    write_offset = read_offset;
+    stream.seekp (write_offset,
+                  ios::beg);
+                  //ios_base::beg);
+    if (unlikely (stream.fail ()))
+      goto error;
+    stream.write (reinterpret_cast<char*> (RIFF_list_p),
+                  sizeof (struct _rifflist));
+    if (unlikely (stream.fail ()))
+      goto error;
+  } // end FOR
 
   result = true;
 
@@ -618,22 +704,18 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   passMessageDownstream_out = false;
 
   int result = -1;
-  ACE_Message_Block* message_block_p = NULL, *message_block_2 = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_Message_Block* message_block_p = NULL, *message_block_2 = NULL;
   struct _riffchunk RIFF_chunk;
 #else
   ACE_UINT32 riff_chunk_size = 0;
 #endif // ACE_WIN32 || ACE_WIN64
-  size_t total_length_i = 0;
+  size_t total_length_i = 0, avix_header_length_i = 0;
 
-  message_block_p =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  message_block_p =
     inherited::allocateMessage ((isFirst_ ? STREAM_DEC_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk)
                                           : sizeof (struct _riffchunk)));
-#else
-    inherited::allocateMessage ((isFirst_ ? STREAM_DEC_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4)
-                                          : (4 + 4)));
-#endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!message_block_p))
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -667,6 +749,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     RIFFOffsetsAndSizes_.push_back (std::make_pair (0, 0));
   } // end IF
   ACE_ASSERT (message_block_p);
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // db (--> Uncompressed video frame)
@@ -677,30 +760,24 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                              : ACE_SWAP_LONG (frameSize_));
   result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
                                   sizeof (struct _riffchunk));
+  message_block_p->cont (message_inout);
 #else
-  result = message_block_p->copy (ACE_TEXT_ALWAYS_CHAR ("00db"),
-                                  4);
-  if (unlikely (result == -1))
+  AVPacket packet_s;
+  av_init_packet (&packet_s);
+  packet_s.data = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
+  packet_s.size = message_inout->length ();
+
+  result = av_interleaved_write_frame (formatContext_, &packet_s);
+  av_packet_unref (&packet_s);
+  if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
-    goto error;
-  } // end IF
-  riff_chunk_size =
-      ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? frameSize_
-                                             : ACE_SWAP_LONG (frameSize_));
-  result = message_block_p->copy (reinterpret_cast<char*> (&riff_chunk_size),
-                                  4);
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
+                ACE_TEXT ("%s: failed to av_interleaved_write_frame(): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
-  message_block_p->cont (message_inout);
 
   frameOffsets_.push_back (currentFrameOffset_);
   currentFrameOffset_ += ((4 + 4) + frameSize_);
@@ -708,13 +785,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (unlikely ((currentRIFFOffset_ + ((4 + 4) + frameSize_)) >= 1024 * 1024 * 1024)) // 1Gb
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    message_block_2 = inherited::allocateMessage (sizeof (struct _rifflist));
+    message_block_2 = inherited::allocateMessage (2 * sizeof (struct _rifflist));
     if (unlikely (!message_block_2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), returning\n"),
                   inherited::mod_->name (),
-                  sizeof (struct _rifflist)));
+                  2 * sizeof (struct _rifflist)));
       goto error;
     } // end IF
 
@@ -732,12 +809,15 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     message_block_p = message_block_2;
 
     currentFrameOffset_ += message_block_2->length ();
+    currentOffset_ += message_block_2->length ();
+    avix_header_length_i =
+      message_block_2->length () - sizeof (struct _riffchunk); // subtract the riff header, it does not count towards the riff chunks' size
     message_block_2 = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
 
     if (unlikely (!lastIndex1FrameOffsetIndex_))
     {
-      lastIndex1FrameOffsetIndex_ = frameOffsets_.size ();
+      lastIndex1FrameOffsetIndex_ = frameOffsets_.size () - 1;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       // sanity check(s)
@@ -773,25 +853,23 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       message_block_p = message_block_2;
 
       currentFrameOffset_ += message_block_2->length ();
-      total_length_i = message_block_2->length ();
+      currentOffset_ += message_block_2->length ();
+      currentRIFFOffset_ += message_block_2->length ();
       message_block_2 = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
     } // end IF
 
-    currentRIFFOffset_ += total_length_i;
     RIFFOffsetsAndSizes_.back ().second = currentRIFFOffset_;
-    currentOffset_ += total_length_i;
     RIFFOffsetsAndSizes_.push_back (std::make_pair (currentOffset_, 0));
 
-    currentRIFFOffset_ = 0;
-    total_length_i = (4 + 4 + 4) + (4 + 4) + frameSize_;
+    currentRIFFOffset_ = avix_header_length_i;
   } // end IF
-  else
-    total_length_i = (4 + 4) + frameSize_;
 
+  total_length_i = (4 + 4) + frameSize_;
   currentOffset_ += total_length_i;
   currentRIFFOffset_ += total_length_i;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = inherited::put_next (message_block_p, NULL);
   if (unlikely (result == -1))
   {
@@ -800,12 +878,17 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     goto error;
   } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
 
   return;
 
 error:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (message_block_p)
     message_block_p->release ();
+#else
+ ;
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 template <ACE_SYNCH_DECL,
@@ -1155,6 +1238,11 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      if (RIFFOffsetsAndSizes_.size () > 1)
+        RIFFOffsetsAndSizes_.back ().second = currentRIFFOffset_;
+#endif // ACE_WIN32 || ACE_WIN64
+
       break;
     }
     default:
@@ -1251,12 +1339,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
             sizeof (struct _riffchunk)          + // 'dmlh'
             4                                   + // dwTotalFrames
             sizeof (struct _riffchunk)          + // 'JUNK'
-            1804                                + // pad bytes
+            1792                                + // pad bytes
             // sizeof (LIST movi)
             sizeof (struct _rifflist)           + // 'movi'
             //sizeof (struct _riffchunk)        + // 'ix00' // *TODO*: index version 2.0; post-processing
             //(sizeof (struct _riffchunk) + frameSize_) * #frames + // '00db'; post-processing
-            // sizeof (idx1)
             sizeof (struct _riffchunk);           // 'idx1'
             //sizeof (struct _avioldindex::_avioldindex_entry) * #frames; post-processing
   RIFF_list.cb =
@@ -1511,7 +1598,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     RIFF_list.cb =
       ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                              : value_i);
-    RIFF_list.fccListType = FCC ('odml');
+    RIFF_list.fccListType = ckidODML;
     result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
                                        (4 + 4 + 4));
     if (unlikely (result == -1))
@@ -1521,8 +1608,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                   inherited::mod_->name ()));
       goto error;
     } // end IF
-    RIFF_chunk.fcc = FCC ('dmlh');
-    value_i = 4; // 'dwTotalFrames'
+    RIFF_chunk.fcc = ckidAVIEXTHEADER;
+    value_i = 4; // 'dwTotalFrames' *TODO*: use struct _aviextheader here ?
     RIFF_chunk.cb =
       ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                              : value_i);
@@ -1542,7 +1629,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   // insert JUNK chunk to align the 'movi' list to 2048 bytes
   // --> should speed up CD-ROM access
   value_i = (AVI_header_avih.dwPaddingGranularity -
-             (messageBlock_inout->length () + 8));
+             (messageBlock_inout->length () + 20));
   //ACE_DEBUG ((LM_DEBUG,
   //            ACE_TEXT ("%s: inserting JUNK chunk (%u pad byte(s))\n"),
   //            inherited::mod_->name (),
@@ -1670,17 +1757,36 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   int result = -1;
   struct _rifflist RIFF_list;
-  // RIFF
   ACE_OS::memset (&RIFF_list, 0, sizeof (struct _rifflist));
+  // RIFF
   RIFF_list.fcc = FCC ('RIFF');
-  // sizeof (fccListType) [4] + sizeof (RIFF) [== total (RIFF chunk) size - 8]
-  ACE_UINT32 value_i = 4; // 'AVIX'
+  ACE_UINT32 value_i = 0; // 4 + sizeof (struct _rifflist) + ((sizeof (struct _riffchunk) + frameSize_) * #frames) // '00db'; post-processing
   RIFF_list.cb =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   RIFF_list.fccListType = FCC ('AVIX');
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
                                      sizeof (struct _rifflist));
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+
+  // movi
+  RIFF_list.fcc = FCC ('LIST');
+  // sizeof (fccListType) [4] + sizeof (LIST movi)
+  value_i = 0; // 4 +                                                  // 'movi'; post-processing
+               //sizeof (struct _riffchunk) + ???                    + // 'ix00' // *TODO*: index version 2.0; post-processing
+               //(sizeof (struct _riffchunk) + frameSize_) * #frames + // '00db'; post-processing
+  RIFF_list.cb =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
+  RIFF_list.fccListType = FCC ('movi');
+  result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
+                                     (4 + 4 + 4));
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,

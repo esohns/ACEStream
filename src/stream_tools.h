@@ -31,14 +31,10 @@
 #include "stream_common.h"
 #include "stream_iallocator.h"
 
-// definitions
-#define STREAM_TOOLS_STRFTIME_FORMAT "%Y_%m_%d_%H_%M_%S"
-// *NOTE*: '\0' doesn't count: 4 + 2 + 2 + 2 + 2 + 2 + 5 whitespaces
-#define STREAM_TOOLS_STRFTIME_SIZE   19
-
 class Stream_Tools
 {
  public:
+  // --- message block ---
   // *WARNING*: simply returns the second argument if its'
   //            total_length() <= the first argument
   // *NOTE*: ACE_Message_Block::duplicate(s) partial buffers
@@ -56,17 +52,18 @@ class Stream_Tools
 
   static void dump (const ACE_Message_Block*, // data buffer(s)
                     const std::string&);      // filename
+  static bool skip (ACE_UINT64,          // #bytes
+                    ACE_Message_Block*&, // in/out message block handle
+                    bool = false);       // release skipped bytes ?
 
+  // --- message ---
+  static std::string messageTypeToString (enum Stream_MessageType); // as returned by msg_type()
+
+  // --- stream ---
   static bool isFirstModule (const Stream_Base_t&,    // stream handle
                              const Stream_Module_t&); // module handle
   static bool has (Stream_IStream_t*,   // stream handle
                    const std::string&); // module name
-
-  static std::string messageTypeToString (enum Stream_MessageType); // as returned by msg_type()
-
-  // *WARNING*: this uses localtime_r internally --> pass in a local time
-  //            - uses strftime() internally (see man page, format)
-  static std::string timeStampToLocalString (const ACE_Time_Value&); // timestamp
 
   // *NOTE*: uses mktemp()
   static std::string generateUniqueName (const std::string&); // prefix

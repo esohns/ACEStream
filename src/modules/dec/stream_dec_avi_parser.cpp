@@ -54,7 +54,9 @@
 #include "stdafx.h"
 
 
-
+/* Substitute the type names.  */
+#define YYSTYPE AVI_STYPE
+#define YYLTYPE AVI_LTYPE
 /* Substitute the variable and function names.  */
 #define yyparse avi_parse
 #define yylex   avi_lex
@@ -96,13 +98,10 @@ enum yysymbol_kind_t
   YYSYMBOL_LIST = 4,                       /* "list"  */
   YYSYMBOL_CHUNK = 5,                      /* "chunk"  */
   YYSYMBOL_YYACCEPT = 6,                   /* $accept  */
-  YYSYMBOL_riff_chunks = 7,                /* riff_chunks  */
-  YYSYMBOL_riff_chunk = 8,                 /* riff_chunk  */
+  YYSYMBOL_riff_list = 7,                  /* riff_list  */
+  YYSYMBOL_chunks = 8,                     /* chunks  */
   YYSYMBOL_9_1 = 9,                        /* $@1  */
-  YYSYMBOL_riff_list = 10,                 /* riff_list  */
-  YYSYMBOL_chunks = 11,                    /* chunks  */
-  YYSYMBOL_12_2 = 12,                      /* $@2  */
-  YYSYMBOL_13_3 = 13                       /* $@3  */
+  YYSYMBOL_10_2 = 10                       /* $@2  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -113,7 +112,7 @@ typedef enum yysymbol_kind_t yysymbol_kind_t;
    value is undefined, this behavior is technically correct.  */
 static YYSTYPE yyval_default;
 static YYLTYPE yyloc_default
-# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
+# if defined AVI_LTYPE_IS_TRIVIAL && AVI_LTYPE_IS_TRIVIAL
   = { 1, 1, 1, 1 }
 # endif
 ;
@@ -401,18 +400,18 @@ typedef int yytype_uint16;
 #define YY_ASSERT(E) ((void) (0 && (E)))
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  6
+#define YYFINAL  8
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   10
+#define YYLAST   5
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  6
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  8
+#define YYNNTS  5
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  13
+#define YYNRULES  8
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  16
+#define YYNSTATES  11
 /* YYMAXRHS -- Maximum number of symbols on right-hand side of rule.  */
 #define YYMAXRHS 3
 /* YYMAXLEFT -- Maximum number of symbols to the left of a handle
@@ -462,24 +461,23 @@ static const yytype_int8 yytranslate[] =
        5
 };
 
-#if YYDEBUG
+#if AVI_DEBUG
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,   203,   203,   204,   205,   206,   206,   216,   217,   218,
-     219,   219,   229,   229
+       0,   198,   198,   199,   200,   201,   201,   207,   207
 };
 #endif
 
-#define YYPACT_NINF (-6)
+#define YYPACT_NINF (-4)
 #define YYTABLE_NINF (-1)
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-       2,    -6,    -6,     9,     2,    -6,    -6,    -6,    -2,    -6,
-      -6,    -6,    -2,    -2,    -6,    -6
+      -3,    -4,    -4,    -4,    -4,     3,    -3,    -3,    -4,    -4,
+      -4
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -487,20 +485,20 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       2,     7,     8,     0,     2,     5,     1,     3,     9,    12,
-      10,     6,     9,     9,    13,    11
+       4,     2,     3,     7,     5,     0,     4,     4,     1,     8,
+       6
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -6,     6,    -6,    -6,     0,    -5,    -6,    -6
+      -4,    -4,    -2,    -4,    -4
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     3,     4,     8,    10,    11,    13,    12
+       0,     4,     5,     7,     6
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -508,59 +506,52 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-       5,     1,     2,     9,     5,     1,     2,    14,    15,     6,
-       7
+       1,     2,     3,     8,     9,    10
 };
 
 static const yytype_int8 yycheck[] =
 {
-       0,     3,     4,     5,     4,     3,     4,    12,    13,     0,
-       4
+       3,     4,     5,     0,     6,     7
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     3,     4,     7,     8,    10,     0,     7,     9,     5,
-      10,    11,    13,    12,    11,    11
+       0,     3,     4,     5,     7,     8,    10,     9,     0,     8,
+       8
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,     6,     7,     7,     8,     9,     8,    10,    10,    11,
-      12,    11,    13,    11
+       0,     6,     7,     7,     8,     9,     8,    10,     8
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     0,     2,     0,     0,     3,     1,     1,     0,
-       0,     3,     0,     3
+       0,     2,     1,     1,     0,     0,     3,     0,     3
 };
 
 
 /* YYDPREC[RULE-NUM] -- Dynamic precedence of rule #RULE-NUM (0 if none).  */
 static const yytype_int8 yydprec[] =
 {
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0
+       0,     0,     0,     0,     0,     0,     0,     0,     0
 };
 
 /* YYMERGER[RULE-NUM] -- Index of merging function for rule #RULE-NUM.  */
 static const yytype_int8 yymerger[] =
 {
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0
+       0,     0,     0,     0,     0,     0,     0,     0,     0
 };
 
 /* YYIMMEDIATE[RULE-NUM] -- True iff rule #RULE-NUM is not to be deferred, as
    in the case of predicates.  */
 static const yybool yyimmediate[] =
 {
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0
+       0,     0,     0,     0,     0,     0,     0,     0,     0
 };
 
 /* YYCONFLP[YYPACT[STATE-NUM]] -- Pointer into YYCONFL of start of
@@ -569,8 +560,7 @@ static const yybool yyimmediate[] =
    yyconfl is terminated by a rule number of 0.  */
 static const yytype_int8 yyconflp[] =
 {
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0
+       0,     0,     0,     0,     0,     0
 };
 
 /* YYCONFL[I] -- lists of conflicting rule numbers, each terminated by
@@ -720,7 +710,7 @@ struct yyGLRStateSet
   /** During nondeterministic operation, yylookaheadNeeds tracks which
    *  stacks have actually needed the current lookahead.  During deterministic
    *  operation, yylookaheadNeeds[0] is not maintained since it would merely
-   *  duplicate yychar != YYEMPTY.  */
+   *  duplicate yychar != AVI_EMPTY.  */
   yybool* yylookaheadNeeds;
   YYPTRDIFF_T yysize;
   YYPTRDIFF_T yycapacity;
@@ -804,8 +794,7 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
 static const char *const yytname[] =
 {
   "\"end_of_buffer\"", "error", "\"invalid token\"", "\"riff\"",
-  "\"list\"", "\"chunk\"", "$accept", "riff_chunks", "riff_chunk", "$@1",
-  "riff_list", "chunks", "$@2", "$@3", YY_NULLPTR
+  "\"list\"", "\"chunk\"", "$accept", "riff_list", "chunks", "$@1", "$@2", YY_NULLPTR
 };
 
 static const char *
@@ -822,7 +811,7 @@ yylhsNonterm (yyRuleNum yyrule)
   return YY_CAST (yysymbol_kind_t, yyr1[yyrule]);
 }
 
-#if YYDEBUG
+#if AVI_DEBUG
 
 # ifndef YYFPRINTF
 #  define YYFPRINTF fprintf
@@ -860,7 +849,7 @@ yylhsNonterm (yyRuleNum yyrule)
       undocumented and private YY_LOCATION_PRINT macros.  */
 #   define YYLOCATION_PRINT(File, Loc)  YY_LOCATION_PRINT(File, *(Loc))
 
-#  elif defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
+#  elif defined AVI_LTYPE_IS_TRIVIAL && AVI_LTYPE_IS_TRIVIAL
 
 /* Print *YYLOCP on YYO.  Private, do not rely on its existence. */
 
@@ -934,16 +923,26 @@ yy_symbol_value_print (FILE *yyo,
         break;
 
     case YYSYMBOL_RIFF: /* "riff"  */
-                          { ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
-                                             ((*yyvaluep).size));
+                          { const char* char_p =
+                              reinterpret_cast<const char*> (&((*yyvaluep).chunk_meta).identifier);
+                            ACE_OS::fprintf (yyoutput,
+                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u, offset: %u\n"),
+                                             ((*yyvaluep).chunk_meta).offset,
+                                             char_p[3],char_p[2],char_p[1],char_p[0],
+                                             ((*yyvaluep).chunk_meta).size,
+                                             ((*yyvaluep).chunk_meta).offset);
                           }
         break;
 
     case YYSYMBOL_LIST: /* "list"  */
-                          { ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
-                                             ((*yyvaluep).size));
+                          { const char* char_p =
+                              reinterpret_cast<const char*> (&((*yyvaluep).chunk_meta).identifier);
+                            ACE_OS::fprintf (yyoutput,
+                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u, offset: %u\n"),
+                                             ((*yyvaluep).chunk_meta).offset,
+                                             char_p[3],char_p[2],char_p[1],char_p[0],
+                                             ((*yyvaluep).chunk_meta).size,
+                                             ((*yyvaluep).chunk_meta).offset);
                           }
         break;
 
@@ -956,20 +955,6 @@ yy_symbol_value_print (FILE *yyo,
                                              char_p[3],char_p[2],char_p[1],char_p[0],
                                              ((*yyvaluep).chunk_meta).size,
                                              ((*yyvaluep).chunk_meta).offset);
-                          }
-        break;
-
-    case YYSYMBOL_riff_chunks: /* riff_chunks  */
-                          { ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
-                                             ((*yyvaluep).size));
-                          }
-        break;
-
-    case YYSYMBOL_riff_chunk: /* riff_chunk  */
-                          { ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
-                                             ((*yyvaluep).size));
                           }
         break;
 
@@ -1045,13 +1030,13 @@ static void yypstack (yyGLRStack* yystackp, YYPTRDIFF_T yyk)
 static void yypdumpstack (yyGLRStack* yystackp)
   YY_ATTRIBUTE_UNUSED;
 
-#else /* !YYDEBUG */
+#else /* !AVI_DEBUG */
 
 # define YY_DPRINTF(Args) do {} while (yyfalse)
 # define YY_SYMBOL_PRINT(Title, Kind, Value, Location)
 # define YY_REDUCE_PRINT(Args)
 
-#endif /* !YYDEBUG */
+#endif /* !AVI_DEBUG */
 
 #ifndef yystrlen
 # define yystrlen(S) (YY_CAST (YYPTRDIFF_T, strlen (S)))
@@ -1140,7 +1125,7 @@ yyfillin (yyGLRStackItem *yyvsp, int yylow0, int yylow1)
   yyGLRState *s = yyvsp[yylow0].yystate.yypred;
   for (i = yylow0-1; i >= yylow1; i -= 1)
     {
-#if YYDEBUG
+#if AVI_DEBUG
       yyvsp[i].yystate.yylrState = s->yylrState;
 #endif
       yyvsp[i].yystate.yyresolved = s->yyresolved;
@@ -1163,7 +1148,7 @@ yygetToken (int *yycharp, yyGLRStack* yystackp, Stream_Decoder_AVIParserDriver* 
   yysymbol_kind_t yytoken;
   YY_USE (driver);
   YY_USE (yyscanner);
-  if (*yycharp == YYEMPTY)
+  if (*yycharp == AVI_EMPTY)
     {
       YY_DPRINTF ((stderr, "Reading a token\n"));
       *yycharp = yylex (&yylval, &yylloc, driver, yyscanner);
@@ -1229,7 +1214,7 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
 # undef YYRECOVERING
 # define YYRECOVERING() (yystackp->yyerrState != 0)
 # undef yyclearin
-# define yyclearin (yychar = YYEMPTY)
+# define yyclearin (yychar = AVI_EMPTY)
 # undef YYFILL
 # define YYFILL(N) yyfill (yyvsp, &yylow, (N), yynormal)
 # undef YYBACKUP
@@ -1250,60 +1235,35 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
   YY_REDUCE_PRINT ((yynormal || yyk == -1, yyvsp, yyk, yyrule, driver, yyscanner));
   switch (yyrule)
     {
-  case 3: /* riff_chunks: riff_chunk riff_chunks  */
-                                         { ((*yyvalp).size) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.size) + (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.size); }
+  case 2: /* riff_list: "riff"  */
+                                         { ((*yyvalp).chunk_meta) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta); }
+    break;
+
+  case 3: /* riff_list: "list"  */
+                                         { ((*yyvalp).chunk_meta) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta); }
+    break;
+
+  case 4: /* chunks: %empty  */
+                                         { ((*yyvalp).size) = 0; }
     break;
 
   case 5: /* $@1: %empty  */
                                          {
                                            driver->chunks_.push_back ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta));
-                                           const char* char_p =
-                                             reinterpret_cast<const char*> (&(YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta).riff_list_identifier);
-/*                                           ACE_DEBUG ((LM_DEBUG,
-                                                       ACE_TEXT ("found RIFF chunk: \"%c%c%c%c\": %u byte(s)\n"),
-                                                       char_p[3], char_p[2], char_p[1], char_p[0],
-                                                       $1.size)); */
+                                           if (driver->inFrames_)
+                                             driver->betweenFrameChunk ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta));
                                          }
     break;
 
-  case 6: /* riff_chunk: riff_list $@1 chunks  */
+  case 6: /* chunks: riff_list $@1 chunks  */
                                          { ((*yyvalp).size) = 4 + 4 + 4 + (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.size); }
     break;
 
-  case 7: /* riff_list: "riff"  */
-                                         { ((*yyvalp).chunk_meta) = ((*yyvalp).chunk_meta); }
-    break;
-
-  case 8: /* riff_list: "list"  */
-                                         { ((*yyvalp).chunk_meta) = ((*yyvalp).chunk_meta); }
-    break;
-
-  case 10: /* $@2: %empty  */
+  case 7: /* $@2: %empty  */
                                          {
                                            driver->chunks_.push_back ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta));
-                                           const char* char_p =
-                                             reinterpret_cast<const char*> (&(YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta).riff_list_identifier);
-/*                                           ACE_DEBUG ((LM_DEBUG,
-                                                       ACE_TEXT ("found LIST chunk: \"%c%c%c%c\": %u byte(s)\n"),
-                                                       char_p[3], char_p[2], char_p[1], char_p[0],
-                                                       $1.size)); */
-                                         }
-    break;
 
-  case 11: /* chunks: riff_list $@2 chunks  */
-                                         { ((*yyvalp).size) = 4 + 4 + 4 + (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.size); }
-    break;
-
-  case 12: /* $@3: %empty  */
-                                         {
-                                           driver->chunks_.push_back ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta));
-                                           const char* char_p =
-                                             reinterpret_cast<const char*> (&(YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta).identifier);
-/*                                           ACE_DEBUG ((LM_DEBUG,
-                                                       ACE_TEXT ("found chunk: \"%c%c%c%c\": %u byte(s)\n"),
-                                                       char_p[3], char_p[2], char_p[1], char_p[0],
-                                                       $1.size)); */
-
+                                           const char* char_p = NULL;
                                            if ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta).identifier == FOURCC ('s', 't', 'r', 'f'))
                                            {
                                              ACE_ASSERT (driver->frameSize_);
@@ -1311,37 +1271,41 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
                                                driver->fragment_->base () + (driver->fragmentOffset_ - (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta).size);
                                              // *NOTE*: hard-coded offset into struct tagBITMAPINFOHEADER
                                              *driver->frameSize_ =
-                                               *reinterpret_cast<const unsigned int*> (char_p + 4 + 4 + 4 + 2 + 2 + 4);
+                                               *reinterpret_cast<const ACE_UINT32*> (char_p + 4 + 4 + 4 + 2 + 2 + 4);
                                              ACE_DEBUG ((LM_DEBUG,
                                                          ACE_TEXT ("frame size is: %u byte(s)\n"),
                                                          *driver->frameSize_));
                                            } // end IF
 
-                                           if (driver->parseHeaderOnly_)
+                                           char_p =
+                                             reinterpret_cast<const char*> (&(YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta).identifier);
+                                           // *NOTE*: in memory, the fourcc is stored back-to-front
+                                           static std::string regex_string =
+                                              ACE_TEXT_ALWAYS_CHAR ("^([[:alpha:]]{2})([[:digit:]]{2})$");
+                                           std::regex regex (regex_string);
+                                           std::cmatch match_results;
+                                           if (std::regex_match (char_p,
+                                                                 match_results,
+                                                                 regex,
+                                                                 std::regex_constants::match_default))
                                            {
-                                             char_p =
-                                               reinterpret_cast<const char*> (&(YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta).identifier);
-                                             // *NOTE*: in memory, the fourcc is stored back-to-front
-                                             static std::string regex_string =
-                                               ACE_TEXT_ALWAYS_CHAR ("^([[:alpha:]]{2})([[:digit:]]{2})$");
-                                             std::regex regex (regex_string);
-                                             std::cmatch match_results;
-                                             if (std::regex_match (char_p,
-                                                                   match_results,
-                                                                   regex,
-                                                                   std::regex_constants::match_default))
-                                             {
-                                               ACE_ASSERT (match_results.ready () && !match_results.empty ());
-                                               ACE_ASSERT (match_results[1].matched);
-                                               ACE_ASSERT (match_results[2].matched);
+                                             ACE_ASSERT (match_results.ready () && !match_results.empty ());
+                                             ACE_ASSERT (match_results[1].matched);
+                                             ACE_ASSERT (match_results[2].matched);
 
+                                             if (driver->parseHeaderOnly_)
                                                driver->finished_ = true;
+                                             driver->inFrames_ = true;
+                                             if (!driver->frame ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta)) ||
+                                                 driver->parseHeaderOnly_)
                                                YYACCEPT;
-                                             } // end IF
-                                           } }
+                                           } // end IF
+                                           else if (driver->inFrames_)
+                                             driver->betweenFrameChunk ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta));
+                                         }
     break;
 
-  case 13: /* chunks: "chunk" $@3 chunks  */
+  case 8: /* chunks: "chunk" $@2 chunks  */
                                          { ((*yyvalp).size) = 4 + 4 + (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.chunk_meta).size + (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.size); }
     break;
 
@@ -1402,11 +1366,17 @@ yydestruct (const char *yymsg,
         break;
 
     case YYSYMBOL_RIFF: /* "riff"  */
-                          { ((*yyvaluep).size) = 0; }
+                          { ((*yyvaluep).chunk_meta).identifier = 0;
+                            ((*yyvaluep).chunk_meta).size = 0;
+                            ((*yyvaluep).chunk_meta).riff_list_identifier = 0;
+                            ((*yyvaluep).chunk_meta).offset = 0; }
         break;
 
     case YYSYMBOL_LIST: /* "list"  */
-                          { ((*yyvaluep).size) = 0; }
+                          { ((*yyvaluep).chunk_meta).identifier = 0;
+                            ((*yyvaluep).chunk_meta).size = 0;
+                            ((*yyvaluep).chunk_meta).riff_list_identifier = 0;
+                            ((*yyvaluep).chunk_meta).offset = 0; }
         break;
 
     case YYSYMBOL_CHUNK: /* "chunk"  */
@@ -1414,14 +1384,6 @@ yydestruct (const char *yymsg,
                             ((*yyvaluep).chunk_meta).size = 0;
                             ((*yyvaluep).chunk_meta).riff_list_identifier = 0;
                             ((*yyvaluep).chunk_meta).offset = 0; }
-        break;
-
-    case YYSYMBOL_riff_chunks: /* riff_chunks  */
-                          { ((*yyvaluep).size) = 0; }
-        break;
-
-    case YYSYMBOL_riff_chunk: /* riff_chunk  */
-                          { ((*yyvaluep).size) = 0; }
         break;
 
     case YYSYMBOL_riff_list: /* riff_list  */
@@ -1456,7 +1418,7 @@ yydestroyGLRState (char const *yymsg, yyGLRState *yys, Stream_Decoder_AVIParserD
                 &yys->yysemantics.yyval, &yys->yyloc, driver, yyscanner);
   else
     {
-#if YYDEBUG
+#if AVI_DEBUG
       if (yydebug)
         {
           if (yys->yysemantics.yyfirstVal)
@@ -1600,7 +1562,7 @@ yyaddDeferredAction (yyGLRStack* yystackp, YYPTRDIFF_T yyk, yyGLRState* yystate,
       yynewOption->yyloc = yylloc;
     }
   else
-    yynewOption->yyrawchar = YYEMPTY;
+    yynewOption->yyrawchar = AVI_EMPTY;
   yynewOption->yynext = yystate->yysemantics.yyfirstVal;
   yystate->yysemantics.yyfirstVal = yynewOption;
 
@@ -1849,7 +1811,7 @@ yyglrShiftDefer (yyGLRStack* yystackp, YYPTRDIFF_T yyk, yy_state_t yylrState,
   yyaddDeferredAction (yystackp, yyk, yynewState, yyrhs, yyrule);
 }
 
-#if YYDEBUG
+#if AVI_DEBUG
 
 /*----------------------------------------------------------------------.
 | Report that stack #YYK of *YYSTACKP is going to be reduced by YYRULE. |
@@ -2213,7 +2175,7 @@ yyresolveAction (yySemanticOption* yyopt, yyGLRStack* yystackp,
   return yyflag;
 }
 
-#if YYDEBUG
+#if AVI_DEBUG
 static void
 yyreportTree (yySemanticOption* yyx, int yyindent)
 {
@@ -2268,7 +2230,7 @@ yyreportAmbiguity (yySemanticOption* yyx0,
   YY_USE (yyx0);
   YY_USE (yyx1);
 
-#if YYDEBUG
+#if AVI_DEBUG
   YY_FPRINTF ((stderr, "Ambiguity detected.\n"));
   YY_FPRINTF ((stderr, "Option 1,\n"));
   yyreportTree (yyx0, 2);
@@ -2605,7 +2567,7 @@ static int
 yy_syntax_error_arguments (const yyGLRStack* yystackp,
                            yysymbol_kind_t yyarg[], int yyargn)
 {
-  yysymbol_kind_t yytoken = yychar == YYEMPTY ? YYSYMBOL_YYEMPTY : YYTRANSLATE (yychar);
+  yysymbol_kind_t yytoken = yychar == AVI_EMPTY ? YYSYMBOL_YYEMPTY : YYTRANSLATE (yychar);
   /* Actual size of YYARG. */
   int yycount = 0;
   /* There are many possibilities here to consider:
@@ -2751,7 +2713,7 @@ yyrecoverSyntaxError (yyGLRStack* yystackp, Stream_Decoder_AVIParserDriver* driv
         int yyj;
         if (yychar == END)
           yyFail (yystackp, &yylloc, driver, yyscanner, YY_NULLPTR);
-        if (yychar != YYEMPTY)
+        if (yychar != AVI_EMPTY)
           {
             /* We throw away the lookahead, but the error range
                of the shifted error token must take it into account.  */
@@ -2763,7 +2725,7 @@ yyrecoverSyntaxError (yyGLRStack* yystackp, Stream_Decoder_AVIParserDriver* driv
             yytoken = YYTRANSLATE (yychar);
             yydestruct ("Error: discarding",
                         yytoken, &yylval, &yylloc, driver, yyscanner);
-            yychar = YYEMPTY;
+            yychar = AVI_EMPTY;
           }
         yytoken = yygetToken (&yychar, yystackp, driver, yyscanner);
         yyj = yypact[yystackp->yytops.yystates[0]->yylrState];
@@ -2856,7 +2818,7 @@ yyparse (Stream_Decoder_AVIParserDriver* driver, yyscan_t yyscanner)
 
   YY_DPRINTF ((stderr, "Starting parse\n"));
 
-  yychar = YYEMPTY;
+  yychar = AVI_EMPTY;
   yylval = yyval_default;
   yylloc = yyloc_default;
 
@@ -2922,7 +2884,7 @@ yyparse (Stream_Decoder_AVIParserDriver* driver, yyscan_t yyscanner)
               if (yyisShiftAction (yyaction))
                 {
                   YY_SYMBOL_PRINT ("Shifting", yytoken, &yylval, &yylloc);
-                  yychar = YYEMPTY;
+                  yychar = AVI_EMPTY;
                   yyposn += 1;
                   yyglrShift (&yystack, 0, yyaction, yyposn, &yylval, &yylloc);
                   if (0 < yystack.yyerrState)
@@ -2933,7 +2895,7 @@ yyparse (Stream_Decoder_AVIParserDriver* driver, yyscan_t yyscanner)
                   yystack.yyerror_range[1].yystate.yyloc = yylloc;
                   /* Issue an error message unless the scanner already
                      did. */
-                  if (yychar != YYerror)
+                  if (yychar != AVI_error)
                     yyreportSyntaxError (&yystack, driver, yyscanner);
                   goto yyuser_error;
                 }
@@ -2949,7 +2911,7 @@ yyparse (Stream_Decoder_AVIParserDriver* driver, yyscan_t yyscanner)
           YYPTRDIFF_T yys;
 
           for (yys = 0; yys < yystack.yytops.yysize; yys += 1)
-            yystackp->yytops.yylookaheadNeeds[yys] = yychar != YYEMPTY;
+            yystackp->yytops.yylookaheadNeeds[yys] = yychar != AVI_EMPTY;
 
           /* yyprocessOneStack returns one of three things:
 
@@ -2987,11 +2949,11 @@ yyparse (Stream_Decoder_AVIParserDriver* driver, yyscan_t yyscanner)
 
           /* If any yyglrShift call fails, it will fail after shifting.  Thus,
              a copy of yylval will already be on stack 0 in the event of a
-             failure in the following loop.  Thus, yychar is set to YYEMPTY
+             failure in the following loop.  Thus, yychar is set to AVI_EMPTY
              before the loop to make sure the user destructor for yylval isn't
              called twice.  */
           yytoken_to_shift = YYTRANSLATE (yychar);
-          yychar = YYEMPTY;
+          yychar = AVI_EMPTY;
           yyposn += 1;
           for (yys = 0; yys < yystack.yytops.yysize; yys += 1)
             {
@@ -3041,7 +3003,7 @@ yyparse (Stream_Decoder_AVIParserDriver* driver, yyscan_t yyscanner)
   goto yyreturnlab;
 
  yyreturnlab:
-  if (yychar != YYEMPTY)
+  if (yychar != AVI_EMPTY)
     yydestruct ("Cleanup: discarding lookahead",
                 YYTRANSLATE (yychar), &yylval, &yylloc, driver, yyscanner);
 
@@ -3078,7 +3040,7 @@ yyparse (Stream_Decoder_AVIParserDriver* driver, yyscan_t yyscanner)
 }
 
 /* DEBUGGING ONLY */
-#if YYDEBUG
+#if AVI_DEBUG
 /* Print *YYS and its predecessors. */
 static void
 yy_yypstack (yyGLRState* yys)
@@ -3204,7 +3166,7 @@ yy_debug (int debug_in)
 }
 
 void
-yyerror (YYLTYPE* location_in,
+yyerror (AVI_LTYPE* location_in,
          Stream_Decoder_AVIParserDriver* driver_in,
          yyscan_t context_in,
          const char* message_in)
@@ -3222,7 +3184,7 @@ yyerror (YYLTYPE* location_in,
 
 void
 yyprint (FILE* file_in,
-         yytokentype type_in,
+         avi_tokentype type_in,
          YYSTYPE value_in)
 {
   STREAM_TRACE (ACE_TEXT ("::yyprint"));

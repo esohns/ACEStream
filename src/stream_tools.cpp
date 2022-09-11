@@ -22,6 +22,7 @@
 #include "stream_tools.h"
 
 #include <sstream>
+#include <utility>
 
 #include "ace/FILE_IO.h"
 #include "ace/Log_Msg.h"
@@ -230,7 +231,7 @@ Stream_Tools::dump (const ACE_Message_Block* messageBlock_in,
   size_t bytes_transferred = std::numeric_limits<unsigned int>::max ();
 #else
   size_t bytes_transferred = -1;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ssize_t bytes_written =
     file_stream.send_n (messageBlock_in,
                         NULL,                // timeout
@@ -253,6 +254,59 @@ error:
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_File_IO::close(): \"%m\", continuing\n")));
+}
+
+bool
+Stream_Tools::skip (ACE_UINT64 bytesToSkip_in,
+                    ACE_Message_Block*& message_inout,
+                    bool releaseSkippedBytes_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::skip"));
+
+  // initialize return value(s)
+  bool result = true;
+
+  // sanity check(s)
+  ACE_ASSERT (message_inout);
+  //ACE_ASSERT (message_inout->total_length () >= bytesToSkip_in);
+
+  ACE_Message_Block* message_block_p = message_inout;
+  ACE_UINT64 bytes_to_skip = 0;
+  while (bytesToSkip_in)
+  {
+    bytes_to_skip = std::min (bytesToSkip_in,
+                              message_block_p->length ());
+    message_block_p->rd_ptr (bytes_to_skip);
+    bytesToSkip_in -= bytes_to_skip;
+    if (!message_block_p->length ())
+    {
+      message_block_p = message_block_p->cont ();
+      if (unlikely (!message_block_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("not enough data; cannot proceed, aborting\n")));
+        result = false;
+        break;
+      } // end IF
+    } // end IF
+  } // end WHILE
+
+  if (unlikely (releaseSkippedBytes_in))
+  {
+    ACE_Message_Block* message_block_2 = NULL;
+    message_block_p = message_inout;
+    while (!message_block_p->length ())
+    {
+      message_block_2 = message_block_p->cont ();
+      ACE_ASSERT (message_block_2);
+      message_block_p->cont (NULL);
+      message_block_p->release ();
+      message_block_p = message_block_2;
+    } // end WHILE
+    message_inout = message_block_p;
+  } // end IF
+
+  return result;
 }
 
 bool
@@ -294,70 +348,6 @@ Stream_Tools::has (Stream_IStream_t* stream_in,
   return stream_in->find (name_in,
                           false,
                           false) != NULL;
-}
-
-std::string
-Stream_Tools::timeStampToLocalString (const ACE_Time_Value& timeStamp_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Tools::timeStampToLocalString"));
-
-  // initialize return value(s)
-  std::string result;
-
-  //ACE_Date_Time time_local(timestamp_in);
-  tm time_local;
-  // init structure
-  time_local.tm_sec = -1;
-  time_local.tm_min = -1;
-  time_local.tm_hour = -1;
-  time_local.tm_mday = -1;
-  time_local.tm_mon = -1;
-  time_local.tm_year = -1;
-  time_local.tm_wday = -1;
-  time_local.tm_yday = -1;
-  time_local.tm_isdst = -1; // expect localtime !!!
-  // *PORTABILITY*: this isn't entirely portable so do an ugly hack
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
-  time_local.tm_gmtoff = 0;
-  time_local.tm_zone = NULL;
-#endif
-
-  // step1: compute UTC representation
-  time_t time_seconds = timeStamp_in.sec ();
-  // *PORTABILITY*: man page says we should call this before...
-  ACE_OS::tzset ();
-  if (!ACE_OS::localtime_r (&time_seconds,
-                            &time_local))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_OS::localtime_r(): \"%m\", aborting\n")));
-    return result;
-  } // end IF
-
-  // step2: create string
-  // *TODO*: rewrite this in C++
-  char time_string[BUFSIZ];
-  if (ACE_OS::strftime (time_string,
-                        sizeof (time_string),
-                        ACE_TEXT_ALWAYS_CHAR (STREAM_TOOLS_STRFTIME_FORMAT),
-                        &time_local) != STREAM_TOOLS_STRFTIME_SIZE)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_OS::strftime(): \"%m\", aborting\n")));
-    return result;
-  } // end IF
-  result = time_string;
-
-  // OK: append any usecs
-  if (timeStamp_in.usec ())
-  {
-    std::ostringstream converter;
-    converter << timeStamp_in.usec ();
-    result += ACE_TEXT_ALWAYS_CHAR (".");
-    result += converter.str ();
-  } // end IF
-
-  return result;
 }
 
 std::string

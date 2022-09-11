@@ -178,7 +178,7 @@ do_work (int argc_in,
          const std::string& sourceFilePath_in)
 {
   // step1: load data into a message block
-  unsigned int file_size_i = Common_File_Tools::size (sourceFilePath_in);
+  ACE_UINT64 file_size_i = Common_File_Tools::size (sourceFilePath_in);
   uint8_t* data_p = NULL, *data_2 = NULL;
   Parser_Message* message_p = NULL, *message_2 = NULL;
   struct Common_FlexBisonParserConfiguration parser_configuration;

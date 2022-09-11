@@ -1,17 +1,18 @@
 %top{
-#undef YYTOKENTYPE
+//#undef avi_tokentype
 #include "stream_dec_avi_parser.h"
 
 #define YY_DECL                                           \
-yytokentype                                               \
-RIFF_Scanner_lex (YYSTYPE* yylval_param,                  \
-                  YYLTYPE* yylloc_param,                  \
+enum avi_tokentype                                        \
+RIFF_Scanner_lex (AVI_STYPE* yylval_param,                \
+                  AVI_LTYPE* yylloc_param,                \
                   Stream_Decoder_AVIParserDriver* driver, \
-                  yyscan_t yyscanner)
+                  void* yyscanner)
 // ... and declare it for the parser's sake
 YY_DECL;
 
 void RIFF_Scanner_set_column (int, yyscan_t);
+void RIFF_Scanner_reset_hold_char (yyscan_t);
 
 //#define FLEXINT_H
 }
@@ -33,7 +34,7 @@ void RIFF_Scanner_set_column (int, yyscan_t);
 /* *NOTE*: instead of the default (int), this yylex returns token_type.
            Unfortunately, yyterminate by default returns 0, which is not of
            token_type. This %define solves that issue. */
-#define yyterminate() return yytokentype::END
+#define yyterminate() return avi_tokentype::END
 
 /* *NOTE*: YY_DECL is defined elsewhere (needed so the scanner can support
            extra arguments) */
@@ -95,8 +96,8 @@ DATA           [\x00-\xFF]
 
 <INITIAL>{
 "RIFF"                     { ACE_ASSERT (yyleng == 4);
-                             yylval->chunk_meta.offset = 0;
                              driver->fragmentOffset_ += 4;
+                             yylval->chunk_meta.offset = driver->offset_;
                              driver->offset_ += 4;
                              yylval->chunk_meta.identifier =
                                FOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
@@ -118,9 +119,12 @@ DATA           [\x00-\xFF]
                              yylval->chunk_meta.riff_list_identifier =
                                  FOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
                              BEGIN (chunks);
-                             return yytokentype::RIFF; }
+                             return avi_tokentype::RIFF; }
 } // end <RIFF_LIST_chunk>
 <chunks>{
+"RIFF"                     { ACE_ASSERT (yyleng == 4);
+                             yyless (0);
+                             BEGIN (INITIAL); }
 "LIST"                     { ACE_ASSERT (yyleng == 4);
                              yylval->chunk_meta.offset = driver->offset_;
                              driver->fragmentOffset_ += 4;
@@ -134,6 +138,7 @@ DATA           [\x00-\xFF]
                              driver->offset_ += 4;
                              yylval->chunk_meta.identifier =
                                  FOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
+                             yylval->chunk_meta.riff_list_identifier = 0;
                              BEGIN (chunk_size); }
 } // end <chunks>
 <LIST_header>{
@@ -152,7 +157,7 @@ DATA           [\x00-\xFF]
                              yylval->chunk_meta.riff_list_identifier =
                                  FOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
                              BEGIN (chunks);
-                             return yytokentype::LIST; }
+                             return avi_tokentype::LIST; }
 } // end <LIST_chunk>
 <chunk_size>{
 {CHUNK_SIZE}               { ACE_ASSERT (yyleng == 4);
@@ -167,8 +172,17 @@ DATA           [\x00-\xFF]
 <chunk_data>{
 {DATA}{1}                  { ACE_ASSERT (missing_bytes);
                              --missing_bytes;
-                             if (missing_bytes)
-                               break;
+                             char c = 0;
+                             for (int i = 0;
+                                  i < missing_bytes;
+                                  ++i)
+                             {
+                               c = yyinput (yyscanner);
+                               // *IMPORTANT NOTE*: yyinput() zeroes the buffer --> put the data back
+                               *(yyg->yy_c_buf_p - 1) = c;
+                             } // end FOR
+/*                             if (missing_bytes)
+                               break;*/
                              driver->fragmentOffset_ += yylval->chunk_meta.size;
                              driver->offset_ += yylval->chunk_meta.size;
                              if (unlikely (yylval->chunk_meta.size % 2))
@@ -176,7 +190,7 @@ DATA           [\x00-\xFF]
                              else
                              {
                                BEGIN (chunks);
-                               return yytokentype::CHUNK;
+                               return avi_tokentype::CHUNK;
                              } }
 } // end <chunk_data>
 <chunk_pad>{
@@ -184,7 +198,7 @@ DATA           [\x00-\xFF]
                              ++driver->fragmentOffset_;
                              ++driver->offset_;
                              BEGIN (chunks);
-                             return yytokentype::CHUNK; }
+                             return avi_tokentype::CHUNK; }
 } // end <chunk_pad>
 <<EOF>>                    { yyterminate (); }
 <*>{DATA}                  { /* *TODO*: use (?s:.) ? */
@@ -195,6 +209,16 @@ DATA           [\x00-\xFF]
                              driver->error (*yylloc, error_message);
                              yyterminate (); }
 %%
+void
+RIFF_Scanner_reset_hold_char (yyscan_t yyscanner)
+{
+  STREAM_TRACE (ACE_TEXT ("::RIFF_Scanner_reset_hold_char"));
+
+  struct yyguts_t* yyg = static_cast<struct yyguts_t*> (yyscanner);
+  ACE_ASSERT (yyg);
+  *yyg->yy_c_buf_p = yyg->yy_hold_char;
+}
+
 #ifdef __cplusplus
 extern "C"
 {

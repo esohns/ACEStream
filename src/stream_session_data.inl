@@ -22,8 +22,9 @@
 
 #include "common_macros.h"
 
+#include "common_timer_tools.h"
+
 #include "stream_macros.h"
-#include "stream_tools.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_defines.h"
@@ -328,6 +329,6 @@ Stream_SessionData_T<DataType>::dump_state () const
   ACE_DEBUG ((LM_INFO,
               ACE_TEXT ("user data: %@, start of session: %s%s\n"),
               data_->userData,
-              ACE_TEXT (Stream_Tools::timeStampToLocalString (data_->startOfSession).c_str ()),
-              (data_->aborted ? ACE_TEXT(" [aborted]") : ACE_TEXT(""))));
+              ACE_TEXT (Common_Timer_Tools::timeStampToLocalString (data_->startOfSession).c_str ()),
+              (data_->aborted ? ACE_TEXT (" [aborted]") : ACE_TEXT (""))));
 }
