@@ -194,6 +194,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
               ACE_TEXT ("%s: post-processing AVI file header (was: \"%s\")\n"),
               inherited::mod_->name (),
               ACE_TEXT (targetFilename_in.c_str ())));
+
   // *NOTE*: things left to do (in order):
   //         - correct cb value of 'RIFF' _rifflist(s) (7)
   //         - set dwTotalFrames in _avimainheader     (1)
@@ -202,7 +203,17 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
   //         - correct cb value of 'movi' _rifflist    (4)
   //         - correct cb value of 'idx1' _rifflist    (5)
   //         [- insert version 2 (super-)index]        (6)
+
   ACE_UINT32 value_i = 0;
+  std::ios::streamoff read_offset = 0, write_offset = 0;
+  typename WRITER_TASK_T::RIFF_OFFSETS_AND_SIZES_ITERATOR_T iterator;
+  char buffer_a[BUFSIZ];
+  ACE_OS::memset (buffer_a, 0, sizeof (char[BUFSIZ]));
+  struct _rifflist* RIFF_list_p = NULL;
+  struct _riffchunk* RIFF_chunk_p = NULL;
+  struct _avimainheader* AVI_header_avih_p = NULL;
+  struct _avistreamheader* AVI_header_strh_p = NULL;
+
   std::ios::streamoff list_movi_offset = STREAM_DEC_AVI_JUNK_CHUNK_ALIGN - 12;
   std::ios::streamoff list_dmlh_offset = 224;
   // std::ios::streamoff chunk_idx1_offset = 0;
@@ -210,7 +221,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
   //         and the output sequence. ...", i.e. std::fstream::read()/write()
   //         modify both seekg/seekp
   //        --> maintain offsets separately
-  std::ios::streamoff read_offset = 0, write_offset = 0;
+
   std::fstream stream (targetFilename_in.c_str (),
                        //ios_base::in | ios_base::out//,
                        std::ios::in | std::ios::out | std::ios::binary
@@ -224,12 +235,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
     return false;
   } // end IF
   ACE_ASSERT (stream.is_open ());
-  char buffer_a[BUFSIZ];
-  ACE_OS::memset (buffer_a, 0, sizeof (char[BUFSIZ]));
-  struct _rifflist* RIFF_list_p = NULL;
-  struct _riffchunk* RIFF_chunk_p = NULL;
-  struct _avimainheader* AVI_header_avih_p = NULL;
-  struct _avistreamheader* AVI_header_strh_p = NULL;
+
   stream.read (buffer_a, sizeof (struct _rifflist));
   if (stream.eof () || stream.fail ())
     goto error;
@@ -373,15 +379,14 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
     goto error;
 
   // update AVIX/movi lists
-  typename WRITER_TASK_T::RIFF_OFFSETS_AND_SIZES_ITERATOR_T iterator =
-    writer_p->RIFFOffsetsAndSizes_.begin ();
-  ++iterator;
-  for (;
+  iterator = writer_p->RIFFOffsetsAndSizes_.begin ();
+  for (++iterator;
        iterator != writer_p->RIFFOffsetsAndSizes_.end ();
        ++iterator)
   {
     // update RIFF header
-    stream.seekg ((*iterator).first,
+    read_offset = (*iterator).first;
+    stream.seekg (read_offset,
                   ios::beg);
                   // ios_base::beg);
     if (unlikely (stream.fail ()))
@@ -391,10 +396,11 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
       goto error;
     RIFF_list_p = reinterpret_cast<struct _rifflist*> (buffer_a);
     ACE_ASSERT (RIFF_list_p->fccListType == FCC ('AVIX'));
-    value_i =
-      ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG ((*iterator).second)
-                                             : (*iterator).second);
-    write_offset = (*iterator).first;
+    value_i = (*iterator).second;
+    RIFF_list_p->cb =
+      ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                             : value_i);
+    write_offset = read_offset;
     stream.seekp (write_offset,
                   ios::beg);
                   //ios_base::beg);
@@ -418,8 +424,10 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
     RIFF_list_p = reinterpret_cast<struct _rifflist*> (buffer_a);
     ACE_ASSERT (RIFF_list_p->fccListType == FCC ('movi'));
     value_i =
-      ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG ((*iterator).second - (sizeof (struct _rifflist) + 4 + 4)) // subtract RIFF list and 'movi' LIST head
-                                             : (*iterator).second - (sizeof (struct _rifflist) + 4 + 4));
+      (*iterator).second - (sizeof (struct _rifflist) + 4 + 4); // subtract RIFF list and 'movi' LIST head
+    RIFF_list_p->cb =
+      ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                             : value_i);
     write_offset = read_offset;
     stream.seekp (write_offset,
                   ios::beg);
@@ -710,7 +718,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #else
   ACE_UINT32 riff_chunk_size = 0;
 #endif // ACE_WIN32 || ACE_WIN64
-  size_t total_length_i = 0, avix_header_length_i = 0;
+  size_t total_length_i = 0, avix_header_length_i = 0, offset_i = 0;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   message_block_p =
@@ -809,6 +817,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     message_block_p = message_block_2;
 
     currentFrameOffset_ += message_block_2->length ();
+    offset_i = currentOffset_;
     currentOffset_ += message_block_2->length ();
     avix_header_length_i =
       message_block_2->length () - sizeof (struct _riffchunk); // subtract the riff header, it does not count towards the riff chunks' size
@@ -853,14 +862,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       message_block_p = message_block_2;
 
       currentFrameOffset_ += message_block_2->length ();
+      offset_i += message_block_2->length ();
       currentOffset_ += message_block_2->length ();
-      currentRIFFOffset_ += message_block_2->length ();
       message_block_2 = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
     } // end IF
 
     RIFFOffsetsAndSizes_.back ().second = currentRIFFOffset_;
-    RIFFOffsetsAndSizes_.push_back (std::make_pair (currentOffset_, 0));
+    RIFFOffsetsAndSizes_.push_back (std::make_pair (offset_i, 0));
 
     currentRIFFOffset_ = avix_header_length_i;
   } // end IF
@@ -1672,7 +1681,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     goto error;
   } // end IF
-  currentFrameOffset_ += (4 + 4 + 4);
+  currentOffset_ = messageBlock_inout->length ();
+  currentRIFFOffset_ = messageBlock_inout->length ();
+  currentFrameOffset_ = (4 + 4 + 4);
 
   // clean up
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
