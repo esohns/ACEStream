@@ -1650,6 +1650,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   int result = -1;
   enum Stream_StateMachine_ControlState next_state_e = STREAM_STATE_INVALID;
+  ACE_Time_Value timeout (STREAM_STATEMACHINE_CONTROL_STOP_TIMEOUT_S, 0);
+
   { ACE_GUARD (ACE_Thread_Mutex, aGuard, stateMachineLock_);
 retry:
     switch (inherited2::state_)
@@ -1678,16 +1680,25 @@ retry:
     } // end SWITCH
     goto continue_;
 
-wait:
+wait: // (try to) wait a little while until the state settles down
     while (inherited2::state_ < STREAM_STATE_RUNNING)
     { ACE_ASSERT (inherited2::condition_);
-      result = inherited2::condition_->wait (NULL);
+      result = inherited2::condition_->wait (&timeout);
       if (unlikely (result == -1))
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Condition::wait(): \"%m\", returning\n"),
+        int error = ACE_OS::last_error ();
+        if (unlikely (error != ETIME))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Condition::wait(): \"%m\", returning\n"),
+                      inherited::mod_->name ()));
+          return;
+        } // end IF
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: failed to ACE_Condition::wait(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
-        return;
+        next_state_e = STREAM_STATE_SESSION_STOPPING;
+        goto continue_;
       } // end IF
     } // end WHILE
     goto retry;

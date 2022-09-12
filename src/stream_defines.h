@@ -58,6 +58,7 @@
 
 // state-machine
 #define STREAM_STATEMACHINE_CONTROL_NAME                    "StreamStateMachineControl"
+#define STREAM_STATEMACHINE_CONTROL_STOP_TIMEOUT_S          5 // s
 
 // stream
 #define STREAM_DEFAULT_MODULE_SOURCE_EVENT_POLL_INTERVAL_MS 10 // ms

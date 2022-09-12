@@ -704,6 +704,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   if (unlikely (!inherited::sessionData_))
     return; // nothing to do (yet)
+  ACE_ASSERT (inherited::configuration_);
+  // *TODO*: remove type inference
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (message_inout->total_length () == frameSize_);
 
   // initialize return value(s)
@@ -715,32 +718,23 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_Message_Block* message_block_p = NULL, *message_block_2 = NULL;
   struct _riffchunk RIFF_chunk;
-#else
-  ACE_UINT32 riff_chunk_size = 0;
+  size_t avix_header_length_i = 0, offset_i = 0;
 #endif // ACE_WIN32 || ACE_WIN64
-  size_t total_length_i = 0, avix_header_length_i = 0, offset_i = 0;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   message_block_p =
-    inherited::allocateMessage ((isFirst_ ? STREAM_DEC_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk)
+    inherited::allocateMessage ((isFirst_ ? inherited::configuration_->allocatorConfiguration->defaultBufferSize
                                           : sizeof (struct _riffchunk)));
   if (unlikely (!message_block_p))
   {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), returning\n"),
+                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), returning\n"),
                 inherited::mod_->name (),
-                (isFirst_ ? STREAM_DEC_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk)
-                          : sizeof (struct _riffchunk))));
-#else
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), returning\n"),
-                inherited::mod_->name (),
-                (isFirst_ ? STREAM_DEC_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4)
-                          : (4 + 4))));
-#endif // ACE_WIN32 || ACE_WIN64
+                (isFirst_ ? inherited::configuration_->allocatorConfiguration->defaultBufferSize : sizeof (struct _riffchunk))));
+    message_inout->release (); message_inout = NULL;
     goto error;
   } // end IF
+  message_block_p->cont (message_inout);
 
   if (unlikely (isFirst_))
   {
@@ -768,8 +762,17 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                              : ACE_SWAP_LONG (frameSize_));
   result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
                                   sizeof (struct _riffchunk));
-  message_block_p->cont (message_inout);
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    goto error;
+  } // end IF
 #else
+  // sanity check(s)
+  ACE_ASSERT (!message_inout->cont ());
+
   AVPacket packet_s;
   av_init_packet (&packet_s);
   packet_s.data = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
@@ -777,7 +780,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   result = av_interleaved_write_frame (formatContext_, &packet_s);
   av_packet_unref (&packet_s);
-  if (result < 0)
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to av_interleaved_write_frame(): \"%s\", returning\n"),
@@ -787,21 +790,23 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 
-  frameOffsets_.push_back (currentFrameOffset_);
-  currentFrameOffset_ += ((4 + 4) + frameSize_);
-
-  if (unlikely ((currentRIFFOffset_ + ((4 + 4) + frameSize_)) >= 1024 * 1024 * 1024)) // 1Gb
-  {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  frameOffsets_.push_back (currentFrameOffset_);
+
+  if (unlikely ((currentRIFFOffset_ + (sizeof (struct _riffchunk) + frameSize_)) >= 1024 * 1024 * 1024)) // 1Gb
+  {
     message_block_2 = inherited::allocateMessage (2 * sizeof (struct _rifflist));
     if (unlikely (!message_block_2))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), returning\n"),
+                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), returning\n"),
                   inherited::mod_->name (),
                   2 * sizeof (struct _rifflist)));
       goto error;
     } // end IF
+    // prepend to next frame
+    message_block_2->cont (message_block_p);
+    message_block_p = message_block_2;
 
     if (unlikely (!generateAVIXHeader (message_block_2)))
     {
@@ -810,11 +815,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                   inherited::mod_->name ()));
       goto error;
     } // end IF
-    ACE_ASSERT (message_block_2);
-
-    // prepend to next frame
-    message_block_2->cont (message_block_p);
-    message_block_p = message_block_2;
 
     currentFrameOffset_ += message_block_2->length ();
     offset_i = currentOffset_;
@@ -822,17 +822,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     avix_header_length_i =
       message_block_2->length () - sizeof (struct _riffchunk); // subtract the riff header, it does not count towards the riff chunks' size
     message_block_2 = NULL;
-#endif // ACE_WIN32 || ACE_WIN64
 
     if (unlikely (!lastIndex1FrameOffsetIndex_))
     {
-      lastIndex1FrameOffsetIndex_ = frameOffsets_.size () - 1;
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      // sanity check(s)
-      ACE_ASSERT (inherited::configuration_);
-      // *TODO*: remove type inferences
-      ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+      lastIndex1FrameOffsetIndex_ = frameOffsets_.size () - 1; // *NOTE*: subtract one; current frame has already been added
 
       // *TODO*: remove type inference
       message_block_2 =
@@ -845,7 +838,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                     inherited::configuration_->allocatorConfiguration->defaultBufferSize));
         goto error;
       } // end IF
-      ACE_ASSERT (message_block_2);
+      // append index v1 to the last frame of first RIFF chunk --> prepend
+      message_block_2->cont (message_block_p);
+      message_block_p = message_block_2;
+
       if (unlikely (!generateIndex (STREAM_AVI_INDEX_V1,
                                     message_block_2)))
       {
@@ -853,19 +849,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex(%d): \"%m\", aborting\n"),
                     inherited::mod_->name (),
                     STREAM_AVI_INDEX_V1));
-        message_block_2->release (); message_block_2 = NULL;
         goto error;
       } // end IF
 
-      // append index v1 to the last frame of first RIFF chunk
-      message_block_2->cont (message_block_p);
-      message_block_p = message_block_2;
-
+      currentOffset_ += message_block_2->length ();
+      currentRIFFOffset_ += message_block_2->length ();
       currentFrameOffset_ += message_block_2->length ();
       offset_i += message_block_2->length ();
-      currentOffset_ += message_block_2->length ();
       message_block_2 = NULL;
-#endif // ACE_WIN32 || ACE_WIN64
     } // end IF
 
     RIFFOffsetsAndSizes_.back ().second = currentRIFFOffset_;
@@ -874,11 +865,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     currentRIFFOffset_ = avix_header_length_i;
   } // end IF
 
-  total_length_i = (4 + 4) + frameSize_;
-  currentOffset_ += total_length_i;
-  currentRIFFOffset_ += total_length_i;
+  currentOffset_ += sizeof (struct _riffchunk) + frameSize_;
+  currentRIFFOffset_ += sizeof (struct _riffchunk) + frameSize_;
+  currentFrameOffset_ += sizeof (struct _riffchunk) + frameSize_;
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = inherited::put_next (message_block_p, NULL);
   if (unlikely (result == -1))
   {
@@ -887,6 +877,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     goto error;
   } // end IF
+#else
+  message_inout->release (); message_inout = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
 
   return;
@@ -896,7 +888,7 @@ error:
   if (message_block_p)
     message_block_p->release ();
 #else
- ;
+  message_inout->release (); message_inout = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
