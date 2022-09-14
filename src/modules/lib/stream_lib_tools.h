@@ -45,7 +45,7 @@ extern "C"
 #ifdef __cplusplus
 extern "C"
 {
-#include "libavcodec/codec_id.h"
+#include "libavcodec/avcodec.h"
 #include "libavutil/hwcontext.h"
 #include "libavutil/pixdesc.h"
 #include "libavutil/pixfmt.h"

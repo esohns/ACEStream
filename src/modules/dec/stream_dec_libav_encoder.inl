@@ -330,7 +330,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       /* Write the frame to the media file. */
 //      result = av_write_frame (formatContext_, &packet_s);
       result = av_interleaved_write_frame (formatContext_, &packet_s);
-      av_packet_unref (&packet_s);
+//      av_packet_unref (&packet_s);
       if (result < 0)
       {
         ACE_DEBUG ((LM_ERROR,

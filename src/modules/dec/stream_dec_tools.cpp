@@ -74,12 +74,10 @@ extern "C"
 #include "libavutil/avutil.h"
 #include "libavutil/channel_layout.h"
 #include "libavutil/imgutils.h"
+#include "libavutil/log.h"
 #include "libavutil/pixfmt.h"
 
 #include "libswscale/swscale.h"
-//#include <atomic>
-//using atomic_int    = std::atomic<int>;
-//#include "libswscale/swscale_internal.h"
 }
 #endif // __cplusplus
 #endif // FFMPEG_SUPPORT
@@ -138,7 +136,6 @@ stream_decoder_libav_log_cb (void* AVClassStruct_in,
                       buffer_a,
                       sizeof (char[BUFSIZ]),
                       &print_prefix);
-
 
   enum ACE_Log_Priority log_priority_e = LM_DEBUG;
   switch (level_in)

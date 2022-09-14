@@ -233,7 +233,9 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
+  struct AVCodecContext*            codecContext_;
   struct AVFormatContext*           formatContext_;
+  int64_t                           samples_;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   unsigned int                      frameSize_; // output-

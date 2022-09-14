@@ -479,6 +479,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       } // end IF
       else
       {
+        //parserContext_->flags |= PARSER_FLAG_COMPLETE_FRAMES;
         parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
         parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
       } // end ELSE

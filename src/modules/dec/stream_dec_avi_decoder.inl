@@ -328,6 +328,7 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
 
 dispatch:
   // *NOTE*: AVI header has been parsed
+  ACE_UINT64 bytes_to_skip = 0;
 
   // sanity check(s)
   ACE_ASSERT (buffer_);
@@ -341,7 +342,6 @@ dispatch:
   // --> (buffered_bytes > frameSize_ + 4 + 4)
   message_block_2 = buffer_;
   skipped_bytes = 0;
-  ACE_UINT64 bytes_to_skip = 0;
 
   do
   {

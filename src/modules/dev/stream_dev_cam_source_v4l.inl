@@ -758,9 +758,13 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
         {
           // *IMPORTANT NOTE*: message_block_p has already been released() !
 
-          if (!has_finished)
+          bool finish_b = true;
+          { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+            if (inherited::sessionEndSent_ || inherited::sessionEndProcessed_)
+              finish_b = false;
+          } // end lock scope
+          if (likely (finish_b))
           {
-            has_finished = true;
             // enqueue(/process) STREAM_SESSION_END
             inherited::finished (false); // recurse upstream ?
           } // end IF

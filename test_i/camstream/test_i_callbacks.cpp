@@ -1751,7 +1751,7 @@ stream_processing_function (void* arg_in)
   const Stream_SessionData* session_ui_cb_data_p = NULL;
   bool result_2 = false;
   guint context_id = 0;
-  Stream_Module_t* module_p = NULL;
+//  Stream_Module_t* module_p = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Source_DirectShow_ThreadData* directshow_thread_data_p = NULL;
@@ -6371,12 +6371,11 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
-
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-  ACE_ASSERT (gtk_manager_p);
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+//  Common_UI_GTK_Manager_t* gtk_manager_p =
+//    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+//  ACE_ASSERT (gtk_manager_p);
+//  Common_UI_GTK_State_t& state_r =
+//    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 
   // sanity check(s)
   if (!ui_cb_data_p->dispatch)

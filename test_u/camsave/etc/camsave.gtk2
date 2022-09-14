@@ -758,7 +758,10 @@
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
+                                    <property name="tooltip_markup">display adapter</property>
+                                    <property name="tooltip_text" translatable="yes">display adapter</property>
                                     <property name="model">liststore_adapter</property>
+                                    <property name="has_frame">False</property>
                                     <property name="focus_on_click">False</property>
                                   </object>
                                   <packing>
@@ -771,7 +774,10 @@
                                   <object class="GtkComboBox" id="combobox_display">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
+                                    <property name="tooltip_markup">display device</property>
+                                    <property name="tooltip_text" translatable="yes">display device</property>
                                     <property name="model">liststore_display</property>
+                                    <property name="has_frame">False</property>
                                     <property name="focus_on_click">False</property>
                                   </object>
                                   <packing>
@@ -784,6 +790,9 @@
                                   <object class="GtkComboBox" id="combobox_resolution_2">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
+                                    <property name="tooltip_markup">resolution</property>
+                                    <property name="tooltip_text" translatable="yes">resolution</property>
+                                    <property name="has_frame">False</property>
                                     <property name="focus_on_click">False</property>
                                   </object>
                                   <packing>
