@@ -310,7 +310,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
                            &current_length_i);
   ACE_ASSERT (SUCCEEDED (result) && data_p && (max_length_i == total_length_i) && !current_length_i);
   ACE_Message_Block* message_block_p = message_inout;
-  unsigned int offset_i = 0;
+  ACE_UINT64 offset_i = 0;
   do
   {
     ACE_OS::memcpy (data_p + offset_i, message_block_p->rd_ptr (),

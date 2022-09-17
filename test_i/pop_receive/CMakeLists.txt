@@ -121,7 +121,7 @@ if (GUI_SUPPORT)
   endif ()
  elseif (WXWIDGETS_USE)
   if (WIN32)
-   add_definitions(-DUNICODE -D_UNICODE)
+#   add_definitions(-DUNICODE -D_UNICODE)
   endif (WIN32)
   set (ui_definition_file etc/test_i.xrc)
  endif ()
@@ -259,31 +259,31 @@ elseif (WIN32)
 #  message (STATUS "ui_definition_file: ${ui_definition_file}")
   string (REGEX REPLACE "\\\\" "\\\\\\\\" ui_definition_file "${ui_definition_file}")
 #  message (STATUS "ui_definition_file: ${ui_definition_file}")
-  set (ARGS " ${ARGS} -g.\\\\${ui_definition_file}")
 
-  if (GTK_SUPPORT)
+  if (GTK_USE)
    if (GTK3_USE)
+    set (ARGS " ${ARGS} -g.\\\\\\\\${ui_definition_file}")
     file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk3/bin GTK_LIB_PATH)
     set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                               ${GTK_LIB_PATH})
    elseif (GTK2_USE)
+    set (ARGS " ${ARGS} -g.\\\\\\\\${ui_definition_file}")
     file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_LIB_PATH)
     set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                               ${GTK_LIB_PATH})
    endif ()
-  endif (GTK_SUPPORT)
-  if (WXWIDGETS_SUPPORT)
+  elseif (WXWIDGETS_USE)
+   set (ARGS " ${ARGS} -g.\\\\\\\\${ui_definition_file}")
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              ${wxWidgets_LIB_DIR})
-  endif (WXWIDGETS_SUPPORT)
+  endif ()
  else ()
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl OPENSSL_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libepoxy/bin EPOXY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
- set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${OPENSSL_PATH}
+ set (RUNTIME_LIBRARY_DIRS ${OPENSSL_PATH}
                            ${EPOXY_PATH}
                            ${ACE_PATH})
 endif ()
@@ -293,7 +293,7 @@ create_target_launcher (${EXECUTABLE}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/pop_receive
-                        ENVIRONMENT ${ENVIRONMENT})
+                        ENVIRONMENT "${ENVIRONMENT}")
 
 ##########################################
 

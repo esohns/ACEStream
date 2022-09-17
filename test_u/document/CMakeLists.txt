@@ -100,10 +100,9 @@ if (WIN32)
                          DIRECTORY)
  set (ACE_DLL_FILE ACE${LIB_FILE_SUFFIX}.dll)
  set (ACE_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_DLL_FILE})
- file (TO_NATIVE_PATH $ENV{OO_SDK_HOME} OO_SDK_HOME)
- string (REPLACE "\\" "\\\\" OO_SDK_HOME ${OO_SDK_HOME})
-# file (TO_NATIVE_PATH $ENV{LIB_ROOT} LIB_ROOT)
-# string (REPLACE "\\" "\\\\" LIB_ROOT ${LIB_ROOT})
+ set (OO_SDK_HOME $ENV{OO_SDK_HOME})
+ file (TO_CMAKE_PATH "${OO_SDK_HOME}" OO_SDK_HOME)
+ #string (REPLACE "\\" "\\\\" OO_SDK_HOME ${OO_SDK_HOME})
  install (FILES ${ACE_DLL_FQPATH}
                 ${OO_SDK_HOME}/bin/sal3.dll
                 ${OO_SDK_HOME}/../program/cppu3.dll

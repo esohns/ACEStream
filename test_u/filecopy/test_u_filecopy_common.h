@@ -102,9 +102,9 @@ struct Stream_Filecopy_SessionData
    , targetFileName ()
   {}
 
-  std::string  fileName;
-  unsigned int size;
-  std::string  targetFileName;
+  std::string fileName;
+  ACE_UINT64  size;
+  std::string targetFileName;
 };
 typedef Stream_SessionData_T<struct Stream_Filecopy_SessionData> Stream_Filecopy_SessionData_t;
 

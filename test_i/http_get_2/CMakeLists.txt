@@ -81,8 +81,6 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_common_modules.h
      test_i_message.cpp
      test_i_message.h
-     test_i_module_spreadsheetwriter.cpp
-     test_i_module_spreadsheetwriter.h
      test_i_module_htmlparser.cpp
      test_i_module_htmlparser.h
      test_i_module_httpget.cpp
@@ -99,6 +97,12 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_http_get_stream.cpp
      test_i_http_get_stream.h
      test_i_http_get_stream.inl)
+if (LIBREOFFICE_SUPPORT)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
+      test_i_module_spreadsheetwriter.cpp
+      test_i_module_spreadsheetwriter.h)
+endif (LIBREOFFICE_SUPPORT)
 if (WIN32)
  set (${EXECUTABLE}_EXE_SRCS
       ${${EXECUTABLE}_EXE_SRCS}
@@ -190,10 +194,10 @@ if (WIN32)
  set (ACE_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_DLL_FILE})
  set (ACE_SSL_DLL_FILE ACE_SSL${LIB_FILE_SUFFIX}.dll)
  set (ACE_SSL_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_SSL_DLL_FILE})
- file (TO_NATIVE_PATH $ENV{OO_SDK_HOME} OO_SDK_HOME)
- string (REPLACE "\\" "\\\\" OO_SDK_HOME ${OO_SDK_HOME})
- file (TO_NATIVE_PATH $ENV{LIB_ROOT} LIB_ROOT)
- string (REPLACE "\\" "\\\\" LIB_ROOT ${LIB_ROOT})
+ file (TO_CMAKE_PATH "$ENV{OO_SDK_HOME}" OO_SDK_HOME)
+# string (REPLACE "\\" "\\\\" OO_SDK_HOME "${OO_SDK_HOME}")
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT} LIB_ROOT)
+# string (REPLACE "\\" "\\\\" LIB_ROOT ${LIB_ROOT})
  install (FILES ${ACE_DLL_FQPATH}
                 ${ACE_SSL_DLL_FQPATH}
                 ${OO_SDK_HOME}/bin/sal3.dll
