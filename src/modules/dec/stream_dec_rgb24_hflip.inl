@@ -129,7 +129,7 @@ Stream_Decoder_RGB24_HFlip_T<ACE_SYNCH_USE,
     data_p += (resolution_.cx / 2) * 3;
   } // end FOR
 #else
-  for (int y = 0; y < resolution_.height; ++y)
+  for (unsigned int y = 0; y < resolution_.height; ++y)
   {
     data_2 = data_p;
     for (int x = 0; x < resolution_.width / 2; ++x)
