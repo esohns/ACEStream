@@ -2641,7 +2641,8 @@ ACE_TMAIN (int argc_in,
                         ignored_signal_set);
   if (unlikely (!Common_Signal_Tools::preInitialize (signal_set,
                                                      COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
-                                                     false, // do not use networking
+                                                     false, // using networking ?
+                                                     false, // using asynch timers ?
                                                      previous_signal_actions,
                                                      previous_signal_mask)))
   {

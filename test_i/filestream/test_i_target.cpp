@@ -1088,7 +1088,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
 
@@ -1139,7 +1139,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
   if (number_of_dispatch_threads == 0)
@@ -1192,7 +1192,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
 
@@ -1207,7 +1207,8 @@ ACE_TMAIN (int argc_in,
   if (!Common_Signal_Tools::preInitialize (signal_set,
                                            (use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                         : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                           true, // use networking
+                                           true,  // using networking ?
+                                           false, // using asynch timers ?
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
@@ -1221,7 +1222,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
   Stream_Target_SignalHandler signal_handler;
@@ -1241,7 +1242,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_SUCCESS;
   } // end IF
 
@@ -1265,7 +1266,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
 
@@ -1301,7 +1302,7 @@ ACE_TMAIN (int argc_in,
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       return EXIT_FAILURE;
     } // end IF
 #endif // GTK_USE
@@ -1362,7 +1363,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
   ACE_Profile_Timer::Rusage elapsed_rusage;
@@ -1406,7 +1407,7 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nsignals,
               elapsed_rusage.ru_nvcsw,
               elapsed_rusage.ru_nivcsw));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                               : COMMON_SIGNAL_DISPATCH_PROACTOR),
@@ -1420,7 +1421,7 @@ ACE_TMAIN (int argc_in,
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return EXIT_SUCCESS;
 } // end main
