@@ -298,7 +298,7 @@ Test_I_EventHandler_T<NotificationType,
       { ACE_ASSERT (CBData_->progressData.audioFrameSize);
         event_e = STREAM_AV_UI_EVENT_DATA_AUDIO;
         CBData_->progressData.statistic.capturedFrames +=
-          (message_in.total_length () / CBData_->progressData.audioFrameSize);
+          static_cast<unsigned int> (message_in.total_length () / CBData_->progressData.audioFrameSize);
         break;
       }
       case STREAM_MEDIATYPE_VIDEO:

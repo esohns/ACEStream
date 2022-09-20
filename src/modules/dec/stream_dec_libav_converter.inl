@@ -574,7 +574,8 @@ Stream_Decoder_LibAVConverter1_T<TaskType,
                                                            1));
   ACE_ASSERT (size_i);
 
-  message_block_p = inherited::allocateMessage (size_i);
+  message_block_p =
+    inherited::allocateMessage (static_cast<unsigned int> (size_i));
   if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_ERROR,

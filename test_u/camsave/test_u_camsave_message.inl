@@ -235,7 +235,7 @@ Stream_CamSave_Message_T<DataType,
   // if there is no allocator, use the standard new and delete calls.
   ACE_NEW_NORETURN (message_p,
                     OWN_TYPE_T (this->sessionId (),
-                                this->length ()));
+                                static_cast<unsigned int> (this->length ())));
   if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_CRITICAL,

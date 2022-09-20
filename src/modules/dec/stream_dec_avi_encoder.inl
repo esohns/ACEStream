@@ -333,7 +333,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
     goto error;
   RIFF_chunk_p = reinterpret_cast<struct _riffchunk*> (buffer_a);
   ACE_ASSERT (RIFF_chunk_p->fcc == ckidAVIEXTHEADER);
-  value_i = writer_p->frameOffsets_.size ();
+  value_i = static_cast<ACE_UINT32> (writer_p->frameOffsets_.size ());
   value_i =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
@@ -839,7 +839,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
     if (unlikely (!lastIndex1FrameOffsetIndex_))
     {
-      lastIndex1FrameOffsetIndex_ = frameOffsets_.size () - 1; // *NOTE*: subtract one; current frame has already been added
+      lastIndex1FrameOffsetIndex_ =
+        static_cast<ACE_UINT32> (frameOffsets_.size () - 1); // *NOTE*: subtract one; current frame has already been added
 
       // *TODO*: remove type inference
       message_block_2 =
@@ -867,7 +868,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       } // end IF
 
       currentOffset_ += message_block_2->length ();
-      currentRIFFOffset_ += message_block_2->length ();
+      currentRIFFOffset_ += static_cast<ACE_UINT32> (message_block_2->length ());
       currentFrameOffset_ += message_block_2->length ();
       offset_i += message_block_2->length ();
       message_block_2 = NULL;
@@ -876,7 +877,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     RIFFOffsetsAndSizes_.back ().second = currentRIFFOffset_;
     RIFFOffsetsAndSizes_.push_back (std::make_pair (offset_i, 0));
 
-    currentRIFFOffset_ = avix_header_length_i;
+    currentRIFFOffset_ = static_cast<ACE_UINT32> (avix_header_length_i);
   } // end IF
 
   currentOffset_ += sizeof (struct _riffchunk) + frameSize_;
@@ -1679,8 +1680,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   // insert JUNK chunk to align the 'movi' list to 2048 bytes
   // --> should speed up CD-ROM access
-  value_i = (AVI_header_avih.dwPaddingGranularity -
-             (messageBlock_inout->length () + 20));
+  value_i = static_cast<ACE_UINT32> (AVI_header_avih.dwPaddingGranularity -
+                                     (messageBlock_inout->length () + 20));
   //ACE_DEBUG ((LM_DEBUG,
   //            ACE_TEXT ("%s: inserting JUNK chunk (%u pad byte(s))\n"),
   //            inherited::mod_->name (),
@@ -1724,7 +1725,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
   currentOffset_ = messageBlock_inout->length ();
-  currentRIFFOffset_ = messageBlock_inout->length ();
+  currentRIFFOffset_ = static_cast<ACE_UINT32> (messageBlock_inout->length ());
   currentFrameOffset_ = (4 + 4 + 4);
 
   // clean up
@@ -1898,7 +1899,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       ACE_UINT32 value_i = 0;
       ACE_OS::memset (&AVI_header_index, 0, sizeof (struct _avioldindex));
       AVI_header_index.fcc = ckidAVIOLDINDEX;
-      value_i = ((4 * 4) * frameOffsets_.size ());
+      value_i = static_cast<ACE_UINT32> ((4 * 4) * frameOffsets_.size ());
       AVI_header_index.cb =
         ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                                : value_i);
@@ -1923,7 +1924,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         _avioldindex_entry_s.dwFlags = (AVIIF_KEYFRAME// |
                                         //AVIIF_LIST     |
                                         /*AVIIF_NO_TIME*/);
-        value_i = *iterator;
+        value_i = static_cast<ACE_UINT32> (*iterator);
         _avioldindex_entry_s.dwOffset =
           ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                                  : value_i);

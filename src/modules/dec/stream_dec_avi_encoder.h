@@ -253,7 +253,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   FRAME_OFFSETS_T                   frameOffsets_;
   // *NOTE*: when this reaches >1Gb, add another AVIX header to the file
   ACE_UINT64                        currentFrameOffset_;
-  size_t                            lastIndex1FrameOffsetIndex_;
+  ACE_UINT32                        lastIndex1FrameOffsetIndex_;
 
   enum Stream_Decoder_AVIIndexType  indexType_; // AVI 1.0 "idx1" at end of file / "inx1" + super-index
 

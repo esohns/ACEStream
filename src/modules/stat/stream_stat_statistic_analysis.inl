@@ -164,7 +164,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
   //ACE_ASSERT (message_inout->length () % iterator_.subSampleSize_ == 0);
 
   unsigned int number_of_samples =
-    message_inout->length () / iterator_.sampleSize_;
+    static_cast<unsigned int> (message_inout->length () / iterator_.sampleSize_);
   unsigned int samples_to_write = 0;
   unsigned int offset = 0;
   unsigned int tail_slot = 0;

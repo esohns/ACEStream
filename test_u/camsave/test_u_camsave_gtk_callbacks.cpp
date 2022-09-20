@@ -1020,7 +1020,7 @@ load_rates (IAMStreamConfig* IAMStreamConfig_in,
       Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       continue;
     } // end IF
-    frame_rates.insert (std::make_pair ((UNITS / frame_duration), 1));
+    frame_rates.insert (std::make_pair (static_cast<unsigned int> (UNITS / frame_duration), 1));
     Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
   } // end WHILE
 

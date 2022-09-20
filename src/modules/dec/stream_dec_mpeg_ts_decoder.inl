@@ -171,14 +171,15 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
   {
     if (message_inout->total_length () < missingPSIBytes_)
     {
-      missingPSIBytes_ -= message_inout->total_length ();
+      missingPSIBytes_ -=
+        static_cast<unsigned int> (message_inout->total_length ());
       return;
     } // end IF
     missingPSIBytes_ = 0;
   } // end IF
 
-  unsigned int total_length = buffer_->total_length ();
-  if (total_length < STREAM_DEC_MPEG_TS_PACKET_SIZE)
+  size_t total_length_i = buffer_->total_length ();
+  if (total_length_i < STREAM_DEC_MPEG_TS_PACKET_SIZE)
     return; // done
 
 defragment:
@@ -414,8 +415,8 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
   if ((messageBlock_in->total_length () - table_syntax_section_offset) < section_length)
   {
     missingPSIBytes_ =
-      (section_length -
-       (messageBlock_in->total_length () - table_syntax_section_offset));
+      static_cast<unsigned int> (section_length -
+                                 (messageBlock_in->total_length () - table_syntax_section_offset));
     isParsingPSI_ = true; // <-- accumulate missing PAT fragments
     return;
   } // end IF

@@ -259,7 +259,8 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
 
   while (message_block_p)
   {
-    number_of_samples_i = message_block_p->length () / sampleSize_;
+    number_of_samples_i =
+      static_cast<unsigned int> (message_block_p->length () / sampleSize_);
     DS_FeedAudioContent (context2_,
                          reinterpret_cast<short int*> (message_block_p->rd_ptr ()),
                          number_of_samples_i);
@@ -334,11 +335,11 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
       !ACE_OS::strlen (inputString_in))
     return 0;
 
-  unsigned int prev_size_i = result_out.size ();
+  size_t prev_size_i = result_out.size ();
   std::string token_string;
 //  std::istringstream string_stream (inputString_in); // *NOTE*: avoid this copy
-  std::istrstream string_stream (const_cast<char*> (inputString_in),
-                                 ACE_OS::strlen (inputString_in));
+  std::istrstream string_stream (inputString_in,
+                                 static_cast<std::streamsize> (ACE_OS::strlen (inputString_in)));
 #if 0
   while (std::getline (string_stream, token_string, ' '))
     result_out.push_back (token_string);
@@ -352,7 +353,7 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
   if (!prev_size_i)
   {
     result_out = result;
-    return result_out.size ();
+    return static_cast<unsigned int> (result_out.size ());
   } // end IF
   Stream_Decoder_DeepSpeech_ResultIterator_t start_iterator =
     result_out.begin ();
@@ -393,7 +394,7 @@ continue_3:
   } // end FOR
 #endif // 0
 
-  return result_out.size () - prev_size_i;
+  return static_cast<unsigned int> (result_out.size () - prev_size_i);
 }
 
 template <ACE_SYNCH_DECL,

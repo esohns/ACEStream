@@ -241,7 +241,6 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   bool done_b = false;
   bool stop_processing_b = false;
   std::string file_path_string;
-  unsigned int file_size_i = 0;
   int encoding_i = 0, channels_i = 0;
   long rate_l = 0;
   int error_i = MPG123_ERR;
@@ -266,12 +265,11 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
 
 //next:
   file_path_string = inherited::configuration_->fileIdentifier.identifier;
-  file_size_i = Common_File_Tools::size (file_path_string);
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: processing file \"%s\" (%u byte(s))\n"),
+              ACE_TEXT ("%s: processing file \"%s\" (%Q byte(s))\n"),
               inherited::mod_->name (),
               ACE_TEXT (file_path_string.c_str ()),
-              file_size_i));
+              Common_File_Tools::size (file_path_string)));
   error_i = mpg123_open (handle_, file_path_string.c_str ());
   if (unlikely (error_i != MPG123_OK))
   {
@@ -460,7 +458,8 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
     } // end IF
 
     // *TODO*: remove type inference
-    message_p = inherited::allocateMessage (bufferSize_);
+    message_p =
+      inherited::allocateMessage (static_cast<unsigned int> (bufferSize_));
     if (unlikely (!message_p))
     {
       ACE_DEBUG ((LM_ERROR,

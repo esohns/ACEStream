@@ -260,11 +260,11 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
 
   if (unlikely (!buffer_))
   {
-    buffer_ = inherited::allocateMessage (buffer_size_i);
+    buffer_ = inherited::allocateMessage (static_cast<unsigned int> (buffer_size_i));
     if (unlikely (!buffer_))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: allocateMessage(%u) failed: \"%m\", returning\n"),
+                  ACE_TEXT ("%s: allocateMessage(%Q) failed: \"%m\", returning\n"),
                   inherited::mod_->name (),
                   buffer_size_i));
       goto error;
@@ -324,7 +324,8 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
 
     message_block_2 = NULL;
-    message_block_2 = inherited::allocateMessage (buffer_size_i);
+    message_block_2 =
+      inherited::allocateMessage (static_cast<unsigned int> (buffer_size_i));
     if (unlikely (!message_block_2))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -815,11 +816,12 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     if (!total_bytes_to_read_i)
       break;
 
-    message_block_2 = inherited::allocateMessage (buffer_size_i);
+    message_block_2 =
+      inherited::allocateMessage (static_cast<unsigned int> (buffer_size_i));
     if (unlikely (!message_block_2))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: allocateMessage(%u) failed: \"%m\", returning\n"),
+                  ACE_TEXT ("%s: allocateMessage(%Q) failed: \"%m\", returning\n"),
                   inherited::mod_->name (),
                   buffer_size_i));
       return;

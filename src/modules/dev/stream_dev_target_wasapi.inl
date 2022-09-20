@@ -1013,7 +1013,7 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
   UINT32 num_frames_available_i = 0;
   BYTE* data_p = 0;
   size_t bytes_to_write_i = 0;
-  unsigned int offset_i = 0;
+  size_t offset_i = 0;
   UINT32 buffer_size_i = 0; // (in #frames)
   //bool buffer_written_b = false;
 
@@ -1058,7 +1058,7 @@ retry:
         // retry with a smaller buffer
         buffer_size_i /= 2;
         // *TODO*: do not write less data than IAudioClient::GetStreamLatency()
-        buffer_size_i += (frameSize_ - (buffer_size_i % frameSize_));
+        buffer_size_i += static_cast<UINT32> (frameSize_ - (buffer_size_i % frameSize_));
         ACE_ASSERT ((buffer_size_i % frameSize_) == 0);
         goto retry;
       } // end IF
@@ -1094,7 +1094,8 @@ continue_:
     //ACE_ASSERT ((bytes_to_write_i % frameSize_) == 0);
     ACE_OS::memcpy (data_p + offset_i, message_block_p->rd_ptr (),
                     bytes_to_write_i);
-    num_frames_available_i -= (bytes_to_write_i / frameSize_);
+    num_frames_available_i -=
+      static_cast<UINT32> (bytes_to_write_i / frameSize_);
     offset_i += bytes_to_write_i;
 
     message_block_p->rd_ptr (bytes_to_write_i);

@@ -211,8 +211,8 @@ do_work (int argc_in,
   ACE_ASSERT (data_p);
 
   ACE_NEW_NORETURN (message_p,
-                    Parser_Message (0,                                                       // session id
-                                    file_size_i + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE)); // size
+                    Parser_Message (0,                                                                                   // session id
+                                    static_cast<unsigned int> (file_size_i + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE))); // size
   ACE_ASSERT (message_p);
   message_p->base (reinterpret_cast<char*> (data_p),
                    file_size_i + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE,
@@ -233,8 +233,8 @@ do_work (int argc_in,
   ACE_ASSERT (data_2);
 
   ACE_NEW_NORETURN (message_2,
-                    Parser_Message (0,                                                       // session id
-                                    file_size_i + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE)); // size
+                    Parser_Message (0,                                                                                   // session id
+                                    static_cast<unsigned int> (file_size_i + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE))); // size
   ACE_ASSERT (message_2);
   message_2->base (reinterpret_cast<char*> (data_2),
                    file_size_i + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE,

@@ -382,8 +382,8 @@ next:
                               STREAM_MEDIATYPE_VIDEO,
                               media_type_s);
     Common_Image_Resolution_t resolution_s;
-    resolution_s.cx = MagickGetImageWidth (context_);
-    resolution_s.cy = MagickGetImageHeight (context_);
+    resolution_s.cx = static_cast<LONG> (MagickGetImageWidth (context_));
+    resolution_s.cy = static_cast<LONG> (MagickGetImageHeight (context_));
     Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                            media_type_s);
 #else

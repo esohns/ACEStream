@@ -175,7 +175,7 @@ continue_:
 
   // step3: prepare header
   header_p->lpData = message_block_p->rd_ptr ();
-  header_p->dwBufferLength = message_block_p->length ();
+  header_p->dwBufferLength = static_cast<DWORD> (message_block_p->length ());
   header_p->dwUser =
     (!message_block_p->cont () ? reinterpret_cast<DWORD_PTR> (static_cast<ACE_Message_Block*> (message_inout))
                                : NULL);

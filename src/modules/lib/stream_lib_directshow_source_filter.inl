@@ -1465,7 +1465,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
   long total_buffer_size_i = available_buffer_size_i;
   int result_2 = -1;
   size_t bytes_to_write_i = 0;
-  unsigned int offset_i = 0;
+  size_t offset_i = 0;
   ACE_Message_Block* message_block_p = NULL;
 
   if (configuration_->buffer)
@@ -1518,7 +1518,7 @@ continue_:
   //         memcpy() seems to be unavoidable to forward the data)
   ACE_OS::memcpy (data_p + offset_i, configuration_->buffer->rd_ptr (), bytes_to_write_i);
   offset_i += bytes_to_write_i;
-  available_buffer_size_i -= bytes_to_write_i;
+  available_buffer_size_i -= static_cast<long> (bytes_to_write_i);
   configuration_->buffer->rd_ptr (bytes_to_write_i);
   if (!configuration_->buffer->length ())
   {

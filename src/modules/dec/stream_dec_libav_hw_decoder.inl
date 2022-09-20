@@ -310,8 +310,15 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       if (likely (parserContext_))
       {
         result =
-          av_parser_parse2 (parserContext_, context_, &packet_s.data, &packet_s.size,
-                            data_p, data_size_i, AV_NOPTS_VALUE, AV_NOPTS_VALUE, parserPosition_);
+          av_parser_parse2 (parserContext_,
+                            context_,
+                            &packet_s.data,
+                            &packet_s.size,
+                            data_p,
+                            static_cast<int> (data_size_i),
+                            AV_NOPTS_VALUE,
+                            AV_NOPTS_VALUE,
+                            parserPosition_);
         if (result < 0)
         {
           ACE_DEBUG ((LM_ERROR,
@@ -327,7 +334,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       else
       {
         packet_s.data = data_p;
-        packet_s.size = data_size_i;
+        packet_s.size = static_cast<int> (data_size_i);
         data_size_i = 0;
       } // end ELSE
       if (!packet_s.size)
@@ -867,7 +874,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                                media_type_2);
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
           session_data_r.formats.push_back (media_type_2);
-          formatsIndex_ = session_data_r.formats.size () - 1;
+          formatsIndex_ =
+            static_cast<unsigned int> (session_data_r.formats.size () - 1);
         } // end lock scope
       } // end IF
       else
@@ -975,7 +983,8 @@ continue_:
       ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         session_data_r.formats.push_back (media_type_s);
-        formatsIndex_ = session_data_r.formats.size () - 1;
+        formatsIndex_ =
+          static_cast<unsigned int> (session_data_r.formats.size () - 1);
       } // end lock scope
 
       break;

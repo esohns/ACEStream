@@ -1812,7 +1812,7 @@ idle_update_info_display_cb (gpointer userData_in)
     {
       gtk_text_buffer_insert_at_cursor (text_buffer_p,
                                         (*iterator_2).c_str (),
-                                        (*iterator_2).size ());
+                                        static_cast<gint> ((*iterator_2).size ()));
       gtk_text_buffer_insert_at_cursor (text_buffer_p,
                                         ACE_TEXT_ALWAYS_CHAR (" "),
                                         1);

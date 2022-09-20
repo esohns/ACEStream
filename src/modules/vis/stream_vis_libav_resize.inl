@@ -313,7 +313,8 @@ Stream_Visualization_LibAVResize_T<TaskType,
       ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         session_data_r.formats.push_back (media_type_s);
-        formatsIndex_ = session_data_r.formats.size () - 1;
+        formatsIndex_ =
+          static_cast<unsigned int> (session_data_r.formats.size () - 1);
       } // end lock scope
 
       ACE_ASSERT (!inherited::frame_);
@@ -510,7 +511,8 @@ error:
         inherited::setResolution (media_type_3.resolution,
                                   media_type_s);
         session_data_r.formats.push_back (media_type_s);
-        formatsIndex_ = session_data_r.formats.size () - 1;
+        formatsIndex_ =
+          static_cast<unsigned int> (session_data_r.formats.size () - 1);
       } // end lock scope
 
       break;

@@ -175,7 +175,7 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
     long result_2 =
       NeAACDecInit (context_,
                     reinterpret_cast<unsigned char*> (message_block_p->rd_ptr ()),
-                    message_block_p->length (),
+                    static_cast<unsigned long> (message_block_p->length ()),
                     &sample_rate,
                     &channels);
     if (unlikely (result_2 < 0))
@@ -224,9 +224,9 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
       NeAACDecDecode2 (context_,
                        &frame_info_s,
                        reinterpret_cast<unsigned char*> (message_block_p->rd_ptr ()),
-                       message_block_p->length (),
+                       static_cast<unsigned long> (message_block_p->length ()),
                        &data_p,
-                       buffer_->size ());
+                       static_cast<unsigned long> (buffer_->size ()));
     if (unlikely (!result_p))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -316,7 +316,7 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
         Stream_MediaFramework_DirectShow_Tools::toWaveFormatEx (media_type_s);
       ACE_ASSERT (waveformatex_p);
       sample_rate = waveformatex_p->nSamplesPerSec;
-      channels = waveformatex_p->nChannels;
+      channels = static_cast<unsigned char> (waveformatex_p->nChannels);
       sampleSize_ = (waveformatex_p->wBitsPerSample / 8);
 
       switch (waveformatex_p->wFormatTag)

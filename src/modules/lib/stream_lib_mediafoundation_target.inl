@@ -291,12 +291,12 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   // step2: set buffer / parameters
   IMFMediaBuffer* buffer_p = NULL;
   size_t total_length_i = message_inout->total_length ();
-  result = MFCreateMemoryBuffer (total_length_i,
+  result = MFCreateMemoryBuffer (static_cast<DWORD> (total_length_i),
                                  &buffer_p);
   if (unlikely (FAILED (result) || !buffer_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to MFCreateMemoryBuffer(%u): \"%s\", returning\n"),
+                ACE_TEXT ("%s: failed to MFCreateMemoryBuffer(%Q): \"%s\", returning\n"),
                 inherited::mod_->name (),
                 total_length_i,
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true, false).c_str ())));
@@ -318,7 +318,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
     offset_i += message_block_p->length ();
     message_block_p = message_block_p->cont ();
   } while (message_block_p);
-  result = buffer_p->SetCurrentLength (total_length_i);
+  result = buffer_p->SetCurrentLength (static_cast<DWORD> (total_length_i));
   ACE_ASSERT (SUCCEEDED (result));
   result = buffer_p->Unlock ();
   ACE_ASSERT (SUCCEEDED (result));

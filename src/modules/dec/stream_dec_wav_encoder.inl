@@ -497,14 +497,14 @@ continue_:
       struct _rifflist* RIFF_wave_p = NULL;
       struct _riffchunk* RIFF_chunk_fmt_p = NULL;
       struct _riffchunk* RIFF_chunk_data_p = NULL;
-      unsigned int file_size = 0;
+      ACE_UINT64 file_size_i = 0;
 
       // sanity check(s)
       if (session_data_r.targetFileName.empty ())
         goto continue_2;
-      file_size =
+      file_size_i =
         Common_File_Tools::size (session_data_r.targetFileName);
-      if (unlikely (!file_size || (file_size < wave_header_size)))
+      if (unlikely (!file_size_i || (file_size_i < wave_header_size)))
         goto continue_2;
 
       if (unlikely (!Common_File_Tools::open (session_data_r.targetFileName, // FQ file name
@@ -553,8 +553,8 @@ continue_:
                                               16);
 
       // update RIFF header sizes
-      RIFF_wave_p->cb = file_size - 8;
-      RIFF_chunk_data_p->cb = file_size - 44;
+      RIFF_wave_p->cb = static_cast<DWORD> (file_size_i - 8);
+      RIFF_chunk_data_p->cb = static_cast<DWORD> (file_size_i - 44);
 
       file_IO.seek (0, SEEK_SET);
 

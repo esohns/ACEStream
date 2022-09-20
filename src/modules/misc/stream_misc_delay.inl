@@ -129,7 +129,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
 
   int result = -1;
   ACE_UINT64 available_tokens_i = 0;
-  unsigned int total_length_i = 0;
+  size_t total_length_i = 0;
   ACE_Message_Block* message_block_p = message_inout;
   message_inout = NULL;
 
@@ -154,7 +154,7 @@ continue_:
       case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES:
       {
         total_length_i = message_block_p->total_length ();
-        available_tokens_i = std::min (static_cast<ACE_UINT64> (total_length_i),
+        available_tokens_i = std::min (total_length_i,
                                        availableTokens_);
         availableTokens_ -= available_tokens_i;
         break;

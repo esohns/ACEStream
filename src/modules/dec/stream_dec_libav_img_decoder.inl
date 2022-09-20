@@ -256,7 +256,7 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
   message_p = static_cast<DataMessageType*> (message_block_p);
 
   if (unlikely (!Common_Image_Tools::load (data_a,
-                                           message_inout->length (),
+                                           static_cast<unsigned int> (message_inout->length ()),
                                            codecId_,
                                            outputFormat_.format,
                                            outputFormat_.resolution,

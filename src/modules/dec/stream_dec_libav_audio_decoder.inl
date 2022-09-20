@@ -295,8 +295,15 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       if (likely (parserContext_))
       {
         result =
-          av_parser_parse2 (parserContext_, context_, &packet_s.data, &packet_s.size,
-                            data_p, data_size_i, AV_NOPTS_VALUE, AV_NOPTS_VALUE, parserPosition_);
+          av_parser_parse2 (parserContext_,
+                            context_,
+                            &packet_s.data,
+                            &packet_s.size,
+                            data_p,
+                            static_cast<int> (data_size_i),
+                            AV_NOPTS_VALUE,
+                            AV_NOPTS_VALUE,
+                            parserPosition_);
         if (result < 0)
         {
           ACE_DEBUG ((LM_ERROR,
@@ -312,7 +319,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       else
       {
         packet_s.data = data_p;
-        packet_s.size = data_size_i;
+        packet_s.size = static_cast<int> (data_size_i);
         data_size_i = 0;
       } // end ELSE
       if (!packet_s.size)
