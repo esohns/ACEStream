@@ -43,13 +43,16 @@ Stream_ControlMessage_T<ControlType,
               ACE_Time_Value::max_time,           // deadline time
               NULL,                               // data block allocator
               NULL)                               // message block allocator
+ , id_ (0)
+ , sessionId_ (0)
  , type_ (STREAM_CONTROL_MESSAGE_INVALID)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::Stream_ControlMessage_T"));
 
-  if (!initialize (type_in))
+  if (!initialize (0,
+                   type_in))
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_ControlMessage_T::initialize(%d), continuing\n"),
+                ACE_TEXT ("failed to Stream_ControlMessage_T::initialize(0,%d), continuing\n"),
                 type_in));
 }
 
@@ -61,6 +64,8 @@ Stream_ControlMessage_T<ControlType,
  : inherited (dataBlock_in,        // data block (may be NULL)
               0,                   // pass ownership to base class
               messageAllocator_in) // message block allocator
+ , id_ (0)
+ , sessionId_ (0)
  , type_ (STREAM_CONTROL_MESSAGE_INVALID)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::Stream_ControlMessage_T"));
@@ -80,6 +85,8 @@ Stream_ControlMessage_T<ControlType,
  : inherited (message_in.data_block_->duplicate (), // make a "shallow" copy of the data block
               0,                                    // "own" the duplicate
               message_in.message_block_allocator_)  // message allocator
+ , id_ (0)
+ , sessionId_ (message_in.sessionId_)
  , type_ (message_in.type_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::Stream_ControlMessage_T"));
@@ -98,6 +105,7 @@ Stream_ControlMessage_T<ControlType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::~Stream_ControlMessage_T"));
 
+  sessionId_ = 0;
   type_ = STREAM_CONTROL_MESSAGE_INVALID;
 
   // *WARNING*: cannot reset the message type (data block has already gone)
@@ -111,10 +119,12 @@ template <typename ControlType,
           typename MessageType>
 bool
 Stream_ControlMessage_T<ControlType,
-                        MessageType>::initialize (const ControlType& type_in)
+                        MessageType>::initialize (Stream_SessionId_t sessionId_in,
+                                                  const ControlType& type_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::initialize"));
 
+  sessionId_ = sessionId_in;
   type_ = STREAM_CONTROL_MESSAGE_INVALID;
 
   // *NOTE*: some control types have not (yet) been defined in ACE

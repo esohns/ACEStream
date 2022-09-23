@@ -256,8 +256,10 @@ class Stream_HeadModuleTaskBase_T
   virtual void onUnlink ();
 
   // implement/hide (part of) Stream_IStreamControl_T
-  inline virtual Stream_SessionId_t id () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (static_cast<Stream_SessionId_t> (-1)); ACE_NOTREACHED (return static_cast<Stream_SessionId_t> (-1);) }
-  inline virtual unsigned int flush (bool = true, bool = false, bool = false) { inherited::putControlMessage (STREAM_CONTROL_FLUSH); return 0; }
+  virtual Stream_SessionId_t id () const;
+  virtual unsigned int flush (bool = true,   // N/A
+                              bool = false,  // N/A
+                              bool = false); // N/A
   inline virtual void rewind () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 };
 

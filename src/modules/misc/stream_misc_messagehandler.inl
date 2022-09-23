@@ -171,7 +171,10 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
 
-      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+      const typename SessionMessageType::DATA_T& session_data_container_r =
+        message_inout->getR ();
+      const SessionDataType& session_data_r = session_data_container_r.getR ();
+        //inherited::sessionData_->getR ();
 
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, lock_);
         // *NOTE*: this works because the lock is recursive
@@ -222,7 +225,7 @@ error:
         {
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->end (session_data_r.sessionId);
+            (*(iterator++))->end (message_inout->sessionId ());
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: caught exception in Common_INotify_T::end(), continuing\n"),

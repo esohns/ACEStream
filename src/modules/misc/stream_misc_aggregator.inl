@@ -76,7 +76,7 @@ Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
     imessage_p = dynamic_cast<Stream_IMessage*> (messageBlock_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in dynamic_cast<Stream_IMessage*> (0x%@), returning\n"),
+                ACE_TEXT ("%s: caught exception in dynamic_cast<Stream_IMessage*> (0x%@), aborting\n"),
                 inherited::mod_->name (),
                 messageBlock_in));
     return -1;

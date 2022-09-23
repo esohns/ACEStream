@@ -29,6 +29,7 @@
 #include "common_iinitialize.h"
 
 //#include "stream_cachedmessageallocator.h"
+#include "stream_imessage.h"
 //#include "stream_messageallocatorheap_base.h"
 
 // forward declarations
@@ -43,7 +44,7 @@ template <typename ControlType,
 //          typename SessionMessageType>
 class Stream_ControlMessage_T
  : public ACE_Message_Block
- , public Common_IInitialize_T<ControlType>
+ , public Stream_IMessage_T<MessageType>
 {
   // grant access to specific ctors
   //friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
@@ -80,10 +81,14 @@ class Stream_ControlMessage_T
   // *WARNING*: derived classes need to overload this
   virtual ACE_Message_Block* duplicate () const;
 
-  // implement Common_IInitialize_T
-  virtual bool initialize (const ControlType&);
+  // implement Stream_IMessage_T
+  inline virtual bool expedited () const { return false; }
+  inline virtual Stream_MessageId_t id () const { return id_; }
+  inline virtual Stream_SessionId_t sessionId () const { return sessionId_; }
+  inline virtual MessageType type () const { return type_; }
 
-  inline MessageType type () const { return type_; }
+  bool initialize (Stream_SessionId_t,  // session id
+                   const ControlType&);
 
   // debug tools
   static std::string ControlMessageTypeToString (MessageType); // message type
@@ -92,7 +97,9 @@ class Stream_ControlMessage_T
   // (copy) ctor to be used by duplicate()
   Stream_ControlMessage_T (const OWN_TYPE_T&);
 
-  MessageType type_;
+  Stream_MessageId_t id_;
+  Stream_SessionId_t sessionId_;
+  MessageType        type_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_ControlMessage_T ())

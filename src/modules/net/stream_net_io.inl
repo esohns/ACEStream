@@ -319,7 +319,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   if (concurrency_e != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
   {
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: correcting (head-module-) concurrency setting\n"),
+                ACE_TEXT ("%s: trying to correct (head-module-) concurrency setting\n"),
                 inherited::mod_->name ()));
     const_cast<ConfigurationType&> (configuration_in).concurrency =
         STREAM_HEADMODULECONCURRENCY_CONCURRENT;

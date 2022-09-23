@@ -230,11 +230,10 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
     if (unlikely (!result_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to NeAACDecDecode2(): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s: failed to NeAACDecDecode2(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (NeAACDecGetErrorMessage (frame_info_s.error))));
-      buffer_->release (); buffer_ = NULL;
-      goto error;
+      goto continue_;
     } // end IF
     ACE_ASSERT (frame_info_s.bytesconsumed == message_block_p->length ());
     if (likely (frame_info_s.samples))
@@ -253,7 +252,7 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
       buffer_ = NULL;
     } // end IF
 
-//continue_:
+continue_:
     message_block_p = message_block_p->cont ();
   } // end WHILE
 

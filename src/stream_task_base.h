@@ -140,7 +140,8 @@ class Stream_TaskBase_T
   // convenience methods to send (session-specific) notifications downstream
   // *NOTE*: these invoke put(), so the messages are processed by 'this' module
   //         as well
-  bool putControlMessage (StreamControlType, // control type
+  bool putControlMessage (Stream_SessionId_t, // session id
+                          StreamControlType,  // control type
                           bool = false);      // send upstream ? : downstream
   // *NOTE*: "fire-and-forget" the second argument
   bool putSessionMessage (SessionEventType,                      // session message type

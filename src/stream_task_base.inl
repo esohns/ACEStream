@@ -849,7 +849,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   SessionMessageType,
                   StreamControlType,
                   SessionEventType,
-                  UserDataType>::putControlMessage (StreamControlType messageType_in,
+                  UserDataType>::putControlMessage (Stream_SessionId_t sessionId_in,
+                                                    StreamControlType messageType_in,
                                                     bool sendUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::putControlMessage"));
@@ -895,11 +896,13 @@ retry:
     return false;
   } // end IF
   if (likely (allocator_))
-    if (unlikely (!control_message_p->initialize (messageType_in)))
+    if (unlikely (!control_message_p->initialize (sessionId_in,
+                                                  messageType_in)))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_ControlMessage_T::initialize(%d), aborting\n"),
+                  ACE_TEXT ("%s: failed to Stream_ControlMessage_T::initialize(%u,%d), aborting\n"),
                   inherited::mod_->name (),
+                  sessionId_in,
                   messageType_in));
       control_message_p->release ();
       return false;

@@ -1411,11 +1411,23 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     case STREAM_CONTROL_STEP:
     case STREAM_CONTROL_STEP_2:
     {
-      if (!inherited::putControlMessage (control_in,
+      Stream_SessionId_t session_id = static_cast<Stream_SessionId_t> (-1);
+
+      // sanity check(s)
+      if (likely (inherited::sessionData_))
+      {
+        SessionDataType& session_data_r =
+          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+        session_id = session_data_r.sessionId;
+      } // end IF
+
+      if (!inherited::putControlMessage (session_id,
+                                         control_in,
                                          forwardUpStream_in))
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_TaskBase_T::putControlMessage(%d), continuing\n"),
+                    ACE_TEXT ("%s: failed to Stream_TaskBase_T::putControlMessage(%u,%d), continuing\n"),
                     inherited::mod_->name (),
+                    session_id,
                     control_in));
       else if (control_in == STREAM_CONTROL_ABORT)
         abortSent_ = true;
@@ -1884,6 +1896,103 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                 ACE_TEXT (istream_p->name ().c_str ()),
                 inherited::mod_->name ()));
   }
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename SessionEventType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename UserDataType>
+Stream_SessionId_t
+Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            SessionEventType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType,
+                            TimerManagerType,
+                            UserDataType>::id () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::id"));
+
+  // sanity check(s)
+  if (unlikely (!inherited::sessionData_))
+    return static_cast<Stream_SessionId_t> (-1);
+
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+  return session_data_r.sessionId;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename SessionEventType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename UserDataType>
+unsigned int
+Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            SessionEventType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType,
+                            TimerManagerType,
+                            UserDataType>::flush (bool,
+                                                  bool,
+                                                  bool)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::flush"));
+
+  Stream_SessionId_t session_id = static_cast<Stream_SessionId_t> (-1);
+
+  // sanity check(s)
+  if (likely (inherited::sessionData_))
+  {
+    SessionDataType& session_data_r =
+      const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+    session_id = session_data_r.sessionId;
+  } // end IF
+
+  if (unlikely (!inherited::putControlMessage (session_id,
+                                               STREAM_CONTROL_FLUSH)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_TaskBase_T::putControlMessage(STREAM_CONTROL_FLUSH), aborting\n"),
+                inherited::mod_->name ()));
+    return -1;
+  } // end IF
+
+  return 0;
 }
 
 template <ACE_SYNCH_DECL,
