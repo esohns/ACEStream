@@ -223,20 +223,26 @@ class Stream_Module_Aggregator_WriterTask_T
                      TimePolicyType> STREAM_T;
   typedef ACE_Stream_Iterator<ACE_SYNCH_USE,
                               TimePolicyType> STREAM_ITERATOR_T;
-  // *NOTE*: key: stream name, value: upstream predecessor/downstream successor
-  typedef std::map<std::string, MODULE_T*> LINKS_T;
+  // *NOTE*: key: stream, value: upstream predecessor/downstream successor
+  typedef std::map<STREAM_T*, MODULE_T*> LINKS_T;
   typedef typename LINKS_T::const_iterator LINKS_ITERATOR_T;
+
   typedef std::map<Stream_SessionId_t,
-                   typename inherited::TASK_BASE_T::ISTREAM_T*> SESSIONID_TO_STREAM_MAP_T;
+                   STREAM_T*> SESSIONID_TO_STREAM_MAP_T;
   typedef typename SESSIONID_TO_STREAM_MAP_T::iterator SESSIONID_TO_STREAM_MAP_ITERATOR_T;
   typedef std::pair<Stream_SessionId_t, STREAM_T*> SESSIONID_TO_STREAM_PAIR_T;
   struct SESSIONID_TO_STREAM_MAP_FIND_S
    : public std::binary_function<SESSIONID_TO_STREAM_PAIR_T,
-                                 typename inherited::TASK_BASE_T::ISTREAM_T*,
+                                 STREAM_T*,
                                  bool>
   {
-    inline bool operator() (const SESSIONID_TO_STREAM_PAIR_T& entry_in, typename inherited::TASK_BASE_T::ISTREAM_T* stream_in) const { return !ACE_OS::strcmp (entry_in.second->name (), stream_in->name ()); }
+    inline bool operator () (const SESSIONID_TO_STREAM_PAIR_T& entry_in, STREAM_T* stream_in) const { return (entry_in.second == stream_in); }
   };
+
+  typedef std::map<Stream_SessionId_t,
+                   typename inherited::TASK_T*> SESSIONID_TO_TAIL_MAP_T;
+  typedef typename SESSIONID_TO_TAIL_MAP_T::iterator SESSIONID_TO_TAIL_MAP_ITERATOR_T;
+
   typedef std::map<Stream_SessionId_t,
                    typename SessionMessageType::DATA_T*> SESSION_DATA_T;
   typedef typename SESSION_DATA_T::iterator SESSION_DATA_ITERATOR_T;
@@ -246,8 +252,7 @@ class Stream_Module_Aggregator_WriterTask_T
   ACE_SYNCH_MUTEX_T         sessionLock_;
   SESSION_DATA_T            sessionSessionData_;
   SESSIONID_TO_STREAM_MAP_T sessions_;
-
-  //std::string               outboundStreamName_;
+  SESSIONID_TO_TAIL_MAP_T   tails_;
 
  private:
   // convenient types

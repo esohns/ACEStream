@@ -62,6 +62,9 @@
 
 // stream
 #define STREAM_DEFAULT_MODULE_SOURCE_EVENT_POLL_INTERVAL_MS 10 // ms
+
+#define STREAM_DEFAULT_QUEUE_IDLE_WAIT_RETRIES              10 // --> * s
+
 // *IMPORTANT NOTE*: this affects waiting on the 'stream head' reader only
 //                   --> writer/outbound side for connections
 //                   This means that during a stream stop(true), x seconds worth

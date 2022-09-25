@@ -1846,7 +1846,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::idle (bool recurseUpstream_in) const
+              SessionMessageType>::idle (bool waitForever_in,
+                                         bool recurseUpstream_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::idle"));
 
@@ -1865,7 +1866,8 @@ Stream_Base_T<ACE_SYNCH_USE,
       return;
     } // end IF
     try {
-      istreamcontrol_p->idle ();
+      istreamcontrol_p->idle (waitForever_in,
+                              recurseUpstream_in);
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IStreamControlBase::idle(), continuing\n")));
@@ -1893,7 +1895,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       iqueue_p = dynamic_cast<Stream_IMessageQueue*> (task_p->msg_queue_);
       if (iqueue_p)
       { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard2, reverse_lock);
-        iqueue_p->waitForIdleState ();
+        iqueue_p->waitForIdleState (waitForever_in);
       } // end IF
       else
       {
@@ -1927,7 +1929,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // step2: wait for outbound processing (i.e. the 'reader' side) pipeline to
   //        flush
   // *TODO*: this is incomplete
-  messageQueue_.waitForIdleState ();
+  messageQueue_.waitForIdleState (waitForever_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -2404,13 +2406,14 @@ Stream_Base_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::downstream"));
 
   int result = -1;
+  OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
   typename ISTREAM_T::MODULE_T* module_p = NULL;
   STATE_MACHINE_CONTROL_T* state_machine_control_p = NULL;
   bool is_first = true;
   IGET_T* iget_p = NULL;
   ISTREAM_T* istream_p = NULL;
 
-  result = const_cast<OWN_TYPE_T*> (this)->inherited::top (module_p);
+  result = this_p->inherited::top (module_p);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,

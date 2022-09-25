@@ -64,7 +64,8 @@ class Stream_IStreamControlBase
                               bool = false) = 0; // flush upstream (if any) ?
 
   // *TODO*: this currently waits for writer-side (!) data only
-  virtual void idle (bool = true) const = 0; // recurse upstream (if any) ?
+  virtual void idle (bool = true,            // wait forever ?
+                     bool = true) const = 0; // recurse upstream (if any) ?
   // *NOTE*: wait for workers, and/or all queued data to drain
   virtual void wait (bool = true,             // wait for any worker thread(s) ?
                      bool = false,            // wait for upstream (if any) ?
@@ -134,6 +135,8 @@ class Stream_IStream_T
   // *WARNING*: these APIs are not thread-safe
   virtual STREAM_T* downstream () const = 0;
   virtual STREAM_T* upstream (bool = false) const = 0; // recurse (if any) ?
+
+  //virtual TASK_T* tail () const = 0;
 };
 
 template <ACE_SYNCH_DECL,

@@ -86,7 +86,7 @@ class Stream_TaskBaseSynch_T
                             bool = false) {} // N/A
 
   // implement Stream_ITask_T
-  inline virtual void waitForIdleState () const {}
+  inline virtual void waitForIdleState (bool = true) const {}
 
  protected:
   // convenient types

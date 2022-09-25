@@ -24,6 +24,15 @@
 // forward declaration(s)
 class ACE_Message_Block;
 
+class Stream_ITask
+{
+ public:
+  virtual void handleMessage (ACE_Message_Block*, // message handle
+                              bool&) = 0;         // return value: stop processing ?
+};
+
+//////////////////////////////////////////
+
 template <typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -47,7 +56,7 @@ class Stream_ITask_T
 
   virtual void handleProcessingError (const ACE_Message_Block* const) = 0; // message block handle
 
-  virtual void waitForIdleState () const = 0;
+  virtual void waitForIdleState (bool = true) const = 0; // wait forever ?
 };
 
 #endif

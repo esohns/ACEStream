@@ -91,14 +91,17 @@ class Stream_IModuleHandler_T
 // : public Common_IInitialize_T<ConfigurationType>
 {
  public:
+  // convenient types
+  typedef ACE_Module<ACE_SYNCH_USE,
+                     TimePolicyType> MODULE_T;
+
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL) = 0;
 
   // *NOTE*: called on tasks after a parent module has been clone()d
   //         --> use for (re-)initialization, as needed
-  virtual bool postClone (ACE_Module<ACE_SYNCH_USE,
-                                     TimePolicyType>*, // handle to 'original'
-                          bool = false) = 0;           // initialize from 'original' ?
+  virtual bool postClone (MODULE_T*,         // handle to 'original'
+                          bool = false) = 0; // initialize from 'original' ?
 };
 
 #endif

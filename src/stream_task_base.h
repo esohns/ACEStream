@@ -64,6 +64,7 @@ class Stream_TaskBase_T
                                               TimePolicyType>,
                             ACE_Task<ACE_SYNCH_USE,
                                      TimePolicyType> >
+ , public Stream_ITask
  , public Stream_ITask_T<ControlMessageType,
                          DataMessageType,
                          SessionMessageType>
@@ -133,7 +134,8 @@ class Stream_TaskBase_T
 
   // helper methods
   DataMessageType* allocateMessage (unsigned int); // (requested) size
-  // standard message handling (to be used by both asynch/synch derivates)
+
+  // implement Stream_ITask
   virtual void handleMessage (ACE_Message_Block*, // message handle
                               bool&);             // return value: stop processing ?
 

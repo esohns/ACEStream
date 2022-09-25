@@ -57,7 +57,7 @@ class Stream_DataBase_T
   virtual void dump_state () const;
 
   // implement Common_IGetSet_T
-  inline virtual const DataType& getR () const { ACE_ASSERT (data_); return *data_; }
+  inline virtual const DataType& getR () const { if (likely (data_)) return *data_; static DataType dummy; return dummy; }
   virtual void setR (const DataType&);
   // *IMPORTANT NOTE*: fire-and-forget API
   virtual void setPR (DataType*&);

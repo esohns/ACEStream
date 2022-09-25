@@ -89,7 +89,7 @@ class Stream_TaskBaseAsynch_T
 
   // implement/override (part of) Stream_TaskBase_T
   virtual void handleControlMessage (ControlMessageType&); // control message handle
-  inline virtual void waitForIdleState () const { queue_.waitForIdleState (); }
+  inline virtual void waitForIdleState (bool waitForever_in = true) const { queue_.waitForIdleState (waitForever_in); }
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,

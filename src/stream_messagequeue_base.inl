@@ -219,7 +219,7 @@ template <ACE_SYNCH_DECL,
           typename TimePolicyType>
 void
 Stream_MessageQueueBase_T<ACE_SYNCH_USE,
-                          TimePolicyType>::waitForIdleState () const
+                          TimePolicyType>::waitForIdleState (bool waitForever_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::waitForIdleState"));
 
@@ -228,15 +228,20 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
   size_t count = 0;
   bool has_waited = false;
   OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
+  int i = 0;
 
   do
   {
     count = this_p->message_count ();
-    if (!count || this_p->deactivated ())
+    if (!count                                                            ||
+        this_p->deactivated ()                                            ||
+        (!waitForever_in && (i == STREAM_DEFAULT_QUEUE_IDLE_WAIT_RETRIES)))
       break;
+
     has_waited = true;
+    ++i;
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("waiting for %u message(s)...\n"),
+                ACE_TEXT ("waiting for %B message(s)...\n"),
                 count));
 
 #if defined (_GNU_SOURCE)
@@ -252,7 +257,8 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
 
   if (has_waited)
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("waiting for message(s)...DONE\n")));
+                ACE_TEXT ("waiting for message(s)...%s\n"),
+                (!count ? ACE_TEXT ("DONE") : this_p->deactivated () ? ACE_TEXT ("DEACTIVATED") : ACE_TEXT ("TIMED OUT"))));
 }
 
 template <ACE_SYNCH_DECL,

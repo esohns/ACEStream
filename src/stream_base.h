@@ -231,7 +231,8 @@ class Stream_Base_T
   virtual unsigned int flush (bool = true,   // flush inbound data ?
                               bool = false,  // flush session messages ?
                               bool = false); // flush upstream (if any) ?
-  virtual void idle (bool = true) const; // recurse upstream (if any) ?
+  virtual void idle (bool = true,        // wait forever ?
+                     bool = true) const; // recurse upstream (if any) ?
   virtual void wait (bool = true,         // wait for any worker thread(s) ?
                      bool = false,        // wait for upstream (if any) ?
                      bool = false) const; // wait for downstream (if any) ?
@@ -255,6 +256,7 @@ class Stream_Base_T
                       bool = true); // recurse upstream (if any) ?
   virtual ACE_SYNCH_MUTEX_T& getLock (bool = true); // recurse upstream (if any) ?
   virtual bool hasLock (bool = true); // recurse upstream (if any) ?
+  //inline virtual TASK_T* tail () const { OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this); return this_p->inherited::tail ()->next ()->writer (); }
 
   inline virtual const typename ISTREAM_T::STREAM_T& getR () const { return *this; }; // return value: type
   inline virtual void setP (typename ISTREAM_T::STREAM_T* upstream_in) { ACE_ASSERT (!inherited::linked_us_); inherited::linked_us_ = upstream_in; }

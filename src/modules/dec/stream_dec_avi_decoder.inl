@@ -230,8 +230,8 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
 done:
   return;
 
-error:
-  buffer_->release (); buffer_ = NULL;
+//error:
+  //buffer_->release (); buffer_ = NULL;
 }
 
 template <ACE_SYNCH_DECL,

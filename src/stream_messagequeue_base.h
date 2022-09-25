@@ -63,7 +63,7 @@ class Stream_MessageQueueBase_T
   inline virtual void reset () { isShuttingDown_ = false; }
   virtual void signal ();
   inline virtual bool isShuttingDown () const { return isShuttingDown_; }
-  virtual void waitForIdleState () const;
+  virtual void waitForIdleState (bool = true) const; // wait forever ?
 
   // implement Common_IDumpState
   virtual void dump_state () const;

@@ -83,13 +83,14 @@ Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
   }
   ACE_ASSERT (imessage_p);
 
+  Stream_SessionId_t session_id = imessage_p->sessionId ();
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->sessionLock_, -1);
     // find correct stream
-    iterator = writer_p->sessions_.find (imessage_p->sessionId ());
+    iterator = writer_p->sessions_.find (session_id);
     if (unlikely (iterator == writer_p->sessions_.end ()))
     { // *NOTE*: most probable cause: out-of-session statistic session message
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: invalid session id (was: %u), returning\n"),
+      //ACE_DEBUG ((LM_WARNING,
+      //            ACE_TEXT ("%s: invalid session id (was: %u), aborting\n"),
       //            inherited::mod_->name (),
       //            session_id));
       return -1;
@@ -99,21 +100,26 @@ Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
          iterator_2 != writer_p->readerLinks_.end ();
          ++iterator_2)
     {
-      if (ACE_OS::strcmp ((*iterator).second->name ().c_str (),
-                          (*iterator_2).first.c_str ()))
+      if ((*iterator).second != (*iterator_2).first)
         continue;
 
-      ACE_ASSERT ((*iterator_2).second);
       task_p = (*iterator_2).second->reader ();
       ACE_ASSERT (task_p);
 
       break;
     } // end FOR
   } // end lock scope
-  ACE_ASSERT (task_p);
+  if (likely (task_p))
+    return task_p->put (messageBlock_in,
+                        timeValue_in);
 
-  return task_p->put (messageBlock_in,
-                      timeValue_in);
+  // *NOTE*: most probable cause: connection has closed, session end has been
+  //         processed
+  ACE_DEBUG ((LM_WARNING,
+              ACE_TEXT ("%s: no reader link (session id was: %u), aborting\n"),
+              inherited::mod_->name (),
+              session_id));
+  return -1;
 }
 
 //////////////////////////////////////////
@@ -235,7 +241,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
  , sessionLock_ ()
  , sessionSessionData_ ()
  , sessions_ ()
- //, outboundStreamName_ ()
+ , tails_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::Stream_Module_Aggregator_WriterTask_T"));
 
@@ -288,6 +294,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   Stream_IMessage* imessage_p = NULL;
   Stream_SessionId_t session_id = 0;
   SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
+  SESSIONID_TO_TAIL_MAP_ITERATOR_T iterator_2;
   TASK_T* task_p = NULL;
   int result = 0;
   bool stop_processing = false;
@@ -334,21 +341,30 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
       goto continue_;
     } // end IF
 
-    for (LINKS_ITERATOR_T iterator_2 = writerLinks_.begin ();
-         iterator_2 != writerLinks_.end ();
-         ++iterator_2)
+    for (LINKS_ITERATOR_T iterator_3 = writerLinks_.begin ();
+         iterator_3 != writerLinks_.end ();
+         ++iterator_3)
     {
-      if (ACE_OS::strcmp ((*iterator).second->name ().c_str (),
-                          (*iterator_2).first.c_str ()))
+      if ((*iterator).second != (*iterator_3).first)
         continue;
 
-      ACE_ASSERT ((*iterator_2).second);
-      task_p = (*iterator_2).second->writer ();
+      ACE_ASSERT ((*iterator_3).second);
+      task_p = (*iterator_3).second->writer ();
 
       forward_b = false;
 
       break;
     } // end FOR
+
+    if (!task_p)
+    { ACE_ASSERT (writerLinks_.empty ());
+      iterator_2 = tails_.find (session_id);
+      ACE_ASSERT (iterator_2 != tails_.end ());
+
+      task_p = (*iterator_2).second;
+
+      forward_b = false;
+    } // end IF
   } // end lock scope
 
 continue_:
@@ -385,20 +401,23 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::next"));
 
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::mod_);
-//  typename inherited::IGET_T* iget_p =
-//      dynamic_cast<typename inherited::IGET_T*> (inherited::mod_);
-//  ACE_ASSERT (iget_p);
-//  // *WARNING*: this retrieves the 'most upstream' (sub-)stream
-//  typename inherited::STREAM_T& stream_r =
-//      const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
-//  ACE_ASSERT (stream_r.tail ());
+  // sanity check(s)
+  // *NOTE*: this API is experimental and probably does not do what users would
+  //         expect (see comment below)
+  ACE_ASSERT (false);
+  ACE_ASSERT (inherited::mod_);
+  typename inherited::IGET_T* iget_p =
+      dynamic_cast<typename inherited::IGET_T*> (inherited::mod_);
+  ACE_ASSERT (iget_p);
+  // *WARNING*: this retrieves the 'most upstream' (sub-)stream
+  typename inherited::STREAM_T& stream_r =
+      const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
+  ACE_ASSERT (stream_r.tail ());
 
-//  // *WARNING*: this retrieves the tail end of the last stream this was push()ed
-//  //            on. The problem: this stream may have already gone away !
-//  return stream_r.tail ()->writer ();
-  return NULL;
+  // *WARNING*: this retrieves the tail end of the last stream this was push()ed
+  //            on. The problem: that stream may have already gone away !
+  return stream_r.tail ()->writer ();
+  //return NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -449,7 +468,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   if (unlikely (inherited::isInitialized_))
   {
     { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_, false);
-      sessions_.clear ();
+      //sessions_.clear (); // *WARNING*: module is enqueued several times --> retain state
     } // end lock scope
 
     //outboundStreamName_.clear ();
@@ -691,9 +710,18 @@ insert:
       const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         session_data_container_r.getR ();
       ACE_ASSERT (session_data_r.stream);
-      { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
+      typename inherited::MODULE_T* tail_p =
+        session_data_r.stream->tail ();
+      ACE_ASSERT (tail_p);
+      tail_p = tail_p->next ();
+      ACE_ASSERT (tail_p);
+      ACE_ASSERT (tail_p->writer ());
+      {
+        ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
         sessions_.insert (std::make_pair (session_id,
                                           session_data_r.stream));
+        tails_.insert (std::make_pair (session_id,
+                                       tail_p->writer ()));
       } // end lock scope
     } // *WARNING*: control falls through here
     case STREAM_SESSION_MESSAGE_LINK:
@@ -766,8 +794,8 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   MODULE_T* module_2 = NULL;
   typename inherited::IGET_T* iget_p = NULL;
   typename inherited::STREAM_T* stream_p = NULL;
-  typename inherited::TASK_BASE_T::ISTREAM_T* istream_p = NULL;
-  std::string stream_name;
+  //typename inherited::TASK_BASE_T::ISTREAM_T* istream_p = NULL;
+  //std::string stream_name;
 
   // sanity check(s)
   ACE_ASSERT (module_p);
@@ -793,17 +821,17 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   } // end IF
   stream_p =
       &const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
-  istream_p =
-      dynamic_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (stream_p);
-  if (unlikely (!istream_p))
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IStream_T>(0x%@) failed, continuing\n"),
-                inherited::mod_->name (),
-                stream_p));
-    goto continue_;
-  } // end IF
-  stream_name = istream_p->name ();
+  //istream_p =
+  //    dynamic_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (stream_p);
+  //if (unlikely (!istream_p))
+  //{
+  //  ACE_DEBUG ((LM_DEBUG,
+  //              ACE_TEXT ("%s: dynamic_cast<Stream_IStream_T>(0x%@) failed, continuing\n"),
+  //              inherited::mod_->name (),
+  //              stream_p));
+  //  goto continue_;
+  //} // end IF
+  //stream_name = istream_p->name ();
 
 continue_:
   module_2 = const_cast<MODULE_T*> (module_p)->next ();
@@ -815,7 +843,7 @@ continue_:
 
     // step2: add map entry
     { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
-      readerLinks_.insert (std::make_pair (stream_name,
+      readerLinks_.insert (std::make_pair (stream_p,
                                            module_p));
     } // end lock scope
     //ACE_DEBUG ((LM_DEBUG,
@@ -831,7 +859,7 @@ continue_:
 
   // step2: add map entry
   { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
-    writerLinks_.insert (std::make_pair (stream_name,
+    writerLinks_.insert (std::make_pair (stream_p,
                                          const_cast<MODULE_T*> (module_p)));
   } // end lock scope
 
@@ -1129,20 +1157,23 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_2::next"));
 
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::mod_);
-//  typename inherited::IGET_T* iget_p =
-//      dynamic_cast<typename inherited::IGET_T*> (inherited::mod_);
-//  ACE_ASSERT (iget_p);
-//  // *WARNING*: this retrieves the 'most upstream' (sub-)stream
-//  typename inherited::STREAM_T& stream_r =
-//      const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
-//  ACE_ASSERT (stream_r.tail ());
+  // sanity check(s)
+  // *NOTE*: this API is experimental and probably does not do what users would
+  //         expect (see comment below)
+  ACE_ASSERT (false);
+  ACE_ASSERT (inherited::mod_);
+  typename inherited::IGET_T* iget_p =
+      dynamic_cast<typename inherited::IGET_T*> (inherited::mod_);
+  ACE_ASSERT (iget_p);
+  // *WARNING*: this retrieves the 'most upstream' (sub-)stream
+  typename inherited::STREAM_T& stream_r =
+      const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
+  ACE_ASSERT (stream_r.tail ());
 
-//  // *WARNING*: this retrieves the tail end of the last stream this was push()ed
-//  //            on. The problem: this stream may have already gone away !
-//  return stream_r.tail ()->writer ();
-  return NULL;
+  // *WARNING*: this retrieves the tail end of the last stream this was push()ed
+  //            on. The problem: this stream may have already gone away !
+  return stream_r.tail ()->writer ();
+  //return NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -1193,8 +1224,8 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
   if (unlikely (inherited::isInitialized_))
   {
     { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_, false);
-      sessionEndCount_ = 0;
-      sessions_.clear ();
+      //sessionEndCount_ = 0;
+      //sessions_.clear (); // *WARNING*: module is enqueued several times --> retain state
     } // end lock scope
 
     //outboundStreamName_.clear ();

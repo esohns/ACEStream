@@ -43,7 +43,7 @@ class Stream_IMessageQueue
   virtual void signal () = 0;
 
   virtual bool isShuttingDown () const = 0; // MB_STOP has been dequeued ?
-  virtual void waitForIdleState () const = 0;
+  virtual void waitForIdleState (bool = true) const = 0; // wait forever ?
 };
 
 #endif

@@ -1,4 +1,5 @@
 include (ffmpeg)
+include (ImageMagick)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
 include (sox)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
@@ -249,11 +250,13 @@ elseif (WIN32)
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
+ file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
  file (TO_CMAKE_PATH "${faad_LIB_DIR}" FAAD_PATH)
  file (TO_CMAKE_PATH "${SOX_LIB_DIR}" SOX_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${FFMPEG_PATH}
+                           ${IMAGEMAGICK_PATH}
                            ${FAAD_PATH}
                            ${SOX_PATH}
                            ${ACE_PATH})
