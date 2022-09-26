@@ -1906,7 +1906,7 @@ Stream_Base_T<ACE_SYNCH_USE,
           if (likely (task_p->msg_queue_->is_empty ()))
             break; // nothing to do
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s/%s writer: waiting to process %Q byte(s) in %u message(s)...\n"),
+                      ACE_TEXT ("%s/%s writer: waiting to process %B byte(s) in %B message(s)...\n"),
                       ACE_TEXT (name_.c_str ()),
                       (*iterator)->name (),
                       task_p->msg_queue_->message_bytes (),
@@ -1928,8 +1928,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // step2: wait for outbound processing (i.e. the 'reader' side) pipeline to
   //        flush
-  // *TODO*: this is incomplete
-  messageQueue_.waitForIdleState (waitForever_in);
+  // *NOTE*: never block here; the connection may be closing
+  messageQueue_.waitForIdleState (false); // block ?
 }
 
 template <ACE_SYNCH_DECL,
@@ -2093,7 +2093,7 @@ Stream_Base_T<ACE_SYNCH_USE,
         if (likely (!message_count))
           break;
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s/%s writer: waiting to process %Q byte(s) in %u message(s)...\n"),
+                    ACE_TEXT ("%s/%s writer: waiting to process %B byte(s) in %B message(s)...\n"),
                     ACE_TEXT (name_.c_str ()), (*iterator_2)->name (),
                     task_p->msg_queue_->message_bytes (), message_count));
 
@@ -2148,7 +2148,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       if (!message_count)
         break;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s/%s reader: waiting to process %Q byte(s) in %u message(s)...\n"),
+                  ACE_TEXT ("%s/%s reader: waiting to process %B byte(s) in %B message(s)...\n"),
                   ACE_TEXT (name_.c_str ()), (*iterator_2)->name (),
                   task_p->msg_queue_->message_bytes (), message_count));
 
@@ -2409,7 +2409,6 @@ Stream_Base_T<ACE_SYNCH_USE,
   OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
   typename ISTREAM_T::MODULE_T* module_p = NULL;
   STATE_MACHINE_CONTROL_T* state_machine_control_p = NULL;
-  bool is_first = true;
   IGET_T* iget_p = NULL;
   ISTREAM_T* istream_p = NULL;
 
@@ -2426,21 +2425,17 @@ Stream_Base_T<ACE_SYNCH_USE,
   ACE_ASSERT (module_p);
 
   // step1: locate the second (!) downstream head module
+  module_p = module_p->next (); // skip over first head module
+  // sanity check(s)
+  ACE_ASSERT (module_p);
   do
-  {
-    state_machine_control_p = NULL;
-    if (!module_p->next ())
-      break; // --> reached tail end
+  { ACE_ASSERT (module_p->writer ());
     state_machine_control_p =
       dynamic_cast<STATE_MACHINE_CONTROL_T*> (module_p->writer ());
     if (state_machine_control_p)
-    {
-      if (!is_first)
-        break;
-      is_first = false;
-    } // end IF
+      break;
     module_p = module_p->next ();
-  } while (true);
+  } while (module_p);
   if (!state_machine_control_p)
     return NULL; // 'this' is the most downstream (sub-)stream
 
@@ -3407,9 +3402,9 @@ Stream_Base_T<ACE_SYNCH_USE,
   }
 
   ACE_DEBUG ((LM_INFO,
-              ACE_TEXT ("*** [session: %d] RUNTIME STATISTIC ***\n--> stream statistic @ %#D<--\n (data) messages: %u\n dropped messages: %u\n bytes total: %.0f\n*** RUNTIME STATISTIC ***\\END\n"),
+              ACE_TEXT ("*** [session: %d] RUNTIME STATISTIC ***\n--> stream statistic @ %#D<--\n (data) messages: %u\n dropped messages: %u\n bytes total: %Q\n*** RUNTIME STATISTIC ***\\END\n"),
               (state_.sessionData ? static_cast<int> (state_.sessionData->sessionId) : -1),
-              &(state_.sessionData->lastCollectionTimeStamp),
+              &state_.sessionData->lastCollectionTimeStamp,
               state_.sessionData->statistic.dataMessages,
               state_.sessionData->statistic.droppedFrames,
               state_.sessionData->statistic.bytes));

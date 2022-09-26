@@ -29,6 +29,8 @@ class Stream_ITask
  public:
   virtual void handleMessage (ACE_Message_Block*, // message handle
                               bool&) = 0;         // return value: stop processing ?
+
+  virtual bool isAggregator () = 0; // return value: is aggregator ?
 };
 
 //////////////////////////////////////////

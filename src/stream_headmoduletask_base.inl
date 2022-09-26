@@ -2171,9 +2171,16 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   int result = -1;
   ACE_Reverse_Lock<ACE_Thread_Mutex> reverse_lock (inherited::lock_);
+  static ACE_Time_Value timeout (STREAM_STATEMACHINE_WAIT_TIMEOUT_S, 0);
+  ACE_Time_Value deadline = ACE_OS::gettimeofday () + timeout;
 
   // step1: wait for final state
-  inherited2::wait (STREAM_STATE_FINISHED, NULL); // <-- block
+  if (unlikely (!inherited2::wait (STREAM_STATE_FINISHED, &deadline)))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Common_StateMachine_Base_T::wait(%d,%#T): \"%m\", continuing\n"),
+                inherited::mod_->name (),
+                STREAM_STATE_FINISHED,
+                &timeout));
 
   // step2: wait for worker(s) to join ?
   if (unlikely (!waitForThreads_in))
@@ -2736,8 +2743,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       SessionDataContainerType* session_data_container_p = NULL;
       typename inherited::ISTREAM_T* istream_p =
         const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
-      ACE_ASSERT (istream_p);
-      typename inherited::STREAM_T* downstream_p = istream_p->downstream ();
+      typename inherited::STREAM_T* downstream_p =
+        (istream_p ? istream_p->downstream () : NULL);
 
       // *IMPORTANT NOTE*: notify any downstream head modules of the state
       //                   change

@@ -209,9 +209,9 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
       // sanity check(s)
-      ACE_ASSERT (inherited::sessionData_);
+//      ACE_ASSERT (inherited::sessionData_);
 
-      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+//      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, lock_);
         // *WARNING* if callees unsubscribe() within the callback bad things

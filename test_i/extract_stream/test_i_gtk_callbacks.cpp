@@ -455,7 +455,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   //GError* error_p = NULL;
   //GFile* file_p = NULL;
   //gchar* filename_p = NULL;
-  bool is_display_b = false, is_fullscreen_b = false;
+//  bool is_display_b = false;
+  bool is_fullscreen_b = false;
   filename_string = (*stream_iterator).second.second->targetFileName;
   gtk_entry_set_text (entry_p,
                       (filename_string.empty () ? ACE_TEXT_ALWAYS_CHAR ("")

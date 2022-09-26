@@ -295,6 +295,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   Stream_SessionId_t session_id = 0;
   SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
   SESSIONID_TO_TAIL_MAP_ITERATOR_T iterator_2;
+  //MODULE_T* module_p = NULL;
   TASK_T* task_p = NULL;
   int result = 0;
   bool stop_processing = false;
@@ -310,8 +311,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                  stop_processing);
   if (is_data_b && stop_processing) // *WORKAROUND*
     return 0;
-  else if (is_control_b)
-    goto continue_;
 
   // step2: forward message to downstream module
   try {
@@ -361,6 +360,10 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
       iterator_2 = tails_.find (session_id);
       ACE_ASSERT (iterator_2 != tails_.end ());
 
+      //module_p = (*iterator).second->tail ();
+      //ACE_ASSERT (module_p);
+      //task_p = module_p->next () ? module_p->next ()->writer ()
+      //                           : module_p->writer ();
       task_p = (*iterator_2).second;
 
       forward_b = false;
@@ -710,18 +713,25 @@ insert:
       const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         session_data_container_r.getR ();
       ACE_ASSERT (session_data_r.stream);
-      typename inherited::MODULE_T* tail_p =
-        session_data_r.stream->tail ();
+      typename inherited::MODULE_T* tail_p = NULL;
+      typename inherited::TASK_T* tail_2 = NULL;
+retry:
+      tail_p = session_data_r.stream->tail ();
       ACE_ASSERT (tail_p);
       tail_p = tail_p->next ();
-      ACE_ASSERT (tail_p);
-      ACE_ASSERT (tail_p->writer ());
-      {
-        ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
+      // *NOTE*: when 'this' is pushed onto new streams, its' successor gets
+      //         reset; i.e. there is a race condition when e.g. multiple
+      //         connections (with this on the stream) are started
+      //         simultaneously
+      while (!tail_p)
+        goto retry;
+      tail_2 = tail_p->writer ();
+      ACE_ASSERT (tail_2);
+      { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
         sessions_.insert (std::make_pair (session_id,
                                           session_data_r.stream));
         tails_.insert (std::make_pair (session_id,
-                                       tail_p->writer ()));
+                                       tail_2));
       } // end lock scope
     } // *WARNING*: control falls through here
     case STREAM_SESSION_MESSAGE_LINK:
@@ -794,8 +804,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   MODULE_T* module_2 = NULL;
   typename inherited::IGET_T* iget_p = NULL;
   typename inherited::STREAM_T* stream_p = NULL;
-  //typename inherited::TASK_BASE_T::ISTREAM_T* istream_p = NULL;
-  //std::string stream_name;
 
   // sanity check(s)
   ACE_ASSERT (module_p);
@@ -821,17 +829,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   } // end IF
   stream_p =
       &const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
-  //istream_p =
-  //    dynamic_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (stream_p);
-  //if (unlikely (!istream_p))
-  //{
-  //  ACE_DEBUG ((LM_DEBUG,
-  //              ACE_TEXT ("%s: dynamic_cast<Stream_IStream_T>(0x%@) failed, continuing\n"),
-  //              inherited::mod_->name (),
-  //              stream_p));
-  //  goto continue_;
-  //} // end IF
-  //stream_name = istream_p->name ();
 
 continue_:
   module_2 = const_cast<MODULE_T*> (module_p)->next ();
@@ -898,15 +895,13 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
     for (;
          iterator != writerLinks_.end ();
          ++iterator)
-      if (!ACE_OS::strcmp (module_p->name (),
-                           (*iterator).second->name ()))
+      if (module_p == (*iterator).second)
         break;
     iterator_2 = readerLinks_.begin ();
     for (;
          iterator_2 != readerLinks_.end ();
          ++iterator_2)
-      if (!ACE_OS::strcmp (module_p->name (),
-                           (*iterator_2).second->name ()))
+      if (module_p == (*iterator_2).second)
         break;
 
     if (iterator_2 != readerLinks_.end ())

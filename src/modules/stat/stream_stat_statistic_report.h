@@ -207,13 +207,13 @@ class Stream_Statistic_StatisticReport_WriterTask_T
 
  protected:
   // *DATA STATISTIC*
-  float                      inboundBytes_;
-  float                      outboundBytes_;
+  ACE_UINT64                 inboundBytes_;
+  ACE_UINT64                 outboundBytes_;
   unsigned int               inboundMessages_;
   unsigned int               outboundMessages_;
 
   // *NOTE: support asynchronous collecting/reporting of data
-  size_t                     lastBytesPerSecondCount_;
+  ACE_UINT32                 lastBytesPerSecondCount_;
   unsigned int               lastDataMessagesPerSecondCount_;
 
   unsigned int               controlMessages_;
@@ -279,7 +279,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
   bool                             printFinalReport_;
 
   // used to compute data/message throughput
-  size_t                           byteCounter_;
+  ACE_UINT64                       byteCounter_;
   unsigned int                     fragmentCounter_;
   unsigned int                     controlMessageCounter_;
   unsigned int                     messageCounter_;

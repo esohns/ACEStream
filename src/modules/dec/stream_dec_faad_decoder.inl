@@ -303,7 +303,7 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
       unsigned long sample_rate = 0;
       unsigned char channels = 0;
       unsigned char faad_format = 0;
-      long result = 0;
+//      long result = 0;
       unsigned char result_2 = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;

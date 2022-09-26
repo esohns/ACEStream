@@ -1746,13 +1746,12 @@ stream_processing_function (void* arg_in)
   ACE_SYNCH_MUTEX* lock_p = NULL;
   enum Net_TransportLayerType protocol = NET_TRANSPORTLAYER_INVALID;
   Stream_IStreamControlBase* stream_p = NULL;
-  Stream_Module_t* module_p = NULL;
+//  Stream_Module_t* module_p = NULL;
   GtkStatusbar* statusbar_p = NULL;
   std::ostringstream converter;
   const Stream_SessionData* session_ui_cb_data_p = NULL;
   bool result_2 = false;
   guint context_id = 0;
-//  Stream_Module_t* module_p = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Source_DirectShow_ThreadData* directshow_thread_data_p = NULL;

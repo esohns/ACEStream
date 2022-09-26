@@ -446,7 +446,7 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
   // step0: initialize container
 //  data_out.dataMessages = 0;
 //  data_out.droppedMessages = 0;
-//  data_out.bytes = 0.0;
+//  data_out.bytes = 0;
   data_out.timeStamp = COMMON_TIME_NOW;
 
   // *TODO*: collect socket statistics information

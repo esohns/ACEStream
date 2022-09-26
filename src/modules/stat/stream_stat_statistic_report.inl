@@ -54,8 +54,8 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               SessionDataContainerType>::Stream_Statistic_StatisticReport_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
- , inboundBytes_ (0.0F)
- , outboundBytes_ (0.0F)
+ , inboundBytes_ (0)
+ , outboundBytes_ (0)
  , inboundMessages_ (0)
  , outboundMessages_ (0)
  , lastBytesPerSecondCount_ (0)
@@ -118,8 +118,8 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
 
     // reset various counters
     { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
-      inboundBytes_ = 0.0F;
-      outboundBytes_ = 0.0F;
+      inboundBytes_ = 0;
+      outboundBytes_ = 0;
       inboundMessages_ = 0;
       outboundMessages_ = 0;
       lastBytesPerSecondCount_ = 0;
@@ -309,13 +309,11 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                       &reportingInterval_));
           goto error;
         } // end IF
-#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: scheduled (local) reporting timer (id: %d, interval: %#T)\n"),
                     inherited::mod_->name (),
                     localReportingHandlerId_,
                     &reportingInterval_));
-#endif // _DEBUG
       } // end IF
       // *NOTE*: even if 'this' doesn't report(), it might still be triggered from
       //         outside
@@ -606,7 +604,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inferences
   ACE_DEBUG ((LM_INFO,
-              ACE_TEXT ("*** [session: %d] STATISTIC ***\n--> Stream Statistic <--\n\tmessages/sec: %u\n\tmessages total [in/out]): %u/%u (data: %.2f%%)\n\tbytes/sec: %u\n\tbytes total: %.0f\n--> Cache Statistics <--\n\tcurrent cache usage [%u messages / %u byte(s) allocated]\n*** RUNTIME STATISTICS ***\\END\n"),
+              ACE_TEXT ("*** [session: %d] STATISTIC ***\n--> Stream Statistic <--\n\tmessages/sec: %u\n\tmessages total [in/out]): %u/%u (data: %.2f%%)\n\tbytes/sec: %u\n\tbytes total: %Q\n--> Cache Statistics <--\n\tcurrent cache usage [%u messages / %u byte(s) allocated]\n*** RUNTIME STATISTICS ***\\END\n"),
               (session_data_p ? static_cast<int> (session_data_p->sessionId) : -1),
               lastDataMessagesPerSecondCount_, inboundMessages_, outboundMessages_,
               (static_cast<float> (data_messages_i) / static_cast<float> (total_messages_i) * 100.0F),
@@ -688,10 +686,9 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                   ACE_TEXT ("\t\"%s\": %u --> %.2f %%\n"),
                   ACE_TEXT (DataMessageType::CommandTypeToString (iterator->first).c_str ()),
                   iterator->second,
-                  (static_cast<float> (iterator->second) * 100.0F) /
-                  static_cast<float> (data_messages)));
+                  (static_cast<float> (iterator->second) * 100.0F) / static_cast<float> (data_messages)));
     ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("------------------------------------------\n\ttotal byte(s) [in/out]: %.0f/%.0f\n\tbytes/s: %u\n"),
+                ACE_TEXT ("------------------------------------------\n\ttotal byte(s) [in/out]: %Q/%Q\n\tbytes/s: %u\n"),
                 inboundBytes_, outboundBytes_,
                 lastBytesPerSecondCount_)); // *TODO*: compute average
   } // end IF

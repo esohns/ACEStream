@@ -26,7 +26,7 @@
 struct Stream_StatisticBase
 {
   Stream_StatisticBase ()
-   : bytes (0.0F)
+   : bytes (0)
    , dataMessages (0)
    , sessionMessages (0)
    , bytesPerSecond (0.0F)
@@ -36,7 +36,7 @@ struct Stream_StatisticBase
 
   struct Stream_StatisticBase operator~ ()
   {
-    bytes = 0.0F;
+    bytes = 0;
     dataMessages = 0;
     sessionMessages = 0;
     bytesPerSecond = 0.0F;
@@ -51,12 +51,15 @@ struct Stream_StatisticBase
     dataMessages += rhs_in.dataMessages;
     sessionMessages += rhs_in.sessionMessages;
 
+    bytesPerSecond += rhs_in.bytesPerSecond;
+    messagesPerSecond += rhs_in.messagesPerSecond;
+
     return *this;
   }
 
-  float          bytes;           // amount of processed data
-  unsigned int   dataMessages;    // data messages
-  unsigned int   sessionMessages; // session messages
+  ACE_UINT64     bytes;           // amount of processed data
+  ACE_UINT32     dataMessages;    // data messages
+  ACE_UINT32     sessionMessages; // session messages
 
   // (current) runtime performance
   float          bytesPerSecond;
@@ -88,6 +91,8 @@ struct Stream_Statistic
   {
     capturedFrames += rhs_in.capturedFrames;
     droppedFrames += rhs_in.droppedFrames;
+
+    totalFrames += rhs_in.totalFrames;
 
     Stream_StatisticBase::operator+= (rhs_in);
 

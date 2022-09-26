@@ -313,6 +313,8 @@ class Stream_Configuration_T
 
  public:
   // convenient types
+  typedef struct Stream_ModuleConfiguration MODULE_CONFIGURATION_T;
+  typedef ModuleHandlerConfigurationType MODULEHANDLER_CONFIGURATION_T;
   typedef std::map<std::string,
                    std::pair<struct Stream_ModuleConfiguration*,
                              ModuleHandlerConfigurationType*> > MAP_T;

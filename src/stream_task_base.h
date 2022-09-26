@@ -138,6 +138,7 @@ class Stream_TaskBase_T
   // implement Stream_ITask
   virtual void handleMessage (ACE_Message_Block*, // message handle
                               bool&);             // return value: stop processing ?
+  inline virtual bool isAggregator () { return aggregate_; }
 
   // convenience methods to send (session-specific) notifications downstream
   // *NOTE*: these invoke put(), so the messages are processed by 'this' module
