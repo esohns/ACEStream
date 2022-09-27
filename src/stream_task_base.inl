@@ -199,7 +199,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   if (unlikely (!istream_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IStream_T>(0x%@) failed, aborting\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStream_T>(0x%@) failed --> check implementation !, aborting\n"),
                 inherited::mod_->name (),
                 &stream_r));
     return NULL;

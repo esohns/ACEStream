@@ -4173,7 +4173,7 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_file(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT (file_p),
+                  ACE_TEXT (g_file_get_path (file_p)),
                   ACE_TEXT (error_p->message)));
       g_error_free (error_p); error_p = NULL;
       g_object_unref (G_OBJECT (file_p)); file_p = NULL;

@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "MagickWand/MagickWand.h"
 #else
@@ -625,15 +626,6 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 
   result =
 //#if MAGICKWAND_CHECK_VERSION(7,0,0)
-//    MagickResizeImage (inherited::context_,
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//                       resolution_2.cx, resolution_2.cy,
-//#else
-//                       inherited::configuration_->outputFormat.resolution.width,
-//                       inherited::configuration_->outputFormat.resolution.height,
-//#endif // ACE_WIN32 || ACE_WIN64
-//                       LanczosFilter);
-//#else
     MagickResizeImage (inherited::context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                        resolution_2.cx, resolution_2.cy,
@@ -641,8 +633,17 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
                        inherited::configuration_->outputFormat.resolution.width,
                        inherited::configuration_->outputFormat.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
-                       LanczosFilter,
-                       1.0); // do not blur
+                       LanczosFilter);
+//#else
+//    MagickResizeImage (inherited::context_,
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//                       resolution_2.cx, resolution_2.cy,
+//#else
+//                       inherited::configuration_->outputFormat.resolution.width,
+//                       inherited::configuration_->outputFormat.resolution.height,
+//#endif // ACE_WIN32 || ACE_WIN64
+//                       LanczosFilter,
+//                       1.0); // do not blur
 //#endif // MAGICKWAND_CHECK_VERSION(7,0,0)
   ACE_ASSERT (result == MagickTrue);
 

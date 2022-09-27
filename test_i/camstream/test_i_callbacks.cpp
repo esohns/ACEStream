@@ -1861,7 +1861,7 @@ stream_processing_function (void* arg_in)
             session_ui_cb_data_p =
               &const_cast<Test_I_Source_DirectShow_SessionData&> (session_data_container_p->getR ());
 
-            module_p =
+            Stream_Module_t* module_p =
               const_cast<Stream_Module_t*> (directshow_thread_data_p->CBData->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
             ACE_ASSERT (module_p);
             directshow_thread_data_p->CBData->dispatch =
