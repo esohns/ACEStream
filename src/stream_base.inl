@@ -2407,7 +2407,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   int result = -1;
   OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
-  typename ISTREAM_T::MODULE_T* module_p = NULL;
+  typename ISTREAM_T::MODULE_T* module_p = NULL, *module_2 = NULL;
   STATE_MACHINE_CONTROL_T* state_machine_control_p = NULL;
   IGET_T* iget_p = NULL;
   ISTREAM_T* istream_p = NULL;
@@ -2420,37 +2420,36 @@ Stream_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT (name_.c_str ())));
     return NULL;
   } // end IF
-
   // sanity check(s)
   ACE_ASSERT (module_p);
 
   // step1: locate the second (!) downstream head module
-  module_p = module_p->next (); // skip over first head module
+  module_2 = module_p->next (); // skip over first head module
   // sanity check(s)
-  ACE_ASSERT (module_p);
+  ACE_ASSERT (module_2);
   do
-  { ACE_ASSERT (module_p->writer ());
+  { ACE_ASSERT (module_2->writer ());
     state_machine_control_p =
-      dynamic_cast<STATE_MACHINE_CONTROL_T*> (module_p->writer ());
+      dynamic_cast<STATE_MACHINE_CONTROL_T*> (module_2->writer ());
     if (state_machine_control_p)
       break;
-    module_p = module_p->next ();
-  } while (module_p);
+    module_2 = module_2->next ();
+  } while (module_2);
   if (!state_machine_control_p)
     return NULL; // 'this' is the most downstream (sub-)stream
 
   // sanity check(s)
-  ACE_ASSERT (module_p);
-  ACE_ASSERT (module_p->writer ());
+  ACE_ASSERT (module_2);
+  ACE_ASSERT (module_2->writer ());
 
-  iget_p = dynamic_cast<IGET_T*> (module_p->writer ());
+  iget_p = dynamic_cast<IGET_T*> (module_2->writer ());
   if (unlikely (!iget_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: failed to dynamic_cast<Common_IGetP_T<Stream_IStream_T>>(0x%@), aborting\n"),
                 ACE_TEXT (name_.c_str ()),
-                module_p->name (),
-                ACE_TEXT (module_p->writer ())));
+                module_2->name (),
+                ACE_TEXT (module_2->writer ())));
     return NULL;
   } // end IF
   istream_p = const_cast<ISTREAM_T*> (iget_p->getP ());
