@@ -424,12 +424,10 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   if (iterator == inherited::configuration_->connectionConfigurations->end ())
     iterator =
       inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-#if defined (_DEBUG)
   else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: applying dedicated connection configuration\n"),
                 inherited::mod_->name ()));
-#endif // _DEBUG
   ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
 
   // step1: allocate message

@@ -119,6 +119,7 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
 
       DataMessageType* message_p = NULL;
       size_t total_length_i = message_inout->total_length ();
+      total_length_i += total_length_i / 10; // add 10% for good measure
       size_t allocated_bytes_i =
         total_length_i + inherited::configuration_->allocatorConfiguration->paddingBytes;
       try {

@@ -3416,10 +3416,16 @@ Stream_MediaFramework_DirectShow_Tools::setResolution (const Common_Image_Resolu
     video_info_header_p->bmiHeader.biHeight = resolution_in.cy;
     video_info_header_p->bmiHeader.biSizeImage =
       DIBSIZE (video_info_header_p->bmiHeader);
-    frames_per_second_i =
-      /*UNITS*/10000000 / static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
-    video_info_header_p->dwBitRate =
-      (video_info_header_p->bmiHeader.biSizeImage * frames_per_second_i) * 8;
+    if (video_info_header_p->AvgTimePerFrame)
+    {
+      frames_per_second_i =
+        /*UNITS*/10000000 / static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
+      video_info_header_p->dwBitRate =
+        (video_info_header_p->bmiHeader.biSizeImage * frames_per_second_i) * 8;
+    } // end IF
+    else
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("AvgTimePerFrame was not set; cannot correct dwBitRate, continuing\n")));
     frame_size_i = video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
   else if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo2))
