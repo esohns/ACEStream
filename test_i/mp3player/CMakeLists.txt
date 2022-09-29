@@ -1,3 +1,4 @@
+include (ffmpeg)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
 include (mpg123)
 
@@ -119,12 +120,24 @@ if (UNIX)
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/${EXECUTABLE}
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
+ if (GTK_SUPPORT)
+  file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS} ${GTK_PATH})
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS} ${wxWidgets_LIB_DIR})
+ endif (WXWIDGETS_SUPPORT)
  file (TO_CMAKE_PATH "${MPG123_LIB_DIR}" MPG123_PATH)
+ file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${MPG123_PATH}
+                           ${FFMPEG_PATH}
                            ${ACE_PATH})
  create_target_launcher (${EXECUTABLE}
+                         COMMAND ${COMMAND}
                          ARGS "-f D:\\\\test.mp3 -l -o D:\\\\output.wav -t"
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}

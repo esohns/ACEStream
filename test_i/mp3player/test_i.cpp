@@ -302,6 +302,10 @@ do_work (unsigned int bufferSize_in,
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   // step0a: initialize configuration and stream
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_MediaFramework_DirectSound_Tools::initialize ();
+#endif // ACE_WIN32 || ACE_WIN64
+
   struct Test_I_MP3Player_Configuration configuration;
   struct Stream_AllocatorConfiguration allocator_configuration;
   Test_I_Stream stream;
@@ -321,7 +325,10 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_MP3Player_ModuleHandlerConfiguration modulehandler_configuration;
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+    Stream_Device_Identifier::ID;
+  modulehandler_configuration.deviceIdentifier.identifier._id = 0;
 #else
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration;
   ALSA_configuration.asynch = false;
