@@ -1412,8 +1412,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     case STREAM_CONTROL_STEP_2:
     {
       Stream_SessionId_t session_id = static_cast<Stream_SessionId_t> (-1);
-
-      // sanity check(s)
       if (likely (inherited::sessionData_))
       {
         SessionDataType& session_data_r =
@@ -1680,7 +1678,16 @@ retry:
       case STREAM_STATE_SESSION_STOPPING:
       case STREAM_STATE_STOPPED:
       case STREAM_STATE_FINISHED:
+      {
+        if (unlikely (isHighPriorityStop_))
+        {
+          if (likely (!abortSent_))
+            control (STREAM_CONTROL_ABORT,
+                     false); // forward upstream ?
+        }                    // end IF
+
         return; // nothing to do
+      }
       default:
       {
         ACE_DEBUG ((LM_ERROR,

@@ -920,8 +920,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
                               Stream_INotify_t,                                                     // stream notification interface type
                               Test_U_AudioEffect_MediaFoundation_WavOut);                           // writer type
 
-typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
-                                   Common_TimePolicy_t,
+typedef Stream_Module_FileWriter_2<Common_TimePolicy_t,
                                    struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
                                    Stream_ControlMessage_t,
                                    Test_U_AudioEffect_DirectShow_Message,
@@ -932,8 +931,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,        
                               libacestream_default_file_sink_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_AudioEffect_DirectShow_FileWriter);                       // writer type
-typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
-                                   Common_TimePolicy_t,
+typedef Stream_Module_FileWriter_2<Common_TimePolicy_t,
                                    struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
                                    Stream_ControlMessage_t,
                                    Test_U_AudioEffect_MediaFoundation_Message,

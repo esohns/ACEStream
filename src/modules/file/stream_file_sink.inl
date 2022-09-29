@@ -655,6 +655,22 @@ Stream_Module_FileWriter_2<TimePolicyType,
                         O_TRUNC |
                         O_WRONLY);
 
+      result =
+        path_.set (ACE_TEXT (session_data_r.targetFileName.c_str ()));
+      if (unlikely (result == -1))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (session_data_r.targetFileName.c_str ())));
+        return;
+      } // end IF
+      if (Common_File_Tools::isReadable (session_data_r.targetFileName))
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: target file \"%s\" exists, continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (session_data_r.targetFileName.c_str ())));
+
       const ACE_TCHAR* path_name_p = path_.get_path_name ();
       ACE_ASSERT (path_name_p);
       bool is_empty = !ACE_OS::strlen (path_name_p);
@@ -912,22 +928,22 @@ Stream_Module_FileWriter_2<TimePolicyType,
 
   ACE_UNUSED_ARG (allocator_in);
 
-  int result =
-    path_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (configuration_in.targetFileName.c_str ())));
-    return false;
-  } // end IF
+  //int result =
+  //  path_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
+  //if (unlikely (result == -1))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
+  //              inherited::mod_->name (),
+  //              ACE_TEXT (configuration_in.targetFileName.c_str ())));
+  //  return false;
+  //} // end IF
 
-  if (unlikely (Common_File_Tools::isReadable (configuration_in.targetFileName)))
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: target file \"%s\" exists, continuing\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (configuration_in.targetFileName.c_str ())));
+  //if (unlikely (Common_File_Tools::isReadable (configuration_in.targetFileName)))
+  //  ACE_DEBUG ((LM_WARNING,
+  //              ACE_TEXT ("%s: target file \"%s\" exists, continuing\n"),
+  //              inherited::mod_->name (),
+  //              ACE_TEXT (configuration_in.targetFileName.c_str ())));
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

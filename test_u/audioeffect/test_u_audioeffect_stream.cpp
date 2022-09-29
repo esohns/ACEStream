@@ -266,6 +266,18 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   if (!(*iterator).second.second->mute)
   {
+    if (add_resampler_b)
+    {
+#if defined (SOX_SUPPORT)
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_DirectShow_SoXResampler_Module (this,
+                                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+#endif // SOX_SUPPORT
+    } // end IF
+
     if (add_delay_b)
     {
       ACE_NEW_RETURN (module_p,
@@ -295,18 +307,6 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     module_p = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-
-    if (add_resampler_b)
-    {
-#if defined (SOX_SUPPORT)
-      ACE_NEW_RETURN (module_p,
-                      Test_U_AudioEffect_DirectShow_SoXResampler_Module (this,
-                                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
-                      false);
-      layout_in->append (module_p, branch_p, index_i);
-      module_p = NULL;
-#endif // SOX_SUPPORT
-    } // end IF
 
     switch (inherited::configuration_->configuration_->renderer)
     {
@@ -340,36 +340,6 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   } // end IF
   if (module_p)
   {
-    //if (!has_directshow_source_b && !device_can_render_format_b)
-    //{
-    //  ACE_NEW_RETURN (module_2,
-    //                  Test_U_AudioEffect_DirectShow_Delay_Module (this,
-    //                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
-    //                  false);
-    //  ACE_ASSERT (module_2);
-    //  layout_in->append (module_2, branch_p, index_i);
-    //  module_2 = NULL;
-    //} // end IF
-
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-    ACE_NEW_RETURN (module_2,
-                    Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
-                                                                            ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_2);
-    layout_in->append (module_2, branch_p, index_i);
-    module_2 = NULL;
-    ACE_NEW_RETURN (module_2,
-                    Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
-                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_2);
-    layout_in->append (module_2, branch_p, index_i);
-    module_2 = NULL;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-
     layout_in->append (module_p, branch_p, index_i);
     ++index_i;
     module_p = NULL;
