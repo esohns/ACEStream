@@ -39,7 +39,7 @@ Stream_Module_Dump_T<ACE_SYNCH_USE,
                      UserDataType>::Stream_Module_Dump_T (ISTREAM_T* stream_in)
 #else
                      UserDataType>::Stream_Module_Dump_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::Stream_Module_Dump_T"));
@@ -131,7 +131,7 @@ Stream_Module_FileDump_T<ACE_SYNCH_USE,
                          UserDataType>::Stream_Module_FileDump_T (ISTREAM_T* stream_in)
 #else
                          UserDataType>::Stream_Module_FileDump_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileDump_T::Stream_Module_FileDump_T"));
@@ -175,7 +175,7 @@ Stream_Module_FileDump_T<ACE_SYNCH_USE,
   size_t bytes_transferred = std::numeric_limits<unsigned int>::max ();
 #else
   size_t bytes_transferred = -1;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   bytes_written = inherited::stream_.send_n (message_inout,       // (chained) message
                                              NULL,                // timeout
                                              &bytes_transferred); // bytes transferred
@@ -193,7 +193,7 @@ Stream_Module_FileDump_T<ACE_SYNCH_USE,
       ACE_ASSERT (error == ERROR_DISK_FULL); // 112: no space left on device
 #else
       ACE_ASSERT (error == ENOSPC);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_File_IO::send_n(%d): \"%m\", continuing\n"),
                   message_inout->total_length ()));

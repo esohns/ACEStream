@@ -23,5 +23,5 @@
 
 #include "stream_misc_defines.h"
 
-const char libacestream_default_misc_queue_module_name_string[] =
-ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING);
+const char libacestream_default_misc_queue_source_module_name_string[] =
+ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_SOURCE_DEFAULT_NAME_STRING);

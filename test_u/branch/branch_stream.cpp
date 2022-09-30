@@ -46,7 +46,7 @@ Branch_Stream::load (Stream_ILayout* layout_inout,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Branch_Source_Module (this,
-                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)),
+                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_SOURCE_DEFAULT_NAME_STRING)),
                   false);
   ACE_ASSERT (module_p);
   layout_inout->append (module_p, NULL, 0);
@@ -139,7 +139,7 @@ Branch_Stream_2::load (Stream_ILayout* layout_inout,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Branch_Source_Module (this,
-                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)),
+                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_SOURCE_DEFAULT_NAME_STRING)),
                   false);
   ACE_ASSERT (module_p);
   layout_inout->append (module_p, NULL, 0);

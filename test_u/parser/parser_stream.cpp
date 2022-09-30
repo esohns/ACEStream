@@ -55,7 +55,7 @@ Parser_Stream::load (Stream_ILayout* layout_inout,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Parser_Source_Module (this,
-                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)),
+                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_SOURCE_DEFAULT_NAME_STRING)),
                   false);
   ACE_ASSERT (module_p);
   layout_inout->append (module_p, NULL, 0);
@@ -123,31 +123,31 @@ Parser_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   // ---------------------------------------------------------------------------
 
   // ******************* Source ************************
-  module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)));
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (default_stream_name_string_),
-                ACE_TEXT (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)));
-    goto failed;
-  } // end IF
+  //module_p =
+  //  const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_SOURCE_DEFAULT_NAME_STRING)));
+  //if (!module_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
+  //              ACE_TEXT (default_stream_name_string_),
+  //              ACE_TEXT (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)));
+  //  goto failed;
+  //} // end IF
 
-  source_impl_p = dynamic_cast<Parser_Source*> (module_p->writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Parser_Parser*> failed, aborting\n"),
-                ACE_TEXT (default_stream_name_string_)));
-    goto failed;
-  } // end IF
-  source_impl_p->setP (&(inherited::state_));
+  //source_impl_p = dynamic_cast<Parser_Source*> (module_p->writer ());
+  //if (!source_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: dynamic_cast<Parser_Parser*> failed, aborting\n"),
+  //              ACE_TEXT (default_stream_name_string_)));
+  //  goto failed;
+  //} // end IF
+  //source_impl_p->setP (&(inherited::state_));
 
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  module_p->arg (inherited::sessionData_);
+  //// *NOTE*: push()ing the module will open() it
+  ////         --> set the argument that is passed along (head module expects a
+  ////             handle to the session data)
+  //module_p->arg (inherited::sessionData_);
 
   // ---------------------------------------------------------------------------
 

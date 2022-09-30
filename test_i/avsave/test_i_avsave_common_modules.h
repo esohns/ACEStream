@@ -370,7 +370,7 @@ typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Stream_AVSave_DirectShow_Message_t,
                                Stream_AVSave_DirectShow_SessionMessage_t,
                                STREAM_MEDIATYPE_AUDIO,
-                               struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_DirectShow_Audio_Tagger;
+                               struct Stream_UserData> Stream_AVSave_DirectShow_Audio_Tagger;
 typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
@@ -378,7 +378,7 @@ typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Stream_AVSave_DirectShow_Message_t,
                                Stream_AVSave_DirectShow_SessionMessage_t,
                                STREAM_MEDIATYPE_VIDEO,
-                               struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_DirectShow_Video_Tagger;
+                               struct Stream_UserData> Stream_AVSave_DirectShow_Video_Tagger;
 
 typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
@@ -387,7 +387,7 @@ typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Stream_AVSave_MediaFoundation_Message_t,
                                Stream_AVSave_MediaFoundation_SessionMessage_t,
                                STREAM_MEDIATYPE_AUDIO,
-                               struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat> Stream_AVSave_MediaFoundation_Audio_Tagger;
+                               struct Stream_UserData> Stream_AVSave_MediaFoundation_Audio_Tagger;
 typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
@@ -395,7 +395,7 @@ typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Stream_AVSave_MediaFoundation_Message_t,
                                Stream_AVSave_MediaFoundation_SessionMessage_t,
                                STREAM_MEDIATYPE_VIDEO,
-                               struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat> Stream_AVSave_MediaFoundation_Video_Tagger;
+                               struct Stream_UserData> Stream_AVSave_MediaFoundation_Video_Tagger;
 #else
 typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
@@ -404,7 +404,7 @@ typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Stream_AVSave_Message_t,
                                Stream_AVSave_ALSA_V4L_SessionMessage_t,
                                STREAM_MEDIATYPE_AUDIO,
-                               struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_ALSA_Tagger;
+                               struct Stream_UserData> Stream_AVSave_ALSA_Tagger;
 typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
@@ -412,7 +412,7 @@ typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Stream_AVSave_Message_t,
                                Stream_AVSave_ALSA_V4L_SessionMessage_t,
                                STREAM_MEDIATYPE_VIDEO,
-                               struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_V4L_Tagger;
+                               struct Stream_UserData> Stream_AVSave_V4L_Tagger;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

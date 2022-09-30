@@ -142,7 +142,7 @@ class Stream_Miscellaneous_Input_Stream_T
                                          enum Stream_SessionMessageType,    // session event type
                                          struct Stream_ModuleConfiguration, // module configuration type
                                          HandlerConfigurationType,          // module handler configuration type
-                                         libacestream_default_misc_queue_module_name_string, // name
+                                         libacestream_default_misc_queue_source_module_name_string, // name
                                          INOTIFY_T,                         // stream notification interface type
                                          WRITER_T> SOURCE_MODULE_T;         // writer type
 

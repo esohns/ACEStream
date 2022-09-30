@@ -70,7 +70,7 @@ class Stream_Module_Dump_T
   Stream_Module_Dump_T (ISTREAM_T*); // stream handle
 #else
   Stream_Module_Dump_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Module_Dump_T () {}
 
   // implement (part of) Stream_ITaskBase_T

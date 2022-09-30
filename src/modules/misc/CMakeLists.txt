@@ -68,6 +68,9 @@ set (source_files
      stream_misc_dump.cpp
      stream_misc_dump.h
      stream_misc_dump.inl
+     stream_misc_injector.cpp
+     stream_misc_injector.h
+     stream_misc_injector.inl
      stream_misc_input_manager.cpp
      stream_misc_input_manager.h
      stream_misc_input_manager.inl
@@ -143,6 +146,8 @@ install (FILES
          stream_misc_distributor.inl
          stream_misc_dump.h
          stream_misc_dump.inl
+         stream_misc_injector.h
+         stream_misc_injector.inl
          stream_misc_input_manager.h
          stream_misc_input_manager.inl
          stream_misc_input_stream.h

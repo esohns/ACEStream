@@ -32,7 +32,7 @@
 // forward declarations
 class ACE_Message_Queue_Base;
 
-extern const char libacestream_default_misc_queue_module_name_string[];
+extern const char libacestream_default_misc_queue_source_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           ////////////////////////////////

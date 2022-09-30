@@ -93,6 +93,16 @@ Stream_Miscellaneous_MediaSplitter_T<ACE_SYNCH_USE,
     }
   } // end SWITCH
 
+  ACE_ASSERT (!message_block_p);
+  message_block_p = message_in->duplicate ();
+  if (unlikely (!message_block_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    return;
+  } // end IF
+
   { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
     typename inherited::BRANCH_TO_HEAD_CONST_ITERATOR_T iterator =
       inherited::heads_.find (branch_name_string);
@@ -104,16 +114,6 @@ Stream_Miscellaneous_MediaSplitter_T<ACE_SYNCH_USE,
                                   (*iterator).second));
     ACE_ASSERT (iterator_2 != inherited::modules_.end ());
     ACE_ASSERT ((*iterator_2).first);
-
-    ACE_ASSERT (!message_block_p);
-    message_block_p = message_in->duplicate ();
-    if (unlikely (!message_block_p))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", returning\n"),
-                  inherited::mod_->name ()));
-      return;
-    } // end IF
 
     result = (*iterator_2).first->enqueue_tail (message_block_p, NULL);
     if (unlikely (result == -1))

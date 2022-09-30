@@ -19,9 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_misc_queue_target.h"
+#include "stream_misc_injector.h"
 
 #include "stream_misc_defines.h"
 
-const char libacestream_default_misc_queue_sink_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_SINK_DEFAULT_NAME_STRING);
+const char libacestream_default_misc_injector_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_INJECTOR_DEFAULT_NAME_STRING);

@@ -29,11 +29,13 @@
 #define STREAM_MISC_DELAY_DEFAULT_NAME_STRING                       "Delay"
 #define STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING                 "Distributor"
 #define STREAM_MISC_DUMP_DEFAULT_NAME_STRING                        "Dump"
+#define STREAM_MISC_INJECTOR_DEFAULT_NAME_STRING                    "Injector"
 #define STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING              "MessageHandler"
 // *NOTE*: duplex module consisting of 'parser' / 'streamer'
 #define STREAM_MISC_MARSHAL_DEFAULT_NAME_STRING                     "Marshal"
 #define STREAM_MISC_PARSER_DEFAULT_NAME_STRING                      "Parser"
-#define STREAM_MISC_QUEUE_DEFAULT_NAME_STRING                       "Queue"
+#define STREAM_MISC_QUEUE_SOURCE_DEFAULT_NAME_STRING                "QueueSource"
+#define STREAM_MISC_QUEUE_SINK_DEFAULT_NAME_STRING                  "QueueSink"
 #define STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING                    "Splitter"
 
 // stream

@@ -165,7 +165,7 @@ Stream_Miscellaneous_Input_Stream_T<ACE_SYNCH_USE,
   typename inherited::MODULE_T* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   SOURCE_MODULE_T (this,
-                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)),
+                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_SOURCE_DEFAULT_NAME_STRING)),
                   false);
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);

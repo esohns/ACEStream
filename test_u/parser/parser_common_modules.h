@@ -53,7 +53,7 @@ typedef Stream_Module_QueueReader_T <ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Parser_SessionData,                // session data type
                               enum Stream_SessionMessageType,            // session event type
                               struct Parser_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_misc_queue_module_name_string,
+                              libacestream_default_misc_queue_source_module_name_string,
                               Stream_INotify_t,                          // stream notification interface type
                               Parser_Source);                          // writer type
 

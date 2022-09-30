@@ -660,14 +660,14 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                    // session event type
                               struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_misc_queue_module_name_string,
+                              libacestream_default_misc_queue_source_module_name_string,
                               Stream_INotify_t,                                                  // stream notification interface type
                               Test_I_DirectShow_QueueReader);                                    // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_MediaFoundation_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                         // session event type
                               struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_misc_queue_module_name_string,
+                              libacestream_default_misc_queue_source_module_name_string,
                               Stream_INotify_t,                                                       // stream notification interface type
                               Test_I_MediaFoundation_QueueReader);                                    // writer type
 
