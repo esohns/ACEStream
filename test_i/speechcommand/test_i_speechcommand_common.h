@@ -60,6 +60,7 @@
 #include "stream_inotify.h"
 #include "stream_isessionnotify.h"
 #include "stream_istreamcontrol.h"
+#include "stream_message_base.h"
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
 
@@ -277,7 +278,9 @@ typedef Test_I_EventHandler_T<Test_I_ALSA_ISessionNotify_t,
                               Test_I_ALSA_SessionMessage_t> Test_I_ALSA_EventHandler_t;
 #endif // ACE_WIN32 || ACE_WIN64
 typedef Test_I_InputHandler_T<Stream_IInputSessionNotify_t,
-                              ACE_Message_Block,
+                              Stream_MessageBase_T<Stream_DataBase_T<Stream_CommandType_t>,
+                                                   enum Stream_MessageType,
+                                                   Stream_CommandType_t>,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                               Common_UI_GTK_State_t,
@@ -306,7 +309,9 @@ typedef Stream_Miscellaneous_Input_Stream_T<ACE_MT_SYNCH,
                                             struct Stream_SessionData,
                                             Stream_SessionData_T<struct Stream_SessionData>,
                                             Stream_ControlMessage_t,
-                                            ACE_Message_Block,
+                                            Stream_MessageBase_T<Stream_DataBase_T<Stream_CommandType_t>,
+                                                                 enum Stream_MessageType,
+                                                                 Stream_CommandType_t>,
                                             Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
                                                                         Stream_SessionData_T<struct Stream_SessionData>,
                                                                         struct Stream_UserData>,

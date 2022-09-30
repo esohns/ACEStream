@@ -21,12 +21,22 @@
 #ifndef STREAM_MISC_COMMON_H
 #define STREAM_MISC_COMMON_H
 
+#include <list>
+
 #include "ace/Basic_Types.h"
 #include "ace/Time_Value.h"
 
 #include "common_input_common.h"
 
+#include "stream_common.h"
 #include "stream_configuration.h"
+#include "stream_data_base.h"
+#include "stream_isessionnotify.h"
+#include "stream_message_base.h"
+#include "stream_session_message_base.h"
+
+// forward declarations
+class ACE_Message_Queue_Base;
 
 enum Stream_Miscellaneous_DelayModeType
 {
@@ -56,7 +66,9 @@ struct Stream_Miscellaneous_DelayConfiguration
 
 typedef Stream_ISessionDataNotify_T<struct Stream_SessionData,
                                     enum Stream_SessionMessageType,
-                                    ACE_Message_Block,
+                                    Stream_MessageBase_T<Stream_DataBase_T<Stream_CommandType_t>,
+                                                         enum Stream_MessageType,
+                                                         Stream_CommandType_t>,
                                     Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
                                                                 Stream_SessionData_T<struct Stream_SessionData>,
                                                                 struct Stream_UserData> > Stream_IInputSessionNotify_t;

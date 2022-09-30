@@ -35,7 +35,6 @@
 #include "stream_dec_common.h"
 
 // forward declaration(s)
-class ACE_Message_Block;
 class Stream_IAllocator;
 
 extern const char libacestream_default_dec_deepspeech_decoder_module_name_string[];

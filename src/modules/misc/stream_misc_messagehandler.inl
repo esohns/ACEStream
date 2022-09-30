@@ -112,10 +112,10 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
+  //// sanity check(s)
+  //ACE_ASSERT (inherited::sessionData_);
 
-  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+  //const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
   { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, lock_);
     // *WARNING* callees unsubscribe()ing within the callback invalidate the
@@ -129,7 +129,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     {
       try {
         // *TODO*: remove type inference
-        (*iterator++)->notify (session_data_r.sessionId,
+        (*iterator++)->notify (message_inout->sessionId (),
                                *message_inout);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
