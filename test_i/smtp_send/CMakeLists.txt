@@ -233,11 +233,12 @@ endif ()
 
 ##########################################
 
-set (ARGS "-l")
+set (ARGS "-d erik.sohns@posteo.de -f eriksohns@posteo.net -h posteo.de -i 465 -l -r -u eriksohns@posteo.net -m test-eMail")
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
  set (ARGS "${ARGS} -t")
 endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 if (UNIX)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
  if (GUI_SUPPORT)
   if (GTK_USE)
    set (ARGS "${ARGS} -g./${ui_definition_file}")
@@ -251,6 +252,8 @@ if (UNIX)
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
 # set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if (GUI_SUPPORT)
   file (TO_NATIVE_PATH "${ui_definition_file}" ui_definition_file)
 #  message (STATUS "ui_definition_file: ${ui_definition_file}")
@@ -258,20 +261,15 @@ elseif (WIN32)
 #  message (STATUS "ui_definition_file: ${ui_definition_file}")
   set (ARGS " ${ARGS} -g.\\\\${ui_definition_file}")
 
-  if (GTK_USE)
-   if (GTK3_USE)
-    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk3/bin GTK_LIB_PATH)
-    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              ${GTK_LIB_PATH})
-   elseif (GTK2_USE)
-    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_LIB_PATH)
-    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              ${GTK_LIB_PATH})
-   endif ()
-  elseif (WXWIDGETS_USE)
+  if (GTK_SUPPORT)
+   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                             ${GTK_PATH})
+  endif (GTK_SUPPORT)
+  if (WXWIDGETS_SUPPORT)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              ${wxWidgets_LIB_DIR})
-  endif ()
+  endif (WXWIDGETS_SUPPORT)
  else ()
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
@@ -284,10 +282,11 @@ elseif (WIN32)
                            ${ACE_PATH})
 endif ()
 create_target_launcher (${EXECUTABLE}
+                        COMMAND ${COMMAND}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/smtp_send
+                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/smtp_send
                         ENVIRONMENT ${ENVIRONMENT})
 
 ##########################################

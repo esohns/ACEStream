@@ -7,7 +7,8 @@ include (png)
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
 endif (UNIX)
-include (ffmpeg) # AVI encoder
+include (ffmpeg)
+include (ImageMagick)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
 include (sox)
@@ -366,12 +367,14 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
  file (TO_CMAKE_PATH "${DEEPSPEECH_LIB_DIR}" DEEPSPEECH_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
+ file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${ACE_LIBRARY_PATH}
                            ${ASSIMP_PATH}
                            ${LIBPNG_PATH}
                            ${DEEPSPEECH_LIBRARY_PATH}
-                           ${FFMPEG_PATH})
+                           ${FFMPEG_PATH}
+                           ${IMAGEMAGICK_PATH})
  if (SOX_SUPPORT)
   file (TO_CMAKE_PATH "${SOX_LIB_DIR}" SOX_PATH)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}

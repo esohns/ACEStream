@@ -185,6 +185,7 @@ do_processArguments (int argc_in,
                      std::string& UIFile_out,
 #endif // GUI_SUPPORT
                      ACE_INET_Addr& address_out,
+                     std::string& hostName_out,
                      bool& logToFile_out,
                      std::string& message_out,
                      std::string& password_out,
@@ -279,10 +280,12 @@ do_processArguments (int argc_in,
 #endif // GUI_SUPPORT
       case 'h':
       {
+        hostName_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         result = address_out.set (static_cast<u_short> (SMTP_DEFAULT_SERVER_PORT),
-                                  ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()),
+                                  ACE_TEXT_ALWAYS_CHAR (hostName_out.c_str ()),
+                                  1,
                                   AF_INET);
-        if (result == -1)
+        if (unlikely (result == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"): \"%m\", aborting\n"),
@@ -323,13 +326,11 @@ do_processArguments (int argc_in,
         useReactor_out = true;
         break;
       }
-#if defined (_DEBUG)
       case 't':
       {
         traceInformation_out = true;
         break;
       }
-#endif // _DEBUG
       case 'u':
       {
         userName_out =
@@ -341,13 +342,11 @@ do_processArguments (int argc_in,
         mode_out = STREAM_SMTPSEND_PROGRAMMODE_PRINT_VERSION;
         break;
       }
-#if defined (_DEBUG)
       case 'z':
       {
         debugParser_out = true;
         break;
       }
-#endif // _DEBUG
       // error handling
       case ':':
       {
@@ -475,6 +474,7 @@ do_work (
   struct SMTP_Request request_s;
   struct Stream_ModuleConfiguration module_configuration;
   struct Stream_SMTPSend_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Stream_SMTPSend_ModuleHandlerConfiguration modulehandler_configuration_2;
   Stream_SMTPSend_EventHandler_t ui_event_handler (
 #if defined (GUI_SUPPORT)
                                                    &CBData_in
@@ -495,6 +495,8 @@ do_work (
   connection_configuration.delayRead = true;
   connection_configuration.socketConfiguration.address =
     configuration_in.address;
+  connection_configuration.socketConfiguration.hostname =
+    configuration_in.hostname;
   connection_configuration.streamConfiguration =
     &stream_configuration_connection;
   Net_ConnectionConfigurations_t connection_configurations;
@@ -503,8 +505,6 @@ do_work (
 
   modulehandler_configuration.allocatorConfiguration =
     &configuration_in.allocatorConfiguration;
-  modulehandler_configuration.concurrency =
-    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
   modulehandler_configuration.connectionConfigurations =
     &connection_configurations;
   modulehandler_configuration.messageAllocator = &message_allocator;
@@ -513,11 +513,10 @@ do_work (
   modulehandler_configuration.protocolConfiguration =
     &configuration_in.protocolConfiguration;
   modulehandler_configuration.request = &request_s;
+  modulehandler_configuration.stopOnUnlink = true;
   if (statisticReportingInterval_in)
     modulehandler_configuration.statisticCollectionInterval.set (0, STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL_MS * 1000);
-#if defined (GUI_SUPPORT)
   modulehandler_configuration.subscriber = &ui_event_handler;
-#endif // GUI_SUPPORT
 
   Stream_SMTPSend_MessageHandler_Module message_handler (NULL,
                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
@@ -533,10 +532,16 @@ do_work (
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
                                                    stream_configuration);
+
+
+  modulehandler_configuration_2 = modulehandler_configuration;
+  modulehandler_configuration_2.concurrency =
+    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+  modulehandler_configuration_2.subscriber = NULL;
   stream_configuration_2 = stream_configuration;
   stream_configuration_2.module = NULL;
   stream_configuration_connection.initialize (module_configuration,
-                                              modulehandler_configuration,
+                                              modulehandler_configuration_2,
                                               stream_configuration_2);
 
 #if defined (GUI_SUPPORT)
@@ -593,6 +598,7 @@ do_work (
 #endif // ACE_WIN32 || ACE_WIN64
     return;
   } // end IF
+  configuration_in.protocolConfiguration.domain = configuration_in.domain;
 
   // initialize signal handling
   signalHandler_in.initialize (configuration_in.signalHandlerConfiguration);
@@ -847,6 +853,7 @@ ACE_TMAIN (int argc_in,
                             UI_definition_filename,
 #endif // GUI_SUPPORT
                             configuration.address,
+                            configuration.hostname,
                             log_to_file,
                             configuration.message,
                             configuration.password,

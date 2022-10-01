@@ -75,8 +75,10 @@ Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Reader_T::handleControlMessage"));
 
-  switch (message_in.msg_type ())
+  switch (message_in.type ())
   {
+    case STREAM_CONTROL_MESSAGE_END:
+      break;
     case STREAM_CONTROL_MESSAGE_DISCONNECT:
     {
       // *NOTE*: there is no need to do anything, the control is handled by the
@@ -88,7 +90,7 @@ Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: unknown/invalid control message type (was: %d), returning\n"),
                   inherited::mod_->name (),
-                  message_in.msg_type ()));
+                  message_in.type ()));
       return;
     }
   } // end SWITCH
@@ -890,7 +892,16 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
-#if defined (_DEBUG)
+      if (inherited::endSeen_ && // <-- there was (!) an upstream
+          inherited::configuration_->stopOnUnlink)
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: received unlink from upstream, updating state\n"),
+                    inherited::mod_->name ()));
+        inherited::change (STREAM_STATE_SESSION_STOPPING);
+      } // end IF
+
+#if defined(_DEBUG)
       const typename inherited::TASK_BASE_T::ISTREAM_T* const istream_p =
         inherited::getP ();
       ACE_ASSERT (istream_p);

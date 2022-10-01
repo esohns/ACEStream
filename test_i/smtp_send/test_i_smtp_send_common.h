@@ -171,6 +171,7 @@ struct Stream_SMTPSend_Configuration
    , signalHandlerConfiguration ()
    , streamConfiguration ()
    , timerConfiguration ()
+   , hostname (ACE_LOCALHOST)
    , address (static_cast<u_short> (0),
               ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST),
               AF_INET)
@@ -194,6 +195,7 @@ struct Stream_SMTPSend_Configuration
   // **************************** timer data ***********************************
   struct Common_TimerConfiguration                  timerConfiguration;
 
+  std::string                                       hostname; // TLS SNI
   ACE_INET_Addr                                     address; // server-
   ACE_INET_Addr                                     domain; // i.e. external address
   std::string                                       username;

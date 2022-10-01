@@ -120,7 +120,6 @@ Test_I_SMTPSend_Stream::initialize (const typename inherited::CONFIGURATION_T& c
   STREAM_TRACE (ACE_TEXT ("Test_I_SMTPSend_Stream::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT (!inherited::isInitialized_);
   ACE_ASSERT (!inherited::isRunning ());
   ACE_ASSERT (configuration_in.configuration_);
 
@@ -137,23 +136,23 @@ Test_I_SMTPSend_Stream::initialize (const typename inherited::CONFIGURATION_T& c
 //      const_cast<struct SMTP_Stream_SessionData&> (inherited::sessionData_->getR ());
 
   // ******************* Source ************************
-  Stream_SMTPSend_NetSource* source_impl_p =
-    static_cast<Stream_SMTPSend_NetSource*> (source_.writer ());
-  source_impl_p->setP (&(inherited::state_));
-  Stream_SMTPSend_AsynchNetSource* source_impl_2 =
-    static_cast<Stream_SMTPSend_AsynchNetSource*> (asynchSource_.writer ());
-  source_impl_2->setP (&(inherited::state_));
-#if defined (SSL_SUPPORT)
-  Stream_SMTPSend_SSLNetSource* source_impl_3 =
-    static_cast<Stream_SMTPSend_SSLNetSource*> (SSLSource_.writer ());
-  source_impl_3->setP (&(inherited::state_));
-#endif // SSL_SUPPORT
-
-  source_.arg (inherited::sessionData_);
-  asynchSource_.arg (inherited::sessionData_);
-#if defined (SSL_SUPPORT)
-  SSLSource_.arg (inherited::sessionData_);
-#endif // SSL_SUPPORT
+//  Stream_SMTPSend_NetSource* source_impl_p =
+//    static_cast<Stream_SMTPSend_NetSource*> (source_.writer ());
+//  source_impl_p->setP (&(inherited::state_));
+//  Stream_SMTPSend_AsynchNetSource* source_impl_2 =
+//    static_cast<Stream_SMTPSend_AsynchNetSource*> (asynchSource_.writer ());
+//  source_impl_2->setP (&(inherited::state_));
+//#if defined (SSL_SUPPORT)
+//  Stream_SMTPSend_SSLNetSource* source_impl_3 =
+//    static_cast<Stream_SMTPSend_SSLNetSource*> (SSLSource_.writer ());
+//  source_impl_3->setP (&(inherited::state_));
+//#endif // SSL_SUPPORT
+//
+//  source_.arg (inherited::sessionData_);
+//  asynchSource_.arg (inherited::sessionData_);
+//#if defined (SSL_SUPPORT)
+//  SSLSource_.arg (inherited::sessionData_);
+//#endif // SSL_SUPPORT
 
   inherited::isInitialized_ = true;
 

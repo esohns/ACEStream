@@ -208,14 +208,14 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             std::numeric_limits<ACE_UINT32>::max ());
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             std::numeric_limits<ACE_UINT32>::max ());
 
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -223,7 +223,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             std::numeric_limits<ACE_UINT64>::max ());
 
   GtkEntry* entry_p = 
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
@@ -981,6 +981,8 @@ button_quit_clicked_cb (GtkWidget* widget_in,
       // *IMPORTANT NOTE*: cannot wait on the UI condition here, as it is
       //                   signal()ed by the current thread !
       //                   --> emit a signal to come back
+      // *TODO*: this does not work on GTK3 (--> stack overflow; the signal is
+      //         processed in-line)
       g_signal_emit_by_name (G_OBJECT (widget_in), "clicked");
     } // end IF
   } // end lock scope
