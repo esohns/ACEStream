@@ -487,6 +487,7 @@ do_work (
   modulehandler_configuration.protocolConfiguration =
     &configuration_in.protocolConfiguration;
   modulehandler_configuration.request = &request_s;
+  modulehandler_configuration.stopOnUnlink = true;
   if (statisticReportingInterval_in)
     modulehandler_configuration.statisticCollectionInterval.set (0, STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL_MS * 1000);
 #if defined (GUI_SUPPORT)
