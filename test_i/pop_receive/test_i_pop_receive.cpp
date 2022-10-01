@@ -177,6 +177,7 @@ do_processArguments (int argc_in,
                      std::string& UIFile_out,
 #endif // GUI_SUPPORT
                      ACE_INET_Addr& address_out,
+                     std::string& hostName_out, // TLS SNI
                      bool& logToFile_out,
                      std::string& password_out,
                      bool& useReactor_out,
@@ -255,10 +256,12 @@ do_processArguments (int argc_in,
 #endif // GUI_SUPPORT
       case 'h':
       {
+        hostName_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         result = address_out.set (static_cast<u_short> (POP_DEFAULT_SERVER_PORT),
-                                  ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()),
+                                  hostName_out.c_str (),
+                                  1,
                                   AF_INET);
-        if (result == -1)
+        if (unlikely (result == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"): \"%m\", aborting\n"),
@@ -466,6 +469,8 @@ do_work (
   connection_configuration.delayRead = true;
   connection_configuration.socketConfiguration.address =
     configuration_in.address;
+  connection_configuration.socketConfiguration.hostname =
+    configuration_in.hostname;
   connection_configuration.streamConfiguration =
     &stream_configuration_connection;
   Net_ConnectionConfigurations_t connection_configurations;
@@ -474,8 +479,6 @@ do_work (
 
   modulehandler_configuration.allocatorConfiguration =
     &configuration_in.allocatorConfiguration;
-  modulehandler_configuration.concurrency =
-    STREAM_HEADMODULECONCURRENCY_ACTIVE;
   modulehandler_configuration.connectionConfigurations =
     &connection_configurations;
   modulehandler_configuration.messageAllocator = &message_allocator;
@@ -491,7 +494,7 @@ do_work (
 #endif // GUI_SUPPORT
 
   Stream_POPReceive_MessageHandler_Module message_handler (NULL,
-                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_POPReceive_Stream stream;
   struct POP_StreamConfiguration stream_configuration;
   struct POP_StreamConfiguration stream_configuration_2; // connection stream-
@@ -821,6 +824,7 @@ ACE_TMAIN (int argc_in,
                             UI_definition_filename,
 #endif // GUI_SUPPORT
                             configuration.address,
+                            configuration.hostname,
                             log_to_file,
                             configuration.password,
                             use_reactor,

@@ -171,6 +171,7 @@ struct Stream_POPReceive_Configuration
    , signalHandlerConfiguration ()
    , streamConfiguration ()
    , timerConfiguration ()
+   , hostname ()
    , address (static_cast<u_short> (0),
               ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST),
               AF_INET)
@@ -188,6 +189,7 @@ struct Stream_POPReceive_Configuration
   // **************************** timer data ***********************************
   struct Common_TimerConfiguration                    timerConfiguration;
 
+  std::string                                         hostname;
   ACE_INET_Addr                                       address; // server-
   std::string                                         username;
   std::string                                         password;

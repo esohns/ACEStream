@@ -233,7 +233,7 @@ endif ()
 
 ##########################################
 
-set (ARGS "-l")
+set (ARGS "-h pop3.web.de -i 995 -l -r -u sohnse")
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
  set (ARGS "${ARGS} -t")
 endif (CMAKE_BUILD_TYPE STREQUAL Debug)
@@ -260,31 +260,32 @@ elseif (WIN32)
   string (REGEX REPLACE "\\\\" "\\\\\\\\" ui_definition_file "${ui_definition_file}")
 #  message (STATUS "ui_definition_file: ${ui_definition_file}")
 
-  if (GTK_USE)
+  if (GTK_SUPPORT)
+   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                             ${GTK_PATH})
    if (GTK3_USE)
     set (ARGS " ${ARGS} -g.\\\\\\\\${ui_definition_file}")
-    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk3/bin GTK_LIB_PATH)
-    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              ${GTK_LIB_PATH})
    elseif (GTK2_USE)
     set (ARGS " ${ARGS} -g.\\\\\\\\${ui_definition_file}")
-    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_LIB_PATH)
-    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              ${GTK_LIB_PATH})
    endif ()
-  elseif (WXWIDGETS_USE)
-   set (ARGS " ${ARGS} -g.\\\\\\\\${ui_definition_file}")
+  endif (GTK_SUPPORT)
+  if (WXWIDGETS_SUPPORT)
+   if (WXWIDGETS_USE)
+    set (ARGS " ${ARGS} -g.\\\\\\\\${ui_definition_file}")
+   endif (WXWIDGETS_USE)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              ${wxWidgets_LIB_DIR})
-  endif ()
+  endif (WXWIDGETS_SUPPORT)
  else ()
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl OPENSSL_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libepoxy/bin EPOXY_PATH)
+# file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libepoxy/bin EPOXY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
- set (RUNTIME_LIBRARY_DIRS ${OPENSSL_PATH}
-                           ${EPOXY_PATH}
+ set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                           ${OPENSSL_PATH}
+#                           ${EPOXY_PATH}
                            ${ACE_PATH})
 endif ()
 create_target_launcher (${EXECUTABLE}

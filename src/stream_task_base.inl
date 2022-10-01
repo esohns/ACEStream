@@ -389,12 +389,10 @@ continue_:
         const_cast<typename SessionMessageType::DATA_T::DATA_T*> (session_data_2)->lock =
           sessionDataLock_;
       } // end lock scope
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: stream has been unlinked, reset upstream session data lock (is: %@)\n"),
                   inherited::mod_->name (),
                   sessionDataLock_));
-#endif // _DEBUG
       sessionDataLock_ = NULL;
       session_data_container_p->decrease (); session_data_container_p = NULL;
 

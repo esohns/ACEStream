@@ -372,6 +372,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="tooltip_text" translatable="yes">password</property>
+                                    <property name="visibility">False</property>
                                     <property name="has_frame">False</property>
                                     <property name="invisible_char">●</property>
                                     <property name="shadow_type">etched-in</property>

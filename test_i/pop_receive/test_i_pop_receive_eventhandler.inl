@@ -298,15 +298,15 @@ Stream_POPReceive_EventHandler_T<NotificationType,
 #endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
   const typename DataMessageType::DATA_T& data_container_r =
     message_in.getR ();
   const typename DataMessageType::DATA_T::DATA_T& data_r =
     data_container_r.getR ();
   ACE_ASSERT (!data_r.text.empty ());
   POP_TextConstIterator_t iterator = data_r.text.end ();
-  std::advance (iterator, -2);
+  std::advance (iterator, -1);
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     CBData_->messageData = *iterator;
     guint event_source_id = g_idle_add (idle_update_log_display_cb,
