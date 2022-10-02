@@ -393,7 +393,9 @@ next:
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-    result_3 = MagickSetImageFormat (context_, "RGBA");
+    result_3 =
+      MagickSetImageFormat (context_,
+                            ACE_TEXT_ALWAYS_CHAR ("RGBA"));
     ACE_ASSERT (result_3 == MagickTrue);
 
     data_p = MagickGetImageBlob (context_, // was: MagickWriteImageBlob

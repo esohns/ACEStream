@@ -53,8 +53,10 @@
 #include "stream_stat_statistic_report.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_vis_target_direct2d.h"
 #include "stream_vis_target_direct3d.h"
 #else
+#include "stream_vis_wayland_window.h"
 #include "stream_vis_x11_window.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -204,6 +206,16 @@ typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Vis_Target_Direct2D_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Stream_ImageScreen_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Stream_ImageScreen_Message_t,
+                                     Stream_ImageScreen_SessionMessage_t,
+                                     Stream_ImageScreen_SessionData,
+                                     Stream_ImageScreen_SessionData_t,
+                                     struct _AMMediaType> Stream_ImageScreen_Display2D;
+
 typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      struct Stream_ImageScreen_ModuleHandlerConfiguration,
@@ -212,7 +224,7 @@ typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Stream_ImageScreen_SessionMessage_t,
                                      Stream_ImageScreen_SessionData,
                                      Stream_ImageScreen_SessionData_t,
-                                     struct _AMMediaType> Stream_ImageScreen_Display;
+                                     struct _AMMediaType> Stream_ImageScreen_Display3D;
 #else
 typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
@@ -292,9 +304,15 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   
 DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_direct2d_module_name_string,
+                              Stream_INotify_t,                                     // stream notification interface type
+                              Stream_ImageScreen_Display2D);                        // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                       // session event type
+                              struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_direct3d_module_name_string,
                               Stream_INotify_t,                                     // stream notification interface type
-                              Stream_ImageScreen_Display);                          // writer type
+                              Stream_ImageScreen_Display3D);                        // writer type
 #else
 DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type

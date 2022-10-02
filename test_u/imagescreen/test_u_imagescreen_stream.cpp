@@ -56,17 +56,15 @@ Stream_ImageScreen_Stream::Stream_ImageScreen_Stream ()
 #endif // IMAGEMAGICK_SUPPORT
  , delay_ (this,
            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING))
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-// , GTKCairoDisplay_ (this,
-//                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
- , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
+ , display2D_ (this,
+               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT2D_DEFAULT_NAME_STRING))
+ , display3D_ (this,
+               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
 #else
  , display_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_Stream::Stream_ImageScreen_Stream"));
 
@@ -101,7 +99,12 @@ Stream_ImageScreen_Stream::load (Stream_ILayout* layout_in,
 #endif // FFMPEG_SUPPORT
 #endif // IMAGEMAGICK_SUPPORT
   layout_in->append (&delay_, NULL, 0);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  layout_in->append (&display2D_, NULL, 0);
+  //layout_in->append (&display3D_, NULL, 0);
+#else
   layout_in->append (&display_, NULL, 0);
+#endif // ACE_WIN32 || ACE_WIN64
 
   return true;
 }

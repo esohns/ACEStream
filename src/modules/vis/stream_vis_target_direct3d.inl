@@ -1466,9 +1466,9 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   //         top-down, and any image that is contained in a Direct3D surface
   //         must be top-down. RGB images in system memory are usually bottom-up. ..."
   //         see also: https://docs.microsoft.com/en-us/windows/desktop/medfound/image-stride
-  if (Stream_MediaFramework_Tools::isRGB (mediaType_in.subtype,
-                                          mediaFramework_))
-    stride_out = -stride_out;
+  //if (Stream_MediaFramework_Tools::isRGB (mediaType_in.subtype,
+  //                                        mediaFramework_))
+  //  stride_out = -stride_out;
 
   //ACE_ASSERT (!swapChain_);
   //ACE_ASSERT (presentationParameters_inout.BackBufferWidth == video_info_header_p->bmiHeader.biWidth);

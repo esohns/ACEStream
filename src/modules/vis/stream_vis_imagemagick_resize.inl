@@ -505,9 +505,6 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   unsigned int result = MagickTrue;
   unsigned char* data_p = NULL;
   size_t size_i = 0;
-#if defined (_DEBUG)
-  std::string filename_string;
-#endif // _DEBUG
   int result_2 = -1;
   Stream_SessionId_t session_id = message_inout->sessionId ();
   const typename DataMessageType::DATA_T& message_data_r =
@@ -516,15 +513,23 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   message_data_2.format = message_data_r.format;
   DataMessageType* message_p = NULL;
 
-  try {
-    message_inout->defragment ();
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), returning\n"),
-                inherited::mod_->name ()));
-    goto error;
-  }
-  ACE_ASSERT (!message_inout->cont ());
+  //try {
+  //  message_inout->defragment ();
+  //} catch (...) {
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), returning\n"),
+  //              inherited::mod_->name ()));
+  //  goto error;
+  //}
+  //ACE_ASSERT (!message_inout->cont ());
+
+  //#if defined (_DEBUG)
+  //  Common_File_Tools::store (ACE_TEXT_ALWAYS_CHAR ("input.rgb"),
+  //                            reinterpret_cast<uint8_t*>
+  //                            (message_inout->rd_ptr ()),
+  //                            message_inout->length ());
+  //#endif // _DEBUG
+
 
   // allocate a message buffer for the next frame
   message_p = inherited::allocateMessage (1);
@@ -537,10 +542,6 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
   // sanity check(s)
-//  ACE_ASSERT (message_p->capacity () >= frameSize_);
-
-//  message_data_p =
-//      const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
@@ -577,8 +578,9 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
                           message_data_r.format.resolution.width, message_data_r.format.resolution.height);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result == MagickTrue);
-  result = MagickSetFormat (inherited::context_,
-                            ACE_TEXT_ALWAYS_CHAR ("RGBA"));
+  result =
+    MagickSetFormat (inherited::context_,
+                     ACE_TEXT_ALWAYS_CHAR ("RGBA")); // *TODO*: make this configurable !
   ACE_ASSERT (result == MagickTrue);
 
   result = MagickReadImage (inherited::context_,
@@ -606,7 +608,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 #else
                              message_data_r.format.resolution.width, message_data_r.format.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
-                             ACE_TEXT_ALWAYS_CHAR ("RGBA"),
+                             ACE_TEXT_ALWAYS_CHAR ("RGBA"), // *TODO*: make this configurable !
                              CharPixel,
                              message_inout->rd_ptr ());
   if (unlikely (result != MagickTrue))
@@ -620,9 +622,10 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 
   message_inout->release (); message_inout = NULL;
 
-  result = MagickSetImageFormat (inherited::context_,
-                                 ACE_TEXT_ALWAYS_CHAR ("RGBA"));
-  ACE_ASSERT (result == MagickTrue);
+  //result =
+  //  MagickSetImageFormat (inherited::context_,
+  //                        ACE_TEXT_ALWAYS_CHAR ("RGBA")); // *TODO*: make this configurable !
+  //ACE_ASSERT (result == MagickTrue);
 
   result =
 //#if MAGICKWAND_CHECK_VERSION(7,0,0)
@@ -647,9 +650,12 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 //#endif // MAGICKWAND_CHECK_VERSION(7,0,0)
   ACE_ASSERT (result == MagickTrue);
 
-//  // Set the compression quality to 95 (high quality = low compression)
-//  result = MagickSetImageCompressionQuality (context_,100);
-//  ACE_ASSERT (result == MagickTrue);
+  // *IMPORTANT NOTE*: "...Set the image depth to 8. If you are using the Q16
+  //                   version of ImageMagick, the image depth is promoted from
+  //                   8 to 16 when the image is resized. ..."
+  result = MagickSetImageDepth (inherited::context_, 8);
+  ACE_ASSERT (result == MagickTrue);
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   ACE_ASSERT (Common_Image_Tools::stringToCodecId (MagickGetImageFormat (inherited::context_)) == AV_CODEC_ID_NONE);

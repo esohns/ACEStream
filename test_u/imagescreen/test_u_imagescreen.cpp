@@ -362,6 +362,7 @@ do_work (int argc_in,
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   struct Stream_ImageScreen_Configuration configuration;
+  configuration.delayConfiguration.averageTokensPerInterval = 1;
   configuration.delayConfiguration.interval = ACE_Time_Value (5, 0);
   configuration.delayConfiguration.mode =
     STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES;

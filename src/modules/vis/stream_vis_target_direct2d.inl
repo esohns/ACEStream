@@ -149,8 +149,9 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
 
   //struct D2D_MATRIX_3X2_F flip = D2D1::Matrix3x2F (-1, 0, 0, 1, 0, 0);
   //struct D2D_MATRIX_3X2_F translate = D2D1::Matrix3x2F::Translation (resolution_.cx, 0);
-  struct D2D_POINT_2F center = D2D1::Point2F (resolution_.cx / 2.0f, resolution_.cy / 2.0f);
-  struct D2D_MATRIX_3X2_F rotate = D2D1::Matrix3x2F::Rotation (180.0F, center);
+
+  //struct D2D_POINT_2F center = D2D1::Point2F (resolution_.cx / 2.0f, resolution_.cy / 2.0f);
+  //struct D2D_MATRIX_3X2_F rotate = D2D1::Matrix3x2F::Rotation (180.0F, center);
 
   struct D2D_RECT_F rectangle_s;
   ACE_OS::memset (&rectangle_s, 0, sizeof (struct D2D_RECT_F));
@@ -173,7 +174,8 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
 
   //renderTarget_->SetTransform (flip);
   //renderTarget_->SetTransform (translate);
-  renderTarget_->SetTransform (rotate);
+
+  //renderTarget_->SetTransform (rotate);
 
   renderTarget_->DrawBitmap (bitmap_,
                              rectangle_s,                           // destination rectangle
@@ -501,7 +503,8 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
   target_properties_s.dpiY = 96.0F;
   target_properties_s.minLevel = D2D1_FEATURE_LEVEL_DEFAULT;
   target_properties_s.pixelFormat =
-    D2D1::PixelFormat (DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_UNKNOWN);
+    D2D1::PixelFormat (DXGI_FORMAT_R8G8B8A8_UNORM, D2D1_ALPHA_MODE_UNKNOWN);
+  // D2D1::PixelFormat (DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_UNKNOWN);
   target_properties_s.type = D2D1_RENDER_TARGET_TYPE_DEFAULT;
   target_properties_s.usage = D2D1_RENDER_TARGET_USAGE_NONE;
 
@@ -525,7 +528,8 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
   bitmap_properties_s.dpiX = 96.0F;
   bitmap_properties_s.dpiY = 96.0F;
   bitmap_properties_s.pixelFormat =
-    D2D1::PixelFormat (DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE);
+    D2D1::PixelFormat (DXGI_FORMAT_R8G8B8A8_UNORM, D2D1_ALPHA_MODE_IGNORE);
+  // D2D1::PixelFormat (DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE);
 
   result = renderTarget_->CreateBitmap (D2D1::SizeU (resolution_s.cx,
                                                      resolution_s.cy),

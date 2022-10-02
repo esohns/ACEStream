@@ -342,7 +342,7 @@ continue_:
         }
         case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER:
         case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES:
-        {
+        { ACE_ASSERT (inherited::configuration_->delayConfiguration->averageTokensPerInterval);
           availableTokens_ =
             inherited::configuration_->delayConfiguration->averageTokensPerInterval;
           break;

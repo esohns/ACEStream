@@ -99,8 +99,13 @@ class Stream_ImageScreen_Stream
   Stream_ImageScreen_ImageMagick_Resize_Module  imagemagick_resize_; // --> window size/fullscreen
   //Stream_ImageScreen_ImageMagick_Convert_Module imagemagick_convert_; // RGB32 --> BGR32
 #endif // FFMPEG_SUPPORT || IMAGEMAGICK_SUPPORT
-  Stream_ImageScreen_Delay_Module   delay_;
-  Stream_ImageScreen_Display_Module display_;
+  Stream_ImageScreen_Delay_Module               delay_;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_ImageScreen_Display2D_Module           display2D_;
+  Stream_ImageScreen_Display3D_Module           display3D_;
+#else
+  Stream_ImageScreen_Display_Module             display_;
+#endif // ACE_WIN32 || ACE_WIN64
 };
 
 #endif
