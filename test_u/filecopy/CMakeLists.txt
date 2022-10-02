@@ -95,10 +95,16 @@ endif (GUI_SUPPORT)
 #endif (UNIX)
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
+set (GLADE_FILE etc/${EXECUTABLE}.glade)
+if (GTK2_USE)
+ set (GLADE_FILE etc/${EXECUTABLE}.gtk2)
+elseif (GTK3_USE)
+ set (GLADE_FILE etc/${EXECUTABLE}.gtk3)
+endif ()
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${filecopy_EXE_SRCS}
-                etc/filecopy.glade)
+                ${GLADE_FILE})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 cmake_policy (SET CMP0012 NEW)
 if (WIN32 AND NOT BUILD_TEST_U)
@@ -152,17 +158,19 @@ install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
 if (UNIX)
- install (FILES etc/${EXECUTABLE}.glade
+ install (FILES ${GLADE_FILE}
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 elseif (WIN32)
- install (FILES etc/${EXECUTABLE}.glade
+ install (FILES ${GLADE_FILE}
           DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()
 
 if (UNIX)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-g./etc/filecopy.glade -l -t"
+                         COMMAND ${COMMAND}
+                         ARGS "-g./etc/filecopy.gtk2 -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
@@ -173,44 +181,28 @@ if (UNIX)
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/filecopy
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
- if (GTK3_USE)
-  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk3/bin GTK_PATH)
+ if (GTK_SUPPORT)
+  file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                            ${GTK_PATH}
-                            ${ACE_LIBRARY_PATH})
-  create_target_launcher (${EXECUTABLE}
-                          ARGS "-g.\\\\etc\\\\filecopy.glade -l -t"
-#                        FORWARD_ARGS
-                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
-                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
-                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
-                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/filecopy
-                          ENVIRONMENT foo=bar)
- else ()
-  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_PATH)
+                            ${GTK_PATH})
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
+  file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                            ${GTK_PATH}
-                            ${ACE_LIBRARY_PATH})
-  create_target_launcher (${EXECUTABLE}
-                          ARGS "-g.\\\\etc\\\\filecopy.glade -l -t"
+                            ${WXWIDGETS_PATH})
+ endif (WXWIDGETS_SUPPORT)
+ set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                           ${ACE_LIBRARY_PATH})
+ create_target_launcher (${EXECUTABLE}
+                         COMMAND ${COMMAND}
+                         ARGS "-g.\\\\etc\\\\filecopy.gtk3 -l -t"
 #                        FORWARD_ARGS
-                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
-                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
-                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
-                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/filecopy
-                          ENVIRONMENT foo=bar)
- endif ()
+                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/filecopy
+                         ENVIRONMENT foo=bar)
 endif ()
 
 add_test (NAME ${EXECUTABLE}_test

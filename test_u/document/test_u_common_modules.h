@@ -30,6 +30,7 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
+#include "stream_misc_messagehandler.h"
 #include "stream_misc_queue_source.h"
 
 #include "stream_stat_statistic_report.h"
@@ -87,5 +88,20 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_SessionData,                 // sess
 //                          Branch_StatisticReport_ReaderTask_t,      // reader type
 //                          Branch_StatisticReport_WriterTask_t,      // writer type
 //                          Branch_StatisticReport);                  // name
+
+typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_U_Document_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_U_Message,
+                                      Test_U_SessionMessage,
+                                      struct Test_U_SessionData,
+                                      struct Stream_UserData> Test_U_MessageHandler;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_SessionData,                                   // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Test_U_Document_ModuleHandlerConfiguration,           // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_U_MessageHandler);                                      // writer type
 
 #endif

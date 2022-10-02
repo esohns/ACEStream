@@ -32,6 +32,8 @@
 #include "stream_file_sink.h"
 #include "stream_file_source.h"
 
+//#include "stream_misc_messagehandler.h"
+
 #include "stream_stat_statistic_report.h"
 
 #include "test_u_filecopy_common.h"
@@ -149,5 +151,20 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,               
                               libacestream_default_file_sink_module_name_string,
                               Stream_INotify_t,                                  // stream notification interface type
                               Stream_Filecopy_FileWriter);                       // writer type
+
+//typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
+//                                       Common_TimePolicy_t,
+//                                       struct Stream_Filecopy_ModuleHandlerConfiguration,
+//                                       Stream_ControlMessage_t,
+//                                       Stream_Filecopy_Message,
+//                                       Stream_Filecopy_SessionMessage,
+//                                       struct Stream_Filecopy_SessionData,
+//                                       struct Stream_UserData> Stream_Filecopy_MessageHandler;
+//DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,                // session data type
+//                              enum Stream_SessionMessageType,                    // session event type
+//                              struct Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_misc_messagehandler_module_name_string,
+//                              Stream_INotify_t,                                  // stream notification interface type
+//                              Stream_Filecopy_MessageHandler);                       // writer type
 
 #endif

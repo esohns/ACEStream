@@ -1,3 +1,5 @@
+include (ffmpeg)
+include (ImageMagick)
 include (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts/SSLConfig.cmake)
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
@@ -170,9 +172,9 @@ if (GUI_SUPPORT)
 endif (GUI_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Device)
+#target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Device)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_File)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_MediaFramework)
+#target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_MediaFramework)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Network)
@@ -220,6 +222,7 @@ elseif (WIN32)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
+ file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
  file (TO_CMAKE_PATH "$ENV{LIB_ROOT}/openssl" SSL_PATH)
  if (GTK_SUPPORT)
   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
@@ -229,6 +232,7 @@ elseif (WIN32)
  endif (WXWIDGETS_SUPPORT)
  set (RUNTIME_LIBRARY_DIRS ${ACE_LIBRARY_PATH}
                            ${FFMPEG_PATH}
+                           ${IMAGEMAGICK_PATH}
                            ${SSL_PATH}
                            ${GTK_PATH}
                            ${WXWIDGETS_PATH})

@@ -41,11 +41,12 @@
 #include "stream_document_defines.h"
 
 #include "document_defines.h"
+#include "test_u_session_message.h"
 
 // forward declarations
 struct Test_U_AllocatorConfiguration;
 class Test_U_Message;
-class Test_U_SessionMessage;
+//class Test_U_SessionMessage;
 
 struct Test_U_MessageData
 {

@@ -14,7 +14,8 @@ pushd . >NUL 2>&1
 title soffice.exe
 
 set SOfficeIMAGE=soffice.exe
-set SOfficeEXE="%ProgramFiles(x86)%\LibreOffice\program\%SOfficeIMAGE%"
+@rem set SOfficeEXE="%ProgramFiles(x86)%\LibreOffice\program\%SOfficeIMAGE%"
+set SOfficeEXE="%ProgramFiles%\LibreOffice\program\%SOfficeIMAGE%"
 if exist %SOfficeEXE% goto Next
 echo invalid file ^(was: "%SOfficeEXE%"^)^, exiting
 goto Failed
@@ -28,6 +29,7 @@ if %ERRORLEVEL% EQU 0 (
 
 :Next_2
 start "" %SOfficeEXE% --accept="socket,host=localhost,port=2083,tcpNoDelay=1;urp;StarOffice.ServiceManager" --nofirststartwizard --nologo --headless --norestore --invisible >>%TEMP%\ACEStream\libreoffice.log
+::start "" %SOfficeEXE% --accept="socket,host=localhost,port=2083,tcpNoDelay=1;urp;StarOffice.ServiceManager" --nofirststartwizard --nologo --headless --norestore --invisible >>%TEMP%\ACEStream\libreoffice.log
 ::if %ERRORLEVEL% NEQ 0 (
 :: echo failed to start office server %SOfficeEXE%^, exiting
 :: set RC=%ERRORLEVEL%

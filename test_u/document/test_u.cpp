@@ -32,8 +32,8 @@
 
 #include "test_u_defines.h"
 
+#include "test_u_common_modules.h"
 #include "test_u_eventhandler.h"
-#include "test_u_module_eventhandler.h"
 #include "test_u_stream.h"
 
 void
@@ -175,13 +175,13 @@ do_work (int argc_in,
   struct Stream_ModuleConfiguration module_configuration;
   struct Stream_Configuration stream_configuration;
   Test_U_StreamConfiguration_t stream_configuration_2;
-  Test_U_Stream stream;
   Test_U_EventHandler event_handler (false);
-  Test_U_Module_EventHandler_Module module (&stream,
-                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Test_U_MessageHandler_Module module (NULL,
+                                       ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Stream_MessageQueueBase_T<ACE_MT_SYNCH,
                             Common_TimePolicy_t> message_queue (STREAM_QUEUE_MAX_SLOTS,
                                                                 NULL);
+  Test_U_Stream stream;
 
   ACE_NEW_NORETURN (message_p,
                     Test_U_Message (1,                                         // session id
@@ -203,7 +203,13 @@ do_work (int argc_in,
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?
   module_configuration.stream = &stream;
-  modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+  modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
+  modulehandler_configuration.fileIdentifier.identifierDiscriminator =
+    Common_File_Identifier::FILE;
+  std::string filename_string = Common_File_Tools::getWorkingDirectory ();
+  filename_string += ACE_DIRECTORY_SEPARATOR_STR;
+  filename_string += Common_File_Tools::basename (templateFileName_in);
+  modulehandler_configuration.fileIdentifier.identifier = filename_string;
   modulehandler_configuration.fileName = templateFileName_in;
   modulehandler_configuration.libreOfficeRc = rcFileName_in;
   modulehandler_configuration.messageAllocator = &message_allocator;
@@ -234,7 +240,7 @@ do_work (int argc_in,
 
   ACE_OS::sleep (ACE_Time_Value (1, 0));
 
-  stream.stop ();
+  stream.stop (true, true, false);
   stream.wait ();
 
 clean:

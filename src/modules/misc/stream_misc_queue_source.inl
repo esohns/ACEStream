@@ -155,7 +155,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
-//      inherited::change (STREAM_STATE_SESSION_STOPPING);
+      inherited::change (STREAM_STATE_SESSION_STOPPING);
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:

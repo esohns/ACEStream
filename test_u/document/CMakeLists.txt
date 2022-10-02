@@ -44,8 +44,6 @@ set (document_EXE_SRCS
      test_u_eventhandler.h
      test_u_message.cpp
      test_u_message.h
-     test_u_module_eventhandler.cpp
-     test_u_module_eventhandler.h
      test_u_session_message.cpp
      test_u_session_message.h
      test_u_stream.cpp
@@ -116,17 +114,33 @@ if (WIN32)
 endif (WIN32)
 
 ################ launchers ###############
-file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIB_PATH)
-set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                          ${ACE_LIB_PATH})
+if (UNIX)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
+elseif (WIN32)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
+ file (TO_CMAKE_PATH "${LIBREOFFICE_LIB_DIRS}" OFFICE_LIB_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIB_PATH)
+# message (STATUS "LIBREOFFICE_LIB_DIRS: \"${LIBREOFFICE_LIB_DIRS}\"")
+ set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                           ${OFFICE_LIB_PATH}
+                           ${ACE_LIB_PATH})
+ if (WXWIDGETS_SUPPORT)
+  file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${WXWIDGETS_PATH})
+ endif (WXWIDGETS_SUPPORT)
+ file (TO_NATIVE_PATH "${UNO_HOME}" UNO_HOME_PATH)
+ string (REPLACE "\\" "\\\\" UNO_HOME_PATH ${UNO_HOME_PATH})
+ set (ENVIRONMENT "UNO_HOME=${UNO_HOME_PATH};URE_MORE_TYPES=$ORIGIN/types/offapi.rdb")
+endif ()
 create_target_launcher (${EXECUTABLE}
+                        COMMAND ${COMMAND}
                         ARGS "-l -t"
 #                         FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                                             ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                             \"${OO_APP_DIRECTORY}\"
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/document
-                        ENVIRONMENT foo=bar)
+                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/document
+                        ENVIRONMENT ${ENVIRONMENT})
 
 ################ tests ###################
 add_test (NAME ${EXECUTABLE}_test

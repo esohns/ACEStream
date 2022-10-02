@@ -180,15 +180,17 @@ Test_U_LibreOffice_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessag
       //ACE_ASSERT (inherited::configuration_->socketConfigurations);
       //ACE_ASSERT (!inherited::configuration_->socketConfigurations->empty ());
 
+      std::string filename_string;
       uno::Reference<lang::XMultiComponentFactory> multi_component_factory_p = NULL; // local
       std::string connection_string = ACE_TEXT_ALWAYS_CHAR ("uno:socket,host=");
       std::ostringstream converter;
-      ::rtl::OUString connection_string_2;
+      ::rtl::OUString connection_string_2, service_string;
       uno::Reference<bridge::XUnoUrlResolver> url_resolver_p = NULL;
       uno::Reference<frame::XDesktop2> desktop_p = NULL;
       uno::Reference<frame::XComponentLoader> component_loader_p = NULL;
       uno::Reference<beans::XPropertySet> property_set_p = NULL;
       uno::Reference<sheet::XSpreadsheets> spreadsheets_p = NULL;
+      uno::Reference<css::uno::XInterface> interface_p = NULL;
 
       // --> create new frame (see below)
       ::rtl::OUString target_frame_name (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_FRAME_BLANK)));
@@ -206,16 +208,28 @@ Test_U_LibreOffice_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessag
       document_properties[2].Value <<=
         document::MacroExecMode::ALWAYS_EXECUTE_NO_WARN;
 
-      // *NOTE*: strip suffix from .ini/.rc file (see
-      //         also: http://api.libreoffice.org/docs/cpp/ref/a00365.html#a296238ca64cb9898a6b8303f12877faa)
-      //std::string::size_type position =
-      //    inherited::configuration_->libreOfficeRc.find_last_of (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_BOOTSTRAP_FILE_SUFFIX),
-      //                                                           std::string::npos,
-      //                                                           ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_BOOTSTRAP_FILE_SUFFIX)));
-      //ACE_ASSERT (position != std::string::npos);
-      //std::string filename_string =
-      //    inherited::configuration_->libreOfficeRc.substr (0, ++position);
-      filename = ::rtl::OUString::createFromAscii (inherited::configuration_->libreOfficeRc.c_str ());
+      filename_string =
+        Common_Tools::environment (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_ENV_UNO_HOME));
+      if (filename_string.empty ())
+      {
+        // *NOTE*: strip suffix from .ini/.rc file (see
+        //         also: http://api.libreoffice.org/docs/cpp/ref/a00365.html#a296238ca64cb9898a6b8303f12877faa)
+        //std::string::size_type position =
+        //    inherited::configuration_->libreOfficeRc.find_last_of (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_BOOTSTRAP_FILE_SUFFIX),
+        //                                                           std::string::npos,
+        //                                                           ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_BOOTSTRAP_FILE_SUFFIX)));
+        //ACE_ASSERT (position != std::string::npos);
+        //std::string filename_string =
+        //    inherited::configuration_->libreOfficeRc.substr (0, ++position);
+        filename = ::rtl::OUString::createFromAscii (inherited::configuration_->libreOfficeRc.c_str ());
+      } // end IF
+      else
+      {
+        filename_string += ACE_DIRECTORY_SEPARATOR_STR;
+        filename_string +=
+          ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_FILE_UNO_INI);
+        filename = ::rtl::OUString::createFromAscii (filename_string.c_str ());
+      } // end ELSE
       result_3 = ::osl::FileBase::getFileURLFromSystemPath (filename,
                                                             filename_url);
       ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
@@ -236,11 +250,10 @@ Test_U_LibreOffice_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessag
                                             uno::UNO_QUERY);
       } catch (::uno::Exception& exception_in) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in ::cppu::defaultBootstrap_InitialComponentContext (): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: caught exception in ::cppu::defaultBootstrap_InitialComponentContext (\"%s\"): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
-                                                        RTL_TEXTENCODING_ASCII_US,
-                                                        OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
+                    ACE_TEXT (::rtl::OUStringToOString (absolute_filename_url, RTL_TEXTENCODING_ASCII_US, OUSTRING_TO_OSTRING_CVTFLAGS).getStr ()),
+                    ACE_TEXT (::rtl::OUStringToOString (exception_in.Message, RTL_TEXTENCODING_ASCII_US, OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
         goto error;
       }
       ACE_ASSERT (inherited::componentContext_.is ());
@@ -257,7 +270,7 @@ Test_U_LibreOffice_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessag
       ACE_OS::memset (host_address, 0, sizeof (host_address));
       result_p =
         inherited::configuration_->libreOfficeHost.get_host_addr (host_address,
-                                                                  sizeof (host_address));
+                                                                  sizeof (ACE_TCHAR[BUFSIZ]));
       if (!result_p)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -274,12 +287,20 @@ Test_U_LibreOffice_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessag
         ACE_TEXT_ALWAYS_CHAR (",tcpNoDelay=1;urp;StarOffice.ServiceManager");
       connection_string_2 =
         ::rtl::OUString::createFromAscii (ACE_TEXT_ALWAYS_CHAR (connection_string.c_str ()));
-      result_4 =
-        url_resolver_p.set (multi_component_factory_p->createInstanceWithContext (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR ("com.sun.star.bridge.UnoUrlResolver"))),
-                                                                                  inherited::componentContext_),
-                            uno::UNO_QUERY);
-      ACE_ASSERT (url_resolver_p.is ());
-      ACE_ASSERT (result_4);
+      service_string =
+        ::rtl::OUString::createFromAscii (ACE_TEXT_ALWAYS_CHAR ("com.sun.star.bridge.UnoUrlResolver"));
+      interface_p =
+        multi_component_factory_p->createInstanceWithContext (service_string,
+                                                              inherited::componentContext_);
+      result_4 = url_resolver_p.set (interface_p,
+                                     uno::UNO_QUERY);
+      if (!result_4 || !url_resolver_p.is ())
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to instantiate com.sun.star.bridge.UnoUrlResolver service: \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
       //uno::Reference<lang::XComponent>::query (multi_component_factory_p)->dispose ();
       try {
         result_4 =
@@ -289,12 +310,8 @@ Test_U_LibreOffice_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessag
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in XUnoUrlResolver::resolve(\"%s\"): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (::rtl::OUStringToOString (connection_string_2,
-                                                        RTL_TEXTENCODING_ASCII_US,
-                                                        OUSTRING_TO_OSTRING_CVTFLAGS).getStr ()),
-                    ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
-                                                        RTL_TEXTENCODING_ASCII_US,
-                                                        OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
+                    ACE_TEXT (::rtl::OUStringToOString (connection_string_2, RTL_TEXTENCODING_ASCII_US, OUSTRING_TO_OSTRING_CVTFLAGS).getStr ()),
+                    ACE_TEXT (::rtl::OUStringToOString (exception_in.Message, RTL_TEXTENCODING_ASCII_US, OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
         goto error;
       }
       ACE_ASSERT (property_set_p.is ());
@@ -302,22 +319,20 @@ Test_U_LibreOffice_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessag
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: opened LibreOffice connection (was: \"%s\")...\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (::rtl::OUStringToOString (connection_string_2,
-                                                      RTL_TEXTENCODING_ASCII_US,
-                                                      OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
+                  ACE_TEXT (::rtl::OUStringToOString (connection_string_2, RTL_TEXTENCODING_ASCII_US, OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
       property_set_p->getPropertyValue (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_DEFAULT_CONTEXT)))) >>=
                                         inherited::componentContext_;
       ACE_ASSERT (inherited::componentContext_.is ());
       ACE_ASSERT (handler_2);
       handler_2->initialize (inherited::componentContext_);
 
-//      result_4 =
-//        multi_component_factory_p.set (inherited::componentContext_->getServiceManager (),
-//                                       uno::UNO_QUERY);
-//      ACE_ASSERT (multi_component_factory_p.is () && result_4);
-//      desktop_p =
-//          multi_component_factory_p->createInstanceWithContext (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR ("com.sun.star.frame.Desktop"))),
-//                                                                inherited::componentContext_);
+      //service_string =
+      //  ::rtl::OUString::createFromAscii (ACE_TEXT_ALWAYS_CHAR ("com.sun.star.frame.Desktop"));
+      //interface_p =
+      //  multi_component_factory_p->createInstanceWithContext (service_string,
+      //                                                        inherited::componentContext_);
+      //desktop_p.set (interface_p,
+      //               uno::UNO_QUERY);
       desktop_p = ::com::sun::star::frame::Desktop::create (inherited::componentContext_);
       ACE_ASSERT (desktop_p.is ());
       result_4 =
@@ -353,20 +368,14 @@ Test_U_LibreOffice_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessag
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in XComponentLoader::loadComponentFromURL(\"%s\"): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (::rtl::OUStringToOString (absolute_filename_url,
-                                                        RTL_TEXTENCODING_ASCII_US,
-                                                        OUSTRING_TO_OSTRING_CVTFLAGS).getStr ()),
-                    ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
-                                                        RTL_TEXTENCODING_ASCII_US,
-                                                        OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
+                    ACE_TEXT (::rtl::OUStringToOString (absolute_filename_url, RTL_TEXTENCODING_ASCII_US, OUSTRING_TO_OSTRING_CVTFLAGS).getStr ()),
+                    ACE_TEXT (::rtl::OUStringToOString (exception_in.Message, RTL_TEXTENCODING_ASCII_US, OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
         goto error;
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in XComponentLoader::loadComponentFromURL(\"%s\"), aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (::rtl::OUStringToOString (absolute_filename_url,
-                                                        RTL_TEXTENCODING_ASCII_US,
-                                                        OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
+                    ACE_TEXT (::rtl::OUStringToOString (absolute_filename_url, RTL_TEXTENCODING_ASCII_US, OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
         goto error;
       }
       ACE_ASSERT (inherited::component_.is ());
@@ -376,9 +385,7 @@ Test_U_LibreOffice_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessag
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: loaded LibreOffice spreadsheet document (was: \"%s\")...\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (::rtl::OUStringToOString (absolute_filename_url,
-                                                      RTL_TEXTENCODING_ASCII_US,
-                                                      OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
+                  ACE_TEXT (::rtl::OUStringToOString (absolute_filename_url, RTL_TEXTENCODING_ASCII_US, OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
 
       break;
 

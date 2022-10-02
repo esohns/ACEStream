@@ -28,13 +28,13 @@
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_message_base.h"
 
-#include "test_u_stream_common.h"
+//#include "test_u_stream_common.h"
 
 // forward declaration(s)
 class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
-class Branch_Message;
+class Test_U_Message;
 //template <ACE_SYNCH_DECL,
 //          typename AllocatorConfigurationType,
 //          typename ControlMessageType,
