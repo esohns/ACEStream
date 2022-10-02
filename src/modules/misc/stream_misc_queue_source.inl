@@ -505,7 +505,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                                                                                              : ACE_TEXT (""))));
 
   // reset the queue
-  inherited::msg_queue (NULL);
+  //inherited::msg_queue (NULL);
 
   // *TODO*: in passive mode (!), signal a condition here to unblock any
   //         thread(s) in stop(true) (see above) before returning

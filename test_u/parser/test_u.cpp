@@ -177,7 +177,6 @@ do_work (int argc_in,
          bool debugParser_in,
          const std::string& sourceFilePath_in)
 {
-  // step1: load data into a message block
   ACE_UINT64 file_size_i = Common_File_Tools::size (sourceFilePath_in);
   uint8_t* data_p = NULL, *data_2 = NULL;
   Parser_Message* message_p = NULL, *message_2 = NULL;
@@ -187,17 +186,42 @@ do_work (int argc_in,
   struct Stream_ModuleConfiguration module_configuration;
   struct Stream_Configuration stream_configuration;
   Parser_StreamConfiguration_t stream_configuration_2;
-  Parser_Stream parser_stream;
   Parser_EventHandler event_handler (false);
-  Parser_Module_EventHandler_Module module (&parser_stream,
+  Parser_Module_EventHandler_Module module (NULL,
                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Stream_MessageQueueBase_T<ACE_MT_SYNCH, Common_TimePolicy_t> message_queue (STREAM_QUEUE_MAX_SLOTS,
                                                                               NULL);
+  Parser_Stream parser_stream;
   std::string file_path_2 = ACE::dirname (sourceFilePath_in.c_str (), '\\');
   file_path_2 += ACE_DIRECTORY_SEPARATOR_STR;
   file_path_2 += ACE_TEXT ("test_2.txt");
   int result = -1;
 
+  // step1: initialize/start stream
+  parser_configuration.block = true;
+  parser_configuration.debugParser = debugParser_in;
+  parser_configuration.debugScanner = debugScanner_in;
+  parser_configuration.messageQueue = NULL;
+  parser_configuration.useYYScanBuffer =
+    COMMON_PARSER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER;
+  modulehandler_configuration.concurrency =
+    STREAM_HEADMODULECONCURRENCY_ACTIVE;
+  modulehandler_configuration.parserConfiguration = &parser_configuration;
+  modulehandler_configuration.queue = &message_queue;
+  modulehandler_configuration.subscriber = &event_handler;
+  stream_configuration.module = &module;
+  stream_configuration_2.initialize (module_configuration,
+                                     modulehandler_configuration,
+                                     stream_configuration);
+  if (!parser_stream.initialize (stream_configuration_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize stream, returning\n")));
+    goto clean;
+  } // end IF
+  parser_stream.start ();
+
+  // step2: load data into a message block
   if (!Common_File_Tools::load (sourceFilePath_in,
                                 data_p,
                                 file_size_i,
@@ -219,6 +243,22 @@ do_work (int argc_in,
                    ACE_Message_Block::DONT_DELETE);
   message_p->size (file_size_i);
   message_p->wr_ptr (file_size_i);
+
+  Parser_MessageData_t* data_container_p = NULL;
+  ACE_NEW_NORETURN (data_container_p,
+                    Parser_MessageData_t ());
+  ACE_ASSERT (data_container_p);
+  Parser_MessageData* data_3 = NULL;
+  ACE_NEW_NORETURN (data_3,
+                    Parser_MessageData ());
+  ACE_ASSERT (data_3);
+  data_container_p->setPR (data_3);
+
+  const Parser_SessionData_t& session_data_r = parser_stream.getR_2 ();
+  const Parser_SessionData& data_r = session_data_r.getR ();
+  message_p->initialize (data_container_p,
+                         data_r.sessionId,
+                         NULL);
 
   if (!Common_File_Tools::load (file_path_2,
                                 data_2,
@@ -242,33 +282,7 @@ do_work (int argc_in,
   message_2->size (file_size_i);
   message_2->wr_ptr (file_size_i);
 
-  // step2: initialize parser
-  parser_configuration.block = true;
-#if defined (_DEBUG)
-  parser_configuration.debugParser = debugParser_in;
-  parser_configuration.debugScanner = debugScanner_in;
-#endif // _DEBUG
-  parser_configuration.messageQueue = NULL;
-  parser_configuration.useYYScanBuffer =
-    COMMON_PARSER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER;
-  modulehandler_configuration.concurrency =
-    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
-  modulehandler_configuration.parserConfiguration = &parser_configuration;
-  modulehandler_configuration.queue = &message_queue;
-  modulehandler_configuration.subscriber = &event_handler;
-  stream_configuration.module = &module;
-  stream_configuration_2.initialize (module_configuration,
-                                     modulehandler_configuration,
-                                     stream_configuration);
-  if (!parser_stream.initialize (stream_configuration_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize stream, returning\n")));
-    goto clean;
-  } // end IF
-
   // step3: parse data
-  parser_stream.start ();
   result = message_queue.enqueue (message_p, NULL);
   if (result == -1)
   {
@@ -289,7 +303,7 @@ do_work (int argc_in,
   } // end IF
   message_2 = NULL;
 
-  parser_stream.stop ();
+  parser_stream.stop (true, true, false);
   parser_stream.wait ();
 
 clean:

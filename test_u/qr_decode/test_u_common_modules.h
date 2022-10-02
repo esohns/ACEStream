@@ -32,6 +32,8 @@
 #include "stream_task_base_asynch.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_dec_rgb24_hflip.h"
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // *NOTE*: wxWidgets may have #defined __WXDEBUG__
 //#undef __WXDEBUG__
@@ -238,6 +240,23 @@ DATASTREAM_MODULE_INPUT_ONLY (struct QRDecode_SessionData,                      
 //                          Test_U_StatisticReport_ReaderTask_t,                 // reader type
 //                          Test_U_StatisticReport_WriterTask_t,                 // writer type
 //                          Test_U_StatisticReport);                             // name
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Decoder_RGB24_HFlip_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct QRDecode_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Test_U_Message,
+                                     Test_U_DirectShow_SessionMessage,
+                                     QRDecode_DirectShow_SessionData_t,
+                                     struct _AMMediaType> Test_U_DirectShow_RGB24Flip;
+DATASTREAM_MODULE_INPUT_ONLY (QRDecode_DirectShow_SessionData,                             // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct QRDecode_ModuleHandlerConfiguration,                  // module handler configuration type
+                              libacestream_default_dec_rgb24_hflip_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_U_DirectShow_RGB24Flip);                                // writer type
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if defined (FFMPEG_SUPPORT)

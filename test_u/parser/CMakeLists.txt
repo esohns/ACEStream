@@ -86,15 +86,27 @@ install (TARGETS ${EXECUTABLE}
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
 
 ################ launchers ###############
+if (UNIX)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
+elseif (WIN32)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
+ if (WXWIDGETS_SUPPORT)
+  file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${WXWIDGETS_PATH})
+ endif (WXWIDGETS_SUPPORT)
+endif ()
 file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIB_PATH)
 set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                           ${ACE_LIB_PATH})
 create_target_launcher (${EXECUTABLE}
+                        COMMAND ${COMMAND}
                         ARGS "-d -e -f test_1.txt -l -t"
 #                         FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/parser
+                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/parser
                         ENVIRONMENT foo=bar)
 
 ################ tests ###################

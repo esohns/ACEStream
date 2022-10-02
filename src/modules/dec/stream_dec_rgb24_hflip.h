@@ -38,6 +38,7 @@ class Stream_IAllocator;
 
 extern const char libacestream_default_dec_rgb24_hflip_module_name_string[];
 
+// *NOTE*: flips left-to-right, NOT top-to-bottom
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////

@@ -90,6 +90,7 @@ Parser_Module_Parser::record (Bencoding_Dictionary_t*& record_inout)
   // make sure the whole fragment chain references the same data record
   ACE_ASSERT (inherited::headFragment_);
   Parser_Message* message_p = static_cast<Parser_Message*> (inherited::headFragment_);
+  ACE_ASSERT (message_p->isInitialized ());
   Parser_MessageData_t& data_container_r =
     const_cast<Parser_MessageData_t&> (message_p->getR ());
   struct Parser_MessageData& data_r =
