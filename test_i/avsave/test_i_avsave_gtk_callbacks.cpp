@@ -4716,11 +4716,11 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_quit_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
-    static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (ui_cb_data_base_p);
+  struct Stream_AVSave_UI_CBData* cb_data_base_p =
+    static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_base_p);
 
   enum Stream_StateMachine_ControlState status_e = STREAM_STATE_INVALID;
   Stream_IStreamControlBase* stream_p = NULL;
@@ -4728,12 +4728,12 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   struct Stream_AVSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
     NULL;
-  switch (ui_cb_data_base_p->mediaFramework)
+  switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_cb_data_p =
-        static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
+        static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (userData_in);
       status_e = directshow_cb_data_p->videoStream->status ();
       stream_p = directshow_cb_data_p->videoStream;
       break;
@@ -4741,7 +4741,7 @@ button_quit_clicked_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediafoundation_cb_data_p =
-        static_cast<struct Stream_AVSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
+        static_cast<struct Stream_AVSave_MediaFoundation_UI_CBData*> (userData_in);
       status_e = mediafoundation_cb_data_p->videoStream->status ();
       stream_p = mediafoundation_cb_data_p->videoStream;
       break;
@@ -4750,34 +4750,37 @@ button_quit_clicked_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
+                  cb_data_base_p->mediaFramework));
       return TRUE; // propagate
     }
   } // end SWITCH
 #else
   struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (userData_in);
   status_e = cb_data_p->videoStream->status ();
   stream_p = cb_data_p->videoStream;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
-
-  //// step1: remove event sources
-  //{ ACE_Guard<ACE_Thread_Mutex> aGuard (data_p->lock);
-  //  for (Common_UI_GTKEventSourceIdsIterator_t iterator = data_p->eventSourceIds.begin ();
-  //       iterator != data_p->eventSourceIds.end ();
-  //       iterator++)
-  //    if (!g_source_remove (*iterator))
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-  //                  *iterator));
-  //  data_p->eventSourceIds.clear ();
-  //} // end lock scope
 
   // stop stream ?
   if ((status_e == STREAM_STATE_RUNNING) ||
       (status_e == STREAM_STATE_PAUSED))
     stream_p->stop (false, true, true);
+
+  // step1: remove event sources
+  { ACE_Guard<ACE_Thread_Mutex> aGuard (cb_data_base_p->UIState->lock);
+    for (Common_UI_GTK_EventSourceIdsIterator_t iterator = cb_data_base_p->UIState->eventSourceIds.begin ();
+         iterator != cb_data_base_p->UIState->eventSourceIds.end ();
+         iterator++)
+      if (!g_source_remove (*iterator))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+                    *iterator));
+    cb_data_base_p->UIState->eventSourceIds.clear ();
+  } // end lock scope
+
+  STREAM_AVSAVE_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?
+                                                             true);  // high priority ?
 
   // step2: initiate shutdown sequence
   int result = ACE_OS::raise (SIGINT);

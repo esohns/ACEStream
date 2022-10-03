@@ -99,5 +99,5 @@ Stream_Module_Tagger_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  //message_inout->setMediaType (MediaType);
+  message_inout->setMediaType (MediaType);
 }
