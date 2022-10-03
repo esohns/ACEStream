@@ -1,9 +1,11 @@
-set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/doc/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/doc/scripts")
-include (Office)
+include (ffmpeg)
+include (ImageMagick)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/xml/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/xml/scripts")
 include (PreXMLImplementation)
-set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/dec/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
 include (zlib)
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/doc/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/doc/scripts")
+include (Office)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts")
 include (SSLConfig)
 
@@ -209,47 +211,44 @@ if (WIN32)
 endif (WIN32)
 
 if (UNIX)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
  create_target_launcher (${EXECUTABLE}
+                         COMMAND ${COMMAND}
                          ARGS "-c./etc/soffice.ini -f./etc/symbols.ini -h localhost -l -o ./output.ods -p 2083 -r -t -u https://www.tagesschau.de/wirtschaft/boersenkurse/suche/"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
-                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/Debug
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get_2
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
-# file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_LIBRARY_PATH)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
+ file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_LIBRARY_PATH)
 # file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libiconv/bin ICONV_LIBRARY_PATH)
 # file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libmysql/lib LIBMYSQL_LIBRARY_PATH)
 # file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libxml2/bin LIBXML_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${LIBREOFFICE_LIB_DIRS}" OO_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_LIBRARY_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/zlib/cmake/Debug ZLIB_LIBRARY_PATH)
+ file (TO_CMAKE_PATH ${ZLIB_LIB_DIR} ZLIB_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${ACE_LIBRARY_PATH}
-#                           ${FFMPEG_LIBRARY_PATH}
+                           ${GTK_LIBRARY_PATH}
+                           ${WXWIDGETS_LIBRARY_PATH}
+                           ${FFMPEG_LIBRARY_PATH}
+                           ${IMAGEMAGICK_LIBRARY_PATH}
 #                           ${ICONV_LIBRARY_PATH}
  #                          ${LIBXML_LIBRARY_PATH}
   #                         ${LIBMYSQL_LIBRARY_PATH}
                            ${SSL_LIBRARY_PATH}
-                           ${ZLIB_LIBRARY_PATH})
+                           ${ZLIB_LIBRARY_PATH}
+                           ${OO_LIBRARY_PATH})
  create_target_launcher (${EXECUTABLE}
+                         COMMAND ${COMMAND}
                          ARGS "-c.\\\\etc\\\\soffice.ini -f.\\\\etc\\\\template.ods -h localhost -i.\\\\etc\\\\symbols.ini -l -o .\\\\output.ods -p 2083 -r -t -u https://www.tagesschau.de/wirtschaft/boersenkurse/suche/"
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/doc/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/html/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/net/protocols/http/Debug
-                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/protocol/http/Debug
-                                              \"${OO_APP_DIRECTORY}\"
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get_2
                          ENVIRONMENT foo=bar;_NO_DEBUG_HEAP=1)
 endif ()

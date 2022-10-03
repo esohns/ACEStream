@@ -1,5 +1,6 @@
+include (ffmpeg)
+include (ImageMagick)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/xml/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/xml/scripts")
-#include (PreXMLImplementation)
 include (libxml2)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/db/scripts")
 include (mysql)
@@ -154,10 +155,8 @@ target_link_libraries (${EXECUTABLE} PUBLIC CommonTimer)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Database)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Decoder)
-target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Device)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_File)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_HTML)
-target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_MediaFramework)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Miscellaneous)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Network)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Statistic)
@@ -192,49 +191,42 @@ endif (WIN32)
 #set_tests_properties (${EXECUTABLE} PROPERTIES ENVIRONMENT "PATH=%PATH%;$(ACE_ROOT)\\lib;D:\\projects\\libiconv-1.9.2\\bin;D:\\projects\\libxml2-2.9.4\\win32\\bin;$(ProgramFiles)\\LibreOffice 5\\program;$(ProjectDir)..\\..\\..\\..\\Common\\cmake\\src\\$(Configuration);$(ProjectDir)..\\..\\..\\..\\Common\\cmake\\src\\err\\$(Configuration);$(ProjectDir)..\\..\\src\\$(Configuration);$(ProjectDir)..\\..\\src\\modules\\dec\\$(Configuration);$(ProjectDir)..\\..\\src\\modules\\html\\$(Configuration);$(ProjectDir)..\\..\\..\\..\\ACENetwork\\cmake\\src\\$(Configuration);$(ProjectDir)..\\..\\..\\..\\ACENetwork\\cmake\\src\\protocol\\http\\$(Configuration)")
 
 if (UNIX)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
  create_target_launcher (${EXECUTABLE}
+                         COMMAND ${COMMAND}
                          ARGS "-c./etc/options.cnf -d news -e articles -f output.txt -l -p 80 -t -u http://www.heise.de/newsticker.html"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.4/.libs
-                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/db/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/html/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/net/protocols/http/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/protocol/http/${CMAKE_BUILD_TYPE}
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
-# file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_LIBRARY_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libiconv/bin ICONV_LIBRARY_PATH)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
+ file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_LIBRARY_PATH)
+ file (TO_CMAKE_PATH ${LIBICONV_LIB_DIR} ICONV_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libmysql/lib LIBMYSQL_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libxml2/bin LIBXML_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/zlib/${BUILD_PATH_SUFFIX}/${CMAKE_BUILD_TYPE} ZLIB_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${ACE_LIBRARY_PATH}
+                           ${GTK_LIBRARY_PATH}
+                           ${WXWIDGETS_LIBRARY_PATH}
                            ${FFMPEG_LIBRARY_PATH}
+                           ${IMAGEMAGICK_LIBRARY_PATH}
                            ${ICONV_LIBRARY_PATH}
                            ${LIBXML_LIBRARY_PATH}
                            ${LIBMYSQL_LIBRARY_PATH}
                            ${SSL_LIBRARY_PATH}
                            ${ZLIB_LIBRARY_PATH})
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-c.\\\\etc\\\\options.cnf -f output.txt -l -p 80 -r -t -u http://www.heise.de/newsticker.html"
+                         COMMAND ${COMMAND}
+                         ARGS "-c.\\\\etc\\\\options.cnf -f output.txt -l -p 443 -r -t -u https://www.heise.de/newsticker.html"
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-#                                              ${PROJECT_SOURCE_DIR}/../libiconv-1.9.2/bin
-                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/err/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/db/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/dec/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/html/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/net/protocols/http/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/protocol/http/${CMAKE_BUILD_TYPE}
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get
                          ENVIRONMENT foo=bar)
 endif ()

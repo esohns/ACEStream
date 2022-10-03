@@ -14,7 +14,8 @@ pushd . >NUL 2>&1
 title soffice.exe
 
 set SOfficeIMAGE=soffice.exe
-set SOfficeEXE="%ProgramFiles(x86)%\LibreOffice\program\%SOfficeIMAGE%"
+@rem set SOfficeEXE="%ProgramFiles(x86)%\LibreOffice\program\%SOfficeIMAGE%"
+set SOfficeEXE="%ProgramFiles%\LibreOffice\program\%SOfficeIMAGE%"
 if exist %SOfficeEXE% goto Next
 echo invalid file ^(was: "%SOfficeEXE%"^)^, exiting
 goto Failed

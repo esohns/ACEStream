@@ -626,13 +626,13 @@ do_work (unsigned int bufferSize_in,
   connection_configuration.allocatorConfiguration->defaultBufferSize =
     bufferSize_in;
   connection_configuration.streamConfiguration =
-    &configuration.streamConfiguration;
+    &configuration.streamConfiguration_2;
 
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                  &connection_configuration));
-  Net_ConnectionConfigurationsIterator_t iterator =
-    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
+  //Net_ConnectionConfigurationsIterator_t iterator =
+  //  configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  //ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
 
   // ********************** stream configuration data **************************
   // ********************** prser configuration data ***************************
@@ -644,7 +644,9 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_I_HTTPGet_ModuleHandlerConfiguration modulehandler_configuration_2; // connection-
   struct Test_I_HTTPGet_StreamConfiguration stream_configuration;
+  struct Test_I_HTTPGet_StreamConfiguration stream_configuration_2; // connection-
 
   modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
@@ -678,6 +680,17 @@ do_work (unsigned int bufferSize_in,
                                                 modulehandler_configuration,
                                                 stream_configuration);
 
+  modulehandler_configuration_2 = modulehandler_configuration;
+  modulehandler_configuration_2.concurrency =
+    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+  modulehandler_configuration_2.streamConfiguration =
+    &configuration.streamConfiguration_2;
+  stream_configuration_2 = stream_configuration;
+  stream_configuration_2.module = NULL;
+  configuration.streamConfiguration_2.initialize (module_configuration,
+                                                  modulehandler_configuration_2,
+                                                  stream_configuration_2);
+
   //module_handler_p->initialize (configuration.moduleHandlerConfiguration);
 
   // step0b: initialize event dispatch
@@ -697,7 +710,7 @@ do_work (unsigned int bufferSize_in,
   struct Net_UserData user_data_s;
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
                                     ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-  connection_manager_p->set (*static_cast<Test_I_HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
+  connection_manager_p->set (connection_configuration,
                              &user_data_s);
 
   // step0d: initialize regular (global) statistic reporting

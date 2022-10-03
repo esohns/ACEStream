@@ -55,6 +55,7 @@ struct Test_I_HTTPGet_Configuration
    , signalHandlerConfiguration ()
    , connectionConfigurations ()
    , streamConfiguration ()
+   , streamConfiguration_2 ()
   {}
 
   // **************************** parser data **********************************
@@ -65,6 +66,7 @@ struct Test_I_HTTPGet_Configuration
   Net_ConnectionConfigurations_t                   connectionConfigurations;
   // **************************** stream data **********************************
   Test_I_StreamConfiguration_t                     streamConfiguration;
+  Test_I_StreamConfiguration_t                     streamConfiguration_2; // connection-
 };
 
 #endif
