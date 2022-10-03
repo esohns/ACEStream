@@ -43,6 +43,14 @@
 #include "stream_lib_alsa_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (FAAD_SUPPORT)
+#include "stream_dec_faad_decoder.h"
+#endif // FAAD_SUPPORT
+#if defined (FFMPEG_SUPPORT)
+#include "stream_dec_libav_audio_decoder.h"
+#endif // FFMPEG_SUPPORT
+
+#include "stream_file_source.h"
 //#include "stream_file_sink.h"
 
 #include "test_i_common.h"
@@ -51,6 +59,61 @@
 #include "test_i_session_message.h"
 
 // declare module(s)
+typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
+                                    Stream_ControlMessage_t,
+                                    Test_I_Stream_Message,
+                                    Test_I_Stream_SessionMessage,
+                                    struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                    enum Stream_ControlType,
+                                    enum Stream_SessionMessageType,
+                                    struct Test_I_MP3Player_StreamState,
+                                    struct Test_I_MP3Player_SessionData,
+                                    Test_I_MP3Player_SessionData_t,
+                                    struct Stream_Statistic,
+                                    Common_Timer_Manager_t,
+                                    struct Stream_UserData> Test_I_FileSource;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,      // session data type
+                              enum Stream_SessionMessageType,           // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_file_source_module_name_string,
+                              Stream_INotify_t,                         // stream notification interface type
+                              Test_I_FileSource);                       // writer type
+
+#if defined (FFMPEG_SUPPORT)
+typedef Stream_Decoder_LibAVAudioDecoder_T<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t,
+                                           struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                           Stream_ControlMessage_t,
+                                           Test_I_Stream_Message,
+                                           Test_I_Stream_SessionMessage,
+                                           Test_I_MP3Player_SessionData_t,
+                                           struct _AMMediaType> Test_I_LibAVAudioDecoder;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,      // session data type
+                              enum Stream_SessionMessageType,           // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_libav_audio_decoder_module_name_string,
+                              Stream_INotify_t,                         // stream notification interface type
+                              Test_I_LibAVAudioDecoder);                        // writer type
+#endif // FFMPEG_SUPPORT
+
+#if defined (FAAD_SUPPORT)
+typedef Stream_Decoder_FAAD_T<ACE_MT_SYNCH,
+                              Common_TimePolicy_t,
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                              Stream_ControlMessage_t,
+                              Test_I_Stream_Message,
+                              Test_I_Stream_SessionMessage,
+                              Test_I_MP3Player_SessionData_t,
+                              struct _AMMediaType> Test_I_AACDecoder;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,      // session data type
+                              enum Stream_SessionMessageType,           // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_faad_decoder_module_name_string,
+                              Stream_INotify_t,                         // stream notification interface type
+                              Test_I_AACDecoder);                        // writer type
+#endif // FAAD_SUPPORT
+
+#if defined (MPG123_SUPPORT)
 typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,
                                     Test_I_Stream_Message,
@@ -75,6 +138,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,      // sessi
                               libacestream_default_dec_mp3_decoder_module_name_string,
                               Stream_INotify_t,                         // stream notification interface type
                               Test_I_MP3Decoder);                        // writer type
+#endif // MPG123_SUPPORT
 
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,

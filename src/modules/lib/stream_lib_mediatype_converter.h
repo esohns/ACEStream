@@ -97,14 +97,18 @@ class Stream_MediaFramework_MediaTypeConverter_T
   void getMediaType (const struct _AMMediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
 
   // helper methods
+  void setFormat (enum AVSampleFormat, struct _AMMediaType&);
   inline void setFormat (enum AVSampleFormat format_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.audio.format = format_in; }
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.video.format = format_in; }
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout.format = format_in; }
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.video.resolution = resolution_in; }
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout.resolution = resolution_in; }
   inline void setSampleRate (const unsigned int sampleRate_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.audio.sampleRate = sampleRate_in; }
+  void setSampleRate (unsigned int, struct _AMMediaType&);
   inline void setChannels (const unsigned int channels_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.audio.channels = channels_in; }
+  void setChannels (unsigned int, struct _AMMediaType&);
   inline void free_ (struct Stream_MediaFramework_FFMPEG_MediaType&) {}
+  inline void free_ (struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::free (mediaType_inout); }
 
   void getMediaType (const IMFMediaType*, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_AudioMediaType&);
   void getMediaType (const IMFMediaType*, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);

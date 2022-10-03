@@ -114,6 +114,8 @@ class Stream_MediaFramework_Tools
 
 #if defined (FFMPEG_SUPPORT)
   static WORD AVSampleFormatToFormatTag (enum AVSampleFormat); // format
+  // *NOTE*: as used in struct tWAVEFORMATEX.wBitsPerSample
+  static WORD AVSampleFormatToBitCount (enum AVSampleFormat); // format
   static struct _GUID AVSampleFormatToMediaSubType (enum AVSampleFormat); // format
   static struct _GUID AVPixelFormatToMediaSubType (enum AVPixelFormat); // format
 #endif // FFMPEG_SUPPORT

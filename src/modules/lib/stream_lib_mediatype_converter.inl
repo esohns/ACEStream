@@ -38,6 +38,77 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::Stream_MediaFramework_Med
 #if defined (FFMPEG_SUPPORT)
 template <typename MediaType>
 void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::setFormat (enum AVSampleFormat format_in,
+                                                                  struct _AMMediaType& mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::setFormat"));
+
+  // sanity check(s)
+  ACE_ASSERT (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_WaveFormatEx));
+
+  mediaType_inout.subtype =
+    Stream_MediaFramework_Tools::AVSampleFormatToMediaSubType (format_in);
+  struct tWAVEFORMATEX* waveformatex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (mediaType_inout.pbFormat);
+  ACE_ASSERT (waveformatex_p);
+  waveformatex_p->wFormatTag =
+    Stream_MediaFramework_Tools::AVSampleFormatToFormatTag (format_in);
+  waveformatex_p->wBitsPerSample =
+    Stream_MediaFramework_Tools::AVSampleFormatToBitCount (format_in);
+
+  // recompute derived values
+  mediaType_inout.lSampleSize = waveformatex_p->nBlockAlign;
+  waveformatex_p->nBlockAlign =
+    waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8);
+  waveformatex_p->nAvgBytesPerSec =
+    waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign;
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::setSampleRate (unsigned int sampleRate_in,
+                                                                      struct _AMMediaType& mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::setSampleRate"));
+
+  // sanity check(s)
+  ACE_ASSERT (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_WaveFormatEx));
+
+  struct tWAVEFORMATEX* waveformatex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (mediaType_inout.pbFormat);
+  ACE_ASSERT (waveformatex_p);
+  waveformatex_p->nSamplesPerSec = sampleRate_in;
+
+  // recompute derived values
+  waveformatex_p->nAvgBytesPerSec =
+    waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign;
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::setChannels (unsigned int channels_in,
+                                                                    struct _AMMediaType& mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::setChannels"));
+
+  // sanity check(s)
+  ACE_ASSERT (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_WaveFormatEx));
+
+  struct tWAVEFORMATEX* waveformatex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (mediaType_inout.pbFormat);
+  ACE_ASSERT (waveformatex_p);
+  waveformatex_p->nChannels = channels_in;
+
+  // recompute derived values
+  mediaType_inout.lSampleSize = waveformatex_p->nBlockAlign;
+  waveformatex_p->nBlockAlign =
+    waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8);
+  waveformatex_p->nAvgBytesPerSec =
+    waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign;
+}
+
+template <typename MediaType>
+void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct _AMMediaType& mediaType_in,
                                                                      enum Stream_MediaType_Type type_in,
                                                                      struct Stream_MediaFramework_FFMPEG_AudioMediaType& mediaType_out)

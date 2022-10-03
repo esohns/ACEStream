@@ -25,6 +25,15 @@
 #include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (FFMPEG_SUPPORT)
+#ifdef __cplusplus
+extern "C"
+{
+#include "libavcodec/avcodec.h"
+}
+#endif // __cplusplus
+#endif // FFMPEG_SUPPORT
+
 #include <list>
 #include <map>
 #include <string>
@@ -143,15 +152,29 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
 #else
    , ALSAConfiguration (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
+   , codecId (AV_CODEC_ID_NONE)
    , deviceIdentifier ()
+   , outputFormat ()
    , pushStatisticMessages (true)
-  {}
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ACE_OS::memset (&outputFormat, 0, sizeof (struct _AMMediaType));
+#endif // ACE_WIN32 || ACE_WIN64
+  }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (FFMPEG_SUPPORT)
+  enum AVCodecID                                   codecId;
+#endif // FFMPEG_SUPPORT
   struct Stream_Device_Identifier                  deviceIdentifier;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType                              outputFormat;
+#else
+  struct Stream_MediaFramework_ALSA_MediaFormat    outputFormat;
+#endif // ACE_WIN32 || ACE_WIN64
   bool                                             pushStatisticMessages;
 };
 

@@ -308,6 +308,7 @@ do_work (unsigned int bufferSize_in,
 
   struct Test_I_MP3Player_Configuration configuration;
   struct Stream_AllocatorConfiguration allocator_configuration;
+  //allocator_configuration.defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
   Test_I_Stream stream;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_AllocatorConfiguration> heap_allocator;
@@ -325,10 +326,35 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_MP3Player_ModuleHandlerConfiguration modulehandler_configuration;
+#if defined (FFMPEG_SUPPORT)
+  modulehandler_configuration.codecId = AV_CODEC_ID_AAC;
+#endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
     Stream_Device_Identifier::ID;
   modulehandler_configuration.deviceIdentifier.identifier._id = 0;
+  struct tWAVEFORMATEX waveformatex_s;
+  ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
+  waveformatex_s.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
+  waveformatex_s.nChannels = 1;
+  waveformatex_s.nSamplesPerSec = 48000;
+  waveformatex_s.wBitsPerSample = 32;
+  waveformatex_s.nBlockAlign =
+    (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
+  waveformatex_s.nAvgBytesPerSec =
+    (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
+  // waveformatex_s.cbSize = 0;
+  HRESULT result =
+    CreateAudioMediaType (&waveformatex_s,
+                          &modulehandler_configuration.outputFormat,
+                          TRUE); // set format ?
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to CreateAudioMediaType(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    return;
+  } // end IF
 #else
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration;
   ALSA_configuration.asynch = false;

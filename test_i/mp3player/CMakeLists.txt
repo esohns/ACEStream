@@ -1,10 +1,18 @@
 include (ffmpeg)
+include (ImageMagick)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
+include (faad)
 include (mpg123)
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
+if (FFMPEG_SUPPORT)
+ include_directories (${ffmpeg_INCLUDE_DIRS})
+endif (FFMPEG_SUPPORT)
+if (FAAD_SUPPORT)
+ include_directories (${faad_INCLUDE_DIRS})
+endif (FAAD_SUPPORT)
 if (MPG123_SUPPORT)
  include_directories (${MPG123_INCLUDE_DIRS})
 endif (MPG123_SUPPORT)
@@ -82,6 +90,12 @@ endif ()
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
+if (FFMPEG_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${ffmpeg_LIBRARIES})
+endif (FFMPEG_SUPPORT)
+if (FAAD_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${faad_LIBRARIES})
+endif (FAAD_SUPPORT)
 if (MPG123_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${MPG123_LIBRARY})
 endif (MPG123_SUPPORT)
@@ -129,12 +143,16 @@ elseif (WIN32)
  if (WXWIDGETS_SUPPORT)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS} ${wxWidgets_LIB_DIR})
  endif (WXWIDGETS_SUPPORT)
+ file (TO_CMAKE_PATH "${faad_LIB_DIR}" FAAD_PATH)
  file (TO_CMAKE_PATH "${MPG123_LIB_DIR}" MPG123_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
+ file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                           ${FAAD_PATH}
                            ${MPG123_PATH}
                            ${FFMPEG_PATH}
+                           ${IMAGEMAGICK_PATH}
                            ${ACE_PATH})
  create_target_launcher (${EXECUTABLE}
                          COMMAND ${COMMAND}

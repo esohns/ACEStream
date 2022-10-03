@@ -1188,6 +1188,44 @@ Stream_MediaFramework_Tools::AVSampleFormatToFormatTag (enum AVSampleFormat samp
   return 0;
 }
 
+WORD
+Stream_MediaFramework_Tools::AVSampleFormatToBitCount (enum AVSampleFormat sampleFormat_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::AVSampleFormatToBitCount"));
+
+  switch (sampleFormat_in)
+  {
+    case AV_SAMPLE_FMT_NONE:
+      break;
+    case AV_SAMPLE_FMT_U8:
+    case AV_SAMPLE_FMT_U8P:
+      return 8;
+    case AV_SAMPLE_FMT_S16:
+    case AV_SAMPLE_FMT_S16P:
+      return 16;
+    case AV_SAMPLE_FMT_S32:
+    case AV_SAMPLE_FMT_S32P:
+    case AV_SAMPLE_FMT_FLT:
+    case AV_SAMPLE_FMT_FLTP:
+      return 32;
+    case AV_SAMPLE_FMT_S64:
+    case AV_SAMPLE_FMT_S64P:
+    case AV_SAMPLE_FMT_DBL:
+    case AV_SAMPLE_FMT_DBLP:
+      return 64;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown sample format (was: %d \"%s\"), aborting\n"),
+                  sampleFormat_in,
+                  ACE_TEXT (av_get_sample_fmt_name (sampleFormat_in))));
+      break;
+    }
+  } // end SWITCH
+
+  return 0;
+}
+
 struct _GUID
 Stream_MediaFramework_Tools::AVSampleFormatToMediaSubType (enum AVSampleFormat sampleFormat_in)
 {

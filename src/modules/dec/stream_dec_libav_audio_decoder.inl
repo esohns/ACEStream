@@ -413,6 +413,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                                 STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
       MediaType media_type_2;
+      ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_AUDIO,
                                 media_type_2);

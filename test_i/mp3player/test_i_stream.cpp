@@ -31,14 +31,31 @@ extern "C"
 
 #include "ace/Log_Msg.h"
 
+#include "common_file_tools.h"
+#include "common_string_tools.h"
+
 #include "stream_macros.h"
+
+#include "stream_file_defines.h"
 
 #include "test_i_stream.h"
 
 Test_I_Stream::Test_I_Stream ()
  : inherited ()
- , decoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_1LAYER3_DEFAULT_NAME_STRING))
+ , FileSource_ (this,
+                ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING))
+#if defined (MPG123_SUPPORT)
+ , Mp3Source_ (this,
+               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_1LAYER3_DEFAULT_NAME_STRING))
+#endif // MPG123_SUPPORT
+#if defined (FFMPEG_SUPPORT)
+ , FfmpegDecoder_ (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING))
+#endif // FFMPEG_SUPPORT
+#if defined (FAAD_SUPPORT)
+ , FaadDecoder_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FAAD_DEFAULT_NAME_STRING))
+#endif // FAAD_SUPPORT
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  //, WAVEncoder_ (this,
@@ -69,7 +86,28 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   // initialize return value(s)
   delete_out = false;
 
-  layout_in->append (&decoder_, NULL, 0);
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+  ACE_ASSERT (!(*iterator).second.second->fileIdentifier.identifier.empty ());
+
+  std::string extension_string =
+    Common_String_Tools::tolower (Common_File_Tools::fileExtension ((*iterator).second.second->fileIdentifier.identifier,
+                                                                    false));
+  bool is_mp3_file_b =
+    !ACE_OS::strcmp (extension_string.c_str (),
+                     ACE_TEXT_ALWAYS_CHAR ("mp3"));
+  if (is_mp3_file_b)
+    layout_in->append (&Mp3Source_, NULL, 0);
+  else
+  {
+    layout_in->append (&FileSource_, NULL, 0);
+#if defined (FFMPEG_SUPPORT)
+    layout_in->append (&FfmpegDecoder_, NULL, 0);
+#endif // FFMPEG_SUPPORT
+  } // end ELSE
   layout_in->append (&statisticReport_, NULL, 0);
   //layout_in->append (&WAVEncoder_, NULL, 0);
   //layout_in->append (&FileSink_, NULL, 0);
@@ -113,29 +151,16 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   iterator =
       const_cast<Test_I_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
+  struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  Stream_MediaFramework_DirectShow_Tools::copy ((*iterator).second.second->outputFormat,
+                                                media_type_s);
+  session_data_p->formats.push_back (media_type_s);
   session_data_p->targetFileName =
     configuration_in.configuration_->fileIdentifier.identifier;
 
   // ---------------------------------------------------------------------------
   // *TODO*: remove type inferences
-
-  // ---------------------------------------------------------------------------
-  // ******************* HTTP Marshal ************************
-  MP3Decoder_impl_p =
-    dynamic_cast<Test_I_MP3Decoder*> (decoder_.writer ());
-  if (!MP3Decoder_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Test_I_MP3Decoder> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto failed;
-  } // end IF
-  MP3Decoder_impl_p->setP (&(inherited::state_));
-
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  decoder_.arg (inherited::sessionData_);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup ())

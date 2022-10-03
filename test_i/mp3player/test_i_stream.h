@@ -101,14 +101,23 @@ class Test_I_Stream
   void ping ();
 
   // modules
-  Test_I_MP3Decoder_Module      decoder_;
-  Test_I_StatisticReport_Module statisticReport_;
+  Test_I_FileSource_Module        FileSource_;
+#if defined (MPG123_SUPPORT)
+  Test_I_MP3Decoder_Module        Mp3Source_;
+#endif // MPG123_SUPPORT
+#if defined (FFMPEG_SUPPORT)
+  Test_I_LibAVAudioDecoder_Module FfmpegDecoder_;
+#endif // FFMPEG_SUPPORT
+#if defined (FAAD_SUPPORT)
+  Test_I_AACDecoder_Module        FaadDecoder_;
+#endif // FAAD_SUPPORT
+  Test_I_StatisticReport_Module   statisticReport_;
   //Test_I_WAVEncoder_Module      WAVEncoder_;
   //Test_I_FileWriter_Module      FileSink_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_WavOutPlayer_Module    player_;
+  Test_I_WavOutPlayer_Module      player_;
 #else
-  Test_I_ALSAPlayer_Module      player_;
+  Test_I_ALSAPlayer_Module        player_;
 #endif // ACE_WIN32 || ACE_WIN64
 };
 
