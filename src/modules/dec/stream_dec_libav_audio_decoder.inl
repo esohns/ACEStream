@@ -328,10 +328,10 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                          message_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_Decoder_LibAVAudioDecoder_T::decodePacket(), aborting\n"),
+                    ACE_TEXT ("%s: failed to Stream_Decoder_LibAVAudioDecoder_T::decodePacket(), continuing\n"),
                     inherited::mod_->name ()));
         abort_session_on_error = false; // do not abort the whole session; retry
-        goto error;
+        continue;
       } // end IF
       if (!message_p)
         continue;
@@ -474,92 +474,92 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       } // end IF
       ACE_ASSERT (context_);
 
-      codec_parameters_p = avcodec_parameters_alloc ();
-      if (unlikely (!codec_parameters_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to avcodec_parameters_alloc(): \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
-      codec_parameters_p->codec_type = AVMEDIA_TYPE_AUDIO;
-      codec_parameters_p->codec_id = codecId_;
-      //codec_parameters_p->codec_tag = ;
-      //codec_parameters_p->extradata = NULL;
-      //codec_parameters_p->extradata_size = 0;
-      codec_parameters_p->format = outputFormat_;
-      //codec_parameters_p->bit_rate = 200000;
-      codec_parameters_p->bits_per_coded_sample =
-        av_get_bytes_per_sample (outputFormat_) * 8;
-      codec_parameters_p->bits_per_raw_sample =
-        av_get_bytes_per_sample (outputFormat_) * 8;
-      // codec_parameters_p->profile = FF_PROFILE_H264_HIGH;
-      //codec_parameters_p->level = ;
-      //codec_parameters_p->width = 0;
-      //codec_parameters_p->height = 0;
-      //codec_parameters_p->sample_aspect_ratio.num = 1;
-      //codec_parameters_p->sample_aspect_ratio.den = 1;
-      //codec_parameters_p->field_order = AV_FIELD_UNKNOWN;
-      //codec_parameters_p->color_range = ;
-      //codec_parameters_p->color_primaries = ;
-      //codec_parameters_p->color_trc = ;
-      //codec_parameters_p->color_space = ;
-      //codec_parameters_p->chroma_location = ;
-      //codec_parameters_p->video_delay = 0;
-      codec_parameters_p->channel_layout =
-          Stream_Module_Decoder_Tools::channelsToLayout (outputChannels_);
-      codec_parameters_p->channels = outputChannels_;
-      codec_parameters_p->sample_rate = outputSampleRate_;
-      codec_parameters_p->block_align =
-        av_get_bytes_per_sample (outputFormat_) * outputChannels_;
-      codec_parameters_p->frame_size =
-        av_get_bytes_per_sample (outputFormat_) * outputChannels_;
-      codec_parameters_p->initial_padding = 0;
-      codec_parameters_p->trailing_padding = 0;
-      codec_parameters_p->seek_preroll = 0;
+      //codec_parameters_p = avcodec_parameters_alloc ();
+      //if (unlikely (!codec_parameters_p))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("%s: failed to avcodec_parameters_alloc(): \"%m\", aborting\n"),
+      //              inherited::mod_->name ()));
+      //  goto error;
+      //} // end IF
+      //codec_parameters_p->codec_type = AVMEDIA_TYPE_AUDIO;
+      //codec_parameters_p->codec_id = codecId_;
+      ////codec_parameters_p->codec_tag = ;
+      ////codec_parameters_p->extradata = NULL;
+      ////codec_parameters_p->extradata_size = 0;
+      //codec_parameters_p->format = outputFormat_;
+      ////codec_parameters_p->bit_rate = 200000;
+      //codec_parameters_p->bits_per_coded_sample =
+      //  av_get_bytes_per_sample (outputFormat_) * 8;
+      //codec_parameters_p->bits_per_raw_sample =
+      //  av_get_bytes_per_sample (outputFormat_) * 8;
+      //// codec_parameters_p->profile = FF_PROFILE_H264_HIGH;
+      ////codec_parameters_p->level = ;
+      ////codec_parameters_p->width = 0;
+      ////codec_parameters_p->height = 0;
+      ////codec_parameters_p->sample_aspect_ratio.num = 1;
+      ////codec_parameters_p->sample_aspect_ratio.den = 1;
+      ////codec_parameters_p->field_order = AV_FIELD_UNKNOWN;
+      ////codec_parameters_p->color_range = ;
+      ////codec_parameters_p->color_primaries = ;
+      ////codec_parameters_p->color_trc = ;
+      ////codec_parameters_p->color_space = ;
+      ////codec_parameters_p->chroma_location = ;
+      ////codec_parameters_p->video_delay = 0;
+      //codec_parameters_p->channel_layout =
+      //    Stream_Module_Decoder_Tools::channelsToLayout (outputChannels_);
+      //codec_parameters_p->channels = outputChannels_;
+      //codec_parameters_p->sample_rate = outputSampleRate_;
+      //codec_parameters_p->block_align =
+      //  av_get_bytes_per_sample (outputFormat_) * outputChannels_;
+      //codec_parameters_p->frame_size =
+      //  av_get_bytes_per_sample (outputFormat_) * outputChannels_;
+      //codec_parameters_p->initial_padding = 0;
+      //codec_parameters_p->trailing_padding = 0;
+      //codec_parameters_p->seek_preroll = 0;
 
-      flags = AV_CODEC_FLAG_UNALIGNED      |
-              //AV_CODEC_FLAG_QSCALE         |
-      //        AV_CODEC_FLAG_4MV            |
-              AV_CODEC_FLAG_OUTPUT_CORRUPT |
-              //AV_CODEC_FLAG_QPEL           |
-              //AV_CODEC_FLAG_DROPCHANGED          |
-              //AV_CODEC_FLAG_PASS1          |
-              //AV_CODEC_FLAG_PASS2          |
-              AV_CODEC_FLAG_LOOP_FILTER    |
-              //AV_CODEC_FLAG_GRAY           |
-              //AV_CODEC_FLAG_PSNR           |
-              AV_CODEC_FLAG_TRUNCATED      |
-              //AV_CODEC_FLAG_INTERLACED_DCT |
-              AV_CODEC_FLAG_LOW_DELAY      |
-              //AV_CODEC_FLAG_GLOBAL_HEADER  |
-              AV_CODEC_FLAG_BITEXACT;//       |
-              //AV_CODEC_FLAG_AC_PRED        |
-      //AV_CODEC_FLAG_INTERLACED_ME  |
-      //AV_CODEC_FLAG_CLOSED_GOP;
+      //flags = AV_CODEC_FLAG_UNALIGNED      |
+      //        //AV_CODEC_FLAG_QSCALE         |
+      ////        AV_CODEC_FLAG_4MV            |
+      //        AV_CODEC_FLAG_OUTPUT_CORRUPT |
+      //        //AV_CODEC_FLAG_QPEL           |
+      //        //AV_CODEC_FLAG_DROPCHANGED          |
+      //        //AV_CODEC_FLAG_PASS1          |
+      //        //AV_CODEC_FLAG_PASS2          |
+      //        AV_CODEC_FLAG_LOOP_FILTER    |
+      //        //AV_CODEC_FLAG_GRAY           |
+      //        //AV_CODEC_FLAG_PSNR           |
+      //        AV_CODEC_FLAG_TRUNCATED      |
+      //        //AV_CODEC_FLAG_INTERLACED_DCT |
+      //        AV_CODEC_FLAG_LOW_DELAY      |
+      //        //AV_CODEC_FLAG_GLOBAL_HEADER  |
+      //        AV_CODEC_FLAG_BITEXACT;//       |
+      //        //AV_CODEC_FLAG_AC_PRED        |
+      ////AV_CODEC_FLAG_INTERLACED_ME  |
+      ////AV_CODEC_FLAG_CLOSED_GOP;
 
-      flags2 = AV_CODEC_FLAG2_FAST          |
-      //         AV_CODEC_FLAG2_NO_OUTPUT           |
-      //         AV_CODEC_FLAG2_LOCAL_HEADER        |
-      //         AV_CODEC_FLAG2_DROP_FRAME_TIMECODE |
-               AV_CODEC_FLAG2_CHUNKS        |
-               //AV_CODEC_FLAG2_IGNORE_CROP   |
-               AV_CODEC_FLAG2_SHOW_ALL      |
-               //AV_CODEC_FLAG2_EXPORT_MVS    |
-               AV_CODEC_FLAG2_SKIP_MANUAL;
-      // AV_CODEC_FLAG2_RO_FLUSH_NOOP
+      //flags2 = AV_CODEC_FLAG2_FAST          |
+      ////         AV_CODEC_FLAG2_NO_OUTPUT           |
+      ////         AV_CODEC_FLAG2_LOCAL_HEADER        |
+      ////         AV_CODEC_FLAG2_DROP_FRAME_TIMECODE |
+      //         AV_CODEC_FLAG2_CHUNKS        |
+      //         //AV_CODEC_FLAG2_IGNORE_CROP   |
+      //         AV_CODEC_FLAG2_SHOW_ALL      |
+      //         //AV_CODEC_FLAG2_EXPORT_MVS    |
+      //         AV_CODEC_FLAG2_SKIP_MANUAL;
+      //// AV_CODEC_FLAG2_RO_FLUSH_NOOP
 
-      result = avcodec_parameters_to_context (context_,
-                                              codec_parameters_p);
-      if (unlikely (result < 0))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avcodec_parameters_to_context() failed: \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-        goto error;
-      } // end IF
-      avcodec_parameters_free (&codec_parameters_p); codec_parameters_p = NULL;
+      //result = avcodec_parameters_to_context (context_,
+      //                                        codec_parameters_p);
+      //if (unlikely (result < 0))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("%s: avcodec_parameters_to_context() failed: \"%s\", aborting\n"),
+      //              inherited::mod_->name (),
+      //              ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+      //  goto error;
+      //} // end IF
+      //avcodec_parameters_free (&codec_parameters_p); codec_parameters_p = NULL;
 #if defined (_DEBUG)
       context_->debug = (inherited::configuration_->debug ? debug_i : 0);
 #endif // _DEBUG
@@ -606,9 +606,9 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                                 Stream_Module_Decoder_Tools::channelsToLayout (outputChannels_), // out_ch_layout
                                 outputFormat_,            // out_sample_fmt
                                 outputSampleRate_,        // out_sample_rate
-                                context_->channel_layout, // in_ch_layout
+                                Stream_Module_Decoder_Tools::channelsToLayout (outputChannels_), // in_ch_layout
                                 context_->sample_fmt,     // in_sample_fmt
-                                context_->sample_rate,    // in_sample_rate
+                                outputSampleRate_,    // in_sample_rate
                                 0,                        // log_offset
                                 NULL);                    // log_ctx
         if (unlikely (!transformContext_))
@@ -630,7 +630,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       format_ = context_->sample_fmt;
       sampleRate_ = context_->sample_rate;
       frameSize_ =
-        av_get_bytes_per_sample (context_->sample_fmt) * context_->channels;
+        av_get_bytes_per_sample (context_->sample_fmt) * outputChannels_;
 
       ACE_ASSERT (!frame_);
       frame_ = av_frame_alloc ();
