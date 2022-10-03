@@ -321,7 +321,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
   spin_button_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
@@ -330,7 +330,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
   spin_button_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
@@ -339,7 +339,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT64>::max ()));
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -419,7 +419,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT(spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              -1.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
   gtk_spin_button_set_value (spin_button_p,
                              static_cast<double> (ui_cb_data_p->loop));
 
@@ -431,7 +431,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
   gtk_spin_button_set_value (spin_button_p,
                              static_cast<double> (ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize));
 
@@ -941,7 +941,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
   spin_button_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
@@ -950,7 +950,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
   spin_button_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
@@ -959,7 +959,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT64>::max ()));
   spin_button_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
@@ -968,7 +968,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -1111,7 +1111,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
   gtk_spin_button_set_value (spin_button_p,
                               static_cast<double> (ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize));
 

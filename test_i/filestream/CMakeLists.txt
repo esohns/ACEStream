@@ -1,3 +1,5 @@
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts")
+include (SSLConfig)
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
@@ -12,12 +14,10 @@ if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
 endif (NOT EXISTS ${ACENetwork_DIR})
 
+if (SSL_SUPPORT)
+ include_directories (${SSL_INCLUDE_DIRS})
+endif (SSL_SUPPORT)
 if (UNIX)
-# include_directories (${PKG_CAP_INCLUDE_DIRS})
-
-# include_directories (/usr/local/src/ACE_wrappers)
-# include_directories ($ENV{LIB_ROOT}/ACE_TAO/ACE)
-
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
@@ -26,15 +26,6 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../ACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../ACENetwork/src/client_server)
 elseif (WIN32)
-# *TODO*: repair pkgconfig support
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
-
-# if (DEFINED ENV{ACE_ROOT})
-#  include_directories ($ENV{ACE_ROOT})
-# else ()
-#  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
-# endif (DEFINED ENV{ACE_ROOT})
-
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/error)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
@@ -179,38 +170,35 @@ endif ()
 
 #guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
 if (UNIX)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_SOURCE}" COMMAND)
  create_target_launcher (${EXECUTABLE_SOURCE}
+                         COMMAND ${COMMAND}
 #                         ARGS "-l -t"
                          ARGS "-f ~/Downloads/keyvalue-0.3.tgz -g -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
-#                                              ${PROJECT_SOURCE_DIR}/../gtk3/bin
-#                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/ui/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/dev/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
+                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/filestream
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_PATH)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_SOURCE}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
+ if (GTK_SUPPORT)
+  file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
+  file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
+ endif (WXWIDGETS_SUPPORT)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
  create_target_launcher (${EXECUTABLE_SOURCE}
+                         COMMAND ${COMMAND}
                          ARGS "-f D:\\\\temp\\\\H264_720p.ts -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${GTK_PATH}
+                                              ${WXWIDGETS_PATH}
                                               ${SSL_PATH}
                                               ${ACE_PATH}
-                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/err/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/ui/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/dev/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
+                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/filestream
                          ENVIRONMENT foo=bar)
 endif ()
 
@@ -329,38 +317,26 @@ elseif (WIN32)
 endif ()
 #guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
 if (UNIX)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_TARGET}" COMMAND)
  create_target_launcher (${EXECUTABLE_TARGET}
+                         COMMAND ${COMMAND}
                          ARGS "-l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
-#                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
-#                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/ui/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/dev/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
+                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/filestream
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_TARGET}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  create_target_launcher (${EXECUTABLE_TARGET}
+                         COMMAND ${COMMAND}
                          ARGS "-l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${GTK_PATH}
+                                              ${WXWIDGETS_PATH}
                                               ${SSL_PATH}
                                               ${ACE_PATH}
-                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-                                              G:/software/Development/dll
-                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/err/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/ui/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/dev/${CMAKE_BUILD_TYPE}
-                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
+                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/filestream
                          ENVIRONMENT foo=bar)
 endif ()
 

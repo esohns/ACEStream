@@ -463,12 +463,14 @@ continue_3:
       }
 #endif // _DEBUG
 
-      if (!linked_        &&
-          freeSessionData_) // --> head modules finalize this in close()
-      { ACE_ASSERT (sessionData_);
+      if (!linked_         &&
+          freeSessionData_ && // --> head modules finalize this in close()
+          sessionData_)       // --> may not have been initialized yet (e.g.
+                              // upstream module called abort in begin session)
+      {
         sessionData_->decrease (); sessionData_ = NULL;
         sessionDataLock_ = NULL;
-        freeSessionData_ = false; // *TODO*: why is this needed ?
+        freeSessionData_ = false;
       } // end IF
 
       break;
