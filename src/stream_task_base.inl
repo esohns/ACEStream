@@ -60,7 +60,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
  , linked_ (0)
  , sessionData_ (NULL)
  /////////////////////////////////////////
- , freeSessionData_ (true)
+ , freeSessionData_ (false)
  , sessionData_2 (NULL)
  , sessionDataLock_ (NULL)
 {
@@ -130,7 +130,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     {
       sessionData_->decrease (); sessionData_ = NULL;
     } // end IF
-    freeSessionData_ = true;
+    freeSessionData_ = false;
     if (unlikely (sessionData_2))
     {
       sessionData_2->decrease (); sessionData_2 = NULL;
@@ -431,14 +431,12 @@ continue_2:
 
       // sanity check(s)
       if (unlikely (sessionData_)) // --> head modules initialize this in open()
-      {
-        freeSessionData_ = false;
         goto continue_3;
-      } // end IF
 
       sessionData_ =
         &const_cast<typename SessionMessageType::DATA_T&> (message_inout->getR ());
       sessionData_->increase ();
+      freeSessionData_ = true;
 
 continue_3:
       // sanity check(s)
@@ -464,13 +462,11 @@ continue_3:
 #endif // _DEBUG
 
       if (!linked_         &&
-          freeSessionData_ && // --> head modules finalize this in close()
-          sessionData_)       // --> may not have been initialized yet (e.g.
-                              // upstream module called abort in begin session)
-      {
+          freeSessionData_) // --> head modules finalize this in close()
+      { ACE_ASSERT (sessionData_);
         sessionData_->decrease (); sessionData_ = NULL;
-        sessionDataLock_ = NULL;
         freeSessionData_ = false;
+        sessionDataLock_ = NULL;
       } // end IF
 
       break;
