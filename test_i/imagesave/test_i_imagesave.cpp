@@ -436,7 +436,7 @@ do_work (
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_ImageSave_ModuleHandlerConfiguration modulehandler_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_ImageSave_ModuleHandlerConfiguration modulehandler_configuration_2;
+  struct Test_I_ImageSave_ModuleHandlerConfiguration modulehandler_configuration_2; // display
 #endif // ACE_WIN32 || ACE_WIN64
   struct Test_I_ImageSave_StreamConfiguration stream_configuration;
 #if defined (GUI_SUPPORT)
@@ -454,10 +454,10 @@ do_work (
   Test_I_EventHandler_t ui_event_handler;
 #endif // GUI_SUPPORT
 
-  Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator_2;
-#endif // ACE_WIN32 || ACE_WIN64
+//  Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator;
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator_2;
+//#endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.allocatorConfiguration =
     &allocator_configuration;
   modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
@@ -522,14 +522,6 @@ do_work (
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
 #endif // ACE_WIN32 || ACE_WIN64
-  stream_iterator =
-    configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != configuration_in.streamConfiguration.end ());
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  stream_iterator_2 =
-    configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
-  ACE_ASSERT (stream_iterator_2 != configuration_in.streamConfiguration.end ());
-#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND window_handle = NULL;
@@ -543,29 +535,31 @@ do_work (
   //    static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.second->window));
   //} // end IF
 #if defined (FFMPEG_SUPPORT)
+  modulehandler_configuration.outputFormat.video.frameRate.num =
+    STREAM_DEV_CAM_DEFAULT_CAPTURE_FRAME_RATE;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  (*stream_iterator).second.second->outputFormat.video.format = AV_PIX_FMT_BGR24;
+  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_BGR24;
 #else
-  (*stream_iterator).second.second->outputFormat.video.format = AV_PIX_FMT_RGB32;
+  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_RGB32;
 #endif // GTK_USE
 #else
-  (*stream_iterator).second.second->outputFormat.video.format = AV_PIX_FMT_RGB32;
+  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_RGB32;
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  (*stream_iterator).second.second->outputFormat.video.resolution.cx = 1920;
-  (*stream_iterator).second.second->outputFormat.video.resolution.cy = 1080;
+  modulehandler_configuration.outputFormat.video.resolution.cx = 1920;
+  modulehandler_configuration.outputFormat.video.resolution.cy = 1080;
 #else
-  (*stream_iterator).second.second->outputFormat.video.resolution.width = 1920;
-  (*stream_iterator).second.second->outputFormat.video.resolution.height = 1080;
+  modulehandler_configuration.outputFormat.video.resolution.width = 1920;
+  modulehandler_configuration.outputFormat.video.resolution.height = 1080;
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  (*stream_iterator_2).second.second->outputFormat =
-    (*stream_iterator).second.second->outputFormat;
+  modulehandler_configuration_2.outputFormat =
+    modulehandler_configuration.outputFormat;
 #endif // ACE_WIN32 || ACE_WIN64
   configuration_in.streamConfiguration.configuration_->format =
-    (*stream_iterator).second.second->outputFormat;
+    modulehandler_configuration.outputFormat;
 
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -577,9 +571,9 @@ do_work (
   //directShowConfiguration_in.direct3DConfiguration.focusWindow =
   //    GetConsoleWindow ();
   configuration_in.direct3DConfiguration.presentationParameters.BackBufferWidth =
-    (*stream_iterator).second.second->outputFormat.video.resolution.cx;
+    modulehandler_configuration.outputFormat.video.resolution.cx;
   configuration_in.direct3DConfiguration.presentationParameters.BackBufferHeight =
-    (*stream_iterator).second.second->outputFormat.video.resolution.cy;
+    modulehandler_configuration.outputFormat.video.resolution.cy;
   configuration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
     GetConsoleWindow ();
   IDirect3DDeviceManager9* direct3D_manager_p = NULL;
