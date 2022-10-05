@@ -791,16 +791,12 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                                   media_type_2);
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
           session_data_r.formats.push_back (media_type_2);
-          formatsIndex_ =
-            static_cast<unsigned int> (session_data_r.formats.size () - 1);
         } // end lock scope
       } // end IF
       else
-      {
         inherited2::free_ (media_type_2);
-        formatsIndex_ =
-          static_cast<unsigned int> (session_data_r.formats.size ());
-      } // end ELSE
+      formatsIndex_ =
+        static_cast<unsigned int> (session_data_r.formats.size () - 1);
 
       goto continue_;
 
@@ -828,7 +824,7 @@ continue_:
       ACE_ASSERT (session_data_r.lock);
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        if (session_data_r.formats.size () >= formatsIndex_)
+        if ((session_data_r.formats.size () - 1) > formatsIndex_)
         {
           typename SessionDataContainerType::DATA_T::MEDIAFORMATS_ITERATOR_T iterator =
             session_data_r.formats.begin ();
@@ -840,57 +836,6 @@ continue_:
                                   STREAM_MEDIATYPE_VIDEO,
                                   media_type_2);
       } // end lock scope
-
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//      formatHeight_ =
-//          static_cast<unsigned int> (std::abs (media_type_s.resolution.cy));
-//      formatWidth_ = static_cast<unsigned int> (media_type_s.resolution.cx);
-////      Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
-//#else
-////      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2 =
-////        media_type_s;
-//      formatHeight_ = media_type_s.resolution.height;
-//      formatWidth_ = media_type_s.resolution.width;
-//#endif // ACE_WIN32 || ACE_WIN64
-
-//      frameSize_ =
-//        av_image_get_buffer_size (context_->pix_fmt,
-//                                  formatWidth_,
-//                                  formatHeight_,
-//                                  1); // *TODO*: linesize alignment
-
-//      if (transformContext_)
-//      {
-//        sws_freeContext (transformContext_); transformContext_ = NULL;
-
-//        int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-//                     SWS_LANCZOS | SWS_ACCURATE_RND | SWS_BITEXACT);
-//        transformContext_ =
-//            sws_getCachedContext (NULL,
-//                                  formatWidth_, formatHeight_, context_->pix_fmt,
-//                                  formatWidth_, formatHeight_, outputFormat_,
-//                                  flags,                        // flags
-//                                  NULL, NULL,                   // filters
-//                                  0);                           // parameters
-//        if (unlikely (!transformContext_))
-//        {
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("%s: failed to sws_getCachedContext(): \"%m\", returning\n"),
-//                      inherited::mod_->name ()));
-//          break;
-//        } // end IF
-//      } // end IF
-
-      //      outputFrameSize_ =
-      //        av_image_get_buffer_size (outputFormat_,
-      //                                  formatWidth_,
-      //                                  formatHeight_,
-      //                                  1); // *TODO*: linesize alignment
-
-      //      ACE_DEBUG ((LM_DEBUG,
-      //                  ACE_TEXT ("%s: modified frame resolution to %ux%u\n"),
-      //                  inherited::mod_->name (),
-      //                  formatWidth_, formatHeight_));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       Common_Image_Resolution_t resolution_s = { static_cast<LONG> (formatWidth_),

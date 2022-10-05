@@ -1426,6 +1426,14 @@ do_work (const std::string& scorerFile_in,
         converter << gain_in;
         directshow_modulehandler_configuration.effectOptions.push_back (converter.str ());
       } // end IF
+      else
+      {
+        directshow_modulehandler_configuration.effect =
+          ACE_TEXT_ALWAYS_CHAR ("compand");
+        std::string effect_options_string =
+          //ACE_TEXT_ALWAYS_CHAR ("0.1,0.3 -60,-60,-30,-15,-20,-12,-4,-8,-2,-7 -2");
+          ACE_TEXT_ALWAYS_CHAR ("0.02,0.20 5:-60,-40,-10 -5 -90 0.1");
+      } // end ELSE
       directshow_modulehandler_configuration.filterConfiguration =
         &directShowConfiguration_in.filterConfiguration;
       directshow_modulehandler_configuration.messageAllocator =

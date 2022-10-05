@@ -1671,9 +1671,11 @@ idle_update_info_display_cb (gpointer userData_in)
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
-  GtkTextBuffer* text_buffer_p =
-    GTK_TEXT_BUFFER (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTBUFFER_NAME)));
+  GtkTextView* text_view_p =
+    GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_NAME)));
+  ACE_ASSERT (text_view_p);
+  GtkTextBuffer* text_buffer_p = gtk_text_view_get_buffer (text_view_p);
   ACE_ASSERT (text_buffer_p);
 
   Stream_Decoder_DeepSpeech_Result_t* result_p = NULL;
@@ -1818,6 +1820,25 @@ idle_update_info_display_cb (gpointer userData_in)
                                         1);
     } // end FOR
     result_p->clear ();
+
+    // scroll the view accordingly
+    GtkTextIter text_iterator;
+    gtk_text_buffer_get_end_iter (text_buffer_p,
+                                  &text_iterator);
+    // move the iterator to the beginning of line, so it doesn't scroll
+    // in horizontal direction
+    gtk_text_iter_set_line_offset (&text_iterator, 0);
+    // ...and place the mark at iter. The mark will stay there after insertion
+    // because it has "right" gravity
+    GtkTextMark* text_mark_p =
+        gtk_text_buffer_get_mark (text_buffer_p,
+                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCROLLMARK_NAME));
+    //gtk_text_buffer_move_mark (text_buffer_p,
+    //                           text_mark_p,
+    //                           &text_iterator);
+    // scroll the mark onscreen
+    gtk_text_view_scroll_mark_onscreen (text_view_p,
+                                        text_mark_p);
   } // end lock scope
 
   return G_SOURCE_CONTINUE;
@@ -3319,6 +3340,34 @@ button_about_clicked_cb (GtkWidget* widget_in,
   } // end SWITCH
   //gtk_widget_hide (GTK_WIDGET (dialog_p));
 } // button_about_clicked_cb
+
+void
+button_clear_clicked_cb (GtkWidget* widget_in,
+                         gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::button_clear_clicked_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (userData_in);
+
+  // sanity check(s)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_r.builders.end ());
+
+  GtkTextView* text_view_p =
+    GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_NAME)));
+  ACE_ASSERT (text_view_p);
+  GtkTextBuffer* text_buffer_p = gtk_text_view_get_buffer (text_view_p);
+  ACE_ASSERT (text_buffer_p);
+  gtk_text_buffer_set_text (text_buffer_p,
+                            ACE_TEXT_ALWAYS_CHAR (""), -1);
+} // button_clear_clicked_cb
 
 void
 button_settings_clicked_cb (GtkWidget* widget_in,

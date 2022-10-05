@@ -40,6 +40,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 G_MODULE_EXPORT void button_about_clicked_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void button_clear_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void button_reset_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void button_settings_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void button_quit_clicked_cb (GtkWidget*, gpointer);

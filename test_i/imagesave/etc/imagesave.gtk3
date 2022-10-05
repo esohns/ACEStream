@@ -31,7 +31,14 @@
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
     <property name="type_hint">normal</property>
+    <property name="program_name">ImageSave</property>
+    <property name="version">0.1</property>
+    <property name="copyright" translatable="yes">(C) 2022</property>
+    <property name="website">https://www.github.com/esohns/ACEStream</property>
+    <property name="website_label" translatable="yes">github project page</property>
+    <property name="authors">Erik Sohns</property>
     <property name="translator_credits" translatable="yes" comments="TRANSLATORS: Replace this string with your names, one name per line.">translator-credits</property>
+    <property name="license_type">lgpl-3-0</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="aboutdialog-vbox">
         <property name="can_focus">False</property>
@@ -97,6 +104,7 @@
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
+                <property name="valign">start</property>
                 <property name="relief">half</property>
                 <property name="use_stock">True</property>
                 <property name="focus_on_click">False</property>
@@ -115,6 +123,7 @@
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
+                <property name="valign">start</property>
                 <property name="relief">half</property>
                 <property name="use_stock">True</property>
                 <property name="focus_on_click">False</property>
@@ -144,8 +153,6 @@
               <object class="GtkVBox" id="vbox_main_2">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="halign">start</property>
-                <property name="valign">start</property>
                 <child>
                   <object class="GtkHBox" id="hbox_action_info">
                     <property name="visible">True</property>
@@ -532,7 +539,7 @@
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
+                <property name="fill">True</property>
                 <property name="position">0</property>
               </packing>
             </child>
@@ -572,11 +579,12 @@
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
                 <property name="can_focus">False</property>
+                <property name="valign">start</property>
                 <property name="pulse_step">0.10000000149</property>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
+                <property name="fill">False</property>
                 <property name="position">0</property>
               </packing>
             </child>
@@ -584,6 +592,7 @@
               <object class="GtkStatusbar" id="statusbar">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="valign">start</property>
               </object>
               <packing>
                 <property name="expand">True</property>

@@ -137,74 +137,74 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (InlineIsEqualGUID (inherited::configuration_->configuration_->format.formattype, FORMAT_WaveFormatEx));
   ACE_ASSERT (inherited::configuration_->configuration_->format.pbFormat);
 
-  struct tWAVEFORMATEX* waveformatex_p =
-    reinterpret_cast<struct tWAVEFORMATEX*> (inherited::configuration_->configuration_->format.pbFormat);
-  switch (inherited::configuration_->configuration_->renderer)
-  {
-    case STREAM_DEVICE_RENDERER_WAVEOUT:
-    { ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
-      device_can_render_format_b =
-        Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._id,
-                                                            *waveformatex_p);
-      break;
-    }
-    case STREAM_DEVICE_RENDERER_WASAPI:
-    { ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
-      device_can_render_format_b =
-        Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._guid,
-                                                            STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE,
-                                                            *waveformatex_p);
-      break;
-    }
-    case STREAM_DEVICE_RENDERER_DIRECTSHOW:
-      break;
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
-                  ACE_TEXT (stream_name_string_),
-                  inherited::configuration_->configuration_->renderer));
-      return false;
-    }
-  } // end SWITCH
+  //struct tWAVEFORMATEX* waveformatex_p =
+  //  reinterpret_cast<struct tWAVEFORMATEX*> (inherited::configuration_->configuration_->format.pbFormat);
+  //switch (inherited::configuration_->configuration_->renderer)
+  //{
+  //  case STREAM_DEVICE_RENDERER_WAVEOUT:
+  //  { ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+  //    device_can_render_format_b =
+  //      Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._id,
+  //                                                          *waveformatex_p);
+  //    break;
+  //  }
+  //  case STREAM_DEVICE_RENDERER_WASAPI:
+  //  { ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+  //    device_can_render_format_b =
+  //      Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._guid,
+  //                                                          STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE,
+  //                                                          *waveformatex_p);
+  //    break;
+  //  }
+  //  case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+  //    break;
+  //  default:
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+  //                ACE_TEXT (stream_name_string_),
+  //                inherited::configuration_->configuration_->renderer));
+  //    return false;
+  //  }
+  //} // end SWITCH
 
-  if ((!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW)) ||
-      (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW) && !device_can_render_format_b))
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_I_DirectShow_Target_Module (this,
-                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-  } // end IF
+  //if ((!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW)) ||
+  //    (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW) && !device_can_render_format_b))
+  //{
+  //  ACE_NEW_RETURN (module_p,
+  //                  Test_I_DirectShow_Target_Module (this,
+  //                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING)),
+  //                  false);
+  //  ACE_ASSERT (module_p);
+  //  layout_in->append (module_p, NULL, 0);
+  //  module_p = NULL;
+  //} // end IF
 
-  has_directshow_source_b =
-    (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW) && !device_can_render_format_b);
-  if (has_directshow_source_b)
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_I_DirectShow_Source_Module (this,
-                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_SOURCE_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-  } // end IF
+  //has_directshow_source_b =
+  //  (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW) && !device_can_render_format_b);
+  //if (has_directshow_source_b)
+  //{
+  //  ACE_NEW_RETURN (module_p,
+  //                  Test_I_DirectShow_Source_Module (this,
+  //                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_SOURCE_DEFAULT_NAME_STRING)),
+  //                  false);
+  //  ACE_ASSERT (module_p);
+  //  layout_in->append (module_p, NULL, 0);
+  //  module_p = NULL;
+  //} // end IF
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
-  if ((!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW)) &&
-      !(*iterator_4).second.second->fileIdentifier.empty ())
-  {
+  //if ((!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW)) &&
+  //    !(*iterator_4).second.second->fileIdentifier.empty ())
+  //{
     ACE_NEW_RETURN (module_p,
                     Test_I_DirectShow_Distributor_Module (this,
                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
                     false);
     ACE_ASSERT (module_p);
     branch_p = module_p;
-    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
     inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
     Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
@@ -212,74 +212,74 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     idistributor_p->initialize (inherited::configuration_->configuration_->branches);
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
-  } // end IF
+  //} // end IF
 
-  if (!(*iterator).second.second->mute)
-    switch (inherited::configuration_->configuration_->renderer)
-    {
-      case STREAM_DEVICE_RENDERER_WAVEOUT:
-      {
-        ACE_NEW_RETURN (module_p,
-                        Test_I_DirectShow_Target_WaveOut_Module (this,
-                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING)),
-                        false);
-        break;
-      }
-      case STREAM_DEVICE_RENDERER_WASAPI:
-      {
-        ACE_NEW_RETURN (module_p,
-                        Test_I_DirectShow_Target_WASAPI_Module (this,
-                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING)),
-                        false);
-        break;
-      }
-      case STREAM_DEVICE_RENDERER_DIRECTSHOW:
-        break;
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
-                    ACE_TEXT (stream_name_string_),
-                    inherited::configuration_->configuration_->renderer));
-        return false;
-      }
-    } // end SWITCH
-  if (module_p)
-  {
-    //if (!has_directshow_source_b && !device_can_render_format_b)
-    //{
-    //  ACE_NEW_RETURN (module_2,
-    //                  Test_I_DirectShow_Delay_Module (this,
-    //                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
-    //                  false);
-    //  ACE_ASSERT (module_2);
-    //  layout_in->append (module_2, branch_p, index_i);
-    //  module_2 = NULL;
-    //} // end IF
+  //if (!(*iterator).second.second->mute)
+  //  switch (inherited::configuration_->configuration_->renderer)
+  //  {
+  //    case STREAM_DEVICE_RENDERER_WAVEOUT:
+  //    {
+  //      ACE_NEW_RETURN (module_p,
+  //                      Test_I_DirectShow_Target_WaveOut_Module (this,
+  //                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING)),
+  //                      false);
+  //      break;
+  //    }
+  //    case STREAM_DEVICE_RENDERER_WASAPI:
+  //    {
+  //      ACE_NEW_RETURN (module_p,
+  //                      Test_I_DirectShow_Target_WASAPI_Module (this,
+  //                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING)),
+  //                      false);
+  //      break;
+  //    }
+  //    case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+  //      break;
+  //    default:
+  //    {
+  //      ACE_DEBUG ((LM_ERROR,
+  //                  ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+  //                  ACE_TEXT (stream_name_string_),
+  //                  inherited::configuration_->configuration_->renderer));
+  //      return false;
+  //    }
+  //  } // end SWITCH
+  //if (module_p)
+  //{
+  //  //if (!has_directshow_source_b && !device_can_render_format_b)
+  //  //{
+  //  //  ACE_NEW_RETURN (module_2,
+  //  //                  Test_I_DirectShow_Delay_Module (this,
+  //  //                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
+  //  //                  false);
+  //  //  ACE_ASSERT (module_2);
+  //  //  layout_in->append (module_2, branch_p, index_i);
+  //  //  module_2 = NULL;
+  //  //} // end IF
+  //}
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-    ACE_NEW_RETURN (module_2,
-                    Test_I_DirectShow_StatisticAnalysis_Module (this,
-                                                                ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_2);
-    layout_in->append (module_2, branch_p, index_i);
-    module_2 = NULL;
-    ACE_NEW_RETURN (module_2,
-                    Test_I_DirectShow_Vis_SpectrumAnalyzer_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_2);
-    layout_in->append (module_2, branch_p, index_i);
-    module_2 = NULL;
+  //ACE_NEW_RETURN (module_2,
+  //                Test_I_DirectShow_StatisticAnalysis_Module (this,
+  //                                                            ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+  //                false);
+  //ACE_ASSERT (module_2);
+  //layout_in->append (module_2, branch_p, index_i);
+  //module_2 = NULL;
+  ACE_NEW_RETURN (module_2,
+                  Test_I_DirectShow_Vis_SpectrumAnalyzer_Module (this,
+                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_2);
+  layout_in->append (module_2, branch_p, index_i);
+  module_2 = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
-    layout_in->append (module_p, branch_p, index_i);
-    ++index_i;
-    module_p = NULL;
-  } // end IF
+  layout_in->append (module_p, branch_p, index_i);
+  ++index_i;
+  module_p = NULL;
 
 #if defined (DEEPSPEECH_SUPPORT)
   ACE_NEW_RETURN (module_p,
@@ -290,24 +290,24 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   module_p = NULL;
 #endif // DEEPSPEECH_SUPPORT
 
-  if (!(*iterator_4).second.second->fileIdentifier.empty ())
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_I_DirectShow_WAVEncoder_Module (this,
-                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, branch_p, index_i);
-    module_p = NULL;
+  //if (!(*iterator_4).second.second->fileIdentifier.empty ())
+  //{
+  //  ACE_NEW_RETURN (module_p,
+  //                  Test_I_DirectShow_WAVEncoder_Module (this,
+  //                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
+  //                  false);
+  //  ACE_ASSERT (module_p);
+  //  layout_in->append (module_p, branch_p, index_i);
+  //  module_p = NULL;
 
-    ACE_NEW_RETURN (module_p,
-                    Test_I_DirectShow_FileWriter_Module (this,
-                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, branch_p, index_i);
-    module_p = NULL;
-  } // end IF
+  //  ACE_NEW_RETURN (module_p,
+  //                  Test_I_DirectShow_FileWriter_Module (this,
+  //                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
+  //                  false);
+  //  ACE_ASSERT (module_p);
+  //  layout_in->append (module_p, branch_p, index_i);
+  //  module_p = NULL;
+  //} // end IF
 
   return true;
 }
