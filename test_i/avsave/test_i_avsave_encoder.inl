@@ -297,7 +297,7 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
       // *NOTE*: derive these from the specified input formats
       enum AVCodecID video_coded_id = AV_CODEC_ID_RAWVIDEO;
       enum AVCodecID audio_coded_id = AV_CODEC_ID_NONE;
-      bool is_first_b = true;
+//      bool is_first_b = true;
 
       inherited::getMediaType (session_data_r.formats.back (),
                                STREAM_MEDIATYPE_AUDIO,
@@ -309,7 +309,7 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
       // *IMPORTANT NOTE*: initialize the format/output context only once
       if (!inherited::isFirst_)
       {
-        is_first_b = false;
+//        is_first_b = false;
         goto continue_;
       } // end IF
       inherited::isFirst_ = false;

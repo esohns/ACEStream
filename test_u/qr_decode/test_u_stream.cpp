@@ -127,7 +127,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
-  bool reset_setup_pipeline = true;
+//  bool reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -137,7 +137,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   } // end IF
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
-  reset_setup_pipeline = false;
+//  reset_setup_pipeline = false;
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);

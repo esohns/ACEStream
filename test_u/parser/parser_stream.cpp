@@ -90,8 +90,6 @@ Parser_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
 
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
 //  struct Parser_SessionData* session_data_p = NULL;
-  Stream_Module_t* module_p = NULL;
-  Parser_Source* source_impl_p = NULL;
 
 //  bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
@@ -119,35 +117,6 @@ Parser_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
     const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
   //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
-
-  // ---------------------------------------------------------------------------
-
-  // ******************* Source ************************
-  //module_p =
-  //  const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_SOURCE_DEFAULT_NAME_STRING)));
-  //if (!module_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-  //              ACE_TEXT (default_stream_name_string_),
-  //              ACE_TEXT (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)));
-  //  goto failed;
-  //} // end IF
-
-  //source_impl_p = dynamic_cast<Parser_Source*> (module_p->writer ());
-  //if (!source_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: dynamic_cast<Parser_Parser*> failed, aborting\n"),
-  //              ACE_TEXT (default_stream_name_string_)));
-  //  goto failed;
-  //} // end IF
-  //source_impl_p->setP (&(inherited::state_));
-
-  //// *NOTE*: push()ing the module will open() it
-  ////         --> set the argument that is passed along (head module expects a
-  ////             handle to the session data)
-  //module_p->arg (inherited::sessionData_);
 
   // ---------------------------------------------------------------------------
 
