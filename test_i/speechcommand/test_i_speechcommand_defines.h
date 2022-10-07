@@ -23,6 +23,7 @@
 
 #define TEST_I_DEFAULT_MODEL_FILE                      "deepspeech-0.9.3-models.pbmm"
 #define TEST_I_DEFAULT_SCORER_FILE                     "deepspeech-0.9.3-models.scorer"
+#define TEST_I_DEFAULT_RNNN_FILE                       "sh.rnnn"
 #define TEST_I_DEFAULT_OUTPUT_FILE                     "output.wav"
 
 //---------------------------------------

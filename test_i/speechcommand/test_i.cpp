@@ -1431,8 +1431,11 @@ do_work (const std::string& scorerFile_in,
         directshow_modulehandler_configuration.effect =
           ACE_TEXT_ALWAYS_CHAR ("compand");
         std::string effect_options_string =
+          //ACE_TEXT_ALWAYS_CHAR ("2,2 -40,-40,-35,-20,0,-20 -10 -60 1"); // AGC
+          //ACE_TEXT_ALWAYS_CHAR ("0.01,0.3 5:-inf,-40.1,-inf,-40,-30,0,-25 12");
           //ACE_TEXT_ALWAYS_CHAR ("0.1,0.3 -60,-60,-30,-15,-20,-12,-4,-8,-2,-7 -2");
           ACE_TEXT_ALWAYS_CHAR ("0.02,0.20 5:-60,-40,-10 -5 -90 0.1");
+        directshow_modulehandler_configuration.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.02"));
       } // end ELSE
       directshow_modulehandler_configuration.filterConfiguration =
         &directShowConfiguration_in.filterConfiguration;
@@ -1585,6 +1588,33 @@ do_work (const std::string& scorerFile_in,
         converter << gain_in;
         mediafoundation_modulehandler_configuration.effectOptions.push_back (converter.str ());
       } // end IF
+      else
+      {
+        mediafoundation_modulehandler_configuration.effect =
+          ACE_TEXT_ALWAYS_CHAR ("compand");
+        std::string effect_options_string =
+          //ACE_TEXT_ALWAYS_CHAR ("2,2 -40,-40,-35,-20,0,-20 -10 -60 1"); // AGC
+          //ACE_TEXT_ALWAYS_CHAR ("0.01,0.3 5:-inf,-40.1,-inf,-40,-30,0,-25 12");
+          ACE_TEXT_ALWAYS_CHAR ("0.1,0.3 -60,-60,-30,-15,-20,-12,-4,-8,-2,-7 -2");
+          //ACE_TEXT_ALWAYS_CHAR ("0.02,0.20 5:-60,-40,-10 -5 -90 0.1");
+        mediafoundation_modulehandler_configuration.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.1,0.3"));
+        mediafoundation_modulehandler_configuration.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-60,-60,-30,-15,-20,-12,-4,-8,-2,-7"));
+        mediafoundation_modulehandler_configuration.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-2"));
+      } // end ELSE
+
+      std::string rnnn_file_path_string;
+        // = Common_File_Tools::getWorkingDirectory ();
+      //rnnn_file_path_string += ACE_DIRECTORY_SEPARATOR_STR;
+      rnnn_file_path_string +=
+        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+      rnnn_file_path_string += ACE_TEXT_ALWAYS_CHAR ("/");
+      rnnn_file_path_string += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_RNNN_FILE);
+      std::string ffmpeg_filter_description_string = ACE_TEXT_ALWAYS_CHAR ("arnndn=m='");
+      ffmpeg_filter_description_string += rnnn_file_path_string;
+      ffmpeg_filter_description_string += ACE_TEXT_ALWAYS_CHAR ("'");
+      mediafoundation_modulehandler_configuration.filtersDescription =
+        ffmpeg_filter_description_string;
+
       mediafoundation_modulehandler_configuration.mediaFoundationConfiguration =
         &mediaFoundationConfiguration_in.mediaFoundationConfiguration;
       mediafoundation_modulehandler_configuration.mute = mute_in;

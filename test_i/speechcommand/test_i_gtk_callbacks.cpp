@@ -2111,9 +2111,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     gtk_widget_set_sensitive (GTK_WIDGET (toggleButton_in), FALSE);
 
     // step1: stop stream
-    stream_p->stop (false,  // wait for completion ?
-                    false,  // recurse upstream ?
-                    false); // high priority ?
+    stream_p->stop (false, // wait for completion ?
+                    false, // recurse upstream ?
+                    true); // high priority ?
                     //is_file_source_b); // high priority ?
 
     return;

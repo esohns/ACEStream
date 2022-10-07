@@ -137,6 +137,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void setResolution (const Common_Image_Resolution_t resolution_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_in, mediaType_inout); }
   inline void setResolution (const Common_Image_Resolution_t resolution_in, IMFMediaType* mediaType_inout) { Stream_MediaFramework_MediaFoundation_Tools::setResolution (resolution_in, mediaType_inout); }
   inline void free_ (struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_in) { Stream_MediaFramework_DirectShow_Tools::free (mediaType_in); }
+  inline void free_ (IMFMediaType* mediaType_in) { mediaType_in->Release (); }
 
 #if defined (FFMPEG_SUPPORT)
   // ffmpeg

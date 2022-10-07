@@ -676,6 +676,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
   int                            error                    = 0;
   bool                           has_finished             = false;
   ACE_Message_Block*             message_block_p          = NULL;
+  DataMessageType*               message_p                = NULL;
   bool                           release_lock             = false;
   int                            result                   = -1;
   int                            result_2                 = 0;
@@ -886,16 +887,16 @@ continue_:
 
       bytes_to_read_i = frameSize_ * num_frames_available_i;
       try {
-        message_block_p =
-            static_cast<ACE_Message_Block*> (inherited::allocator_->malloc (bytes_to_read_i));
+        message_p =
+            static_cast<DataMessageType*> (inherited::allocator_->malloc (bytes_to_read_i));
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
                     inherited::mod_->name (),
                     bytes_to_read_i));
-        message_block_p = NULL;
+        message_p = NULL;
       }
-      if (unlikely (!message_block_p))
+      if (unlikely (!message_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_IAllocator::malloc(%u), aborting\n"),
@@ -904,8 +905,8 @@ continue_:
         goto error;
       } // end IF
 
-      result_2 = message_block_p->copy (reinterpret_cast<char*> (data_p),
-                                        bytes_to_read_i);
+      result_2 = message_p->copy (reinterpret_cast<char*> (data_p),
+                                  bytes_to_read_i);
       if (unlikely (result_2 == -1))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -918,15 +919,19 @@ continue_:
       result_4 = audioCaptureClient_->ReleaseBuffer (num_frames_available_i);
       ACE_ASSERT (SUCCEEDED (result_4));
 
-      result_2 = inherited::put_next (message_block_p, NULL);
+      message_p->initialize (session_data_p->sessionId,
+                             NULL);
+
+      result_2 = inherited::put_next (message_p, NULL);
       if (unlikely (result_2 == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
-        message_block_p->release (); message_block_p = NULL;
+        message_p->release (); message_p = NULL;
         goto error;
       } // end IF
+      message_p = NULL;
 
       result_4 = audioCaptureClient_->GetNextPacketSize (&packet_length_i);
       if (unlikely (FAILED (result_4)))

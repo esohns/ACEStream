@@ -32,6 +32,10 @@
 #include "stream_misc_defines.h"
 #include "stream_misc_messagehandler.h"
 
+
+#if defined (FFMPEG_SUPPORT)
+#include "stream_dec_libav_filter.h"
+#endif // FFMPEG_SUPPORT
 #if defined (SOX_SUPPORT)
 #include "stream_dec_sox_effect.h"
 #include "stream_dec_sox_resampler.h"
@@ -155,6 +159,26 @@ typedef Stream_Dev_Mic_Source_WASAPI_T<ACE_MT_SYNCH,
                                        IMFMediaType*> Test_I_Mic_Source_MediaFoundation_WASAPI;
 
 //////////////////////////////////////////
+
+#if defined (FFMPEG_SUPPORT)
+typedef Stream_Decoder_LibAVFilter_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Test_I_DirectShow_Message,
+                                     Test_I_DirectShow_SessionMessage_t,
+                                     Test_I_SpeechCommand_DirectShow_SessionData_t,
+                                     struct _AMMediaType> Test_I_DirectShow_FfmpegFilter;
+
+typedef Stream_Decoder_LibAVFilter_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Test_I_MediaFoundation_Message,
+                                     Test_I_MediaFoundation_SessionMessage_t,
+                                     Test_I_SpeechCommand_MediaFoundation_SessionData_t,
+                                     IMFMediaType*> Test_I_MediaFoundation_FfmpegFilter;
+#endif // FFMPEG_SUPPORT
 
 #if defined (SOX_SUPPORT)
 typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
@@ -707,6 +731,22 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData, 
                               Test_I_Mic_Source_MediaFoundation_WASAPI);                   // writer type
 
 //////////////////////////////////////////
+
+#if defined (FFMPEG_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                    // session event type
+                              struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_libav_filter_module_name_string,
+                              Stream_INotify_t,                                                  // stream notification interface type
+                              Test_I_DirectShow_FfmpegFilter);                                   // name
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                         // session event type
+                              struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_libav_filter_module_name_string,
+                              Stream_INotify_t,                                                       // stream notification interface type
+                              Test_I_MediaFoundation_FfmpegFilter);                                   // name
+#endif // FFMPEG_SUPPORT
 
 #if defined (SOX_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_DirectShow_SessionData,                       // session data type

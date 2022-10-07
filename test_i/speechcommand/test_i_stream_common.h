@@ -288,6 +288,7 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
    , dispatch (NULL)
    , effect ()
    , effectOptions ()
+   , filtersDescription ()
    , hotWords ()
    , manageSoX (false)
    , modelFile ()
@@ -320,6 +321,7 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
   Stream_Statistic_IDispatch_t*                     dispatch;
   std::string                                       effect;
   std::vector<std::string>                          effectOptions;
+  std::string                                       filtersDescription;
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
   bool                                              manageSoX;
   std::string                                       modelFile;
@@ -355,6 +357,7 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
    , dispatch (NULL)
    , effect ()
    , effectOptions ()
+   , filtersDescription ()
    , hotWords ()
    , manageSoX (false)
    , modelFile ()
@@ -387,6 +390,7 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
   Stream_Statistic_IDispatch_t*                     dispatch;
   std::string                                       effect;
   std::vector<std::string>                          effectOptions;
+  std::string                                       filtersDescription;
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
   bool                                              manageSoX;
   std::string                                       modelFile;

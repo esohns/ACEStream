@@ -218,6 +218,9 @@ if (FFMPEG_SUPPORT)
       stream_dec_libav_encoder.cpp
       stream_dec_libav_encoder.h
       stream_dec_libav_encoder.inl
+      stream_dec_libav_filter.cpp
+      stream_dec_libav_filter.h
+      stream_dec_libav_filter.inl
       stream_dec_libav_hw_decoder.cpp
       stream_dec_libav_hw_decoder.h
       stream_dec_libav_hw_decoder.inl
@@ -464,6 +467,8 @@ if (FFMPEG_SUPPORT)
       stream_dec_libav_decoder.inl
       stream_dec_libav_encoder.h
       stream_dec_libav_encoder.inl
+      stream_dec_libav_filter.h
+      stream_dec_libav_filter.inl
       stream_dec_libav_hw_decoder.h
       stream_dec_libav_hw_decoder.inl
       stream_dec_libav_img_decoder.h
