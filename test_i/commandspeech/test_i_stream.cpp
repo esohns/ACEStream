@@ -1299,7 +1299,7 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   if ((*iterator).second.second->fileIdentifier.empty ())
     ACE_NEW_RETURN (module_p,
                     Test_I_ALSA_QueueReader_Module (this,
-                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)),
+                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_SOURCE_DEFAULT_NAME_STRING)),
                     false);
   else
     ACE_NEW_RETURN (module_p,

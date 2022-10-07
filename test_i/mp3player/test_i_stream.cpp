@@ -129,6 +129,11 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   struct Test_I_MP3Player_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   Test_I_MP3Decoder* MP3Decoder_impl_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_s;
+#else
+  struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+#endif // ACE_WIN32 || ACE_WIN64
 
   // allocate a new session state, reset stream
   const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline =
@@ -151,10 +156,13 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   iterator =
       const_cast<Test_I_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  struct _AMMediaType media_type_s;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   Stream_MediaFramework_DirectShow_Tools::copy ((*iterator).second.second->outputFormat,
                                                 media_type_s);
+#else
+  media_type_s = (*iterator).second.second->outputFormat;
+#endif // ACE_WIN32 || ACE_WIN64
   session_data_p->formats.push_back (media_type_s);
   session_data_p->targetFileName =
     configuration_in.configuration_->fileIdentifier.identifier;

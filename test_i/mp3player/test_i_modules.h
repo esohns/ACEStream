@@ -28,6 +28,7 @@
 #include "common_timer_manager_common.h"
 
 #include "stream_common.h"
+#include "stream_lib_ffmpeg_common.h"
 #include "stream_streammodule_base.h"
 
 #include "stream_dec_mp3_decoder.h"
@@ -80,6 +81,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,      // sessi
                               Test_I_FileSource);                       // writer type
 
 #if defined (FFMPEG_SUPPORT)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Decoder_LibAVAudioDecoder_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
                                            struct Test_I_MP3Player_ModuleHandlerConfiguration,
@@ -88,6 +90,16 @@ typedef Stream_Decoder_LibAVAudioDecoder_T<ACE_MT_SYNCH,
                                            Test_I_Stream_SessionMessage,
                                            Test_I_MP3Player_SessionData_t,
                                            struct _AMMediaType> Test_I_LibAVAudioDecoder;
+#else
+typedef Stream_Decoder_LibAVAudioDecoder_T<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t,
+                                           struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                           Stream_ControlMessage_t,
+                                           Test_I_Stream_Message,
+                                           Test_I_Stream_SessionMessage,
+                                           Test_I_MP3Player_SessionData_t,
+                                           struct Stream_MediaFramework_ALSA_MediaType> Test_I_LibAVAudioDecoder;
+#endif // ACE_WIN32 || ACE_WIN64
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,      // session data type
                               enum Stream_SessionMessageType,           // session event type
                               struct Test_I_MP3Player_ModuleHandlerConfiguration, // module handler configuration type

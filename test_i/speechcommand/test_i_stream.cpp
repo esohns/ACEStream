@@ -576,16 +576,16 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   //module_p = NULL;
 
 #if defined (FFMPEG_SUPPORT)
-  if (!(*iterator).second.second->filtersDescription.empty ())
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_I_MediaFoundation_FfmpegFilter_Module (this,
-                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_FILTER_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-  } // end IF
+  //if (!(*iterator).second.second->filtersDescription.empty ())
+  //{
+  //  ACE_NEW_RETURN (module_p,
+  //                  Test_I_MediaFoundation_FfmpegFilter_Module (this,
+  //                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_FILTER_DEFAULT_NAME_STRING)),
+  //                  false);
+  //  ACE_ASSERT (module_p);
+  //  layout_in->append (module_p, NULL, 0);
+  //  module_p = NULL;
+  //} // end IF
 #endif // FFMPEG_SUPPORT
 
 #if defined (SOX_SUPPORT)

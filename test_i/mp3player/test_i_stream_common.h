@@ -173,7 +173,7 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType                              outputFormat;
 #else
-  struct Stream_MediaFramework_ALSA_MediaFormat    outputFormat;
+  struct Stream_MediaFramework_ALSA_MediaType      outputFormat;
 #endif // ACE_WIN32 || ACE_WIN64
   bool                                             pushStatisticMessages;
 };

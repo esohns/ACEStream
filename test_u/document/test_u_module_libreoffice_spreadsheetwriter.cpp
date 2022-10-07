@@ -39,6 +39,7 @@
 #include "rtl/bootstrap.h"
 
 #include "common_file_tools.h"
+#include "common_tools.h"
 
 #include "common_timer_tools.h"
 

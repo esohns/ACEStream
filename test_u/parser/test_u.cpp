@@ -196,6 +196,10 @@ do_work (int argc_in,
   file_path_2 += ACE_DIRECTORY_SEPARATOR_STR;
   file_path_2 += ACE_TEXT ("test_2.txt");
   int result = -1;
+  Parser_MessageData_t* data_container_p = NULL;
+  Parser_MessageData* data_3 = NULL;
+  const Parser_SessionData_t* session_data_container_p = NULL;
+  const Parser_SessionData* session_data_p = NULL;
 
   // step1: initialize/start stream
   parser_configuration.block = true;
@@ -230,7 +234,7 @@ do_work (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to slurp file (was: \"\"), returning\n"),
                 ACE_TEXT (sourceFilePath_in.c_str ())));
-    return;
+    goto clean;
   } // end IF
   ACE_ASSERT (data_p);
 
@@ -244,20 +248,18 @@ do_work (int argc_in,
   message_p->size (file_size_i);
   message_p->wr_ptr (file_size_i);
 
-  Parser_MessageData_t* data_container_p = NULL;
   ACE_NEW_NORETURN (data_container_p,
                     Parser_MessageData_t ());
   ACE_ASSERT (data_container_p);
-  Parser_MessageData* data_3 = NULL;
   ACE_NEW_NORETURN (data_3,
                     Parser_MessageData ());
   ACE_ASSERT (data_3);
   data_container_p->setPR (data_3);
 
-  const Parser_SessionData_t& session_data_r = parser_stream.getR_2 ();
-  const Parser_SessionData& data_r = session_data_r.getR ();
+  session_data_container_p = &parser_stream.getR_2 ();
+  session_data_p = &session_data_container_p->getR ();
   message_p->initialize (data_container_p,
-                         data_r.sessionId,
+                         session_data_p->sessionId,
                          NULL);
 
   if (!Common_File_Tools::load (file_path_2,

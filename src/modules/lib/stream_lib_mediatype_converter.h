@@ -192,13 +192,21 @@ class Stream_MediaFramework_MediaTypeConverter_T
 #if defined (FFMPEG_SUPPORT)
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_inout) { mediaType_inout.video.format.pixelformat = Stream_MediaFramework_Tools::ffmpegFormatToV4lFormat (format_in); }
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.pixelformat = Stream_MediaFramework_Tools::ffmpegFormatToV4lFormat (format_in); }
+  inline void setFormat (enum AVSampleFormat format_in, struct Stream_MediaFramework_ALSA_MediaType& mediaType_inout) { mediaType_inout.format = Stream_MediaFramework_Tools::ffmpegFormatToALSAFormat (format_in); }
+  inline void setFormat (enum AVSampleFormat format_in, struct Stream_MediaFramework_FFMPEG_AudioMediaType& mediaType_inout) { mediaType_inout.format = format_in; }
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout.format = format_in; }
   inline void setFormat (enum AVSampleFormat format_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.audio.format = format_in; }
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.video.format = format_in; }
+  inline void setSampleRate (unsigned int sampleRate_in, struct Stream_MediaFramework_ALSA_MediaType& mediaType_inout) { mediaType_inout.rate = sampleRate_in; }
+  inline void setSampleRate (unsigned int sampleRate_in, struct Stream_MediaFramework_FFMPEG_AudioMediaType& mediaType_inout) { mediaType_inout.sampleRate = sampleRate_in; }
   inline void setSampleRate (unsigned int sampleRate_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.audio.sampleRate = sampleRate_in; }
+  inline void setChannels (unsigned int channels_in, struct Stream_MediaFramework_ALSA_MediaType& mediaType_inout) { mediaType_inout.channels = channels_in; }
+  inline void setChannels (unsigned int channels_in, struct Stream_MediaFramework_FFMPEG_AudioMediaType& mediaType_inout) { mediaType_inout.channels = channels_in; }
   inline void setChannels (unsigned int channels_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.audio.channels = channels_in; }
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.video.resolution = resolution_in; }
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout.resolution = resolution_in; }
+  inline void free_ (struct Stream_MediaFramework_ALSA_MediaType&) {}
+  inline void free_ (struct Stream_MediaFramework_FFMPEG_AudioMediaType&) {}
   inline void free_ (struct Stream_MediaFramework_FFMPEG_MediaType&) {}
   inline void setFramerate (const struct AVRational& rate_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out) { mediaType_out.frameRate = rate_in; }
   inline void setFramerate (const struct AVRational& rate_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out) { mediaType_out.video.frameRate = rate_in; }
