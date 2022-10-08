@@ -18,17 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "ace/FILE_Addr.h"
-#include "ace/FILE_Connector.h"
 #include "ace/Log_Msg.h"
-
-#include "common_file_tools.h"
 
 #include "stream_defines.h"
 #include "stream_macros.h"
-#include "stream_session_message_base.h"
-
-//#include "net_common_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -376,9 +369,10 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
 //        return;
 //      } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: opened database connection to %s\n"),
+                  ACE_TEXT ("%s: opened database connection to %s:%d\n"),
                   inherited::mod_->name (),
-                  host_address));
+                  host_address,
+                  inherited::configuration_.peerAddress.get_port_number ()));
 
 //      // enable debug messages ?
 //      if (configuration_.debug)

@@ -434,7 +434,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       const struct AVCodec* codec_p = NULL;
       struct AVCodecParameters* codec_parameters_p = NULL;
       struct AVDictionary* dictionary_p = NULL;
-      int flags, flags2;
+      //int flags, flags2;
       //int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM |
       //              FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
       int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_BUGS;

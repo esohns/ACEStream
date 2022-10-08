@@ -21,14 +21,15 @@
 #ifndef STREAM_MODULE_MYSQLREADER_H
 #define STREAM_MODULE_MYSQLREADER_H
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
-
-#if defined (_MSC_VER)
+#include "ace/config-lite.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "mysql.h"
 #else
 #include "mysql/mysql.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
+
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_istatistic.h"
 
@@ -70,6 +71,21 @@ class Stream_Module_MySQLReader_T
                                       TimerManagerType,
                                       struct Stream_UserData>
 {
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                                      Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      StreamControlType,
+                                      StreamNotificationType,
+                                      StreamStateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      TimerManagerType,
+                                      struct Stream_UserData> inherited;
+
  public:
   Stream_Module_MySQLReader_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
                                bool = false,              // auto-start ?
@@ -95,7 +111,7 @@ class Stream_Module_MySQLReader_T
                                     StatisticContainerType,
                                     TimerManagerType,
                                     struct Stream_UserData>::initialize;
-#endif
+#endif // __GNUG__ || _MSC_VER
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -113,28 +129,13 @@ class Stream_Module_MySQLReader_T
   MYSQL* state_;
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      Common_TimePolicy_t,
-                                      ControlMessageType,
-                                      DataMessageType,
-                                      SessionMessageType,
-                                      ConfigurationType,
-                                      StreamControlType,
-                                      StreamNotificationType,
-                                      StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
-                                      StatisticContainerType,
-                                      TimerManagerType,
-                                      struct Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLReader_T (const Stream_Module_MySQLReader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLReader_T& operator= (const Stream_Module_MySQLReader_T&))
 
   // helper methods
   virtual int svc (void);
 
-  bool   manageLibrary_;
+  bool manageLibrary_;
 };
 
 // include template definition

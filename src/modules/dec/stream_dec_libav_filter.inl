@@ -500,7 +500,7 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
                              MediaType>::filterPacket (struct AVPacket& packet_in,
                                                        DataMessageType*& message_inout)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVFilter_T::decodePacket"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVFilter_T::filterPacket"));
 
   // sanity check(s)
   ACE_ASSERT (!message_inout);

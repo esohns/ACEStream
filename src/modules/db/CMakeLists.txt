@@ -1,5 +1,6 @@
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 include (mysql)
+include (SOCI)
 
 add_library (${PROJECT_NAME}_Database STATIC "")
 
@@ -7,6 +8,10 @@ if (MYSQL_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              $<BUILD_INTERFACE:${MYSQL_INCLUDE_DIRS}>)
 endif (MYSQL_SUPPORT)
+if (SOCI_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Database PUBLIC
+                             $<BUILD_INTERFACE:${SOCI_INCLUDE_DIRS}>)
+endif (SOCI_SUPPORT)
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
