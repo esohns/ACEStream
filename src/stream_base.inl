@@ -2915,7 +2915,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   unsigned int indentation_i = 1;
   for (std::vector<Stream_IDistributorModule*>::const_iterator iterator = distributors_a.begin ();
        iterator != distributors_a.end ();
-       ++iterator, ++indentation_i)
+       ++iterator)
   {
     heads_a = (*iterator)->next ();
     stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR ("\n"));
@@ -2924,7 +2924,8 @@ Stream_Base_T<ACE_SYNCH_USE,
          iterator_2 != heads_a.end ();
          ++iterator_2)
     {
-next:
+      stream_layout_string.append (ACE_TEXT ("| "));
+
       std::vector<Stream_IDistributorModule*> distributors_2;
       module_p = *iterator_2;
       do {
@@ -2945,25 +2946,25 @@ next:
                             ACE_TEXT ("ACE_Stream_Tail")))
           stream_layout_string += ACE_TEXT_ALWAYS_CHAR (" --> ");
 
+        idistributor_p =
+          dynamic_cast<Stream_IDistributorModule*> (const_cast<MODULE_T*> (module_p)->writer ());
+        if (idistributor_p)
+          distributors_2.push_back (idistributor_p);
+
         if (!ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
                              ACE_TEXT (STREAM_MODULE_TAIL_NAME)) ||
             !ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
                              ACE_TEXT ("ACE_Stream_Tail")))
         {
-          stream_layout_string.append (ACE_TEXT (" |"));
-          Stream_ModuleListIterator_t iterator_3 = iterator_2;
-          if (++iterator_3 != heads_a.end ())
-          {
-            stream_layout_string.append (ACE_TEXT ("\n"));
-            stream_layout_string.append (indentation_i, '\t');
-          } // end IF
+          stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR (" |"));
+          //Stream_ModuleListIterator_t iterator_3 = iterator_2;
+          //if (++iterator_3 != heads_a.end ())
+          //{
+          //  stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR ("\n"));
+          //  stream_layout_string.append (indentation_i, '\t');
+          //} // end IF
           break;
         } // end IF
-
-        idistributor_p =
-          dynamic_cast<Stream_IDistributorModule*> (const_cast<MODULE_T*> (module_p)->writer ());
-        if (idistributor_p)
-          distributors_2.push_back (idistributor_p);
 
         module_p = const_cast<MODULE_T*> (module_p)->next ();
       } while (true);
@@ -2974,20 +2975,129 @@ next:
            ++iterator_3)
       {
         heads_2 = (*iterator_3)->next ();
-        stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR ("\n"));
-        stream_layout_string.insert (std::string::npos, indentation_i, '\t');
-        for (Stream_ModuleListIterator_t iterator_2 = heads_2.begin ();
-             iterator_2 != heads_2.end ();
-             ++iterator_2)
-          goto next;
+        for (Stream_ModuleListIterator_t iterator_4 = heads_2.begin ();
+             iterator_4 != heads_2.end ();
+             ++iterator_4)
+        {
+          stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR ("\n"));
+          stream_layout_string.append (indentation_i + 1, '\t');
+          stream_layout_string += dump_state (*iterator_4,
+                                              indentation_i + 1);
+        } // end FOR
       } // end FOR
-      --indentation_i;
+
+      Stream_ModuleListIterator_t iterator_3 = iterator_2;
+      if (++iterator_3 != heads_a.end ())
+      {
+        stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR ("\n"));
+        stream_layout_string.append (indentation_i, '\t');
+      } // end IF
     } // end FOR
   } // end FOR
   ACE_DEBUG ((LM_INFO,
               ACE_TEXT ("%s: \"%s\"\n"),
               ACE_TEXT (name_.c_str ()),
               ACE_TEXT (stream_layout_string.c_str ())));
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+std::string
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              StreamName,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::dump_state (MODULE_T* module_in,
+                                               int indentation_in) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::dump_state"));
+
+  // sanity check(s)
+  ACE_ASSERT (module_in);
+
+  std::string result = ACE_TEXT_ALWAYS_CHAR ("| ");
+
+  std::vector<Stream_IDistributorModule*> distributors_a;
+  Stream_IDistributorModule* idistributor_p = NULL;
+  MODULE_T* module_p = module_in;
+  COMMON_TASK_BASE_T* task_p = NULL;
+
+  do
+  { ACE_ASSERT (module_p);
+
+    // mark asynchronous tasks with an asterisk
+    task_p =
+      static_cast<COMMON_TASK_BASE_T*> (const_cast<MODULE_T*> (module_p)->writer ());
+    ACE_ASSERT (task_p);
+    if (task_p->get ())
+      result.append (ACE_TEXT_ALWAYS_CHAR ("*"));
+
+    result.append (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ())));
+
+    if (ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
+                        ACE_TEXT (STREAM_MODULE_TAIL_NAME)) &&
+        ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
+                        ACE_TEXT ("ACE_Stream_Tail")))
+      result += ACE_TEXT_ALWAYS_CHAR (" --> ");
+
+    idistributor_p =
+      dynamic_cast<Stream_IDistributorModule*> (const_cast<MODULE_T*> (module_p)->writer ());
+    if (idistributor_p)
+      distributors_a.push_back (idistributor_p);
+
+    if (!ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
+                          ACE_TEXT (STREAM_MODULE_TAIL_NAME)) ||
+        !ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
+                          ACE_TEXT ("ACE_Stream_Tail")))
+    {
+      result.append (ACE_TEXT_ALWAYS_CHAR (" |"));
+      break;
+    } // end IF
+
+    module_p = const_cast<MODULE_T*> (module_p)->next ();
+  } while (true);
+
+  Stream_ModuleList_t heads_a;
+  for (std::vector<Stream_IDistributorModule*>::const_iterator iterator = distributors_a.begin ();
+       iterator != distributors_a.end ();
+       ++iterator)
+  {
+    heads_a = (*iterator)->next ();
+    for (Stream_ModuleListIterator_t iterator_2 = heads_a.begin ();
+          iterator_2 != heads_a.end ();
+          ++iterator_2)
+    {
+      result.append (ACE_TEXT_ALWAYS_CHAR ("\n"));
+      result.append (indentation_in, '\t');
+      result += dump_state (*iterator_2,
+                            indentation_in + 1);
+    } // end FOR
+  } // end FOR
+
+  return result;
 }
 
 template <ACE_SYNCH_DECL,

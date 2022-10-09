@@ -32,6 +32,8 @@
 
 #include "stream_misc_distributor.h"
 
+extern const char libacestream_default_misc_media_splitter_module_name_string[];
+
 template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,

@@ -444,10 +444,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: auto-starting...\n"),
                 inherited::mod_->name ()));
     try {
-      start ();
+      inherited::start (NULL);
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::start(), aborting\n"),
+                  ACE_TEXT ("%s: caught exception in Common_TaskBase_T::start(), aborting\n"),
                   inherited::mod_->name ()));
       return -1;
     }

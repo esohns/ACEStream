@@ -229,7 +229,6 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   //         side processing)
   bool                              isFirst_;
 
-  MediaType                         format_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)

@@ -26,7 +26,6 @@
 #include "aviriff.h"
 #include "dvdmedia.h"
 #include "fourcc.h"
-#include "mfobjects.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
@@ -482,7 +481,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , isFirst_ (true)
- , format_ ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
@@ -566,7 +564,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (inherited::isInitialized_)
   {
     isFirst_ = true;
-    ACE_OS::memset (&format_, 0, sizeof (MediaType));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
@@ -672,27 +669,50 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::handleDataMessage"));
 
   // sanity check(s)
-  if (unlikely (!inherited::sessionData_))
-    return; // nothing to do (yet)
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
-  ACE_ASSERT (message_inout->total_length () == frameSize_);
 
   // initialize return value(s)
   // *NOTE*: the default behavior is to pass all messages along. In this case,
   //         the individual frames are encapsulated and passed as such
   passMessageDownstream_out = false;
 
+  bool is_audio_b = false;
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
   ACE_Message_Block* message_block_2 = NULL;
   struct _riffchunk RIFF_chunk;
   size_t avix_header_length_i = 0, offset_i = 0;
 #else
-  struct AVPacket packet_s = { 0 };
+  struct AVPacket packet_s = {0};
 #endif // ACE_WIN32 || ACE_WIN64
+  size_t total_length_i = message_inout->total_length ();
+
+  switch (message_inout->getMediaType ())
+  {
+    case STREAM_MEDIATYPE_AUDIO:
+    {
+      is_audio_b = true;
+      message_inout->release (); message_inout = NULL;
+      return;
+      break;
+    }
+    case STREAM_MEDIATYPE_VIDEO:
+    { ACE_ASSERT (total_length_i == frameSize_);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown media type (was: %d), aborting\n"),
+                  inherited::mod_->name (),
+                  message_inout->getMediaType ()));
+      message_inout->release (); message_inout = NULL;
+      goto error;
+    }
+  } // end SWITCH
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   message_block_p =
@@ -707,7 +727,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     message_inout->release (); message_inout = NULL;
     goto error;
   } // end IF
-  message_block_p->cont (message_inout);
+  message_block_p->cont (message_inout); message_inout = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
 
   if (unlikely (isFirst_))
@@ -748,10 +768,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   // db (--> Uncompressed video frame)
   ACE_OS::memset (&RIFF_chunk, 0, sizeof (struct _riffchunk));
-  RIFF_chunk.fcc = FCC ('00db');
+  RIFF_chunk.fcc = is_audio_b ? FCC ('01wb') : FCC ('00db');
   RIFF_chunk.cb =
-      ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? frameSize_
-                                             : ACE_SWAP_LONG (frameSize_));
+      ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? static_cast<ACE_UINT32> (total_length_i)
+                                             : ACE_SWAP_LONG (static_cast<ACE_UINT32> (total_length_i)));
   result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
                                   sizeof (struct _riffchunk));
   if (unlikely (result == -1))
@@ -790,14 +810,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //                        formatContext_->streams[0]->time_base);
   packet_s.stream_index = 0;
 
-//  result = av_interleaved_write_frame (formatContext_, &packet_s);
-  result = av_write_frame (formatContext_, &packet_s);
+  result = av_interleaved_write_frame (formatContext_, &packet_s);
+//  result = av_write_frame (formatContext_, &packet_s);
   av_packet_unref (&packet_s);
   if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to av_interleaved_write_frame(): \"%s\", returning\n"),
-                ACE_TEXT ("%s: failed to av_write_frame(): \"%s\", returning\n"),
+                ACE_TEXT ("%s: failed to av_interleaved_write_frame(): \"%s\", returning\n"),
+//                ACE_TEXT ("%s: failed to av_write_frame(): \"%s\", returning\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
     goto error;
@@ -805,9 +825,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  frameOffsets_.push_back (currentFrameOffset_);
+  if (!is_audio_b)
+    frameOffsets_.push_back (currentFrameOffset_);
 
-  if (unlikely ((currentRIFFOffset_ + (sizeof (struct _riffchunk) + frameSize_)) >= 1024 * 1024 * 1024)) // 1Gb
+  if (unlikely (!is_audio_b &&
+                (currentRIFFOffset_ + (sizeof (struct _riffchunk) + frameSize_)) >= 1024 * 1024 * 1024)) // 1Gb
   {
     message_block_2 = inherited::allocateMessage (2 * sizeof (struct _rifflist));
     if (unlikely (!message_block_2))
@@ -843,14 +865,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         static_cast<ACE_UINT32> (frameOffsets_.size () - 1); // *NOTE*: subtract one; current frame has already been added
 
       // *TODO*: remove type inference
-      message_block_2 =
-        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+      message_block_2 = inherited::allocateMessage (STREAM_DEC_AVI_INDEX_ALLOCATION_SIZE);
       if (unlikely (!message_block_2))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: Stream_TaskBase_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: Stream_TaskBase_T::allocateMessage(%u) failed: \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+                    STREAM_DEC_AVI_INDEX_ALLOCATION_SIZE));
         goto error;
       } // end IF
       // append index v1 to the last frame of first RIFF chunk --> prepend
@@ -880,9 +901,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     currentRIFFOffset_ = static_cast<ACE_UINT32> (avix_header_length_i);
   } // end IF
 
-  currentOffset_ += sizeof (struct _riffchunk) + frameSize_;
-  currentRIFFOffset_ += sizeof (struct _riffchunk) + frameSize_;
-  currentFrameOffset_ += sizeof (struct _riffchunk) + frameSize_;
+  currentOffset_ += sizeof (struct _riffchunk) + total_length_i;
+  currentRIFFOffset_ += sizeof (struct _riffchunk) + total_length_i;
+  currentFrameOffset_ += sizeof (struct _riffchunk) + total_length_i;
 
   result = inherited::put_next (message_block_p, NULL);
   if (unlikely (result == -1))
@@ -905,6 +926,8 @@ error:
 #else
   message_inout->release (); message_inout = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
+
+  inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,
@@ -950,25 +973,28 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      struct _AMMediaType media_type_2;
+      ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
 #else
 #if defined (FFMPEG_SUPPORT)
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+      struct Stream_MediaFramework_FFMPEG_AudioMediaType media_type_2;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-      inherited2:: getMediaType (session_data_r.formats.back (),
-                                 STREAM_MEDIATYPE_VIDEO, // *TODO*: aggregate to support A/V
-                                 media_type_s);
       inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_VIDEO, // *TODO*: aggregate to support A/V
-                                format_);
+                                STREAM_MEDIATYPE_VIDEO,
+                                media_type_s);
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_AUDIO,
+                                media_type_2);
       frameSize_ =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         Stream_MediaFramework_DirectShow_Tools::toFramesize (media_type_s);
 
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: saving AVI in format %s\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_s, true).c_str ())));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: saving AVI in format %s\n"),
+      //            inherited::mod_->name (),
+      //            ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_s, true).c_str ())));
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
 #if defined (FFMPEG_SUPPORT)
@@ -1343,8 +1369,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   inherited2::getMediaType (session_data_r.formats.back (),
-                            STREAM_MEDIATYPE_VIDEO, // *TODO*: aggregate to support A/V
+                            STREAM_MEDIATYPE_VIDEO,
                             media_type_s);
+  struct _AMMediaType media_type_2;
+  ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
+  inherited2::getMediaType (session_data_r.formats.back (),
+                            STREAM_MEDIATYPE_AUDIO,
+                            media_type_2);
   struct _riffchunk RIFF_chunk;
   struct _rifflist RIFF_list;
   struct _avimainheader AVI_header_avih;
@@ -1353,6 +1384,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   struct tagBITMAPINFOHEADER AVI_header_strf;
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+  struct tWAVEFORMATEX* wave_format_ex_p = NULL;
   ACE_UINT32 value_i = 0;
   ACE_INT16 value_2 = 0;
 
@@ -1368,6 +1400,17 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: invalid/unknown media format type (was: \"%s\"), aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Tools::GUIDToString (media_type_s.formattype).c_str ())));
+    goto error;
+  } // end ELSE
+  if (InlineIsEqualGUID (media_type_2.formattype, FORMAT_WaveFormatEx))
+    wave_format_ex_p =
+      reinterpret_cast<struct tWAVEFORMATEX*> (media_type_2.pbFormat);
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: invalid/unknown media format type (was: \"%s\"), aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Tools::GUIDToString (media_type_2.formattype).c_str ())));
     goto error;
   } // end ELSE
 

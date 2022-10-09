@@ -176,7 +176,9 @@ Stream_Module_Injector_T<ACE_SYNCH_USE,
 
   do
   {
-    result = inherited::configuration_->queue->dequeue_head (message_block_p, NULL);
+    result =
+      inherited::configuration_->queue->dequeue_head (message_block_p,
+                                                      NULL);
     if (unlikely (result == -1))
     {
       error = ACE_OS::last_error ();

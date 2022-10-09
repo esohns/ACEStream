@@ -76,6 +76,9 @@ class Test_U_AudioEffect_DirectShow_Message
   inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; }
   static std::string CommandTypeToString (Stream_CommandType_t);
 
+  // implement (part of) Stream_IMediaType
+  inline virtual enum Stream_MediaType_Type getMediaType () const { return STREAM_MEDIATYPE_AUDIO; }
+
  protected:
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
@@ -124,6 +127,9 @@ class Test_U_AudioEffect_MediaFoundation_Message
   inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; }
   static std::string CommandTypeToString (Stream_CommandType_t);
 
+  // implement (part of) Stream_IMediaType
+  inline virtual enum Stream_MediaType_Type getMediaType () const { return STREAM_MEDIATYPE_AUDIO; }
+
  protected:
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
@@ -170,6 +176,9 @@ class Test_U_AudioEffect_Message
   inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; }
   static std::string CommandTypeToString (Stream_CommandType_t);
 
+  // implement (part of) Stream_IMediaType
+  inline virtual enum Stream_MediaType_Type getMediaType () const { return STREAM_MEDIATYPE_AUDIO; }
+
  protected:
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
@@ -186,6 +195,6 @@ class Test_U_AudioEffect_Message
                               ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_Message& operator= (const Test_U_AudioEffect_Message&))
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

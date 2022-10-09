@@ -461,6 +461,10 @@ class Stream_Base_T
   void deactivateModules ();
   void unlinkModules ();
 
+  // support Common_IDumpState
+  std::string dump_state (MODULE_T*,  // (substream-) head module
+                          int) const; // indentation
+
   bool                      delete_; // delete modules ?
 };
 

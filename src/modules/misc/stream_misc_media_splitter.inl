@@ -86,10 +86,10 @@ Stream_Miscellaneous_MediaSplitter_T<ACE_SYNCH_USE,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown media type (was: %d), returning\n"),
+                  ACE_TEXT ("%s: invalid/unknown media type (was: %d), aborting\n"),
                   inherited::mod_->name (),
                   message_in->getMediaType ()));
-      return;
+      goto error;
     }
   } // end SWITCH
 
@@ -98,9 +98,9 @@ Stream_Miscellaneous_MediaSplitter_T<ACE_SYNCH_USE,
   if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", returning\n"),
+                ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
-    return;
+    goto error;
   } // end IF
 
   { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
@@ -119,10 +119,15 @@ Stream_Miscellaneous_MediaSplitter_T<ACE_SYNCH_USE,
     if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Message_Queue_Base::enqueue_tail(): \"%m\", returning\n"),
+                  ACE_TEXT ("%s: failed to ACE_Message_Queue_Base::enqueue_tail(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
       message_block_p->release (); message_block_p = NULL;
-      return;
+      goto error;
     } // end IF
   } // end lock scope
+
+  return;
+
+error:
+  inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 }

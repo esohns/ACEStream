@@ -72,15 +72,36 @@ Stream_Module_QueueWriter_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->queue);
 
-  ACE_Message_Block* message_block_p = message_inout->duplicate ();
-  ACE_ASSERT (message_block_p);
+  ACE_Message_Block* message_block_p = NULL;
+  int result = -1;
 
-  int result =
+  message_block_p = message_inout->duplicate ();
+  if (unlikely (!message_block_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Message_Queue_T::enqueue_tail(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
+    goto error;
+  } // end IF
+
+  result =
     inherited::configuration_->queue->enqueue_tail (message_block_p, NULL);
   if (unlikely (result == -1))
+  {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Queue_T::enqueue_tail(): \"%m\", continuing\n"),
+                ACE_TEXT ("%s: failed to ACE_Message_Queue_T::enqueue_tail(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
+    message_block_p->release (); message_block_p = NULL;
+    goto error;
+  } // end IF
+
+  return;
+
+error:
+  inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+
+  passMessageDownstream_out = false;
+  message_inout->release (); message_inout = NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -110,9 +131,18 @@ Stream_Module_QueueWriter_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_MESSAGE_BEGIN:
-      break;
     case STREAM_SESSION_MESSAGE_END:
+    {
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+      ACE_ASSERT (inherited::configuration_->queue);
+
+      Stream_IMessageQueue* imessage_queue_p =
+        dynamic_cast<Stream_IMessageQueue*> (inherited::configuration_->queue);
+      if (imessage_queue_p)
+        imessage_queue_p->waitForIdleState (true);
+      break;
+    }
     default:
       break;
   } // end SWITCH

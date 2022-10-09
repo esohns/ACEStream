@@ -120,6 +120,9 @@ class Test_I_DirectShow_Message
   //virtual int command () const; // return value: message type
   //inline static std::string CommandTypeToString (HTTP_Method_t method_in) { return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE) : HTTP_Tools::MethodToString (method_in)); }
 
+  // implement (part of) Stream_IMediaType
+  inline virtual enum Stream_MediaType_Type getMediaType () const { return STREAM_MEDIATYPE_AUDIO; }
+
  protected:
   // copy ctor to be used by duplicate() and derived classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
@@ -167,6 +170,9 @@ class Test_I_MediaFoundation_Message
   //virtual int command () const; // return value: message type
   //inline static std::string CommandTypeToString (HTTP_Method_t method_in) { return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE) : HTTP_Tools::MethodToString (method_in)); }
 
+  // implement (part of) Stream_IMediaType
+  inline virtual enum Stream_MediaType_Type getMediaType () const { return STREAM_MEDIATYPE_AUDIO; }
+
  protected:
   // copy ctor to be used by duplicate() and derived classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
@@ -213,6 +219,9 @@ class Test_I_Message
   // implement Stream_MessageBase_T
   //virtual int command () const; // return value: message type
   //inline static std::string CommandTypeToString (HTTP_Method_t method_in) { return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE) : HTTP_Tools::MethodToString (method_in)); }
+
+  // implement (part of) Stream_IMediaType
+  inline virtual enum Stream_MediaType_Type getMediaType () const { return STREAM_MEDIATYPE_AUDIO; }
 
  protected:
   // copy ctor to be used by duplicate() and derived classes

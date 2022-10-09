@@ -20,3 +20,8 @@
 #include "stdafx.h"
 
 #include "stream_misc_media_splitter.h"
+
+#include "stream_misc_defines.h"
+
+const char libacestream_default_misc_media_splitter_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MEDIASPLITTER_DEFAULT_NAME_STRING);

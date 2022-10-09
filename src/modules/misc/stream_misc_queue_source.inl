@@ -108,6 +108,15 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
   } // end IF
   inherited::msg_queue (queue_p);
 
+  int result = inherited::msg_queue_->activate ();
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Message_Queue::activate(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
@@ -228,6 +237,13 @@ error:
 //          delete act_p; act_p = NULL;
 //        } // end IF
       } // end IF
+
+      // *NOTE*: cannot deactivate() queue because then stop() (see below) would fail !
+      //result = inherited::msg_queue_->deactivate ();
+      //if (unlikely (result == -1))
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
+      //              inherited::mod_->name ()));
 
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       { Common_ITask* itask_p = this; // *TODO*: is the no other way ?

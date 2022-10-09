@@ -140,9 +140,18 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
 
   int result = -1;
   struct Stream_Decoder_MPEG_TS_PacketHeader* packet_header_p = NULL;
+  struct Stream_Decoder_MPEG_TS_AdaptationFieldControlHeader* adaptation_field_control_p =
+    NULL;
+  unsigned short packet_identifier = 0;
+  unsigned int skipped_bytes = 0;
+  struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamHeader* pes_header_p =
+    NULL;
+  struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamOptionalHeader* optional_pes_header_p =
+    NULL;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Message_Block* message_block_2 = NULL;
   DataMessageType* message_p = NULL;
+  size_t total_length_i = message_inout->total_length ();
 
   // initialize return value(s)
   // *NOTE*: the default behavior is to pass all messages along
@@ -150,59 +159,45 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
   //             as such
   passMessageDownstream_out = false;
 
+  // sanity check(s)
+  ACE_ASSERT (message_inout->capacity () >= STREAM_DEC_MPEG_TS_PACKET_SIZE);
+
   if (!buffer_)
-  {
     buffer_ = message_inout;
-    message_block_p = buffer_;
-  } // end IF
   else
   {
     message_block_p = buffer_;
     while (message_block_p->cont ())
       message_block_p = message_block_p->cont ();
     message_block_p->cont (message_inout);
-    message_block_p = message_inout;
   } // end ELSE
-  ACE_ASSERT (message_block_p);
-
+  message_block_p = message_inout;
   // message_block_p points at the trailing fragment
 
   if (missingPSIBytes_)
   {
-    if (message_inout->total_length () < missingPSIBytes_)
+    if (total_length_i < missingPSIBytes_)
     {
-      missingPSIBytes_ -=
-        static_cast<unsigned int> (message_inout->total_length ());
+      missingPSIBytes_ -= static_cast<unsigned int> (total_length_i);
       return;
     } // end IF
     missingPSIBytes_ = 0;
   } // end IF
 
-  size_t total_length_i = buffer_->total_length ();
+  total_length_i = buffer_->total_length ();
   if (total_length_i < STREAM_DEC_MPEG_TS_PACKET_SIZE)
     return; // done
 
 defragment:
-  // *TODO*: this step should be unnecessary --> implement a proper parser
   try {
     buffer_->defragment ();
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), returning\n"),
+                ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), aborting\n"),
                 inherited::mod_->name ()));
-    buffer_->release (); buffer_ = NULL;
-    return;
+    goto error;
   } // end IF
 
-  struct Stream_Decoder_MPEG_TS_AdaptationFieldControlHeader* adaptation_field_control_p =
-    NULL;
-  unsigned short packet_identifier = 0;
-  unsigned int skipped_bytes = 0;
-  struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamHeader* pes_header_p =
-    NULL;
-//  unsigned short pes_packet_length = 0;
-  struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamOptionalHeader* optional_pes_header_p =
-    NULL;
   do
   { // done ?
     if (buffer_->length () < STREAM_DEC_MPEG_TS_PACKET_SIZE)
@@ -280,12 +275,12 @@ defragment:
 
     // part of the specified program/stream(s) --> forward data
     message_block_p = buffer_->clone ();
-    if (!message_block_p)
+    if (unlikely (!message_block_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to DataMessageType::clone(), returning\n"),
+                  ACE_TEXT ("%s: failed to DataMessageType::clone(), aborting\n"),
                   inherited::mod_->name ()));
-      return;
+      goto error;
     } // end IF
     message_block_p->length (STREAM_DEC_MPEG_TS_PACKET_SIZE - skipped_bytes);
 
@@ -302,21 +297,23 @@ defragment:
                                                                          : STREAM_MEDIATYPE_VIDEO);
 
     result = inherited::put_next (message_block_p, NULL);
-    if (result == -1)
+    if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+                  ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
-
-      // clean up
-      message_block_p->release ();
-
-      return;
+      message_block_p->release (); message_block_p = NULL;
+      goto error;
     } // end IF
 
 continue_:
     buffer_->rd_ptr (STREAM_DEC_MPEG_TS_PACKET_SIZE - skipped_bytes);
   } while (true);
+
+  return;
+
+error:
+  inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,

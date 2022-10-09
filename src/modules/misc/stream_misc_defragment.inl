@@ -86,14 +86,14 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
 
+  DataMessageType* message_p = NULL;
+
   switch (inherited::configuration_->defragmentMode)
   {
     case STREAM_DEFRAGMENT_CLONE:
     {
-      DataMessageType* message_p =
-        static_cast<DataMessageType*> (message_inout->clone ());
+      message_p = static_cast<DataMessageType*> (message_inout->clone ());
       ACE_ASSERT (message_p);
-
       message_p->defragment ();
 
       int result = inherited::put_next (message_p, NULL);
@@ -117,9 +117,7 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::configuration_->messageAllocator);
       ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
-      DataMessageType* message_p = NULL;
       size_t total_length_i = message_inout->total_length ();
-      //total_length_i += total_length_i / 10; // add 10% for good measure
       size_t allocated_bytes_i =
         total_length_i + inherited::configuration_->allocatorConfiguration->paddingBytes;
       try {
@@ -184,8 +182,6 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: invalid/unknown mode (was: %d), aborting\n"),
                   inherited::mod_->name (),
                   inherited::configuration_->defragmentMode));
-      passMessageDownstream_out = false;
-      message_inout->release (); message_inout = NULL;
       goto error;
     }
   } // end SWITCH
@@ -194,6 +190,9 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
 
 error:
   inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+
+  passMessageDownstream_out = false;
+  message_inout->release (); message_inout = NULL;
 }
 
 template <ACE_SYNCH_DECL,
