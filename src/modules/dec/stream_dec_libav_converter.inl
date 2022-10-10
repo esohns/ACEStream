@@ -123,8 +123,8 @@ Stream_Decoder_LibAVConverter_T<TaskType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  if (!context_) // *TODO*: remove this test altogether
-    return;
+  //if (!context_) // *TODO*: remove this test altogether
+  //  return;
   ACE_ASSERT (frame_);
 
   // initialize return value(s)

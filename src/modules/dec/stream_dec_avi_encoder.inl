@@ -1640,9 +1640,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   AVI_header_strh.fccType = streamtypeVIDEO;
-  // *NOTE*: RGB24 --> 0
-  fourcc_map.SetFOURCC (&media_type_s.subtype);
-  AVI_header_strh.fccHandler = fourcc_map.GetFOURCC ();
+  // *NOTE*: BGR(!)24 --> 0
+  //fourcc_map.SetFOURCC (&media_type_s.subtype);
+  //AVI_header_strh.fccHandler = fourcc_map.GetFOURCC ();
+  //AVI_header_strh.fccHandler = FCC ('raw ');
   //AVI_header_strh.dwFlags = 0;
   //AVI_header_strh.wPriority = 0;
   //AVI_header_strh.wLanguage = 0;
@@ -1722,6 +1723,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   AVI_header_strf_video =
     (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo) ? video_info_header_p->bmiHeader
                                                                    : video_info_header2_p->bmiHeader);
+  AVI_header_strf_video.biHeight = -AVI_header_strf_video.biHeight;
   result =
     messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_strf_video),
                               (3 * 4) + (2 * 2) + (6 * 4));
@@ -1771,9 +1773,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   AVI_header_strh.fccType = streamtypeAUDIO;
-  // *NOTE*: RGB24 --> 0
-  fourcc_map.SetFOURCC (&media_type_2.subtype);
-  AVI_header_strh.fccHandler = fourcc_map.GetFOURCC ();
+  // *NOTE*: PCM --> 0
+  //fourcc_map.SetFOURCC (&media_type_2.subtype);
+  //AVI_header_strh.fccHandler = fourcc_map.GetFOURCC ();
   //AVI_header_strh.dwFlags = 0;
   //AVI_header_strh.wPriority = 0;
   //AVI_header_strh.wLanguage = 0;

@@ -137,10 +137,15 @@ Stream_Module_QueueWriter_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::configuration_);
       ACE_ASSERT (inherited::configuration_->queue);
 
-      Stream_IMessageQueue* imessage_queue_p =
-        dynamic_cast<Stream_IMessageQueue*> (inherited::configuration_->queue);
-      if (imessage_queue_p)
-        imessage_queue_p->waitForIdleState (true);
+      Stream_IMessageQueue* imessage_queue_p = NULL;
+      try {
+        imessage_queue_p =
+          dynamic_cast<Stream_IMessageQueue*> (inherited::configuration_->queue);
+      } catch (...) {
+        imessage_queue_p = NULL;
+      }
+      //if (imessage_queue_p)
+      //  imessage_queue_p->waitForIdleState (true);
       break;
     }
     default:
