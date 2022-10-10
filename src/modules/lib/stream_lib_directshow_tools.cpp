@@ -4203,6 +4203,13 @@ Stream_MediaFramework_DirectShow_Tools::toFramesize (const struct _AMMediaType& 
       (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
     result = DIBSIZE (video_info_header2_p->bmiHeader);
   } // end ELSE IF
+  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx))
+  {
+    struct tWAVEFORMATEX* wave_format_ex_p =
+      (struct tWAVEFORMATEX*)mediaType_in.pbFormat;
+    result =
+      (wave_format_ex_p->wBitsPerSample / 8) * wave_format_ex_p->nChannels;
+  } // end ELSE IF
   else
   {
     ACE_DEBUG ((LM_ERROR,

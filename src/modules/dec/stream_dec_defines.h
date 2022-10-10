@@ -115,6 +115,7 @@
 // AVI
 #define STREAM_DEC_AVI_JUNK_CHUNK_ALIGN                              2048 // bytes
 #define STREAM_DEC_AVI_INDEX_ALLOCATION_SIZE                         1048576 // 1 MB
+#define STREAM_DEC_AVI_AUDIO_STRH_SUGGESTED_BUFFER_SIZE              2048 // bytes
 
 // DeepSpeech STT
 // *NOTE*: feed this much sample data between DS_IntermediateDecode calls

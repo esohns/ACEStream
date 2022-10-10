@@ -234,10 +234,13 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 #if defined (FFMPEG_SUPPORT)
   struct AVCodecContext*            codecContext_;
   struct AVFormatContext*           formatContext_;
-  int64_t                           samples_;
+  ACE_INT64                         videoSamples_;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-  unsigned int                      frameSize_; // output-
+  ACE_INT64                         audioSamples_;
+  ACE_UINT32                        audioFrames_;
+  ACE_UINT32                        audioFrameSize_;
+  ACE_UINT32                        videoFrameSize_;
   // *NOTE*: global offset from start of first RIFF chunk
   ACE_UINT64                        currentOffset_;
   // *NOTE*: offset from start of current RIFF chunk (AVI[ X])
@@ -249,10 +252,12 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 
   typedef std::vector<ACE_UINT64> FRAME_OFFSETS_T;
   typedef FRAME_OFFSETS_T::const_iterator FRAMEOFFSETSITERATOR_T;
-  FRAME_OFFSETS_T                   frameOffsets_;
+  FRAME_OFFSETS_T                   frameOffsets_; // video-
   // *NOTE*: when this reaches >1Gb, add another AVIX header to the file
   ACE_UINT64                        currentFrameOffset_;
   ACE_UINT32                        lastIndex1FrameOffsetIndex_;
+  ACE_UINT32                        lastIndex1AudioFrames_; // needed for 'movi' list length calculation
+  ACE_UINT64                        lastIndex1AudioSamples_; // needed for 'movi' list length calculation
 
   enum Stream_Decoder_AVIIndexType  indexType_; // AVI 1.0 "idx1" at end of file / "inx1" + super-index
 
