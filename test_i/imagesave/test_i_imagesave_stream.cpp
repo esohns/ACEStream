@@ -116,15 +116,16 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
+  Stream_Branches_t branches_a;
 
   layout_in->append (&splitter_, NULL, 0);
   branch_p = &splitter_;
-  configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-//  configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+  //  configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
   Stream_IDistributorModule* idistributor_p =
     dynamic_cast<Stream_IDistributorModule*> (splitter_.writer ());
   ACE_ASSERT (idistributor_p);
-  idistributor_p->initialize (configuration_->configuration_->branches);
+  idistributor_p->initialize (branches_a);
 
   //layout_in->append (&report_, NULL, 0);
   layout_in->append (&resize_, branch_p, index_i);

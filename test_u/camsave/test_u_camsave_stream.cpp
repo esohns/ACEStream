@@ -121,6 +121,7 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //         - whether the output is saved to file
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
+  Stream_Branches_t branches_a;
 
   switch (inherited::configuration_->configuration_->capturer)
   {
@@ -152,12 +153,12 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
     {
       layout_in->append (&distributor_, NULL, 0);
       branch_p = &distributor_;
-      inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-      inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
       Stream_IDistributorModule* idistributor_p =
           dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
       ACE_ASSERT (idistributor_p);
-      idistributor_p->initialize (inherited::configuration_->configuration_->branches);
+      idistributor_p->initialize (branches_a);
     } // end IF
 
     if (display_b)

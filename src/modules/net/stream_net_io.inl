@@ -626,16 +626,25 @@ continue_3:
       // *NOTE*: if this connection was initiated by a stream (e.g. the net
       //         source module), the session data already contains the
       //         connection handle
-      session_data_r.connection = connection_p;
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        ACE_ASSERT (!session_data_r.connection);
+        session_data_r.connection = connection_p;
+      } // end lock scope
       break;
     }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
-    {
-      ACE_ASSERT (inherited::sessionData_);
-      SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-      ACE_ASSERT (session_data_r.connection);
-      session_data_r.connection->decrease (); session_data_r.connection = NULL;
+    { //ACE_ASSERT (inherited::sessionData_);
+      if (inherited::sessionData_)
+      {
+        SessionDataType& session_data_r =
+          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+        ACE_ASSERT (session_data_r.connection);
+        session_data_r.connection->decrease (); session_data_r.connection = NULL;
+      } // end IF
+      else // *TODO*
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: no session data; cannot release session connection, continuing\n"),
+                    inherited::mod_->name ()));
       break;
     }
     case STREAM_SESSION_MESSAGE_END:

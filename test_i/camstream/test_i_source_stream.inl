@@ -130,8 +130,9 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
-
+  Stream_Branches_t branches_a;
   Stream_Module_t* module_p = NULL;
+
   ACE_NEW_RETURN (module_p,
                   Test_I_Stream_DirectShow_CamSource_Module (this,
                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)),
@@ -148,8 +149,8 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   Stream_IDistributorModule* idistributor_p =
     dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
   ACE_ASSERT (idistributor_p);
-  configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-  idistributor_p->initialize (configuration_->configuration_->branches);
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+  idistributor_p->initialize (branches_a);
 
   layout_out->append (module_p, NULL, 0);
   module_p = NULL;

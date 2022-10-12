@@ -253,7 +253,7 @@ struct Stream_Configuration
 {
   Stream_Configuration ()
    : allocatorConfiguration (NULL)
-   , branches ()
+   //, branches ()
    , cloneModule (false) // *NOTE*: cloneModule ==> delete module
    , dispatchConfiguration (NULL)
    , finishOnDisconnect (false)
@@ -273,7 +273,7 @@ struct Stream_Configuration
   {}
 
   struct Common_AllocatorConfiguration*     allocatorConfiguration;
-  Stream_Branches_t                         branches; // distributor(s) *TODO*
+  //Stream_Branches_t                         branches; // distributor(s) *TODO*
   bool                                      cloneModule; // final-
   struct Common_EventDispatchConfiguration* dispatchConfiguration;
   bool                                      finishOnDisconnect; // (network) i/o streams

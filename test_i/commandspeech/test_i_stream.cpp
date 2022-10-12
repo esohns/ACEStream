@@ -73,6 +73,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   Stream_Module_t* module_p = NULL, *module_2 = NULL;
   bool device_can_render_format_b = false;
   HRESULT result = E_FAIL;
+  Stream_Branches_t branches_a;
 
   if ((*iterator).second.second->fileIdentifier.empty ())
     ACE_NEW_RETURN (module_p,
@@ -188,12 +189,12 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
                     false);
     ACE_ASSERT (module_p);
     branch_p = module_p;
-    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
-    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
     Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
     ACE_ASSERT (idistributor_p);
-    idistributor_p->initialize (inherited::configuration_->configuration_->branches);
+    idistributor_p->initialize (branches_a);
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
   } // end IF
@@ -465,6 +466,7 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   bool device_can_render_format_b = false;
   HRESULT result = E_FAIL;
   bool has_mediafoundation_source_b = true;
+  Stream_Branches_t branches_a;
 
   if ((*iterator).second.second->fileIdentifier.empty ())
     ACE_NEW_RETURN (module_p,
@@ -530,13 +532,13 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
                   false);
   ACE_ASSERT (module_p);
   branch_p = module_p;
-  inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
   if (!(*iterator_3).second.second->fileIdentifier.empty ())
-    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
   Stream_IDistributorModule* idistributor_p =
     dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
   ACE_ASSERT (idistributor_p);
-  if (!idistributor_p->initialize (inherited::configuration_->configuration_->branches))
+  if (!idistributor_p->initialize (branches_a))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Miscellaneous_Distributor_T::initialize(), aborting\n"),

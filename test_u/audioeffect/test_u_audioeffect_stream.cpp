@@ -100,6 +100,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   bool has_directshow_source_b = true;
   bool add_resampler_b = false;
   bool add_delay_b = false;
+  Stream_Branches_t branches_a;
 
   switch (inherited::configuration_->configuration_->sourceType)
   {
@@ -254,12 +255,12 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                     false);
     ACE_ASSERT (module_p);
     branch_p = module_p;
-    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
-    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
     Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
     ACE_ASSERT (idistributor_p);
-    idistributor_p->initialize (inherited::configuration_->configuration_->branches);
+    idistributor_p->initialize (branches_a);
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
   } // end IF
@@ -1027,6 +1028,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   bool has_mediafoundation_source_b = true;
   bool add_resampler_b = false;
   bool add_delay_b = false;
+  Stream_Branches_t branches_a;
 
   switch (inherited::configuration_->configuration_->sourceType)
   {
@@ -1188,12 +1190,12 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
                     false);
     ACE_ASSERT (module_p);
     branch_p = module_p;
-    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
-    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
     Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
     ACE_ASSERT (idistributor_p);
-    idistributor_p->initialize (inherited::configuration_->configuration_->branches);
+    idistributor_p->initialize (branches_a);
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
   } // end IF

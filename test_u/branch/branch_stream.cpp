@@ -43,6 +43,8 @@ Branch_Stream::load (Stream_ILayout* layout_inout,
 {
   STREAM_TRACE (ACE_TEXT ("Branch_Stream::load"));
 
+  Stream_Branches_t branches_a;
+
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Branch_Source_Module (this,
@@ -66,13 +68,13 @@ Branch_Stream::load (Stream_ILayout* layout_inout,
   layout_inout->append (module_p, NULL, 0);
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   branch_p = module_p;
-  inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR ("1"));
-  inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR ("2"));
-  inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR ("3"));
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR ("1"));
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR ("2"));
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR ("3"));
   Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
   ACE_ASSERT (idistributor_p);
-  idistributor_p->initialize (inherited::configuration_->configuration_->branches);
+  idistributor_p->initialize (branches_a);
   module_p = NULL;
   ACE_ASSERT (inherited::configuration_->configuration_->module);
   Common_IClone_T<ACE_Module<ACE_MT_SYNCH,
