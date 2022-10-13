@@ -259,7 +259,6 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   uint8_t* data_p = NULL;
   size_t data_size_i = 0;
-  bool abort_session_on_error = true;
 
   // *NOTE*: ffmpeg processes data in 'chunks' and supports/requires memory
   //         alignment, as well as 'padding' bytes.
@@ -327,10 +326,9 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       if (!decodePacket (packet_s,
                          message_p))
       {
-        ACE_DEBUG ((LM_ERROR,
+        ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: failed to Stream_Decoder_LibAVAudioDecoder_T::decodePacket(), continuing\n"),
                     inherited::mod_->name ()));
-        abort_session_on_error = false; // do not abort the whole session; retry
         continue;
       } // end IF
       if (!message_p)
@@ -367,8 +365,7 @@ error:
   if (message_p)
     message_p->release ();
 
-  if (abort_session_on_error)
-    this->notify (STREAM_SESSION_MESSAGE_ABORT);
+  this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,
@@ -717,8 +714,8 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
   int result = avcodec_send_packet (context_,
                                     &packet_in);
   if (unlikely (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
+  { // *NOTE*: most likely cause: some spurious AAC decoding error
+    ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
