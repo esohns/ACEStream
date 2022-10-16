@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "ace/Basic_Types.h"
 #include <fstream>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1137,7 +1138,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       if (unlikely (!codec_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avcodec_find_encoder(%d) (codec: \"%s\") failed: \"%m\", returning\n"),
+                    ACE_TEXT ("%s: avcodec_find_encoder(%d) (codec: \"%s\") failed: \"%m\", aborting\n"),
                     inherited::mod_->name (),
                     codec_id, ACE_TEXT (Common_Image_Tools::codecIdToString (codec_id).c_str ())));
         goto error;
@@ -1147,7 +1148,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       if (unlikely (!videoCodecContext_))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avcodec_alloc_context3() failed: \"%m\", returning\n"),
+                    ACE_TEXT ("%s: avcodec_alloc_context3() failed: \"%m\", aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
@@ -1156,7 +1157,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      if (result < 0)
 //      {
 //        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("%s: avcodec_get_context_defaults3() failed: \"%s\", returning\n"),
+//                    ACE_TEXT ("%s: avcodec_get_context_defaults3() failed: \"%s\", aborting\n"),
 //                    inherited::mod_->name (),
 //                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
 //        goto error;
@@ -1277,7 +1278,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avcodec_open2(%d) failed: \"%s\", returning\n"),
+                    ACE_TEXT ("%s: avcodec_open2(%d) failed: \"%s\", aborting\n"),
                     inherited::mod_->name (),
                     codec_id,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
@@ -1290,7 +1291,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       if (unlikely (!stream_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avformat_new_stream() failed: \"%m\", returning\n"),
+                    ACE_TEXT ("%s: avformat_new_stream() failed: \"%m\", aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
@@ -1301,12 +1302,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        videoCodecContext_);
 
       // audio
-      codec_id = AV_CODEC_ID_NONE; // PCM
+      codec_id =
+        av_get_pcm_codec (media_type_2.format,
+                          ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? 0 : 1));
       codec_p = avcodec_find_encoder (codec_id);
       if (unlikely (!codec_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avcodec_find_encoder(%d) (codec: \"%s\") failed: \"%m\", returning\n"),
+                    ACE_TEXT ("%s: avcodec_find_encoder(%d) (codec: \"%s\") failed: \"%m\", aborting\n"),
                     inherited::mod_->name (),
                     codec_id, ACE_TEXT (Common_Image_Tools::codecIdToString (codec_id).c_str ())));
         goto error;
@@ -1316,7 +1319,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       if (unlikely (!audioCodecContext_))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avcodec_alloc_context3() failed: \"%m\", returning\n"),
+                    ACE_TEXT ("%s: avcodec_alloc_context3() failed: \"%m\", aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
@@ -1455,7 +1458,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avcodec_open2(%d) failed: \"%s\", returning\n"),
+                    ACE_TEXT ("%s: avcodec_open2(%d) failed: \"%s\", aborting\n"),
                     inherited::mod_->name (),
                     codec_id,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
@@ -1467,7 +1470,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       if (unlikely (!stream_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avformat_new_stream() failed: \"%m\", returning\n"),
+                    ACE_TEXT ("%s: avformat_new_stream() failed: \"%m\", aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
