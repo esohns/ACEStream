@@ -1339,7 +1339,9 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_T::load"));
 
+  Stream_Branches_t branches_a;
   Stream_Module_t* module_p = NULL;
+
   // *TODO*: remove type inference
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_V4L_CamSource_Module (this,
@@ -1373,12 +1375,12 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
   layout_inout->append (module_p, NULL, 0);
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   branch_p = module_p;
-  inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-  //inherited::configuration_->configuration->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_NETWORK_NAME));
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+  //branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_NETWORK_NAME));
   Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
   ACE_ASSERT (idistributor_p);
-  idistributor_p->initialize (inherited::configuration_->configuration_->branches);
+  idistributor_p->initialize (branches_a);
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_V4L_Resize_Module (this,
                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING)),

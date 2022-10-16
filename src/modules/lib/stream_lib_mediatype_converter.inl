@@ -696,6 +696,20 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   mediaType_out.frameRate.den = mediaType_in.frameRate.denominator;
   mediaType_out.frameRate.num = mediaType_in.frameRate.numerator;
 }
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     struct Stream_MediaFramework_FFMPEG_AudioMediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
+
+  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_AudioMediaType));
+  ACE_ASSERT (false); // *TODO*
+}
 #endif // FFMPEG_SUPPORT
 
 #if defined (LIBCAMERA_SUPPORT)
@@ -736,6 +750,20 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   mediaType_out.resolution.height = mediaType_in.resolution.height;
   mediaType_out.frameRate.num = mediaType_in.frameRateNumerator;
   mediaType_out.frameRate.den = mediaType_in.frameRateDenominator;
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     struct Stream_MediaFramework_FFMPEG_AudioMediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
+
+  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_AudioMediaType));
+  ACE_ASSERT (false); // *TODO*
 }
 #endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT

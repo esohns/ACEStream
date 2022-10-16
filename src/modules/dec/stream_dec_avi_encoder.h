@@ -232,7 +232,8 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
-  struct AVCodecContext*            codecContext_;
+  struct AVCodecContext*            audioCodecContext_;
+  struct AVCodecContext*            videoCodecContext_;
   struct AVFormatContext*           formatContext_;
   ACE_INT64                         videoSamples_;
 #endif // FFMPEG_SUPPORT

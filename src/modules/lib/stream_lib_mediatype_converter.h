@@ -183,6 +183,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void getMediaType (const struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_in, enum Stream_MediaType_Type type_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_out) { getMediaType (mediaType_in.video, type_in, mediaType_out); }
   inline void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in, enum Stream_MediaType_Type type_in, struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_out) { getMediaType (mediaType_in, type_in, mediaType_out.video); }
   void getMediaType (const struct Stream_MediaFramework_V4L_MediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
+  void getMediaType (const struct Stream_MediaFramework_V4L_MediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_AudioMediaType&);
 #endif // FFMPEG_SUPPORT
 
   inline void getMediaType (const struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_in, enum Stream_MediaType_Type type_in, struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_out) { mediaType_out = mediaType_in; }
@@ -230,6 +231,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType& mediaType_in, enum Stream_MediaType_Type, struct Stream_MediaFramework_LibCamera_MediaType& mediaType_out) { mediaType_out = mediaType_in; }
 #if defined (FFMPEG_SUPPORT)
   void getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
+  void getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_AudioMediaType&);
   void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_LibCamera_MediaType&);
 #endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT

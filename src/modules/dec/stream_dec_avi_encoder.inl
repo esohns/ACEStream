@@ -40,6 +40,7 @@ extern "C"
 #endif // __cplusplus
 #include "libavformat/avformat.h"
 #include "libavformat/avio.h"
+#include "libavutil/channel_layout.h"
 #include "libavutil/pixfmt.h"
 #include "libavutil/rational.h"
 #ifdef __cplusplus
@@ -491,7 +492,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
- , codecContext_ (NULL)
+ , audioCodecContext_ (NULL)
+ , videoCodecContext_ (NULL)
  , formatContext_ (NULL)
  , videoSamples_ (0)
 #endif // FFMPEG_SUPPORT
@@ -540,8 +542,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
-  if (codecContext_)
-    avcodec_free_context (&codecContext_);
+  if (audioCodecContext_)
+    avcodec_free_context (&audioCodecContext_);
+  if (videoCodecContext_)
+    avcodec_free_context (&videoCodecContext_);
   if (formatContext_)
     avformat_free_context (formatContext_);
 #endif // FFMPEG_SUPPORT
@@ -579,9 +583,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
-    if (codecContext_)
+    if (audioCodecContext_)
     {
-      avcodec_free_context (&codecContext_); codecContext_ = NULL;
+      avcodec_free_context (&audioCodecContext_); audioCodecContext_ = NULL;
+    } // end IF
+    if (videoCodecContext_)
+    {
+      avcodec_free_context (&videoCodecContext_); videoCodecContext_ = NULL;
     } // end IF
     if (formatContext_)
     {
@@ -704,6 +712,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   size_t avix_header_length_i = 0, offset_i = 0;
 #else
   struct AVPacket packet_s = {0};
+  struct AVCodecContext* codec_context_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
   size_t total_length_i = message_inout->total_length ();
 
@@ -716,6 +725,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #else
       packet_s.stream_index = 1;
       packet_s.pts = audioSamples_;
+      codec_context_p = audioCodecContext_;
       audioSamples_ += total_length_i / audioFrameSize_;
 #endif // ACE_WIN32 || ACE_WIN64
       ++audioFrames_;
@@ -723,11 +733,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     }
     case STREAM_MEDIATYPE_VIDEO:
     { ACE_ASSERT (total_length_i == videoFrameSize_);
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
       packet_s.flags |= AV_PKT_FLAG_KEY;
       packet_s.pts = videoSamples_++;
+      codec_context_p = videoCodecContext_;
 #endif // ACE_WIN32 || ACE_WIN64
       break;
     }
@@ -821,20 +831,20 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     formatContext_->streams[packet_s.stream_index]->time_base;
   packet_s.pts =
     av_rescale_q_rnd (packet_s.pts,
-                      codecContext_->time_base,
+                      codec_context_p->time_base,
                       formatContext_->streams[packet_s.stream_index]->time_base,
                       static_cast<enum AVRounding> (AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX));
   packet_s.dts =
     av_rescale_q_rnd (packet_s.dts,
-                      codecContext_->time_base,
+                      codec_context_p->time_base,
                       formatContext_->streams[packet_s.stream_index]->time_base,
                       static_cast<enum AVRounding> (AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX));
   packet_s.duration =
     av_rescale_q (packet_s.duration,
-                  codecContext_->time_base,
+                  codec_context_p->time_base,
                   formatContext_->streams[packet_s.stream_index]->time_base);
 //  av_packet_rescale_ts (&packet_s,
-//                        codecContext_->time_base,
+//                        codec_context_p->time_base,
 //                        formatContext_->streams[packet_s.stream_index]->time_base);
 
   result = av_interleaved_write_frame (formatContext_, &packet_s);
@@ -1049,9 +1059,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       enum AVCodecID codec_id = AV_CODEC_ID_RAWVIDEO; // RGB
       const struct AVCodec* codec_p = NULL;
       struct AVStream* stream_p = NULL;
-//      int flags = (SWS_FAST_BILINEAR | SWS_ACCURATE_RND);
-      //                 SWS_LANCZOS | SWS_ACCURATE_RND);
-//      unsigned int bits_per_sample = 24;
       int result = -1;
 
       result =
@@ -1135,9 +1142,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                     codec_id, ACE_TEXT (Common_Image_Tools::codecIdToString (codec_id).c_str ())));
         goto error;
       } // end IF
-      ACE_ASSERT (!codecContext_);
-      codecContext_ = avcodec_alloc_context3 (codec_p);
-      if (unlikely (!codecContext_))
+      ACE_ASSERT (!videoCodecContext_);
+      videoCodecContext_ = avcodec_alloc_context3 (codec_p);
+      if (unlikely (!videoCodecContext_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_alloc_context3() failed: \"%m\", returning\n"),
@@ -1155,24 +1162,24 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //        goto error;
 //      } // end IF
 
-      codecContext_->codec_id = codec_id;
+      videoCodecContext_->codec_id = codec_id;
 //      codec_context_p->codec_tag = MKTAG ('B', 'G', 'R', '8');
-      codecContext_->bit_rate = videoFrameSize_ * media_type_s.frameRate.num * 8;
+      videoCodecContext_->bit_rate = videoFrameSize_ * media_type_s.frameRate.num * 8;
 //      codec_context_p->bit_rate_tolerance = 5000000;
 //      codec_context_p->global_quality = 0;
 //      codec_context_p->compression_level = FF_COMPRESSION_DEFAULT;
 //      codec_context_p->flags = 0;
 //      codec_context_p->flags2 = 0;
       // *TODO*: use something like: av_inv_q(av_d2q(frameRate, 1000));
-      codecContext_->time_base.num =
+      videoCodecContext_->time_base.num =
           (media_type_s.frameRate.den ? media_type_s.frameRate.den : 1);
-      codecContext_->time_base.den =
+      videoCodecContext_->time_base.den =
           (media_type_s.frameRate.num ? media_type_s.frameRate.num : 1);
 //      codec_context_p->ticks_per_frame = 1;
-      codecContext_->width = media_type_s.resolution.width;
-      codecContext_->height = media_type_s.resolution.height;
+      videoCodecContext_->width = media_type_s.resolution.width;
+      videoCodecContext_->height = media_type_s.resolution.height;
 //      codec_context_p->gop_size = 0;
-      codecContext_->pix_fmt = media_type_s.format;
+      videoCodecContext_->pix_fmt = media_type_s.format;
 //      codec_context_p->me_method = 1;
 //      codec_context_p->max_b_frames = 0;
 //      codec_context_p->b_quant_factor = -1.0F;
@@ -1245,13 +1252,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      codec_context_p->max_prediction_order = 0;
 //      codec_context_p->timecode_frame_start = 0;
 //      codec_context_p->stats_in = NULL;
-      codecContext_->workaround_bugs = FF_BUG_AUTODETECT;
-      codecContext_->strict_std_compliance = FF_COMPLIANCE_NORMAL;
+      videoCodecContext_->workaround_bugs = FF_BUG_AUTODETECT;
+      videoCodecContext_->strict_std_compliance = FF_COMPLIANCE_NORMAL;
 //      codec_context_p->debug = 0;
 //      codec_context_p->debug_mv = 0;
 //      codec_context_p->dct_algo = FF_DCT_AUTO;
 //      codec_context_p->idct_algo = FF_IDCT_AUTO;
-      codecContext_->bits_per_coded_sample =
+      videoCodecContext_->bits_per_coded_sample =
         Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (media_type_s.format);
 //      codec_context_p->bits_per_raw_sample = 8;
 //      codec_context_p->thread_count = 0;
@@ -1264,8 +1271,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      codec_context_p->chroma_intra_matrix = NULL;
 //      codec_context_p->dump_separator = NULL;
 
-      result = avcodec_open2 (codecContext_,
-                              codecContext_->codec,
+      result = avcodec_open2 (videoCodecContext_,
+                              videoCodecContext_->codec,
                               NULL);
       if (unlikely (result < 0))
       {
@@ -1279,7 +1286,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
       ACE_ASSERT (!formatContext_->streams);
       stream_p = avformat_new_stream (formatContext_,
-                                      codecContext_->codec);
+                                      videoCodecContext_->codec);
       if (unlikely (!stream_p))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -1290,28 +1297,175 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       ACE_ASSERT (stream_p->codecpar);
       formatContext_->streams[0] = stream_p;
 
-      // *TODO*: why does this need to be reset ?
-//      stream_p->codecpar->bit_rate = videoFrameSize_ * media_type_s.frameRate.num * 8;
-      stream_p->codecpar->bits_per_coded_sample =
-        codecContext_->bits_per_coded_sample;
-      stream_p->codecpar->codec_id = codec_id;
-      stream_p->codecpar->codec_type = codec_p->type;
-      stream_p->codecpar->format = media_type_s.format;
-      stream_p->codecpar->width = media_type_s.resolution.width;
-      stream_p->codecpar->height = media_type_s.resolution.height;
-      stream_p->time_base = codecContext_->time_base;
-//      av_codec_set_pkt_timebase (codec_context_p, stream_p->time_base);
-//      stream_p->sample_aspect_ratio = 0;
-//      stream_p->avg_frame_rate.num = media_type_s.frameRate.num;
-//      stream_p->avg_frame_rate.den = media_type_s.frameRate.den;
-//      stream_p->side_data = NULL;
-//      stream_p->nb_side_data = 0;
-//      stream_p->event_flags = AVSTREAM_EVENT_FLAG_METADATA_UPDATED;
+      avcodec_parameters_from_context (stream_p->codecpar,
+                                       videoCodecContext_);
+
+      // audio
+      codec_id = AV_CODEC_ID_NONE; // PCM
+      codec_p = avcodec_find_encoder (codec_id);
+      if (unlikely (!codec_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: avcodec_find_encoder(%d) (codec: \"%s\") failed: \"%m\", returning\n"),
+                    inherited::mod_->name (),
+                    codec_id, ACE_TEXT (Common_Image_Tools::codecIdToString (codec_id).c_str ())));
+        goto error;
+      } // end IF
+      ACE_ASSERT (!audioCodecContext_);
+      audioCodecContext_ = avcodec_alloc_context3 (codec_p);
+      if (unlikely (!audioCodecContext_))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: avcodec_alloc_context3() failed: \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+
+      audioCodecContext_->codec_id = codec_id;
+      //      codec_context_p->codec_tag = MKTAG ('B', 'G', 'R', '8');
+      audioCodecContext_->bit_rate =
+        audioFrameSize_ * media_type_2.sampleRate * 8;
+      //      codec_context_p->bit_rate_tolerance = 5000000;
+      //      codec_context_p->global_quality = 0;
+      //      codec_context_p->compression_level = FF_COMPRESSION_DEFAULT;
+      //      codec_context_p->flags = 0;
+      //      codec_context_p->flags2 = 0;
+      // *TODO*: use something like: av_inv_q(av_d2q(frameRate, 1000));
+      audioCodecContext_->time_base.num = 1;
+      audioCodecContext_->time_base.den = media_type_2.sampleRate;
+      //      codec_context_p->ticks_per_frame = 1;
+//      audioCodecContext_->width = media_type_s.resolution.width;
+//      audioCodecContext_->height = media_type_s.resolution.height;
+      //      codec_context_p->gop_size = 0;
+//      audioCodecContext_->pix_fmt = media_type_s.format;
+      //      codec_context_p->me_method = 1;
+      //      codec_context_p->max_b_frames = 0;
+      //      codec_context_p->b_quant_factor = -1.0F;
+      //      codec_context_p->b_quant_offset = -1.0F;
+      //      codec_context_p->mpeg_quant = 0;
+      //      codec_context_p->i_quant_factor = 0.0F;
+      //      codec_context_p->i_quant_offset = 0.0F;
+      //      codec_context_p->lumi_masking = 0;
+      //      codec_context_p->temporal_cplx_masking = 0;
+      //      codec_context_p->spatial_cplx_masking = 0;
+      //      codec_context_p->p_masking = 0.0F;
+      //      codec_context_p->dark_masking = 0.0F;
+      //      codec_context_p->prediction_method = 0;
+      //      codec_context_p->sample_aspect_ratio.num = 0;
+      //      codec_context_p->sample_aspect_ratio.den = 1;
+      //      codec_context_p->me_cmp = 0;
+      //      codec_context_p->me_sub_cmp = 0;
+      //      codec_context_p->mb_cmp = 0;
+      //      codec_context_p->ildct_cmp = 0;
+      //      codec_context_p->dia_size = 0;
+      //      codec_context_p->last_predictor_count = 0;
+      //      codec_context_p->pre_me = 0;
+      //      codec_context_p->me_pre_cmp = 0;
+      //      codec_context_p->pre_dia_size = 0;
+      //      codec_context_p->me_subpel_quality = 0;
+      //      codec_context_p->me_range = 0;
+      //      codec_context_p->intra_quant_bias = 0;
+      //      codec_context_p->inter_quant_bias = 0;
+      //      codec_context_p->mb_decision = 0;
+      //      codec_context_p->intra_matrix = NULL;
+      //      codec_context_p->inter_matrix = NULL;
+      //      codec_context_p->scenechange_threshold = 0;
+      //      codec_context_p->noise_reduction = 0;
+      //      codec_context_p->intra_dc_precision = 0;
+      //      codec_context_p->mb_lmin = 0;
+      //      codec_context_p->mb_lmax = 0;
+      //      codec_context_p->me_penalty_compensation = 0;
+      //      codec_context_p->bidir_refine = 0;
+      //      codec_context_p->brd_scale = 0;
+      //      codec_context_p->keyint_min = 0;
+      //      codec_context_p->refs = 0;
+      //      codec_context_p->chromaoffset = 0;
+      //      codec_context_p->mv0_threshold = 0;
+      //      codec_context_p->b_sensitivity = 0;
+      //      codec_context_p->color_primaries = 0;
+      //      codec_context_p->color_trc = 0;
+      //      codec_context_p->colorspace = 0;
+      //      codec_context_p->color_range = 0;
+      //      codec_context_p->chroma_sample_location = 0;
+      //      codec_context_p->slices = 0;
+      //      codec_context_p->qmin = 0;
+      //      codec_context_p->qmax = 0;
+      //      codec_context_p->max_qdiff = 0;
+      //      codec_context_p->rc_buffer_size = 0;
+      //      codec_context_p->rc_override_count = 0;
+      //      codec_context_p->rc_override = NULL;
+      //      codec_context_p->rc_max_rate = 0;
+      //      codec_context_p->rc_min_rate = 0;
+      //      codec_context_p->rc_max_available_vbv_use = 0.0F;
+      //      codec_context_p->rc_min_vbv_overflow_use = 0.0F;
+      //      codec_context_p->rc_initial_buffer_occupancy = 0;
+      //      codec_context_p->coder_type = 2;
+      //      codec_context_p->context_model = 0;
+      //      codec_context_p->frame_skip_threshold = 0;
+      //      codec_context_p->frame_skip_factor = 0;
+      //      codec_context_p->frame_skip_exp = 0;
+      //      codec_context_p->frame_skip_cmp = 0;
+      //      codec_context_p->trellis = 0;
+      //      codec_context_p->min_prediction_order = 0;
+      //      codec_context_p->max_prediction_order = 0;
+      //      codec_context_p->timecode_frame_start = 0;
+      //      codec_context_p->stats_in = NULL;
+      audioCodecContext_->workaround_bugs = FF_BUG_AUTODETECT;
+      audioCodecContext_->strict_std_compliance = FF_COMPLIANCE_NORMAL;
+      //      codec_context_p->debug = 0;
+      //      codec_context_p->debug_mv = 0;
+      //      codec_context_p->dct_algo = FF_DCT_AUTO;
+      //      codec_context_p->idct_algo = FF_IDCT_AUTO;
+      audioCodecContext_->bits_per_coded_sample = audioFrameSize_;
+      audioCodecContext_->bits_per_raw_sample =
+        av_get_bytes_per_sample (media_type_2.format) * 8;
+      //      codec_context_p->thread_count = 0;
+      //      codec_context_p->thread_type = 0;
+      //      codec_context_p->thread_safe_callbacks = 0;
+      //      codec_context_p->nsse_weight = 0;
+      //      codec_context_p->profile = FF_PROFILE_UNKNOWN;
+      //      codec_context_p->level = FF_LEVEL_UNKNOWN;
+      //      codec_context_p->side_data_only_packets = 1;
+      //      codec_context_p->chroma_intra_matrix = NULL;
+      //      codec_context_p->dump_separator = NULL;
+      audioCodecContext_->channels = media_type_2.channels;
+      audioCodecContext_->sample_fmt = media_type_2.format;
+      audioCodecContext_->sample_rate = media_type_2.sampleRate;
+      switch (media_type_2.channels)
+      {
+        case 1:
+          audioCodecContext_->channel_layout = AV_CH_LAYOUT_MONO;
+          break;
+        case 2:
+          audioCodecContext_->channel_layout = AV_CH_LAYOUT_STEREO;
+          break;
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown #channels (was: %d), aborting\n"),
+                      inherited::mod_->name (),
+                      media_type_2.channels));
+          goto error;
+        }
+      } // end SWITCH
+
+      result = avcodec_open2 (audioCodecContext_,
+                              audioCodecContext_->codec,
+                              NULL);
+      if (unlikely (result < 0))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: avcodec_open2(%d) failed: \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    codec_id,
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+        goto error;
+      } // end IF
 
       stream_p = avformat_new_stream (formatContext_,
-                                      NULL); // *TODO*
+                                      audioCodecContext_->codec);
       if (unlikely (!stream_p))
-      { ACE_ASSERT (false)
+      {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avformat_new_stream() failed: \"%m\", returning\n"),
                     inherited::mod_->name ()));
@@ -1319,6 +1473,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       } // end IF
       //ACE_ASSERT (stream_p->codecpar);
       formatContext_->streams[1] = stream_p;
+
+      avcodec_parameters_from_context (stream_p->codecpar,
+                                       audioCodecContext_);
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1328,9 +1485,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #else
 error:
 #if defined (FFMPEG_SUPPORT)
-      if (codecContext_)
+      if (audioCodecContext_)
       {
-        avcodec_free_context (&codecContext_); codecContext_ = NULL;
+        avcodec_free_context (&audioCodecContext_); audioCodecContext_ = NULL;
+      } // end IF
+      if (videoCodecContext_)
+      {
+        avcodec_free_context (&videoCodecContext_); videoCodecContext_ = NULL;
       } // end IF
       if (formatContext_)
       {

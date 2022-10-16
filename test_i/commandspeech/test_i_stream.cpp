@@ -1296,8 +1296,9 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator_3 != inherited::configuration_->end ());
-
+  Stream_Branches_t branches_a;
   Stream_Module_t* module_p = NULL;
+
   if ((*iterator).second.second->fileIdentifier.empty ())
     ACE_NEW_RETURN (module_p,
                     Test_I_ALSA_QueueReader_Module (this,
@@ -1361,13 +1362,13 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
                   false);
   ACE_ASSERT (module_p);
   branch_p = module_p;
-  inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
   if (!(*iterator_3).second.second->fileIdentifier.empty ())
-    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
   Stream_IDistributorModule* idistributor_p =
     dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
   ACE_ASSERT (idistributor_p);
-  if (!idistributor_p->initialize (inherited::configuration_->configuration_->branches))
+  if (!idistributor_p->initialize (branches_a))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Miscellaneous_Distributor_T::initialize(), aborting\n"),

@@ -1525,7 +1525,7 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
 #endif // GUI_SUPPORT
   ACE_ASSERT (iterator_2 != configuration_->end ());
   bool display_b = !(*iterator_2).second.second->display.device.empty ();
-
+  Stream_Branches_t branches_a;
   // *NOTE*: this processing stream may have branches, depending on:
   //         - whether the output is displayed on a screen
   //         - whether the output is saved to file
@@ -1547,12 +1547,12 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
     {
       layout_in->append (&distributor_, NULL, 0);
       branch_p = &distributor_;
-      configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-//      configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+//      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
       Stream_IDistributorModule* idistributor_p =
           dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
       ACE_ASSERT (idistributor_p);
-      idistributor_p->initialize (configuration_->configuration_->branches);
+      idistributor_p->initialize (branches_a);
     } // end IF
 
     if (display_b)
