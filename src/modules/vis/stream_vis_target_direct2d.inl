@@ -155,8 +155,8 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
 
   struct D2D_RECT_F rectangle_s;
   ACE_OS::memset (&rectangle_s, 0, sizeof (struct D2D_RECT_F));
-  rectangle_s.right = resolution_.cx;
-  rectangle_s.bottom = resolution_.cy;
+  rectangle_s.right = static_cast<FLOAT> (resolution_.cx);
+  rectangle_s.bottom = static_cast<FLOAT> (resolution_.cy);
 
   HRESULT result = bitmap_->CopyFromMemory (&rectangle_2,             // destination rectangle
                                             message_inout->rd_ptr (),

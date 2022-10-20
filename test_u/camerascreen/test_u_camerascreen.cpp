@@ -552,75 +552,44 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
   IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
 
-  DWORD window_style = (WS_CAPTION     |
-                        WS_MAXIMIZEBOX |
-                        WS_MINIMIZEBOX |
-                        //WS_OVERLAPPED     |
-                        WS_SIZEBOX     |
-                        WS_SYSMENU     |
-                        WS_VISIBLE);
-  DWORD window_style_ex = (WS_EX_APPWINDOW     |
-                           WS_EX_RIGHTSCROLLBAR// |
-                           /*WS_EX_WINDOWEDGE*/);
-  windowHandle_out =
-    CreateWindowEx (window_style_ex,                                  // dwExStyle
-#if defined (UNICODE)
-                    ACE_TEXT_ALWAYS_WCHAR ("EDIT"),                   // lpClassName
-#else
-                    ACE_TEXT_ALWAYS_CHAR ("EDIT"),                    // lpClassName
-#endif // UNICODE
-                    NULL,                                             // lpWindowName
-                    window_style,                                     // dwStyle
-                    CW_USEDEFAULT, CW_USEDEFAULT,                     // x,y
-                    STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH,        // width
-                    STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT,       // height
-                    //parent_window_handle,                           // hWndParent
-                    NULL,                                             // hWndParent
-                    NULL,                                             // hMenu
-                    GetModuleHandle (NULL),                           // hInstance
-                    NULL);                                            // lpParam
-  if (unlikely (!windowHandle_out))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CreateWindow(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-    goto error;
-  } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("opened display window (size: %dx%d, handle: 0x%@)\n"),
-              STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH, STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT,
-              windowHandle_out));
-
-  //if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
-  //                                                          captureFormat_inout,
-  //                                                          outputFormat_inout,
-  //                                                          windowHandle_out,
-  //                                                          IGraphBuilder_out,
-  //                                                          graph_configuration))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Decoder_Tools::loadVideoRendererGraph(), aborting\n")));
-  //  goto error;
-  //} // end IF
-  //ACE_ASSERT (IGraphBuilder_out);
-  //result = IGraphBuilder_out->QueryInterface (IID_PPV_ARGS (&media_filter_p));
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-  //  goto error;
-  //} // end IF
-  //ACE_ASSERT (media_filter_p);
-  //result = media_filter_p->SetSyncSource (NULL);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-  //  goto error;
-  //} // end IF
-  //media_filter_p->Release (); media_filter_p = NULL;
+//  DWORD window_style = (WS_CAPTION     |
+//                        WS_MAXIMIZEBOX |
+//                        WS_MINIMIZEBOX |
+//                        //WS_OVERLAPPED     |
+//                        WS_SIZEBOX     |
+//                        WS_SYSMENU     |
+//                        WS_VISIBLE);
+//  DWORD window_style_ex = (WS_EX_APPWINDOW     |
+//                           WS_EX_RIGHTSCROLLBAR// |
+//                           /*WS_EX_WINDOWEDGE*/);
+//  windowHandle_out =
+//    CreateWindowEx (window_style_ex,                                  // dwExStyle
+//#if defined (UNICODE)
+//                    ACE_TEXT_ALWAYS_WCHAR ("EDIT"),                   // lpClassName
+//#else
+//                    ACE_TEXT_ALWAYS_CHAR ("EDIT"),                    // lpClassName
+//#endif // UNICODE
+//                    NULL,                                             // lpWindowName
+//                    window_style,                                     // dwStyle
+//                    CW_USEDEFAULT, CW_USEDEFAULT,                     // x,y
+//                    STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH,        // width
+//                    STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT,       // height
+//                    //parent_window_handle,                           // hWndParent
+//                    NULL,                                             // hWndParent
+//                    NULL,                                             // hMenu
+//                    GetModuleHandle (NULL),                           // hInstance
+//                    NULL);                                            // lpParam
+//  if (unlikely (!windowHandle_out))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to CreateWindow(): \"%s\", aborting\n"),
+//                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+//    goto error;
+//  } // end IF
+//  ACE_DEBUG ((LM_DEBUG,
+//              ACE_TEXT ("opened display window (size: %dx%d, handle: 0x%@)\n"),
+//              STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH, STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT,
+//              windowHandle_out));
 
   return true;
 
@@ -1191,7 +1160,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         return;
       } // end IF
       //ACE_ASSERT (stream_config_p);
-      ACE_ASSERT (directshow_modulehandler_configuration_3.window);
+      //ACE_ASSERT (directshow_modulehandler_configuration_3.window);
       //directShowCBData_in.streamConfiguration = stream_config_p;
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);

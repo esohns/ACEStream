@@ -32,6 +32,8 @@
 
 extern const char libacestream_default_vis_gdi_module_name_string[];
 
+LRESULT CALLBACK libacestream_window_proc_cb (HWND, UINT, WPARAM, LPARAM);
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -86,9 +88,9 @@ class Stream_Vis_Target_GDI_T
   virtual void toggle ();
 
  protected:
-  bool                      closeWindow_;
   HDC                       context_;
   struct tagBITMAPINFO      header_;
+  bool                      notify_;
   Common_Image_Resolution_t resolution_;
   HWND                      window_;
 
@@ -111,7 +113,7 @@ class Stream_Vis_Target_GDI_T
   // override (part of) ACE_Task_Base
   virtual int svc ();
 
-  bool                      hasMessagePump_;
+  HWND createWindow ();
 };
 
 // include template definition

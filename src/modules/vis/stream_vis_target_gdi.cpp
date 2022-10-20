@@ -26,3 +26,19 @@
 // initialize globals
 const char libacestream_default_vis_gdi_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GDI_DEFAULT_NAME_STRING);
+
+LRESULT CALLBACK
+libacestream_window_proc_cb (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+  switch (message) 
+  {
+    case WM_DESTROY:
+      PostQuitMessage (0);
+      break;
+    default:
+      /* Call DefWindowProc() as default */
+      return DefWindowProc (hWnd, message, wParam, lParam);
+  }
+
+  return 0;
+}

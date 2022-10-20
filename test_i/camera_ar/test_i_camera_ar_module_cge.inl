@@ -304,7 +304,10 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   drawImage (currentImage);
 
   // draw ball
-  inherited3::Fill (ballX - 4, ballY - 4, ballX + 4, ballY + 4, PIXEL_SOLID, FG_RED);
+  inherited3::Fill (static_cast<int> (ballX - 4),
+                    static_cast<int> (ballY - 4),
+                    static_cast<int> (ballX + 4),
+                    static_cast<int> (ballY + 4), PIXEL_SOLID, FG_RED);
 
   return !inherited3::GetKey (VK_ESCAPE).bPressed;
 }
