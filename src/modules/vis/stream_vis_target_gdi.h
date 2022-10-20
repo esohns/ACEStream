@@ -32,7 +32,12 @@
 
 extern const char libacestream_default_vis_gdi_module_name_string[];
 
-LRESULT CALLBACK libacestream_window_proc_cb (HWND, UINT, WPARAM, LPARAM);
+struct libacestream_gdi_window_proc_cb_data
+{
+  HDC*              dc;
+  ACE_Thread_Mutex* lock;
+};
+LRESULT CALLBACK libacestream_gdi_window_proc_cb (HWND, UINT, WPARAM, LPARAM);
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -88,11 +93,10 @@ class Stream_Vis_Target_GDI_T
   virtual void toggle ();
 
  protected:
-  HDC                       context_;
-  struct tagBITMAPINFO      header_;
-  bool                      notify_;
-  Common_Image_Resolution_t resolution_;
-  HWND                      window_;
+  HDC                                         context_;
+  struct tagBITMAPINFO                        header_;
+  Common_Image_Resolution_t                   resolution_;
+  HWND                                        window_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_GDI_T ())
@@ -114,6 +118,9 @@ class Stream_Vis_Target_GDI_T
   virtual int svc ();
 
   HWND createWindow ();
+
+  struct libacestream_gdi_window_proc_cb_data CBData_;
+  bool                                        notify_;
 };
 
 // include template definition

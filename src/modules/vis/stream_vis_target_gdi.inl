@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "WinUser.h"
+
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
@@ -59,14 +61,19 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , context_ (NULL)
  , header_ ()
- , notify_ (false)
  , resolution_ ()
  , window_ (NULL)
+ , CBData_ ()
+ , notify_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_GDI_T::Stream_Vis_Target_GDI_T"));
 
   ACE_OS::memset (&header_, 0, sizeof (struct tagBITMAPINFO));
   ACE_OS::memset (&resolution_, 0, sizeof (Common_Image_Resolution_t));
+  ACE_OS::memset (&CBData_, 0, sizeof (struct libacestream_gdi_window_proc_cb_data));
+
+  CBData_.dc = &context_;
+  CBData_.lock = &(inherited::lock_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -91,7 +98,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_GDI_T::~Stream_Vis_Target_GDI_T"));
 
   if (unlikely (context_ && window_))
-    if (unlikely (!::ReleaseDC (window_, context_)))
+    if (unlikely (!ReleaseDC (window_, context_)))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ReleaseDC(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
@@ -99,7 +106,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 
   if (unlikely (inherited::thr_count_ && window_))
   {
-    if (unlikely (!::CloseWindow (window_)))
+    if (unlikely (!CloseWindow (window_)))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
@@ -133,11 +140,17 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
+  ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+
   // sanity check(s)
   ACE_ASSERT (context_);
+  ACE_ASSERT (window_);
+
+  struct tagRECT rect_s;
+  GetWindowRect (window_, &rect_s);
 
   if (unlikely (StretchDIBits (context_,
-                               0, 0, resolution_.cx, resolution_.cy,
+                               0, 0, rect_s.right - rect_s.left, rect_s.bottom - rect_s.top,
                                0, 0, resolution_.cx, resolution_.cy,
                                message_inout->rd_ptr (),
                                &header_,
@@ -225,7 +238,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
       } // end IF
       else
       { ACE_ASSERT (!context_);
-        context_ = ::GetDC (window_);
+        context_ = GetDC (window_);
         ACE_ASSERT (context_);
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: window handle: 0x%@ (drawing context: 0x%@\n"),
@@ -236,12 +249,12 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 
       break;
 
-error:
+//error:
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
       if (context_ && window_)
       {
-        if (!::ReleaseDC (window_, context_))
+        if (!ReleaseDC (window_, context_))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ReleaseDC(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
@@ -257,7 +270,7 @@ error:
     {
       if (context_ && window_)
       {
-        if (!::ReleaseDC (window_, context_))
+        if (!ReleaseDC (window_, context_))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ReleaseDC(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
@@ -268,7 +281,7 @@ error:
       if (inherited::thr_count_ && window_)
       {
         notify_ = false;
-        if (unlikely (!::CloseWindow (window_)))
+        if (unlikely (!CloseWindow (window_)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
@@ -349,7 +362,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
   {
     if (context_ && window_)
     {
-      if (!::ReleaseDC (window_, context_))
+      if (!ReleaseDC (window_, context_))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ReleaseDC(): \"%s\", continuing\n"),
                     inherited::mod_->name (),
@@ -359,7 +372,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 
     if (inherited::thr_count_ && window_)
     {
-      if (unlikely (!::CloseWindow (window_)))
+      if (unlikely (!CloseWindow (window_)))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
                     inherited::mod_->name (),
@@ -421,9 +434,10 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
                 ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
     return -1;
   } // end IF
+  SetWindowLongPtr (window_, GWLP_USERDATA, (LONG_PTR)&CBData_);
 
   ACE_ASSERT (!context_);
-  context_ = ::GetDC (window_);
+  context_ = GetDC (window_);
   ACE_ASSERT (context_);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: window handle: 0x%@ (drawing context: 0x%@\n"),
@@ -477,7 +491,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
   window_class_ex_s.cbSize = sizeof (WNDCLASSEX);
   window_class_ex_s.style = CS_HREDRAW | CS_VREDRAW;
   //window_class_ex_s.lpfnWndProc = DefWindowProc;
-  window_class_ex_s.lpfnWndProc = libacestream_window_proc_cb;
+  window_class_ex_s.lpfnWndProc = libacestream_gdi_window_proc_cb;
   window_class_ex_s.cbClsExtra = 0;
   window_class_ex_s.cbWndExtra = 0;
   window_class_ex_s.hInstance = (HINSTANCE)GetModuleHandle (NULL);
