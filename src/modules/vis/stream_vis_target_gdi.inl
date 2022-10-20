@@ -135,17 +135,16 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  if (unlikely (!window_))
-    return; // --> nothing to do
   ACE_ASSERT (context_);
+  ACE_ASSERT (window_);
 
-  if (unlikely (!::StretchDIBits (context_,
-                                  0, 0, resolution_.cx, resolution_.cy,
-                                  0, 0, resolution_.cx, resolution_.cy,
-                                  message_inout->rd_ptr (),
-                                  &header_,
-                                  DIB_RGB_COLORS,
-                                  SRCCOPY)))
+  if (unlikely (StretchDIBits (context_,
+                               0, 0, resolution_.cx, resolution_.cy,
+                               0, 0, resolution_.cx, resolution_.cy,
+                               message_inout->rd_ptr (),
+                               &header_,
+                               DIB_RGB_COLORS,
+                               SRCCOPY) == 0))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to StretchDIBits(): \"%s\", continuing\n"),
                 inherited::mod_->name (),
@@ -260,9 +259,13 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
                   context_));
 #endif // _DEBUG
 
-      header_.bmiHeader.biBitCount = 32;
+      header_.bmiHeader.biBitCount =
+        Stream_MediaFramework_DirectShow_Tools::toFrameBits (media_type_s);
       header_.bmiHeader.biWidth = resolution_.cx;
-      header_.bmiHeader.biHeight = resolution_.cy;
+      // *IMPORTANT NOTE*: "...StretchDIBits creates a top-down image if the
+      //                   sign of the biHeight member of the BITMAPINFOHEADER
+      //                   structure for the DIB is negative. ..."
+      header_.bmiHeader.biHeight = -resolution_.cy;
       header_.bmiHeader.biPlanes = 1;
       header_.bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
       header_.bmiHeader.biSizeImage = resolution_.cx * resolution_.cy * (header_.bmiHeader.biBitCount / 8);

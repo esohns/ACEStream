@@ -123,16 +123,13 @@ Stream_Decoder_LibAVConverter_T<TaskType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  //if (!context_) // *TODO*: remove this test altogether
-  //  return;
 
   // initialize return value(s)
   passMessageDownstream_out = false;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (unlikely (!frame_))
+  if (unlikely (!context_ || !frame_))
   {
-    message_inout->release (); message_inout = NULL;
     return; // discard early messages (e.g. DirectShow cam source)
   } // end IF
 #else

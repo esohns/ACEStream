@@ -90,37 +90,58 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   layout_in->append (&source_, NULL, 0);
   //modules_out.push_back (&statisticReport_);
-  layout_in->append (&convert_, NULL, 0);
-  layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 
   switch (inherited::configuration_->configuration_->renderer)
   {
 #if defined (CURSES_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
+    {
+      layout_in->append (&convert_, NULL, 0);
+      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
       layout_in->append (&CursesDisplay_, NULL, 0);
       break;
+    }
 #endif // CURSES_SUPPORT
 #if defined (GTK_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
+    {
+      layout_in->append (&convert_, NULL, 0);
+      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
       layout_in->append (&GTKDisplay_, NULL, 0);
       break;
+    }
 #endif // GTK_SUPPORT
     case STREAM_VISUALIZATION_VIDEORENDERER_GDI:
+    {
       layout_in->append (&GDIDisplay_, NULL, 0);
       break;
+    }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
+    {
+      //layout_in->append (&convert_, NULL, 0);
       layout_in->append (&Direct2DDisplay_, NULL, 0);
       break;
+    }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
+    {
       layout_in->append (&Direct3DDisplay_, NULL, 0);
       break;
+    }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
+    {
+      layout_in->append (&convert_, NULL, 0);
+      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
       layout_in->append (&DirectShowDisplay_, NULL, 0);
       break;
+    }
 #if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
+    {
+      layout_in->append (&convert_, NULL, 0);
+      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
       layout_in->append (&OpenGLDisplay_, NULL, 0);
       break;
+    }
 #endif // GLUT_SUPPORT
     default:
     {

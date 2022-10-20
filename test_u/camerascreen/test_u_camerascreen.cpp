@@ -118,6 +118,10 @@ do_print_usage (const std::string& programName_in)
             << std::endl;
 #endif // CURSES_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-1          : use GDI renderer [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-2          : use Direct2D renderer [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("])")
@@ -277,7 +281,7 @@ do_process_arguments (int argc_in,
   options_string += ACE_TEXT_ALWAYS_CHAR ("c");
 #endif // CURSES_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  options_string += ACE_TEXT_ALWAYS_CHAR ("23m");
+  options_string += ACE_TEXT_ALWAYS_CHAR ("123m");
 #else
   options_string += ACE_TEXT_ALWAYS_CHAR ("1");
 #endif // ACE_WIN32 || ACE_WIN64
@@ -296,6 +300,11 @@ do_process_arguments (int argc_in,
     switch (option)
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+      case '1':
+      {
+        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_GDI;
+        break;
+      }
       case '2':
       {
         renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D;
