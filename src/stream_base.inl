@@ -2047,7 +2047,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     return;
   } // end IF
   try {
-    istreamcontrol_p->wait (false,                 // wait for threads ?
+    istreamcontrol_p->wait (false, // wait for threads ?
                             waitForUpstream_in,
                             waitForDownStream_in);
   } catch (...) {

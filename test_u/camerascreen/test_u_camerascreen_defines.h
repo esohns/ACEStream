@@ -22,8 +22,9 @@
 #define TEST_U_CAMERASCREEN_DEFINES_H
 
 #if defined (CURSES_SUPPORT)
-#define TEST_U_CURSES_COLOR_MAIN  1
-#define TEST_U_CURSES_CURSOR_MODE 0 // invisible
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define TEST_U_CURSES_CONSOLE_FONT_SIZE 6
+#endif // ACE_WIN32 || ACE_WIN64
 #endif // CURSES_SUPPORT
 
 #endif

@@ -1314,6 +1314,27 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       curses_configuration_p->hooks.inputHook = curses_input;
       curses_configuration_p->hooks.mainHook = curses_main;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      struct _COORD coord_s;
+      ACE_OS::memset (&coord_s, 0, sizeof (struct _COORD));
+      coord_s.X = TEST_U_CURSES_CONSOLE_FONT_SIZE;
+      coord_s.Y = TEST_U_CURSES_CONSOLE_FONT_SIZE;
+      if (!Common_UI_Tools::setConsoleFontSize (coord_s))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Common_UI_Tools::setConsoleFontSize(%d,%d), returning\n"),
+                    coord_s.X, coord_s.Y));
+        return;
+      } // end IF
+      struct _SMALL_RECT small_rect_s = Common_UI_Tools::setConsoleMaxWindowSize ();
+
+      curses_configuration_p->height = small_rect_s.Bottom - small_rect_s.Top; // lines
+      curses_configuration_p->width = small_rect_s.Right - small_rect_s.Left;  // columns
+#else
+      curses_configuration_p->height = 45; // lines
+      curses_configuration_p->width = 170; // columns
+#endif // ACE_WIN32 || ACE_WIN64
+
       curses_manager_p = TEST_U_CURSES_MANAGER_SINGLETON::instance ();
       ACE_ASSERT (curses_manager_p);
       struct Test_U_CursesState& state_r =
@@ -1340,8 +1361,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       {
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         {
-          directshow_modulehandler_configuration.window_2 = state_r.std_window;
-          ACE_ASSERT (directshow_modulehandler_configuration.window_2);
+          directshow_modulehandler_configuration_3.window_2 = state_r.std_window;
+          ACE_ASSERT (directshow_modulehandler_configuration_3.window_2);
           resolution_s.cx = getmaxx (state_r.std_window);
           resolution_s.cy = getmaxy (state_r.std_window);
           Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,

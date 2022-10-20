@@ -1,3 +1,5 @@
+#set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/ui/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui/scripts")
+#include (PreUIFramework)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/gl/scripts")
 include (assimp)
 include (glut)
@@ -103,11 +105,15 @@ endif (CURSES_SUPPORT)
 
 if (UNIX)
 elseif (WIN32)
- if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+ if (CMAKE_BUILD_TYPE STREQUAL Debug)
   add_definitions (-DD3D_DEBUG_INFO)
   # *NOTE*: DirectShow uses 'DEBUG'
   add_definitions (-DDEBUG) # activate DirectShow debug logging
- endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+ endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+
+ if (CURSES_SUPPORT)
+  add_definitions (-DPDC_WIDE) # activate wide character support in PDCurses
+ endif (CURSES_SUPPORT)
 endif ()
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
@@ -131,6 +137,9 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
+if (CURSES_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${CURSES_LIBRARIES})
+endif (CURSES_SUPPORT)
 if (GLUT_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${GLUT_LIBRARIES})
 endif (GLUT_SUPPORT)

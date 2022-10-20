@@ -27,9 +27,11 @@
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
 
+#include "common_ui_curses_tools.h"
+
 #include "stream_macros.h"
 
-//#include "test_u_camerascreen_common.h"
+#include "test_u_camerascreen_common.h"
 #include "test_u_camerascreen_defines.h"
 
 bool
@@ -75,6 +77,8 @@ curses_init (struct Common_UI_Curses_State* state_in)
     static_cast<struct Test_U_CursesState*> (state_in);
   ACE_ASSERT (!state_p->screen);
   ACE_ASSERT (!state_p->std_window);
+  const struct Common_UI_Curses_Configuration& configuration_r =
+    TEST_U_CURSES_MANAGER_SINGLETON::instance ()->getR_2 ();
 
   int result = ERR;
   char* string_p = NULL;
@@ -120,6 +124,16 @@ curses_init (struct Common_UI_Curses_State* state_in)
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (state_p->screen && state_p->std_window);
 
+  result = resize_term (configuration_r.height, // lines
+                        configuration_r.width); // columns
+  if (unlikely (result == ERR))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to resize_term(%d,%d), aborting\n"),
+                configuration_r.height, configuration_r.width));
+    goto error;
+  } // end IF
+
   string_p = longname ();
   if (unlikely (!string_p))
   {
@@ -142,22 +156,23 @@ curses_init (struct Common_UI_Curses_State* state_in)
       goto error;
     } // end IF
 
-    result = init_pair (TEST_U_CURSES_COLOR_MAIN,
-                        COLOR_WHITE, COLOR_BLACK); // white-on-black
-    if (unlikely (result == ERR))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to init_pair(), aborting\n")));
-      goto error;
-    } // end IF
+    //result = init_pair (TEST_U_CURSES_COLOR_MAIN,
+    //                    COLOR_WHITE, COLOR_BLACK); // white-on-black
+    //if (unlikely (result == ERR))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to init_pair(), aborting\n")));
+    //  goto error;
+    //} // end IF
+    Common_UI_Curses_Tools::init_colorpairs ();
   } // end IF
 
-  result = curs_set (TEST_U_CURSES_CURSOR_MODE); // cursor mode
+  result = curs_set (COMMON_UI_CURSES_CURSOR_MODE_INVISIBLE); // cursor mode
   if (unlikely (result == ERR))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to curs_set(%d), aborting\n"),
-                TEST_U_CURSES_CURSOR_MODE));
+                COMMON_UI_CURSES_CURSOR_MODE_INVISIBLE));
     goto error;
   } // end IF
   result = nonl ();

@@ -109,6 +109,19 @@ class Stream_Module_Vis_Curses_Window_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Curses_Window_T (const Stream_Module_Vis_Curses_Window_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Curses_Window_T& operator= (const Stream_Module_Vis_Curses_Window_T&))
 
+  void classifyPixelGrey (float, float, float, // r, g, b - normalized
+                          chtype&,             // return value: character symbol
+                          ACE_INT32&,          // return value: foreground color
+                          ACE_INT32&);         // return value: background color
+  void classifyPixelHSV (float, float, float, // r, g, b - normalized
+                         chtype&,             // return value: character symbol
+                         ACE_INT32&,          // return value: foreground color
+                         ACE_INT32&);         // return value: background color
+  void classifyPixelOLC (float, float, float,  // r, g, b - normalized
+                         chtype&,              // return value: character symbol
+                         ACE_INT32&,           // return value: foreground color
+                         ACE_INT32&);          // return value: background color
+
   bool closeWindow_;
 };
 

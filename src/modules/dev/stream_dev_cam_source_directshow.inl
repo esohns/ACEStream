@@ -19,7 +19,6 @@
  ***************************************************************************/
 
 #include "strmif.h"
-//#include "uuids.h"
 #include "vfwmsgs.h"
 //// *NOTE*: wxWidgets may have #defined __WXDEBUG__
 //#undef __WXDEBUG__
@@ -983,9 +982,9 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
     try {
       message_p = dynamic_cast<DataMessageType*> (sample_in);
     } catch (...) {
-      //ACE_DEBUG ((LM_ERROR,
-      //            ACE_TEXT ("failed to dynamic_cast<DataMessageType*>(0x%@), continuing\n"),
-      //            sample_in));
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to dynamic_cast<DataMessageType*>(0x%@), continuing\n"),
+                  sample_in));
       message_p = NULL;
     }
   } // end IF
