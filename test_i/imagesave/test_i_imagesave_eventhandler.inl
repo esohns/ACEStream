@@ -396,7 +396,7 @@ Test_I_EventHandler_T<NotificationType,
   {
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
-      float current_bytes = 0.0F;
+      ACE_UINT64 current_bytes_i = 0;
 
       // sanity check(s)
       if (!sessionData_)
@@ -416,9 +416,9 @@ Test_I_EventHandler_T<NotificationType,
 
         // *NOTE*: the byte counter is more current than what is received here
         //         (see above) --> do not update
-        current_bytes = CBData_->progressData.statistic.bytes;
+        current_bytes_i = CBData_->progressData.statistic.bytes;
         CBData_->progressData.statistic = sessionData_->statistic;
-        CBData_->progressData.statistic.bytes = current_bytes;
+        CBData_->progressData.statistic.bytes = current_bytes_i;
 
         if (sessionData_->lock)
         {

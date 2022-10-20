@@ -129,10 +129,9 @@ Stream_Decoder_LibAVConverter_T<TaskType,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (unlikely (!context_ || !frame_))
-  {
-    return; // discard early messages (e.g. DirectShow cam source)
-  } // end IF
+    return; // *TODO*: discard early messages (e.g. DirectShow cam source)
 #else
+  ACE_ASSERT (context_);
   ACE_ASSERT (frame_);
 #endif // ACE_WIN32 || ACE_WIN64
 

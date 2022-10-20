@@ -64,6 +64,8 @@ extern "C"
 #include "gtk/gtk.h"
 #endif // GTK_SUPPORT
 #if defined (WXWIDGETS_SUPPORT)
+#undef DrawText
+#undef SIZEOF_SIZE_T
 #include "wx/apptrait.h"
 #include "wx/window.h"
 #endif // WXWIDGETS_SUPPORT

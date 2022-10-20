@@ -62,6 +62,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
  , header_ ()
  , resolution_ ()
  , window_ (NULL)
+ , hasMessagePump_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_GDI_T::Stream_Vis_Target_GDI_T"));
 
@@ -205,25 +206,52 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 
       if (!window_handle_p)
       {
-        //ACE_ASSERT (!direct3DConfiguration_->focusWindow);
+        WNDCLASSEX window_class_ex_s;
+        window_class_ex_s.cbSize = sizeof (WNDCLASSEX);
+        window_class_ex_s.style = CS_HREDRAW | CS_VREDRAW;
+        window_class_ex_s.lpfnWndProc = DefWindowProc;
+        window_class_ex_s.cbClsExtra = 0;
+        window_class_ex_s.cbWndExtra = 0;
+        window_class_ex_s.hInstance = (HINSTANCE)GetModuleHandle (NULL);
+        window_class_ex_s.hIcon = NULL;
+        window_class_ex_s.hCursor = LoadCursor (NULL, IDC_ARROW);
+        window_class_ex_s.hbrBackground = (HBRUSH)COLOR_WINDOW;
+        window_class_ex_s.lpszMenuName = NULL;
+        ACE_TCHAR szClassName[256] = ACE_TEXT ("SampleWindowClass");
+#if defined (UNICODE)
+        window_class_ex_s.lpszClassName = ACE_TEXT_ALWAYS_WCHAR (szClassName);
+#else
+        window_class_ex_s.lpszClassName = szClassName;
+#endif // UNICODE
+        window_class_ex_s.hIconSm = NULL;
+        ATOM atom = RegisterClassEx (&window_class_ex_s);
+        if (unlikely (atom == 0))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to RegisterClassEx(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+          goto error;
+        } // end IF
+
         DWORD window_style_i = (WS_OVERLAPPED     |
                                 WS_CAPTION        |
                                 (WS_CLIPSIBLINGS  |
-                                  WS_CLIPCHILDREN) |
+                                 WS_CLIPCHILDREN) |
                                 WS_SYSMENU        |
-                                //WS_THICKFRAME     |
+                                WS_VISIBLE        |
                                 WS_MINIMIZEBOX    |
-                                WS_VISIBLE/*
-                                WS_MAXIMIZEBOX*/);
+                                WS_MAXIMIZEBOX    |
+                                WS_THICKFRAME); // --> resizeable
         DWORD window_style_ex_i = (WS_EX_APPWINDOW |
-                                    WS_EX_WINDOWEDGE);
+                                   WS_EX_WINDOWEDGE);
         window_handle_p =
           CreateWindowEx (window_style_ex_i,                       // dwExStyle
 #if defined (UNICODE)
-                          ACE_TEXT_ALWAYS_WCHAR ("EDIT"),                   // lpClassName
+                          ACE_TEXT_ALWAYS_WCHAR (szClassName),                   // lpClassName
                           ACE_TEXT_ALWAYS_WCHAR (inherited::mod_->name ()), // lpWindowName
 #else
-                          ACE_TEXT_ALWAYS_CHAR ("EDIT"),                    // lpClassName
+                          ACE_TEXT_ALWAYS_CHAR (szClassName),               // lpClassName
                           ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()),  // lpWindowName
 #endif // UNICODE
                           window_style_i,                          // dwStyle
@@ -272,6 +300,14 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
       header_.bmiHeader.biCompression = BI_RGB;
 
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+
+      // start message pump
+      if (hasMessagePump_)
+      {
+        inherited::threadCount_ = 1;
+        inherited::start (NULL);
+        inherited::threadCount_ = 0;
+      } // end IF
 
       break;
 
@@ -382,15 +418,15 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 bool
 Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
-                             TimePolicyType,
-                             ConfigurationType,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             SessionDataType,
-                             SessionDataContainerType,
-                             MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                     Stream_IAllocator* allocator_in)
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_GDI_T::initialize"));
 
@@ -420,7 +456,62 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inferences
   window_ = configuration_in.window;
+  hasMessagePump_ = (window_ != ACE_INVALID_HANDLE);
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename MediaType>
+int
+Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        MediaType>::svc ()
+{
+  COMMON_TRACE (ACE_TEXT ("Stream_Vis_Target_GDI_T::svc"));
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
+  Common_Error_Tools::setThreadName (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_WINDOW_DEFAULT_MESSAGE_PUMP_THREAD_NAME),
+                                     NULL);
+#else
+  Common_Error_Tools::setThreadName (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_WINDOW_DEFAULT_MESSAGE_PUMP_THREAD_NAME),
+                                     0);
+#endif // _WIN32_WINNT_WIN10
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: spawned thread (id: %t, group id: %d)\n"),
+              ACE_TEXT (STREAM_VIS_RENDERER_WINDOW_DEFAULT_MESSAGE_PUMP_THREAD_NAME),
+              STREAM_MODULE_TASK_GROUP_ID));
+
+  // sanity check(s)
+  ACE_ASSERT (window_);
+
+  struct tagMSG msg;
+  while (GetMessage (&msg, window_, 0, 0) != -1)
+  {
+    TranslateMessage (&msg);
+    DispatchMessage (&msg);
+  } // end WHILE
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: spawned thread (id: %t, group id: %d) leaving\n"),
+              ACE_TEXT (STREAM_VIS_RENDERER_WINDOW_DEFAULT_MESSAGE_PUMP_THREAD_NAME),
+              STREAM_MODULE_TASK_GROUP_ID));
+
+  return 0;
 }

@@ -432,7 +432,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   // step1: reset counters
   { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
     // support asynchronous API
-    lastBytesPerSecondCount_ = byteCounter_;
+    lastBytesPerSecondCount_ = static_cast<ACE_UINT32> (byteCounter_);
     lastDataMessagesPerSecondCount_ = messageCounter_ - sessionMessageCounter_;
 
     // reset counters

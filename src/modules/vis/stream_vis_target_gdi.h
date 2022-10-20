@@ -23,8 +23,6 @@
 
 #include "ace/Global_Macros.h"
 
-//#include "common_time_common.h"
-
 #include "common_ui_ifullscreen.h"
 
 #include "stream_common.h"
@@ -109,6 +107,11 @@ class Stream_Vis_Target_GDI_T
                                   SessionDataType,
                                   SessionDataContainerType,
                                   MediaType> OWN_TYPE_T;
+
+  // override (part of) ACE_Task_Base
+  virtual int svc ();
+
+  bool                      hasMessagePump_;
 };
 
 // include template definition
