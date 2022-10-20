@@ -32,11 +32,11 @@
 
 extern const char libacestream_default_vis_gdi_module_name_string[];
 
-struct libacestream_gdi_window_proc_cb_data
-{
-  HDC*              dc;
-  ACE_Thread_Mutex* lock;
-};
+//struct libacestream_gdi_window_proc_cb_data
+//{
+//  HDC*              dc;
+//  ACE_Thread_Mutex* lock;
+//};
 LRESULT CALLBACK libacestream_gdi_window_proc_cb (HWND, UINT, WPARAM, LPARAM);
 
 template <ACE_SYNCH_DECL,
@@ -119,7 +119,7 @@ class Stream_Vis_Target_GDI_T
 
   HWND createWindow ();
 
-  struct libacestream_gdi_window_proc_cb_data CBData_;
+  //struct libacestream_gdi_window_proc_cb_data CBData_;
   bool                                        notify_;
 };
 

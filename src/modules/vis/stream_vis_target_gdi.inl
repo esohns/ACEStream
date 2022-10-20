@@ -63,17 +63,17 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
  , header_ ()
  , resolution_ ()
  , window_ (NULL)
- , CBData_ ()
+ //, CBData_ ()
  , notify_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_GDI_T::Stream_Vis_Target_GDI_T"));
 
   ACE_OS::memset (&header_, 0, sizeof (struct tagBITMAPINFO));
   ACE_OS::memset (&resolution_, 0, sizeof (Common_Image_Resolution_t));
-  ACE_OS::memset (&CBData_, 0, sizeof (struct libacestream_gdi_window_proc_cb_data));
+  //ACE_OS::memset (&CBData_, 0, sizeof (struct libacestream_gdi_window_proc_cb_data));
 
-  CBData_.dc = &context_;
-  CBData_.lock = &(inherited::lock_);
+  //CBData_.dc = &context_;
+  //CBData_.lock = &(inherited::lock_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -140,7 +140,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+  //ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
 
   // sanity check(s)
   ACE_ASSERT (context_);
@@ -234,7 +234,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
         inherited::start (NULL);
         inherited::threadCount_ = 0;
 
-        while (!window_);
+        while (inherited::thr_count_ && !window_); // *TODO*: never do this
       } // end IF
       else
       { ACE_ASSERT (!context_);
@@ -320,19 +320,29 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_GDI_T::toggle"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-  ACE_ASSERT (!session_data_r.formats.empty ());
+  if (!window_)
+    return; // nothing to do
 
-  struct _AMMediaType media_type_s;
-  inherited2::getMediaType (session_data_r.formats.back (),
-                            STREAM_MEDIATYPE_VIDEO,
-                            media_type_s);
-  Common_Image_Resolution_t resolution_s =
-    Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
-
-  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+  struct tagWINDOWPLACEMENT window_placement_s;
+  ACE_OS::memset (&window_placement_s, 0, sizeof (struct tagWINDOWPLACEMENT));
+  window_placement_s.length = sizeof (struct tagWINDOWPLACEMENT);
+  if (!GetWindowPlacement (window_, &window_placement_s))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to GetWindowPlacement(0x%@): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                window_,
+                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+    return;
+  } // end IF
+  int command_i =
+    (window_placement_s.showCmd == SW_MAXIMIZE) ? SW_RESTORE : SW_MAXIMIZE;
+  if (!ShowWindow (window_, command_i))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ShowWindow(0x%@,%d): \"%s\", continuing\n"),
+                inherited::mod_->name (),
+                window_, command_i,
+                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
 }
 
 template <ACE_SYNCH_DECL,
@@ -434,7 +444,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
                 ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
     return -1;
   } // end IF
-  SetWindowLongPtr (window_, GWLP_USERDATA, (LONG_PTR)&CBData_);
+  //SetWindowLongPtr (window_, GWLP_USERDATA, (LONG_PTR)&CBData_);
 
   ACE_ASSERT (!context_);
   context_ = GetDC (window_);

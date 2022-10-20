@@ -35,24 +35,24 @@ libacestream_gdi_window_proc_cb (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
     case WM_DESTROY:
       PostQuitMessage (0);
       break;
-    case WM_SIZE:
-    {
-      struct libacestream_gdi_window_proc_cb_data* data_p =
-        (struct libacestream_gdi_window_proc_cb_data*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
-      if (!data_p)
-        return DefWindowProc (hWnd, message, wParam, lParam);
-      ACE_ASSERT (data_p->lock);
+    //case WM_SIZE:
+    //{
+    //  //struct libacestream_gdi_window_proc_cb_data* data_p =
+    //  //  (struct libacestream_gdi_window_proc_cb_data*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+    //  //if (!data_p)
+    //  //  return DefWindowProc (hWnd, message, wParam, lParam);
+    //  //ACE_ASSERT (data_p->lock);
 
-      ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, *data_p->lock, -1);
+    //  //ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, *data_p->lock, -1);
 
-      ACE_ASSERT (data_p->dc);
-      ReleaseDC (hWnd, *data_p->dc); *data_p->dc = NULL;
-      *data_p->dc = GetDC (hWnd);
-      ACE_ASSERT (*data_p->dc);
-      data_p->dc = &*data_p->dc;
+    //  //ACE_ASSERT (data_p->dc);
+    //  //ReleaseDC (hWnd, *data_p->dc); *data_p->dc = NULL;
+    //  //*data_p->dc = GetDC (hWnd);
+    //  //ACE_ASSERT (*data_p->dc);
+    //  //data_p->dc = &*data_p->dc;
 
-      break;
-    }
+    //  break;
+    //}
     default:
       /* Call DefWindowProc() as default */
       return DefWindowProc (hWnd, message, wParam, lParam);
