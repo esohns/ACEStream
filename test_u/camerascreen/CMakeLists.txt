@@ -106,6 +106,10 @@ if (CURSES_SUPPORT)
 endif (CURSES_SUPPORT)
 
 if (UNIX)
+ if (CURSES_SUPPORT)
+  add_definitions (-D_XOPEN_SOURCE_EXTENDED) # activate wide character support in ncurses
+  add_definitions (-DNCURSES_WIDECHAR) # activate wide character support in ncurses
+ endif (CURSES_SUPPORT)
 elseif (WIN32)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
   add_definitions (-DD3D_DEBUG_INFO)
@@ -141,6 +145,9 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 if (CURSES_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${CURSES_LIBRARIES})
+ if (UNIX)
+  target_link_libraries (${EXECUTABLE} PUBLIC ncursesw)
+ endif (UNIX)
 endif (CURSES_SUPPORT)
 if (GLUT_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${GLUT_LIBRARIES})

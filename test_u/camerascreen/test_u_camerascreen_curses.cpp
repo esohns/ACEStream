@@ -21,6 +21,7 @@
 
 #include "test_u_camerascreen_curses.h"
 
+#include <clocale>
 #include <string>
 
 #include "ace/Assert.h"
@@ -83,6 +84,8 @@ curses_init (struct Common_UI_Curses_State* state_in)
   int result = ERR;
   char* string_p = NULL;
   mmask_t mouse_mask = 0;
+
+  setlocale (LC_ALL, "");
 
   // lock state
   ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_p->lock, false);

@@ -262,7 +262,7 @@ class Stream_CameraScreen_Stream
   Stream_CameraScreen_LibAVConvert_Module    convert_; // --> BGRA (Xlib)
   Stream_CameraScreen_LibAVResize_Module     resize_; // --> window size/fullscreen
 #if defined (CURSES_SUPPORT)
-  Stream_CameraScreen_Curses_Display_Module  CursesDisplay_;
+  Test_U_CameraScreen_Curses_Window_Module   CursesDisplay_;
 #endif // CURSES_SUPPORT
 #if defined (GTK_SUPPORT)
   Stream_CameraScreen_GTK_Display_Module     GTKDisplay_;

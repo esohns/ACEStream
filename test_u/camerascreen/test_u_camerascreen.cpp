@@ -1297,17 +1297,13 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       ACE_OS::memset (&coord_s, 0, sizeof (struct _COORD));
       coord_s.X = TEST_U_CURSES_CONSOLE_FONT_SIZE;
       coord_s.Y = TEST_U_CURSES_CONSOLE_FONT_SIZE;
-      if (!Common_UI_Tools::setConsoleFontSize (coord_s))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Common_UI_Tools::setConsoleFontSize(%d,%d), returning\n"),
-                    coord_s.X, coord_s.Y));
-        return;
-      } // end IF
-      struct _SMALL_RECT small_rect_s = Common_UI_Tools::setConsoleMaxWindowSize ();
+      Common_UI_Tools::setConsoleFontSize (coord_s);
+      coord_s.X = TEST_U_CURSES_CONSOLE_WIDTH;
+      coord_s.Y = TEST_U_CURSES_CONSOLE_HEIGHT;
+      Common_UI_Tools::setConsoleSize (coord_s);
 
-      curses_configuration_p->height = small_rect_s.Bottom - small_rect_s.Top; // lines
-      curses_configuration_p->width = small_rect_s.Right - small_rect_s.Left;  // columns
+      curses_configuration_p->height = TEST_U_CURSES_CONSOLE_HEIGHT; // lines
+      curses_configuration_p->width = TEST_U_CURSES_CONSOLE_WIDTH;   // columns
 #else
       curses_configuration_p->height = 45; // lines
       curses_configuration_p->width = 170; // columns

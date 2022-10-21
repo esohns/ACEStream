@@ -21,6 +21,7 @@
 
 #include "test_u_camerascreen_curses_window.h"
 
+#include <ncurses.h>
 #include <utility>
 
 #include "ace/Log_Msg.h"
@@ -47,10 +48,17 @@ void
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 Test_U_CameraScreen_Curses_Window::handleDataMessage (Stream_CameraScreen_DirectShow_Message_t*& message_inout,
 #else
+Test_U_CameraScreen_Curses_Window::handleDataMessage (Stream_CameraScreen_Message_t*& message_inout,
 #endif // ACE_WIN32 || ACE_WIN64
                                                       bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraScreen_Curses_Window::handleDataMessage"));
+
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#else
+//  return inherited::handleDataMessage (message_inout,
+//                                       passMessageDownstream_out);
+//#endif // ACE_WIN32 || ACE_WIN64
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
@@ -58,13 +66,16 @@ Test_U_CameraScreen_Curses_Window::handleDataMessage (Stream_CameraScreen_Direct
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->window_2);
 
-  int result = ERR;
+  int result;
   uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
-  //float ratio_f = 0.0F;
-  float r_f = 0.0F, g_f = 0.0F, b_f = 0.0F;
-  //size_t index_i;
-  ACE_INT32 fg, bg;
+  float r_f, g_f, b_f;
+  int fg, bg;
   chtype char_i;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  cchar_t char_2;
+  ACE_OS::memset (&char_2, 0, sizeof (cchar_t));
+#endif // ACE_WIN32 || ACE_WIN64
 
   result = wmove (inherited::configuration_->window_2,
                   0, 0);
@@ -81,20 +92,32 @@ Test_U_CameraScreen_Curses_Window::handleDataMessage (Stream_CameraScreen_Direct
       r_f = *data_p / 255.0F;
       g_f = *(data_p + 1) / 255.0F;
       b_f = *(data_p + 2) / 255.0F;
-      classifyPixelGrey (r_f, g_f, b_f,
-                         char_i, fg, bg);
+      //classifyPixelGrey (r_f, g_f, b_f,
+      //                   char_i, fg, bg);
       //classifyPixelHSV (r_f, g_f, b_f,
       //                  char_i, fg, bg);
-      //classifyPixelOLC (r_f, g_f, b_f,
-      //                  char_i, fg, bg);
+      classifyPixelOLC (r_f, g_f, b_f,
+                        char_i, fg, bg);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       Common_UI_Curses_Tools::setcolor (fg, bg);
       result = wadd_wch (inherited::configuration_->window_2,
                          &char_i);
-      //if (unlikely (result == ERR))
+      Common_UI_Curses_Tools::unsetcolor (fg, bg);
+#else
+      char_2.attr =
+        (Common_UI_Curses_Tools::is_bold (fg) ? WA_BOLD : WA_NORMAL);
+      char_2.chars[0] = static_cast<wchar_t> (char_i & 0xffff);
+      char_2.ext_color = Common_UI_Curses_Tools::colornum (fg, bg);
+//      wchar_t char_a[] = { char_2.chars[0], 0 };
+//      result = setcchar (&char_2, char_a, char_2.attr, char_2.ext_color, NULL);
+//      ACE_ASSERT (result == OK);
+      result = wadd_wch (inherited::configuration_->window_2,
+                         &char_2);
+#endif // ACE_WIN32 || ACE_WIN64
+           //if (unlikely (result == ERR))
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to wadd_wch(), continuing\n")));
-      Common_UI_Curses_Tools::unsetcolor (fg, bg);
 
       data_p += 3;
     } // end FOR
@@ -110,8 +133,8 @@ Test_U_CameraScreen_Curses_Window::classifyPixelGrey (float red_in,
                                                       float green_in,
                                                       float blue_in,
                                                       chtype& symbol_out,
-                                                      ACE_INT32& foreGroundColor_out,
-                                                      ACE_INT32& backGroundColor_out)
+                                                      int& foreGroundColor_out,
+                                                      int& backGroundColor_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraScreen_Curses_Window::classifyPixelGrey"));
 
@@ -142,8 +165,8 @@ Test_U_CameraScreen_Curses_Window::classifyPixelHSV (float red_in,
                                                      float green_in,
                                                      float blue_in,
                                                      chtype& symbol_out,
-                                                     ACE_INT32& foreGroundColor_out,
-                                                     ACE_INT32& backGroundColor_out)
+                                                     int& foreGroundColor_out,
+                                                     int& backGroundColor_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraScreen_Curses_Window::classifyPixelHSV"));
 
@@ -202,8 +225,8 @@ Test_U_CameraScreen_Curses_Window::classifyPixelOLC (float red_in,
                                                      float green_in,
                                                      float blue_in,
                                                      chtype& symbol_out,
-                                                     ACE_INT32& foreGroundColor_out,
-                                                     ACE_INT32& backGroundColor_out)
+                                                     int& foreGroundColor_out,
+                                                     int& backGroundColor_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraScreen_Curses_Window::classifyPixelOLC"));
 
@@ -234,12 +257,10 @@ Test_U_CameraScreen_Curses_Window::classifyPixelOLC (float red_in,
   float fMaxSecondaryVar = std::max (fCVar, fYVar);
   fMaxSecondaryVar = std::max (fMaxSecondaryVar, fMVar);
 
-  float fShading;
+  float fShading = 0.5;
 
   auto compare = [&](float fV1, float fV2, float fC1, float fC2, short FG_LIGHT, short FG_DARK, short BG_LIGHT, short BG_DARK)
   {
-    fShading = 0.5f;
-
     if (fV1 >= fV2)
     {
       // Primary Is Dominant, Use in foreground
@@ -272,20 +293,28 @@ Test_U_CameraScreen_Curses_Window::classifyPixelOLC (float red_in,
 
   if (fRVar == fMaxPrimaryVar && fYVar == fMaxSecondaryVar)
     compare (fRVar, fYVar, red_in, y, COMMON_UI_CURSES_BRIGHT_RED, COMMON_UI_CURSES_RED, COMMON_UI_CURSES_BRIGHT_YELLOW, COMMON_UI_CURSES_YELLOW);
+
   if (fRVar == fMaxPrimaryVar && fMVar == fMaxSecondaryVar)
     compare (fRVar, fMVar, red_in, m, COMMON_UI_CURSES_BRIGHT_RED, COMMON_UI_CURSES_RED, COMMON_UI_CURSES_BRIGHT_MAGENTA, COMMON_UI_CURSES_MAGENTA);
+
   if (fRVar == fMaxPrimaryVar && fCVar == fMaxSecondaryVar)
     compare (fRVar, fCVar, red_in, c, COMMON_UI_CURSES_BRIGHT_RED, COMMON_UI_CURSES_RED, COMMON_UI_CURSES_BRIGHT_CYAN, COMMON_UI_CURSES_CYAN);
+
   if (fGVar == fMaxPrimaryVar && fYVar == fMaxSecondaryVar)
     compare (fGVar, fYVar, green_in, y, COMMON_UI_CURSES_BRIGHT_GREEN, COMMON_UI_CURSES_GREEN, COMMON_UI_CURSES_BRIGHT_YELLOW, COMMON_UI_CURSES_YELLOW);
+
   if (fGVar == fMaxPrimaryVar && fCVar == fMaxSecondaryVar)
     compare (fGVar, fCVar, green_in, c, COMMON_UI_CURSES_BRIGHT_GREEN, COMMON_UI_CURSES_GREEN, COMMON_UI_CURSES_BRIGHT_CYAN, COMMON_UI_CURSES_CYAN);
+
   if (fGVar == fMaxPrimaryVar && fMVar == fMaxSecondaryVar)
     compare (fGVar, fMVar, green_in, m, COMMON_UI_CURSES_BRIGHT_GREEN, COMMON_UI_CURSES_GREEN, COMMON_UI_CURSES_BRIGHT_MAGENTA, COMMON_UI_CURSES_MAGENTA);
+
   if (fBVar == fMaxPrimaryVar && fMVar == fMaxSecondaryVar)
     compare (fBVar, fMVar, blue_in, m, COMMON_UI_CURSES_BRIGHT_BLUE, COMMON_UI_CURSES_BLUE, COMMON_UI_CURSES_BRIGHT_MAGENTA, COMMON_UI_CURSES_MAGENTA);
+
   if (fBVar == fMaxPrimaryVar && fCVar == fMaxSecondaryVar)
     compare (fBVar, fCVar, blue_in, c, COMMON_UI_CURSES_BRIGHT_BLUE, COMMON_UI_CURSES_BLUE, COMMON_UI_CURSES_BRIGHT_CYAN, COMMON_UI_CURSES_CYAN);
+
   if (fBVar == fMaxPrimaryVar && fYVar == fMaxSecondaryVar)
     compare (fBVar, fYVar, blue_in, y, COMMON_UI_CURSES_BRIGHT_BLUE, COMMON_UI_CURSES_BLUE, COMMON_UI_CURSES_BRIGHT_YELLOW, COMMON_UI_CURSES_YELLOW);
 }

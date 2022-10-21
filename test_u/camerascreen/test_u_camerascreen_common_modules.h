@@ -383,16 +383,6 @@ typedef Stream_Vis_Target_GDI_T<ACE_MT_SYNCH,
                                 Stream_CameraScreen_MediaFoundation_SessionData_t,
                                 IMFMediaType*> Stream_CameraScreen_MediaFoundation_GDI_Display;
 #else
-#if defined (CURSES_SUPPORT)
-typedef Stream_Module_Vis_Curses_Window_T<ACE_MT_SYNCH,
-                                          Common_TimePolicy_t,
-                                          struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
-                                          Stream_ControlMessage_t,
-                                          Stream_CameraScreen_Message_t,
-                                          Stream_CameraScreen_SessionMessage_t,
-                                          Stream_CameraScreen_V4L_SessionData_t,
-                                          struct Stream_MediaFramework_V4L_MediaType> Stream_CameraScreen_Curses_Display;
-#endif // CURSES_SUPPORT
 #if defined (GTK_SUPPORT)
 typedef Stream_Module_Vis_GTK_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
@@ -628,14 +618,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_MediaFoundation_SessionData,  
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CameraScreen_MediaFoundation_GDI_Display); // writer type
 #else
-#if defined (CURSES_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                       // session data type
-                              enum Stream_SessionMessageType,                            // session event type
-                              struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_curses_window_module_name_string,
-                              Stream_INotify_t,                                           // stream notification interface type
-                              Stream_CameraScreen_Curses_Display);                        // writer type
-#endif // CURSES_SUPPORT
 #if defined (GTK_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type

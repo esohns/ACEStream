@@ -21,6 +21,8 @@
 #ifndef TEST_U_CAMERASCREEN_CURSES_WINDOW_H
 #define TEST_U_CAMERASCREEN_CURSES_WINDOW_H
 
+#include "ace/Synch_Traits.h"
+
 #include "common_time_common.h"
 
 #include "stream_control_message.h"
@@ -43,6 +45,14 @@ class Test_U_CameraScreen_Curses_Window
                                             Stream_CameraScreen_DirectShow_SessionData_t,
                                             struct _AMMediaType>
 #else
+ : public Stream_Module_Vis_Curses_Window_T<ACE_MT_SYNCH,
+                                            Common_TimePolicy_t,
+                                            struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
+                                            Stream_ControlMessage_t,
+                                            Stream_CameraScreen_Message_t,
+                                            Stream_CameraScreen_SessionMessage_t,
+                                            Stream_CameraScreen_V4L_SessionData_t,
+                                            struct Stream_MediaFramework_V4L_MediaType>
 #endif // ACE_WIN32 || ACE_WIN64
 {
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
@@ -55,6 +65,14 @@ class Test_U_CameraScreen_Curses_Window
                                            Stream_CameraScreen_DirectShow_SessionData_t,
                                            struct _AMMediaType> inherited;
 #else
+ typedef Stream_Module_Vis_Curses_Window_T<ACE_MT_SYNCH,
+                                            Common_TimePolicy_t,
+                                            struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
+                                            Stream_ControlMessage_t,
+                                            Stream_CameraScreen_Message_t,
+                                            Stream_CameraScreen_SessionMessage_t,
+                                            Stream_CameraScreen_V4L_SessionData_t,
+                                            struct Stream_MediaFramework_V4L_MediaType> inherited;
 #endif // ACE_WIN32 || ACE_WIN64
 
  public:
@@ -71,6 +89,8 @@ class Test_U_CameraScreen_Curses_Window
   virtual void handleDataMessage (Stream_CameraScreen_DirectShow_Message_t*&, // data message handle
                                   bool&);                                     // return value: pass message downstream ?
 #else
+  virtual void handleDataMessage (Stream_CameraScreen_Message_t*&, // data message handle
+                                  bool&);                          // return value: pass message downstream ?
 #endif // ACE_WIN32 || ACE_WIN64
 
  private:
@@ -80,23 +100,32 @@ class Test_U_CameraScreen_Curses_Window
 
   void classifyPixelGrey (float, float, float, // r, g, b - normalized
                           chtype&,             // return value: character symbol
-                          ACE_INT32&,          // return value: foreground color
-                          ACE_INT32&);         // return value: background color
- void classifyPixelHSV (float, float, float, // r, g, b - normalized
+                          int&,                // return value: foreground color
+                          int&);               // return value: background color
+  void classifyPixelHSV (float, float, float, // r, g, b - normalized
                          chtype&,             // return value: character symbol
-                         ACE_INT32&,          // return value: foreground color
-                         ACE_INT32&);         // return value: background color
-  void classifyPixelOLC (float, float, float,  // r, g, b - normalized
-                         chtype&,              // return value: character symbol
-                         ACE_INT32&,           // return value: foreground color
-                         ACE_INT32&);          // return value: background color
+                         int&,                // return value: foreground color
+                         int&);               // return value: background color
+  void classifyPixelOLC (float, float, float, // r, g, b - normalized
+                         chtype&,             // return value: character symbol
+                         int&,                // return value: foreground color
+                         int&);               // return value: background color
 };
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                   // session event type
                               struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_curses_window_module_name_string,
                               Stream_INotify_t,                                                 // stream notification interface type
                               Test_U_CameraScreen_Curses_Window);                               // writer type
+#else
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Stream_CameraScreen_ModuleHandlerConfiguration,     // module handler configuration type
+                              libacestream_default_vis_curses_window_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_U_CameraScreen_Curses_Window);                        // writer type
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

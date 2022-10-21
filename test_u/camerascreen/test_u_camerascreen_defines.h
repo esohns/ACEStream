@@ -24,6 +24,8 @@
 #if defined (CURSES_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define TEST_U_CURSES_CONSOLE_FONT_SIZE 4
+#define TEST_U_CURSES_CONSOLE_HEIGHT    140
+#define TEST_U_CURSES_CONSOLE_WIDTH     320
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // CURSES_SUPPORT
 
