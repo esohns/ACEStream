@@ -56,9 +56,6 @@
 #if defined (FFMPEG_SUPPORT)
 #include "stream_vis_libav_resize.h"
 #endif // FFMPEG_SUPPORT
-#if defined (CURSES_SUPPORT)
-#include "stream_vis_curses_window.h"
-#endif // CURSES_SUPPORT
 #if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_window.h"
 #endif // GTK_SUPPORT
@@ -326,16 +323,6 @@ typedef Stream_Vis_Target_GDI_T<ACE_MT_SYNCH,
                                 Stream_CameraScreen_DirectShow_SessionData_t,
                                 struct _AMMediaType> Stream_CameraScreen_DirectShow_GDI_Display;
 
-#if defined (CURSES_SUPPORT)
-typedef Stream_Module_Vis_Curses_Window_T<ACE_MT_SYNCH,
-                                          Common_TimePolicy_t,
-                                          struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
-                                          Stream_ControlMessage_t,
-                                          Stream_CameraScreen_DirectShow_Message_t,
-                                          Stream_CameraScreen_DirectShow_SessionMessage_t,
-                                          Stream_CameraScreen_DirectShow_SessionData_t,
-                                          struct _AMMediaType> Stream_CameraScreen_DirectShow_Curses_Display;
-#endif // CURSES_SUPPORT
 #if defined (GTK_SUPPORT)
 typedef Stream_Module_Vis_GTK_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
@@ -596,14 +583,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,       
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CameraScreen_DirectShow_GDI_Display);                 // writer type
 
-#if defined (CURSES_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                       // session data type
-                              enum Stream_SessionMessageType,                            // session event type
-                              struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_curses_window_module_name_string,
-                              Stream_INotify_t,                                           // stream notification interface type
-                              Stream_CameraScreen_DirectShow_Curses_Display);                        // writer type
-#endif // CURSES_SUPPORT
 #if defined (GTK_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type

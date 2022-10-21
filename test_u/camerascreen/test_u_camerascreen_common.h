@@ -102,6 +102,12 @@ template <typename NotificationType,
           typename DataMessageType,
           typename SessionMessageType>
 class Stream_CameraScreen_EventHandler_T;
+template <typename DataType,
+          typename SessionDataType>
+class Stream_CameraScreen_Message_T;
+template <typename DataMessageType,
+          typename SessionDataType>
+class Stream_CameraScreen_SessionMessage_T;
 
 enum Stream_CameraScreen_ProgramMode
 {
@@ -329,12 +335,6 @@ typedef Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
 typedef Stream_SessionData_T<Stream_CameraScreen_V4L_SessionData> Stream_CameraScreen_V4L_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
-template <typename DataType,
-          typename SessionDataType>
-class Stream_CameraScreen_Message_T;
-template <typename DataMessageType,
-          typename SessionDataType>
-class Stream_CameraScreen_SessionMessage_T;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_CameraScreen_Message_T<struct Stream_CameraScreen_DirectShow_MessageData,
                                       Stream_CameraScreen_DirectShow_SessionData_t> Stream_CameraScreen_DirectShow_Message_t;

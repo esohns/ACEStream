@@ -140,8 +140,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
 
   mediaType_out.format =
-      Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (mediaType_in.subtype,
-                                                                STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
+      Stream_MediaFramework_DirectShow_Tools::mediaSubTypeToAVPixelFormat (mediaType_in.subtype);
   mediaType_out.frameRate.den = 1;
   mediaType_out.frameRate.num =
       Stream_MediaFramework_DirectShow_Tools::toFramerate (mediaType_in);

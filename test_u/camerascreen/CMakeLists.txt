@@ -99,8 +99,10 @@ set (${EXECUTABLE}_EXE_SRCS
 if (CURSES_SUPPORT)
  set (${EXECUTABLE}_EXE_SRCS
       ${${EXECUTABLE}_EXE_SRCS}
-       test_u_camerascreen_curses.cpp
-       test_u_camerascreen_curses.h)
+      test_u_camerascreen_curses.cpp
+      test_u_camerascreen_curses.h
+      test_u_camerascreen_curses_window.cpp
+      test_u_camerascreen_curses_window.h)
 endif (CURSES_SUPPORT)
 
 if (UNIX)

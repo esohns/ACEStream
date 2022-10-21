@@ -44,6 +44,9 @@
 
 #include "test_u_camerascreen_common.h"
 #include "test_u_camerascreen_common_modules.h"
+#if defined (CURSES_SUPPORT)
+#include "test_u_camerascreen_curses_window.h"
+#endif // CURSES_SUPPORT
 #include "test_u_camerascreen_message.h"
 #include "test_u_camerascreen_session_message.h"
 
@@ -107,7 +110,7 @@ class Stream_CameraScreen_DirectShow_Stream
   Stream_CameraScreen_DirectShow_LibAVConvert_Module     convert_; // RGB
   Stream_CameraScreen_DirectShow_LibAVResize_Module      resize_; // --> window size/fullscreen
 #if defined (CURSES_SUPPORT)
-  Stream_CameraScreen_DirectShow_Curses_Display_Module   CursesDisplay_;
+  Test_U_CameraScreen_Curses_Window_Module               CursesDisplay_;
 #endif // CURSES_SUPPORT
 #if defined (GTK_SUPPORT)
   Stream_CameraScreen_DirectShow_GTK_Display_Module      GTKDisplay_;

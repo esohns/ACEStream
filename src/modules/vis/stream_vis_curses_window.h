@@ -21,18 +21,6 @@
 #ifndef STREAM_VIS_CURSES_WINDOW_H
 #define STREAM_VIS_CURSES_WINDOW_H
 
-#if defined (ACE_WIN32) || defined (ACE_WIN32)
-#undef MOUSE_MOVED
-#include "curses.h"
-#else
-#include "ncurses.h"
-// *NOTE*: the ncurses "timeout" macros conflicts with
-//         ACE_Synch_Options::timeout. Since not currently used, it's safe to
-//         undefine
-#undef timeout
-#endif // ACE_WIN32 || ACE_WIN32
-#include "panel.h"
-
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
@@ -108,19 +96,6 @@ class Stream_Module_Vis_Curses_Window_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Curses_Window_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Curses_Window_T (const Stream_Module_Vis_Curses_Window_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Curses_Window_T& operator= (const Stream_Module_Vis_Curses_Window_T&))
-
-  void classifyPixelGrey (float, float, float, // r, g, b - normalized
-                          chtype&,             // return value: character symbol
-                          ACE_INT32&,          // return value: foreground color
-                          ACE_INT32&);         // return value: background color
-  void classifyPixelHSV (float, float, float, // r, g, b - normalized
-                         chtype&,             // return value: character symbol
-                         ACE_INT32&,          // return value: foreground color
-                         ACE_INT32&);         // return value: background color
-  void classifyPixelOLC (float, float, float,  // r, g, b - normalized
-                         chtype&,              // return value: character symbol
-                         ACE_INT32&,           // return value: foreground color
-                         ACE_INT32&);          // return value: background color
 
   bool closeWindow_;
 };
