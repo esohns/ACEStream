@@ -21,6 +21,19 @@
 #ifndef TEST_U_CAMERASCREEN_CURSES_WINDOW_H
 #define TEST_U_CAMERASCREEN_CURSES_WINDOW_H
 
+#if defined(ACE_WIN32) || defined(ACE_WIN32)
+#undef MOUSE_MOVED
+#include "curses.h"
+#else
+#include "ncurses.h"
+// *NOTE*: the ncurses "timeout" macros conflict with
+//         ACE_Synch_Options::timeout. Since not currently used, it's safe to
+//         undefine
+#undef timeout
+#endif // ACE_WIN32 || ACE_WIN32
+#include "panel.h"
+
+#include "ace/Basic_Types.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
@@ -100,16 +113,16 @@ class Test_U_CameraScreen_Curses_Window
 
   void classifyPixelGrey (float, float, float, // r, g, b - normalized
                           chtype&,             // return value: character symbol
-                          int&,                // return value: foreground color
-                          int&);               // return value: background color
+                          ACE_UINT8&,          // return value: foreground color
+                          ACE_UINT8&);         // return value: background color
   void classifyPixelHSV (float, float, float, // r, g, b - normalized
                          chtype&,             // return value: character symbol
-                         int&,                // return value: foreground color
-                         int&);               // return value: background color
+                         ACE_UINT8&,          // return value: foreground color
+                         ACE_UINT8&);         // return value: background color
   void classifyPixelOLC (float, float, float, // r, g, b - normalized
                          chtype&,             // return value: character symbol
-                         int&,                // return value: foreground color
-                         int&);               // return value: background color
+                         ACE_UINT8&,          // return value: foreground color
+                         ACE_UINT8&);         // return value: background color
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -122,7 +135,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,       
 #else
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                            // session event type
-                              struct Stream_CameraScreen_ModuleHandlerConfiguration,     // module handler configuration type
+                              struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_curses_window_module_name_string,
                               Stream_INotify_t,                                          // stream notification interface type
                               Test_U_CameraScreen_Curses_Window);                        // writer type

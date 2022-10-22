@@ -1305,8 +1305,14 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       curses_configuration_p->height = TEST_U_CURSES_CONSOLE_HEIGHT; // lines
       curses_configuration_p->width = TEST_U_CURSES_CONSOLE_WIDTH;   // columns
 #else
-      curses_configuration_p->height = 45; // lines
-      curses_configuration_p->width = 170; // columns
+//      Common_UI_Tools::setConsoleFontSize (TEST_U_CURSES_CONSOLE_FONT_FACTOR);
+//      Common_UI_Tools::setConsoleSize (TEST_U_CURSES_CONSOLE_WIDTH,
+//                                       TEST_U_CURSES_CONSOLE_HEIGHT);
+
+//      curses_configuration_p->height = TEST_U_CURSES_CONSOLE_HEIGHT; // lines
+//      curses_configuration_p->width = TEST_U_CURSES_CONSOLE_WIDTH; // columns
+      curses_configuration_p->height = 120; // lines
+      curses_configuration_p->width = 45; // columns
 #endif // ACE_WIN32 || ACE_WIN64
 
       curses_manager_p = TEST_U_CURSES_MANAGER_SINGLETON::instance ();

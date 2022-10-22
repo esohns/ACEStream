@@ -78,14 +78,14 @@ curses_init (struct Common_UI_Curses_State* state_in)
     static_cast<struct Test_U_CursesState*> (state_in);
   ACE_ASSERT (!state_p->screen);
   ACE_ASSERT (!state_p->std_window);
-  const struct Common_UI_Curses_Configuration& configuration_r =
-    TEST_U_CURSES_MANAGER_SINGLETON::instance ()->getR_2 ();
+//  const struct Common_UI_Curses_Configuration& configuration_r =
+//    TEST_U_CURSES_MANAGER_SINGLETON::instance ()->getR_2 ();
 
   int result = ERR;
   char* string_p = NULL;
   mmask_t mouse_mask = 0;
 
-  setlocale (LC_ALL, "");
+  setlocale (LC_ALL, "en_US.UTF-8");
 
   // lock state
   ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_p->lock, false);
@@ -97,24 +97,24 @@ curses_init (struct Common_UI_Curses_State* state_in)
 #endif // ACE_WIN32 || ACE_WIN64
 //  nofilter ();
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *NOTE*: if this fails, the program exits, which is not intended behavior
   // *TODO*: --> use newterm() instead
-  //state_in.screen = initscr ();
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  initscr ();
 #else
   state_p->screen = newterm (NULL, NULL, NULL); // use $TERM, STD_OUT, STD_IN
   if (unlikely (!state_p->screen))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to newterm(0x%@), aborting\n"),
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("failed to newterm(0x%@), continuing\n"),
                 NULL));
-    result = ERR;
-    goto error;
+//    result = ERR;
+//    goto error;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
   // *NOTE*: for some (odd) reason, newterm does not work as advertised
   //         (curscr, stdscr corrupt, return value works though)
-  state_p->std_window = initscr ();
+  state_p->std_window = stdscr;
   if (unlikely (!state_p->std_window))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -125,17 +125,18 @@ curses_init (struct Common_UI_Curses_State* state_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   state_p->screen = SP;
 #endif // ACE_WIN32 || ACE_WIN64
-  ACE_ASSERT (state_p->screen && state_p->std_window);
+//  ACE_ASSERT (state_p->screen && state_p->std_window);
+  ACE_ASSERT (state_p->std_window);
 
-  result = resize_term (configuration_r.height, // lines
-                        configuration_r.width); // columns
-  if (unlikely (result == ERR))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to resize_term(%d,%d), aborting\n"),
-                configuration_r.height, configuration_r.width));
-    goto error;
-  } // end IF
+//  result = resizeterm (configuration_r.height, // lines
+//                       configuration_r.width); // columns
+//  if (unlikely (result == ERR))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to resizeterm(%d,%d), aborting\n"),
+//                configuration_r.height, configuration_r.width));
+//    goto error;
+//  } // end IF
 
   string_p = longname ();
   if (unlikely (!string_p))
@@ -159,14 +160,6 @@ curses_init (struct Common_UI_Curses_State* state_in)
       goto error;
     } // end IF
 
-    //result = init_pair (TEST_U_CURSES_COLOR_MAIN,
-    //                    COLOR_WHITE, COLOR_BLACK); // white-on-black
-    //if (unlikely (result == ERR))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to init_pair(), aborting\n")));
-    //  goto error;
-    //} // end IF
     Common_UI_Curses_Tools::init_colorpairs ();
   } // end IF
 

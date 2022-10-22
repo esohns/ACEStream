@@ -21,7 +21,6 @@
 
 #include "test_u_camerascreen_curses_window.h"
 
-#include <ncurses.h>
 #include <utility>
 
 #include "ace/Log_Msg.h"
@@ -69,7 +68,7 @@ Test_U_CameraScreen_Curses_Window::handleDataMessage (Stream_CameraScreen_Messag
   int result;
   uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   float r_f, g_f, b_f;
-  int fg, bg;
+  ACE_UINT8 fg, bg;
   chtype char_i;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -94,24 +93,30 @@ Test_U_CameraScreen_Curses_Window::handleDataMessage (Stream_CameraScreen_Messag
       b_f = *(data_p + 2) / 255.0F;
       //classifyPixelGrey (r_f, g_f, b_f,
       //                   char_i, fg, bg);
-      //classifyPixelHSV (r_f, g_f, b_f,
-      //                  char_i, fg, bg);
-      classifyPixelOLC (r_f, g_f, b_f,
+      classifyPixelHSV (r_f, g_f, b_f,
                         char_i, fg, bg);
+      //classifyPixelOLC (r_f, g_f, b_f,
+      //                  char_i, fg, bg);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      Common_UI_Curses_Tools::setcolor (fg, bg);
+      //Common_UI_Curses_Tools::setcolor (fg, bg);
+      //result = waddch (inherited::configuration_->window_2,
+      //                 char_i);
+      //Common_UI_Curses_Tools::unsetcolor (fg, bg);
+      char_i |=
+        (Common_UI_Curses_Tools::is_bold (fg) || Common_UI_Curses_Tools::is_bold (bg) ? WA_BOLD : WA_NORMAL);
+      char_i |= COLOR_PAIR (Common_UI_Curses_Tools::colornum (fg, bg));
       result = wadd_wch (inherited::configuration_->window_2,
                          &char_i);
-      Common_UI_Curses_Tools::unsetcolor (fg, bg);
 #else
       char_2.attr =
-        (Common_UI_Curses_Tools::is_bold (fg) ? WA_BOLD : WA_NORMAL);
-      char_2.chars[0] = static_cast<wchar_t> (char_i & 0xffff);
-      char_2.ext_color = Common_UI_Curses_Tools::colornum (fg, bg);
-//      wchar_t char_a[] = { char_2.chars[0], 0 };
-//      result = setcchar (&char_2, char_a, char_2.attr, char_2.ext_color, NULL);
-//      ACE_ASSERT (result == OK);
+        (Common_UI_Curses_Tools::is_bold (fg) || Common_UI_Curses_Tools::is_bold (bg) ? WA_BOLD : WA_NORMAL);
+//      char_2.attr |= COLOR_PAIR (Common_UI_Curses_Tools::colornum (fg, bg));
+      char_2.chars[0] = static_cast<wchar_t> (char_i & 0xFFFF);
+//      char_2.ext_color = Common_UI_Curses_Tools::colornum (fg, bg);
+      wchar_t char_a[] = { char_2.chars[0], 0 };
+      result = setcchar (&char_2, char_a, char_2.attr, 0, NULL);
+      ACE_ASSERT (result == OK);
       result = wadd_wch (inherited::configuration_->window_2,
                          &char_2);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -133,8 +138,8 @@ Test_U_CameraScreen_Curses_Window::classifyPixelGrey (float red_in,
                                                       float green_in,
                                                       float blue_in,
                                                       chtype& symbol_out,
-                                                      int& foreGroundColor_out,
-                                                      int& backGroundColor_out)
+                                                      ACE_UINT8& foreGroundColor_out,
+                                                      ACE_UINT8& backGroundColor_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraScreen_Curses_Window::classifyPixelGrey"));
 
@@ -165,8 +170,8 @@ Test_U_CameraScreen_Curses_Window::classifyPixelHSV (float red_in,
                                                      float green_in,
                                                      float blue_in,
                                                      chtype& symbol_out,
-                                                     int& foreGroundColor_out,
-                                                     int& backGroundColor_out)
+                                                     ACE_UINT8& foreGroundColor_out,
+                                                     ACE_UINT8& backGroundColor_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraScreen_Curses_Window::classifyPixelHSV"));
 
@@ -225,8 +230,8 @@ Test_U_CameraScreen_Curses_Window::classifyPixelOLC (float red_in,
                                                      float green_in,
                                                      float blue_in,
                                                      chtype& symbol_out,
-                                                     int& foreGroundColor_out,
-                                                     int& backGroundColor_out)
+                                                     ACE_UINT8& foreGroundColor_out,
+                                                     ACE_UINT8& backGroundColor_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraScreen_Curses_Window::classifyPixelOLC"));
 
@@ -259,7 +264,8 @@ Test_U_CameraScreen_Curses_Window::classifyPixelOLC (float red_in,
 
   float fShading = 0.5;
 
-  auto compare = [&](float fV1, float fV2, float fC1, float fC2, short FG_LIGHT, short FG_DARK, short BG_LIGHT, short BG_DARK)
+  auto compare = [&](const float& fV1, const float& fV2, const float& fC1, const float& fC2,
+                     ACE_UINT8 FG_LIGHT, ACE_UINT8 FG_DARK, ACE_UINT8 BG_LIGHT, ACE_UINT8 BG_DARK)
   {
     if (fV1 >= fV2)
     {

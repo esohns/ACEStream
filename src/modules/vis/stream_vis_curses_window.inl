@@ -23,7 +23,7 @@
 #include "curses.h"
 #else
 #include "ncurses.h"
-// *NOTE*: the ncurses "timeout" macros conflicts with
+// *NOTE*: the ncurses "timeout" macros conflict with
 //         ACE_Synch_Options::timeout. Since not currently used, it's safe to
 //         undefine
 #undef timeout
