@@ -1607,7 +1607,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     video_info_header2_p =
       reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type_s.pbFormat);
   else
-  {
+  { // --> no video *TODO*: support audio-only streams
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: invalid/unknown media format type (was: \"%s\"), aborting\n"),
                 inherited::mod_->name (),
@@ -1618,12 +1618,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     wave_format_ex_p =
       reinterpret_cast<struct tWAVEFORMATEX*> (media_type_2.pbFormat);
   else
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: invalid/unknown media format type (was: \"%s\"), aborting\n"),
+  { // --> no audio
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: invalid/unknown media format type (was: \"%s\"), continuing\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Tools::GUIDToString (media_type_2.formattype).c_str ())));
-    goto error;
   } // end ELSE
 
   // RIFF
@@ -1949,7 +1948,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   AVI_header_strh.dwScale =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
-  value_i = wave_format_ex_p->nSamplesPerSec;
+  value_i =
+    (wave_format_ex_p ? wave_format_ex_p->nSamplesPerSec : 48000);
   AVI_header_strh.dwRate =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
@@ -1965,7 +1965,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   value_i =
-    (wave_format_ex_p->wBitsPerSample / 8) * wave_format_ex_p->nChannels;
+    (wave_format_ex_p ? (wave_format_ex_p->wBitsPerSample / 8) * wave_format_ex_p->nChannels
+                      : 4);
   AVI_header_strh.dwSampleSize =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
@@ -1995,6 +1996,17 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                            : value_i);
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_chunk),
                                      4 + 4);
+  struct tWAVEFORMATEX wave_format_ex_s; // dummy
+  wave_format_ex_s.cbSize = sizeof (struct tWAVEFORMATEX);
+  wave_format_ex_s.wFormatTag = WAVE_FORMAT_PCM;
+  wave_format_ex_s.nChannels = 2;
+  wave_format_ex_s.nSamplesPerSec = 48000;
+  wave_format_ex_s.wBitsPerSample = 16;
+  wave_format_ex_s.nBlockAlign =
+    (wave_format_ex_s.wBitsPerSample / 8) * wave_format_ex_s.nChannels;
+  wave_format_ex_s.nAvgBytesPerSec =
+    wave_format_ex_s.nSamplesPerSec * wave_format_ex_s.nBlockAlign;
+  wave_format_ex_p = (wave_format_ex_p ? wave_format_ex_p : &wave_format_ex_s);
   result =
     messageBlock_inout->copy (reinterpret_cast<char*> (wave_format_ex_p),
                               (2 * 2) + (2 * 4) + (3 * 2));
