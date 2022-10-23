@@ -102,15 +102,16 @@ curses_init (struct Common_UI_Curses_State* state_in)
   // *TODO*: --> use newterm() instead
   initscr ();
 #else
-  state_p->screen = newterm (NULL, NULL, NULL); // use $TERM, STD_OUT, STD_IN
-  if (unlikely (!state_p->screen))
-  {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("failed to newterm(0x%@), continuing\n"),
-                NULL));
-//    result = ERR;
-//    goto error;
-  } // end IF
+//  state_p->screen = newterm (NULL, NULL, NULL); // use $TERM, STD_OUT, STD_IN
+//  if (unlikely (!state_p->screen))
+//  {
+//    ACE_DEBUG ((LM_WARNING,
+//                ACE_TEXT ("failed to newterm(0x%@), continuing\n"),
+//                NULL));
+////    result = ERR;
+////    goto error;
+//  } // end IF
+  initscr ();
 #endif // ACE_WIN32 || ACE_WIN64
   // *NOTE*: for some (odd) reason, newterm does not work as advertised
   //         (curscr, stdscr corrupt, return value works though)
@@ -124,6 +125,8 @@ curses_init (struct Common_UI_Curses_State* state_in)
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   state_p->screen = SP;
+#else
+//  state_p->screen = SP;
 #endif // ACE_WIN32 || ACE_WIN64
 //  ACE_ASSERT (state_p->screen && state_p->std_window);
   ACE_ASSERT (state_p->std_window);

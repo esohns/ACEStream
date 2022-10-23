@@ -93,10 +93,10 @@ Test_U_CameraScreen_Curses_Window::handleDataMessage (Stream_CameraScreen_Messag
       b_f = *(data_p + 2) / 255.0F;
       //classifyPixelGrey (r_f, g_f, b_f,
       //                   char_i, fg, bg);
-      classifyPixelHSV (r_f, g_f, b_f,
-                        char_i, fg, bg);
-      //classifyPixelOLC (r_f, g_f, b_f,
+      //classifyPixelHSV (r_f, g_f, b_f,
       //                  char_i, fg, bg);
+      classifyPixelOLC (r_f, g_f, b_f,
+                        char_i, fg, bg);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       //Common_UI_Curses_Tools::setcolor (fg, bg);
@@ -104,23 +104,23 @@ Test_U_CameraScreen_Curses_Window::handleDataMessage (Stream_CameraScreen_Messag
       //                 char_i);
       //Common_UI_Curses_Tools::unsetcolor (fg, bg);
       char_i |=
-        (Common_UI_Curses_Tools::is_bold (fg) || Common_UI_Curses_Tools::is_bold (bg) ? WA_BOLD : WA_NORMAL);
+        (Common_UI_Curses_Tools::is_bold (fg)/* || Common_UI_Curses_Tools::is_bold (bg)*/ ? WA_BOLD : WA_NORMAL);
       char_i |= COLOR_PAIR (Common_UI_Curses_Tools::colornum (fg, bg));
       result = wadd_wch (inherited::configuration_->window_2,
                          &char_i);
 #else
       char_2.attr =
-        (Common_UI_Curses_Tools::is_bold (fg) || Common_UI_Curses_Tools::is_bold (bg) ? WA_BOLD : WA_NORMAL);
-//      char_2.attr |= COLOR_PAIR (Common_UI_Curses_Tools::colornum (fg, bg));
+        (Common_UI_Curses_Tools::is_bold (fg)/* || Common_UI_Curses_Tools::is_bold (bg)*/ ? WA_BOLD : WA_NORMAL);
       char_2.chars[0] = static_cast<wchar_t> (char_i & 0xFFFF);
 //      char_2.ext_color = Common_UI_Curses_Tools::colornum (fg, bg);
-      wchar_t char_a[] = { char_2.chars[0], 0 };
-      result = setcchar (&char_2, char_a, char_2.attr, 0, NULL);
+      wchar_t char_a[] = { char_2.chars[0], L'\0' };
+      result =
+        setcchar (&char_2, char_a, char_2.attr, Common_UI_Curses_Tools::colornum (fg, bg), NULL);
       ACE_ASSERT (result == OK);
       result = wadd_wch (inherited::configuration_->window_2,
                          &char_2);
 #endif // ACE_WIN32 || ACE_WIN64
-           //if (unlikely (result == ERR))
+      //if (unlikely (result == ERR))
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to wadd_wch(), continuing\n")));
 
@@ -162,6 +162,8 @@ Test_U_CameraScreen_Curses_Window::classifyPixelGrey (float red_in,
     case 10: backGroundColor_out = COMMON_UI_CURSES_GREY;      foreGroundColor_out = COMMON_UI_CURSES_WHITE;     symbol_out = COMMON_UI_CURSES_BLOCK_HALF; break;
     case 11: backGroundColor_out = COMMON_UI_CURSES_GREY;      foreGroundColor_out = COMMON_UI_CURSES_WHITE;     symbol_out = COMMON_UI_CURSES_BLOCK_THREE_QUARTERS; break;
     case 12: backGroundColor_out = COMMON_UI_CURSES_GREY;      foreGroundColor_out = COMMON_UI_CURSES_WHITE;     symbol_out = COMMON_UI_CURSES_BLOCK_SOLID; break;
+
+    case 13: backGroundColor_out = COMMON_UI_CURSES_WHITE;     foreGroundColor_out = COMMON_UI_CURSES_WHITE;     symbol_out = COMMON_UI_CURSES_BLOCK_SOLID; break;
   } // end SWITCH
 }
 
@@ -212,7 +214,7 @@ Test_U_CameraScreen_Curses_Window::classifyPixelHSV (float red_in,
     { COMMON_UI_CURSES_BLOCK_THREE_QUARTERS, COMMON_UI_CURSES_RED,     COMMON_UI_CURSES_MAGENTA}
   };
 
-  int index = (int)((hue_f / 360.0f) * 24.0f);
+  int index = (int)((hue_f / 360.0f) * 23.0f);
 
   if (saturation_f > 0.2f)
   {
@@ -299,28 +301,20 @@ Test_U_CameraScreen_Curses_Window::classifyPixelOLC (float red_in,
 
   if (fRVar == fMaxPrimaryVar && fYVar == fMaxSecondaryVar)
     compare (fRVar, fYVar, red_in, y, COMMON_UI_CURSES_BRIGHT_RED, COMMON_UI_CURSES_RED, COMMON_UI_CURSES_BRIGHT_YELLOW, COMMON_UI_CURSES_YELLOW);
-
-  if (fRVar == fMaxPrimaryVar && fMVar == fMaxSecondaryVar)
+  else if (fRVar == fMaxPrimaryVar && fMVar == fMaxSecondaryVar)
     compare (fRVar, fMVar, red_in, m, COMMON_UI_CURSES_BRIGHT_RED, COMMON_UI_CURSES_RED, COMMON_UI_CURSES_BRIGHT_MAGENTA, COMMON_UI_CURSES_MAGENTA);
-
-  if (fRVar == fMaxPrimaryVar && fCVar == fMaxSecondaryVar)
+  else if (fRVar == fMaxPrimaryVar && fCVar == fMaxSecondaryVar)
     compare (fRVar, fCVar, red_in, c, COMMON_UI_CURSES_BRIGHT_RED, COMMON_UI_CURSES_RED, COMMON_UI_CURSES_BRIGHT_CYAN, COMMON_UI_CURSES_CYAN);
-
-  if (fGVar == fMaxPrimaryVar && fYVar == fMaxSecondaryVar)
+  else if (fGVar == fMaxPrimaryVar && fYVar == fMaxSecondaryVar)
     compare (fGVar, fYVar, green_in, y, COMMON_UI_CURSES_BRIGHT_GREEN, COMMON_UI_CURSES_GREEN, COMMON_UI_CURSES_BRIGHT_YELLOW, COMMON_UI_CURSES_YELLOW);
-
-  if (fGVar == fMaxPrimaryVar && fCVar == fMaxSecondaryVar)
+  else if (fGVar == fMaxPrimaryVar && fCVar == fMaxSecondaryVar)
     compare (fGVar, fCVar, green_in, c, COMMON_UI_CURSES_BRIGHT_GREEN, COMMON_UI_CURSES_GREEN, COMMON_UI_CURSES_BRIGHT_CYAN, COMMON_UI_CURSES_CYAN);
-
-  if (fGVar == fMaxPrimaryVar && fMVar == fMaxSecondaryVar)
+  else if (fGVar == fMaxPrimaryVar && fMVar == fMaxSecondaryVar)
     compare (fGVar, fMVar, green_in, m, COMMON_UI_CURSES_BRIGHT_GREEN, COMMON_UI_CURSES_GREEN, COMMON_UI_CURSES_BRIGHT_MAGENTA, COMMON_UI_CURSES_MAGENTA);
-
-  if (fBVar == fMaxPrimaryVar && fMVar == fMaxSecondaryVar)
+  else if (fBVar == fMaxPrimaryVar && fMVar == fMaxSecondaryVar)
     compare (fBVar, fMVar, blue_in, m, COMMON_UI_CURSES_BRIGHT_BLUE, COMMON_UI_CURSES_BLUE, COMMON_UI_CURSES_BRIGHT_MAGENTA, COMMON_UI_CURSES_MAGENTA);
-
-  if (fBVar == fMaxPrimaryVar && fCVar == fMaxSecondaryVar)
+  else if (fBVar == fMaxPrimaryVar && fCVar == fMaxSecondaryVar)
     compare (fBVar, fCVar, blue_in, c, COMMON_UI_CURSES_BRIGHT_BLUE, COMMON_UI_CURSES_BLUE, COMMON_UI_CURSES_BRIGHT_CYAN, COMMON_UI_CURSES_CYAN);
-
-  if (fBVar == fMaxPrimaryVar && fYVar == fMaxSecondaryVar)
+  else if (fBVar == fMaxPrimaryVar && fYVar == fMaxSecondaryVar)
     compare (fBVar, fYVar, blue_in, y, COMMON_UI_CURSES_BRIGHT_BLUE, COMMON_UI_CURSES_BLUE, COMMON_UI_CURSES_BRIGHT_YELLOW, COMMON_UI_CURSES_YELLOW);
 }
