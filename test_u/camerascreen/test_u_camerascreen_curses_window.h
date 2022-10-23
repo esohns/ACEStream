@@ -21,7 +21,7 @@
 #ifndef TEST_U_CAMERASCREEN_CURSES_WINDOW_H
 #define TEST_U_CAMERASCREEN_CURSES_WINDOW_H
 
-#if defined(ACE_WIN32) || defined(ACE_WIN32)
+#if defined (ACE_WIN32) || defined (ACE_WIN32)
 #undef MOUSE_MOVED
 #include "curses.h"
 #else
