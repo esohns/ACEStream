@@ -52,8 +52,34 @@ do_print_usage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
+  std::string filename_string = path_root;
+  filename_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  filename_string +=
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+  filename_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  filename_string +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_INPUT_FILE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f          : libreOffice template (.ods) filename [")
+            << filename_string.c_str ()
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-p          : export as PDF [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+  filename_string = path_root;
+  filename_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  filename_string +=
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+  filename_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  filename_string +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_RC_FILE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : libreOffice .rc filename [")
+            << filename_string.c_str ()
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
@@ -68,6 +94,7 @@ do_process_arguments (int argc_in,
                       std::string& templateFileName_out,
                       std::string& rcFileName_out,
                       bool& logToFile_out,
+                      bool& exportAsPDF_out,
                       bool& traceInformation_out)
 {
   std::string path_root =
@@ -89,11 +116,12 @@ do_process_arguments (int argc_in,
   rcFileName_out +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_RC_FILE);
   logToFile_out = false;
+  exportAsPDF_out = false;
   traceInformation_out = false;
 
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
-                               ACE_TEXT ("f:lr:t"),
+                               ACE_TEXT ("f:lr:pt"),
                                1,                         // skip command name
                                1,                         // report parsing errors
                                ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -114,6 +142,11 @@ do_process_arguments (int argc_in,
       case 'l':
       {
         logToFile_out = true;
+        break;
+      }
+      case 'p':
+      {
+        exportAsPDF_out = true;
         break;
       }
       case 'r':
@@ -165,6 +198,7 @@ void
 do_work (int argc_in,
          ACE_TCHAR* argv_in[],
          const std::string& templateFileName_in,
+         bool exportAsPDF_in,
          const std::string& rcFileName_in)
 {
   int result = -1;
@@ -209,6 +243,13 @@ do_work (int argc_in,
   std::string filename_string = Common_File_Tools::getWorkingDirectory ();
   filename_string += ACE_DIRECTORY_SEPARATOR_STR;
   filename_string += Common_File_Tools::basename (templateFileName_in);
+  if (exportAsPDF_in)
+  {
+    filename_string = Common_File_Tools::cropExtension (filename_string);
+    filename_string += '.';
+    filename_string +=
+      ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_PDF_FILENAME_EXTENSION);
+  } // end IF
   modulehandler_configuration.fileIdentifier.identifier = filename_string;
   modulehandler_configuration.fileName = templateFileName_in;
   modulehandler_configuration.libreOfficeRc = rcFileName_in;
@@ -286,6 +327,7 @@ ACE_TMAIN (int argc_in,
   // step1a set defaults
   bool log_to_file = false;
   std::string log_file_name;
+  bool export_as_pdf_b = false;
   bool trace_information = false;
   std::string template_filename;
   template_filename = Common_File_Tools::getWorkingDirectory ();
@@ -309,6 +351,7 @@ ACE_TMAIN (int argc_in,
                              template_filename,
                              rc_filename,
                              log_to_file,
+                             export_as_pdf_b,
                              trace_information))
   {
     do_print_usage (ACE::basename (argv_in[0]));
@@ -327,8 +370,8 @@ ACE_TMAIN (int argc_in,
   if (log_to_file)
     log_file_name =
       Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                        ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]), // program name
+                                        ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
+  if (!Common_Log_Tools::initializeLogging (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)), // program name
                                             log_file_name,              // log file name
                                             false,                      // log to syslog ?
                                             false,                      // trace messages ?
@@ -345,6 +388,7 @@ ACE_TMAIN (int argc_in,
   do_work (argc_in,
            argv_in,
            template_filename,
+           export_as_pdf_b,
            rc_filename);
   timer.stop ();
 

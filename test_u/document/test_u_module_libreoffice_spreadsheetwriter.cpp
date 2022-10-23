@@ -39,6 +39,7 @@
 #include "rtl/bootstrap.h"
 
 #include "common_file_tools.h"
+#include "common_string_tools.h"
 #include "common_tools.h"
 
 #include "common_timer_tools.h"
@@ -497,6 +498,15 @@ error:
         document_properties[1].Name =
           ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_INTERACTIONHANDLER));
         document_properties[1].Value = makeAny (inherited::interactionHandler_);
+        if (!ACE_OS::strcmp (Common_String_Tools::tolower (Common_File_Tools::fileExtension (inherited::configuration_->fileIdentifier.identifier, false)).c_str (),
+                             ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_PDF_FILENAME_EXTENSION)))
+        {
+          document_properties.realloc (3);
+          document_properties[2].Name =
+            ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_FILTERNAME));
+          document_properties[2].Value <<=
+            ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_CALC_PDF_EXPORT_FILTER_NAME));
+        } // end IF
       } // end IF
       else
         save_as = false;

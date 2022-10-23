@@ -1599,6 +1599,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   struct tWAVEFORMATEX* wave_format_ex_p = NULL;
   ACE_UINT32 value_i = 0;
   ACE_INT16 value_2 = 0;
+  struct tWAVEFORMATEX AVI_header_strf_audio; // dummy
 
   if (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo))
     video_info_header_p =
@@ -1618,7 +1619,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     wave_format_ex_p =
       reinterpret_cast<struct tWAVEFORMATEX*> (media_type_2.pbFormat);
   else
-  { // --> no audio
+  { // --> no audio *TODO*: write only one strl in this case; adjust offset(s), pad bytes accordingly
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: invalid/unknown media format type (was: \"%s\"), continuing\n"),
                 inherited::mod_->name (),
@@ -1996,17 +1997,18 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                            : value_i);
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_chunk),
                                      4 + 4);
-  struct tWAVEFORMATEX wave_format_ex_s; // dummy
-  wave_format_ex_s.cbSize = sizeof (struct tWAVEFORMATEX);
-  wave_format_ex_s.wFormatTag = WAVE_FORMAT_PCM;
-  wave_format_ex_s.nChannels = 2;
-  wave_format_ex_s.nSamplesPerSec = 48000;
-  wave_format_ex_s.wBitsPerSample = 16;
-  wave_format_ex_s.nBlockAlign =
-    (wave_format_ex_s.wBitsPerSample / 8) * wave_format_ex_s.nChannels;
-  wave_format_ex_s.nAvgBytesPerSec =
-    wave_format_ex_s.nSamplesPerSec * wave_format_ex_s.nBlockAlign;
-  wave_format_ex_p = (wave_format_ex_p ? wave_format_ex_p : &wave_format_ex_s);
+  ACE_OS::memset (&AVI_header_strf_audio, 0, sizeof (struct tWAVEFORMATEX));
+  AVI_header_strf_audio.cbSize = sizeof (struct tWAVEFORMATEX);
+  AVI_header_strf_audio.wFormatTag = WAVE_FORMAT_PCM;
+  AVI_header_strf_audio.nChannels = 2;
+  AVI_header_strf_audio.nSamplesPerSec = 48000;
+  AVI_header_strf_audio.wBitsPerSample = 16;
+  AVI_header_strf_audio.nBlockAlign =
+    (AVI_header_strf_audio.wBitsPerSample / 8) * AVI_header_strf_audio.nChannels;
+  AVI_header_strf_audio.nAvgBytesPerSec =
+    AVI_header_strf_audio.nSamplesPerSec * AVI_header_strf_audio.nBlockAlign;
+  wave_format_ex_p =
+    (wave_format_ex_p ? wave_format_ex_p : &AVI_header_strf_audio);
   result =
     messageBlock_inout->copy (reinterpret_cast<char*> (wave_format_ex_p),
                               (2 * 2) + (2 * 4) + (3 * 2));
