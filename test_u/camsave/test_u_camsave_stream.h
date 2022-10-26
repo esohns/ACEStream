@@ -114,6 +114,7 @@ class Stream_CamSave_DirectShow_Stream
 #endif // FFMPEG_SUPPORT
 #if defined (GUI_SUPPORT)
   Stream_CamSave_DirectShow_Direct3DDisplay_Module   direct3DDisplay_;
+  Stream_CamSave_DirectShow_Direct3D11Display_Module direct3D11Display_;
   Stream_CamSave_DirectShow_DirectShowDisplay_Module directShowDisplay_;
 #if (GTK_SUPPORT)
   Stream_CamSave_DirectShow_GTKPixbufDisplay_Module  GTKPixbufDisplay_;

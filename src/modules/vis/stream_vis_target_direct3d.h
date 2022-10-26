@@ -21,14 +21,12 @@
 #ifndef STREAM_MODULE_VIS_TARGET_DIRECT3D_T_H
 #define STREAM_MODULE_VIS_TARGET_DIRECT3D_T_H
 
-#include <d3d9.h>
-#include <guiddef.h>
-#include <mfobjects.h>
-#include <strmif.h>
+#include "d3d9.h"
+#include "guiddef.h"
+//#include "mfobjects.h"
+#include "strmif.h"
 
 #include "ace/Global_Macros.h"
-
-//#include "common_time_common.h"
 
 #include "common_ui_ifullscreen.h"
 

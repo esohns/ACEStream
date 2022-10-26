@@ -2521,7 +2521,7 @@ idle_initialize_UI_cb (gpointer userData_in)
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
       directshow_stream_iterator_2 =
-        directshow_cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
+        directshow_cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (directshow_cb_data_p->configuration->streamConfiguration.configuration_->renderer));
       ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->streamConfiguration.end ());
 #if defined (FFMPEG_SUPPORT)
       directshow_stream_iterator_3 =
@@ -6744,7 +6744,7 @@ drawing_area_resize_end (gpointer userData_in)
       ACE_ASSERT (directshow_cb_data_p->configuration);
       stream_p = directshow_cb_data_p->stream;
       directshow_stream_iterator =
-        directshow_cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
+        directshow_cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (directshow_cb_data_p->configuration->streamConfiguration.configuration_->renderer));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
 #if defined (FFMPEG_SUPPORT)
       iterator_4 =

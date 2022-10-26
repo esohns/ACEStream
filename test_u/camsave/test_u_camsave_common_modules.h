@@ -76,6 +76,7 @@
 #endif // GTK_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_vis_target_direct3d.h"
+#include "stream_vis_target_direct3d_11.h"
 #include "stream_vis_target_directshow.h"
 #include "stream_vis_target_mediafoundation.h"
 #else
@@ -511,6 +512,15 @@ typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Stream_CamSave_DirectShow_SessionData,
                                      Stream_CamSave_DirectShow_SessionData_t,
                                      struct _AMMediaType> Stream_CamSave_DirectShow_Direct3DDisplay;
+typedef Stream_Vis_Target_Direct3D11_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
+                                       struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
+                                       Stream_ControlMessage_t,
+                                       Stream_CamSave_DirectShow_Message_t,
+                                       Stream_CamSave_DirectShow_SessionMessage_t,
+                                       Stream_CamSave_DirectShow_SessionData,
+                                       Stream_CamSave_DirectShow_SessionData_t,
+                                       struct _AMMediaType> Stream_CamSave_DirectShow_Direct3D11Display;
 typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration,
@@ -939,14 +949,20 @@ DATASTREAM_MODULE_DUPLEX (Stream_CamSave_V4L_SessionData,                   // s
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_directshow_module_name_string,
+                              libacestream_default_vis_direct3d_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_DirectShow_Direct3DDisplay);       // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_direct3d11_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Stream_CamSave_DirectShow_Direct3D11Display);                // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_mediafoundation_module_name_string,
+                              libacestream_default_vis_direct3d_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_MediaFoundation_Direct3DDisplay);  // writer type
 

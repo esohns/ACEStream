@@ -1339,7 +1339,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2; // resize
-  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_3; // renderer
+  //Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_3; // renderer
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_4; // converter_2
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
@@ -1513,11 +1513,12 @@ error:
           (!UIDefinitionFilename_in.empty () ? &directshow_message_handler
                                              : NULL);
 #endif // GUI_SUPPORT
-      //directShowConfiguration_in.streamConfiguration.configuration_.renderer =
-      //  renderer_in;
 
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_stream_configuration.capturer = capturer_in;
+      directshow_stream_configuration.renderer =
+//        STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO
+        STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
@@ -1541,12 +1542,23 @@ error:
         Stream_Device_Identifier::STRING;
       ACE_OS::strcpy (directshow_modulehandler_configuration_3.deviceIdentifier.identifier._string,
                       displayDevice_in.device.c_str ());
-      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO),
+      directshow_modulehandler_configuration_3.shaderFile =
+        Common_File_Tools::getWorkingDirectory ();
+      directshow_modulehandler_configuration_3.shaderFile +=
+        ACE_DIRECTORY_SEPARATOR_STR;
+      directshow_modulehandler_configuration_3.shaderFile +=
+        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+      directshow_modulehandler_configuration_3.shaderFile +=
+        ACE_DIRECTORY_SEPARATOR_STR;
+      directshow_modulehandler_configuration_3.shaderFile +=
+        ACE_TEXT_ALWAYS_CHAR ("shaders.hlsl");
+      ACE_ASSERT (Common_File_Tools::isReadable (directshow_modulehandler_configuration_3.shaderFile));
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (directshow_stream_configuration.renderer),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_3)));
-      directshow_stream_iterator_3 =
-        directShowConfiguration_in.streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
-      ACE_ASSERT (directshow_stream_iterator_3 != directShowConfiguration_in.streamConfiguration.end ());
+      //directshow_stream_iterator_3 =
+      //  directShowConfiguration_in.streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
+      //ACE_ASSERT (directshow_stream_iterator_3 != directShowConfiguration_in.streamConfiguration.end ());
 
 #if defined (FFMPEG_SUPPORT)
       directshow_modulehandler_configuration_4 = directshow_modulehandler_configuration;

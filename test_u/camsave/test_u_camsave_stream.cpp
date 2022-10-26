@@ -63,6 +63,8 @@ Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
 #endif // FFMPEG_SUPPORT
  , direct3DDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
+ , direct3D11Display_ (this,
+                       ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_11_DEFAULT_NAME_STRING))
  , directShowDisplay_ (this,
                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
 #if (GTK_SUPPORT)
@@ -106,7 +108,7 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
   iterator =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   iterator_2 =
-    inherited::configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
+    inherited::configuration_->find (Stream_Visualization_Tools::rendererToModuleName (inherited::configuration_->configuration_->renderer));
   // sanity check(s)
   ACE_ASSERT (iterator != inherited::configuration_->end ());
   ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
@@ -169,18 +171,19 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #endif // FFMPEG_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-//      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
+      //      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
 //        layout_in->append (&display_, branch_p, 0);
 //      else
-      //layout_in->append (&direct3DDisplay_, NULL, 0);
       //layout_in->append (&directShowDisplay_, NULL, 0);
-#if (GTK_SUPPORT)
       //layout_in->append (&GTKPixbufDisplay_, branch_p, index_i);
+#if defined (GTK2_USE)
       layout_in->append (&GTKCairoDisplay_, branch_p, index_i);
-#endif // GTK_SUPPORT
+#elif defined (GTK3_USE)
+      layout_in->append (&direct3D11Display_, NULL, 0);
+#endif // GTK2_USE || GTK3_USE
 #elif defined (WXWIDGETS_USE)
       layout_in->append (&display_, branch_p, index_i);
-#endif
+#endif // GTK_USE || WXWIDGETS_USE
 #else
       ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
       ACE_ASSERT (false); // *TODO*
@@ -229,7 +232,7 @@ Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& 
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   iterator_2 =
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (Stream_Visualization_Tools::rendererToModuleName (configuration_in.configuration_->renderer));
   // sanity check(s)
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
   ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());

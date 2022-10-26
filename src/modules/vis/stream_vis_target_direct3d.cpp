@@ -99,7 +99,7 @@ __forceinline void libacestream_vis_transform_image_RGB32 (BYTE*       pDest,
                                                            DWORD       dwWidthInPixels,
                                                            DWORD       dwHeightInPixels)
 {
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   HRESULT result = MFCopyImage (pDest,
                                 lDestStride,
                                 pSrc,

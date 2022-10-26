@@ -34,7 +34,8 @@
 #define STREAM_VIS_CURSES_WINDOW_DEFAULT_NAME_STRING                      "Curses"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define STREAM_VIS_DIRECT2D_DEFAULT_NAME_STRING                           "Direct2D"
-#define STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING                           "Direct3D"
+#define STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING                           "Direct3D" // Direct3D 9
+#define STREAM_VIS_DIRECT3D_11_DEFAULT_NAME_STRING                        "Direct3D11" // Direct3D 11
 #define STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING                         "DirectShow"
 #define STREAM_VIS_GDI_DEFAULT_NAME_STRING                                "GDI"
 #define STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING                    "MediaFoundation"

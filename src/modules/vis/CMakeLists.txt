@@ -239,6 +239,9 @@ elseif (WIN32)
       stream_vis_target_direct3d.cpp
       stream_vis_target_direct3d.h
       stream_vis_target_direct3d.inl
+      stream_vis_target_direct3d_11.cpp
+      stream_vis_target_direct3d_11.h
+      stream_vis_target_direct3d_11.inl
       stream_vis_target_directshow.cpp
       stream_vis_target_directshow.h
       stream_vis_target_directshow.inl
@@ -407,6 +410,8 @@ elseif (WIN32)
       stream_vis_target_direct2d.inl
       stream_vis_target_direct3d.h
       stream_vis_target_direct3d.inl
+      stream_vis_target_direct3d_11.h
+      stream_vis_target_direct3d_11.inl
       stream_vis_target_directshow.h
       stream_vis_target_directshow.inl
       stream_vis_target_gdi.h

@@ -22,19 +22,19 @@
 #include "stream_vis_tools.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <dshow.h>
-#include <dvdmedia.h>
-//#include <evr.h>
-//#include <ksuuids.h>
-#include <mfapi.h>
-//#include <mtype.h>
+#include "dshow.h"
+#include "dvdmedia.h"
+//#include "evr.h"
+//#include "ksuuids.h"
+#include "mfapi.h"
+//#include "mtype.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
-#include <uuids.h>
+#include "uuids.h"
 #endif // UUIDS_H
-//#include <wmcodecdsp.h>
+//#include "wmcodecdsp.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
@@ -159,6 +159,8 @@ Stream_Visualization_Tools::rendererToModuleName (enum Stream_Visualization_Vide
       result = ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT2D_DEFAULT_NAME_STRING); break;
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
       result = ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING); break;
+    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11:
+      result = ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_11_DEFAULT_NAME_STRING); break;
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
       result = ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING); break;
     case STREAM_VISUALIZATION_VIDEORENDERER_GDI:
