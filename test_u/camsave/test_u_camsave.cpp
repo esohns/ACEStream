@@ -728,8 +728,8 @@ continue_:
   //         ":0")
   // *NOTE*: --> the default display format is RGB24
   ACE_ASSERT (InlineIsEqualGUID (displayFormat_inout.majortype, MEDIATYPE_Video));
-  //displayFormat_inout.subtype = MEDIASUBTYPE_RGB24;
-  displayFormat_inout.subtype = MEDIASUBTYPE_RGB32;
+  displayFormat_inout.subtype = MEDIASUBTYPE_RGB24;
+  //displayFormat_inout.subtype = MEDIASUBTYPE_RGB32;
   displayFormat_inout.bFixedSizeSamples = TRUE;
   displayFormat_inout.bTemporalCompression = FALSE;
   if (InlineIsEqualGUID (displayFormat_inout.formattype, FORMAT_VideoInfo))
@@ -745,8 +745,8 @@ continue_:
     ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
     ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
     ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
-    //video_info_header_p->bmiHeader.biBitCount = 24;
-    video_info_header_p->bmiHeader.biBitCount = 32;
+    video_info_header_p->bmiHeader.biBitCount = 24;
+    //video_info_header_p->bmiHeader.biBitCount = 32;
     video_info_header_p->bmiHeader.biCompression = BI_RGB;
     video_info_header_p->bmiHeader.biSizeImage =
       DIBSIZE (video_info_header_p->bmiHeader);
@@ -1517,8 +1517,8 @@ error:
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_stream_configuration.capturer = capturer_in;
       directshow_stream_configuration.renderer =
-//        STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO
-        STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11;
+        STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO;
+        //STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,

@@ -179,7 +179,7 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (GTK2_USE)
       layout_in->append (&GTKCairoDisplay_, branch_p, index_i);
 #elif defined (GTK3_USE)
-      layout_in->append (&direct3D11Display_, NULL, 0);
+      layout_in->append (&GTKCairoDisplay_, branch_p, index_i);
 #endif // GTK2_USE || GTK3_USE
 #elif defined (WXWIDGETS_USE)
       layout_in->append (&display_, branch_p, index_i);
