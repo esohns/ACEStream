@@ -139,50 +139,26 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (context_);
-  ACE_ASSERT (renderTargetView_);
-  ACE_ASSERT (clientWindow_);
-  ACE_ASSERT (inputLayout_);
-  ACE_ASSERT (vertexBuffer_);
-  ACE_ASSERT (vertexShader_);
-  ACE_ASSERT (pixelShader_);
   ACE_ASSERT (swapChain_);
+  ACE_ASSERT (texture_);
 
-  /* clear the back buffer to cornflower blue for the new frame */
-  float background_colour_a[4] = {0x64 / 255.0f, 0x95 / 255.0f, 0xED / 255.0f, 1.0f};
-  context_->ClearRenderTargetView (renderTargetView_,
-                                   background_colour_a);
+  struct D3D11_MAPPED_SUBRESOURCE mapped_subresource_s;
+  ACE_OS::memset (&mapped_subresource_s, 0, sizeof (struct D3D11_MAPPED_SUBRESOURCE));
+  HRESULT result = context_->Map (texture_,
+                                  0,
+                                  D3D11_MAP_WRITE_DISCARD,
+                                  0,
+                                  &mapped_subresource_s);
+  ACE_ASSERT (SUCCEEDED (result));
+  ACE_OS::memcpy (mapped_subresource_s.pData,
+                  message_inout->rd_ptr (),
+                  message_inout->length ());
+  context_->Unmap (texture_, 0);
 
-  struct tagRECT rect_s;
-  GetClientRect (clientWindow_, &rect_s);
-  struct D3D11_VIEWPORT viewport_s = {0.0f,
-                                      0.0f,
-                                      (FLOAT)(rect_s.right - rect_s.left),
-                                      (FLOAT)(rect_s.bottom - rect_s.top),
-                                      0.0f,
-                                      1.0f};
-  context_->RSSetViewports (1, &viewport_s);
-
-  context_->OMSetRenderTargets (1,
-                                &renderTargetView_,
-                                NULL);
-
-  context_->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-  context_->IASetInputLayout (inputLayout_);
-  UINT vertex_stride = 3 * sizeof (float);
-  UINT vertex_offset = 0;
-  context_->IASetVertexBuffers (0,
-                                1,
-                                &vertexBuffer_,
-                                &vertex_stride,
-                                &vertex_offset);
-
-  context_->VSSetShader (vertexShader_, NULL, 0);
-  context_->PSSetShader (pixelShader_, NULL, 0);
-
-  UINT vertex_count = 3;
+  UINT vertex_count = 6;
   context_->Draw (vertex_count, 0);
 
-  HRESULT result = swapChain_->Present (1, 0);
+  result = swapChain_->Present (1, 0);
   ACE_ASSERT (SUCCEEDED (result));
 }
 
@@ -229,17 +205,26 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
       Common_Image_Resolution_t resolution_s;
       HWND window_handle_p = NULL;
       bool initialize_device_b = (clientWindow_ == NULL);
-      ID3D11Texture2D* texture2d_p = NULL;
       float vertex_data_array_a[] =
       {
-         0.0f,  0.5f,  0.0f, // point at top
-         0.5f, -0.5f,  0.0f, // point at bottom-right
-        -0.5f, -0.5f,  0.0f, // point at bottom-left
+        -1.0f, -1.0f,   0.0f, 1.0f, // point at bottom-left
+        -1.0f,  1.0f,   0.0f, 0.0f, // point at top-left
+         1.0f,  1.0f,   1.0f, 0.0f, // point at top-right
+
+        -1.0f, -1.0f,   0.0f, 1.0f, // point at bottom-left
+         1.0f,  1.0f,   1.0f, 0.0f, // point at top-right
+         1.0f, -1.0f,   1.0f, 1.0f  // point at bottom-right
       };
       /*** load mesh data into vertex buffer **/
-      struct D3D11_BUFFER_DESC vertex_buffer_descriptor_s = { 0 };
-      struct D3D11_SUBRESOURCE_DATA sub_resource_data_s = {0};
-
+      struct D3D11_BUFFER_DESC vertex_buffer_descriptor_s;
+      struct D3D11_SUBRESOURCE_DATA sub_resource_data_s;
+      struct tagRECT rect_s;
+      struct D3D11_VIEWPORT viewport_s;
+      struct D3D11_SHADER_RESOURCE_VIEW_DESC shader_resource_view_descriptor_s;
+      struct D3D11_SAMPLER_DESC sampler_descriptor_s;
+      struct D3D11_DEPTH_STENCIL_DESC depth_stencil_descriptor_s;
+      struct D3D11_RASTERIZER_DESC rasterizer_descriptor_s;
+      struct D3D11_TEXTURE2D_DESC texture_descriptor_s;
       bool COM_initialized = Common_Tools::initializeCOM ();
 
       // sanity check(s)
@@ -307,14 +292,15 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
       {
         struct DXGI_SWAP_CHAIN_DESC swap_chain_descriptor_s;
         ACE_OS::memset (&swap_chain_descriptor_s, 0, sizeof (DXGI_SWAP_CHAIN_DESC));
+        swap_chain_descriptor_s.BufferCount = 1;
         swap_chain_descriptor_s.BufferDesc.RefreshRate.Numerator = 0;
         swap_chain_descriptor_s.BufferDesc.RefreshRate.Denominator = 1;
         swap_chain_descriptor_s.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        swap_chain_descriptor_s.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        swap_chain_descriptor_s.OutputWindow = clientWindow_;
         swap_chain_descriptor_s.SampleDesc.Count = 1;
         swap_chain_descriptor_s.SampleDesc.Quality = 0;
-        swap_chain_descriptor_s.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        swap_chain_descriptor_s.BufferCount = 1;
-        swap_chain_descriptor_s.OutputWindow = clientWindow_;
+        swap_chain_descriptor_s.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
         swap_chain_descriptor_s.Windowed = true;
 
         enum D3D_FEATURE_LEVEL feature_level_e;
@@ -347,9 +333,63 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
       ACE_ASSERT (device_);
       ACE_ASSERT (context_);
 
-      result_2 = swapChain_->GetBuffer (0,
-                                        __uuidof (ID3D11Texture2D),
-                                        (void**)&texture2d_p);
+      ACE_OS::memset (&sampler_descriptor_s, 0, sizeof (D3D11_SAMPLER_DESC));
+      sampler_descriptor_s.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+      sampler_descriptor_s.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+      sampler_descriptor_s.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+      sampler_descriptor_s.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+      sampler_descriptor_s.BorderColor[0] = 1.0f;
+      sampler_descriptor_s.BorderColor[1] = 1.0f;
+      sampler_descriptor_s.BorderColor[2] = 1.0f;
+      sampler_descriptor_s.BorderColor[3] = 1.0f;
+      sampler_descriptor_s.ComparisonFunc = D3D11_COMPARISON_NEVER;
+      result_2 = device_->CreateSamplerState (&sampler_descriptor_s,
+                                              &samplerState_);
+      ACE_ASSERT (SUCCEEDED (result_2) && samplerState_);
+      context_->PSSetSamplers (0, 1, &samplerState_);
+
+      ACE_OS::memset (&texture_descriptor_s, 0, sizeof (struct D3D11_TEXTURE2D_DESC));
+      texture_descriptor_s.Width = resolution_s.cx;
+      texture_descriptor_s.Height = resolution_s.cy;
+      texture_descriptor_s.MipLevels = 1;
+      texture_descriptor_s.ArraySize = 1;
+      texture_descriptor_s.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+      texture_descriptor_s.SampleDesc.Count = 1;
+      //texture_descriptor_s.SampleDesc.Quality = 0;
+      texture_descriptor_s.Usage = D3D11_USAGE_DEFAULT;
+      texture_descriptor_s.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+      //texture_descriptor_s.CPUAccessFlags = 0; 
+      //texture_descriptor_s.MiscFlags = 0;
+      result_2 = device_->CreateTexture2D (&texture_descriptor_s,
+                                           NULL,
+                                           &depthStencilBuffer_);
+      ACE_ASSERT (SUCCEEDED (result_2) && depthStencilBuffer_);
+      result_2 = device_->CreateDepthStencilView (depthStencilBuffer_,
+                                                  NULL,
+                                                  &depthStencilView_);
+      ACE_ASSERT (SUCCEEDED (result_2) && depthStencilView_);
+
+      ACE_OS::memset (&depth_stencil_descriptor_s, 0, sizeof (struct D3D11_DEPTH_STENCIL_DESC));
+      depth_stencil_descriptor_s.DepthEnable = true;
+      depth_stencil_descriptor_s.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
+      depth_stencil_descriptor_s.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
+      result_2 = device_->CreateDepthStencilState (&depth_stencil_descriptor_s,
+                                                   &depthStencilState_);
+      if (unlikely (FAILED (result_2)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ID3D11Device::CreateDepthStencilState(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
+        goto error;
+      } // end IF
+      ACE_ASSERT (depthStencilState_);
+      //context_->OMSetDepthStencilState (depthStencilState_, 0);
+
+      result_2 =
+        swapChain_->GetBuffer (0,
+                               __uuidof (ID3D11Texture2D),
+                               reinterpret_cast<void**> (&backBuffer_));
       if (unlikely (FAILED (result_2)))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -358,9 +398,9 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
         goto error;
       } // end IF
-      ACE_ASSERT (texture2d_p);
-      result_2 = device_->CreateRenderTargetView (texture2d_p,
-                                                  0,
+      ACE_ASSERT (backBuffer_);
+      result_2 = device_->CreateRenderTargetView (backBuffer_,
+                                                  NULL,
                                                   &renderTargetView_);
       if (unlikely (FAILED (result_2)))
       {
@@ -368,11 +408,46 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: failed to ID3D11Device::CreateRenderTargetView(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
-        texture2d_p->Release (); texture2d_p = NULL;
         goto error;
       } // end IF
       ACE_ASSERT (renderTargetView_);
-      texture2d_p->Release (); texture2d_p = NULL;
+
+      context_->OMSetRenderTargets (1, &renderTargetView_, NULL);
+      //context_->OMSetRenderTargets (1, &renderTargetView_, depthStencilView_);
+
+      ACE_OS::memset (&texture_descriptor_s, 0, sizeof (struct D3D11_TEXTURE2D_DESC));
+      texture_descriptor_s.Width = resolution_s.cx;
+      texture_descriptor_s.Height = resolution_s.cy;
+      texture_descriptor_s.MipLevels = 1;
+      texture_descriptor_s.ArraySize = 1;
+      texture_descriptor_s.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+      texture_descriptor_s.SampleDesc.Count = 1;
+      texture_descriptor_s.Usage = D3D11_USAGE_DYNAMIC;
+      texture_descriptor_s.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+      texture_descriptor_s.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+      result_2 = device_->CreateTexture2D (&texture_descriptor_s,
+                                           NULL,
+                                           &texture_);
+      if (unlikely (FAILED (result_2)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ID3D11Device::CreateTexture2D(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
+        goto error;
+      } // end IF
+      ACE_ASSERT (texture_);
+
+      GetClientRect (clientWindow_, &rect_s);
+      ACE_OS::memset (&viewport_s, 0, sizeof (struct D3D11_VIEWPORT));
+      //viewport_s.TopLeftX = 0.0f;
+      //viewport_s.TopLeftY = 0.0f;
+      viewport_s.Width = (FLOAT)(rect_s.right - rect_s.left);
+      viewport_s.Height = (FLOAT)(rect_s.bottom - rect_s.top);
+      //viewport_s.MinDepth = 0.0f;
+      viewport_s.MaxDepth = 1.0f;
+      //ACE_ASSERT (viewport_s.Width == resolution_s.cx && viewport_s.Height == resolution_s.cy);
+      context_->RSSetViewports (1, &viewport_s);
 
       if (!compileShaders (inherited::configuration_->shaderFile,
                            device_))
@@ -387,14 +462,57 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
       ACE_ASSERT (inputLayout_);
       ACE_ASSERT (pixelShader_);
 
-      vertex_buffer_descriptor_s.ByteWidth = sizeof (vertex_data_array_a);
-      vertex_buffer_descriptor_s.Usage = D3D11_USAGE_DEFAULT;
+      ACE_OS::memset (&shader_resource_view_descriptor_s, 0, sizeof (struct D3D11_SHADER_RESOURCE_VIEW_DESC));
+      shader_resource_view_descriptor_s.Format = texture_descriptor_s.Format;
+      shader_resource_view_descriptor_s.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+      shader_resource_view_descriptor_s.Texture2D.MostDetailedMip = 0;
+      shader_resource_view_descriptor_s.Texture2D.MipLevels = 1;
+      result_2 = device_->CreateShaderResourceView (texture_,
+                                                    &shader_resource_view_descriptor_s,
+                                                    &shaderResourceView_);
+      if (unlikely (FAILED (result_2)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ID3D11Device::CreateShaderResourceView(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
+        goto error;
+      } // end IF
+      ACE_ASSERT (shaderResourceView_);
+
+      context_->PSSetShaderResources (0, 1, &shaderResourceView_);
+
+      ACE_OS::memset (&vertex_buffer_descriptor_s, 0, sizeof (struct D3D11_BUFFER_DESC));
+      vertex_buffer_descriptor_s.ByteWidth = 4 * sizeof (float) * ARRAYSIZE (vertex_data_array_a);
+      vertex_buffer_descriptor_s.Usage = D3D11_USAGE_IMMUTABLE;
       vertex_buffer_descriptor_s.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+      ACE_OS::memset (&sub_resource_data_s, 0, sizeof (struct D3D11_SUBRESOURCE_DATA));
       sub_resource_data_s.pSysMem = vertex_data_array_a;
       result_2 = device_->CreateBuffer (&vertex_buffer_descriptor_s,
                                         &sub_resource_data_s,
                                         &vertexBuffer_);
       ACE_ASSERT (SUCCEEDED (result_2) && vertexBuffer_);
+
+      context_->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+      context_->IASetInputLayout (inputLayout_);
+      UINT vertex_stride = 4 * sizeof (float);
+      UINT vertex_offset = 0;
+      context_->IASetVertexBuffers (0,
+                                    1,
+                                    &vertexBuffer_,
+                                    &vertex_stride,
+                                    &vertex_offset);
+
+      context_->VSSetShader (vertexShader_, NULL, 0);
+      context_->PSSetShader (pixelShader_, NULL, 0);
+
+      ACE_OS::memset (&rasterizer_descriptor_s, 0, sizeof (struct D3D11_RASTERIZER_DESC));
+      rasterizer_descriptor_s.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+      rasterizer_descriptor_s.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
+      result_2 = device_->CreateRasterizerState (&rasterizer_descriptor_s,
+                                                 &rasterizerState_);
+      ACE_ASSERT (SUCCEEDED (result_2) && rasterizerState_);
+      context_->RSSetState (rasterizerState_);
 
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
@@ -623,14 +741,16 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
   {
     struct DXGI_SWAP_CHAIN_DESC swap_chain_descriptor_s;
     ACE_OS::memset (&swap_chain_descriptor_s, 0, sizeof (DXGI_SWAP_CHAIN_DESC));
+    swap_chain_descriptor_s.BufferCount = 1;
+    swap_chain_descriptor_s.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     swap_chain_descriptor_s.BufferDesc.RefreshRate.Numerator = 0;
     swap_chain_descriptor_s.BufferDesc.RefreshRate.Denominator = 1;
-    swap_chain_descriptor_s.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    swap_chain_descriptor_s.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swap_chain_descriptor_s.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+    swap_chain_descriptor_s.OutputWindow = clientWindow_;
     swap_chain_descriptor_s.SampleDesc.Count = 1;
     swap_chain_descriptor_s.SampleDesc.Quality = 0;
-    swap_chain_descriptor_s.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    swap_chain_descriptor_s.BufferCount = 1;
-    swap_chain_descriptor_s.OutputWindow = clientWindow_;
+    swap_chain_descriptor_s.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
     swap_chain_descriptor_s.Windowed = true;
 
     enum D3D_FEATURE_LEVEL feature_level_e;
@@ -741,12 +861,8 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
 
   struct D3D11_INPUT_ELEMENT_DESC input_element_descriptor_s[] =
   {
-    { "POS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    /*
-    { "COL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "NOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "TEX", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    */
+    { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
   };
   result = device_in->CreateInputLayout (input_element_descriptor_s,
                                          ARRAYSIZE (input_element_descriptor_s),

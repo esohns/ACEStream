@@ -1,19 +1,37 @@
-/* vertex attributes go here to input to the vertex shader */
-struct vs_in {
-    float3 position_local : POS;
+struct VS_INPUT
+{
+  float2 inPosition : POSITION;
+  float2 inTexCoord : TEXCOORD;
 };
 
-/* outputs from vertex shader go here. can be interpolated to pixel shader */
-struct vs_out {
-    float4 position_clip : SV_POSITION; // required output of VS
+struct VS_OUTPUT
+{
+  float4 outPosition : SV_POSITION;
+  float2 outTexCoord : TEXCOORD;
 };
 
-vs_out vs_main(vs_in input) {
-  vs_out output = (vs_out)0; // zero the memory first
-  output.position_clip = float4(input.position_local, 1.0);
+VS_OUTPUT vs_main (VS_INPUT input)
+{
+  VS_OUTPUT output;
+  output.outPosition = float4 (input.inPosition, 0.0f, 1.0f);
+  output.outTexCoord = input.inTexCoord;
   return output;
 }
 
-float4 ps_main(vs_out input) : SV_TARGET {
-  return float4( 1.0, 0.0, 1.0, 1.0 ); // must return an RGBA colour
+//////////////////////////////////////////
+
+struct PS_INPUT
+{
+  float4 inPosition : SV_POSITION;
+  float2 inTexCoord : TEXCOORD;
+};
+
+Texture2D objTexture : TEXTURE : register(t0);
+SamplerState objSamplerState : SAMPLER : register(s0);
+
+float4 ps_main (PS_INPUT input) : SV_TARGET
+{
+  //float3 pixelColor = objTexture.Sample (objSamplerState, input.inTexCoord);
+  //return float4(pixelColor, 1.0f);
+  return objTexture.Sample (objSamplerState, input.inTexCoord);
 }

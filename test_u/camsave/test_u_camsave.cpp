@@ -728,8 +728,8 @@ continue_:
   //         ":0")
   // *NOTE*: --> the default display format is RGB24
   ACE_ASSERT (InlineIsEqualGUID (displayFormat_inout.majortype, MEDIATYPE_Video));
-  displayFormat_inout.subtype = MEDIASUBTYPE_RGB24;
-  //displayFormat_inout.subtype = MEDIASUBTYPE_RGB32;
+  //displayFormat_inout.subtype = MEDIASUBTYPE_RGB24;
+  displayFormat_inout.subtype = MEDIASUBTYPE_RGB32;
   displayFormat_inout.bFixedSizeSamples = TRUE;
   displayFormat_inout.bTemporalCompression = FALSE;
   if (InlineIsEqualGUID (displayFormat_inout.formattype, FORMAT_VideoInfo))
@@ -745,8 +745,8 @@ continue_:
     ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
     ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
     ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
-    video_info_header_p->bmiHeader.biBitCount = 24;
-    //video_info_header_p->bmiHeader.biBitCount = 32;
+    //video_info_header_p->bmiHeader.biBitCount = 24;
+    video_info_header_p->bmiHeader.biBitCount = 32;
     video_info_header_p->bmiHeader.biCompression = BI_RGB;
     video_info_header_p->bmiHeader.biSizeImage =
       DIBSIZE (video_info_header_p->bmiHeader);

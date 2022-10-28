@@ -6762,7 +6762,7 @@ drawing_area_resize_end (gpointer userData_in)
         return FALSE;
 
       module_name =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
+        Stream_Visualization_Tools::rendererToModuleName (directshow_cb_data_p->configuration->streamConfiguration.configuration_->renderer);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

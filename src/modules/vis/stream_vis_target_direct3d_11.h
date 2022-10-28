@@ -98,16 +98,24 @@ class Stream_Vis_Target_Direct3D11_T
   bool compileShaders (const std::string&, // (FQ) filename
                        ID3D11Device*);     // device handle
 
-  HWND                    clientWindow_;
-  bool                    closeWindow_;
-  ID3D11DeviceContext*    context_;
-  ID3D11Device*           device_;
-  ID3D11RenderTargetView* renderTargetView_;
-  IDXGISwapChain*         swapChain_;
-  ID3D11VertexShader*     vertexShader_;
-  ID3D11PixelShader*      pixelShader_;
-  ID3D11InputLayout*      inputLayout_;
-  ID3D11Buffer*           vertexBuffer_;
+  HWND                      clientWindow_;
+  bool                      closeWindow_;
+  ID3D11DeviceContext*      context_;
+  ID3D11Device*             device_;
+  ID3D11RenderTargetView*   renderTargetView_;
+  ID3D11ShaderResourceView* shaderResourceView_;
+  IDXGISwapChain*           swapChain_;
+  ID3D11VertexShader*       vertexShader_;
+  ID3D11PixelShader*        pixelShader_;
+  ID3D11InputLayout*        inputLayout_;
+  ID3D11Buffer*             vertexBuffer_;
+  ID3D11Texture2D*          backBuffer_;
+  ID3D11SamplerState*       samplerState_;
+  ID3D11Texture2D*          texture_;
+  ID3D11Texture2D*          depthStencilBuffer_;
+  ID3D11DepthStencilView*   depthStencilView_;
+  ID3D11DepthStencilState*  depthStencilState_;
+  ID3D11RasterizerState*    rasterizerState_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D11_T ())
