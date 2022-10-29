@@ -170,20 +170,33 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
 #endif // FFMPEG_SUPPORT
 #if defined (GUI_SUPPORT)
+      switch (inherited::configuration_->configuration_->renderer)
+      {
 #if defined (GTK_USE)
-      //      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
-//        layout_in->append (&display_, branch_p, 0);
-//      else
-      //layout_in->append (&directShowDisplay_, NULL, 0);
-      //layout_in->append (&GTKPixbufDisplay_, branch_p, index_i);
-#if defined (GTK2_USE)
-      layout_in->append (&GTKCairoDisplay_, branch_p, index_i);
-#elif defined (GTK3_USE)
-      layout_in->append (&GTKCairoDisplay_, branch_p, index_i);
-#endif // GTK2_USE || GTK3_USE
-#elif defined (WXWIDGETS_USE)
-      layout_in->append (&display_, branch_p, index_i);
-#endif // GTK_USE || WXWIDGETS_USE
+        case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
+          layout_in->append (&GTKPixbufDisplay_, branch_p, index_i);
+          break;
+        case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
+          layout_in->append (&GTKCairoDisplay_, branch_p, index_i);
+          break;
+#endif // GTK_USE
+        case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
+          layout_in->append (&direct3DDisplay_, branch_p, index_i);
+          break;
+        case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11:
+          layout_in->append (&direct3D11Display_, branch_p, index_i);
+          break;
+        case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
+          layout_in->append (&directShowDisplay_, branch_p, index_i);
+          break;
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown renderer API (was: %d), aborting\n"),
+                      inherited::configuration_->configuration_->renderer));
+          return false;        
+        }
+      } // end SWITCH
 #else
       ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
       ACE_ASSERT (false); // *TODO*

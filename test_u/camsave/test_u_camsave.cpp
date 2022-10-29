@@ -547,6 +547,7 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 bool
 do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifier_in,
                           enum Stream_Device_Capturer capturer_in,
+                          enum Stream_Visualization_VideoRenderer renderer_in,
                           bool hasUI_in,
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
@@ -719,75 +720,148 @@ continue_:
   displayFormat_inout = *media_type_p;
   delete media_type_p; media_type_p = NULL;
 
-  // *NOTE*: gdk_pixbuf_get_from_window() returns three channels (see also:
-  //         stream_vis_gtk_pixbuf.inl:236), BUT
-  //         "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
-  //         alpha in the upper 8 bits, then red, then green, then blue. The
-  //         32-bit quantities are stored native-endian. ..."
-  // *TODO*: determine color depth of selected (default) screen (i.e.'Display'
-  //         ":0")
-  // *NOTE*: --> the default display format is RGB24
   ACE_ASSERT (InlineIsEqualGUID (displayFormat_inout.majortype, MEDIATYPE_Video));
-  displayFormat_inout.subtype = MEDIASUBTYPE_RGB24;
-  //displayFormat_inout.subtype = MEDIASUBTYPE_RGB32;
   displayFormat_inout.bFixedSizeSamples = TRUE;
   displayFormat_inout.bTemporalCompression = FALSE;
-  if (InlineIsEqualGUID (displayFormat_inout.formattype, FORMAT_VideoInfo))
-  { ACE_ASSERT (displayFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
-    struct tagVIDEOINFOHEADER* video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER*> (displayFormat_inout.pbFormat);
-    // *NOTE*: empty --> use entire video
-    result_2 = SetRectEmpty (&video_info_header_p->rcSource);
-    ACE_ASSERT (result_2);
-    result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
-    // *NOTE*: empty --> fill entire buffer
-    ACE_ASSERT (result_2);
-    ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
-    ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
-    ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
-    video_info_header_p->bmiHeader.biBitCount = 24;
-    //video_info_header_p->bmiHeader.biBitCount = 32;
-    video_info_header_p->bmiHeader.biCompression = BI_RGB;
-    video_info_header_p->bmiHeader.biSizeImage =
-      DIBSIZE (video_info_header_p->bmiHeader);
-    ////video_info_header_p->bmiHeader.biXPelsPerMeter;
-    ////video_info_header_p->bmiHeader.biYPelsPerMeter;
-    ////video_info_header_p->bmiHeader.biClrUsed;
-    ////video_info_header_p->bmiHeader.biClrImportant;
-    ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
-    video_info_header_p->dwBitRate =
-      (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
-      (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-    displayFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
-  } // end IF
-  else if (InlineIsEqualGUID (displayFormat_inout.formattype, FORMAT_VideoInfo2))
+  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+  struct tagVIDEOINFOHEADER2* video_info_header_2 = NULL;
+  switch (renderer_in)
   {
-    ACE_ASSERT (displayFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
-    struct tagVIDEOINFOHEADER2* video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (displayFormat_inout.pbFormat);
-    ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
-    ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
-    video_info_header_p->bmiHeader.biBitCount = 24;
-    video_info_header_p->bmiHeader.biCompression = BI_RGB;
-    video_info_header_p->bmiHeader.biSizeImage =
-      DIBSIZE (video_info_header_p->bmiHeader);
-    ////video_info_header_p->bmiHeader.biXPelsPerMeter;
-    ////video_info_header_p->bmiHeader.biYPelsPerMeter;
-    ////video_info_header_p->bmiHeader.biClrUsed;
-    ////video_info_header_p->bmiHeader.biClrImportant;
-    ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
-    video_info_header_p->dwBitRate =
-      (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
-      (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-    displayFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
-  } // end IF
-  else
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (displayFormat_inout.formattype).c_str ())));
-    goto error;
-  } // end ELSE
+#if defined (GTK_USE)
+    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
+    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
+    {
+      // *NOTE*: gdk_pixbuf_get_from_window() returns three channels (see also:
+      //         stream_vis_gtk_pixbuf.inl:236), BUT
+      //         "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
+      //         alpha in the upper 8 bits, then red, then green, then blue. The
+      //         32-bit quantities are stored native-endian. ..."
+      // *TODO*: determine color depth of selected (default) screen (i.e.'Display'
+      //         ":0")
+      displayFormat_inout.subtype = MEDIASUBTYPE_RGB24;
+      //displayFormat_inout.subtype = MEDIASUBTYPE_RGB32;
+      if (InlineIsEqualGUID (displayFormat_inout.formattype, FORMAT_VideoInfo))
+      { ACE_ASSERT (displayFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+        video_info_header_p =
+          reinterpret_cast<struct tagVIDEOINFOHEADER*> (displayFormat_inout.pbFormat);
+        // *NOTE*: empty --> use entire video
+        result_2 = SetRectEmpty (&video_info_header_p->rcSource);
+        ACE_ASSERT (result_2);
+        result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
+        // *NOTE*: empty --> fill entire buffer
+        ACE_ASSERT (result_2);
+        ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
+        ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
+        ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
+        video_info_header_p->bmiHeader.biBitCount = 24;
+        //video_info_header_p->bmiHeader.biBitCount = 32;
+        video_info_header_p->bmiHeader.biCompression = BI_RGB;
+        video_info_header_p->bmiHeader.biSizeImage =
+          DIBSIZE (video_info_header_p->bmiHeader);
+        ////video_info_header_p->bmiHeader.biXPelsPerMeter;
+        ////video_info_header_p->bmiHeader.biYPelsPerMeter;
+        ////video_info_header_p->bmiHeader.biClrUsed;
+        ////video_info_header_p->bmiHeader.biClrImportant;
+        ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
+        video_info_header_p->dwBitRate =
+          (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
+          (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+        displayFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
+      } // end IF
+      else if (InlineIsEqualGUID (displayFormat_inout.formattype, FORMAT_VideoInfo2))
+      {
+        ACE_ASSERT (displayFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
+        video_info_header_2 =
+          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (displayFormat_inout.pbFormat);
+        ACE_ASSERT (video_info_header_2->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
+        ACE_ASSERT (video_info_header_2->bmiHeader.biPlanes == 1);
+        video_info_header_2->bmiHeader.biBitCount = 24;
+        video_info_header_2->bmiHeader.biCompression = BI_RGB;
+        video_info_header_2->bmiHeader.biSizeImage =
+          DIBSIZE (video_info_header_2->bmiHeader);
+        ////video_info_header_2->bmiHeader.biXPelsPerMeter;
+        ////video_info_header_2->bmiHeader.biYPelsPerMeter;
+        ////video_info_header_2->bmiHeader.biClrUsed;
+        ////video_info_header_2->bmiHeader.biClrImportant;
+        ACE_ASSERT (video_info_header_2->AvgTimePerFrame);
+        video_info_header_2->dwBitRate =
+          (video_info_header_2->bmiHeader.biSizeImage * 8) *                         // bits / frame
+          (NANOSECONDS / static_cast<DWORD> (video_info_header_2->AvgTimePerFrame)); // fps
+        displayFormat_inout.lSampleSize = video_info_header_2->bmiHeader.biSizeImage;
+      } // end IF
+      else
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
+                    ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (displayFormat_inout.formattype).c_str ())));
+        goto error;
+      } // end ELSE
+
+      break;
+    }
+#endif // GTK_USE
+    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
+    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11:
+    {
+      displayFormat_inout.subtype = MEDIASUBTYPE_RGB32;
+      if (InlineIsEqualGUID (displayFormat_inout.formattype, FORMAT_VideoInfo))
+      { ACE_ASSERT (displayFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+        video_info_header_p =
+          reinterpret_cast<struct tagVIDEOINFOHEADER*> (displayFormat_inout.pbFormat);
+        // *NOTE*: empty --> use entire video
+        result_2 = SetRectEmpty (&video_info_header_p->rcSource);
+        ACE_ASSERT (result_2);
+        result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
+        // *NOTE*: empty --> fill entire buffer
+        ACE_ASSERT (result_2);
+        ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
+        ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
+        ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
+        video_info_header_p->bmiHeader.biBitCount = 32;
+        video_info_header_p->bmiHeader.biCompression = BI_RGB;
+        video_info_header_p->bmiHeader.biSizeImage =
+          DIBSIZE (video_info_header_p->bmiHeader);
+        ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
+        video_info_header_p->dwBitRate =
+          (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
+          (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+        displayFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
+      } // end IF
+      else if (InlineIsEqualGUID (displayFormat_inout.formattype, FORMAT_VideoInfo2))
+      {
+        ACE_ASSERT (displayFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
+        video_info_header_2 =
+          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (displayFormat_inout.pbFormat);
+        ACE_ASSERT (video_info_header_2->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
+        ACE_ASSERT (video_info_header_2->bmiHeader.biPlanes == 1);
+        video_info_header_2->bmiHeader.biBitCount = 32;
+        video_info_header_2->bmiHeader.biCompression = BI_RGB;
+        video_info_header_2->bmiHeader.biSizeImage =
+          DIBSIZE (video_info_header_2->bmiHeader);
+        ACE_ASSERT (video_info_header_2->AvgTimePerFrame);
+        video_info_header_2->dwBitRate =
+          (video_info_header_2->bmiHeader.biSizeImage * 8) *                         // bits / frame
+          (NANOSECONDS / static_cast<DWORD> (video_info_header_2->AvgTimePerFrame)); // fps
+        displayFormat_inout.lSampleSize = video_info_header_2->bmiHeader.biSizeImage;
+      } // end IF
+      else
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
+                    ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (displayFormat_inout.formattype).c_str ())));
+        goto error;
+      } // end ELSE
+
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown renderer API (was: %d), aborting\n"),
+                  renderer_in));
+      return false;
+    }
+  } // end SWITCH
 
   if (hasUI_in)
   {
@@ -1682,6 +1756,7 @@ error:
         (*directshow_stream_iterator).second.second->outputFormat;
       if (!do_initialize_directshow (deviceIdentifier_in,
                                      capturer_in,
+                                     directshow_stream_configuration.renderer,
                                      !UIDefinitionFilename_in.empty (), // has UI ?
                                      directshow_modulehandler_configuration.builder,
                                      stream_config_p,
