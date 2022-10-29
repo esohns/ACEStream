@@ -792,7 +792,7 @@ struct Test_U_AudioEffect_UI_CBDataBase
 #endif // GTKGL_SUPPORT
    , isFirst (true)
 #if defined (GTKGL_SUPPORT)
-   , objectRotation (0.0f)
+   , objectRotationStep (1.0f)
 #endif // GTKGL_SUPPORT
    , progressData ()
 #if defined (GTK_SUPPORT)
@@ -808,7 +808,7 @@ struct Test_U_AudioEffect_UI_CBDataBase
 #endif // GTKGL_SUPPORT
   bool                                            isFirst; // first activation ?
 #if defined (GTKGL_SUPPORT)
-  GLfloat                                         objectRotation;
+  GLfloat                                         objectRotationStep;
 #endif // GTKGL_SUPPORT
   struct Test_U_AudioEffect_ProgressData          progressData;
 #if defined (GTK_SUPPORT)

@@ -61,7 +61,7 @@ processInstructions (struct Test_U_AudioEffect_UI_CBDataBase* CBDataBase_in)
       {
         case STREAM_VISUALIZATION_INSTRUCTION_CHANGE_ROTATION:
         {
-          CBDataBase_in->objectRotation *= -1;
+          CBDataBase_in->objectRotationStep *= -1;
           break;
         }
         case STREAM_VISUALIZATION_INSTRUCTION_SET_COLOR_BG:
@@ -1477,9 +1477,9 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   glTranslatef (0.0F, 0.0F, -5.0F); // Move back into the screen 5 units
   COMMON_GL_ASSERT;
   static GLfloat rotation = 0.0F;
-  glRotatef (rotation, 1.0F, 1.0F, 1.0F); // Rotate around the X,Y,Z axis'
+  glRotatef (rotation, 0.5F, 0.5F, 0.5f); // Rotate around the X,Y,Z axis'
   COMMON_GL_ASSERT;
-  rotation -= static_cast<GLfloat> (ui_cb_data_base_p->objectRotation); // Modify rotation angle
+  rotation -= ui_cb_data_base_p->objectRotationStep; // Modify rotation angle
 
   static GLfloat vertices[] = {
     -0.5f, 0.0f,  0.5f,  0.5f, 0.0f,  0.5f,  0.5f, 1.0f,  0.5f, -0.5f, 1.0f,  0.5f,
