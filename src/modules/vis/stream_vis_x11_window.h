@@ -26,6 +26,8 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_image_common.h"
+
 #include "common_ui_windowtype_converter.h"
 #include "common_ui_ifullscreen.h"
 
@@ -97,14 +99,15 @@ class Stream_Module_Vis_X11_Window_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_X11_Window_T (const Stream_Module_Vis_X11_Window_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_X11_Window_T& operator= (const Stream_Module_Vis_X11_Window_T&))
 
-  bool              closeDisplay_;
-  bool              closeWindow_;
-  GC                context_;
-  struct _XDisplay* display_;
-  bool              isFirst_;
-  Pixmap            pixmap_;
-  Visual*           visual_;
-  Window            window_;
+  bool                      closeDisplay_;
+  bool                      closeWindow_;
+  GC                        context_;
+  int                       depth_; // window-
+  struct _XDisplay*         display_;
+  Pixmap                    pixmap_;
+  Common_Image_Resolution_t resolution_; // window-
+  Visual*                   visual_;
+  Window                    window_;
 };
 
 // include template definition

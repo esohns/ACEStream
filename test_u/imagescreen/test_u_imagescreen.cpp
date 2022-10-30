@@ -392,8 +392,9 @@ do_work (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.display = Common_UI_Tools::getDefaultDisplay ();
 #else
-  modulehandler_configuration.display =
-      Common_UI_Tools::getLogicalDisplay (ACE_TEXT_ALWAYS_CHAR (""));
+  modulehandler_configuration.display = Common_UI_Tools::getDefaultDisplay ();
+//  modulehandler_configuration.display =
+//      Common_UI_Tools::getLogicalDisplay (ACE_TEXT_ALWAYS_CHAR (""));
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.direct3DConfiguration = &configuration.direct3DConfiguration;
@@ -580,6 +581,8 @@ do_work (int argc_in,
 #endif // GTK_USE
 
   timer_manager_p->stop ();
+
+  stream.remove (&message_handler, true, true);
 }
 
 COMMON_DEFINE_PRINTVERSION_FUNCTION(do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)

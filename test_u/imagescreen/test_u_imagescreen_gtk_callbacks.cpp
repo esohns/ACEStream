@@ -298,7 +298,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                       (*stream_configuration_iterator).second.second->display.device.c_str ());
 #else
-                      DisplayString ((*stream_configuration_iterator).second.second->display.display));
+                      (*stream_configuration_iterator).second.second->display.device.c_str ());
 #endif // ACE_WIN32 || ACE_WIN64
   Common_UI_GTK_Tools::selectValue (combo_box_p,
                                     value,
@@ -629,9 +629,10 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   (*stream_configuration_iterator).second.second->display =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      Common_UI_Tools::getDisplay (g_value_get_string (&value));
+    Common_UI_Tools::getDisplay (g_value_get_string (&value));
 #else
-      Common_UI_Tools::getLogicalDisplay (g_value_get_string (&value));
+    Common_UI_Tools::getDisplay (g_value_get_string (&value));
+//    Common_UI_Tools::getLogicalDisplay (g_value_get_string (&value));
 #endif // ACE_WIN32 || ACE_WIN64
   if (!ui_cb_data_p->stream->initialize (ui_cb_data_p->configuration->streamConfiguration))
   {
@@ -654,11 +655,11 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
                                                            (*stream_configuration_iterator).second.second->outputFormat);
 #else
     (*stream_configuration_iterator).second.second->outputFormat.resolution.width =
-      WidthOfScreen (DefaultScreenOfDisplay ((*stream_configuration_iterator).second.second->display.display));
-//      (*stream_configuration_iterator).second.second->display.clippingArea.width;
+//      WidthOfScreen (DefaultScreenOfDisplay ((*stream_configuration_iterator).second.second->display.display));
+      (*stream_configuration_iterator).second.second->display.clippingArea.width;
     (*stream_configuration_iterator).second.second->outputFormat.resolution.height =
-      HeightOfScreen (DefaultScreenOfDisplay ((*stream_configuration_iterator).second.second->display.display));
-//      (*stream_configuration_iterator).second.second->display.clippingArea.height;
+//      HeightOfScreen (DefaultScreenOfDisplay ((*stream_configuration_iterator).second.second->display.display));
+      (*stream_configuration_iterator).second.second->display.clippingArea.height;
 #endif // ACE_WIN32 || ACE_WIN64
   } // end IF
   else

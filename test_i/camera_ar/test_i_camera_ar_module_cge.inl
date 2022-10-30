@@ -171,7 +171,7 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_CGE_T::handleSessionMessage"));
 
-  int result = -1;
+//  int result = -1;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);

@@ -8,7 +8,7 @@ if (UNIX)
   set (SOCI_LIBRARIES "${PKG_SOCI_LIBRARIES}")
   set (SOCI_LINK_DIRS "${PKG_SOCI_LIBRARY_DIRS}")
  else ()
-  set (SOCI_LIB_FILE libsoci.so)
+  set (SOCI_LIB_FILE libsoci_core.so)
   find_library (SOCI_LIBRARY ${SOCI_LIB_FILE}
                 PATHS /usr/lib64
                 PATH_SUFFIXES soci
