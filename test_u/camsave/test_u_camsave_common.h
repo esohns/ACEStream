@@ -1249,14 +1249,16 @@ extern const char toplevel_widget_classname_string_[];
 typedef Common_UI_WxWidgetsXRCDefinition_T<struct Common_UI_wxWidgets_State,
                                            toplevel_widget_classname_string_> Stream_CamSave_WxWidgetsXRCDefinition_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication_t,
+typedef Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                         Stream_CamSave_DirectShow_WxWidgetsIApplication_t,
                                          Stream_CamSave_DirectShow_Stream> Stream_CamSave_DirectShow_WxWidgetsDialog_t;
 typedef Comon_UI_WxWidgets_Application_T<Stream_CamSave_WxWidgetsXRCDefinition_t,
                                          struct Common_UI_wxWidgets_State,
                                          struct Stream_CamSave_DirectShow_UI_CBData,
                                          Stream_CamSave_DirectShow_WxWidgetsDialog_t,
                                          wxGUIAppTraits> Stream_CamSave_DirectShow_WxWidgetsApplication_t;
-typedef Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t,
+typedef Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                         Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t,
                                          Stream_CamSave_MediaFoundation_Stream> Stream_CamSave_MediaFoundation_WxWidgetsDialog_t;
 typedef Comon_UI_WxWidgets_Application_T<Stream_CamSave_WxWidgetsXRCDefinition_t,
                                          struct Common_UI_wxWidgets_State,

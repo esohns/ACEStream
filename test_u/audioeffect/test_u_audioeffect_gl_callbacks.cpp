@@ -1026,8 +1026,8 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 //  glRotatef (rot_x, 1.0f, 0.0f, 0.0f); // Rotate On The X Axis
 //  glRotatef (rot_y, 0.0f, 1.0f, 0.0f); // Rotate On The Y Axis
 //  glRotatef (rot_z, 0.0f, 0.0f, 1.0f); // Rotate On The Z Axis
-
-  glRotatef (ui_cb_data_base_p->objectRotation,
+  static GLfloat rotation_f = 0.0F;
+  glRotatef (rotation_f,
              1.0F, 1.0F, 1.0F); // Rotate On The X,Y,Z Axis
   ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
@@ -1062,7 +1062,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 //  rot_x += 0.3f;
 //  rot_y += 0.20f;
 //  rot_z += 0.4f;
-  ui_cb_data_base_p->objectRotation -= 1.0f; // Decrease The Rotation Variable For The Cube
+  rotation_f += ui_cb_data_base_p->objectRotationStep; // Decrease The Rotation Variable For The Cube
 
   processInstructions (ui_cb_data_base_p);
 

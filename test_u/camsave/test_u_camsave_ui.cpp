@@ -491,10 +491,10 @@ stream_processing_thread (void* arg_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T iterator =
-        directshow_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (iterator != directshow_cb_data_p->configuration->v4l_streamConfiguration.end ());
+        directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
 
-      if (!directshow_cb_data_p->stream->initialize (directshow_cb_data_p->configuration->v4l_streamConfiguration))
+      if (!directshow_cb_data_p->stream->initialize (directshow_cb_data_p->configuration->streamConfiguration))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize stream, aborting\n")));
@@ -512,7 +512,7 @@ stream_processing_thread (void* arg_in)
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      if (!mediafoundation_cb_data_p->stream->initialize (mediafoundation_cb_data_p->configuration->v4l_streamConfiguration))
+      if (!mediafoundation_cb_data_p->stream->initialize (mediafoundation_cb_data_p->configuration->streamConfiguration))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize stream, aborting\n")));
