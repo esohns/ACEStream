@@ -246,6 +246,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   ACE_UINT64                        currentOffset_;
   // *NOTE*: offset from start of current RIFF chunk (AVI[ X])
   ACE_UINT32                        currentRIFFOffset_;
+  bool                              headerWritten_;
 
   typedef std::vector<std::pair<ACE_UINT64, ACE_UINT32> > RIFF_OFFSETS_AND_SIZES_T;
   typedef RIFF_OFFSETS_AND_SIZES_T::iterator RIFF_OFFSETS_AND_SIZES_ITERATOR_T;

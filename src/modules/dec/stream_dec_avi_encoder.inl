@@ -505,6 +505,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
  , videoFrameSize_ (0)
  , currentOffset_ (0)
  , currentRIFFOffset_ (0)
+ , headerWritten_ (false)
  , RIFFOffsetsAndSizes_ ()
  , frameOffsets_ ()
  , currentFrameOffset_ (0)
@@ -605,6 +606,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     videoFrameSize_ = 0;
     currentOffset_ = 0;
     currentRIFFOffset_ = 0;
+    headerWritten_ = false;
     RIFFOffsetsAndSizes_.clear ();
     frameOffsets_.clear ();
     currentFrameOffset_ = 0;
@@ -794,6 +796,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                   inherited::mod_->name ()));
       goto error;
     } // end IF
+    headerWritten_ = true;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     RIFFOffsetsAndSizes_.push_back (std::make_pair (0, 0));
@@ -1526,7 +1529,7 @@ continue_:
         RIFFOffsetsAndSizes_.back ().second = currentRIFFOffset_;
 #else
 #if defined (FFMPEG_SUPPORT)
-      if (likely (formatContext_))
+      if (likely (formatContext_) && headerWritten_)
       {
         int result = av_write_trailer (formatContext_);
         if (unlikely (result == -1))
