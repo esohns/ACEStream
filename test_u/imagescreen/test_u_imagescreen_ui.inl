@@ -112,7 +112,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
   // populate controls
 #if defined (_DEBUG)
 #else
-  button_report->Show (false);
+  inherited::button_report->Show (false);
 #endif // _DEBUG
   bool activate_source = true;
   typename InterfaceType::CONFIGURATION_T& cb_data_r =
