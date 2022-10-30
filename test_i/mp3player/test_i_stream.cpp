@@ -158,12 +158,12 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   ACE_ASSERT (iterator != configuration_in.end ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-  Stream_MediaFramework_DirectShow_Tools::copy ((*iterator).second.second->outputFormat,
-                                                media_type_s);
+//  Stream_MediaFramework_DirectShow_Tools::copy ((*iterator).second.second->outputFormat,
+//                                                media_type_s);
+//  session_data_p->formats.push_back (media_type_s);
 #else
-  media_type_s = (*iterator).second.second->outputFormat;
+//  media_type_s = (*iterator).second.second->outputFormat;
 #endif // ACE_WIN32 || ACE_WIN64
-  session_data_p->formats.push_back (media_type_s);
   session_data_p->targetFileName =
     configuration_in.configuration_->fileIdentifier.identifier;
 
