@@ -506,7 +506,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    : Test_U_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
    , display ()
-//   , fullScreen (false)
+   , fullScreen (false)
    , shaderFile ()
 #if defined (GUI_SUPPORT)
    , window (NULL)
@@ -518,7 +518,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 
   struct Stream_Device_Identifier deviceIdentifier; // source/renderer module
   struct Common_UI_DisplayDevice  display;
-//  bool                            fullScreen;
+  bool                            fullScreen;
   std::string                     shaderFile;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) && defined (GTK_USE)
@@ -1244,7 +1244,7 @@ struct Stream_CamSave_UI_ThreadData
   struct Stream_CamSave_UI_CBData* CBData;
 };
 
-#if defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_SUPPORT)
 extern const char toplevel_widget_classname_string_[];
 typedef Common_UI_WxWidgetsXRCDefinition_T<struct Common_UI_wxWidgets_State,
                                            toplevel_widget_classname_string_> Stream_CamSave_WxWidgetsXRCDefinition_t;
@@ -1273,7 +1273,7 @@ typedef Comon_UI_WxWidgets_Application_T<Stream_CamSave_WxWidgetsXRCDefinition_t
                                          Stream_CamSave_V4L_WxWidgetsDialog_t,
                                          wxGUIAppTraits> Stream_CamSave_V4L_WxWidgetsApplication_t;
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // WXWIDGETS_USE
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
 #endif

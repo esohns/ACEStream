@@ -685,11 +685,13 @@ struct Stream_AVSave_StreamConfiguration
   Stream_AVSave_StreamConfiguration ()
    : Stream_Configuration ()
    , module_2 (NULL)
+   , renderer (STREAM_VISUALIZATION_VIDEORENDERER_INVALID)
   {
     printFinalReport = true;
   }
 
-  Stream_Module_t* module_2;
+  Stream_Module_t*                        module_2;
+  enum Stream_Visualization_VideoRenderer renderer;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_AVSave_DirectShow_StreamConfiguration

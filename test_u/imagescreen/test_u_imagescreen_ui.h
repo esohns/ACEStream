@@ -171,11 +171,11 @@ class Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
 // specializations (for V4L Linux)
 template <>
 class Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
-                                       Stream_ImageScreen_V4L_WxWidgetsIApplication_t,
-                                       Stream_ImageScreen_V4L_Stream>
+                                           Stream_ImageScreen_WxWidgetsIApplication_t,
+                                           Stream_ImageScreen_Stream>
  : public wxDialog_main
  , public Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
-                                          struct Stream_ImageScreen_V4L_UI_CBData>
+                                          struct Stream_ImageScreen_UI_CBData>
 {
   typedef wxDialog_main inherited;
   //typedef Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
@@ -184,7 +184,7 @@ class Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
  public:
   // convenient types
   typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
-                                             struct Stream_ImageScreen_V4L_UI_CBData> IAPPLICATION_T;
+                                             struct Stream_ImageScreen_UI_CBData> IAPPLICATION_T;
 
   Stream_ImageScreen_WxWidgetsDialog_T (wxWindow* = NULL); // parent window (if any)
   inline virtual ~Stream_ImageScreen_WxWidgetsDialog_T () {}
@@ -195,8 +195,8 @@ class Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
  private:
   // convenient types
   typedef Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
-                                           Stream_ImageScreen_V4L_WxWidgetsIApplication_t,
-                                           Stream_ImageScreen_V4L_Stream> OWN_TYPE_T;
+                                               Stream_ImageScreen_WxWidgetsIApplication_t,
+                                               Stream_ImageScreen_Stream> OWN_TYPE_T;
 
   // implement Common_UI_wxWidgets_ITopLevel
   virtual bool OnInit_2 (IAPPLICATION_T*);
@@ -231,7 +231,7 @@ class Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
   wxDECLARE_DYNAMIC_CLASS (OWN_TYPE_T);
 //  wxDECLARE_EVENT_TABLE ();
 
-  Stream_ImageScreen_V4L_WxWidgetsIApplication_t* application_;
+  Stream_ImageScreen_WxWidgetsIApplication_t* application_;
   bool                                        initializing_;
   bool                                        untoggling_;
 };
