@@ -1335,7 +1335,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       //      codec_context_p->flags2 = 0;
       // *TODO*: use something like: av_inv_q(av_d2q(frameRate, 1000));
       audioCodecContext_->time_base.num = 1;
-      audioCodecContext_->time_base.den = media_type_2.sampleRate;
+      audioCodecContext_->time_base.den =
+        (media_type_2.sampleRate ? media_type_2.sampleRate : 48000);
       //      codec_context_p->ticks_per_frame = 1;
 //      audioCodecContext_->width = media_type_s.resolution.width;
 //      audioCodecContext_->height = media_type_s.resolution.height;
@@ -1431,14 +1432,17 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       //      codec_context_p->side_data_only_packets = 1;
       //      codec_context_p->chroma_intra_matrix = NULL;
       //      codec_context_p->dump_separator = NULL;
-      audioCodecContext_->channels = media_type_2.channels;
+      audioCodecContext_->channels =
+        (media_type_2.channels ? media_type_2.channels : 2);
       audioCodecContext_->sample_fmt = media_type_2.format;
-      audioCodecContext_->sample_rate = media_type_2.sampleRate;
+      audioCodecContext_->sample_rate =
+        (media_type_2.sampleRate ? media_type_2.sampleRate : 48000);
       switch (media_type_2.channels)
       {
         case 1:
           audioCodecContext_->channel_layout = AV_CH_LAYOUT_MONO;
           break;
+        case 0: // i.e. N/A
         case 2:
           audioCodecContext_->channel_layout = AV_CH_LAYOUT_STEREO;
           break;
