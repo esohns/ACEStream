@@ -203,8 +203,10 @@ do_work (int argc_in,
 
   // step1: initialize/start stream
   parser_configuration.block = true;
+#if defined (_DEBUG)
   parser_configuration.debugParser = debugParser_in;
   parser_configuration.debugScanner = debugScanner_in;
+#endif // _DEBUG
   parser_configuration.messageQueue = NULL;
   parser_configuration.useYYScanBuffer =
     COMMON_PARSER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER;

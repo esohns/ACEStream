@@ -190,9 +190,7 @@ do_processArguments (int argc_in,
                      std::string& message_out,
                      std::string& password_out,
                      bool& useReactor_out,
-#if defined (_DEBUG)
                      bool& traceInformation_out,
-#endif // _DEBUG
                      std::string& userName_out,
                      enum Stream_SMTPSend_ProgramMode& mode_out
 #if defined (_DEBUG)
@@ -225,21 +223,19 @@ do_processArguments (int argc_in,
   password_out.clear ();
   useReactor_out =
     (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
-#if defined (_DEBUG)
   traceInformation_out = false;
-#endif // _DEBUG
   userName_out.clear ();
   mode_out = STREAM_SMTPSEND_PROGRAMMODE_NORMAL;
 #if defined (_DEBUG)
   debugParser_out = false;
 #endif // _DEBUG
 
-  std::string option_string = ACE_TEXT_ALWAYS_CHAR ("d:f:h:i:lm:p:rs:u:v");
+  std::string option_string = ACE_TEXT_ALWAYS_CHAR ("d:f:h:i:lm:p:rs:tu:v");
 #if defined (GUI_SUPPORT)
   option_string += ACE_TEXT_ALWAYS_CHAR ("g::");
 #endif // GUI_SUPPORT
 #if defined (_DEBUG)
-  option_string += ACE_TEXT_ALWAYS_CHAR ("tz");
+  option_string += ACE_TEXT_ALWAYS_CHAR ("z");
 #endif // _DEBUG
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
@@ -342,11 +338,13 @@ do_processArguments (int argc_in,
         mode_out = STREAM_SMTPSEND_PROGRAMMODE_PRINT_VERSION;
         break;
       }
+#if defined (_DEBUG)
       case 'z':
       {
         debugParser_out = true;
         break;
       }
+#endif // _DEBUG
       // error handling
       case ':':
       {
@@ -832,9 +830,7 @@ ACE_TMAIN (int argc_in,
     (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
-#if defined (_DEBUG)
   bool trace_information = false;
-#endif // _DEBUG
   enum Stream_SMTPSend_ProgramMode program_mode_e =
       STREAM_SMTPSEND_PROGRAMMODE_NORMAL;
 
@@ -858,9 +854,7 @@ ACE_TMAIN (int argc_in,
                             configuration.message,
                             configuration.password,
                             use_reactor,
-#if defined (_DEBUG)
                             trace_information,
-#endif // _DEBUG
                             configuration.username,
                             program_mode_e
 #if defined (_DEBUG)

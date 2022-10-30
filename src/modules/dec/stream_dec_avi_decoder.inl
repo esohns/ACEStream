@@ -120,8 +120,13 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
   // *TODO*: remove type inference
   inherited2::initialize (frameSize_,
                           configuration_in.parserConfiguration->extractHeaderOnly,
+#if defined (_DEBUG)
                           configuration_in.parserConfiguration->debugScanner,
                           configuration_in.parserConfiguration->debugParser,
+#else
+                          false,
+                          false,
+#endif // _DEBUG
                           inherited::msg_queue (),
                           configuration_in.parserConfiguration->useYYScanBuffer);
 
