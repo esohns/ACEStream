@@ -60,12 +60,17 @@ if (LIBREOFFICE_SUPPORT)
       test_u_module_libreoffice_spreadsheetwriter.cpp
       test_u_module_libreoffice_spreadsheetwriter.h)
 endif (LIBREOFFICE_SUPPORT)
+set (document_EXE_SCRIPTS
+     etc/soffice.ini
+     etc/sofficerc
+     etc/template.ods)
 
 #cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 set (EXECUTABLE document)
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
-                ${document_EXE_SRCS})
+                ${${EXECUTABLE}_EXE_SRCS}
+                ${${EXECUTABLE}_EXE_SCRIPTS})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 
 if (UNIX)

@@ -15,4 +15,3 @@
 UNO_SERVICES=file:///usr/lib64/libreoffice/program/services.rdb
 UNO_TYPES=file:///usr/lib64/libreoffice/program/types/offapi.rdb file:///usr/lib64/libreoffice/program/types.rdb
 #UNO_WRITERDB=$ConfigDir/user.rdb
-
