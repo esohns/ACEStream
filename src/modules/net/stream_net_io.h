@@ -242,6 +242,7 @@ class Stream_Module_Net_IOWriter_T // --> output
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T& operator= (const Stream_Module_Net_IOWriter_T&))
 
   bool                        inbound_;
+  bool                        manageSessionData_;
   Stream_IOutboundDataNotify* outboundNotificationHandle_;
 };
 

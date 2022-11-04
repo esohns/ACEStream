@@ -270,6 +270,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
       } // end IF
 
       if (!send ((*iterator).second,
+                 HTTP_Codes::HTTP_METHOD_GET,
                  inherited::configuration_->HTTPHeaders,
                  inherited::configuration_->HTTPForm))
       {
@@ -341,6 +342,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
       if (inherited::configuration_->waitForConnect)
         break;
       if (!send (inherited::configuration_->URL,
+                 HTTP_Codes::HTTP_METHOD_GET,
                  inherited::configuration_->HTTPHeaders,
                  inherited::configuration_->HTTPForm))
       {
@@ -370,6 +372,7 @@ error:
       if (!inherited::configuration_->waitForConnect)
         break;
       if (!send (inherited::configuration_->URL,
+                 HTTP_Codes::HTTP_METHOD_GET,
                  inherited::configuration_->HTTPHeaders,
                  inherited::configuration_->HTTPForm))
       {
@@ -410,6 +413,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     ControlMessageType,
                                     DataMessageType,
                                     SessionMessageType>::makeRequest (const std::string& URI_in,
+                                                                      HTTP_Method_t method_in,
                                                                       const HTTP_Headers_t& headers_in,
                                                                       const HTTP_Form_t& form_in)
 {
@@ -469,16 +473,14 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                            message_out->sessionId (),
                            NULL);
 
-  // step2: populate HTTP GET request
+  // step2: populate HTTP GET/POST request
   const typename DataMessageType::DATA_T& message_data_container_r =
       message_out->getR ();
   typename DataMessageType::DATA_T::DATA_T& message_data_r =
       const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
   message_data_r.form = form_in;
   message_data_r.headers = headers_in;
-  message_data_r.method =
-    (form_in.empty () ? HTTP_Codes::HTTP_METHOD_GET
-                      : HTTP_Codes::HTTP_METHOD_POST);
+  message_data_r.method = method_in;
   message_data_r.URI = URI_in;
   message_data_r.version = HTTP_Codes::HTTP_VERSION_1_1;
 
@@ -498,6 +500,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     ControlMessageType,
                                     DataMessageType,
                                     SessionMessageType>::send (const std::string& URL_in,
+                                                               HTTP_Method_t method_in,
                                                                const HTTP_Headers_t& headers_in,
                                                                const HTTP_Form_t& form_in)
 {
@@ -533,6 +536,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
 
   // *TODO*: estimate a reasonable buffer size
   DataMessageType* message_p = makeRequest (URI_string,
+                                            method_in,
                                             headers,
                                             form_in);
   if (!message_p)
@@ -726,6 +730,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
 
       // step2: send request
       if (!send (location,
+                 HTTP_Codes::HTTP_METHOD_GET,
                  inherited::configuration_->HTTPHeaders,
                  inherited::configuration_->HTTPForm))
       {

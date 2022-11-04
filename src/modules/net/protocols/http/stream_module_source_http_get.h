@@ -26,8 +26,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-//#include "common_time_common.h"
-
 #include "stream_task_base_synch.h"
 
 #include "http_common.h"
@@ -90,6 +88,7 @@ class Stream_Module_Net_Source_HTTP_Get_T
  protected:
   // helper methods
   bool send (const std::string&,    // URI
+             HTTP_Method_t,         // method
              const HTTP_Headers_t&, // headers
              const HTTP_Form_t&);   // form
   // *NOTE*: (if possible,) this advances the read pointer to skip over the HTTP
@@ -106,6 +105,7 @@ class Stream_Module_Net_Source_HTTP_Get_T
 
   // helper methods
   DataMessageType* makeRequest (const std::string&,    // URI
+                                HTTP_Method_t,         // method
                                 const HTTP_Headers_t&, // headers
                                 const HTTP_Form_t&);   // form
 };

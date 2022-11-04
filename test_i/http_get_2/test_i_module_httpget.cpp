@@ -98,8 +98,9 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
              (*iterator_).ISIN,
              url_string);
 
-  // send HTTP GET/POST request
+  // send HTTP GET request
   if (!inherited::send (url_string,
+                        HTTP_Codes::HTTP_METHOD_GET,
                         inherited::configuration_->HTTPHeaders,
                         form_data))
   {
@@ -187,8 +188,9 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
       form_data.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FORM_KEY_SEARCH_STRING),
                                         (*iterator_).ISIN));
 
-      // send first HTTP POST request
+      // send first HTTP GET request
       if (!inherited::send (inherited::configuration_->URL,
+                            HTTP_Codes::HTTP_METHOD_GET,
                             inherited::configuration_->HTTPHeaders,
                             form_data))
       {

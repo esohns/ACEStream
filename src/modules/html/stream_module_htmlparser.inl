@@ -164,7 +164,9 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                   error_p ? ACE_TEXT (error_p->message) : ACE_TEXT ("")));
       xmlCtxtResetLastError (parserContext_.parserContext);
     } // end IF
-    message_block_p = message_block_p->cont ();
+    do
+    { message_block_p = message_block_p->cont ();
+    } while (message_block_p && !message_block_p->length ());
     if (!message_block_p)
       break; // done --> more fragments to arrive ?
   } while (true);
@@ -292,8 +294,6 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
       //stream_p->buf = buffer_p;
       //xmlBufResetInput (buffer_p->buffer, stream_p);
       //inputPush (parserContext_.parserContext, stream_p);
-      htmlFreeParserCtxt (parserContext_.parserContext);
-      parserContext_.parserContext = NULL;
       if (!resetParser ())
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_Module_HTMLParser_T::resetParser(), continuing\n"),
@@ -435,8 +435,11 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::resetParser"));
 
-  // sanity check(s)
-  ACE_ASSERT (!parserContext_.parserContext);
+  // clean up
+  if (parserContext_.parserContext)
+  {
+    htmlFreeParserCtxt (parserContext_.parserContext); parserContext_.parserContext = NULL;
+  } // end IF
 
   parserContext_.parserContext =
     htmlCreatePushParserCtxt (((mode_ == STREAM_MODULE_HTMLPARSER_MODE_SAX) ? &SAXHandler_

@@ -260,6 +260,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in) // stream handle
  , inbound_ (true)
+ , manageSessionData_ (true)
  , outboundNotificationHandle_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::Stream_Module_Net_IOWriter_T"));
@@ -308,6 +309,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   if (unlikely (inherited::isInitialized_))
   {
     inbound_ = true;
+    manageSessionData_ = true;
     outboundNotificationHandle_ = NULL;
   } // end IF
 
@@ -627,9 +629,20 @@ continue_3:
       //         source module), the session data already contains the
       //         connection handle
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        ACE_ASSERT (!session_data_r.connection);
-        session_data_r.connection = connection_p;
+        if (likely (!session_data_r.connection && manageSessionData_))
+          session_data_r.connection = connection_p;
+        else
+        {
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s: session data already contains connection handle (was: 0x%@, is: 0x%@), continuing\n"),
+                      inherited::mod_->name (),
+                      session_data_r.connection,
+                      connection_p));
+          connection_p->decrease ();
+          manageSessionData_ = false;
+        } // end ELSE
       } // end lock scope
+      connection_p = NULL;
       break;
     }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
@@ -638,10 +651,14 @@ continue_3:
       {
         SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-        ACE_ASSERT (session_data_r.connection);
-        session_data_r.connection->decrease (); session_data_r.connection = NULL;
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+          if (session_data_r.connection && manageSessionData_)
+          {
+            session_data_r.connection->decrease (); session_data_r.connection = NULL;
+          } // end IF
+        } // end lock scope
       } // end IF
-      else // *TODO*
+      else if (manageSessionData_)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: no session data; cannot release session connection, continuing\n"),
                     inherited::mod_->name ()));

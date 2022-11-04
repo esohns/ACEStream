@@ -140,7 +140,9 @@ class Stream_Module_HTMLParser_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
+  // helper methods
   inline virtual bool initializeSAXParser () { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
+  bool resetParser ();
 
   DataMessageType*                   headFragment_;
   ParserContextType                  parserContext_;
@@ -150,9 +152,6 @@ class Stream_Module_HTMLParser_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T (const Stream_Module_HTMLParser_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T& operator= (const Stream_Module_HTMLParser_T&))
-
-  // helper methods
-  bool resetParser ();
 
   enum Stream_Module_HTMLParser_Mode mode_;
 };
