@@ -35,7 +35,9 @@ target_include_directories (${PROJECT_NAME}_Document PUBLIC
 
 ############## next target ################
 set (source_files
-     stream_document_defines.h)
+     stream_document_defines.h
+     stream_document_tools.cpp
+     stream_document_tools.h)
 if (LIBREOFFICE_SUPPORT)
  set (source_files
       ${source_files}

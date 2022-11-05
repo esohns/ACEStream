@@ -186,6 +186,7 @@ class Stream_HeadModuleTaskBase_T
                                   SessionEventType,
                                   enum Stream_StateMachine_ControlState,
                                   StreamStateType> ISTREAM_CONTROL_T;
+  typedef Stream_INotify_T<SessionEventType> INOTIFY_T;
   typedef Stream_ILock_T<ACE_SYNCH_USE> ILOCK_T;
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile

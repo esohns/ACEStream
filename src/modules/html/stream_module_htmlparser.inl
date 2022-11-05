@@ -144,10 +144,9 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 
   do
   {
-//    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("parsing HTML (message ID: %d, %d byte(s))...\n"),
-//                message_p->id (),
-//                message_p->length ()));
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("parsing HTML (%Q byte(s))...\n"),
+                message_block_p->total_length ()));
 
     result = htmlParseChunk (parserContext_.parserContext, // context
                              message_block_p->rd_ptr (),   // chunk
@@ -262,8 +261,8 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                     error_p->code, ACE_TEXT (error_p->message)));
       xmlCtxtResetLastError (parserContext_.parserContext);
 
-  //    ACE_DEBUG ((LM_DEBUG,
-  //                ACE_TEXT ("parsing HTML...DONE\n")));
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("parsing HTML...DONE\n")));
 
       // *TODO*: remove type inference
       ACE_ASSERT (!data_r.HTMLDocument);

@@ -2781,8 +2781,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           return false;
         }
       } // end IF
-
 continue_:
+
       // unlink downstream if necessary
       if (unlikely (inherited::linked_ &&
                     downstream_p))
@@ -2792,6 +2792,7 @@ continue_:
                     ACE_TEXT (istream_p->name ().c_str ()),
                     inherited::mod_->name ()));
 
+        // step1: unlink downstream
         typename inherited::ISTREAM_T* istream_2 =
           dynamic_cast<typename inherited::ISTREAM_T*> (downstream_p);
         if (unlikely (!istream_2))
@@ -2803,7 +2804,7 @@ continue_:
           goto continue_2;
         } // end IF
 
-        // step1: unlink downstream
+        // *NOTE*: this notifies downstream
         try {
           istream_2->_unlink ();
         } catch (...) {
@@ -2812,9 +2813,33 @@ continue_:
                       ACE_TEXT (istream_2->name ().c_str ())));
           return false;
         }
-
 continue_2:
-        // step2: 'downstream' has been unlinked; notify 'upstream' (i.e.
+
+//        // step2: notify downstream
+//        INOTIFY_T* inotify_p = dynamic_cast<INOTIFY_T*> (downstream_p);
+//        if (unlikely (!inotify_p))
+//        {
+//          ACE_DEBUG ((LM_WARNING,
+//                      ACE_TEXT ("%s:%s: downstream does not implement Stream_INotify_T; cannot notify unlink, continuing\n"),
+//                      ACE_TEXT (istream_p->name ().c_str ()),
+//                      inherited::mod_->name ()));
+//          goto continue_3;
+//        } // end IF
+//
+//        try {
+//          inotify_p->notify (STREAM_SESSION_MESSAGE_UNLINK,
+//                             false,  // recurse upstream ?
+//                             false); // expedite ?
+//        } catch (...) {
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("%s:%s: caught exception in Stream_INotify_T::notify(STREAM_SESSION_MESSAGE_UNLINK), aborting\n"),
+//                      ACE_TEXT (istream_p->name ().c_str ()),
+//                      inherited::mod_->name ()));
+//          return false;
+//        }
+//continue_3:
+
+        // step3: 'downstream' has been unlinked; notify 'upstream' (i.e.
         //         'this') about this fact as well
 
         // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race

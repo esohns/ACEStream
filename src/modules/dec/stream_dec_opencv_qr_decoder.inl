@@ -117,10 +117,10 @@ Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
 
   for (int i = 0; i < boundingBox_in.rows; i++)
     cv::line (frame_inout,
-              cv::Point2i (boundingBox_in.at<float> (i, 0),
-                           boundingBox_in.at<float> (i, 1)),
-              cv::Point2i (boundingBox_in.at<float> ((i + 1) % boundingBox_in.rows, 0),
-                           boundingBox_in.at<float> ((i + 1) % boundingBox_in.rows, 1)),
+              cv::Point2i (boundingBox_in.at<int> (i, 0),
+                           boundingBox_in.at<int> (i, 1)),
+              cv::Point2i (boundingBox_in.at<int> ((i + 1) % boundingBox_in.rows, 0),
+                           boundingBox_in.at<int> ((i + 1) % boundingBox_in.rows, 1)),
               cv::Scalar (255, 0, 0),
               3);
 }
