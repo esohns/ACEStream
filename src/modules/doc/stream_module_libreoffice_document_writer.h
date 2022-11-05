@@ -102,6 +102,7 @@ class Stream_Module_LibreOffice_Document_Writer_T
   uno::Reference<lang::XComponent>            component_;
   uno::Reference<uno::XComponentContext>      componentContext_;
   uno::Reference<task::XInteractionHandler>   interactionHandler_;
+  bool                                        manageProcess_;
   bool                                        releaseHandler_;
 
  private:

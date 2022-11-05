@@ -79,8 +79,8 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
 
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
 //  struct Test_U_SessionData* session_data_p = NULL;
-  Stream_Module_t* module_p = NULL;
-  Test_U_Source* source_impl_p = NULL;
+//  Stream_Module_t* module_p = NULL;
+//  Test_U_Source* source_impl_p = NULL;
 
 //  bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
@@ -150,7 +150,6 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
     } // end IF
 
   inherited::isInitialized_ = true;
-  //inherited::dump_state ();
 
   return true;
 
