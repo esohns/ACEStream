@@ -62,7 +62,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                             DocumentType>::Stream_Module_LibreOffice_Document_Writer_T (ISTREAM_T* stream_in)
 #else
                                             DocumentType>::Stream_Module_LibreOffice_Document_Writer_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , component_ (NULL)
  , componentContext_ (NULL)
@@ -84,14 +84,12 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                 inherited::mod_->name ()));
     return;
   } // end IF
-
   handler_->acquire ();
+  releaseHandler_ = true;
+
   bool result = interactionHandler_.set (*handler_,
                                          uno::UNO_QUERY);
-  ACE_ASSERT (interactionHandler_.is ());
-  ACE_ASSERT (result);
-
-  releaseHandler_ = true;
+  ACE_ASSERT (result && interactionHandler_.is ());
 }
 
 template <typename SynchStrategyType,
@@ -114,23 +112,16 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::~Stream_Module_LibreOffice_Document_Writer_T"));
 
   // *TODO*: ::lang::XComponent::dispose crashes the application
+  interactionHandler_.clear ();
+  if (releaseHandler_)
+    handler_->release ();
+  if (handler_)
+    delete handler_;
+
   if (component_.is ())
     component_->dispose ();
   if (componentContext_.is ())
-  {
-//    uno::Reference<lang::XComponent> component_p =
-//        uno::Reference<lang::XComponent>::query (componentContext_);
-//    if (component_p.is ())
-//      component_p->dispose ();
-    //componentContext_.clear ();
-  } // end IF
-  interactionHandler_.clear ();
-
-  if (releaseHandler_)
-    handler_->release ();
-
-  if (handler_)
-    delete handler_;
+    componentContext_.clear ();
 
   // kill soffice.bin
   pid_t process_id =
