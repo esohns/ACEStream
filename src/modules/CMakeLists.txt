@@ -6,6 +6,7 @@ add_subdirectory (file)
 add_subdirectory (html)
 add_subdirectory (lib)
 add_subdirectory (misc)
+add_subdirectory (ml)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
 add_subdirectory (net)

@@ -1,0 +1,303 @@
+/***************************************************************************
+ *   Copyright (C) 2009 by Erik Sohns   *
+ *   erik.sohns@web.de   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#include <fstream>
+#include <regex>
+#include <sstream>
+#include <tensorflow/core/framework/types.pb.h>
+
+#include "opencv2/core/mat.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+
+#include "ace/Log_Msg.h"
+
+#include "stream_macros.h"
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                    MediaType>::Test_I_CameraML_Module_Tensorflow_T (typename TaskType::ISTREAM_T* stream_in)
+#else
+                                    MediaType>::Test_I_CameraML_Module_Tensorflow_T (typename inherited::ISTREAM_T* stream_in)
+#endif // ACE_WIN32 || ACE_WIN64
+ : inherited (stream_in)
+ , inherited2 ()
+ , labelMap_ ()
+ , resolution_ ()
+ , shape_ ()
+ , stride_ (0)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::Test_I_CameraML_Module_Tensorflow_T"));
+
+}
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+bool
+Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                            Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::initialize"));
+
+  if (inherited::isInitialized_)
+  {
+  } // end IF
+
+  if (!loadLabels (configuration_in.labelFile))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to loadLabels(\"%s\"), aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (configuration_in.labelFile.c_str ())));
+    return false;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: loaded %Q label(s)\n"),
+              inherited::mod_->name (),
+              labelMap_.size ()));
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
+}
+
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+void
+Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                   bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::handleDataMessage"));
+
+  // set input & output nodes names
+  static std::string inputLayer = "image_tensor:0";
+  static std::vector<std::string> outputLayer =
+    {"detection_boxes:0", "detection_scores:0", "detection_classes:0", "num_detections:0"};
+
+  std::vector<tensorflow::Tensor> outputs;
+
+//  tensorflow::Tensor tensor = tensorflow::Tensor (tensorflow::DT_FLOAT, shape_);
+  tensorflow::Tensor tensor = tensorflow::Tensor (tensorflow::DT_UINT8, shape_);
+
+  // step0: convert image frame to matrix
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  cv::Mat frame_matrix (resolution_.cy,
+//                        resolution_.cx,
+//#else
+//  cv::Mat frame_matrix (resolution_.height,
+//                        resolution_.width,
+//#endif // ACE_WIN32 || ACE_WIN64
+//                        CV_8UC3,
+//                        message_inout->rd_ptr (),
+//                        cv::Mat::AUTO_STEP);
+
+//  float* data_p = tensor.flat<float> ().data ();
+  uint8_t* data_p = tensor.flat<uint8_t> ().data ();
+//  cv::Mat float_matrix (frame_matrix.rows, frame_matrix.cols, CV_32FC3, data_p);
+//  frame_matrix.convertTo (float_matrix, CV_32FC3);
+
+//  auto input_tensor_mapped = tensor.tensor<float, 4> ();
+  auto input_tensor_mapped = tensor.tensor<uint8_t, 4> ();
+  for (int y = 0; y < static_cast<int> (resolution_.height); ++y)
+  {
+    const uchar* source_row = (uchar*)data_p + (y * stride_);
+    for (int x = 0; x < static_cast<int> (resolution_.width); ++x)
+    {
+      const uchar* source_pixel = source_row + (x * 3);
+      for (int c = 0; c < 3; ++c)
+      {
+        const uchar* source_value = source_pixel + c;
+//        input_tensor_mapped (0, y, x, c) = (float)*source_value;
+        input_tensor_mapped (0, y, x, c) = (uint8_t)*source_value;
+      } // end FOR
+    } // end FOR
+  } // end FOR
+
+  // run the graph on tensor
+  tensorflow::Status status = inherited::session_->Run ({{inputLayer, tensor}},
+                                                        outputLayer, {},
+                                                        &outputs);
+  if (unlikely (!status.ok ()))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Session::Run(), aborting\n"),
+                inherited::mod_->name ()));
+    goto error;
+  } // end IF
+
+  return;
+
+error:
+  inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+}
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+void
+Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                      bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::handleSessionMessage"));
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::sessionData_);
+
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+
+  switch (message_inout->type ())
+  {
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+#else
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+#endif // ACE_WIN32 || ACE_WIN64
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
+                                media_type_s);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      resolution_ =
+        Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
+#else
+      resolution_ = media_type_s.resolution;
+#endif // ACE_WIN32 || ACE_WIN64
+      stride_ = resolution_.width * 3;
+
+      shape_ = tensorflow::TensorShape ();
+      shape_.AddDim (1);
+      shape_.AddDim (resolution_.height);
+      shape_.AddDim (resolution_.width);
+      shape_.AddDim (3);
+
+      break;
+
+error:
+      inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      return;
+    }
+    case STREAM_SESSION_MESSAGE_END:
+    {
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+}
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+bool
+Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    MediaType>::loadLabels (const std::string& fileName_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::loadLabels"));
+
+  labelMap_.clear ();
+
+  // read file into a string
+  std::ifstream file_stream (fileName_in);
+  if (file_stream.bad ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to open label map file (was: \"%s\"), aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (fileName_in.c_str ())));
+    return false;
+  } // end IF
+  std::stringstream string_stream;
+  string_stream << file_stream.rdbuf ();
+  std::string file_string = string_stream.str ();
+
+  // search entry patterns of type 'item { ... }' and parse each of them
+  std::smatch matcherEntry;
+  std::smatch matcherId;
+  std::smatch matcherName;
+  const std::regex reEntry ("item \\{([\\S\\s]*?)\\}");
+  const std::regex reId ("[0-9]+");
+  const std::regex reName ("\'.+\'");
+  std::string entry;
+
+  auto stringBegin =
+    std::sregex_iterator (file_string.begin (), file_string.end (), reEntry);
+  auto stringEnd = std::sregex_iterator();
+
+  int id;
+  std::string name;
+  for (std::sregex_iterator i = stringBegin; i != stringEnd; i++)
+  {
+    matcherEntry = *i;
+    entry = matcherEntry.str ();
+    std::regex_search (entry, matcherId, reId);
+    if (!matcherId.empty ())
+      id = stoi (matcherId[0].str ());
+    else
+      continue;
+    std::regex_search (entry, matcherName, reName);
+    if (!matcherName.empty ())
+      name = matcherName[0].str ().substr (1, matcherName[0].str ().length () - 2);
+    else
+      continue;
+    labelMap_.insert (std::pair<int, std::string> (id, name));
+  } // end FOR
+
+  return true;
+}

@@ -430,7 +430,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                     0,
                     reinterpret_cast<char*> (message_inout->rd_ptr ()),
                     resolution_.width, resolution_.height,
-                    32, // *TODO*: can this be attributes_s.depth ?
+                    32, // *TODO*: can this be attributes_s.depth ? no :-(
                     0);
 //                    row_size_i);
   if (unlikely (!image_p))

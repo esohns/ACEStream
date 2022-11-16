@@ -31,8 +31,6 @@
 
 #include "stream_dec_tools.h"
 
-//#include "stream_lib_tools.h"
-
 #include "stream_vis_defines.h"
 
 template <ACE_SYNCH_DECL,
@@ -44,13 +42,13 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename MediaType>
 Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType,
-                               MediaType>::Stream_Module_Vis_Wayland_Window_T (typename inherited::ISTREAM_T* stream_in)
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataContainerType,
+                                   MediaType>::Stream_Module_Vis_Wayland_Window_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , cbData_ ()
  , closeDisplay_ (false)
@@ -71,13 +69,13 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename MediaType>
 Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType,
-                               MediaType>::~Stream_Module_Vis_Wayland_Window_T ()
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataContainerType,
+                                   MediaType>::~Stream_Module_Vis_Wayland_Window_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Wayland_Window_T::~Stream_Module_Vis_Wayland_Window_T"));
 
@@ -106,14 +104,14 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 void
 Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType,
-                               MediaType>::handleDataMessage (DataMessageType*& message_inout,
-                                                              bool& passMessageDownstream_out)
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataContainerType,
+                                   MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                  bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Wayland_Window_T::handleDataMessage"));
 
@@ -179,14 +177,14 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 void
 Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType,
-                               MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                 bool& passMessageDownstream_out)
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataContainerType,
+                                   MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                     bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Wayland_Window_T::handleSessionMessage"));
 
@@ -291,13 +289,13 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 void
 Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType,
-                               MediaType>::toggle ()
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataContainerType,
+                                   MediaType>::toggle ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Wayland_Window_T::toggle"));
 
@@ -316,14 +314,14 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 bool
 Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType,
-                               MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                       Stream_IAllocator* allocator_in)
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataContainerType,
+                                   MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                           Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Wayland_Window_T::initialize"));
 
@@ -354,12 +352,10 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   if (configuration_in.waylandDisplay)
   {
     cbData_.display = configuration_in.waylandDisplay;
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: passive mode (display: %@)\n"),
                 inherited::mod_->name (),
                 cbData_.display));
-#endif // _DEBUG
   } // end IF
   else
   {
@@ -381,12 +377,10 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                   inherited::mod_->name ()));
       return false;
     } // end IF
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: connected to Wayland display (%@)\n"),
                 inherited::mod_->name (),
                 cbData_.display));
-#endif // _DEBUG
     closeDisplay_ = true;
   } // end ELSE
   ACE_ASSERT (cbData_.display);
@@ -406,22 +400,18 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                 cbData_.display));
     return false;
   } // end IF
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: retrieved Wayland compositor handle (%@)\n"),
                 inherited::mod_->name (),
                 cbData_.compositor));
-#endif // _DEBUG
 
   if (configuration_in.surface)
   {
     shellSurface_ = configuration_in.surface;
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: passive mode (display: %@, surface: %u)\n"),
                 inherited::mod_->name (),
                 cbData_.display, surface_));
-#endif // _DEBUG
   } // end IF
   else
   {
@@ -457,21 +447,17 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                   cbData_.display));
       return false;
     } // end IF
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: created Wayland shell surface (display: %@)\n"),
                 inherited::mod_->name (),
                 cbData_.display));
-#endif // _DEBUG
   } // end ELSE
   ACE_ASSERT (shellSurface_);
   wl_shell_surface_set_toplevel (shellSurface_);
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: display %@ (shell surface: %@)\n"),
               inherited::mod_->name (),
               cbData_.display, shellSurface_));
-#endif // _DEBUG
 
   init_shm_pool (configuration_in);
 
@@ -489,17 +475,20 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 void
 Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType,
-                               MediaType>::init_shm_pool (const ConfigurationType& configuration_in)
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataContainerType,
+                                   MediaType>::init_shm_pool (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Wayland_Window_T::init_shm_pool"));
 
   ACE_ASSERT (cbData_.shm);
+
+  struct Common_UI_DisplayDevice display_device =
+    Common_UI_Tools::getDisplay (configuration_in.display.device); // device identifier
 
 //  int x =
 //      (inherited::configuration_->fullScreen ? inherited::configuration_->display.clippingArea.x
@@ -510,10 +499,10 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   Common_Image_Resolution_t resolution_s =
       inherited2::getResolution (configuration_in.outputFormat);
   unsigned int width_i =
-      (configuration_in.fullScreen ? configuration_in.display.clippingArea.width
+      (configuration_in.fullScreen ? display_device.clippingArea.width
                                    : resolution_s.width);
   unsigned int height_i =
-      (configuration_in.fullScreen ? configuration_in.display.clippingArea.height
+      (configuration_in.fullScreen ? display_device.clippingArea.height
                                    : resolution_s.height);
 
   struct wl_shm_pool* pool_p = NULL;
