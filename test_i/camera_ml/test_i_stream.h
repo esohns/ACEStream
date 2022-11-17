@@ -253,15 +253,16 @@ class Stream_CameraML_Stream
   // modules
   Stream_CameraML_V4L_Source_Module      source_;
 //  Stream_CameraML_StatisticReport_Module statisticReport_;
-  Stream_CameraML_LibAVConvert_Module    convert_; // --> BGRA (Xlib)
+  Stream_CameraML_LibAVConvert_Module    convert_; // --> RGB24 (tensorflow)
   Stream_CameraML_LibAVResize_Module     resize_; // --> window size/fullscreen
-  Stream_CameraML_V4L_HFlip_Module       flip_;
+//  Stream_CameraML_V4L_HFlip_Module       flip_;
 #if defined (TENSORFLOW_SUPPORT)
   Stream_CameraML_Tensorflow_Module      tensorflow_;
 #endif // TENSORFLOW_SUPPORT
 #if defined (GTK_SUPPORT)
   Stream_CameraML_GTK_Display_Module     GTKDisplay_;
 #endif // GTK_SUPPORT
+  Stream_CameraML_LibAVConvert_Module    convert_2; // --> BGRA (Xlib)
   Stream_CameraML_Wayland_Display_Module WaylandDisplay_;
   Stream_CameraML_X11_Display_Module     X11Display_;
 };

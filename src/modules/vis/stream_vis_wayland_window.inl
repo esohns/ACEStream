@@ -52,8 +52,11 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , cbData_ ()
  , closeDisplay_ (false)
+ , frameSize_ (0)
+ , resolution_ ()
  , shellSurface_ (NULL)
  , surface_ (NULL)
+ , topLevel_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Wayland_Window_T::Stream_Module_Vis_Wayland_Window_T"));
 
@@ -79,15 +82,12 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Wayland_Window_T::~Stream_Module_Vis_Wayland_Window_T"));
 
-  if (surface_ || shellSurface_)
-  { ACE_ASSERT (cbData_.display);
-//    result = XDestroyWindow (display_, window_);
-//    if (unlikely (!result))
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: failed to XDestroyWindow(0x%@,%u): \"%m\", continuing\n"),
-//                  inherited::mod_->name (),
-//                  display_, window_));
-  } // end IF
+  if (topLevel_)
+    xdg_toplevel_destroy (topLevel_);
+  if (shellSurface_)
+    xdg_surface_destroy (shellSurface_);
+  if (surface_)
+    wl_surface_destroy (surface_);
   if (closeDisplay_)
   { ACE_ASSERT (cbData_.display);
     wl_display_disconnect (cbData_.display);
@@ -118,52 +118,15 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (cbData_.display);
-  ACE_ASSERT (surface_);
   ACE_ASSERT (cbData_.shm_data);
+  ACE_ASSERT (surface_);
 
-  // sanity check(s)
-  const typename SessionDataContainerType::DATA_T& session_data_r =
-      inherited::sessionData_->getR ();
-  ACE_ASSERT (!session_data_r.formats.empty ());
-  const MediaType& media_type_r = session_data_r.formats.back ();
-  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
-  inherited2::getMediaType (media_type_r,
-                            STREAM_MEDIATYPE_VIDEO,
-                            media_type_2);
-//  Common_Image_Resolution_t resolution_s =
-//      Stream_MediaFramework_Tools::toResolution (cbData_.display,
-//                                                 window_);
-//  int row_size_i =
-//      av_image_get_linesize (media_type_2.format,
-//                             media_type_2.resolution.width,
-//                             0);
-  ACE_ASSERT (media_type_2.format == AV_PIX_FMT_RGB32);
-//  ACE_ASSERT ((media_type_2.resolution.width == resolution_s.width) && (media_type_2.resolution.height == resolution_s.height));
-
-  unsigned int image_size_i =
-      media_type_2.resolution.width  *
-      media_type_2.resolution.height *
-      4;
-
-  // *NOTE*: 'crunching' the message data simplifies the data transformation
-  //         algorithms, at the cost of (several) memory copies. This is a
-  //         tradeoff that may warrant further optimization efforts
-  try {
-    message_inout->defragment ();
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_IDataMessage_T::defragment(), returning\n"),
-                inherited::mod_->name ()));
-    return;
-  }
-
-  ACE_OS::memcpy (cbData_.shm_data, message_inout->rd_ptr (), image_size_i);
+  ACE_OS::memcpy (cbData_.shm_data, message_inout->rd_ptr (), message_inout->length ());
   wl_surface_commit (surface_);
   wl_surface_damage (surface_,
                      0, 0,
-                     media_type_2.resolution.width, media_type_2.resolution.height);
+                     resolution_.width, resolution_.height);
   wl_display_flush (cbData_.display);
 }
 
@@ -196,51 +159,21 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
-      ACE_ASSERT (cbData_.display);
-      ACE_ASSERT (shellSurface_);
-//      const typename SessionDataContainerType::DATA_T& session_data_r =
-//          inherited::sessionData_->getR ();
-//      ACE_ASSERT (!session_data_r.formats.empty ());
-//      const MediaType& media_type_r = session_data_r.formats.back ();
-//      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
-//      inherited2::getMediaType (media_type_r,
-//                                media_type_2);
-//      Common_Image_Resolution_t resolution_s =
-//          Stream_MediaFramework_Tools::toResolution (*cbData_.display,
-//                                                     window_);
-//      int row_size_i =
-//          av_image_get_linesize (media_type_2.format,
-//                                 media_type_2.resolution.width,
-//                                 0);
-//      int depth_i =
-//          (row_size_i / media_type_2.resolution.width) * 8;
-//      XWindowAttributes attributes_s = Common_UI_Tools::get (*cbData_.display,
-//                                                             window_);
-      // *NOTE*: otherwise there will be 'BadMatch' errors
-//      ACE_ASSERT ((media_type_2.resolution.width == resolution_s.width) && (media_type_2.resolution.height == resolution_s.height));
-//      ACE_ASSERT (depth_i == attributes_s.depth);
-
-//      pixmap_ = XCreatePixmap (display_,
-//                               window_,
-//                               resolution_s.width, resolution_s.height,
-//                               attributes_s.depth);
-//      if (unlikely (!pixmap_))
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("%s: failed to XCreatePixmap(0x%@,%u,%ux%u,%d): \"%m\", aborting\n"),
-//                    inherited::mod_->name (),
-//                    display_, window_,
-//                    resolution_s.width, resolution_s.height,
-//                    attributes_s.depth));
-//        goto error;
-//      } // end IF
-#if defined (_DEBUG)
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("%s: allocated %ux%u pixmap (depth: %d bits)\n"),
-//                  inherited::mod_->name (),
-//                  resolution_s.width, resolution_s.height,
-//                  attributes_s.depth));
-#endif // _DEBUG
+      const typename SessionDataContainerType::DATA_T& session_data_r =
+          inherited::sessionData_->getR ();
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      const MediaType& media_type_r = session_data_r.formats.back ();
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
+      inherited2::getMediaType (media_type_r,
+                                STREAM_MEDIATYPE_VIDEO,
+                                media_type_2);
+      resolution_ = inherited2::getResolution (media_type_r);
+      frameSize_ =
+        av_image_get_buffer_size (media_type_2.format,
+                                  resolution_.width, resolution_.height,
+                                  1); // *TODO*: linesize alignment
+      ACE_ASSERT (frameSize_ >= 0);
+//      ACE_ASSERT (media_type_2.format == AV_PIX_FMT_RGB32);
 
       break;
 
@@ -254,7 +187,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (cbData_.display);
 
-      if (surface_ || shellSurface_)
+      if (surface_/* || shellSurface_*/)
       { ACE_ASSERT (cbData_.display);
 //        result = XDestroyWindow (display_, window_);
 //        if (unlikely (!result))
@@ -327,16 +260,17 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    if (surface_ || shellSurface_)
-    { ACE_ASSERT (cbData_.display);
-//      int result = XUnmapWindow (display_, window_);
-//      if (unlikely (result))
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("%s: failed to XUnmapWindow(0x%@,%u): \"%m\", continuing\n"),
-//                    inherited::mod_->name (),
-//                    display_, window_));
-      shellSurface_ = NULL;
-      surface_ = NULL;
+    if (topLevel_)
+    {
+      xdg_toplevel_destroy (topLevel_); topLevel_ = NULL;
+    } // end IF
+    if (shellSurface_)
+    {
+      xdg_surface_destroy (shellSurface_); shellSurface_ = NULL;
+    }
+    if (surface_)
+    {
+      wl_surface_destroy (surface_); surface_ = NULL;
     } // end IF
     if (closeDisplay_)
     { ACE_ASSERT (cbData_.display);
@@ -407,7 +341,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 
   if (configuration_in.surface)
   {
-    shellSurface_ = configuration_in.surface;
+//    surface_ = configuration_in.surface;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: passive mode (display: %@, surface: %u)\n"),
                 inherited::mod_->name (),
@@ -437,8 +371,10 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                   cbData_.display));
       return false;
     } // end IF
-    ACE_ASSERT (cbData_.shell);
-    shellSurface_ = wl_shell_get_shell_surface (cbData_.shell, surface_);
+//    ACE_ASSERT (cbData_.shell);
+//    shellSurface_ = wl_shell_get_shell_surface (cbData_.shell, surface_);
+    ACE_ASSERT (cbData_.wm_base);
+    shellSurface_ = xdg_wm_base_get_xdg_surface (cbData_.wm_base, surface_);
     if (!shellSurface_)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -453,7 +389,9 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                 cbData_.display));
   } // end ELSE
   ACE_ASSERT (shellSurface_);
-  wl_shell_surface_set_toplevel (shellSurface_);
+//  wl_shell_surface_set_toplevel (shellSurface_);
+  topLevel_ = xdg_surface_get_toplevel (shellSurface_);
+  ACE_ASSERT (topLevel_);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: display %@ (shell surface: %@)\n"),
               inherited::mod_->name (),

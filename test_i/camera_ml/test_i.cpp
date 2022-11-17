@@ -911,6 +911,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_CameraML_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   struct Stream_CameraML_V4L_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
   struct Stream_CameraML_V4L_ModuleHandlerConfiguration modulehandler_configuration_3; // display
+  struct Stream_CameraML_V4L_ModuleHandlerConfiguration modulehandler_configuration_4; // converter_2
   Stream_CameraML_EventHandler_t ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1213,6 +1214,12 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   configuration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (renderer_in),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_3)));
+  modulehandler_configuration_4 = modulehandler_configuration_2;
+  modulehandler_configuration_4.outputFormat.format.pixelformat =
+    V4L2_PIX_FMT_BGR32;
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_4)));
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 

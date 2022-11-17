@@ -67,6 +67,8 @@ endif (OPENCV_SUPPORT)
 if (WAYLAND_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${WAYLAND_INCLUDE_DIRS}>)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 endif (WAYLAND_SUPPORT)
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -220,6 +222,7 @@ endif (OPENCV_SUPPORT)
 if (WAYLAND_SUPPORT)
  set (source_files
       ${source_files}
+      include/xdg-shell.cpp
       stream_vis_wayland_window.cpp
       stream_vis_wayland_window.h
       stream_vis_wayland_window.inl)

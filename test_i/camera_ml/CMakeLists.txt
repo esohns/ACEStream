@@ -21,6 +21,8 @@ if (TENSORFLOW_SUPPORT)
  include_directories (${tensorflow_INCLUDE_DIRS})
 endif (TENSORFLOW_SUPPORT)
 if (UNIX)
+# include_directories (/usr/include/c++/12/x86_64-redhat-linux)
+# include_directories (/usr/include/c++/12)
  include_directories (${PKG_V4L_INCLUDE_DIRS})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/include)
@@ -86,6 +88,10 @@ if (TENSORFLOW_SUPPORT)
 endif (TENSORFLOW_SUPPORT)
 
 if (UNIX)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis/include)
+# set (${EXECUTABLE}_EXE_SRCS
+#      ${${EXECUTABLE}_EXE_SRCS}
+#      ${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis/include/xdg-shell.cpp)
 elseif (WIN32)
  if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
   add_definitions (-DD3D_DEBUG_INFO)

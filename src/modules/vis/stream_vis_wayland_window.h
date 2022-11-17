@@ -22,6 +22,7 @@
 #define STREAM_VIS_WAYLAND_WINDOW_H
 
 #include "wayland-client.h"
+#include "xdg-shell.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -36,14 +37,14 @@ extern const char libacestream_default_vis_wayland_window_module_name_string[];
 
 struct libacestream_vis_wayland_cb_data
 {
-  struct wl_buffer*       buffer;
+  struct wl_buffer*     buffer;
 //  bool                    buffer_busy;
-  struct wl_compositor*   compositor;
-  struct wl_display*      display;
-//  ACE_Message_Queue_Base* queue;
-  struct wl_shell*        shell;
-  struct wl_shm*          shm;
-  void*                   shm_data;
+  struct wl_compositor* compositor;
+  struct wl_display*    display;
+//  struct wl_shell*        shell;
+  struct wl_shm*        shm;
+  void*                 shm_data;
+  struct xdg_wm_base*   wm_base;
 };
 
 void
@@ -127,7 +128,11 @@ class Stream_Module_Vis_Wayland_Window_T
 
   struct libacestream_vis_wayland_cb_data cbData_;
   bool                                    closeDisplay_;
-  struct wl_shell_surface*                shellSurface_;
+  unsigned int                            frameSize_;
+  Common_Image_Resolution_t               resolution_;
+//  struct wl_shell_surface*                shellSurface_;
+  struct xdg_surface*                     shellSurface_;
+  struct xdg_toplevel*                    topLevel_;
   struct wl_surface*                      surface_;
 };
 

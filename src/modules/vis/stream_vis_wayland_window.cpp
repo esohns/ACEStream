@@ -26,6 +26,16 @@
 const char libacestream_default_vis_wayland_window_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING);
 
+static void
+xdg_wm_base_ping (void* data_in, struct xdg_wm_base* xdg_wm_base_in, uint32_t serial_in)
+{
+  xdg_wm_base_pong (xdg_wm_base_in, serial_in);
+}
+
+static const struct xdg_wm_base_listener xdg_wm_base_listener = {
+  .ping = xdg_wm_base_ping,
+};
+
 void
 libacestream_vis_wayland_global_registry_handler (void* data_in,
                                                   struct wl_registry* registry_in,
@@ -39,7 +49,7 @@ libacestream_vis_wayland_global_registry_handler (void* data_in,
       static_cast<struct libacestream_vis_wayland_cb_data*> (data_in);
   ACE_ASSERT (data_p);
 
-  printf ("Got a registry event for %s id %d\n", interface_in, id_in);
+//  printf ("Got a registry event for %s id %d\n", interface_in, id_in);
 
   if (!ACE_OS::strcmp (interface_in, ACE_TEXT_ALWAYS_CHAR ("wl_compositor")))
     data_p->compositor =
@@ -47,18 +57,29 @@ libacestream_vis_wayland_global_registry_handler (void* data_in,
                                                             id_in,
                                                             &wl_compositor_interface,
                                                             1));
-  else if (!ACE_OS::strcmp (interface_in, ACE_TEXT_ALWAYS_CHAR ("wl_shell")))
-    data_p->shell =
-      static_cast<struct wl_shell*> (wl_registry_bind (registry_in,
-                                                       id_in,
-                                                       &wl_shell_interface,
-                                                       1));
+//  else if (!ACE_OS::strcmp (interface_in, ACE_TEXT_ALWAYS_CHAR ("wl_shell")))
+//    data_p->shell =
+//      static_cast<struct wl_shell*> (wl_registry_bind (registry_in,
+//                                                       id_in,
+//                                                       &wl_shell_interface,
+//                                                       1));
   else if (!ACE_OS::strcmp (interface_in, ACE_TEXT_ALWAYS_CHAR ("wl_shm")))
     data_p->shm =
       static_cast<struct wl_shm*> (wl_registry_bind (registry_in,
                                                      id_in,
                                                      &wl_shm_interface,
                                                      1));
+  else if (!ACE_OS::strcmp (interface_in, ACE_TEXT_ALWAYS_CHAR ("xdg_wm_base")))
+  {
+    data_p->wm_base =
+      static_cast<struct xdg_wm_base*> (wl_registry_bind (registry_in,
+                                                          id_in,
+                                                          &xdg_wm_base_interface,
+                                                          1));
+    xdg_wm_base_add_listener (data_p->wm_base,
+                              &xdg_wm_base_listener,
+                              data_in);
+  } // end ELSE IF
 }
 
 void
@@ -72,7 +93,7 @@ libacestream_vis_wayland_global_registry_remover (void* data_in,
       static_cast<struct libacestream_vis_wayland_cb_data*> (data_in);
   ACE_ASSERT (data_p); ACE_UNUSED_ARG (data_p);
 
-  printf ("Got a registry losing event for %d\n", id_in);
+//  printf ("Got a registry losing event for %d\n", id_in);
 }
 
 struct wl_registry_listener libacestream_vis_wayland_registry_listener = {

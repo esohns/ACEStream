@@ -1199,8 +1199,8 @@ Stream_CameraML_Stream::Stream_CameraML_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
- , flip_ (this,
-          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
+// , flip_ (this,
+//          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
 #if defined (TENSORFLOW_SUPPORT)
  , tensorflow_ (this,
                 ACE_TEXT_ALWAYS_CHAR (MODULE_ML_TENSORFLOW_DEFAULT_NAME_STRING))
@@ -1209,6 +1209,8 @@ Stream_CameraML_Stream::Stream_CameraML_Stream ()
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
 #endif // GTK_SUPPORT
+ , convert_2 (this,
+              ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
  , WaylandDisplay_ (this,
                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING))
  , X11Display_ (this,
@@ -1236,7 +1238,7 @@ Stream_CameraML_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 //  layout_in->append (&flip_, NULL, 0);
 #if defined (TENSORFLOW_SUPPORT)
-  layout_in->append (&tensorflow_, NULL, 0);
+//  layout_in->append (&tensorflow_, NULL, 0);
 #endif // TENSORFLOW_SUPPORT
   switch (inherited::configuration_->configuration_->renderer)
   {
@@ -1246,11 +1248,17 @@ Stream_CameraML_Stream::load (Stream_ILayout* layout_in,
       break;
 #endif // GTK_SUPPORT
     case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
+    {
+      layout_in->append (&convert_2, NULL, 0);
       layout_in->append (&WaylandDisplay_, NULL, 0);
       break;
+    }
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
+    {
+      layout_in->append (&convert_2, NULL, 0);
       layout_in->append (&X11Display_, NULL, 0);
       break;
+    }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
