@@ -28,6 +28,8 @@
 #undef Success
 #include "tensorflow/core/framework/tensor_shape.h"
 
+#include "opencv2/core/mat.hpp"
+
 #include "ace/Global_Macros.h"
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
@@ -86,6 +88,15 @@ class Test_I_CameraML_Module_Tensorflow_T
 
   // helper methods
   bool loadLabels (const std::string&); // label file path
+  std::vector<size_t> filterBoxes (tensorflow::TTypes<float>::Flat&,     // scores
+                                   tensorflow::TTypes<float,3>::Tensor&, // boxes
+                                   double,                               // threshold IOU
+                                   double);                              // threshold (score)
+  void drawBoundingBoxes (cv::Mat&,                             // image
+                          tensorflow::TTypes<float>::Flat&,     // scores
+                          tensorflow::TTypes<float>::Flat&,     // classes
+                          tensorflow::TTypes<float,3>::Tensor&, // boxes
+                          std::vector<size_t>&);                // indices ("good")
 
   std::map<int, std::string> labelMap_;
   Common_Image_Resolution_t  resolution_;

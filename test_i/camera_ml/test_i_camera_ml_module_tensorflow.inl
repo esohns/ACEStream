@@ -23,7 +23,6 @@
 #include <sstream>
 #include <tensorflow/core/framework/types.pb.h>
 
-#include "opencv2/core/mat.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
 #include "ace/Log_Msg.h"
@@ -112,22 +111,37 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   static std::vector<std::string> outputLayer =
     {"detection_boxes:0", "detection_scores:0", "detection_classes:0", "num_detections:0"};
 
+  static int nFrames = 30;
+  static int iFrame = 0;
+  double fps = 0.;
+  static time_t start = time (NULL);
+  static time_t end;
+
+  if (nFrames % (iFrame + 1) == 0)
+  {
+    time (&end);
+    fps = 1. * nFrames / difftime (end, start);
+    time (&start);
+  } // end IF
+  iFrame++;
+
   std::vector<tensorflow::Tensor> outputs;
+  std::vector<size_t> good_indices_a;
 
 //  tensorflow::Tensor tensor = tensorflow::Tensor (tensorflow::DT_FLOAT, shape_);
   tensorflow::Tensor tensor = tensorflow::Tensor (tensorflow::DT_UINT8, shape_);
 
   // step0: convert image frame to matrix
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  cv::Mat frame_matrix (resolution_.cy,
-//                        resolution_.cx,
-//#else
-//  cv::Mat frame_matrix (resolution_.height,
-//                        resolution_.width,
-//#endif // ACE_WIN32 || ACE_WIN64
-//                        CV_8UC3,
-//                        message_inout->rd_ptr (),
-//                        cv::Mat::AUTO_STEP);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  cv::Mat frame_matrix (resolution_.cy,
+                        resolution_.cx,
+#else
+  cv::Mat frame_matrix (resolution_.height,
+                        resolution_.width,
+#endif // ACE_WIN32 || ACE_WIN64
+                        CV_8UC3,
+                        message_inout->rd_ptr (),
+                        cv::Mat::AUTO_STEP);
 
 //  float* data_p = tensor.flat<float> ().data ();
   uint8_t* data_p = tensor.flat<uint8_t> ().data ();
@@ -160,13 +174,28 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Session::Run(), aborting\n"),
                 inherited::mod_->name ()));
-    goto error;
+    inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+    return;
   } // end IF
 
-  return;
+  // extract results from the outputs vector
+  tensorflow::TTypes<float>::Flat scores = outputs[1].flat<float> ();
+  tensorflow::TTypes<float>::Flat classes = outputs[2].flat<float> ();
+  tensorflow::TTypes<float>::Flat number_of_detections = outputs[3].flat<float> ();
+  tensorflow::TTypes<float, 3>::Tensor boxes = outputs[0].flat_outer_dims<float,3> ();
 
-error:
-  inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+  good_indices_a = filterBoxes (scores, boxes, 0.8, 0.5);
+//  for (size_t i = 0; i < goodIdxs.size(); i++)
+//      LOG(INFO) << "score:" << scores(goodIdxs.at(i)) << ",class:" << labelsMap[classes(goodIdxs.at(i))]
+//                << " (" << classes(goodIdxs.at(i)) << "), box:" << "," << boxes(0, goodIdxs.at(i), 0) << ","
+//                << boxes(0, goodIdxs.at(i), 1) << "," << boxes(0, goodIdxs.at(i), 2) << ","
+//                << boxes(0, goodIdxs.at(i), 3);
+
+  // draw bboxes and captions
+  drawBoundingBoxes (frame_matrix, scores, classes, boxes, good_indices_a);
+
+  // draw fps
+  cv::putText (frame_matrix, std::to_string (fps).substr(0, 5), cv::Point (0, frame_matrix.rows), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(255, 255, 255));
 }
 
 template <typename ConfigurationType,
@@ -300,4 +329,109 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   } // end FOR
 
   return true;
+}
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+std::vector<size_t>
+Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    MediaType>::filterBoxes (tensorflow::TTypes<float>::Flat& scores_in,
+                                                             tensorflow::TTypes<float, 3>::Tensor& boxes_in,
+                                                             double thresholdIOU_in,
+                                                             double thresholdScore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::filterBoxes"));
+
+  std::vector<size_t> sortIdxs (scores_in.size ());
+  std::iota (sortIdxs.begin (), sortIdxs.end (), 0);
+
+  // Create set of "bad" idxs
+  std::set<size_t> badIdxs;
+  size_t i = 0;
+  while (i < sortIdxs.size ())
+  {
+    if (scores_in (sortIdxs.at (i)) < thresholdScore_in)
+      badIdxs.insert (sortIdxs[i]);
+    if (badIdxs.find (sortIdxs.at (i)) != badIdxs.end ())
+    {
+      i++;
+      continue;
+    } // end IF
+
+//    Rect2f box1 = Rect2f(Point2f(boxes(0, sortIdxs.at(i), 1), boxes(0, sortIdxs.at(i), 0)),
+//                         Point2f(boxes(0, sortIdxs.at(i), 3), boxes(0, sortIdxs.at(i), 2)));
+//    for (size_t j = i + 1; j < sortIdxs.size(); j++) {
+//        if (scores(sortIdxs.at(j)) < thresholdScore) {
+//            badIdxs.insert(sortIdxs[j]);
+//            continue;
+//        }
+//        Rect2f box2 = Rect2f(Point2f(boxes(0, sortIdxs.at(j), 1), boxes(0, sortIdxs.at(j), 0)),
+//                             Point2f(boxes(0, sortIdxs.at(j), 3), boxes(0, sortIdxs.at(j), 2)));
+//        if (IOU(box1, box2) > thresholdIOU)
+//            badIdxs.insert(sortIdxs[j]);
+//    }
+    i++;
+  } // end WHILE
+
+  // Prepare "good" idxs for return
+  std::vector<size_t> goodIdxs;
+  for (std::vector<size_t>::iterator iterator = sortIdxs.begin ();
+       iterator != sortIdxs.end ();
+       ++iterator)
+    if (badIdxs.find (sortIdxs.at (*iterator)) == badIdxs.end ())
+      goodIdxs.push_back (*iterator);
+
+  return goodIdxs;
+}
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+void
+Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    MediaType>::drawBoundingBoxes (cv::Mat& image_in,
+                                                                   tensorflow::TTypes<float>::Flat& scores_in,
+                                                                   tensorflow::TTypes<float>::Flat& classes_in,
+                                                                   tensorflow::TTypes<float,3>::Tensor& boxes_in,
+                                                                   std::vector<size_t>& indices_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::drawBoundingBoxes"));
+
+  for (int j = 0;
+       j < static_cast<int> (indices_in.size ());
+       j++)
+  {
+    double xMin = boxes_in (0, indices_in.at (j), 1);
+    double xMax = boxes_in (0, indices_in.at (j), 3);
+    double yMin = boxes_in (0, indices_in.at (j), 0);
+    double yMax = boxes_in (0, indices_in.at (j), 2);
+
+    cv::Point tl, br;
+    tl = cv::Point((int) (xMin * image_in.cols), (int) (yMin * image_in.rows));
+    br = cv::Point((int) (xMax * image_in.cols), (int) (yMax * image_in.rows));
+    cv::rectangle (image_in, tl, br, cv::Scalar (0, 255, 255), 1);
+
+    // Ceiling the score down to 3 decimals (weird!)
+    float scoreRounded = floorf (scores_in (indices_in.at (j)) * 1000) / 1000;
+    std::string score_string = std::to_string (scoreRounded).substr (0, 5);
+    std::string caption = labelMap_[classes_in (indices_in.at(j))] + " (" + score_string + ")";
+
+    // Adding caption of type "LABEL (X.XXX)" to the top-left corner of the bounding box
+    int fontCoeff = 12;
+    cv::Point brRect = cv::Point (tl.x + caption.length () * fontCoeff / 1.6, tl.y + fontCoeff);
+    cv::rectangle (image_in, tl, brRect, cv::Scalar (0, 255, 255), -1);
+    cv::Point textCorner = cv::Point (tl.x, tl.y + fontCoeff * 0.9);
+    cv::putText (image_in, caption, textCorner, cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar (255, 0, 0));
+  } // end FOR
 }
