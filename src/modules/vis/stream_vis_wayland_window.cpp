@@ -26,14 +26,23 @@
 const char libacestream_default_vis_wayland_window_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING);
 
+void
+libacestream_vis_wayland_global_log_cb (const char* format_in,
+                                        va_list arguments_in)
+{
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT (format_in),
+              arguments_in));
+}
+
 static void
-xdg_wm_base_ping (void* data_in, struct xdg_wm_base* xdg_wm_base_in, uint32_t serial_in)
+libacestream_default_vis_xdg_wm_base_ping (void* data_in, struct xdg_wm_base* xdg_wm_base_in, uint32_t serial_in)
 {
   xdg_wm_base_pong (xdg_wm_base_in, serial_in);
 }
 
-static const struct xdg_wm_base_listener xdg_wm_base_listener = {
-  .ping = xdg_wm_base_ping,
+static const struct xdg_wm_base_listener libacestream_default_vis_xdg_wm_base_listener = {
+  .ping = libacestream_default_vis_xdg_wm_base_ping,
 };
 
 void
@@ -77,7 +86,7 @@ libacestream_vis_wayland_global_registry_handler (void* data_in,
                                                           &xdg_wm_base_interface,
                                                           1));
     xdg_wm_base_add_listener (data_p->wm_base,
-                              &xdg_wm_base_listener,
+                              &libacestream_default_vis_xdg_wm_base_listener,
                               data_in);
   } // end ELSE IF
 }
@@ -118,4 +127,59 @@ libacestream_vis_wayland_buffer_release (void *data_in,
 
 struct wl_buffer_listener libacestream_vis_wayland_buffer_listener = {
   libacestream_vis_wayland_buffer_release
+};
+
+void
+libacestream_vis_wayland_xdg_surface_configure (void* data_in,
+                                                struct xdg_surface* surface_in,
+                                                uint32_t serial_in)
+{
+  struct libacestream_vis_wayland_cb_data* data_p =
+      static_cast<struct libacestream_vis_wayland_cb_data*> (data_in);
+  ACE_ASSERT (data_p);
+//  ACE_ASSERT (data_p->display);
+//  ACE_ASSERT (data_p->surface);
+
+  xdg_surface_ack_configure (surface_in, serial_in);
+
+//  wl_surface_attach (data_p->surface, data_p->buffer, 0, 0);
+//  wl_surface_damage_buffer (data_p->surface,
+//                            0, 0,
+//                            data_p->resolution.width, data_p->resolution.height);
+//  wl_surface_commit (data_p->surface);
+}
+
+struct xdg_surface_listener libacestream_vis_wayland_xdg_surface_listener = {
+  .configure = libacestream_vis_wayland_xdg_surface_configure,
+};
+
+void
+libacestream_vis_wayland_wl_surface_frame_done (void* data_in,
+                                                struct wl_callback* callback_in,
+                                                uint32_t time_in)
+{
+  struct libacestream_vis_wayland_cb_data* data_p =
+      static_cast<struct libacestream_vis_wayland_cb_data*> (data_in);
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->surface);
+
+  /* Destroy this callback */
+  wl_callback_destroy (callback_in);
+
+  /* Request another frame */
+  struct wl_callback* callback_p = wl_surface_frame (data_p->surface);
+  ACE_ASSERT (callback_p);
+  wl_callback_add_listener (callback_p,
+                            &libacestream_vis_wayland_wl_surface_frame_listener,
+                            data_in);
+
+  /* Submit a frame for this event */
+  wl_surface_attach (data_p->surface, data_p->buffer, 0, 0);
+//  wl_surface_damage_buffer (data_p->surface, 0, 0, INT32_MAX, INT32_MAX);
+  wl_surface_damage (data_p->surface, 0, 0, data_p->resolution.width, data_p->resolution.height);
+  wl_surface_commit (data_p->surface);
+}
+
+struct wl_callback_listener libacestream_vis_wayland_wl_surface_frame_listener = {
+  .done = libacestream_vis_wayland_wl_surface_frame_done,
 };

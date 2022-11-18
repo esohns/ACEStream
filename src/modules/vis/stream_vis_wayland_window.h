@@ -29,7 +29,7 @@
 
 #include "common_ui_ifullscreen.h"
 
-#include "stream_task_base_synch.h"
+#include "stream_task_base_asynch.h"
 
 #include "stream_lib_mediatype_converter.h"
 
@@ -37,15 +37,21 @@ extern const char libacestream_default_vis_wayland_window_module_name_string[];
 
 struct libacestream_vis_wayland_cb_data
 {
-  struct wl_buffer*     buffer;
-//  bool                    buffer_busy;
-  struct wl_compositor* compositor;
-  struct wl_display*    display;
-//  struct wl_shell*        shell;
-  struct wl_shm*        shm;
-  void*                 shm_data;
-  struct xdg_wm_base*   wm_base;
+  struct wl_buffer*         buffer;
+//  bool                  buffer_busy;
+  struct wl_compositor*     compositor;
+  struct wl_display*        display;
+//  struct wl_shell*      shell;
+  Common_Image_Resolution_t resolution;
+  struct wl_shm*            shm;
+  void*                     shm_data;
+  struct wl_surface*        surface;
+  struct xdg_wm_base*       wm_base;
 };
+
+void
+libacestream_vis_wayland_global_log_cb (const char*,
+                                        va_list);
 
 void
 libacestream_vis_wayland_global_registry_handler (void*,
@@ -66,6 +72,18 @@ libacestream_vis_wayland_buffer_release (void*,
                                          struct wl_buffer*);
 extern struct wl_buffer_listener libacestream_vis_wayland_buffer_listener;
 
+void
+libacestream_vis_wayland_xdg_surface_configure (void*,
+                                                struct xdg_surface*,
+                                                uint32_t);
+extern struct xdg_surface_listener libacestream_vis_wayland_xdg_surface_listener;
+
+void
+libacestream_vis_wayland_wl_surface_frame_done (void*,
+                                                struct wl_callback*,
+                                                uint32_t);
+extern struct wl_callback_listener libacestream_vis_wayland_wl_surface_frame_listener;
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -79,27 +97,27 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename MediaType> // *IMPORTANT NOTE*: must correspond to session data 'formats' member
 class Stream_Module_Vis_Wayland_Window_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData>
+ : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_UI_IFullscreen
 {
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
+  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
@@ -123,17 +141,18 @@ class Stream_Module_Vis_Wayland_Window_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Wayland_Window_T (const Stream_Module_Vis_Wayland_Window_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Wayland_Window_T& operator= (const Stream_Module_Vis_Wayland_Window_T&))
 
+  // helper methods
+  virtual int svc (void);
+
   void init_shm_pool (const ConfigurationType&);
 //  void init_window ();
 
   struct libacestream_vis_wayland_cb_data cbData_;
   bool                                    closeDisplay_;
   unsigned int                            frameSize_;
-  Common_Image_Resolution_t               resolution_;
 //  struct wl_shell_surface*                shellSurface_;
   struct xdg_surface*                     shellSurface_;
   struct xdg_toplevel*                    topLevel_;
-  struct wl_surface*                      surface_;
 };
 
 // include template definition
