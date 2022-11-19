@@ -17,7 +17,9 @@
 *   Free Software Foundation, Inc.,                                       *
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
+#include "ace/Default_Constants.h"
 #include "common_defines.h"
+#include "common_file_tools.h"
 #include "stdafx.h"
 
 #include <iostream>
@@ -978,6 +980,13 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.buffers = STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
+  modulehandler_configuration.labelFile =
+      Common_File_Tools::getWorkingDirectory ();
+  modulehandler_configuration.labelFile += ACE_DIRECTORY_SEPARATOR_STR;
+  modulehandler_configuration.labelFile += COMMON_LOCATION_DATA_SUBDIRECTORY;
+  modulehandler_configuration.labelFile += ACE_DIRECTORY_SEPARATOR_CHAR;
+  modulehandler_configuration.labelFile +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LABEL_FILE);
   modulehandler_configuration.modelFile = modelFile_in;
 //  modulehandler_configuration.display = displayDevice_in;
 //  // *TODO*: turn these into an option

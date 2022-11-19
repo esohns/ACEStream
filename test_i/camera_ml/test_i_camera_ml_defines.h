@@ -22,5 +22,6 @@
 #define TEST_I_CAMERA_ML_DEFINES_H
 
 #define TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE   "model.pb"
+#define TEST_I_CAMERA_ML_DEFAULT_LABEL_FILE   "labels_map.pbtxt"
 
 #endif
