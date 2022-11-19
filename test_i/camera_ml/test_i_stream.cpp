@@ -1238,7 +1238,7 @@ Stream_CameraML_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 //  layout_in->append (&flip_, NULL, 0);
 #if defined (TENSORFLOW_SUPPORT)
-  layout_in->append (&tensorflow_, NULL, 0);
+//  layout_in->append (&tensorflow_, NULL, 0);
 #endif // TENSORFLOW_SUPPORT
   switch (inherited::configuration_->configuration_->renderer)
   {

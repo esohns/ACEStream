@@ -24,7 +24,7 @@
 #include "stream_vis_defines.h"
 
 const char libacestream_default_vis_wayland_window_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING);
 
 void
 libacestream_vis_wayland_global_log_cb (const char* format_in,

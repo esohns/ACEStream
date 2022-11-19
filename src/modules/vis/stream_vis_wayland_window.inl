@@ -20,18 +20,14 @@
 
 #include "ace/Log_Msg.h"
 
-#include "common_file_tools.h"
-
-#include "common_image_tools.h"
-
-#include "common_ui_defines.h"
+#include "ace/OS_NS_sys_time.h"
+#include "common_ui_common.h"
 #include "common_ui_tools.h"
 
 #include "stream_macros.h"
 
-#include "stream_dec_tools.h"
-
 #include "stream_vis_defines.h"
+#include "stream_vis_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -86,6 +82,10 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
     xdg_surface_destroy (shellSurface_);
   if (cbData_.surface)
     wl_surface_destroy (cbData_.surface);
+  if (cbData_.shm)
+    wl_shm_destroy (cbData_.shm);
+  if (cbData_.compositor)
+    wl_compositor_destroy (cbData_.compositor);
   if (closeDisplay_)
   { ACE_ASSERT (cbData_.display);
     wl_display_disconnect (cbData_.display);
@@ -161,21 +161,19 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
           inherited::sessionData_->getR ();
       ACE_ASSERT (!session_data_r.formats.empty ());
       const MediaType& media_type_r = session_data_r.formats.back ();
-      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
-      inherited2::getMediaType (media_type_r,
-                                STREAM_MEDIATYPE_VIDEO,
-                                media_type_2);
       cbData_.resolution = inherited2::getResolution (media_type_r);
-      frameSize_ =
-        av_image_get_buffer_size (media_type_2.format,
-                                  cbData_.resolution.width, cbData_.resolution.height,
-                                  1); // *TODO*: linesize alignment
-      ACE_ASSERT (frameSize_ >= 0);
-//      ACE_ASSERT (media_type_2.format == AV_PIX_FMT_RGB32);
+
+      if (unlikely (!initialize_2 ()))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to initialize frame buffer, aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
 
       break;
 
-//error:
+error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -253,6 +251,11 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    if (cbData_.shm_data)
+    {
+      ACE_OS::munmap (cbData_.shm_data, static_cast<size_t> (frameSize_)); cbData_.shm_data = NULL;
+    } // end IF
+    frameSize_ = 0;
     if (topLevel_)
     {
       xdg_toplevel_destroy (topLevel_); topLevel_ = NULL;
@@ -264,6 +267,14 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
     if (cbData_.surface)
     {
       wl_surface_destroy (cbData_.surface); cbData_.surface = NULL;
+    } // end IF
+    if (cbData_.shm)
+    {
+      wl_shm_destroy (cbData_.shm); cbData_.shm = NULL;
+    } // end IF
+    if (cbData_.compositor)
+    {
+      wl_compositor_destroy (cbData_.compositor); cbData_.compositor = NULL;
     } // end IF
     if (closeDisplay_)
     { ACE_ASSERT (cbData_.display);
@@ -313,21 +324,22 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                             &cbData_);
   wl_display_dispatch (cbData_.display);
   wl_display_roundtrip (cbData_.display);
-  if (!cbData_.compositor)
+  wl_registry_destroy (registry_p); registry_p = NULL;
+  if (!cbData_.compositor || !cbData_.shm || !cbData_.wm_base)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: cannot retrieve Wayland compositor handle (display was: %@): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to retrieve Wayland global handle(s) (display was: %@), aborting\n"),
                 inherited::mod_->name (),
                 cbData_.display));
     return false;
   } // end IF
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: retrieved Wayland compositor handle (%@)\n"),
-                inherited::mod_->name (),
-                cbData_.compositor));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: retrieved wl_compositor|wl_shm|xdg_wm_base handles (%@,%@,%@)\n"),
+              inherited::mod_->name (),
+              cbData_.compositor, cbData_.shm, cbData_.wm_base));
 
   if (configuration_in.surface)
-  {
+  { ACE_ASSERT (false); // *TODO*
 //    surface_ = configuration_in.surface;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: passive mode (display: %@, surface: %u)\n"),
@@ -336,26 +348,13 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   } // end IF
   else
   {
-//    int x =
-//        (configuration_in.fullScreen ? configuration_in.display.clippingArea.x
-//                                     : 0);
-//    int y =
-//        (configuration_in.fullScreen ? configuration_in.display.clippingArea.y
-//                                     : 0);
-//    unsigned int width_i =
-//        (configuration_in.fullScreen ? configuration_in.display.clippingArea.width
-//                                     : configuration_in.outputFormat.resolution.width);
-//    unsigned int height_i =
-//        (configuration_in.fullScreen ? configuration_in.display.clippingArea.height
-//                                     : configuration_in.outputFormat.resolution.height);
-
     cbData_.surface = wl_compositor_create_surface (cbData_.compositor);
     if (!cbData_.surface)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: cannot create Wayland surface (display was: %@): \"%m\", aborting\n"),
+                  ACE_TEXT ("%s: failed to wl_compositor_create_surface(%@): \"%m\", aborting\n"),
                   inherited::mod_->name (),
-                  cbData_.display));
+                  cbData_.compositor));
       return false;
     } // end IF
     struct wl_callback* callback_p = wl_surface_frame (cbData_.surface);
@@ -372,15 +371,15 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
     if (!shellSurface_)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: cannot create Wayland shell surface (display was: %@): \"%m\", aborting\n"),
+                  ACE_TEXT ("%s: failed to xdg_wm_base_get_xdg_surface(%@,%@): \"%m\", aborting\n"),
                   inherited::mod_->name (),
-                  cbData_.display));
+                  cbData_.wm_base, cbData_.surface));
       return false;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: created Wayland shell surface (display: %@)\n"),
+                ACE_TEXT ("%s: created (shell) surfaces: %@,%@\n"),
                 inherited::mod_->name (),
-                cbData_.display));
+                cbData_.surface, shellSurface_));
   } // end ELSE
   ACE_ASSERT (shellSurface_);
   xdg_surface_add_listener (shellSurface_,
@@ -391,16 +390,13 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   topLevel_ = xdg_surface_get_toplevel (shellSurface_);
   ACE_ASSERT (topLevel_);
   xdg_toplevel_set_title (topLevel_,
-                          ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING));
+                          ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING));
   ACE_ASSERT (topLevel_);
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: display %@ (shell surface: %@, toplevel surface: %@)\n"),
+              ACE_TEXT ("%s: display %@ ((shell) surface: %@,%@, toplevel surface: %@)\n"),
               inherited::mod_->name (),
-              cbData_.display, shellSurface_, topLevel_));
-
-  // *TODO*: move this into handleSessionMessage
-  init_shm_pool (configuration_in);
+              cbData_.display, cbData_.surface, shellSurface_, topLevel_));
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -414,7 +410,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename MediaType>
-void
+bool
 Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                                    TimePolicyType,
                                    ConfigurationType,
@@ -422,14 +418,18 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                                    DataMessageType,
                                    SessionMessageType,
                                    SessionDataContainerType,
-                                   MediaType>::init_shm_pool (const ConfigurationType& configuration_in)
+                                   MediaType>::initialize_2 ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Wayland_Window_T::init_shm_pool"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Wayland_Window_T::initialize_2"));
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (cbData_.shm);
+  ACE_ASSERT (cbData_.surface);
 
   struct Common_UI_DisplayDevice display_device =
-    Common_UI_Tools::getDisplay (configuration_in.display.device); // device identifier
+    Common_UI_Tools::getDisplay (inherited::configuration_->display.device); // device identifier
 
 //  int x =
 //      (inherited::configuration_->fullScreen ? inherited::configuration_->display.clippingArea.x
@@ -437,80 +437,103 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 //  int y =
 //      (inherited::configuration_->fullScreen ? inherited::configuration_->display.clippingArea.y
 //                                             : 0);
-  Common_Image_Resolution_t resolution_s =
-      inherited2::getResolution (configuration_in.outputFormat);
   unsigned int width_i =
-      (configuration_in.fullScreen ? display_device.clippingArea.width
-                                   : resolution_s.width);
+      (inherited::configuration_->fullScreen ? display_device.clippingArea.width
+                                             : cbData_.resolution.width);
   unsigned int height_i =
-      (configuration_in.fullScreen ? display_device.clippingArea.height
-                                   : resolution_s.height);
+      (inherited::configuration_->fullScreen ? display_device.clippingArea.height
+                                             : cbData_.resolution.height);
 
-  struct wl_shm_pool* pool_p = NULL;
-  int fd, size, stride;
-  void* data_p = NULL;
+  const typename SessionDataContainerType::DATA_T& session_data_r =
+    inherited::sessionData_->getR ();
+  ACE_ASSERT (!session_data_r.formats.empty ());
+  const MediaType& media_type_r = session_data_r.formats.back ();
+  struct Stream_MediaFramework_V4L_MediaType media_type_2;
+  inherited2::getMediaType (media_type_r,
+                            STREAM_MEDIATYPE_VIDEO,
+                            media_type_2);
+  unsigned int depth_i =
+      Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_2.format.pixelformat) / 8;
+  int stride = width_i * depth_i;
+  frameSize_ = stride * height_i;
 
-  stride = width_i * 4;
-  size = stride * height_i;
-
-  static const char name_template[] = "/libacestream-shared-XXXXXX";
-  const char* path_p = NULL;
-  char* name_p = NULL;
-  path_p = ACE_OS::getenv ("XDG_RUNTIME_DIR");
+  static const char name_template[] =
+      ACE_TEXT_ALWAYS_CHAR ("/libacestream_vis_wayland_shared_XXXXXX");
+  const char* path_p = ACE_OS::getenv ("XDG_RUNTIME_DIR");
   if (!path_p)
   {
     errno = ENOENT;
-    return;
-  }
-  name_p =
-      static_cast<char*> (malloc (ACE_OS::strlen (path_p) + sizeof (name_template)));
-  if (!name_p)
-    return;
-  ACE_OS::strcpy (name_p, path_p);
-  ACE_OS::strcat (name_p, name_template);
-  fd = ACE_OS::mkstemp (name_p);
-  if (fd < 0)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: environment variable \"XDG_RUNTIME_DIR\" not set: \"%m\", aborting\n"),
+                inherited::mod_->name (),
+                cbData_.display));
+    return false;
+  } // end IF
+  char name_a[PATH_MAX];
+  ACE_OS::strcpy (name_a, path_p);
+  ACE_OS::strcat (name_a, name_template);
+  int fd = ACE_OS::mkstemp (name_a);
+  if (unlikely (fd == -1))
   {
-    fprintf (stderr, "creating a buffer file for %d B failed: %s\n",
-             size, strerror(errno));
-    return;
-  }
-  if (ACE_OS::ftruncate (fd, size) < 0) {
-    ACE_OS::close(fd);
-    return;
-  }
-
-  data_p = ACE_OS::mmap (NULL,
-                         size,
-                         PROT_READ | PROT_WRITE,
-                         MAP_SHARED,
-                         fd,
-                         0);
-  if (data_p == MAP_FAILED)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to mkstemp(\"%s\"): \"%m\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (name_a)));
+    return false;
+  } // end IF
+  if (unlikely (ACE_OS::ftruncate (fd, frameSize_) == -1))
   {
-    fprintf (stderr, "mmap failed: %s\n", strerror(errno));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ftruncate(\"%s\"): \"%m\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (name_a)));
     ACE_OS::close (fd);
-    return;
-  }
-  cbData_.shm_data = data_p;
-  ACE_OS::memset (cbData_.shm_data, 0, size);
+    return false;
+  } // end IF
 
-  pool_p = wl_shm_create_pool (cbData_.shm, fd, size);
+  cbData_.shm_data = ACE_OS::mmap (NULL,
+                                   frameSize_,
+                                   PROT_READ | PROT_WRITE,
+                                   MAP_SHARED,
+                                   fd,
+                                   0);
+  if (unlikely (cbData_.shm_data == MAP_FAILED))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to mmap(\"%s\"): \"%m\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (name_a)));
+    ACE_OS::close (fd);
+    return false;
+  } // end IF
+  ACE_OS::memset (cbData_.shm_data, 0, frameSize_);
+
+  struct wl_shm_pool* pool_p = wl_shm_create_pool (cbData_.shm, fd, frameSize_);
   ACE_ASSERT (pool_p);
-  cbData_.buffer = wl_shm_pool_create_buffer (pool_p,
-                                              0,
-                                              width_i, height_i,
-                                              stride, WL_SHM_FORMAT_XRGB8888);
-  ACE_ASSERT (cbData_.buffer);
+  cbData_.buffer =
+      wl_shm_pool_create_buffer (pool_p,
+                                 0,                         // offset
+                                 width_i, height_i, stride,
+                                 Stream_Visualization_Tools::depthToWaylandFormat (depth_i));
+  if (unlikely (!cbData_.buffer))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to wl_shm_pool_create_buffer(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
+    wl_shm_pool_destroy (pool_p);
+    ACE_OS::close (fd);
+    return false;
+  } // end IF
+  wl_shm_pool_destroy (pool_p); pool_p = NULL;
+  ACE_OS::close (fd); fd = ACE_INVALID_HANDLE;
 //  wl_buffer_add_listener (cbData_.buffer,
 //                          &libacestream_vis_wayland_buffer_listener,
 //                          &cbData_);
-  wl_shm_pool_destroy (pool_p); pool_p = NULL;
-  ACE_OS::close (fd); fd = ACE_INVALID_HANDLE;
 
-  ACE_ASSERT (cbData_.surface);
   wl_surface_attach (cbData_.surface, cbData_.buffer, 0, 0);
   wl_surface_commit (cbData_.surface);
+
+  return true;
 }
 
 //template <ACE_SYNCH_DECL,
@@ -562,7 +585,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   int result = -1;
   int result_2 = -1;
   ACE_Message_Block* message_block_p = NULL;
-  ACE_Time_Value no_wait = COMMON_TIME_NOW;
+  ACE_Time_Value no_wait = ACE_OS::gettimeofday ();
   bool stop_processing = false;
 
   // step1: start processing data...
@@ -602,7 +625,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
       } // end IF
     } // end ELSE IF
 
-    wl_display_dispatch (cbData_.display);
+    wl_display_roundtrip (cbData_.display);
   } while (true);
 
 //done:

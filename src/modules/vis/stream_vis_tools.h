@@ -23,6 +23,13 @@
 
 #include <string>
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (WAYLAND_SUPPORT)
+#include "wayland-client.h"
+#endif // WAYLAND_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/config-lite.h"
 #include "ace/Global_Macros.h"
 
@@ -41,6 +48,13 @@ class Stream_Visualization_Tools
 
   static std::string rendererToModuleName (enum Stream_Visualization_AudioRenderer);
   static std::string rendererToModuleName (enum Stream_Visualization_VideoRenderer);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (WAYLAND_SUPPORT)
+  static enum wl_shm_format depthToWaylandFormat (unsigned int); // image depth (bytes)
+#endif // WAYLAND_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_Tools ())

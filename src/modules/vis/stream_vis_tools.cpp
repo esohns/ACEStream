@@ -201,3 +201,29 @@ Stream_Visualization_Tools::rendererToModuleName (enum Stream_Visualization_Vide
 
   return result;
 }
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+enum wl_shm_format
+Stream_Visualization_Tools::depthToWaylandFormat (unsigned int depth_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_Tools::depthToWaylandFormat"));
+
+  switch (depth_in)
+  {
+    case 3:
+      return WL_SHM_FORMAT_RGB888;
+    case 4:
+      return WL_SHM_FORMAT_XRGB8888;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown depth (was: %d), aborting\n"),
+                  depth_in));
+      break;
+    }
+  } // end SWITCH
+
+  return WL_SHM_FORMAT_ARGB8888;
+}
+#endif // ACE_WIN32 || ACE_WIN64

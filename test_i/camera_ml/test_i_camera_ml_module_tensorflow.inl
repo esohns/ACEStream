@@ -27,6 +27,7 @@
 
 #include "ace/Log_Msg.h"
 
+#include "stream_lib_tools.h"
 #include "stream_macros.h"
 
 template <typename ConfigurationType,
@@ -113,14 +114,14 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 
   static int nFrames = 30;
   static int iFrame = 0;
-  double fps = 0.;
+  static double fps = 0.0;
   static time_t start = time (NULL);
   static time_t end;
 
   if (nFrames % (iFrame + 1) == 0)
   {
     time (&end);
-    fps = 1. * nFrames / difftime (end, start);
+    fps = nFrames / difftime (end, start);
     time (&start);
   } // end IF
   iFrame++;
@@ -144,7 +145,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
                         cv::Mat::AUTO_STEP);
 
 //  float* data_p = tensor.flat<float> ().data ();
-  uint8_t* data_p = tensor.flat<uint8_t> ().data ();
+  uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
 //  cv::Mat float_matrix (frame_matrix.rows, frame_matrix.cols, CV_32FC3, data_p);
 //  frame_matrix.convertTo (float_matrix, CV_32FC3);
 
@@ -195,7 +196,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   drawBoundingBoxes (frame_matrix, scores, classes, boxes, good_indices_a);
 
   // draw fps
-  cv::putText (frame_matrix, std::to_string (fps).substr(0, 5), cv::Point (0, frame_matrix.rows), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(255, 255, 255));
+  cv::putText (frame_matrix, std::to_string (fps).substr (0, 5), cv::Point (0, frame_matrix.rows), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar (255, 255, 255));
 }
 
 template <typename ConfigurationType,
@@ -231,7 +232,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 #else
-      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+      struct Stream_MediaFramework_V4L_MediaType media_type_s;
 #endif // ACE_WIN32 || ACE_WIN64
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
@@ -240,7 +241,9 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
       resolution_ =
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
 #else
-      resolution_ = media_type_s.resolution;
+      ACE_ASSERT (Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_s.format.pixelformat) == 24);
+      resolution_.height = media_type_s.format.height;
+      resolution_.width = media_type_s.format.width;
 #endif // ACE_WIN32 || ACE_WIN64
       stride_ = resolution_.width * 3;
 

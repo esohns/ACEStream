@@ -141,11 +141,10 @@ class Stream_Module_Vis_Wayland_Window_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Wayland_Window_T (const Stream_Module_Vis_Wayland_Window_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Wayland_Window_T& operator= (const Stream_Module_Vis_Wayland_Window_T&))
 
-  // helper methods
   virtual int svc (void);
 
-  void init_shm_pool (const ConfigurationType&);
-//  void init_window ();
+  // helper methods
+  bool initialize_2 ();
 
   struct libacestream_vis_wayland_cb_data cbData_;
   bool                                    closeDisplay_;
