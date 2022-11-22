@@ -23,21 +23,11 @@
 
 #include "ace/Global_Macros.h"
 
-#include "common_ui_ifullscreen.h"
-
 #include "stream_common.h"
-#include "stream_task_base_synch.h"
 
-#include "stream_lib_mediatype_converter.h"
+#include "stream_vis_target_win32_base.h"
 
 extern const char libacestream_default_vis_gdi_module_name_string[];
-
-//struct libacestream_gdi_window_proc_cb_data
-//{
-//  HDC*              dc;
-//  ACE_Thread_Mutex* lock;
-//};
-LRESULT CALLBACK libacestream_gdi_window_proc_cb (HWND, UINT, WPARAM, LPARAM);
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -53,28 +43,21 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename MediaType>
 class Stream_Vis_Target_GDI_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData>
- , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
- , public Common_UI_IFullscreen
+ : public Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
+                                         TimePolicyType,
+                                         ConfigurationType,
+                                         ControlMessageType,
+                                         DataMessageType,
+                                         SessionMessageType,
+                                         MediaType>
 {
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+  typedef Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
+                                         TimePolicyType,
+                                         ConfigurationType,
+                                         ControlMessageType,
+                                         DataMessageType,
+                                         SessionMessageType,
+                                         MediaType> inherited;
 
  public:
   Stream_Vis_Target_GDI_T (ISTREAM_T*); // stream handle
@@ -89,14 +72,9 @@ class Stream_Vis_Target_GDI_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Common_UI_IFullscreen
-  virtual void toggle ();
-
  protected:
-  HDC                                         context_;
-  struct tagBITMAPINFO                        header_;
-  Common_Image_Resolution_t                   resolution_;
-  HWND                                        window_;
+  HDC                  context_;
+  struct tagBITMAPINFO header_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_GDI_T ())
@@ -117,10 +95,7 @@ class Stream_Vis_Target_GDI_T
   // override (part of) ACE_Task_Base
   virtual int svc ();
 
-  HWND createWindow ();
-
   //struct libacestream_gdi_window_proc_cb_data CBData_;
-  bool                                        notify_;
 };
 
 // include template definition

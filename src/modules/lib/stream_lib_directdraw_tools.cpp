@@ -313,7 +313,7 @@ Stream_MediaFramework_DirectDraw_Tools::getDevice (struct Stream_MediaFramework_
                   configuration_inout.presentationParameters.SwapEffect));
 
   result =
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
     interface_p->CreateDeviceEx (configuration_inout.adapter,                 // adapter
                                  configuration_inout.deviceType,              // device type
                                  configuration_inout.focusWindow,             // focus window handle
@@ -329,10 +329,10 @@ Stream_MediaFramework_DirectDraw_Tools::getDevice (struct Stream_MediaFramework_
                                configuration_inout.behaviorFlags,           // behavior flags
                                &configuration_inout.presentationParameters, // presentation parameters
                                &configuration_inout.handle);                // return value: device handle
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   if (unlikely (FAILED (result)))
   {
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3D9Ex::CreateDeviceEx(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
@@ -340,7 +340,7 @@ Stream_MediaFramework_DirectDraw_Tools::getDevice (struct Stream_MediaFramework_
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3D9::CreateDevice(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
     goto error;
   } // end IF
   ACE_ASSERT (configuration_inout.handle);
@@ -401,7 +401,6 @@ Stream_MediaFramework_DirectDraw_Tools::reset (IDirect3DDevice9* deviceHandle_in
 
   // sanity check(s)
   ACE_ASSERT (deviceHandle_in);
-#if defined (_DEBUG)
   if (unlikely (!ACE_OS::thr_equal (ACE_OS::thr_self (), configuration_inout.threadId)))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -409,7 +408,6 @@ Stream_MediaFramework_DirectDraw_Tools::reset (IDirect3DDevice9* deviceHandle_in
                 configuration_inout.threadId));
     return false;
   } // end IF
-#endif // _DEBUG
 
   // *NOTE*: "...When this method returns:
   // - BackBufferCount, BackBufferWidth, and BackBufferHeight are set to zero.
@@ -417,13 +415,13 @@ Stream_MediaFramework_DirectDraw_Tools::reset (IDirect3DDevice9* deviceHandle_in
   //   full-screen mode must specify a format. ..."
   // *TODO*: this simply is not true; find out what is happening
   ACE_ASSERT (!configuration_inout.presentationParameters.Windowed ? (configuration_inout.presentationParameters.BackBufferFormat != D3DFMT_UNKNOWN) : true);
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result =
     deviceHandle_in->ResetEx (&configuration_inout.presentationParameters,
                               &configuration_inout.fullScreenDisplayMode);
 #else
   result = deviceHandle_in->Reset (&configuration_inout.presentationParameters);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   if (unlikely (FAILED (result)))
   {
     // *NOTE*: D3DERR_INVALIDCALL is returned when this is called from a
@@ -434,15 +432,15 @@ Stream_MediaFramework_DirectDraw_Tools::reset (IDirect3DDevice9* deviceHandle_in
     //         IDirect3DDevice9Ex::ResetEx,
     //         IDirect3DDevice9Ex::CheckDeviceState or release the interface
     //         pointer; any other API call will cause an exception. ..."
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3DDevice9Ex::ResetEx(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3DDevice9::Reset(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
     return false;
   } // end IF
   //ACE_ASSERT (!configuration_inout.presentationParameters.BackBufferCount && !configuration_inout.presentationParameters.BackBufferWidth && !configuration_inout.presentationParameters.BackBufferHeight);

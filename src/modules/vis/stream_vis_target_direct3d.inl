@@ -29,10 +29,7 @@
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
-#include "common_tools.h"
-#include "common_file_tools.h"
-
-#include "common_image_tools.h"
+#include "common_ui_tools.h"
 
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
@@ -67,8 +64,6 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              SessionDataContainerType,
                              MediaType>::Stream_Vis_Target_Direct3D_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
- , clientWindow_ (NULL)
- , closeWindow_ (false)
  , defaultStride_ (0)
  , destinationRectangle_ ()
  , direct3DConfiguration_ (NULL)
@@ -115,16 +110,6 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       direct3DConfiguration_->presentationParameters.Windowed = TRUE;
       toggle ();
     } // end IF
-  } // end IF
-
-  if (closeWindow_)
-  { ACE_ASSERT (direct3DConfiguration_);
-    ACE_ASSERT (direct3DConfiguration_->presentationParameters.hDeviceWindow);
-    if (unlikely (!::CloseWindow (direct3DConfiguration_->presentationParameters.hDeviceWindow)))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
   } // end IF
 
   if (releaseDeviceHandle_)
@@ -200,16 +185,12 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   std::string filename_string;
 
   // sanity check(s)
-  //ACE_ASSERT (message_inout->length () == inherited::configuration_->format->lSampleSize);
   ACE_ASSERT (direct3DConfiguration_);
-  if (unlikely ((!direct3DConfiguration_->presentationParameters.Windowed &&
-                 !direct3DConfiguration_->presentationParameters.hDeviceWindow &&
-                 !direct3DConfiguration_->focusWindow) ||
-                !direct3DConfiguration_->handle))
-    return; // --> nothing to do (yet)
+  if (!direct3DConfiguration_->handle)
+    return; // device not (yet) available
 
   // *TODO*: remove ASAP
-  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, direct3DConfiguration_->lock);
+  //ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, direct3DConfiguration_->lock);
 
   // *IMPORTANT NOTE*: "...For these reasons, Direct3D is designed so that the
   //                   methods IDirect3DDevice9::Reset,
@@ -496,91 +477,24 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
+      ACE_ASSERT (direct3DConfiguration_);
       SessionDataType& session_data_r =
         const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-      ACE_ASSERT (direct3DConfiguration_);
-      if (unlikely (!direct3DConfiguration_->presentationParameters.Windowed &&
-                    !direct3DConfiguration_->presentationParameters.hDeviceWindow &&
-                    !direct3DConfiguration_->focusWindow))
-        return; // --> nothing to do
+      ACE_ASSERT (!session_data_r.formats.empty ());
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-      Common_Image_Resolution_t resolution_s;
-      HWND window_handle_p = NULL;
+
       bool COM_initialized = Common_Tools::initializeCOM ();
 
-      // sanity check(s)
-      ACE_ASSERT (!session_data_r.formats.empty ());
-      inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_VIDEO,
-                                media_type_s);
-      resolution_s =
+      inherited::getMediaType (session_data_r.formats.back (),
+                               STREAM_MEDIATYPE_VIDEO,
+                               media_type_s);
+      inherited::resolution_ =
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
-      direct3DConfiguration_->presentationParameters.BackBufferWidth = resolution_s.cx;
-      direct3DConfiguration_->presentationParameters.BackBufferHeight = resolution_s.cy;
-      window_handle_p =
-        (direct3DConfiguration_->presentationParameters.Windowed ? direct3DConfiguration_->presentationParameters.hDeviceWindow
-                                                                 : direct3DConfiguration_->focusWindow);
-      if (window_handle_p)
-      {
-        ACE_ASSERT (IsWindow (window_handle_p));
-      } // end IF
-
-      if (direct3DConfiguration_->presentationParameters.Windowed)
-      {
-        resetMode_ = true;
-        if (!window_handle_p)
-        { ACE_ASSERT (!direct3DConfiguration_->presentationParameters.hDeviceWindow);
-          //ACE_ASSERT (!direct3DConfiguration_->focusWindow);
-          DWORD window_style_i = (WS_OVERLAPPED     |
-                                  WS_CAPTION        |
-                                  (WS_CLIPSIBLINGS  |
-                                   WS_CLIPCHILDREN) |
-                                  WS_SYSMENU        |
-                                  //WS_THICKFRAME     |
-                                  WS_MINIMIZEBOX    |
-                                  WS_VISIBLE/*
-                                  WS_MAXIMIZEBOX*/);
-          DWORD window_style_ex_i = (WS_EX_APPWINDOW |
-                                     WS_EX_WINDOWEDGE);
-          direct3DConfiguration_->presentationParameters.hDeviceWindow =
-            CreateWindowEx (window_style_ex_i,                       // dwExStyle
-  #if defined (UNICODE)
-                            ACE_TEXT_ALWAYS_WCHAR ("EDIT"),                   // lpClassName
-                            ACE_TEXT_ALWAYS_WCHAR (inherited::mod_->name ()), // lpWindowName
-  #else
-                            ACE_TEXT_ALWAYS_CHAR ("EDIT"),                    // lpClassName
-                            ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()),  // lpWindowName
-  #endif // UNICODE
-                            window_style_i,                          // dwStyle
-                            CW_USEDEFAULT,                           // x
-                            CW_USEDEFAULT,                           // y
-                            direct3DConfiguration_->presentationParameters.BackBufferWidth,  // nWidth
-                            direct3DConfiguration_->presentationParameters.BackBufferHeight, // nHeight
-                            NULL,                                    // hWndParent
-                            NULL,                                    // hMenu
-                            GetModuleHandle (NULL),                  // hInstance
-                            NULL);                                   // lpParam
-          if (unlikely (!direct3DConfiguration_->presentationParameters.hDeviceWindow))
-          { // ERROR_INVALID_PARAMETER: 87
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to CreateWindowEx(): \"%s\", aborting\n"),
-                        inherited::mod_->name (),
-                        ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-            goto error;
-          } // end IF
-          window_handle_p =
-            direct3DConfiguration_->presentationParameters.hDeviceWindow;
-          closeWindow_ = true;
-        } // end IF
-      } // end IF
-      ACE_ASSERT (window_handle_p);
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: window handle: 0x%@\n"),
-                  inherited::mod_->name (),
-                  window_handle_p));
-      if (direct3DConfiguration_->presentationParameters.Windowed)
-        clientWindow_ = window_handle_p;
+      direct3DConfiguration_->presentationParameters.BackBufferWidth =
+        inherited::resolution_.cx;
+      direct3DConfiguration_->presentationParameters.BackBufferHeight =
+        inherited::resolution_.cy;
 
       defaultStride_ = 0;
       if (unlikely (!SetRectEmpty (&destinationRectangle_)))
@@ -588,75 +502,51 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: failed to SetRectEmpty(): \"%s\", continuing\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      IDirect3DDevice9Ex* device_handle_p =
-#else
-      IDirect3DDevice9* device_handle_p =
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-      //  session_data_r.direct3DDevice; // prefer session data over configuration
-      //if (device_handle_p)
-      //{
-      //  if (direct3DConfiguration_->handle)
-      //  {
-      //    direct3DConfiguration_->handle->Release (); direct3DConfiguration_->handle = NULL;
-      //  } // end IF
-      //  ACE_ASSERT (!direct3DConfiguration_->handle);
-      //  session_data_r.direct3DDevice->AddRef ();
-      //  direct3DConfiguration_->handle = session_data_r.direct3DDevice;
-      //  releaseDeviceHandle_ = true;
-      //} // end IF
-      //else
-        NULL;
+
+      HRESULT result = setTransformation (media_type_s.subtype);
+      if (unlikely (FAILED (result)))
       {
-        if (direct3DConfiguration_->handle)
-        {
-          direct3DConfiguration_->handle->AddRef ();
-          //session_data_r.direct3DDevice = direct3DConfiguration_->handle;
-          device_handle_p = direct3DConfiguration_->handle;
-        } // end IF
-      } // end ELSE
-      if (device_handle_p)
-      {
-        result_2 =
-          initialize_Direct3DDevice ((direct3DConfiguration_->presentationParameters.Windowed ? window_handle_p
-                                                                                              : NULL),
-                                     media_type_s,
-                                     direct3DConfiguration_->handle,
-                                     direct3DConfiguration_->presentationParameters,
-                                     defaultStride_,
-                                     destinationRectangle_);
-        if (unlikely (FAILED (result_2)))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Stream_Vis_Target_Direct3D_T::initialize_Direct3DDevice(): \"%s\", aborting\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-          goto error;
-        } // end IF
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Vis_Target_Direct3D_T::setTransformation(%s): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ()),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        goto error;
+      } // end IF
+      direct3DConfiguration_->presentationParameters.BackBufferFormat =
+        //D3DFMT_X8R8G8B8;
+        Stream_MediaFramework_DirectDraw_Tools::toFormat (media_type_s.subtype);
+
+      if (likely (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo)))
+      { ACE_ASSERT (media_type_s.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+        struct tagVIDEOINFOHEADER* video_info_header_p =
+          reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_s.pbFormat);
+        defaultStride_ =
+          ((((video_info_header_p->bmiHeader.biWidth * video_info_header_p->bmiHeader.biBitCount) + 31) & ~31) >> 3);
       } // end IF
       else
-      {
-        // sanity check(s)
-        ACE_ASSERT (!direct3DConfiguration_->handle);
-        if (unlikely (!initialize_Direct3D (*direct3DConfiguration_,
-                                            media_type_s,
-                                            direct3DConfiguration_->handle,
-                                            direct3DConfiguration_->presentationParameters,
-                                            defaultStride_,
-                                            destinationRectangle_)))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to initialize_Direct3D(), aborting\n"),
-                      inherited::mod_->name ()));
-          goto error;
-        } // end IF
-        ACE_ASSERT (direct3DConfiguration_->handle);
-        releaseDeviceHandle_ = true;
-        device_handle_p = direct3DConfiguration_->handle;
+      { ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo2));
+        ACE_ASSERT (media_type_s.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
+        struct tagVIDEOINFOHEADER2* video_info_header_p =
+          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type_s.pbFormat);
+        defaultStride_ =
+          ((((video_info_header_p->bmiHeader.biWidth * video_info_header_p->bmiHeader.biBitCount) + 31) & ~31) >> 3);
       } // end ELSE
-      ACE_ASSERT (device_handle_p);
 
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+
+      // start message pump ?
+      if (!inherited::window_)
+      { // need a window/message pump
+        inherited::threadCount_ = 1;
+        inherited::start (NULL);
+        inherited::threadCount_ = 0;
+
+        while (inherited::thr_count_ && !inherited::window_); // *TODO*: never do this
+      } // end IF
+      else
+      { ACE_ASSERT (false); // *TODO*
+      } // end ELSE
 
       if (COM_initialized) Common_Tools::finalizeCOM ();
 
@@ -668,17 +558,6 @@ error:
         direct3DConfiguration_->handle->Release (); direct3DConfiguration_->handle = NULL;
       } // end IF
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-
-      if (closeWindow_)
-      { ACE_ASSERT (direct3DConfiguration_->presentationParameters.hDeviceWindow);
-        closeWindow_ = false;
-        if (!::CloseWindow (direct3DConfiguration_->presentationParameters.hDeviceWindow))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-        direct3DConfiguration_->presentationParameters.hDeviceWindow = NULL;
-      } // end IF
 
       if (COM_initialized) Common_Tools::finalizeCOM ();
 
@@ -707,17 +586,19 @@ error:
         releaseDeviceHandle_ = false;
       } // end IF
 
-      if (closeWindow_)
-      { ACE_ASSERT (direct3DConfiguration_);
-        ACE_ASSERT (direct3DConfiguration_->presentationParameters.hDeviceWindow);
-        if (unlikely (!::CloseWindow (direct3DConfiguration_->presentationParameters.hDeviceWindow)))
+      if (inherited::window_)
+      {
+        inherited::notify_ = false;
+        if (unlikely (!CloseWindow (inherited::window_)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-        direct3DConfiguration_->presentationParameters.hDeviceWindow = NULL;
-        closeWindow_ = false;
+        inherited::window_ = NULL;
       } // end IF
+
+      if (inherited::thr_count_)
+        inherited::wait ();
 
       if (COM_initialized) Common_Tools::finalizeCOM ();
 
@@ -751,39 +632,28 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::toggle"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-  ACE_ASSERT (!session_data_r.formats.empty ());
   ACE_ASSERT (direct3DConfiguration_);
   ACE_ASSERT (direct3DConfiguration_->handle);
-
-  struct _AMMediaType media_type_s;
-  inherited2::getMediaType (session_data_r.formats.back (),
-                            STREAM_MEDIATYPE_VIDEO,
-                            media_type_s);
-  Common_Image_Resolution_t resolution_s =
-    Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
 
   // *IMPORTANT NOTE*: the configuration has to be updated at this stage !
 
   // update configuration
   if (direct3DConfiguration_->presentationParameters.Windowed)
   { // --> switch to windowed mode
-    ACE_ASSERT (clientWindow_);
-    ACE_ASSERT (direct3DConfiguration_->focusWindow == clientWindow_);
+    ACE_ASSERT (inherited::window_);
+    ACE_ASSERT (direct3DConfiguration_->focusWindow == inherited::window_);
 
     // *NOTE*: 0 --> use window format
     direct3DConfiguration_->presentationParameters.BackBufferWidth =
-      resolution_s.cx;
+      inherited::resolution_.cx;
       //0;
     direct3DConfiguration_->presentationParameters.BackBufferHeight =
-      resolution_s.cy;
+      inherited::resolution_.cy;
       //0;
     direct3DConfiguration_->presentationParameters.BackBufferFormat =
       D3DFMT_UNKNOWN;
     direct3DConfiguration_->presentationParameters.hDeviceWindow =
-      clientWindow_;
+      inherited::window_;
     //direct3DConfiguration_->presentationParameters.Windowed = TRUE;
     direct3DConfiguration_->presentationParameters.FullScreen_RefreshRateInHz =
       0;
@@ -792,31 +662,31 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   else
   { // --> switch to fullscreen mode
     ACE_ASSERT (!direct3DConfiguration_->presentationParameters.hDeviceWindow);
-    ACE_ASSERT (direct3DConfiguration_->focusWindow);
+    ACE_ASSERT (direct3DConfiguration_->focusWindow && (direct3DConfiguration_->focusWindow == inherited::window_));
     struct _D3DDISPLAYMODE display_mode_s =
       Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (direct3DConfiguration_->adapter,
                                                               STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT,
-                                                              resolution_s);
+                                                              inherited::resolution_);
     if ((display_mode_s.Format != STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT) ||
-        ((display_mode_s.Width  != resolution_s.cx) ||
-         (display_mode_s.Height != resolution_s.cy)))
+        ((display_mode_s.Width  != inherited::resolution_.cx) ||
+         (display_mode_s.Height != inherited::resolution_.cy)))
     {
       // *TODO*: select closest possible format
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: adapter (was: %d) does not support fullscreen mode (was: %ux%u), returning\n"),
                   inherited::mod_->name (),
                   direct3DConfiguration_->adapter,
-                  resolution_s.cx, resolution_s.cy));
-      goto error;
+                  inherited::resolution_.cx, inherited::resolution_.cy));
+      return;
     } // end IF
 
     direct3DConfiguration_->presentationParameters.BackBufferWidth =
-      resolution_s.cx;
+      inherited::resolution_.cx;
     direct3DConfiguration_->presentationParameters.BackBufferHeight =
-      resolution_s.cy;
+      inherited::resolution_.cy;
     direct3DConfiguration_->presentationParameters.BackBufferFormat =
       STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT;
-    clientWindow_ = direct3DConfiguration_->focusWindow;
+    //inherited::window_ = direct3DConfiguration_->focusWindow;
     direct3DConfiguration_->presentationParameters.hDeviceWindow = NULL;
     //direct3DConfiguration_->presentationParameters.Windowed = FALSE;
     direct3DConfiguration_->presentationParameters.FullScreen_RefreshRateInHz =
@@ -825,8 +695,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   } // end ELSE
 
   HRESULT result =
-    resetDevice (media_type_s,
-                 *direct3DConfiguration_,
+    resetDevice (*direct3DConfiguration_,
                  direct3DConfiguration_->handle,
                  direct3DConfiguration_->presentationParameters,
                  defaultStride_,
@@ -837,15 +706,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to Stream_Vis_Target_Direct3D_T::resetDevice(): \"%s\", returning\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
+    return;
   } // end IF
-
-  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-
-  return;
-
-error:
-  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 }
 
 template <ACE_SYNCH_DECL,
@@ -871,28 +733,11 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::initialize"));
 
-  // initialize COM ?
-  static bool first_run = true;
-  bool COM_initialized = false;
-  if (likely (first_run))
-  {
-    first_run = false;
-    COM_initialized = Common_Tools::initializeCOM ();
-  } // end IF
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.direct3DConfiguration);
 
   if (inherited::isInitialized_)
   {
-    clientWindow_ = NULL;
-    if (closeWindow_)
-    { ACE_ASSERT (direct3DConfiguration_);
-      ACE_ASSERT (direct3DConfiguration_->presentationParameters.hDeviceWindow);
-      closeWindow_ = false;
-      if (unlikely (!::CloseWindow (direct3DConfiguration_->presentationParameters.hDeviceWindow)))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-    } // end IF
     defaultStride_ = 0;
     if (unlikely (!SetRectEmpty (&destinationRectangle_)))
       ACE_DEBUG ((LM_ERROR,
@@ -913,16 +758,21 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inferences
   ACE_ASSERT (configuration_in.direct3DConfiguration);
-  clientWindow_ =
-    (configuration_in.direct3DConfiguration->presentationParameters.Windowed ? configuration_in.direct3DConfiguration->presentationParameters.hDeviceWindow
-                                                                             : NULL);
   direct3DConfiguration_ = configuration_in.direct3DConfiguration;
   mediaFramework_ = configuration_in.mediaFramework;
 
-  if (COM_initialized) Common_Tools::finalizeCOM ();
+  if (unlikely (!inherited::initialize (configuration_in,
+                                        allocator_in)))
+    return false;
 
-  return inherited::initialize (configuration_in,
-                                allocator_in);
+  if (inherited::window_)
+  { ACE_ASSERT (inherited::window_ == configuration_in.direct3DConfiguration->presentationParameters.hDeviceWindow);
+  } // end IF
+  else
+    inherited::window_ =
+      configuration_in.direct3DConfiguration->presentationParameters.hDeviceWindow;
+
+  return true;
 }
 
 template <ACE_SYNCH_DECL,
@@ -944,22 +794,17 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              SessionDataType,
                              SessionDataContainerType,
                              MediaType>::initialize_Direct3D (struct Stream_MediaFramework_Direct3D_Configuration& configuration_inout,
-                                                              const struct _AMMediaType& mediaType_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                                                               IDirect3DDevice9Ex*& handle_inout,
 #else
                                                               IDirect3DDevice9*& handle_inout,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                                                              struct _D3DPRESENT_PARAMETERS_& presentationParameters_inout,
-                                                              LONG& stride_out,
-                                                              struct tagRECT& destinationRectangle_out)
+                                                              struct _D3DPRESENT_PARAMETERS_& presentationParameters_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::initialize_Direct3D"));
 
   // initialize return value(s)
   //ACE_OS::memset (&presentationParameters_out, 0, sizeof (struct _D3DPRESENT_PARAMETERS_));
-  stride_out = 0;
-  ACE_OS::memset (&destinationRectangle_out, 0, sizeof (struct tagRECT));
 
   // sanity check(s)
   ACE_ASSERT (!configuration_inout.handle);
@@ -988,35 +833,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 continue_:
   ACE_ASSERT (handle_inout);
 
-  result =
-    initialize_Direct3DDevice (configuration_inout.presentationParameters.hDeviceWindow,
-                               mediaType_in,
-                               handle_inout,
-                               presentationParameters_inout,
-                               stride_out,
-                               destinationRectangle_out);
-  if (unlikely (FAILED (result)))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Vis_Target_Direct3D_T::initialize_Direct3DDevice(): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    configuration_inout.handle->Release (); configuration_inout.handle = NULL;
-    if (handle_inout)
-    {
-      handle_inout->Release (); handle_inout = NULL;
-    } // end IF
-    goto error;
-  } // end IF
-
   return true;
-
-error:
-  //ACE_OS::memset (&presentationParameters_inout, 0, sizeof (struct _D3DPRESENT_PARAMETERS_));
-  stride_out = 0;
-  ACE_OS::memset (&destinationRectangle_out, 0, sizeof (struct tagRECT));
-
-  return false;
 }
 
 template <ACE_SYNCH_DECL,
@@ -1111,8 +928,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType,
-                             MediaType>::resetDevice (const struct _AMMediaType& mediaType_in,
-                                                      struct Stream_MediaFramework_Direct3D_Configuration& configuration_inout,
+                             MediaType>::resetDevice (struct Stream_MediaFramework_Direct3D_Configuration& configuration_inout,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                                                       IDirect3DDevice9Ex*& handle_inout,
 #else
@@ -1133,12 +949,10 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     // sanity check(s)
     if (unlikely (!ACE_OS::thr_equal (ACE_OS::thr_self (), configuration_inout.threadId)))
     {
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: only the device owner thread (was: %d, current: %t) can reset it, continuing\n"),
                   inherited::mod_->name (),
                   configuration_inout.threadId));
-#endif // _DEBUG
       goto continue_;
     } // end IF
 
@@ -1158,11 +972,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   else
   { ACE_ASSERT (presentationParameters_inout.hDeviceWindow);
     if (unlikely (!initialize_Direct3D (configuration_inout,
-                                        mediaType_in,
                                         configuration_inout.handle,
-                                        presentationParameters_inout,
-                                        stride_out,
-                                        destinationRectangle_out)))
+                                        presentationParameters_inout)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Vis_Target_Direct3D_T::initialize_Direct3D(): \"%s\", aborting\n"),
@@ -1289,216 +1100,6 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                   ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
   destinationRectangle_out = letterbox_rectangle (sourceRectangle_in,
                                                   destinationRectangle_out);
-}
-
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType>
-//HRESULT
-//Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
-//                             TimePolicyType,
-//                             ConfigurationType,
-//                             ControlMessageType,
-//                             DataMessageType,
-//                             SessionMessageType,
-//                             SessionDataType,
-//                             SessionDataContainerType>::createSwapChain (HWND windowHandle_in,
-//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-//                                                                         IDirect3DDevice9Ex* handle_in,
-//#else
-//                                                                         IDirect3DDevice9* handle_in,
-//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-//                                                                         const struct _D3DPRESENT_PARAMETERS_& presentationParameters_in,
-//                                                                         REFGUID subType_in,
-//                                                                         IDirect3DSwapChain9*& swapChain_inout)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::createSwapChain"));
-//
-//  HRESULT result = E_FAIL;
-//
-//  // initialize return value(s)
-//  if (swapChain_inout)
-//  {
-//    swapChain_inout->Release (); swapChain_inout = NULL;
-//  } // end IF
-//
-//  // sanity check(s)
-//  ACE_ASSERT (handle_in);
-//  // *NOTE*: Can't Create Additional SwapChain with fullscreen device
-//  if (!windowHandle_in ||
-//      !presentationParameters_in.Windowed)
-//    return E_FAIL;
-//
-//  struct _D3DPRESENT_PARAMETERS_ d3d_presentation_parameters_s =
-//    presentationParameters_in;
-//  ACE_ASSERT (d3d_presentation_parameters_s.BackBufferWidth);
-//  ACE_ASSERT (d3d_presentation_parameters_s.BackBufferHeight);
-//  //d3d_presentation_parameters.Windowed = TRUE;
-//  //d3d_presentation_parameters.SwapEffect = D3DSWAPEFFECT_DISCARD;
-//  d3d_presentation_parameters_s.hDeviceWindow = windowHandle_in;
-//  switch (mediaFramework_)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//    {
-//      if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB24))
-//        d3d_presentation_parameters_s.BackBufferFormat = D3DFMT_R8G8B8;
-//      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB32) ||
-//               InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB32))
-//        d3d_presentation_parameters_s.BackBufferFormat = D3DFMT_X8R8G8B8;
-//      else
-//      {
-//        d3d_presentation_parameters_s.BackBufferFormat = D3DFMT_UNKNOWN;
-//        ACE_DEBUG ((LM_WARNING,
-//                    ACE_TEXT ("%s: invalid/unknown media subtype (was: \"%s\"), continuing\n"),
-//                    inherited::mod_->name (),
-//                    ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (subType_in, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ())));
-//        //return E_FAIL;
-//      } // end ELSE
-//      break;
-//    }
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//    {
-//      if (InlineIsEqualGUID (subType_in, MFVideoFormat_RGB24))
-//        d3d_presentation_parameters_s.BackBufferFormat = D3DFMT_R8G8B8;
-//      else if (InlineIsEqualGUID (subType_in, MFVideoFormat_RGB32))
-//        d3d_presentation_parameters_s.BackBufferFormat = D3DFMT_X8R8G8B8;
-//      else
-//      {
-//        d3d_presentation_parameters_s.BackBufferFormat = D3DFMT_UNKNOWN;
-//        ACE_DEBUG ((LM_WARNING,
-//                    ACE_TEXT ("%s: invalid/unknown media subtype (was: \"%s\"), continuing\n"),
-//                    inherited::mod_->name (),
-//                    ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (subType_in, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
-//        //return E_FAIL;
-//      } // end ELSE
-//      break;
-//    }
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: invalid/unknown media framework (was: %d), aborting\n"),
-//                  inherited::mod_->name (),
-//                  mediaFramework_));
-//      return E_FAIL;
-//    }
-//  } // end SWITCH
-//  ACE_ASSERT (d3d_presentation_parameters_s.Flags & D3DPRESENTFLAG_VIDEO);
-//  ACE_ASSERT (d3d_presentation_parameters_s.Flags & D3DPRESENTFLAG_DEVICECLIP);
-//  ACE_ASSERT (d3d_presentation_parameters_s.Flags & D3DPRESENTFLAG_LOCKABLE_BACKBUFFER);
-//  //ACE_ASSERT (d3d_presentation_parameters_s.PresentationInterval == D3DPRESENT_INTERVAL_IMMEDIATE);
-//  //ACE_ASSERT (d3d_presentation_parameters_s.BackBufferCount == MODULE_DEV_CAM_DIRECT3D_DEFAULT_BACK_BUFFERS);
-//
-//  result =
-//    handle_in->CreateAdditionalSwapChain (&d3d_presentation_parameters_s,
-//                                          &swapChain_inout);
-//
-//  return result;
-//}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename MediaType>
-HRESULT
-Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
-                             TimePolicyType,
-                             ConfigurationType,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             SessionDataType,
-                             SessionDataContainerType,
-                             MediaType>::initialize_Direct3DDevice (HWND windowHandle_in,
-                                                                    const struct _AMMediaType& mediaType_in,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                                                                    IDirect3DDevice9Ex* handle_in,
-#else
-                                                                    IDirect3DDevice9* handle_in,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                                                                    struct _D3DPRESENT_PARAMETERS_& presentationParameters_inout,
-                                                                    LONG& stride_out,
-                                                                    struct tagRECT& destinationRectangle_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::initialize_Direct3DDevice"));
-
-  HRESULT result = setTransformation (mediaType_in.subtype);
-  if (unlikely (FAILED (result)))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Vis_Target_Direct3D_T::setTransformation(%s): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (mediaType_in.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ()),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    return result;
-  } // end IF
-  presentationParameters_inout.BackBufferFormat =
-    Stream_MediaFramework_DirectDraw_Tools::toFormat (mediaType_in.subtype);
-
-  if (likely (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo)))
-  { ACE_ASSERT (mediaType_in.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
-    struct tagVIDEOINFOHEADER* video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER*> (mediaType_in.pbFormat);
-    stride_out =
-      ((((video_info_header_p->bmiHeader.biWidth * video_info_header_p->bmiHeader.biBitCount) + 31) & ~31) >> 3);
-  } // end IF
-  else
-  { ACE_ASSERT (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2));
-    ACE_ASSERT (mediaType_in.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
-    struct tagVIDEOINFOHEADER2* video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (mediaType_in.pbFormat);
-    stride_out =
-      ((((video_info_header_p->bmiHeader.biWidth * video_info_header_p->bmiHeader.biBitCount) + 31) & ~31) >> 3);
-  } // end ELSE
-  // *NOTE*: see: https://msdn.microsoft.com/en-us/library/windows/desktop/dd318229(v=vs.85).aspx
-  // *NOTE*: "...A bottom-up image has a negative stride, because stride is
-  //         defined as the number of bytes need to move down a row of pixels,
-  //         relative to the displayed image. YUV images should always be
-  //         top-down, and any image that is contained in a Direct3D surface
-  //         must be top-down. RGB images in system memory are usually bottom-up. ..."
-  //         see also: https://docs.microsoft.com/en-us/windows/desktop/medfound/image-stride
-  //if (Stream_MediaFramework_Tools::isRGB (mediaType_in.subtype,
-  //                                        mediaFramework_))
-  //  stride_out = -stride_out;
-
-  //ACE_ASSERT (!swapChain_);
-  //ACE_ASSERT (presentationParameters_inout.BackBufferWidth == video_info_header_p->bmiHeader.biWidth);
-  //ACE_ASSERT (presentationParameters_inout.BackBufferHeight == video_info_header_p->bmiHeader.biHeight);
-  //result = createSwapChain (windowHandle_in,
-  //                          handle_in,
-  //                          presentationParameters_inout,
-  //                          mediaType_in.subtype,
-  //                          swapChain_);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to Stream_Vis_Target_Direct3D_T::createSwapChain(): \"%s\", continuing\n"),
-  //              inherited::mod_->name (),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-  //  return result;
-  //} // end IF
-  //ACE_ASSERT (swapChain_);
-
-  struct tagRECT source_rectangle_s = {
-    0,
-    0,
-    static_cast<LONG> (presentationParameters_inout.BackBufferWidth),
-    static_cast<LONG> (presentationParameters_inout.BackBufferHeight)
-  };
-  updateDestinationRectangle (windowHandle_in,
-                              source_rectangle_s,
-                              destinationRectangle_out);
-
-  return S_OK;
 }
 
 template <ACE_SYNCH_DECL,
@@ -1710,6 +1311,105 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   //} // end SWITCH
 
   return S_OK;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename MediaType>
+int
+Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
+                             TimePolicyType,
+                             ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
+                             SessionDataType,
+                             SessionDataContainerType,
+                             MediaType>::svc ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::svc"));
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
+  Common_Error_Tools::setThreadName (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_WINDOW_DEFAULT_MESSAGE_PUMP_THREAD_NAME),
+                                     NULL);
+#else
+  Common_Error_Tools::setThreadName (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_WINDOW_DEFAULT_MESSAGE_PUMP_THREAD_NAME),
+                                     0);
+#endif // _WIN32_WINNT_WIN10
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: spawned thread (id: %t, group id: %d)\n"),
+              ACE_TEXT (STREAM_VIS_RENDERER_WINDOW_DEFAULT_MESSAGE_PUMP_THREAD_NAME),
+              STREAM_MODULE_TASK_GROUP_ID));
+
+  inherited::window_ = inherited::createWindow ();
+  if (unlikely (!inherited::window_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to create window, aborting\n"),
+                inherited::mod_->name ()));
+    return -1;
+  } // end IF
+  //SetWindowLongPtr (window_, GWLP_USERDATA, (LONG_PTR)&CBData_);
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: window handle: 0x%@\n"),
+              inherited::mod_->name (),
+              inherited::window_));
+
+  inherited::notify_ = true;
+
+  direct3DConfiguration_->focusWindow = inherited::window_;
+  direct3DConfiguration_->presentationParameters.hDeviceWindow =
+    inherited::window_;
+  direct3DConfiguration_->presentationParameters.Windowed =
+    !Common_UI_Tools::isMaximized (inherited::window_);
+  struct tagRECT source_rectangle_s = {
+    0, 0,
+    static_cast<LONG> (direct3DConfiguration_->presentationParameters.BackBufferWidth),
+    static_cast<LONG> (direct3DConfiguration_->presentationParameters.BackBufferHeight)
+  };
+  updateDestinationRectangle ((direct3DConfiguration_->presentationParameters.Windowed ? inherited::window_ : NULL),
+                              source_rectangle_s,
+                              destinationRectangle_);
+
+  ACE_ASSERT (!direct3DConfiguration_->handle);
+  if (unlikely (!initialize_Direct3D (*direct3DConfiguration_,
+                                      direct3DConfiguration_->handle,
+                                      direct3DConfiguration_->presentationParameters)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to initialize_Direct3D(), aborting\n"),
+                inherited::mod_->name ()));
+    CloseWindow (inherited::window_); inherited::window_ = NULL;
+    return -1;
+  } // end IF
+  ACE_ASSERT (direct3DConfiguration_->handle);
+  releaseDeviceHandle_ = true;
+
+  struct tagMSG message_s;
+  while (GetMessage (&message_s, window_, 0, 0) != -1)
+  {
+    TranslateMessage (&message_s);
+    DispatchMessage (&message_s);
+  } // end WHILE
+
+  if (unlikely (inherited::notify_))
+    inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: spawned thread (id: %t, group id: %d) leaving\n"),
+              ACE_TEXT (STREAM_VIS_RENDERER_WINDOW_DEFAULT_MESSAGE_PUMP_THREAD_NAME),
+              STREAM_MODULE_TASK_GROUP_ID));
+
+  return 0;
 }
 
 //////////////////////////////////////////

@@ -23,19 +23,16 @@
 
 #include "d3d9.h"
 #include "guiddef.h"
-//#include "mfobjects.h"
 #include "strmif.h"
 
 #include "ace/Global_Macros.h"
 
-#include "common_ui_ifullscreen.h"
-
 #include "stream_common.h"
 #include "stream_imodule.h"
-#include "stream_task_base_synch.h"
 
 #include "stream_lib_directdraw_common.h"
-#include "stream_lib_mediatype_converter.h"
+
+#include "stream_vis_target_win32_base.h"
 
 extern const char libacestream_default_vis_direct3d_module_name_string[];
 
@@ -75,28 +72,21 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename MediaType>
 class Stream_Vis_Target_Direct3D_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData>
- , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
- , public Common_UI_IFullscreen
+ : public Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
+                                         TimePolicyType,
+                                         ConfigurationType,
+                                         ControlMessageType,
+                                         DataMessageType,
+                                         SessionMessageType,
+                                         MediaType>
 {
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+  typedef Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
+                                         TimePolicyType,
+                                         ConfigurationType,
+                                         ControlMessageType,
+                                         DataMessageType,
+                                         SessionMessageType,
+                                         MediaType> inherited;
 
  public:
   Stream_Vis_Target_Direct3D_T (ISTREAM_T*); // stream handle
@@ -117,26 +107,13 @@ class Stream_Vis_Target_Direct3D_T
 
  protected:
   // helper methods
-  HRESULT initialize_Direct3DDevice (HWND,                                                     // (target) window handle
-                                     const struct _AMMediaType&,                               // (inbound) media type
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                                     IDirect3DDevice9Ex*,                                      // Direct3D device handle
-#else
-                                     IDirect3DDevice9*,                                        // Direct3D device handle
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                                     struct _D3DPRESENT_PARAMETERS_&,                          // in/out: Direct3D presentation parameters
-                                     LONG&,                                                    // return value: stride
-                                     struct tagRECT&);                                         // return value: destination rectangle
   bool initialize_Direct3D (struct Stream_MediaFramework_Direct3D_Configuration&, // in/out: configuration
-                            const struct _AMMediaType&,                           // (inbound) media type
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                             IDirect3DDevice9Ex*&,                                 // in/out: device handle
 #else
                             IDirect3DDevice9*&,                                   // in/out: device handle
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                            struct _D3DPRESENT_PARAMETERS_&,                      // in/out: Direct3D presentation parameters
-                            LONG&,                                                // return value: stride
-                            struct tagRECT&);                                     // return value: destination rectangle
+                            struct _D3DPRESENT_PARAMETERS_&);                     // in/out: Direct3D presentation parameters
 
   // *NOTE*: takes a source rectangle and constructs the largest possible
   //         centered rectangle within the specified destination rectangle such
@@ -154,8 +131,7 @@ class Stream_Vis_Target_Direct3D_T
                               bool&);              // return value: destroy device ?
   // *NOTE*: behaviour depends on whether a device handle is passed in:
   //         yes: calls Reset(Ex) and 
-  HRESULT resetDevice (const struct _AMMediaType&,                           // input media type
-                       struct Stream_MediaFramework_Direct3D_Configuration&, // in/out: configuration
+  HRESULT resetDevice (struct Stream_MediaFramework_Direct3D_Configuration&, // in/out: configuration
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                        IDirect3DDevice9Ex*&,                                 // in/out: device handle
 #else
@@ -165,9 +141,6 @@ class Stream_Vis_Target_Direct3D_T
                        LONG&,                                                // return value: stride
                        struct tagRECT&);                                     // return value: destination rectangle
 
-  // *NOTE*: the 'current' window is presentationParameters_.hDeviceWindow
-  HWND                                                 clientWindow_;
-  bool                                                 closeWindow_;
   // *NOTE*: < 0 ? 'bottom-up' memory layout : 'top-down' memory layout
   //         see also: https://docs.microsoft.com/en-us/windows/desktop/medfound/image-stride
   //                   https://docs.microsoft.com/en-us/windows/desktop/directshow/top-down-vs--bottom-up-dibs
@@ -199,6 +172,9 @@ class Stream_Vis_Target_Direct3D_T
                                        SessionDataType,
                                        SessionDataContainerType,
                                        MediaType> OWN_TYPE_T;
+
+  // override (part of) ACE_Task_Base
+  virtual int svc ();
 
   // helper methods
   // *NOTE*: all image data needs to be transformed to RGB32

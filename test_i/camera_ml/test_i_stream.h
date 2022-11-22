@@ -108,7 +108,11 @@ class Stream_CameraML_DirectShow_Stream
   Stream_CameraML_DirectShow_LibAVConvert_Module     convert_; // RGB
   Stream_CameraML_DirectShow_LibAVResize_Module      resize_; // --> window size/fullscreen
 #endif // FFMPEG_SUPPORT
-  Stream_CameraML_DirectShow_HFlip_Module            flip_;
+  //Stream_CameraML_DirectShow_HFlip_Module            flip_;
+#if defined (TENSORFLOW_CC_SUPPORT)
+  Stream_CameraML_DirectShow_Tensorflow_Module       tensorflow_;
+#endif // TENSORFLOW_CC_SUPPORT
+  Stream_CameraML_DirectShow_LibAVConvert_Module     convert_2; // --> BGRA (Direct3D)
 #if defined (GTK_SUPPORT)
   Stream_CameraML_DirectShow_GTK_Display_Module      GTKDisplay_;
 #endif // GTK_SUPPORT
@@ -190,9 +194,7 @@ class Stream_CameraML_MediaFoundation_Stream
   Stream_CameraML_MediaFoundation_Display_Module         display_;
   //Stream_CameraML_MediaFoundation_DisplayNull_Module     mediaFoundationDisplayNull_;
 //#if defined (GUI_SUPPORT)
-//#if defined (GTK_USE)
 //  Stream_CameraML_MediaFoundation_GTKCairoDisplay_Module            GTKCairoDisplay_;
-//#endif // GTK_USE
 //#endif // GUI_SUPPORT
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
@@ -256,13 +258,13 @@ class Stream_CameraML_Stream
   Stream_CameraML_LibAVConvert_Module    convert_; // --> RGB24 (tensorflow)
   Stream_CameraML_LibAVResize_Module     resize_; // --> window size/fullscreen
 //  Stream_CameraML_V4L_HFlip_Module       flip_;
-#if defined (TENSORFLOW_SUPPORT)
+#if defined (TENSORFLOW_CC_SUPPORT)
   Stream_CameraML_Tensorflow_Module      tensorflow_;
-#endif // TENSORFLOW_SUPPORT
+#endif // TENSORFLOW_CC_SUPPORT
 #if defined (GTK_SUPPORT)
   Stream_CameraML_GTK_Display_Module     GTKDisplay_;
 #endif // GTK_SUPPORT
-  Stream_CameraML_LibAVConvert_Module    convert_2; // --> BGRA (Xlib)
+  Stream_CameraML_LibAVConvert_Module    convert_2; // --> BGRA (X11|Wayland)
   Stream_CameraML_Wayland_Display_Module WaylandDisplay_;
   Stream_CameraML_X11_Display_Module     X11Display_;
 };

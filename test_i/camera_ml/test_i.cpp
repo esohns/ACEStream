@@ -903,6 +903,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
   struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // converter
   //struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // display
+  struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_4; // converter_2
   struct Stream_CameraML_DirectShow_StreamConfiguration directshow_stream_configuration;
   Stream_CameraML_DirectShow_EventHandler_t directshow_ui_event_handler;
   struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
@@ -1011,24 +1012,10 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                                                                               &heap_allocator,     // heap allocator handle
                                                                               true);               // block ?
   Stream_CameraML_DirectShow_Stream directshow_stream;
-#if defined (OLC_CGE_SUPPORT)
-  Stream_CameraML_DirectShow_CGE_Module directshow_CGE (&directshow_stream,
-                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_CGE_DEFAULT_NAME_STRING));
-
-#endif // OLC_CGE_SUPPORT
-//#if defined (OLC_PGE_SUPPORT)
-//  Stream_CameraML_DirectShow_PGE_Module directshow_PGE (&directshow_stream,
-//                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING));
-//#endif // OLC_PGE_SUPPORT
-
   Stream_CameraML_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                                         &heap_allocator,     // heap allocator handle
                                                                                         true);               // block ?
   Stream_CameraML_MediaFoundation_Stream mediafoundation_stream;
-#if defined (OLC_CGE_SUPPORT)
-  Stream_CameraML_MediaFoundation_CGE_Module mediafoundation_CGE (&mediafoundation_stream,
-                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_CGE_DEFAULT_NAME_STRING));
-#endif // OLC_CGE_SUPPORT
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1039,12 +1026,6 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_stream_configuration.messageAllocator =
           &directshow_message_allocator;
-#if defined (OLC_CGE_SUPPORT)
-      directshow_stream_configuration.module = &directshow_CGE;
-#endif // OLC_CGE_SUPPORT
-#if defined (OLC_PGE_SUPPORT)
-      // directshow_stream_configuration.module = &directshow_PGE;
-#endif // OLC_PGE_SUPPORT
       directshow_stream_configuration.renderer = renderer_in;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
@@ -1065,11 +1046,11 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       //if (bufferSize_in)
       //  mediaFoundationCBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
       //      bufferSize_in;
+      mediafoundation_stream_configuration.allocatorConfiguration =
+        &allocator_configuration;
       mediafoundation_stream_configuration.messageAllocator =
           &mediafoundation_message_allocator;
-      mediafoundation_stream_configuration.module = &mediafoundation_CGE;
-      //mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
-      //  renderer_in;
+      mediafoundation_stream_configuration.renderer = renderer_in;
 
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
@@ -1135,15 +1116,10 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         return;
       } // end IF
       //ACE_ASSERT (stream_config_p);
-      // directShowCBData_in.streamConfiguration = stream_config_p;
-      //Stream_MediaFramework_DirectShow_Tools::setResolution ({ 160, 120},
-      //                                                       directshow_stream_configuration.format);
-      Stream_MediaFramework_DirectShow_Tools::setResolution ({ 80, 60},
-                                                             directshow_modulehandler_configuration.outputFormat);
+      //stream_config_p->Release (); stream_config_p = NULL;
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
-      directshow_modulehandler_configuration_2.flipImage = true;
       directshow_modulehandler_configuration_2.outputFormat = *media_type_p;
       Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
                                                          directshow_modulehandler_configuration_2.outputFormat);
@@ -1160,6 +1136,18 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_2)));
+
+      directshow_modulehandler_configuration_4 = directshow_modulehandler_configuration_2;
+      media_type_p =
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
+      ACE_ASSERT (media_type_p);
+      directshow_modulehandler_configuration_4.outputFormat = *media_type_p;
+      Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB32,
+                                                         directshow_modulehandler_configuration_4.outputFormat);
+      delete media_type_p; media_type_p = NULL;
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_4)));
 
       break;
     }
@@ -1206,12 +1194,6 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     return;
   } // end IF
   stream_p = &stream;
-
-//  if (!Stream_MediaFramework_Tools::isRGB (stream_configuration.format.format.pixelformat))
-//    modulehandler_configuration.outputFormat.format.pixelformat =
-//      V4L2_PIX_FMT_RGB32;
-//  modulehandler_configuration.outputFormat.format.width = 80;
-//  modulehandler_configuration.outputFormat.format.height = 60;
 
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.outputFormat.format.pixelformat =
@@ -1297,9 +1279,7 @@ clean:
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      //do_finalize_directshow (directShowCBData_in.streamConfiguration);
-      IAMStreamConfig* dummy_p = NULL;
-      do_finalize_directshow (dummy_p);
+      do_finalize_directshow (stream_config_p);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1486,8 +1466,8 @@ ACE_TMAIN (int argc_in,
   if (log_to_file)
     log_file_name =
         Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                          ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]),                   // program name
+                                          ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
+  if (!Common_Log_Tools::initializeLogging (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)), // program name
                                             log_file_name,                                // log file name
                                             false,                                        // log to syslog ?
                                             false,                                        // trace messages ?

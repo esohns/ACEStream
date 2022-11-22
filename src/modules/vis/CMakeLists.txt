@@ -253,7 +253,10 @@ elseif (WIN32)
       stream_vis_target_gdi.inl
       stream_vis_target_mediafoundation.cpp
       stream_vis_target_mediafoundation.h
-      stream_vis_target_mediafoundation.inl)
+      stream_vis_target_mediafoundation.inl
+      stream_vis_target_win32_base.cpp
+      stream_vis_target_win32_base.h
+      stream_vis_target_win32_base.inl)
 endif ()
 
 # Include dir for installed targets
@@ -420,7 +423,9 @@ elseif (WIN32)
       stream_vis_target_gdi.h
       stream_vis_target_gdi.inl
       stream_vis_target_mediafoundation.h
-      stream_vis_target_mediafoundation.inl)
+      stream_vis_target_mediafoundation.inl
+      stream_vis_target_win32_base.h
+      stream_vis_target_win32_base.inl)
 endif ()
 install (FILES
          ${header_files}

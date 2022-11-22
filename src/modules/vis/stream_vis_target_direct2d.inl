@@ -314,7 +314,8 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
 
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       break;
 
@@ -332,7 +333,8 @@ error:
         window_ = NULL;
       } // end IF
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -353,7 +355,8 @@ error:
         closeWindow_ = false;
       } // end IF
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       break;
     }

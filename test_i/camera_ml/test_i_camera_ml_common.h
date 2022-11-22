@@ -378,7 +378,7 @@ struct Stream_CameraML_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+    //concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
 #else
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -418,7 +418,7 @@ struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    //, sourceFormat ()
    , subscriber (NULL)
-   , subscribers (NULL)
+   //, subscribers (NULL)
    , windowController (NULL)
    , windowController2 (NULL)
   {
@@ -444,7 +444,7 @@ struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration
 //      Stream_MediaFramework_DirectShow_Tools::delete_ (outputFormat);
     push = rhs_in.push;
     subscriber = rhs_in.subscriber;
-    subscribers = rhs_in.subscribers;
+    //subscribers = rhs_in.subscribers;
     if (windowController)
     {
       windowController->Release (); windowController = NULL;
@@ -467,18 +467,18 @@ struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration
     return *this;
   }
 
-  struct tagRECT                                        area;
-  IGraphBuilder*                                        builder;
-  struct Stream_MediaFramework_Direct3D_Configuration*  direct3DConfiguration;
+  struct tagRECT                                         area;
+  IGraphBuilder*                                         builder;
+  struct Stream_MediaFramework_Direct3D_Configuration*   direct3DConfiguration;
   struct Stream_CameraML_DirectShow_FilterConfiguration* filterConfiguration;
-  CLSID                                                 filterCLSID;
-  struct _AMMediaType                                   outputFormat;
-  bool                                                  push;
+  CLSID                                                  filterCLSID;
+  struct _AMMediaType                                    outputFormat;
+  bool                                                   push;
   //struct _AMMediaType                                   sourceFormat;
   Stream_CameraML_DirectShow_ISessionNotify_t*           subscriber;
-  Stream_CameraML_DirectShow_Subscribers_t*              subscribers;
-  IVideoWindow*                                         windowController;
-  IMFVideoDisplayControl*                               windowController2; // EVR
+  //Stream_CameraML_DirectShow_Subscribers_t*              subscribers;
+  IVideoWindow*                                          windowController;
+  IMFVideoDisplayControl*                                windowController2; // EVR
 };
 
 struct Stream_CameraML_MediaFoundation_StreamConfiguration;

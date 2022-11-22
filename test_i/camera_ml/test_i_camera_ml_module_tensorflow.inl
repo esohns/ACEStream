@@ -21,7 +21,10 @@
 #include <fstream>
 #include <regex>
 #include <sstream>
-#include <tensorflow/core/framework/types.pb.h>
+
+#if defined (TENSORFLOW_CC_SUPPORT)
+#include "tensorflow/core/framework/types.pb.h"
+#endif // TENSORFLOW_CC_SUPPORT
 
 #include "opencv2/imgproc/imgproc.hpp"
 
@@ -30,19 +33,20 @@
 #include "stream_lib_tools.h"
 #include "stream_macros.h"
 
+#if defined (TENSORFLOW_CC_SUPPORT)
 template <typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename MediaType>
-Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
                                     SessionMessageType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                    MediaType>::Test_I_CameraML_Module_Tensorflow_T (typename TaskType::ISTREAM_T* stream_in)
+                                    MediaType>::Test_I_CameraML_Module_Tensorflow_2 (ISTREAM_T* stream_in)
 #else
-                                    MediaType>::Test_I_CameraML_Module_Tensorflow_T (typename inherited::ISTREAM_T* stream_in)
+                                    MediaType>::Test_I_CameraML_Module_Tensorflow_2 (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
@@ -51,7 +55,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
  , shape_ ()
  , stride_ (0)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::Test_I_CameraML_Module_Tensorflow_T"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_2::Test_I_CameraML_Module_Tensorflow_2"));
 
 }
 
@@ -61,14 +65,14 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 bool
-Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
                                     SessionMessageType,
                                     MediaType>::initialize (const ConfigurationType& configuration_in,
                                                             Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_2::initialize"));
 
   if (inherited::isInitialized_)
   {
@@ -98,14 +102,14 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 void
-Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
                                     SessionMessageType,
                                     MediaType>::handleDataMessage (DataMessageType*& message_inout,
                                                                    bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_2::handleDataMessage"));
 
   // set input & output nodes names
   static std::string inputLayer = "image_tensor:0";
@@ -205,14 +209,14 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 void
-Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
                                     SessionMessageType,
                                     MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                       bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_2::handleSessionMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -275,13 +279,13 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 bool
-Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
                                     SessionMessageType,
                                     MediaType>::loadLabels (const std::string& fileName_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::loadLabels"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_2::loadLabels"));
 
   labelMap_.clear ();
 
@@ -340,7 +344,7 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 std::vector<size_t>
-Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
                                     SessionMessageType,
@@ -349,7 +353,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
                                                              double thresholdIOU_in,
                                                              double thresholdScore_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::filterBoxes"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_2::filterBoxes"));
 
   std::vector<size_t> sortIdxs (scores_in.size ());
   std::iota (sortIdxs.begin (), sortIdxs.end (), 0);
@@ -399,7 +403,7 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 void
-Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
                                     SessionMessageType,
@@ -409,7 +413,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
                                                                    tensorflow::TTypes<float,3>::Tensor& boxes_in,
                                                                    std::vector<size_t>& indices_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::drawBoundingBoxes"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_2::drawBoundingBoxes"));
 
   for (int j = 0;
        j < static_cast<int> (indices_in.size ());
@@ -438,3 +442,4 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
     cv::putText (image_in, caption, textCorner, cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar (255, 0, 0));
   } // end FOR
 }
+#endif // TENSORFLOW_CC_SUPPORT

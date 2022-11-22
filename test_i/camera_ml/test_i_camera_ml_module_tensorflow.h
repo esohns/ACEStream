@@ -24,9 +24,11 @@
 #include <map>
 #include <string>
 
+#if defined (TENSORFLOW_CC_SUPPORT)
 #undef Status
 #undef Success
 #include "tensorflow/core/framework/tensor_shape.h"
+#endif // TENSORFLOW_CC_SUPPORT
 
 #include "opencv2/core/mat.hpp"
 
@@ -34,7 +36,7 @@
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_timer_common.h"
+#include "common_image_common.h"
 
 #include "stream_common.h"
 
@@ -42,6 +44,7 @@
 
 #include "stream_module_tensorflow.h"
 
+#if defined (TENSORFLOW_CC_SUPPORT)
 template <typename ConfigurationType,
           ////////////////////////////////
           typename ControlMessageType,
@@ -49,7 +52,7 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           ////////////////////////////////
           typename MediaType>
-class Test_I_CameraML_Module_Tensorflow_T
+class Test_I_CameraML_Module_Tensorflow_2
  : public Stream_Module_Tensorflow_2<ConfigurationType,
                                      ControlMessageType,
                                      DataMessageType,
@@ -65,11 +68,11 @@ class Test_I_CameraML_Module_Tensorflow_T
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_CameraML_Module_Tensorflow_T (typename TaskType::ISTREAM_T*); // stream handle
+  Test_I_CameraML_Module_Tensorflow_2 (ISTREAM_T*); // stream handle
 #else
-  Test_I_CameraML_Module_Tensorflow_T (typename inherited::ISTREAM_T*); // stream handle
+  Test_I_CameraML_Module_Tensorflow_2 (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  inline virtual ~Test_I_CameraML_Module_Tensorflow_T () {}
+  inline virtual ~Test_I_CameraML_Module_Tensorflow_2 () {}
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -82,9 +85,9 @@ class Test_I_CameraML_Module_Tensorflow_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_Tensorflow_T ())
-  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_Tensorflow_T (const Test_I_CameraML_Module_Tensorflow_T&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_Tensorflow_T& operator= (const Test_I_CameraML_Module_Tensorflow_T&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_Tensorflow_2 ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_Tensorflow_2 (const Test_I_CameraML_Module_Tensorflow_2&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_Tensorflow_2& operator= (const Test_I_CameraML_Module_Tensorflow_2&))
 
   // helper methods
   bool loadLabels (const std::string&); // label file path
@@ -103,6 +106,7 @@ class Test_I_CameraML_Module_Tensorflow_T
   tensorflow::TensorShape    shape_;
   int                        stride_;
 };
+#endif // TENSORFLOW_CC_SUPPORT
 
 // include template definition
 #include "test_i_camera_ml_module_tensorflow.inl"

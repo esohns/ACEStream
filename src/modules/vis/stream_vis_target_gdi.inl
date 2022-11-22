@@ -61,15 +61,11 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , context_ (NULL)
  , header_ ()
- , resolution_ ()
- , window_ (NULL)
  //, CBData_ ()
- , notify_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_GDI_T::Stream_Vis_Target_GDI_T"));
 
   ACE_OS::memset (&header_, 0, sizeof (struct tagBITMAPINFO));
-  ACE_OS::memset (&resolution_, 0, sizeof (Common_Image_Resolution_t));
   //ACE_OS::memset (&CBData_, 0, sizeof (struct libacestream_gdi_window_proc_cb_data));
 
   //CBData_.dc = &context_;
@@ -97,22 +93,12 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_GDI_T::~Stream_Vis_Target_GDI_T"));
 
-  if (unlikely (context_ && window_))
-    if (unlikely (!ReleaseDC (window_, context_)))
+  if (unlikely (context_ && inherited::window_))
+    if (unlikely (!ReleaseDC (inherited::window_, context_)))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ReleaseDC(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-
-  if (unlikely (inherited::thr_count_ && window_))
-  {
-    if (unlikely (!CloseWindow (window_)))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-    inherited::wait ();
-  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -147,11 +133,11 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
   ACE_ASSERT (window_);
 
   struct tagRECT rect_s;
-  GetWindowRect (window_, &rect_s);
+  GetWindowRect (inherited::window_, &rect_s);
 
   if (unlikely (StretchDIBits (context_,
                                0, 0, rect_s.right - rect_s.left, rect_s.bottom - rect_s.top,
-                               0, 0, resolution_.cx, resolution_.cy,
+                               0, 0, inherited::resolution_.cx, inherited::resolution_.cy,
                                message_inout->rd_ptr (),
                                &header_,
                                DIB_RGB_COLORS,
@@ -207,10 +193,10 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 
       // sanity check(s)
       ACE_ASSERT (!session_data_r.formats.empty ());
-      inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_VIDEO,
-                                media_type_s);
-      resolution_ =
+      inherited::getMediaType (session_data_r.formats.back (),
+                               STREAM_MEDIATYPE_VIDEO,
+                               media_type_s);
+      inherited::resolution_ =
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
 
       header_.bmiHeader.biBitCount =
@@ -227,23 +213,23 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
-      // start message pump
-      if (!window_)
+      // start message pump ?
+      if (!inherited::window_)
       { // need a window/message pump
         inherited::threadCount_ = 1;
         inherited::start (NULL);
         inherited::threadCount_ = 0;
 
-        while (inherited::thr_count_ && !window_); // *TODO*: never do this
+        while (inherited::thr_count_ && !inherited::window_); // *TODO*: never do this
       } // end IF
       else
       { ACE_ASSERT (!context_);
-        context_ = GetDC (window_);
+        context_ = GetDC (inherited::window_);
         ACE_ASSERT (context_);
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: window handle: 0x%@ (drawing context: 0x%@\n"),
                     inherited::mod_->name (),
-                    window_,
+                    inherited::window_,
                     context_));
       } // end ELSE
 
@@ -252,9 +238,9 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 //error:
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
-      if (context_ && window_)
+      if (context_ && inherited::window_)
       {
-        if (!ReleaseDC (window_, context_))
+        if (!ReleaseDC (inherited::window_, context_))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ReleaseDC(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
@@ -268,9 +254,9 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (context_ && window_)
+      if (context_ && inherited::window_)
       {
-        if (!ReleaseDC (window_, context_))
+        if (!ReleaseDC (inherited::window_, context_))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ReleaseDC(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
@@ -278,71 +264,25 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
         context_ = NULL;
       } // end IF
 
-      if (inherited::thr_count_ && window_)
+      if (inherited::window_)
       {
-        notify_ = false;
-        if (unlikely (!CloseWindow (window_)))
+        inherited::notify_ = false;
+        if (unlikely (!CloseWindow (inherited::window_)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-        inherited::wait ();
-        window_ = NULL;
+        inherited::window_ = NULL;
       } // end IF
+
+      if (inherited::thr_count_)
+        inherited::wait ();
 
       break;
     }
     default:
       break;
   } // end SWITCH
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename MediaType>
-void
-Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
-                        TimePolicyType,
-                        ConfigurationType,
-                        ControlMessageType,
-                        DataMessageType,
-                        SessionMessageType,
-                        SessionDataType,
-                        SessionDataContainerType,
-                        MediaType>::toggle ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_GDI_T::toggle"));
-
-  // sanity check(s)
-  if (!window_)
-    return; // nothing to do
-
-  struct tagWINDOWPLACEMENT window_placement_s;
-  ACE_OS::memset (&window_placement_s, 0, sizeof (struct tagWINDOWPLACEMENT));
-  window_placement_s.length = sizeof (struct tagWINDOWPLACEMENT);
-  if (!GetWindowPlacement (window_, &window_placement_s))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to GetWindowPlacement(0x%@): \"%s\", returning\n"),
-                inherited::mod_->name (),
-                window_,
-                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-    return;
-  } // end IF
-  int command_i =
-    (window_placement_s.showCmd == SW_MAXIMIZE) ? SW_RESTORE : SW_MAXIMIZE;
-  if (!ShowWindow (window_, command_i))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ShowWindow(0x%@,%d): \"%s\", continuing\n"),
-                inherited::mod_->name (),
-                window_, command_i,
-                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
 }
 
 template <ACE_SYNCH_DECL,
@@ -370,7 +310,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    if (context_ && window_)
+    if (context_ && inherited::window_)
     {
       if (!ReleaseDC (window_, context_))
         ACE_DEBUG ((LM_ERROR,
@@ -379,21 +319,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
       context_ = NULL;
     } // end IF
-
-    if (inherited::thr_count_ && window_)
-    {
-      if (unlikely (!CloseWindow (window_)))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-      inherited::wait ();
-    } // end IF
-    window_ = NULL;
   } // end IF
-
-  // *TODO*: remove type inferences
-  window_ = configuration_in.window;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -435,37 +361,36 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
               ACE_TEXT (STREAM_VIS_RENDERER_WINDOW_DEFAULT_MESSAGE_PUMP_THREAD_NAME),
               STREAM_MODULE_TASK_GROUP_ID));
 
-  window_ = createWindow ();
-  if (unlikely (!window_))
+  inherited::window_ = inherited::createWindow ();
+  if (unlikely (!inherited::window_))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+                ACE_TEXT ("%s: failed to create window, aborting\n"),
+                inherited::mod_->name ()));
     return -1;
   } // end IF
   //SetWindowLongPtr (window_, GWLP_USERDATA, (LONG_PTR)&CBData_);
 
   ACE_ASSERT (!context_);
-  context_ = GetDC (window_);
+  context_ = GetDC (inherited::window_);
   ACE_ASSERT (context_);
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: window handle: 0x%@ (drawing context: 0x%@\n"),
+              ACE_TEXT ("%s: window handle: 0x%@; drawing context: 0x%@\n"),
               inherited::mod_->name (),
-              window_,
+              inherited::window_,
               context_));
 
-  notify_ = true;
+  inherited::notify_ = true;
 
-  struct tagMSG msg;
-  while (GetMessage (&msg, window_, 0, 0) != -1)
+  struct tagMSG message_s;
+  while (GetMessage (&message_s, window_, 0, 0) != -1)
   {
-    TranslateMessage (&msg);
-    DispatchMessage (&msg);
+    TranslateMessage (&message_s);
+    DispatchMessage (&message_s);
   } // end WHILE
 
-  if (unlikely (notify_))
-    notify (STREAM_SESSION_MESSAGE_ABORT);
+  if (unlikely (inherited::notify_))
+    inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: spawned thread (id: %t, group id: %d) leaving\n"),
@@ -473,97 +398,4 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
               STREAM_MODULE_TASK_GROUP_ID));
 
   return 0;
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename MediaType>
-HWND
-Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
-                        TimePolicyType,
-                        ConfigurationType,
-                        ControlMessageType,
-                        DataMessageType,
-                        SessionMessageType,
-                        SessionDataType,
-                        SessionDataContainerType,
-                        MediaType>::createWindow ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_GDI_T::createWindow"));
-
-  WNDCLASSEX window_class_ex_s;
-  window_class_ex_s.cbSize = sizeof (WNDCLASSEX);
-  window_class_ex_s.style = CS_HREDRAW | CS_VREDRAW;
-  //window_class_ex_s.lpfnWndProc = DefWindowProc;
-  window_class_ex_s.lpfnWndProc = libacestream_gdi_window_proc_cb;
-  window_class_ex_s.cbClsExtra = 0;
-  window_class_ex_s.cbWndExtra = 0;
-  window_class_ex_s.hInstance = (HINSTANCE)GetModuleHandle (NULL);
-  window_class_ex_s.hIcon = NULL;
-  //window_class_ex_s.hCursor = LoadCursor (NULL, IDC_ARROW);
-  window_class_ex_s.hCursor = NULL;
-  window_class_ex_s.hbrBackground = (HBRUSH)COLOR_WINDOW;
-  window_class_ex_s.lpszMenuName = NULL;
-  ACE_TCHAR szClassName[256] = ACE_TEXT ("SampleWindowClass");
-#if defined (UNICODE)
-  window_class_ex_s.lpszClassName = ACE_TEXT_ALWAYS_WCHAR (szClassName);
-#else
-  window_class_ex_s.lpszClassName = szClassName;
-#endif // UNICODE
-  window_class_ex_s.hIconSm = NULL;
-  ATOM atom = RegisterClassEx (&window_class_ex_s);
-  if (unlikely (atom == 0))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to RegisterClassEx(): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-    return NULL;
-  } // end IF
-
-  DWORD window_style_i = (WS_OVERLAPPED     |
-                          WS_CAPTION        |
-                          (WS_CLIPSIBLINGS  |
-                            WS_CLIPCHILDREN) |
-                          WS_SYSMENU        |
-                          WS_VISIBLE        |
-                          WS_MINIMIZEBOX    |
-                          WS_MAXIMIZEBOX    |
-                          WS_THICKFRAME); // --> resizeable
-  DWORD window_style_ex_i = (WS_EX_APPWINDOW |
-                             WS_EX_WINDOWEDGE);
-  HWND handle_p =
-    CreateWindowEx (window_style_ex_i,                       // dwExStyle
-#if defined (UNICODE)
-                    ACE_TEXT_ALWAYS_WCHAR (szClassName),                   // lpClassName
-                    ACE_TEXT_ALWAYS_WCHAR (inherited::mod_->name ()), // lpWindowName
-#else
-                    ACE_TEXT_ALWAYS_CHAR (szClassName),               // lpClassName
-                    ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()),  // lpWindowName
-#endif // UNICODE
-                    window_style_i,                          // dwStyle
-                    CW_USEDEFAULT,                           // x
-                    CW_USEDEFAULT,                           // y
-                    resolution_.cx,                          // nWidth
-                    resolution_.cy,                          // nHeight
-                    NULL,                                    // hWndParent
-                    NULL,                                    // hMenu
-                    GetModuleHandle (NULL),                  // hInstance
-                    NULL);                                   // lpParam
-  if (unlikely (!handle_p))
-  { // ERROR_INVALID_PARAMETER: 87
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to CreateWindowEx(): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-    return NULL;
-  } // end IF
-
-  return handle_p;
 }
