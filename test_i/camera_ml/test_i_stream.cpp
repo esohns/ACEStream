@@ -115,8 +115,11 @@ Stream_CameraML_DirectShow_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&GDIDisplay_, NULL, 0);
       break;
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
+    {
+      layout_in->append (&convert_2, NULL, 0);
       layout_in->append (&Direct2DDisplay_, NULL, 0);
       break;
+    }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
     {
       layout_in->append (&convert_2, NULL, 0);

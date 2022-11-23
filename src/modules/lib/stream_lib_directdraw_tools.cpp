@@ -552,6 +552,75 @@ Stream_MediaFramework_DirectDraw_Tools::toFilenameExtension (enum _D3DXIMAGE_FIL
   return result;
 }
 
+enum DXGI_FORMAT
+Stream_MediaFramework_DirectDraw_Tools::toFormat_2 (REFGUID subType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectDraw_Tools::toFormat_2"));
+
+  enum DXGI_FORMAT result = DXGI_FORMAT_UNKNOWN;
+
+  // sanity check(s)
+  ACE_ASSERT (!InlineIsEqualGUID (subType_in, GUID_NULL));
+
+  if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB1))
+    return DXGI_FORMAT_R1_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB4))
+    return DXGI_FORMAT_BC4_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB8))
+    return DXGI_FORMAT_R8_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB555))
+    return DXGI_FORMAT_B5G5R5A1_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB565))
+    return DXGI_FORMAT_B5G6R5_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB24))
+    return DXGI_FORMAT_R8G8B8A8_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB32))
+    return DXGI_FORMAT_R8G8B8A8_UNORM;
+  // uncompressed RGB (alpha)
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB1555))
+    return DXGI_FORMAT_B5G5R5A1_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB32))
+    return DXGI_FORMAT_R8G8B8A8_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB4444))
+    return DXGI_FORMAT_BC4_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_A2R10G10B10))
+    return DXGI_FORMAT_R10G10B10A2_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_A2B10G10R10))
+    return DXGI_FORMAT_R10G10B10A2_UNORM;
+  // video mixing renderer (VMR-7)
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB32_D3D_DX7_RT))
+    return DXGI_FORMAT_R8G8B8A8_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB16_D3D_DX7_RT))
+    return DXGI_FORMAT_B5G6R5_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB32_D3D_DX7_RT))
+    return DXGI_FORMAT_R8G8B8A8_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB4444_D3D_DX7_RT))
+    return DXGI_FORMAT_BC4_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB1555_D3D_DX7_RT))
+    return DXGI_FORMAT_B5G5R5A1_UNORM;
+  // video mixing renderer (VMR-9)
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB32_D3D_DX9_RT))
+    return DXGI_FORMAT_R8G8B8A8_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB16_D3D_DX9_RT))
+    return DXGI_FORMAT_B5G6R5_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB32_D3D_DX9_RT))
+    return DXGI_FORMAT_R8G8B8A8_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB4444_D3D_DX9_RT))
+    return DXGI_FORMAT_BC4_UNORM;
+  else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB1555_D3D_DX9_RT))
+    return DXGI_FORMAT_B5G5R5A1_UNORM;
+  //if ((subType_in.Data2 == 0x0000)  && (subType_in.Data3 == 0x0010)  &&
+  //    (subType_in.Data4[0] == 0x80) && (subType_in.Data4[1] == 0x00) && (subType_in.Data4[2] == 0x00) && (subType_in.Data4[3] == 0xAA) &&
+  //    (subType_in.Data4[4] == 0x00) && (subType_in.Data4[5] == 0x38) && (subType_in.Data4[6] == 0x9B) && (subType_in.Data4[7] == 0x71))
+  //  return static_cast<enum DXGI_FORMAT> (subType_in.Data1);
+  //// *TODO*
+  //ACE_ASSERT (false);
+  //ACE_NOTSUP_RETURN (result);
+  //ACE_NOTREACHED (return result;)
+
+  return result;
+}
+
 enum _D3DFORMAT
 Stream_MediaFramework_DirectDraw_Tools::toFormat (REFGUID subType_in,
                                                   enum Stream_MediaFramework_Type mediaFramework_in)

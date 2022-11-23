@@ -515,7 +515,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       } // end IF
       direct3DConfiguration_->presentationParameters.BackBufferFormat =
         //D3DFMT_X8R8G8B8;
-        Stream_MediaFramework_DirectDraw_Tools::toFormat (media_type_s.subtype);
+        Stream_MediaFramework_DirectDraw_Tools::toFormat (media_type_s.subtype,
+                                                          STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
 
       if (likely (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo)))
       { ACE_ASSERT (media_type_s.cbFormat == sizeof (struct tagVIDEOINFOHEADER));

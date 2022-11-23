@@ -82,6 +82,7 @@ class Stream_MediaFramework_DirectDraw_Tools
 
   // *NOTE*: return value (if any) includes leading '.'
   static std::string toFilenameExtension (enum _D3DXIMAGE_FILEFORMAT);
+  static enum DXGI_FORMAT toFormat_2 (REFGUID); // subtype
   static enum _D3DFORMAT toFormat (REFGUID, // subtype
                                    enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 
