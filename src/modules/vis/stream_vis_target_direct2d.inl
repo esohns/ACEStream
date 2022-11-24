@@ -261,16 +261,10 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
       { ACE_ASSERT (false); // *TODO*
       } // end ELSE
 
-      if (COM_initialized)
-        Common_Tools::finalizeCOM ();
-
       break;
 
 //error:
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-
-      if (COM_initialized)
-        Common_Tools::finalizeCOM ();
 
       notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -278,8 +272,6 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      bool COM_initialized = Common_Tools::initializeCOM ();
-
       if (inherited::window_)
       {
         inherited::notify_ = false;
@@ -293,9 +285,6 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
 
       if (inherited::thr_count_)
         inherited::wait ();
-
-      if (COM_initialized)
-        Common_Tools::finalizeCOM ();
 
       break;
     }

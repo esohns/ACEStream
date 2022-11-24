@@ -102,24 +102,25 @@ class Stream_CameraML_DirectShow_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_CameraML_DirectShow_Stream& operator= (const Stream_CameraML_DirectShow_Stream&))
 
   // modules
-  Stream_CameraML_DirectShow_Source_Module           source_;
-  Stream_CameraML_DirectShow_StatisticReport_Module  statisticReport_;
+  Stream_CameraML_DirectShow_Source_Module             source_;
+  Stream_CameraML_DirectShow_StatisticReport_Module    statisticReport_;
 #if defined (FFMPEG_SUPPORT)
-  Stream_CameraML_DirectShow_LibAVConvert_Module     convert_; // RGB
-  Stream_CameraML_DirectShow_LibAVResize_Module      resize_; // --> window size/fullscreen
+  Stream_CameraML_DirectShow_LibAVConvert_Module       convert_; // RGB
+  Stream_CameraML_DirectShow_LibAVResize_Module        resize_; // --> window size/fullscreen
 #endif // FFMPEG_SUPPORT
   //Stream_CameraML_DirectShow_HFlip_Module            flip_;
 #if defined (TENSORFLOW_CC_SUPPORT)
-  Stream_CameraML_DirectShow_Tensorflow_Module       tensorflow_;
+  Stream_CameraML_DirectShow_Tensorflow_Module         tensorflow_;
 #endif // TENSORFLOW_CC_SUPPORT
-  Stream_CameraML_DirectShow_LibAVConvert_Module     convert_2; // --> BGRA (Direct3D)
+  Stream_CameraML_DirectShow_LibAVConvert_Module       convert_2; // --> BGRA (Direct3D)
 #if defined (GTK_SUPPORT)
-  Stream_CameraML_DirectShow_GTK_Display_Module      GTKDisplay_;
+  Stream_CameraML_DirectShow_GTK_Display_Module        GTKDisplay_;
 #endif // GTK_SUPPORT
-  Stream_CameraML_DirectShow_GDI_Display_Module      GDIDisplay_;
-  Stream_CameraML_DirectShow_Direct2D_Display_Module Direct2DDisplay_;
-  Stream_CameraML_DirectShow_Direct3D_Display_Module Direct3DDisplay_;
-  Stream_CameraML_DirectShow_Display_Module          DirectShowDisplay_;
+  Stream_CameraML_DirectShow_GDI_Display_Module        GDIDisplay_;
+  Stream_CameraML_DirectShow_Direct2D_Display_Module   Direct2DDisplay_;
+  Stream_CameraML_DirectShow_Direct3D_Display_Module   Direct3DDisplay_;
+  Stream_CameraML_DirectShow_Direct3D11_Display_Module Direct3D11Display_;
+  Stream_CameraML_DirectShow_Display_Module            DirectShowDisplay_;
 };
 
 class Stream_CameraML_MediaFoundation_Stream

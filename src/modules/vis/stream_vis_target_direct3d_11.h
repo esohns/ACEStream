@@ -22,20 +22,15 @@
 #define STREAM_MODULE_VIS_TARGET_DIRECT3D_11_T_H
 
 #include "d3d11.h"
-#include "d3dcompiler.h"
+#include "guiddef.h"
 
 #include <string>
 
 #include "ace/Global_Macros.h"
 
-#include "common_ui_ifullscreen.h"
-#include "common_ui_windowtype_converter.h"
-
 #include "stream_common.h"
-#include "stream_imodule.h"
-#include "stream_task_base_synch.h"
 
-#include "stream_lib_mediatype_converter.h"
+#include "stream_vis_target_win32_base.h"
 
 extern const char libacestream_default_vis_direct3d11_module_name_string[];
 
@@ -53,30 +48,21 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename MediaType>
 class Stream_Vis_Target_Direct3D11_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData>
- , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
- , public Common_UI_WindowTypeConverter_T<HWND>
- , public Common_UI_IFullscreen
+ : public Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
+                                         TimePolicyType,
+                                         ConfigurationType,
+                                         ControlMessageType,
+                                         DataMessageType,
+                                         SessionMessageType,
+                                         MediaType>
 {
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
-  typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;
+  typedef Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
+                                         TimePolicyType,
+                                         ConfigurationType,
+                                         ControlMessageType,
+                                         DataMessageType,
+                                         SessionMessageType,
+                                         MediaType> inherited;
 
  public:
   Stream_Vis_Target_Direct3D11_T (ISTREAM_T*); // stream handle
@@ -98,10 +84,9 @@ class Stream_Vis_Target_Direct3D11_T
   bool compileShaders (const std::string&, // (FQ) filename
                        ID3D11Device*);     // device handle
 
-  HWND                      clientWindow_;
-  bool                      closeWindow_;
   ID3D11DeviceContext*      context_;
   ID3D11Device*             device_;
+  struct _GUID              format_;
   ID3D11RenderTargetView*   renderTargetView_;
   ID3D11ShaderResourceView* shaderResourceView_;
   IDXGISwapChain*           swapChain_;
@@ -132,6 +117,13 @@ class Stream_Vis_Target_Direct3D11_T
                                          SessionDataType,
                                          SessionDataContainerType,
                                          MediaType> OWN_TYPE_T;
+
+  // override (part of) ACE_Task_Base
+  virtual int svc ();
+
+  // helper methods
+  bool initialize_Direct3D (HWND,     // (target-) window handle
+                            REFGUID); // (input-) format
 };
 
 // include template definition

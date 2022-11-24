@@ -507,7 +507,9 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , display ()
    , fullScreen (false)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
    , shaderFile ()
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (GUI_SUPPORT)
    , window (NULL)
 #endif // GUI_SUPPORT
@@ -519,7 +521,9 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   struct Stream_Device_Identifier deviceIdentifier; // source/renderer module
   struct Common_UI_DisplayDevice  display;
   bool                            fullScreen;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::string                     shaderFile;
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) && defined (GTK_USE)
   GdkWindow*                      window;

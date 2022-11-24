@@ -117,8 +117,12 @@ do_print_usage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-3          : use Direct3D renderer [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-3          : use Direct3D 9 renderer [")
             << true
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-1          : use Direct3D 11 renderer [")
+            << false
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #else
@@ -279,7 +283,7 @@ do_process_arguments (int argc_in,
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:f:lo:tv");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  options_string += ACE_TEXT_ALWAYS_CHAR ("23m");
+  options_string += ACE_TEXT_ALWAYS_CHAR ("231m");
 #else
   options_string += ACE_TEXT_ALWAYS_CHAR ("1");
 #endif // ACE_WIN32 || ACE_WIN64
@@ -306,6 +310,11 @@ do_process_arguments (int argc_in,
       case '3':
       {
         renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D;
+        break;
+      }
+      case '1':
+      {
+        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11;
         break;
       }
 #else
@@ -933,7 +942,26 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         deviceIdentifier_in;
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
-      //directshow_modulehandler_configuration.lock = &state_r.subscribersLock;
+      directshow_modulehandler_configuration.shaderFile =
+        Common_File_Tools::getSourceDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                               ACE_TEXT_ALWAYS_CHAR (""));
+      directshow_modulehandler_configuration.shaderFile +=
+        ACE_DIRECTORY_SEPARATOR_STR;
+      directshow_modulehandler_configuration.shaderFile +=
+        ACE_TEXT_ALWAYS_CHAR (STREAM_SUBMODULE_SUBDIRECTORY_STRING);
+      directshow_modulehandler_configuration.shaderFile +=
+        ACE_DIRECTORY_SEPARATOR_STR;
+      directshow_modulehandler_configuration.shaderFile +=
+        ACE_TEXT_ALWAYS_CHAR (STREAM_SUBMODULE_VISUALIZATION_DIRECTORY_STRING);
+      directshow_modulehandler_configuration.shaderFile +=
+        ACE_DIRECTORY_SEPARATOR_STR;
+      directshow_modulehandler_configuration.shaderFile +=
+        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+      directshow_modulehandler_configuration.shaderFile +=
+        ACE_DIRECTORY_SEPARATOR_STR;
+      directshow_modulehandler_configuration.shaderFile +=
+        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_11_DEFAULT_SHADER_FILE);
+      ACE_ASSERT (Common_File_Tools::isReadable (directshow_modulehandler_configuration.shaderFile));
 
       //if (statisticReportingInterval_in)
       //{

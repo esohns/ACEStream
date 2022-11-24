@@ -372,6 +372,7 @@ struct Stream_CameraML_ModuleHandlerConfiguration
    , display ()
    , fullScreen (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , shaderFile ()
    , window (NULL)
 #else
    , window (0)
@@ -392,6 +393,7 @@ struct Stream_CameraML_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
   bool                            fullScreen;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::string                     shaderFile;
   HWND                            window;
 #else
   Window                          window;

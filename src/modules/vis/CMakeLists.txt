@@ -321,6 +321,8 @@ elseif (WIN32)
 # target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC uuids.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC User32.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC D2d1.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC d3d11.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC d3dcompiler.lib)
 endif ()
 
 target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${ACE_LIBRARY})

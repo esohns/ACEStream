@@ -174,8 +174,6 @@ elseif (WIN32)
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcpmt.lib\"")
  endif (MSVC)
- target_link_libraries (${EXECUTABLE} PUBLIC d3d11.lib)
- target_link_libraries (${EXECUTABLE} PUBLIC d3dcompiler.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
 
  if (CMAKE_BUILD_TYPE STREQUAL Debug)

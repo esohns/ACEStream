@@ -1617,15 +1617,24 @@ error:
       ACE_OS::strcpy (directshow_modulehandler_configuration_3.deviceIdentifier.identifier._string,
                       displayDevice_in.device.c_str ());
       directshow_modulehandler_configuration_3.shaderFile =
-        Common_File_Tools::getWorkingDirectory ();
+        Common_File_Tools::getSourceDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                               ACE_TEXT_ALWAYS_CHAR (""));
       directshow_modulehandler_configuration_3.shaderFile +=
         ACE_DIRECTORY_SEPARATOR_STR;
       directshow_modulehandler_configuration_3.shaderFile +=
-        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+        ACE_TEXT_ALWAYS_CHAR (STREAM_SUBMODULE_SUBDIRECTORY_STRING);
       directshow_modulehandler_configuration_3.shaderFile +=
         ACE_DIRECTORY_SEPARATOR_STR;
       directshow_modulehandler_configuration_3.shaderFile +=
-        ACE_TEXT_ALWAYS_CHAR ("shaders.hlsl");
+        ACE_TEXT_ALWAYS_CHAR (STREAM_SUBMODULE_VISUALIZATION_DIRECTORY_STRING);
+      directshow_modulehandler_configuration_3.shaderFile +=
+        ACE_DIRECTORY_SEPARATOR_STR;
+      directshow_modulehandler_configuration_3.shaderFile +=
+        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+      directshow_modulehandler_configuration_3.shaderFile +=
+        ACE_DIRECTORY_SEPARATOR_STR;
+      directshow_modulehandler_configuration_3.shaderFile +=
+        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_11_DEFAULT_SHADER_FILE);
       ACE_ASSERT (Common_File_Tools::isReadable (directshow_modulehandler_configuration_3.shaderFile));
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (directshow_stream_configuration.renderer),
                                                                              std::make_pair (&module_configuration,

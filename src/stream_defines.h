@@ -83,4 +83,8 @@
 #define STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL_MS     500 // ms [0: off]
 #define STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S       0 // second(s) [0: off]
 
+// submodule
+#define STREAM_SUBMODULE_SUBDIRECTORY_STRING                "modules"
+#define STREAM_SUBMODULE_VISUALIZATION_DIRECTORY_STRING     "vis"
+
 #endif
