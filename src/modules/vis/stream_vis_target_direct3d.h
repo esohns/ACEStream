@@ -106,6 +106,15 @@ class Stream_Vis_Target_Direct3D_T
   virtual void toggle ();
 
  protected:
+  // helper types
+  typedef Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
+                                         TimePolicyType,
+                                         ConfigurationType,
+                                         ControlMessageType,
+                                         DataMessageType,
+                                         SessionMessageType,
+                                         MediaType> WIN32_BASE_T;
+   
   // helper methods
   bool initialize_Direct3D (struct Stream_MediaFramework_Direct3D_Configuration&, // in/out: configuration
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
@@ -115,6 +124,7 @@ class Stream_Vis_Target_Direct3D_T
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                             struct _D3DPRESENT_PARAMETERS_&);                     // in/out: Direct3D presentation parameters
 
+  HRESULT setTransformation (REFGUID); // (inbound) sub-type
   // *NOTE*: takes a source rectangle and constructs the largest possible
   //         centered rectangle within the specified destination rectangle such
   //         that the image maintains its current aspect ratio. This function
@@ -179,7 +189,6 @@ class Stream_Vis_Target_Direct3D_T
   // helper methods
   // *NOTE*: all image data needs to be transformed to RGB32
   bool isFormatSupported (REFGUID); // sub-type
-  HRESULT setTransformation (REFGUID); // (inbound) sub-type
   HRESULT getFormat (DWORD,                // index
                      struct _GUID&) const; // return value: sub-type
 //  HRESULT createSwapChain (HWND,                                  // (target) window handle
