@@ -43,7 +43,6 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -65,7 +64,6 @@
 #endif // HAVE_CONFIG_H
 
 #include "stream_allocatorheap.h"
-#include "stream_control_message.h"
 #include "stream_macros.h"
 
 #include "stream_dev_defines.h"
@@ -78,13 +76,11 @@
 
 #include "stream_misc_defines.h"
 
-#include "stream_vis_tools.h"
-
-#include "test_u_common.h"
 #include "test_u_defines.h"
 
 #include "test_u_camerascreen_defines.h"
 #include "test_u_camerascreen_eventhandler.h"
+#include "test_u_camerascreen_signalhandler.h"
 #include "test_u_camerascreen_stream.h"
 
 #if defined (CURSES_SUPPORT)
@@ -912,6 +908,63 @@ do_finalize_v4l (struct Stream_Device_Identifier& deviceIdentifier_inout)
 #endif // ACE_WIN32 || ACE_WIN64
 
 void
+do_initializeSignals (ACE_Sig_Set& signals_out)
+{
+  STREAM_TRACE (ACE_TEXT ("::do_initializeSignals"));
+
+  int result = -1;
+
+  // initialize return value(s)
+  result = signals_out.empty_set ();
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Sig_Set::empty_set(): \"%m\", returning\n")));
+    return;
+  } // end IF
+
+  // *PORTABILITY*: on Windows most signals are not defined,
+  // and ACE_Sig_Set::fill_set() doesn't really work as specified
+  // --> add valid signals (see <signal.h>)...
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  signals_out.sig_add (SIGINT);            // 2       /* interrupt */
+  signals_out.sig_add (SIGILL);            // 4       /* illegal instruction - invalid function image */
+  signals_out.sig_add (SIGFPE);            // 8       /* floating point exception */
+  //  signals_out.sig_add(SIGSEGV);          // 11      /* segment violation */
+  signals_out.sig_add (SIGTERM);           // 15      /* Software termination signal from kill */
+  signals_out.sig_add (SIGBREAK);        // 21      /* Ctrl-Break sequence */
+//  ignoredSignals_out.sig_add (SIGBREAK); // 21      /* Ctrl-Break sequence */
+  signals_out.sig_add (SIGABRT);           // 22      /* abnormal termination triggered by abort call */
+  signals_out.sig_add (SIGABRT_COMPAT);    // 6       /* SIGABRT compatible with other platforms, same as SIGABRT */
+#else
+  result = signals_out.fill_set ();
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Sig_Set::fill_set(): \"%m\", returning\n")));
+    return;
+  } // end IF
+  // *NOTE*: cannot handle some signals --> registration fails for these...
+  signals_out.sig_del (SIGKILL);           // 9       /* Kill signal */
+  // ---------------------------------------------------------------------------
+  // *NOTE* core dump on SIGSEGV
+  signals_out.sig_del (SIGSEGV);           // 11      /* Segmentation fault: Invalid memory reference */
+  // *NOTE* don't care about SIGPIPE
+  signals_out.sig_del (SIGPIPE);           // 12      /* Broken pipe: write to pipe with no readers */
+  signals_out.sig_del (SIGSTOP);           // 19      /* Stop process */
+
+  // *IMPORTANT NOTE*: "...NPTL makes internal use of the first two real-time
+  //                   signals (see also signal(7)); these signals cannot be
+  //                   used in applications. ..." (see 'man 7 pthreads')
+  // --> on POSIX platforms, make sure that ACE_SIGRTMIN == 34
+//  for (int i = ACE_SIGRTMIN;
+//       i <= ACE_SIGRTMAX;
+//       i++)
+//    signals_out.sig_del (i);
+#endif // ACE_WIN32 || ACE_WIN64
+}
+
+void
 do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
@@ -927,6 +980,39 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
          )
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
+
+  ACE_Sig_Set handled_signals, ignored_signals, previous_mask;
+  Common_SignalActions_t previous_actions_a;
+  do_initializeSignals (handled_signals);
+
+  Test_U_SignalHandler signal_handler;
+  if (!signal_handler.initialize (configuration_in.signalHandlerConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Test_U_SignalHandler::initialize(): \"%m\", returning\n")));
+    return;
+  } // end IF
+  if (!Common_Signal_Tools::preInitialize (handled_signals,
+                                           COMMON_SIGNAL_DISPATCH_SIGNAL,
+                                           false,
+                                           false,
+                                           previous_actions_a,
+                                           previous_mask))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(): \"%m\", returning\n")));
+    return;
+  } // end IF
+  if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+                                        handled_signals,
+                                        ignored_signals,
+                                        &signal_handler,
+                                        previous_actions_a))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Signal_Tools::initialize(): \"%m\", returning\n")));
+    return;
+  } // end IF
 
   // ********************** module configuration data **************************
   struct Stream_AllocatorConfiguration allocator_configuration;
@@ -1113,6 +1199,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   Stream_CameraScreen_Stream stream;
   Stream_CameraScreen_MessageHandler_Module message_handler (&stream,
                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+
+  configuration_in.signalHandlerConfiguration.stream = &stream;
 
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module = &message_handler;
@@ -1512,6 +1600,9 @@ clean:
                  true,
                  true);
 #endif // ACE_WIN32 || ACE_WIN64
+  Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+                                 previous_actions_a,
+                                 previous_mask);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));

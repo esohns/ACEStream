@@ -97,6 +97,8 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_camerascreen_session_message.cpp
      test_u_camerascreen_session_message.h
      test_u_camerascreen_session_message.inl
+     test_u_camerascreen_signalhandler.cpp
+     test_u_camerascreen_signalhandler.h
      test_u_camerascreen_stream.cpp
      test_u_camerascreen_stream.h)
 if (CURSES_SUPPORT)
