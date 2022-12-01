@@ -76,6 +76,8 @@
 
 #include "stream_misc_defines.h"
 
+#include "stream_vis_tools.h"
+
 #include "test_u_defines.h"
 
 #include "test_u_camerascreen_defines.h"
@@ -986,7 +988,31 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   do_initializeSignals (handled_signals);
 
   Test_U_SignalHandler signal_handler;
-  if (!signal_handler.initialize (configuration_in.signalHandlerConfiguration))
+  bool result = false;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      result =
+        signal_handler.initialize (directShowConfiguration_in.signalHandlerConfiguration);
+      break;
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      result =
+        signal_handler.initialize (mediaFoundationConfiguration_in.signalHandlerConfiguration);
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    }
+  } // end SWITCH
+#else
+  result =
+    signal_handler.initialize (configuration_in.signalHandlerConfiguration);
+#endif // ACE_WIN32 || ACE_WIN64
+  if (unlikely (!result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Test_U_SignalHandler::initialize(): \"%m\", returning\n")));

@@ -945,7 +945,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   } // end IF
 
   currentOffset_ += sizeof (struct _riffchunk) + total_length_i;
-  currentRIFFOffset_ += sizeof (struct _riffchunk) + total_length_i;
+  currentRIFFOffset_ += sizeof (struct _riffchunk) + static_cast<ACE_UINT32> (total_length_i);
   currentFrameOffset_ += sizeof (struct _riffchunk) + total_length_i;
 
   result = inherited::put_next (message_block_p, NULL);
