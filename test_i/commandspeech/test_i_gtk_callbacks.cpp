@@ -206,10 +206,13 @@ load_playback_devices (GtkListStore* listStore_in)
 
         result_2 = property_store_p->GetValue (PKEY_Device_FriendlyName,
                                                &property_s);
-        ACE_ASSERT (SUCCEEDED (result_2));
-        ACE_ASSERT (property_s.vt == VT_LPWSTR);
-        device_friendlyname_string =
-          ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal));
+        if (SUCCEEDED (result_2))
+        { ACE_ASSERT (property_s.vt == VT_LPWSTR);
+          device_friendlyname_string =
+            ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal));
+        } // end IF
+        else
+          device_friendlyname_string.clear ();
         PropVariantClear (&property_s);
         result_2 = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
                                                &property_s);

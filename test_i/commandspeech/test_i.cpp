@@ -1081,10 +1081,10 @@ do_work (
 #else
          struct Test_I_ALSA_Configuration& configuration_in,
 #endif // ACE_WIN32 || ACE_WIN64
-         const ACE_Sig_Set& signalSet_in,
+         ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
-         const ACE_Sig_Set& previousSignalMask_in)
+         ACE_Sig_Set& previousSignalMask_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
@@ -1947,8 +1947,8 @@ do_work (
 #endif // GUI_SUPPORT
 
   // step3: clean up
-  //input_manager_p->stop (true,   // wait ?
-  //                        false); // N/A
+  input_manager_p->stop (true,   // wait for completion ?
+                         false); // N/A
 //  result = stream_2_r.remove (&input_handler_module,
 //                              true,   // lock ?
 //                              false); // reset ?
