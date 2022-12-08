@@ -35,7 +35,6 @@ extern "C"
 #include "stream_lib_mediatype_converter.h"
 
 // forward declaration(s)
-struct SwsContext;
 class ACE_Message_Block;
 class Stream_IAllocator;
 
