@@ -22,7 +22,7 @@ src/db:   community-mysql-devel
 src/dec:  alsa-lib-devel sox-devel ffmpeg-devel opencv-devel
 src/dev:  libv4l-devel
 src/html: libxml2-devel
-src/vis:  freeglut-devel
+src/vis:  freeglut-devel wayland-protocols-devel
 
 test_u:   libcap-devel libnl3-devel freeglut-devel libmpg123-devel
 test_i:   zlib-devel openssl-devel libreoffice-sdk
