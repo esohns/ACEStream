@@ -272,7 +272,7 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream::initialize"));
 
-  bool result = false;
+//  bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Test_I_ExtractStream_SessionData* session_data_p = NULL;

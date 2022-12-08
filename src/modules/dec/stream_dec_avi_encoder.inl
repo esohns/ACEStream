@@ -831,8 +831,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   packet_s.data = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   packet_s.size = message_inout->length ();
   packet_s.dts = packet_s.pts;
-  packet_s.time_base =
-    formatContext_->streams[packet_s.stream_index]->time_base;
+//  packet_s.time_base =
+//    formatContext_->streams[packet_s.stream_index]->time_base;
   packet_s.pts =
     av_rescale_q_rnd (packet_s.pts,
                       codec_context_p->time_base,

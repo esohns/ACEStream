@@ -926,7 +926,7 @@ yy_symbol_value_print (FILE *yyo,
                           { const char* char_p =
                               reinterpret_cast<const char*> (&((*yyvaluep).chunk_meta).identifier);
                             ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u, offset: %u\n"),
+                                             ACE_TEXT_ALWAYS_CHAR ("@%lu: fourcc: \"%c%c%c%c\", size: %u, offset: %lu\n"),
                                              ((*yyvaluep).chunk_meta).offset,
                                              char_p[3],char_p[2],char_p[1],char_p[0],
                                              ((*yyvaluep).chunk_meta).size,
@@ -938,7 +938,7 @@ yy_symbol_value_print (FILE *yyo,
                           { const char* char_p =
                               reinterpret_cast<const char*> (&((*yyvaluep).chunk_meta).identifier);
                             ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u, offset: %u\n"),
+                                             ACE_TEXT_ALWAYS_CHAR ("@%lu: fourcc: \"%c%c%c%c\", size: %u, offset: %lu\n"),
                                              ((*yyvaluep).chunk_meta).offset,
                                              char_p[3],char_p[2],char_p[1],char_p[0],
                                              ((*yyvaluep).chunk_meta).size,
@@ -950,7 +950,7 @@ yy_symbol_value_print (FILE *yyo,
                           { const char* char_p =
                               reinterpret_cast<const char*> (&((*yyvaluep).chunk_meta).identifier);
                             ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u, offset: %u\n"),
+                                             ACE_TEXT_ALWAYS_CHAR ("@%lu: fourcc: \"%c%c%c%c\", size: %u, offset: %lu\n"),
                                              ((*yyvaluep).chunk_meta).offset,
                                              char_p[3],char_p[2],char_p[1],char_p[0],
                                              ((*yyvaluep).chunk_meta).size,
@@ -962,7 +962,7 @@ yy_symbol_value_print (FILE *yyo,
                           { const char* char_p =
                               reinterpret_cast<const char*> (&((*yyvaluep).chunk_meta).identifier);
                             ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u, offset: %u\n"),
+                                             ACE_TEXT_ALWAYS_CHAR ("@%lu: fourcc: \"%c%c%c%c\", size: %u, offset: %lu\n"),
                                              ((*yyvaluep).chunk_meta).offset,
                                              char_p[3],char_p[2],char_p[1],char_p[0],
                                              ((*yyvaluep).chunk_meta).size,
