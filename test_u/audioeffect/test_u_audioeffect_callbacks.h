@@ -124,6 +124,9 @@ extern "C"
   G_MODULE_EXPORT void hscale_perlin_persistence_value_changed_cb (GtkRange*, gpointer);
   G_MODULE_EXPORT void hscale_perlin_lacunarity_value_changed_cb (GtkRange*, gpointer);
   G_MODULE_EXPORT void hscale_volume_value_changed_cb (GtkRange*, gpointer);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  G_MODULE_EXPORT void hscale_win32_ds_flanger_wetdrymix_value_changed_cb (GtkRange*, gpointer);
+#endif // ACE_WIN32 || ACE_WIN64
   G_MODULE_EXPORT void radiobutton_2d_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void radiobutton_noise_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void togglebutton_3d_toggled_cb (GtkToggleButton*, gpointer);

@@ -373,9 +373,6 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::initialize"));
 
-  // sanity check(s)
-  ACE_ASSERT (!isRunning ());
-
   bool result = false;
   HRESULT result_2 = E_FAIL;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;

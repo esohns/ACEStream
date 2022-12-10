@@ -1791,7 +1791,9 @@ Stream_MediaFramework_DirectSound_Tools::toString (const struct tWAVEFORMATEX& f
   converter << format_in.cbSize;
   result += converter.str ();
 
-  if (format_in.wFormatTag == WAVE_FORMAT_EXTENSIBLE)
+  if (format_in.wFormatTag == WAVE_FORMAT_PCM)
+    ;
+  else if (format_in.wFormatTag == WAVE_FORMAT_EXTENSIBLE)
   {
     const WAVEFORMATEXTENSIBLE* waveformatextensible_p =
       reinterpret_cast<const WAVEFORMATEXTENSIBLE*> (&format_in);
@@ -1826,7 +1828,7 @@ Stream_MediaFramework_DirectSound_Tools::toString (const struct tWAVEFORMATEX& f
     result += ACE_TEXT_ALWAYS_CHAR ("\"");
   } // end IF
   else // *TODO*
-    ACE_DEBUG ((LM_DEBUG,
+    ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown wave formattype (was: %d), continuing\n"),
                 format_in.wFormatTag));
 

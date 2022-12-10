@@ -61,6 +61,8 @@
 #define TEST_U_STREAM_UI_GTK_BUTTON_CUT_NAME                   "button_cut"
 #define TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME                "button_report"
 #define TEST_U_STREAM_UI_GTK_BOX_DISPLAY_NAME                  "vbox_display"
+#define TEST_U_STREAM_UI_GTK_BOX_EFFECT_NAME                   "box_effect"
+#define TEST_U_STREAM_UI_GTK_BOX_EFFECT_2_NAME                 "box_effect_2"
 #define TEST_U_STREAM_UI_GTK_BUTTON_ABOUT_NAME                 "button_about"
 #define TEST_U_STREAM_UI_GTK_BUTTON_DEVICE_RESET_NAME          "button_device_reset"
 #define TEST_U_STREAM_UI_GTK_BUTTON_DEVICE_SETTINGS_NAME       "button_device_settings"
@@ -91,6 +93,9 @@
 #define TEST_U_STREAM_UI_GTK_FILEFILTER_WAV_NAME               "filefilter_wav"
 #define TEST_U_STREAM_UI_GTK_FRAME_DEVICE_NAME                 "frame_device"
 #define TEST_U_STREAM_UI_GTK_FRAME_EFFECT_NAME                 "frame_effect"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define TEST_U_STREAM_UI_GTK_FRAME_EFFECT_WIN32_DS_FLANGER_OPTIONS_NAME "frame_effect_win32_ds_flanger_options"
+#endif // ACE_WIN32 || ACE_WIN64
 #define TEST_U_STREAM_UI_GTK_FRAME_FILE_NAME                   "frame_file"
 #define TEST_U_STREAM_UI_GTK_FRAME_NOISE_NAME                  "frame_noise"
 #define TEST_U_STREAM_UI_GTK_FRAME_PERLIN_NAME                 "frame_perlin"
@@ -135,7 +140,6 @@
 #define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_3D_NAME              "togglebutton_3d"
 #define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME            "togglebutton_mute"
 #define TEST_U_STREAM_UI_GTK_VBOX_CONFIGURATION_NAME           "vbox_configuration"
-#define TEST_U_STREAM_UI_GTK_VBOX_EFFECT_NAME                  "vbox_effect"
 #define TEST_U_STREAM_UI_GTK_VBOX_FORMAT_OPTIONS_NAME          "vbox_format_options"
 #define TEST_U_STREAM_UI_GTK_VBOX_NOISE_NAME                   "vbox_noise"
 #define TEST_U_STREAM_UI_GTK_VBOX_NOISE_OPTIONS_NAME           "vbox_noise_options"

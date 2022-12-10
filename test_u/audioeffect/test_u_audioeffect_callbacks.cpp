@@ -8218,6 +8218,43 @@ hscale_perlin_lacunarity_value_changed_cb (GtkRange* range_in,
 #endif // LIBNOISE_SUPPORT
 } // hscale_perlin_lacunarity_value_changed_cb
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+void
+hscale_win32_ds_flanger_wetdrymix_value_changed_cb (GtkRange* range_in,
+                                                    gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::hscale_win32_ds_flanger_wetdrymix_value_changed_cb"));
+
+  // sanity check(s)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+  ACE_ASSERT (directshow_ui_cb_data_p);
+  ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator =
+    directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+  (*directshow_modulehandler_configuration_iterator).second.second->effectOptions.flangerOptions.fWetDryMix =
+    static_cast<FLOAT> (gtk_range_get_value (range_in));
+  if (!(*directshow_modulehandler_configuration_iterator).second.second->builder)
+    return; // stream not running ?
+
+  IBaseFilter* filter_p = NULL;
+  HRESULT result =
+    (*directshow_modulehandler_configuration_iterator).second.second->builder->FindFilterByName (STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO,
+                                                                                                 &filter_p);
+  ACE_ASSERT (SUCCEEDED (result) && filter_p);
+  IDirectSoundFXFlanger* effect_p = NULL;
+  result = filter_p->QueryInterface (IID_IDirectSoundFXFlanger,
+                                     (void**)&effect_p);
+  ACE_ASSERT (SUCCEEDED (result) && effect_p);
+  filter_p->Release (); filter_p = NULL;
+  result =
+    effect_p->SetAllParameters (&(*directshow_modulehandler_configuration_iterator).second.second->effectOptions.flangerOptions);
+  ACE_ASSERT (SUCCEEDED (result));
+  effect_p->Release (); effect_p = NULL;
+} // hscale_win32_ds_flanger_wetdrymix_value_changed_cb
+#endif // ACE_WIN32 || ACE_WIN64
+
 void
 togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
                                 gpointer userData_in)
@@ -9215,8 +9252,33 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   std::string effect_string = g_value_get_string (&value);
   g_value_unset (&value);
+
+  // step1: load configuration options
+  GtkBox* box_p =
+    GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_EFFECT_NAME)));
+  ACE_ASSERT (box_p);
+  GtkWidget* box_2 =
+    GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_EFFECT_2_NAME)));
+  ACE_ASSERT (box_2);
+  gtk_container_remove (GTK_CONTAINER (box_p),
+                        box_2);
+  GList* list_p = NULL, * list_2 = NULL;
+  list_p = gtk_container_get_children (GTK_CONTAINER (box_p));
+  for (list_2 = list_p; list_2; list_2 = g_list_next (list_2))
+  {
+    g_object_ref (G_OBJECT (GTK_WIDGET (list_2->data)));
+    gtk_container_remove (GTK_CONTAINER (box_p),
+                          GTK_WIDGET (list_2->data));
+  } // end FOR
+  g_list_free (list_p); list_p = NULL;
+  gtk_container_add (GTK_CONTAINER (box_p),
+                     box_2);
+  GtkFrame* frame_p = NULL;
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value_2 = G_VALUE_INIT;
 #else
   GValue value_2;
@@ -9319,6 +9381,14 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
         effect_options.lWaveform = DSFXFLANGER_WAVE_SIN;
         (*directshow_modulehandler_configuration_iterator).second.second->effectOptions.flangerOptions =
           effect_options;
+
+        // *TODO*: reset option widgets as well
+
+        frame_p =
+          GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_EFFECT_WIN32_DS_FLANGER_OPTIONS_NAME)));
+        ACE_ASSERT (frame_p);
+        gtk_widget_unparent (GTK_WIDGET (frame_p));
       } // end ELSE IF
       else if (InlineIsEqualGUID (effect_GUID, GUID_DSFX_STANDARD_GARGLE))
       {
@@ -9430,6 +9500,12 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("invalid/unknown effect (was: \"%s\"), using default options, continuing\n"),
                 ACE_TEXT (effect_string.c_str ())));
 #endif // ACE_WIN32 || ACE_WIN64
+
+  if (frame_p)
+    gtk_box_pack_start (box_p, GTK_WIDGET (frame_p),
+                        TRUE, // expand
+                        TRUE, // fill
+                        0);   // padding
 } // combobox_effect_changed_cb
 
 void
