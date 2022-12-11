@@ -4248,8 +4248,31 @@ idle_initialize_UI_cb (gpointer userData_in)
       directshow_modulehandler_configuration_iterator_2 =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator_2 != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      std::string renderer_modulename_string;
+      switch (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->renderer)
+      {
+        case STREAM_DEVICE_RENDERER_WAVEOUT:
+          renderer_modulename_string =
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING);
+          break;
+        case STREAM_DEVICE_RENDERER_WASAPI:
+          renderer_modulename_string =
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING);
+          break;
+        case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+          renderer_modulename_string =
+            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING);
+          break;
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown renderer type (was: %d), aborting\n"),
+                      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->renderer));
+          goto error;
+        }
+      } // end SWITCH
       directshow_modulehandler_configuration_iterator_3 =
-        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING));
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (renderer_modulename_string);
       ACE_ASSERT (directshow_modulehandler_configuration_iterator_3 != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
@@ -4874,11 +4897,35 @@ idle_initialize_UI_cb (gpointer userData_in)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
-      GUID_s =
-        Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifier._id,
-                                                                                false); // playback
-      GUID_2 = GUID_NULL; // *NOTE*: waveOut devices join the default audio session --> GUID_NULL
+    { 
+      switch (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->renderer)
+      {
+        case STREAM_DEVICE_RENDERER_WAVEOUT:
+        { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+          GUID_s =
+            Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifier._id,
+                                                                                    false); // playback
+          GUID_2 = GUID_NULL; // *NOTE*: waveOut devices join the default audio session --> GUID_NULL
+          break;
+        }
+        case STREAM_DEVICE_RENDERER_WASAPI:
+        { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+          GUID_s =
+            (*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifier._guid;
+          break;
+        }
+        case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+        { ACE_ASSERT (false); // *TODO*
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown renderer type (was: %d), aborting\n"),
+                      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->renderer));
+          goto error;
+        }
+      } // end SWITCH
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -6036,17 +6083,12 @@ idle_session_end_cb (gpointer userData_in)
   ACE_ASSERT (box_p);
   gtk_widget_set_sensitive (GTK_WIDGET (box_p), TRUE);
 
-  GtkCheckButton* check_button_p =
-    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME)));
-  ACE_ASSERT (check_button_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (check_button_p), TRUE);
+  box_p =
+    GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_EFFECT_2_NAME)));
+  ACE_ASSERT (box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (box_p), TRUE);
 
-  toggle_button_p =
-    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
-  ACE_ASSERT (toggle_button_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_PROPERTIES_NAME)));
@@ -6750,17 +6792,12 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), FALSE);
 
-  GtkCheckButton* check_button_p =
-    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME)));
-  ACE_ASSERT (check_button_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (check_button_p), FALSE);
+  box_p =
+    GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_EFFECT_2_NAME)));
+  ACE_ASSERT (box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (box_p), FALSE);
 
-  GtkToggleButton* toggle_button_p =
-    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
-  ACE_ASSERT (toggle_button_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), FALSE);
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_PROPERTIES_NAME)));

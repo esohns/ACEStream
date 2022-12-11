@@ -1120,6 +1120,7 @@ do_work (
                                //: STREAM_DEVICE_CAPTURER_WAVEIN);
       directshow_stream_configuration.renderer =
         (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_DIRECTSHOW
+                                 //: STREAM_DEVICE_RENDERER_WASAPI);
                                  : STREAM_DEVICE_RENDERER_WAVEOUT);
 #if defined (GTKGL_SUPPORT)
       directShowCBData_in.OpenGLInstructions = &directshow_stream.instructions_;
@@ -1339,9 +1340,16 @@ do_work (
         }
         case STREAM_DEVICE_RENDERER_WASAPI:
         {
+          directshow_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::GUID;
+          directshow_modulehandler_configuration_3.deviceIdentifier.identifier._guid =
+            (mute_in ? GUID_NULL
+                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
+                                                                                               false)); // playback
+
           renderer_modulename_string =
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING);
-          // *WARNING*: falls through !
+          break;
         }
         case STREAM_DEVICE_RENDERER_DIRECTSHOW:
         {
@@ -1351,6 +1359,8 @@ do_work (
             (mute_in ? GUID_NULL
                      : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
                                                                                                false)); // playback
+          renderer_modulename_string =
+            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING);
           break;
         }
         default:

@@ -89,6 +89,82 @@
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
+  <object class="GtkFileFilter" id="filefilter_mp3"/>
+  <object class="GtkFileChooserDialog" id="filechooserdialog_file">
+    <property name="can_focus">False</property>
+    <property name="title" translatable="yes">choose a sound file...</property>
+    <property name="modal">True</property>
+    <property name="type_hint">dialog</property>
+    <property name="create_folders">False</property>
+    <property name="filter">filefilter_mp3</property>
+    <property name="local_only">False</property>
+    <property name="preview_widget_active">False</property>
+    <property name="show_hidden">True</property>
+    <property name="use_preview_label">False</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="filechooserdialog_box_file">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="filechooserdialog_buttonbox_file">
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="button_cancel_file">
+                <property name="label">gtk-cancel</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="relief">half</property>
+                <property name="use_stock">True</property>
+                <property name="focus_on_click">False</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="button_select_file">
+                <property name="label">gtk-apply</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="relief">half</property>
+                <property name="use_stock">True</property>
+                <property name="focus_on_click">False</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="-6">button_cancel_file</action-widget>
+      <action-widget response="-5">button_select_file</action-widget>
+    </action-widgets>
+  </object>
+  <object class="GtkFileFilter" id="filefilter_wav">
+    <patterns>
+      <pattern>*.wav</pattern>
+    </patterns>
+  </object>
   <object class="GtkFileChooserDialog" id="filechooserdialog_save">
     <property name="can_focus">False</property>
     <property name="modal">True</property>
@@ -163,6 +239,14 @@
       <action-widget response="-6">button_cancel_save</action-widget>
       <action-widget response="-5">button_select_save</action-widget>
     </action-widgets>
+  </object>
+  <object class="GtkListStore" id="liststore_source">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="guint"/>
+    </columns>
   </object>
   <object class="GtkAboutDialog" id="dialog_about">
     <property name="can_focus">False</property>
@@ -611,53 +695,24 @@
                                                   </packing>
                                                 </child>
                                                 <child>
-                                                  <object class="GtkBox" id="box_effect_3">
+                                                  <object class="GtkComboBox" id="combobox_effect">
                                                     <property name="visible">True</property>
+                                                    <property name="sensitive">False</property>
                                                     <property name="can_focus">False</property>
-                                                    <child>
-                                                      <object class="GtkComboBox" id="combobox_effect">
-                                                        <property name="visible">True</property>
-                                                        <property name="sensitive">False</property>
-                                                        <property name="can_focus">False</property>
-                                                        <property name="can_default">True</property>
-                                                        <property name="receives_default">True</property>
-                                                        <property name="has_tooltip">True</property>
-                                                        <property name="tooltip_text" translatable="yes">sound effect</property>
-                                                        <property name="model">liststore_effect</property>
-                                                        <property name="has_frame">False</property>
-                                                        <property name="focus_on_click">False</property>
-                                                        <property name="id_column">0</property>
-                                                        <signal name="changed" handler="combobox_effect_changed_cb" swapped="no"/>
-                                                      </object>
-                                                      <packing>
-                                                        <property name="expand">False</property>
-                                                        <property name="fill">True</property>
-                                                        <property name="position">0</property>
-                                                      </packing>
-                                                    </child>
-                                                    <child>
-                                                      <object class="GtkToggleButton" id="togglebutton_mute">
-                                                        <property name="label" translatable="yes">_Mute</property>
-                                                        <property name="visible">True</property>
-                                                        <property name="can_focus">True</property>
-                                                        <property name="receives_default">True</property>
-                                                        <property name="has_tooltip">True</property>
-                                                        <property name="tooltip_text" translatable="yes">mute</property>
-                                                        <property name="relief">half</property>
-                                                        <property name="use_underline">True</property>
-                                                        <property name="focus_on_click">False</property>
-                                                        <signal name="toggled" handler="togglebutton_mute_toggled_cb" swapped="no"/>
-                                                      </object>
-                                                      <packing>
-                                                        <property name="expand">False</property>
-                                                        <property name="fill">False</property>
-                                                        <property name="position">1</property>
-                                                      </packing>
-                                                    </child>
+                                                    <property name="can_default">True</property>
+                                                    <property name="receives_default">True</property>
+                                                    <property name="has_tooltip">True</property>
+                                                    <property name="tooltip_markup" translatable="yes">sound effect</property>
+                                                    <property name="tooltip_text" translatable="yes">sound effect</property>
+                                                    <property name="model">liststore_effect</property>
+                                                    <property name="has_frame">False</property>
+                                                    <property name="focus_on_click">False</property>
+                                                    <property name="id_column">0</property>
+                                                    <signal name="changed" handler="combobox_effect_changed_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
-                                                    <property name="fill">False</property>
+                                                    <property name="fill">True</property>
                                                     <property name="position">1</property>
                                                   </packing>
                                                 </child>
@@ -701,7 +756,7 @@
                                                 <property name="can_focus">False</property>
                                                 <property name="orientation">vertical</property>
                                                 <child>
-                                                  <object class="GtkToggleButton" id="togglebutton_mut">
+                                                  <object class="GtkToggleButton" id="togglebutton_mute">
                                                     <property name="label" translatable="yes">_Mute</property>
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
@@ -1166,81 +1221,21 @@
       <action-widget response="0">button_quit</action-widget>
     </action-widgets>
   </object>
-  <object class="GtkFileFilter" id="filefilter_mp3"/>
-  <object class="GtkFileChooserDialog" id="filechooserdialog_file">
-    <property name="can_focus">False</property>
-    <property name="title" translatable="yes">choose a sound file...</property>
-    <property name="modal">True</property>
-    <property name="type_hint">dialog</property>
-    <property name="create_folders">False</property>
-    <property name="filter">filefilter_mp3</property>
-    <property name="local_only">False</property>
-    <property name="preview_widget_active">False</property>
-    <property name="show_hidden">True</property>
-    <property name="use_preview_label">False</property>
-    <child internal-child="vbox">
-      <object class="GtkBox" id="filechooserdialog_box_file">
-        <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox" id="filechooserdialog_buttonbox_file">
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
-            <child>
-              <object class="GtkButton" id="button_cancel_file">
-                <property name="label">gtk-cancel</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="relief">half</property>
-                <property name="use_stock">True</property>
-                <property name="focus_on_click">False</property>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="button_select_file">
-                <property name="label">gtk-apply</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="relief">half</property>
-                <property name="use_stock">True</property>
-                <property name="focus_on_click">False</property>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-      </object>
-    </child>
-    <action-widgets>
-      <action-widget response="-6">button_cancel_file</action-widget>
-      <action-widget response="-5">button_select_file</action-widget>
-    </action-widgets>
+  <object class="GtkListStore" id="liststore_frequency">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name frequency -->
+      <column type="guint"/>
+    </columns>
   </object>
-  <object class="GtkFileFilter" id="filefilter_wav">
-    <patterns>
-      <pattern>*.wav</pattern>
-    </patterns>
+  <object class="GtkListStore" id="liststore_resolution">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name resolution -->
+      <column type="guint"/>
+    </columns>
   </object>
   <object class="GtkListStore" id="liststore_channels">
     <columns>
@@ -1276,30 +1271,6 @@
       <column type="gchararray"/>
       <!-- column-name format -->
       <column type="gint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_frequency">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name frequency -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_resolution">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name resolution -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_source">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name value -->
-      <column type="guint"/>
     </columns>
   </object>
   <object class="GtkWindow" id="window_depot">
@@ -2104,6 +2075,23 @@
       </object>
     </child>
   </object>
-  <object class="GtkSizeGroup" id="sizegroup_noise"/>
-  <object class="GtkSizeGroup" id="sizegroup_options"/>
+  <object class="GtkSizeGroup" id="sizegroup_noise">
+    <widgets>
+      <widget name="radiobutton_noise"/>
+      <widget name="radiobutton_triangle"/>
+      <widget name="radiobutton_sinus"/>
+      <widget name="radiobutton_square"/>
+      <widget name="radiobutton_sawtooth"/>
+      <widget name="radiobutton_perlin"/>
+      <widget name="radiobutton_pink"/>
+    </widgets>
+  </object>
+  <object class="GtkSizeGroup" id="sizegroup_options">
+    <widgets>
+      <widget name="checkbutton_effect"/>
+      <widget name="togglebutton_mute"/>
+      <widget name="checkbutton_save"/>
+      <widget name="checkbutton_visualization"/>
+    </widgets>
+  </object>
 </interface>

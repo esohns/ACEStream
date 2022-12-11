@@ -1845,7 +1845,7 @@ continue_2:
   if (!grabSamples_in)
     goto continue_3;
 
-  // step2a: add resampler ?
+  // step2a: add (second) resampler ?
   if (InlineIsEqualGUID (outputMediaType_in.majortype, GUID_NULL))
     goto continue_4;
 

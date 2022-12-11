@@ -87,8 +87,31 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
   //  inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING));
   //ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
+  std::string renderer_modulename_string;
+  switch (inherited::configuration_->configuration_->renderer)
+  {
+    case STREAM_DEVICE_RENDERER_WAVEOUT:
+      renderer_modulename_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING);
+      break;
+    case STREAM_DEVICE_RENDERER_WASAPI:
+      renderer_modulename_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING);
+      break;
+    case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+      renderer_modulename_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING);
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown renderer type (was: %d), aborting\n"),
+                  inherited::configuration_->configuration_->renderer));
+      return false;
+    }
+  } // end SWITCH
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
-    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING));
+    inherited::configuration_->find (renderer_modulename_string);
   ACE_ASSERT (iterator_3 != inherited::configuration_->end ());
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_4 =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
@@ -405,8 +428,31 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator_2 != configuration_in.end ());
+  std::string renderer_modulename_string;
+  switch (configuration_in.configuration_->renderer)
+  {
+    case STREAM_DEVICE_RENDERER_WAVEOUT:
+      renderer_modulename_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING);
+      break;
+    case STREAM_DEVICE_RENDERER_WASAPI:
+      renderer_modulename_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING);
+      break;
+    case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+      renderer_modulename_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING);
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown renderer type (was: %d), aborting\n"),
+                  configuration_in.configuration_->renderer));
+      return false;
+    }
+  } // end SWITCH
   inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING));
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (renderer_modulename_string);
   ACE_ASSERT (iterator_3 != configuration_in.end ());
   inherited::CONFIGURATION_T::ITERATOR_T iterator_4 =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
@@ -523,10 +569,15 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
           //ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
           //Stream_MediaFramework_DirectSound_Tools::getBestFormat ((*iterator_3).second.second->deviceIdentifier.identifier._id,
           //                                                        waveformatex_s);
-          //result_2 = CreateAudioMediaType (&waveformatex_s,
-          //                                 &media_type_s,
-          //                                 TRUE);
-          //ACE_ASSERT (SUCCEEDED (result_2));
+          struct tWAVEFORMATEX* waveformatex_p =
+            Stream_MediaFramework_DirectShow_Tools::toWaveFormatEx (configuration_in.configuration_->format);
+          ACE_ASSERT (waveformatex_p);
+          result_2 = CreateAudioMediaType (//&waveformatex_s,
+                                           waveformatex_p,
+                                           &media_type_s,
+                                           TRUE);
+          ACE_ASSERT (SUCCEEDED (result_2));
+          CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
           break;
         }
         case STREAM_DEVICE_RENDERER_WASAPI:
