@@ -1438,7 +1438,7 @@ Stream_MediaFramework_DirectSound_Tools::getDeviceDriverFormat (REFGUID deviceId
   device_p->Release (); device_p = NULL;
   struct tagPROPVARIANT property_s;
   PropVariantInit (&property_s);
-  result = property_store_p->GetValue (PKEY_AudioEngine_OEMFormat,
+  result = property_store_p->GetValue (PKEY_AudioEngine_DeviceFormat, // PKEY_AudioEngine_OEMFormat
                                        &property_s);
   ACE_ASSERT (SUCCEEDED (result) && (property_s.vt == VT_BLOB));
   property_store_p->Release (); property_store_p = NULL;

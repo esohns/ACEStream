@@ -329,12 +329,14 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
                                 media_type_2);
       session_data_r.formats.push_back (media_type_2);
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       break;
 
 error:
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -349,7 +351,8 @@ error:
         IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
       } // end IF
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       break;
     }

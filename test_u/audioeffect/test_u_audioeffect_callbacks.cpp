@@ -3545,10 +3545,10 @@ get_buffer_size (gpointer userData_in)
   unsigned int bps = (sample_rate * (bits_per_sample / 8) * channels);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: lower buffer sizes result in lower latency
-  return static_cast<unsigned int> ((STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS * bps) / (double)MILLISECONDS);
+  return static_cast<unsigned int> ((STREAM_DEC_NOISE_BUFFER_LATENCY_MS * bps) / (float)MILLISECONDS);
 #else
   ACE_UNUSED_ARG (format_e);
-  return static_cast<unsigned int> ((STREAM_DEC_NOISE_BUFFER_LATENCY_MS * bps) / (double)1000);
+  return static_cast<unsigned int> ((STREAM_DEC_NOISE_BUFFER_LATENCY_MS * bps) / (float)1000);
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -7437,7 +7437,8 @@ hscale_device_boost_change_value_cb (GtkRange* range_in,
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
-      ACE_ASSERT (directshow_ui_cb_data_p->boostControl);
+      if (!directshow_ui_cb_data_p->boostControl)
+        break;
       float min_level_f = 0.0F, max_level_f = 0.0F, stepping_f = 0.0F;
       HRESULT result =
         directshow_ui_cb_data_p->boostControl->GetLevelRange (0,
@@ -10540,8 +10541,6 @@ continue_2:
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
-        GUID_s;
       if (directshow_ui_cb_data_p->captureVolumeControl)
       {
         directshow_ui_cb_data_p->captureVolumeControl->Release (); directshow_ui_cb_data_p->captureVolumeControl = NULL;
@@ -10556,8 +10555,6 @@ continue_2:
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
-        GUID_s;
       if (mediafoundation_ui_cb_data_p->captureVolumeControl)
       {
         mediafoundation_ui_cb_data_p->captureVolumeControl->Release (); mediafoundation_ui_cb_data_p->captureVolumeControl = NULL;

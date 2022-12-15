@@ -65,6 +65,7 @@
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+#include "stream_misc_asynch.h"
 #include "stream_misc_delay.h"
 #include "stream_misc_distributor.h"
 
@@ -359,6 +360,19 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                   
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Module_Asynch_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Test_U_AudioEffect_DirectShow_Message,
+                               Test_U_AudioEffect_DirectShow_SessionMessage> Test_U_AudioEffect_DirectShow_Asynch;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_asynch_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_AudioEffect_DirectShow_Asynch);                           // name
+
 typedef Stream_Statistic_StatisticAnalysis_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
                                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
@@ -395,67 +409,67 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
                               Stream_INotify_t,                                                     // stream notification interface type
                               Test_U_AudioEffect_MediaFoundation_StatisticAnalysis);                // name
 
-typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
-                                                      Stream_ControlMessage_t,
-                                                      Test_U_AudioEffect_DirectShow_Message,
-                                                      Test_U_AudioEffect_DirectShow_SessionMessage,
-                                                      Stream_CommandType_t,
-                                                      struct Test_U_AudioEffect_Statistic,
-                                                      Common_Timer_Manager_t,
-                                                      Test_U_AudioEffect_DirectShow_SessionData,
-                                                      Test_U_AudioEffect_DirectShow_SessionData_t> Test_U_AudioEffect_DirectShow_Statistic_ReaderTask_t;
-typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
-                                                      Stream_ControlMessage_t,
-                                                      Test_U_AudioEffect_DirectShow_Message,
-                                                      Test_U_AudioEffect_DirectShow_SessionMessage,
-                                                      Stream_CommandType_t,
-                                                      struct Test_U_AudioEffect_Statistic,
-                                                      Common_Timer_Manager_t,
-                                                      Test_U_AudioEffect_DirectShow_SessionData,
-                                                      Test_U_AudioEffect_DirectShow_SessionData_t> Test_U_AudioEffect_DirectShow_Statistic_WriterTask_t;
-DATASTREAM_MODULE_DUPLEX (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
-                          enum Stream_SessionMessageType,                                  // session event type
-                          struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                          libacestream_default_stat_report_module_name_string,
-                          Stream_INotify_t,                                                // stream notification interface type
-                          Test_U_AudioEffect_DirectShow_Statistic_ReaderTask_t,            // reader type
-                          Test_U_AudioEffect_DirectShow_Statistic_WriterTask_t,            // writer type
-                          Test_U_AudioEffect_DirectShow_StatisticReport);                  // name
-
-typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
-                                                      Stream_ControlMessage_t,
-                                                      Test_U_AudioEffect_MediaFoundation_Message,
-                                                      Test_U_AudioEffect_MediaFoundation_SessionMessage,
-                                                      Stream_CommandType_t,
-                                                      struct Test_U_AudioEffect_Statistic,
-                                                      Common_Timer_Manager_t,
-                                                      Test_U_AudioEffect_MediaFoundation_SessionData,
-                                                      Test_U_AudioEffect_MediaFoundation_SessionData_t> Test_U_AudioEffect_MediaFoundation_Statistic_ReaderTask_t;
-typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
-                                                      Stream_ControlMessage_t,
-                                                      Test_U_AudioEffect_MediaFoundation_Message,
-                                                      Test_U_AudioEffect_MediaFoundation_SessionMessage,
-                                                      Stream_CommandType_t,
-                                                      struct Test_U_AudioEffect_Statistic,
-                                                      Common_Timer_Manager_t,
-                                                      Test_U_AudioEffect_MediaFoundation_SessionData,
-                                                      Test_U_AudioEffect_MediaFoundation_SessionData_t> Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_t;
-DATASTREAM_MODULE_DUPLEX (Test_U_AudioEffect_MediaFoundation_SessionData,                       // session data type
-                          enum Stream_SessionMessageType,                                       // session event type
-                          struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-                          libacestream_default_stat_report_module_name_string,
-                          Stream_INotify_t,                                                     // stream notification interface type
-                          Test_U_AudioEffect_MediaFoundation_Statistic_ReaderTask_t,            // reader type
-                          Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_t,            // writer type
-                          Test_U_AudioEffect_MediaFoundation_StatisticReport);                  // name
+//typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
+//                                                      Common_TimePolicy_t,
+//                                                      struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+//                                                      Stream_ControlMessage_t,
+//                                                      Test_U_AudioEffect_DirectShow_Message,
+//                                                      Test_U_AudioEffect_DirectShow_SessionMessage,
+//                                                      Stream_CommandType_t,
+//                                                      struct Test_U_AudioEffect_Statistic,
+//                                                      Common_Timer_Manager_t,
+//                                                      Test_U_AudioEffect_DirectShow_SessionData,
+//                                                      Test_U_AudioEffect_DirectShow_SessionData_t> Test_U_AudioEffect_DirectShow_Statistic_ReaderTask_t;
+//typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
+//                                                      Common_TimePolicy_t,
+//                                                      struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+//                                                      Stream_ControlMessage_t,
+//                                                      Test_U_AudioEffect_DirectShow_Message,
+//                                                      Test_U_AudioEffect_DirectShow_SessionMessage,
+//                                                      Stream_CommandType_t,
+//                                                      struct Test_U_AudioEffect_Statistic,
+//                                                      Common_Timer_Manager_t,
+//                                                      Test_U_AudioEffect_DirectShow_SessionData,
+//                                                      Test_U_AudioEffect_DirectShow_SessionData_t> Test_U_AudioEffect_DirectShow_Statistic_WriterTask_t;
+//DATASTREAM_MODULE_DUPLEX (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
+//                          enum Stream_SessionMessageType,                                  // session event type
+//                          struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+//                          libacestream_default_stat_report_module_name_string,
+//                          Stream_INotify_t,                                                // stream notification interface type
+//                          Test_U_AudioEffect_DirectShow_Statistic_ReaderTask_t,            // reader type
+//                          Test_U_AudioEffect_DirectShow_Statistic_WriterTask_t,            // writer type
+//                          Test_U_AudioEffect_DirectShow_StatisticReport);                  // name
+//
+//typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
+//                                                      Common_TimePolicy_t,
+//                                                      struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+//                                                      Stream_ControlMessage_t,
+//                                                      Test_U_AudioEffect_MediaFoundation_Message,
+//                                                      Test_U_AudioEffect_MediaFoundation_SessionMessage,
+//                                                      Stream_CommandType_t,
+//                                                      struct Test_U_AudioEffect_Statistic,
+//                                                      Common_Timer_Manager_t,
+//                                                      Test_U_AudioEffect_MediaFoundation_SessionData,
+//                                                      Test_U_AudioEffect_MediaFoundation_SessionData_t> Test_U_AudioEffect_MediaFoundation_Statistic_ReaderTask_t;
+//typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
+//                                                      Common_TimePolicy_t,
+//                                                      struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+//                                                      Stream_ControlMessage_t,
+//                                                      Test_U_AudioEffect_MediaFoundation_Message,
+//                                                      Test_U_AudioEffect_MediaFoundation_SessionMessage,
+//                                                      Stream_CommandType_t,
+//                                                      struct Test_U_AudioEffect_Statistic,
+//                                                      Common_Timer_Manager_t,
+//                                                      Test_U_AudioEffect_MediaFoundation_SessionData,
+//                                                      Test_U_AudioEffect_MediaFoundation_SessionData_t> Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_t;
+//DATASTREAM_MODULE_DUPLEX (Test_U_AudioEffect_MediaFoundation_SessionData,                       // session data type
+//                          enum Stream_SessionMessageType,                                       // session event type
+//                          struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+//                          libacestream_default_stat_report_module_name_string,
+//                          Stream_INotify_t,                                                     // stream notification interface type
+//                          Test_U_AudioEffect_MediaFoundation_Statistic_ReaderTask_t,            // reader type
+//                          Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_t,            // writer type
+//                          Test_U_AudioEffect_MediaFoundation_StatisticReport);                  // name
 
 typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,

@@ -390,8 +390,8 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                       WAVE_FORMAT_DIRECT;
                       //WAVE_MAPPED;
       result = waveInOpen (&handle_,
-                           WAVE_MAPPER,
-                           //device_id_i,
+                           //WAVE_MAPPER,
+                           device_id_i,
                            audio_info_p,
                            reinterpret_cast<DWORD_PTR> (stream_dev_wavein_data_cb),
                            reinterpret_cast<DWORD_PTR> (&CBData_),
@@ -407,7 +407,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
       } // end IF
       ACE_ASSERT (handle_);
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: opened device (id: %d, format: %s)...\n"),
+                  ACE_TEXT ("%s: opened device (id: %u, format: %s)...\n"),
                   inherited::mod_->name (),
                   device_id_i,
                   ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*audio_info_p, true).c_str ())));
@@ -434,7 +434,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
         if (unlikely (result != MMSYSERR_NOERROR))
         { waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to waveInPrepareHeader(%d): \"%s\", aborting\n"),
+                      ACE_TEXT ("%s: failed to waveInPrepareHeader(%u): \"%s\", aborting\n"),
                       inherited::mod_->name (),
                       i,
                       ACE_TEXT (error_msg_a)));
@@ -448,7 +448,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
         if (unlikely (result != MMSYSERR_NOERROR))
         { waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to waveInAddBuffer(%d): \"%s\", aborting\n"),
+                      ACE_TEXT ("%s: failed to waveInAddBuffer(%u): \"%s\", aborting\n"),
                       inherited::mod_->name (),
                       i,
                       ACE_TEXT (error_msg_a)));

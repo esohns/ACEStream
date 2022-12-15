@@ -377,7 +377,8 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
         enumerator_p->Release (); enumerator_p = NULL;
         goto continue_;
       } // end IF
-      device_p = Stream_MediaFramework_DirectSound_Tools::getDevice (device_identifier_s);
+      device_p =
+        Stream_MediaFramework_DirectSound_Tools::getDevice (device_identifier_s);
       if (unlikely (!device_p))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -395,6 +396,7 @@ continue_:
       ACE_ASSERT (SUCCEEDED (result_2) && audioClient_);
 
       // sanity check(s)
+      ACE_ASSERT (audio_info_p->cbSize == 0); // *TODO*: remove ASAP !
       result_2 =
         audioClient_->IsFormatSupported (share_mode_e,
                                          audio_info_p,
@@ -422,8 +424,10 @@ continue_:
       } // end IF
       ACE_ASSERT (!audio_info_2);
 
-      result_2 = audioClient_->GetDevicePeriod (NULL, &requested_duration_i);
+      result_2 = audioClient_->GetDevicePeriod (&requested_duration_i, NULL);
       ACE_ASSERT (SUCCEEDED (result_2) && requested_duration_i);
+      //requested_duration_i =
+      //  (REFERENCE_TIME)((10000.0 * 1000 / audio_info_p->nSamplesPerSec * 160) + 0.5);
       GUID_s = CLSID_ACEStream_MediaFramework_WASAPI_AudioSession;
 retry:
       result_2 =
@@ -460,6 +464,12 @@ retry:
         device_p->Release (); device_p = NULL;
         goto error;
       } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: opened device \"%s\": format: %s...\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToString (device_identifier_s).c_str ()),
+                  ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*audio_info_p, true).c_str ())));
+
       device_p->Release (); device_p = NULL;
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
@@ -1015,6 +1025,8 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
   size_t bytes_to_write_i = 0;
   size_t offset_i = 0;
   UINT32 buffer_size_i = 0; // (in #frames)
+  // *NOTE*: supply the soundcard with data as fast as possible; even if it is
+  //         less than the available buffer
   //bool buffer_written_b = false;
 
   ACE_ASSERT (!task_);
@@ -1065,7 +1077,8 @@ retry:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IAudioRenderClient::GetBuffer(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_3, true, false).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_3, false, false).c_str ())));
+      notify (STREAM_SESSION_MESSAGE_ABORT);
       result = -1;
       goto done;
     } // end IF
@@ -1101,7 +1114,7 @@ continue_:
     message_block_p->rd_ptr (bytes_to_write_i);
     if (!message_block_p->length ())
     {
-      // buffer_written_b = true;
+      //buffer_written_b = true;
       if (unlikely (message_block_p->cont ()))
       {
         ACE_Message_Block* message_block_2 = message_block_p->cont ();
@@ -1114,7 +1127,7 @@ continue_:
       } // end ELSE
     } // end IF
 
-    if (!num_frames_available_i/* || buffer_written_b*/)
+    if (!num_frames_available_i /* || buffer_written_b*/)
     {
       result_3 =
         audioRenderClient_->ReleaseBuffer (buffer_size_i - num_frames_available_i,

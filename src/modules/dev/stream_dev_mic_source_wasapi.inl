@@ -368,15 +368,15 @@ continue_:
         audio_info_p = audio_info_2;
       } // end ELSE IF
 
-      result_2 = audioClient_->GetDevicePeriod (NULL, &requested_duration_i);
+      result_2 = audioClient_->GetDevicePeriod (&requested_duration_i, NULL);
       ACE_ASSERT (SUCCEEDED (result_2) && requested_duration_i);
 retry:
-      result_2 =
-        audioClient_->Initialize (share_mode_e,
+      result_2 = // *TODO*: re-enable 'exclusive' mode ASAP
+        audioClient_->Initialize (AUDCLNT_SHAREMODE_SHARED,//share_mode_e,
                                   stream_flags_i,
                                   requested_duration_i,
-                                  ((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? requested_duration_i 
-                                                                                 : 0),
+                                  //((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? requested_duration_i 
+                                  0,//                                               : 0),
                                   audio_info_p,
                                   NULL);
       if (unlikely (FAILED (result_2))) // AUDCLNT_E_UNSUPPORTED_FORMAT: 0x88890008
@@ -891,7 +891,7 @@ continue_:
             static_cast<DataMessageType*> (inherited::allocator_->malloc (bytes_to_read_i));
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+                    ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%Q), continuing\n"),
                     inherited::mod_->name (),
                     bytes_to_read_i));
         message_p = NULL;
@@ -899,7 +899,7 @@ continue_:
       if (unlikely (!message_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_IAllocator::malloc(%u), aborting\n"),
+                    ACE_TEXT ("%s: failed to Stream_IAllocator::malloc(%Q), aborting\n"),
                     inherited::mod_->name (),
                     bytes_to_read_i));
         goto error;

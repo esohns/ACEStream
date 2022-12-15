@@ -579,6 +579,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   std::wstring filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L;
   struct tWAVEFORMATEX waveformatex_s;
   ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
+  struct tWAVEFORMATEX* waveformatex_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (!IGraphBuilder_out);
@@ -609,6 +610,9 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+  waveformatex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (captureMediaType_out.pbFormat);
+  ACE_ASSERT (waveformatex_p->cbSize == 0);
 
   if (!useDirectShowSource_in)
     goto continue_2;
@@ -1120,8 +1124,8 @@ do_work (
                                //: STREAM_DEVICE_CAPTURER_WAVEIN);
       directshow_stream_configuration.renderer =
         (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_DIRECTSHOW
-                                 //: STREAM_DEVICE_RENDERER_WASAPI);
-                                 : STREAM_DEVICE_RENDERER_WAVEOUT);
+                                 : STREAM_DEVICE_RENDERER_WASAPI);
+                                 //: STREAM_DEVICE_RENDERER_WAVEOUT);
 #if defined (GTKGL_SUPPORT)
       directShowCBData_in.OpenGLInstructions = &directshow_stream.instructions_;
       directShowCBData_in.OpenGLInstructionsLock =

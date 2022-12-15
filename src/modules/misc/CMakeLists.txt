@@ -54,6 +54,9 @@ set (source_files
      stream_misc_aggregator.cpp
      stream_misc_aggregator.h
      stream_misc_aggregator.inl
+     stream_misc_asynch.cpp
+     stream_misc_asynch.h
+     stream_misc_asynch.inl
      stream_misc_common.h
      stream_misc_defines.h
      stream_misc_defragment.cpp
@@ -136,6 +139,8 @@ export (TARGETS ${PROJECT_NAME}_Miscellaneous
 install (FILES
          stream_misc_aggregator.h
          stream_misc_aggregator.inl
+         stream_misc_asynch.h
+         stream_misc_asynch.inl
          stream_misc_common.h
          stream_misc_defines.h
          stream_misc_defragment.h

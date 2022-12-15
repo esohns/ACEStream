@@ -61,14 +61,6 @@ Test_U_AudioEffect_DirectShow_Stream::Test_U_AudioEffect_DirectShow_Stream ()
 
 }
 
-Test_U_AudioEffect_DirectShow_Stream::~Test_U_AudioEffect_DirectShow_Stream ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::~Test_U_AudioEffect_DirectShow_Stream"));
-
-  // *NOTE*: this implements an ordered shutdown on destruction...
-  inherited::shutdown ();
-}
-
 bool
 Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                                             bool& delete_out)
@@ -144,6 +136,12 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
           ACE_NEW_RETURN (module_p,
                           Test_U_Dev_Mic_Source_WASAPI_Module (this,
                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING)),
+                          false);
+          layout_in->append (module_p, NULL, 0);
+          module_p = NULL;
+          ACE_NEW_RETURN (module_p,
+                          Test_U_AudioEffect_DirectShow_Asynch_Module (this,
+                                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_ASYNCH_DEFAULT_NAME_STRING)),
                           false);
           break;
         }
@@ -482,7 +480,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   std::string log_file_name;
   IAMGraphStreams* graph_streams_p = NULL;
   REFERENCE_TIME max_latency_i =
-    MILLISECONDS_TO_100NS_UNITS(STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS);
+    MILLISECONDS_TO_100NS_UNITS (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS);
   bool use_framework_renderer_b = false;
   int render_device_id_i = -1;
   Stream_Module_t* module_p = NULL;
@@ -586,11 +584,13 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
           struct tWAVEFORMATEX* waveformatex_p =
             Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat ((*iterator_3).second.second->deviceIdentifier.identifier._guid);
           ACE_ASSERT (waveformatex_p);
-          result_2 = CreateAudioMediaType (waveformatex_p,
+          struct tWAVEFORMATEX basic_wave_format_ex_s =
+            Stream_MediaFramework_DirectSound_Tools::extensibleTo (*waveformatex_p);
+          CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+          result_2 = CreateAudioMediaType (&basic_wave_format_ex_s,
                                            &media_type_s,
                                            TRUE);
           ACE_ASSERT (SUCCEEDED (result_2));
-          CoTaskMemFree (waveformatex_p);
           break;
         }
         default:
@@ -2082,9 +2082,9 @@ continue_:
 
   return S_OK;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
 error:
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   if (unlikely (stop_b))
     stop (false,
           true,

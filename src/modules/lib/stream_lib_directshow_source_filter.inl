@@ -2403,10 +2403,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::SetStreamOffset"));
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s/%s: set stream offset to %q(*100ns), continuing\n"),
+              ACE_TEXT ("%s/%s: set stream offset to %qms, continuing\n"),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
-              rtOffset_in));
+              ConvertToMilliseconds (rtOffset_in)));
 
   return S_OK;
 }

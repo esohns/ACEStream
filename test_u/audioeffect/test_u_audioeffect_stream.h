@@ -88,7 +88,7 @@ class Test_U_AudioEffect_DirectShow_Stream
 
  public:
   Test_U_AudioEffect_DirectShow_Stream ();
-  virtual ~Test_U_AudioEffect_DirectShow_Stream ();
+  inline virtual ~Test_U_AudioEffect_DirectShow_Stream () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*,
