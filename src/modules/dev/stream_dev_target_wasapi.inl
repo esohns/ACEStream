@@ -396,7 +396,6 @@ continue_:
       ACE_ASSERT (SUCCEEDED (result_2) && audioClient_);
 
       // sanity check(s)
-      ACE_ASSERT (audio_info_p->cbSize == 0); // *TODO*: remove ASAP !
       result_2 =
         audioClient_->IsFormatSupported (share_mode_e,
                                          audio_info_p,

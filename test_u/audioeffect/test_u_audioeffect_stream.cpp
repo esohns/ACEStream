@@ -237,8 +237,8 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
   } // end SWITCH
 
-  if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) ||
-      (!(*iterator).second.second->mute &&
+  if ((inherited::configuration_->configuration_->capturer != STREAM_DEVICE_CAPTURER_DIRECTSHOW) &&
+      (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) ||
        (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW)))
   {
     ACE_NEW_RETURN (module_p,
@@ -251,9 +251,8 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   } // end IF
 
   has_directshow_source_b =
-    (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) ||
-     ((inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW) &&
-      !(*iterator_4).second.second->fileIdentifier.empty ()));
+    (inherited::configuration_->configuration_->capturer != STREAM_DEVICE_CAPTURER_DIRECTSHOW) &&
+    !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL);
   if (has_directshow_source_b)
   {
     ACE_NEW_RETURN (module_p,
@@ -483,16 +482,21 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     MILLISECONDS_TO_100NS_UNITS (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS);
   bool use_framework_renderer_b = false;
   int render_device_id_i = -1;
-  Stream_Module_t* module_p = NULL;
+  bool has_directshow_source_filter_b = false;
+  bool grab_samples_b = false;
 
-  if ((*iterator).second.second->builder)
+  has_directshow_source_filter_b =
+    (inherited::configuration_->configuration_->capturer != STREAM_DEVICE_CAPTURER_DIRECTSHOW) &&
+    !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL);
+  if (has_directshow_source_filter_b)
   {
-    Stream_MediaFramework_DirectShow_Tools::shutdown ((*iterator).second.second->builder);
-    (*iterator).second.second->builder->Release (); (*iterator).second.second->builder = NULL;
-  } // end IF
+    if ((*iterator).second.second->builder)
+    {
+      Stream_MediaFramework_DirectShow_Tools::shutdown ((*iterator).second.second->builder);
+      (*iterator).second.second->builder->Release (); (*iterator).second.second->builder = NULL;
+    } // end IF
+    ACE_ASSERT (!(*iterator).second.second->builder);
 
-  if (configuration_in.configuration_->capturer != STREAM_DEVICE_CAPTURER_DIRECTSHOW)
-  { ACE_ASSERT (!(*iterator).second.second->builder);
     Test_U_AudioEffect_DirectShowFilter_t* filter_p = NULL;
     IBaseFilter* filter_2 = NULL;
     std::wstring filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L;
@@ -552,57 +556,54 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   } // end IF
   ACE_ASSERT ((*iterator).second.second->builder);
 
-  module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_SOURCE_DEFAULT_NAME_STRING)));
-  if (module_p)
-  {
-    // set sample grabber output format ?
-    if (!(*iterator).second.second->mute &&
-        (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW))
-      switch (inherited::configuration_->configuration_->renderer)
+  grab_samples_b =
+    (inherited::configuration_->configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW) ||
+    !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL);
+  // set sample grabber output format ?
+  if (grab_samples_b)
+    switch (inherited::configuration_->configuration_->renderer)
+    {
+      case STREAM_DEVICE_RENDERER_WAVEOUT:
       {
-        case STREAM_DEVICE_RENDERER_WAVEOUT:
-        {
-          //struct tWAVEFORMATEX waveformatex_s;
-          //ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
-          //Stream_MediaFramework_DirectSound_Tools::getBestFormat ((*iterator_3).second.second->deviceIdentifier.identifier._id,
-          //                                                        waveformatex_s);
-          struct tWAVEFORMATEX* waveformatex_p =
-            Stream_MediaFramework_DirectShow_Tools::toWaveFormatEx (configuration_in.configuration_->format);
-          ACE_ASSERT (waveformatex_p);
-          result_2 = CreateAudioMediaType (//&waveformatex_s,
-                                           waveformatex_p,
-                                           &media_type_s,
-                                           TRUE);
-          ACE_ASSERT (SUCCEEDED (result_2));
-          CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
-          break;
-        }
-        case STREAM_DEVICE_RENDERER_WASAPI:
-        {
-          ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
-          struct tWAVEFORMATEX* waveformatex_p =
-            Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat ((*iterator_3).second.second->deviceIdentifier.identifier._guid);
-          ACE_ASSERT (waveformatex_p);
-          struct tWAVEFORMATEX basic_wave_format_ex_s =
-            Stream_MediaFramework_DirectSound_Tools::extensibleTo (*waveformatex_p);
-          CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
-          result_2 = CreateAudioMediaType (&basic_wave_format_ex_s,
-                                           &media_type_s,
-                                           TRUE);
-          ACE_ASSERT (SUCCEEDED (result_2));
-          break;
-        }
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
-                      ACE_TEXT (stream_name_string_),
-                      inherited::configuration_->configuration_->renderer));
-          return false;
-        }
-      } // end SWITCH
-  } // end IF
+        //struct tWAVEFORMATEX waveformatex_s;
+        //ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+        //Stream_MediaFramework_DirectSound_Tools::getBestFormat ((*iterator_3).second.second->deviceIdentifier.identifier._id,
+        //                                                        waveformatex_s);
+        struct tWAVEFORMATEX* waveformatex_p =
+          Stream_MediaFramework_DirectShow_Tools::toWaveFormatEx (configuration_in.configuration_->format);
+        ACE_ASSERT (waveformatex_p);
+        result_2 = CreateAudioMediaType (//&waveformatex_s,
+                                          waveformatex_p,
+                                          &media_type_s,
+                                          TRUE);
+        ACE_ASSERT (SUCCEEDED (result_2));
+        CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+        break;
+      }
+      case STREAM_DEVICE_RENDERER_WASAPI:
+      {
+        ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+        struct tWAVEFORMATEX* waveformatex_p =
+          Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat ((*iterator_3).second.second->deviceIdentifier.identifier._guid);
+        ACE_ASSERT (waveformatex_p);
+        struct tWAVEFORMATEX basic_wave_format_ex_s =
+          Stream_MediaFramework_DirectSound_Tools::extensibleTo (*waveformatex_p);
+        CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+        result_2 = CreateAudioMediaType (&basic_wave_format_ex_s,
+                                         &media_type_s,
+                                         TRUE);
+        ACE_ASSERT (SUCCEEDED (result_2));
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+                    ACE_TEXT (stream_name_string_),
+                    inherited::configuration_->configuration_->renderer));
+        return false;
+      }
+    } // end SWITCH
 
   use_framework_renderer_b =
     ((configuration_in.configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW) &&
@@ -636,7 +637,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
                                                                                                                                               : GUID_NULL),
                                                             configuration_in.configuration_->format,
                                                             media_type_s,
-                                                            (module_p != NULL),
+                                                            grab_samples_b,
                                                             (use_framework_renderer_b ? render_device_id_i : -1),
                                                             (*iterator).second.second->builder,
                                                             (*iterator).second.second->effect,
@@ -655,12 +656,12 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     graph_configuration.front ().mediaType->lSampleSize = 1;
   } // end IF
 
-  if (configuration_in.configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW)
+  if (has_directshow_source_filter_b)
   {
     result_2 =
       (*iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L,
                                                             &filter_p);
-    if (FAILED (result_2))
+    if (unlikely (FAILED (result_2) || !filter_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),

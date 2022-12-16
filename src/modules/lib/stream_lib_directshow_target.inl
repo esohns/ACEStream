@@ -301,7 +301,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return;
   } // end IF
-  
+
   result = inherited::msg_queue_->enqueue_tail (message_block_p, NULL);
   if (unlikely (result == -1))
   {
@@ -495,7 +495,8 @@ do_run:
 
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       break;
 
@@ -522,7 +523,8 @@ error:
 
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -585,7 +587,8 @@ error:
         IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
       } // end IF
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       break;
     }
@@ -634,8 +637,8 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   HRESULT result = E_FAIL;
   IBaseFilter* filter_p = NULL;
   std::wstring render_filter_name =
-    (windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
+    (windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO_L
+                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L);
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   Stream_MediaFramework_DirectShow_GraphConfiguration_t graph_configuration;
   bool release_configuration = false;

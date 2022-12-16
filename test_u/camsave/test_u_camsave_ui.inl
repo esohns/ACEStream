@@ -1259,9 +1259,9 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
-                                                                &filter_p);
-  ACE_ASSERT (SUCCEEDED (result));
+    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L,
+                                                                 &filter_p);
+  ACE_ASSERT (SUCCEEDED (result) && filter_p);
   struct _AMMediaType* media_type_p =
     Stream_MediaFramework_DirectShow_Tools::defaultCaptureFormat (filter_p);
   if (!media_type_p)
@@ -1274,7 +1274,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   } // end IF
   filter_p->Release (); filter_p = NULL;
   int index_i =
-    choice_format->FindString (Stream_MediaFramework_Tools::mediaSubTypeToString (media_type_p->subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW));
+    choice_format->FindString (Stream_MediaFramework_Tools::mediaSubTypeToString (media_type_p->subtype,
+                                                                                  STREAM_MEDIAFRAMEWORK_DIRECTSHOW));
   ACE_ASSERT (index_i != wxNOT_FOUND);
   choice_format->Select (index_i);
   wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
@@ -1400,7 +1401,7 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L,
                                                                 &filter_p);
   ACE_ASSERT (SUCCEEDED (result) && filter_p);
   //button_hardware_settings->Enable (Stream_MediaFramework_DirectShow_Tools::hasPropertyPages (filter_p));
@@ -1437,8 +1438,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   IBaseFilter* filter_p = NULL;
   struct _AMMediaType* media_type_p = NULL;
   HRESULT result =
-    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
-                                                                &filter_p);
+    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L,
+                                                                 &filter_p);
   ACE_ASSERT (SUCCEEDED (result) && filter_p);
   ISpecifyPropertyPages* property_pages_p = NULL;
   result = filter_p->QueryInterface (IID_PPV_ARGS (&property_pages_p));
@@ -1681,9 +1682,9 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   //spincontrol_buffer->SetValue (Stream_MediaFramework_DirectShow_Tools::toFramesize (cb_data_r.configuration->streamConfiguration.configuration_->format));
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
-                                                                &filter_p);
-  ACE_ASSERT (SUCCEEDED (result));
+    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L,
+                                                                 &filter_p);
+  ACE_ASSERT (SUCCEEDED (result) && filter_p);
   media_type_p =
     Stream_MediaFramework_DirectShow_Tools::defaultCaptureFormat (filter_p);
   if (!media_type_p)

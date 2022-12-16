@@ -76,17 +76,17 @@
 #define STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L              L"Asynch Source"
 #define STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE                       "Source"
 #define STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L                     L"Source"
-#define STREAM_LIB_DIRECTSHOW_FILTER_PIN_OUTPUT_NAME                   L"Output"
-                                                                       
-#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO                L"Capture Audio"
-#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO                L"Capture Video"
-#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB                         L"Sample Grabber"
-#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO                 L"Audio Renderer"
-#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL                  L"Null Renderer"
-#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO                 L"Video Renderer"
-#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER                    L"Resampler"
-#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER_2                  L"Resampler#2"
-                                                                       
+#define STREAM_LIB_DIRECTSHOW_FILTER_PIN_OUTPUT_NAME_L                 L"Output"
+
+#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO_L              L"Capture Audio"
+#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L              L"Capture Video"
+#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L                       L"Sample Grabber"
+#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO_L               L"Audio Renderer"
+#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L                L"Null Renderer"
+#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO_L               L"Video Renderer"
+#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER_L                  L"Resampler"
+#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER_2_L                L"Resampler#2"
+
 #define STREAM_LIB_DIRECTSHOW_FILTER_CLSID_AUDIO_RENDER_WAVEOUT        CLSID_AudioRender
 #define STREAM_LIB_DIRECTSHOW_FILTER_CLSID_AUDIO_RENDER_DIRECTSOUND    CLSID_DSoundRender
 #define STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_AUDIO_RENDER        STREAM_LIB_DIRECTSHOW_FILTER_CLSID_AUDIO_RENDER_DIRECTSOUND
@@ -118,10 +118,10 @@
 #define STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT     MEDIASUBTYPE_RGB32
 
 // properties
-#define STREAM_LIB_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING            L"Description"
-#define STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING                   L"DevicePath"
-#define STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING                   L"FriendlyName"
-#define STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING                     L"WaveInID"
+#define STREAM_LIB_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING_L          L"Description"
+#define STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING_L                 L"DevicePath"
+#define STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING_L                 L"FriendlyName"
+#define STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING_L                   L"WaveInID"
 
 #define STREAM_LIB_DIRECTSHOW_LOGFILE_NAME                             "ACEStream_DirectShow.log"
 
@@ -138,11 +138,11 @@
 //         --> (try to) wait for the next MESessionTopologySet event
 #define STREAM_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT_S              10 // seconds
 
-#define STREAM_LIB_MEDIAFOUNDATION_MEDIASOURCE_FRIENDLY_NAME           L"MediaSource"
+#define STREAM_LIB_MEDIAFOUNDATION_MEDIASOURCE_FRIENDLY_NAME_L         L"MediaSource"
 // *NOTE*: #samples each stream tries to hold in its queue
 #define STREAM_LIB_MEDIAFOUNDATION_MEDIASOURCE_SAMPLE_QUEUE_SIZE       2;
 
-#define STREAM_LIB_MEDIAFOUNDATION_MEDIASOURCE_DEFAULT_STREAM_NAME     L"ACEStream Source Stream"
+#define STREAM_LIB_MEDIAFOUNDATION_MEDIASOURCE_DEFAULT_STREAM_NAME_L   L"ACEStream Source Stream"
 
 #define STREAM_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION       "ACEStream Source ByteStreamHandler"
 #define STREAM_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY           "Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers"
@@ -158,12 +158,12 @@
 
 // Noise generator(s)
 // *IMPORTANT NOTE*: alpha >= 0 ('white' noise) && alpha <= 2.0 ('brown' noise)
-#define STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_ALPHA               1.0
+#define STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_ALPHA                  1.0
 // *IMPORTANT NOTE*: #IIR filters
-#define STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_POLES               5
+#define STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_POLES                  5
 
-#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_STEP              0.01
-#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_X                 1.25
-#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Y                 0.75
-#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Z                 0.5
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_STEP                 0.01
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_X                    1.25
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Y                    0.75
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Z                    0.5
 #endif

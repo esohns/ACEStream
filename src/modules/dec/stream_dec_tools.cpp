@@ -1340,7 +1340,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     return false;
   } // end IF
   if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
-    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO_L;
   //else if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
   //  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
   else if (InlineIsEqualGUID (deviceCategory_in, GUID_NULL))
@@ -1413,7 +1413,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
   ACE_ASSERT (filter_p);
   result =
     IGraphBuilder_in->AddFilter (filter_p,
-                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER);
+                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER_L);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1422,7 +1422,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     goto error;
   } // end IF
   graph_entry.connectDirect = true;
-  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER;
+  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER_L;
   graph_entry.mediaType =
     Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
   ACE_ASSERT (graph_entry.mediaType);
@@ -1824,7 +1824,7 @@ continue_:
   media_object_p->Release (); media_object_p = NULL;
   result =
     IGraphBuilder_in->AddFilter (filter_p,
-                                 STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO);
+                                 STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO_L);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1832,7 +1832,7 @@ continue_:
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
-  graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO;
+  graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO_L;
   graphConfiguration_out.push_back (graph_entry);
   graph_entry.mediaType = NULL;
   filter_p->Release (); filter_p = NULL;
@@ -1848,6 +1848,19 @@ continue_2:
   // step2a: add (second) resampler ?
   if (InlineIsEqualGUID (outputMediaType_in.majortype, GUID_NULL))
     goto continue_4;
+  // *NOTE*: "...Decompression is only to PCM audio. ..."
+  ACE_ASSERT (InlineIsEqualGUID (outputMediaType_in.majortype, MEDIATYPE_Audio));
+  ACE_ASSERT (InlineIsEqualGUID (outputMediaType_in.formattype, FORMAT_WaveFormatEx));
+  waveformatex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (outputMediaType_in.pbFormat);
+  ACE_ASSERT (waveformatex_p);
+  if (Stream_MediaFramework_DirectSound_Tools::isFloat (*waveformatex_p))
+  {
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("output format is floating point (was: %s); cannot use directshow resampler, continuing\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (outputMediaType_in, true).c_str ())));
+    goto continue_4;
+  } // end IF
 
   result = CoCreateInstance (CLSID_ACMWrapper, NULL,
                              CLSCTX_INPROC_SERVER,
@@ -1863,8 +1876,8 @@ continue_2:
   ACE_ASSERT (filter_p);
   result =
     IGraphBuilder_in->AddFilter (filter_p,
-                                 (has_resampler_b ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER_2
-                                                  : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER));
+                                 (has_resampler_b ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER_2_L
+                                                  : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER_L));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1873,8 +1886,8 @@ continue_2:
     goto error;
   } // end IF
   graph_entry.filterName =
-    (has_resampler_b ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER_2
-                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER);
+    (has_resampler_b ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER_2_L
+                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER_L);
   ACE_ASSERT (!graph_entry.mediaType);
   graph_entry.mediaType = Stream_MediaFramework_DirectShow_Tools::copy (outputMediaType_in);
   ACE_ASSERT (graph_entry.mediaType);
@@ -1979,7 +1992,7 @@ continue_4:
   ACE_ASSERT (filter_p);
   result =
     IGraphBuilder_in->AddFilter (filter_p,
-                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB);
+                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1987,7 +2000,7 @@ continue_4:
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
-  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
+  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L;
   graphConfiguration_out.push_back (graph_entry);
   filter_p->Release (); filter_p = NULL;
   ACE_DEBUG ((LM_DEBUG,
@@ -1999,12 +2012,12 @@ continue_3:
   if (audioOutput_in >= 0)
   {
     GUID_s = STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_AUDIO_RENDER;
-    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO;
+    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO_L;
   } // end IF
   else
   {
     GUID_s = CLSID_NullRenderer;
-    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL;
+    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L;
   } // end ELSE
   result = CoCreateInstance (GUID_s, NULL,
                              CLSCTX_INPROC_SERVER,
@@ -2096,11 +2109,9 @@ Stream_Module_Decoder_Tools::loadVideoRendererGraph (REFGUID deviceCategory_in,
   ACE_ASSERT (IGraphBuilder_in);
 
   if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
-    graph_entry.filterName =
-      STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO_L;
   else if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
-    graph_entry.filterName =
-      STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L;
   else
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2167,7 +2178,7 @@ decompress:
     {
       CLSID_s = CLSID_CMPEG2VidDecoderDS;
       graph_entry.filterName =
-        STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264;
+        STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264_L;
       preferred_subtype = MEDIASUBTYPE_NV12;
       // *NOTE*: the EVR video renderer (!) can handle the nv12 chroma type
       //         --> do not decode
@@ -2182,7 +2193,7 @@ decompress:
     {
       CLSID_s = CLSID_MjpegDec;
       graph_entry.filterName =
-        STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
+        STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG_L;
       break;
     }
     default:
@@ -2300,14 +2311,14 @@ decode:
                                           STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
   {
     CLSID_s = CLSID_Colour;
-    graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
+    graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB_L;
   } // end IF
   else if (Stream_MediaFramework_Tools::isChromaLuminance (graph_entry.mediaType->subtype,
                                                            STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
   {
     // *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
     CLSID_s = CLSID_AVIDec;
-    graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI;
+    graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI_L;
   } // end ELSE IF
   else
   {
@@ -2398,7 +2409,7 @@ grab:
   if (skip_grab)
     goto render;
 
-  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
+  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L;
   result = CoCreateInstance (CLSID_SampleGrabber, NULL,
                              CLSCTX_INPROC_SERVER,
                              IID_PPV_ARGS (&filter_p));
@@ -2435,16 +2446,16 @@ render:
     // *TODO*: find out why this happens
     CLSID_s = STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER;
     if (Stream_MediaFramework_DirectShow_Tools::has (graphConfiguration_out,
-                                                     STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI) &&
+                                                     STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI_L) &&
         Stream_MediaFramework_DirectShow_Tools::has (graphConfiguration_out,
-                                                     STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB) &&
+                                                     STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L) &&
         !InlineIsEqualGUID (CLSID_s, CLSID_VideoRenderer))
     {
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("graph has 'AVI Decompressor' and 'Sample Grabber'; using default video renderer...\n")));
       CLSID_s = STREAM_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER;
     } // end IF
-    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO;
+    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO_L;
   } // end IF
   else
   {
@@ -2452,7 +2463,7 @@ render:
     //         any connection between the 'AVI decompressor' and the 'sample
     //         grabber' (go ahead, try it in with graphedit.exe)
     CLSID_s = CLSID_NullRenderer;
-    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL;
+    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L;
   } // end ELSE
   result = CoCreateInstance (CLSID_s, NULL,
                              CLSCTX_INPROC_SERVER,
@@ -2700,7 +2711,7 @@ decompress:
     {
       CLSID_s = CLSID_CMPEG2VidDecoderDS;
       graph_entry.filterName =
-        STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264;
+        STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264_L;
       // *NOTE*: the EVR video renderer (!) can handle the nv12 chroma type
       //         --> do not decode
       preferred_subtype = MEDIASUBTYPE_NV12;
@@ -2711,7 +2722,7 @@ decompress:
     {
       CLSID_s = CLSID_MjpegDec;
       graph_entry.filterName =
-        STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
+        STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG_L;
       break;
     }
     default:
@@ -2844,8 +2855,7 @@ decode:
     //// *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
     //CLSID_s = CLSID_AVIDec;
     CLSID_s = CLSID_DMOWrapperFilter;
-    graph_entry.filterName =
-      STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_YUV;
+    graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_YUV_L;
     filter_is_dmo_wrapper = true;
     CLSID_2 = CLSID_CColorConvertDMO;
   } // end ELSE IF
@@ -3221,7 +3231,7 @@ decode:
   i_media_object_p->Release (); i_media_object_p = NULL;
 
   graph_entry.filterName =
-    STREAM_DEC_DIRECTSHOW_FILTER_NAME_RESIZER_VIDEO;
+    STREAM_DEC_DIRECTSHOW_FILTER_NAME_RESIZER_VIDEO_L;
   result =
     IGraphBuilder_out->AddFilter (filter_2,
                                   graph_entry.filterName.c_str ());
@@ -3249,8 +3259,8 @@ grab:
 //render:
   // render to a window (e.g. GtkDrawingArea) ?
   graph_entry.filterName =
-    (windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
+    (windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO_L
+                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L);
 
   result =
     IGraphBuilder_out->FindFilterByName (graph_entry.filterName.c_str (),

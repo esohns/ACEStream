@@ -470,13 +470,13 @@ continue_:
   media_filter_p->Release (); media_filter_p = NULL;
 
   result =
-    IGraphBuilder_out->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+    IGraphBuilder_out->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L,
                                          &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
+                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
@@ -533,13 +533,13 @@ continue_:
   //         --> reconnect the AVI decompressor to the (connected) sample
   //             grabber; this seems to work
   if (!Stream_MediaFramework_DirectShow_Tools::connected (IGraphBuilder_out,
-                                                          STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
+                                                          STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L))
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("reconnecting...\n")));
 
     if (!Stream_MediaFramework_DirectShow_Tools::connectFirst (IGraphBuilder_out,
-                                                               STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
+                                                               STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::connectFirst(), aborting\n")));
@@ -547,7 +547,7 @@ continue_:
     } // end IF
   } // end IF
   ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::connected (IGraphBuilder_out,
-                                                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO));
+                                                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L));
 
   return true;
 

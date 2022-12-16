@@ -1318,7 +1318,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L,
                                                                  &filter_p);
   ACE_ASSERT (SUCCEEDED (result) && filter_p);
   button_camera_properties->Enable (Stream_MediaFramework_DirectShow_Tools::hasPropertyPages (filter_p));
@@ -1355,7 +1355,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   IBaseFilter* filter_p = NULL;
   struct _AMMediaType* media_type_p = NULL;
   HRESULT result =
-    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L,
                                                                  &filter_p);
   ACE_ASSERT (SUCCEEDED (result) && filter_p);
   ISpecifyPropertyPages* property_pages_p = NULL;
@@ -1599,7 +1599,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   spinctrl_framesize->SetValue (Stream_MediaFramework_DirectShow_Tools::toFramesize (cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video));
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L,
                                                                  &filter_p);
   ACE_ASSERT (SUCCEEDED (result));
   media_type_p =
@@ -1638,7 +1638,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+    (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L,
                                                                  &filter_p);
   ACE_ASSERT (SUCCEEDED (result));
   struct _AMMediaType* media_type_p =

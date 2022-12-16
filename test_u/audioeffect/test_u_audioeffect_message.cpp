@@ -124,6 +124,9 @@ Test_U_AudioEffect_DirectShow_Message::duplicate (void) const
 
   // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
 
+  // increase reference count
+  if (message_p->data_.sample)
+    message_p->data_.sample->AddRef ();
   // reset data index
   message_p->data_.index = -1;
 

@@ -1242,19 +1242,19 @@ continue_:
 
   // retrieve video window control and configure output
   result =
-    IGraphBuilder_in->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO,
+    IGraphBuilder_in->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO_L,
                                         &ibase_filter_p);
   if (unlikely (FAILED (result)))
   {
     result =
-      IGraphBuilder_in->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL,
+      IGraphBuilder_in->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L,
                                           &ibase_filter_p);
     if (unlikely (FAILED (result)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(%s): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO),
+                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO_L),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
@@ -1281,7 +1281,7 @@ continue_:
     ACE_ASSERT (ibase_filter_p);
     Stream_MediaFramework_DirectShow_Tools::append (IGraphBuilder_in,
                                                     ibase_filter_p,
-                                                    STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO);
+                                                    STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO_L);
   } // end IF
   ACE_ASSERT (ibase_filter_p);
   result = ibase_filter_p->GetClassID (&GUID_s);
@@ -1289,7 +1289,7 @@ continue_:
   if (InlineIsEqualGUID (CLSID_EnhancedVideoRenderer, GUID_s))
   { 
     if (unlikely (!Stream_MediaFramework_DirectShow_Tools::getVideoWindow (IGraphBuilder_in,
-                                                                           STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO,
+                                                                           STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO_L,
                                                                            IMFVideoDisplayControl_out)))
     {
       ACE_DEBUG ((LM_ERROR,

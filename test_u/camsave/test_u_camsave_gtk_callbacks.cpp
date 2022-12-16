@@ -234,14 +234,14 @@ load_capture_devices (enum Stream_Device_Capturer capturer_in,
         ACE_ASSERT (properties_p);
 
         result_2 =
-          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING,
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING_L,
                               &variant_s,
                               0);
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
-                      ACE_TEXT (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING),
+                      ACE_TEXT (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING_L),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
           goto error;
         } // end IF
@@ -251,14 +251,14 @@ load_capture_devices (enum Stream_Device_Capturer capturer_in,
         friendly_name_string = converter.char_rep ();
 
         result_2 =
-          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING,
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING_L,
                               &variant_s,
                               0);
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
-                      ACE_TEXT (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING),
+                      ACE_TEXT (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING_L),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
           goto error;
         } // end IF
@@ -4920,7 +4920,7 @@ button_hw_settings_clicked_cb (GtkButton* button_in,
 
       IBaseFilter* filter_p = NULL;
       HRESULT result =
-        (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+        (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L,
                                                                      &filter_p);
       ACE_ASSERT (SUCCEEDED (result) && filter_p);
       ISpecifyPropertyPages* property_pages_p = NULL;

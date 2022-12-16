@@ -73,19 +73,19 @@
 #define STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING                   "WAV_Encoder"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_PCM                L"WAV Converter"
-#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB                L"Color Space Converter"
-//#define STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_YUV     L"AVI Decoder"
-#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_YUV                L"Color Converter DSP DMO"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_PCM_L              L"WAV Converter"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB_L              L"Color Space Converter"
+//#define STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_YUV_L     L"AVI Decoder"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_YUV_L              L"Color Converter DSP DMO"
 // *NOTE*: the 'AVI decompressor' (CLSID_AVIDec) supports conversions of YUV
 //         to RGB formats via the MSYUV Color Space Converter Codec
-#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI             L"AVI Decompressor"
-#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264            L"H264 Decompressor"
-#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG            L"MJPG Decompressor"
-#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_RESIZER_VIDEO              L"Video Resizer DSP DMO"
-#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_SPLIT_AVI                  L"AVI Splitter"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI_L           L"AVI Decompressor"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264_L          L"H264 Decompressor"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG_L          L"MJPG Decompressor"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_RESIZER_VIDEO_L            L"Video Resizer DSP DMO"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_SPLIT_AVI_L                L"AVI Splitter"
 
-#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO               L"Audio Effect"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO_L             L"Audio Effect"
 #endif // ACE_WIN32 || ACE_WIN64
 
 // zlib

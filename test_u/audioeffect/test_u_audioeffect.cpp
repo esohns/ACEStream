@@ -579,7 +579,6 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   std::wstring filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L;
   struct tWAVEFORMATEX waveformatex_s;
   ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
-  struct tWAVEFORMATEX* waveformatex_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (!IGraphBuilder_out);
@@ -610,9 +609,6 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  waveformatex_p =
-    reinterpret_cast<struct tWAVEFORMATEX*> (captureMediaType_out.pbFormat);
-  ACE_ASSERT (waveformatex_p->cbSize == 0);
 
   if (!useDirectShowSource_in)
     goto continue_2;
@@ -1275,10 +1271,9 @@ do_work (
         case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
         {
           directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
-            Stream_Device_Identifier::GUID;
-          directshow_modulehandler_configuration.deviceIdentifier.identifier._guid =
-            Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
-                                                                                    true); // capture
+            Stream_Device_Identifier::ID;
+          directshow_modulehandler_configuration.deviceIdentifier.identifier._id =
+            0; // *TODO*: -1 means WAVE_MAPPER; 0 may not be the default device id
           break;
         }
         default:
@@ -1358,11 +1353,9 @@ do_work (
         case STREAM_DEVICE_RENDERER_DIRECTSHOW:
         {
           directshow_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
-            Stream_Device_Identifier::GUID;
-          directshow_modulehandler_configuration_3.deviceIdentifier.identifier._guid =
-            (mute_in ? GUID_NULL
-                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
-                                                                                               false)); // playback
+            Stream_Device_Identifier::ID;
+          directshow_modulehandler_configuration_3.deviceIdentifier.identifier._id =
+            (mute_in ? -1 : 0); // *TODO*: -1 means WAVE_MAPPER
           renderer_modulename_string =
             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING);
           break;

@@ -305,14 +305,14 @@ load_capture_devices (GtkListStore* listStore_in)
 
         VariantInit (&variant_s);
         result_2 =
-          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING,
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING_L,
                               &variant_s,
                               0);
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
-                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING_L),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
           goto error;
         } // end IF
@@ -320,7 +320,7 @@ load_capture_devices (GtkListStore* listStore_in)
           ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (variant_s.bstrVal));
         VariantClear (&variant_s);
         result_2 =
-          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING,
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING_L,
                               &variant_s,
                               0);
         if (SUCCEEDED (result_2))
@@ -332,11 +332,11 @@ load_capture_devices (GtkListStore* listStore_in)
         else // 0x80070002 : ERROR_FILE_NOT_FOUND
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
-                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING_L),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
 
         result_2 =
-          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING,
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING_L,
                               &variant_s,
                               0);
         if (SUCCEEDED (result_2))
@@ -348,11 +348,11 @@ load_capture_devices (GtkListStore* listStore_in)
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
-                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING_L),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
 
         result_2 =
-          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING,
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING_L,
                               &variant_s,
                               0);
         if (SUCCEEDED (result_2))
@@ -363,7 +363,7 @@ load_capture_devices (GtkListStore* listStore_in)
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
-                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING_L),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
         properties_p->Release (); properties_p = NULL;
         //ACE_DEBUG ((LM_DEBUG,
@@ -7087,7 +7087,7 @@ button_properties_clicked_cb (GtkButton* button_in,
 
       IBaseFilter* filter_p = NULL;
       HRESULT result =
-        (*directshow_modulehandler_configuration_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO,
+        (*directshow_modulehandler_configuration_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO_L,
                                                                                                      &filter_p);
       if (FAILED (result))
         break; // using Null renderer ?
@@ -8275,12 +8275,12 @@ hscale_win32_ds_flanger_wetdrymix_value_changed_cb (GtkRange* range_in,
     static_cast<FLOAT> (gtk_range_get_value (range_in));
   if (!(*directshow_modulehandler_configuration_iterator).second.second->builder)
     return; // stream not running ?
-
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    (*directshow_modulehandler_configuration_iterator).second.second->builder->FindFilterByName (STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO,
+    (*directshow_modulehandler_configuration_iterator).second.second->builder->FindFilterByName (STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO_L,
                                                                                                  &filter_p);
-  ACE_ASSERT (SUCCEEDED (result) && filter_p);
+  if (FAILED (result) || !filter_p)
+    return; // stream not running ?
   IDirectSoundFXFlanger* effect_p = NULL;
   result = filter_p->QueryInterface (IID_IDirectSoundFXFlanger,
                                      (void**)&effect_p);

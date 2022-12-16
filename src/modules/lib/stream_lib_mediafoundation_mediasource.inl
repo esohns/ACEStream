@@ -821,7 +821,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   ACE_ASSERT (SUCCEEDED (result) && stream_descriptors_a[0]);
   result =
     stream_descriptors_a[0]->SetString (MF_SD_STREAM_NAME,
-                                        STREAM_LIB_MEDIAFOUNDATION_MEDIASOURCE_DEFAULT_STREAM_NAME);
+                                        STREAM_LIB_MEDIAFOUNDATION_MEDIASOURCE_DEFAULT_STREAM_NAME_L);
   ACE_ASSERT (SUCCEEDED (result));
   result = stream_descriptors_a[0]->GetMediaTypeHandler (&media_type_handler_p);
   ACE_ASSERT (SUCCEEDED (result) && media_type_handler_p);

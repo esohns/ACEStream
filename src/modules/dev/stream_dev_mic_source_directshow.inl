@@ -75,16 +75,15 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   // *NOTE*: there are two threads running svc(): the invoking thread ('this' is
   //         a 'passive' module by default) and a thread processing DirectShow
   //         filter graph events (spawned in handleSessionMessage()). Currently,
-  //         this hybrid mode of operation inflects a specific configuration
-  //         setup.
-  //         Specifically, ACE_Task_Base::thr_count_ and
+  //         this hybrid mode of operation infers a specific configuration
+  //         setup. Specifically, ACE_Task_Base::thr_count_ and
   //         Common_Task_Base_T::threadCount_ need to be coordinated to maintain
   //         a consistent control flow:
   //         - increase ACE_Task_Base::thr_count_ so the first thread leaving
   //           svc() does not shut down the message queue (see: svc() below)
   //         - increase the threadCount_ so start() will actually spawn a new
   //           thread
-  inherited::threadCount_ = 2;
+  inherited::threadCount_ = 1;
 
   //         Note that as this module is a 'live' source, it is stop()ped by the
   //         user.. The first thread leaving svc() is the calling thread, which
@@ -349,7 +348,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
         IBaseFilter* filter_p = NULL;
         result_2 =
-          IGraphBuilder_->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
+          IGraphBuilder_->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO_L,
                                             &filter_p);
         if (FAILED (result_2))
           goto error_3;
@@ -363,7 +362,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
         filter_p->Release (); filter_p = NULL;
 
         result_2 =
-          IGraphBuilder_->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+          IGraphBuilder_->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L,
                                             &filter_p);
         if (FAILED (result_2))
           goto error_3;
@@ -476,7 +475,7 @@ continue_2:
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: capture format: \"%s\"\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (session_data_r.formats.back ()).c_str ())));
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (session_data_r.formats.back (), true).c_str ())));
 #if defined (_DEBUG)
       log_file_name =
         Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
@@ -1034,7 +1033,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, lock_, -1);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::lock_, -1);
     if (!isFirst_)
       goto continue_;
     isFirst_ = false;
@@ -1356,14 +1355,14 @@ continue_:
 
   IBaseFilter* filter_p = NULL;
   result =
-    graph_builder_p->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
+    graph_builder_p->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO_L,
                                        &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO),
+                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO_L),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
@@ -1458,7 +1457,7 @@ continue_:
   // grab
   IBaseFilter* filter_3 = NULL;
   result =
-    graph_builder_p->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+    graph_builder_p->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L,
                                        &filter_3);
   if (FAILED (result))
   {
@@ -1467,7 +1466,7 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
+                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
@@ -1485,7 +1484,7 @@ continue_:
     } // end IF
     ACE_ASSERT (filter_3);
     result = graph_builder_p->AddFilter (filter_3,
-                                         STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB);
+                                         STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1516,8 +1515,8 @@ continue_:
 //continue_2:
   IBaseFilter* filter_4 = NULL;
   result =
-    graph_builder_p->FindFilterByName ((audioOutput_in >= 0 ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                                            : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
+    graph_builder_p->FindFilterByName ((audioOutput_in >= 0 ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO_L
+                                                            : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L),
                                        &filter_4);
   if (FAILED (result))
   {
@@ -1526,8 +1525,8 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in >= 0 ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                                                : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in >= 0 ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO_L
+                                                                : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L)),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
@@ -1549,8 +1548,8 @@ continue_:
     ACE_ASSERT (filter_4);
     result =
       graph_builder_p->AddFilter (filter_4,
-                                  (audioOutput_in >= 0 ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                                       : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
+                                  (audioOutput_in >= 0 ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO_L
+                                                       : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1650,14 +1649,14 @@ continue_:
   //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error_2;
   //} // end IF
-  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO_L;
   graph_configuration.push_back (graph_entry);
   //filter_pipeline.push_back (converter_name);
-  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
+  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L;
   graph_configuration.push_back (graph_entry);
   graph_entry.filterName =
-    (audioOutput_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                    : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
+    (audioOutput_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO_L
+                    : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L);
   graph_configuration.push_back (graph_entry);
   if (!Stream_MediaFramework_DirectShow_Tools::connect (graph_builder_p,
                                                         graph_configuration))

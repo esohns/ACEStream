@@ -239,7 +239,7 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
     } // end IF
 
     if (!Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation ((*iterator).second.second->builder,
-                                                                       STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+                                                                       STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L,
                                                                        buffer_negotiation_p))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -314,14 +314,14 @@ continue_:
   } // end IF
 
   result_2 =
-    (*iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
-                                                         &filter_p);
+    (*iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L,
+                                                          &filter_p);
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
+                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L),
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
@@ -394,14 +394,14 @@ continue_:
   //         --> reconnect the AVI decompressor to the (connected) sample
   //             grabber; this seems to work
   if (!Stream_MediaFramework_DirectShow_Tools::connected ((*iterator).second.second->builder,
-                                                          STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
+                                                          STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L))
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: reconnecting...\n"),
                 ACE_TEXT (stream_name_string_)));
 
     if (!Stream_MediaFramework_DirectShow_Tools::connectFirst ((*iterator).second.second->builder,
-                                                               STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
+                                                               STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::connectFirst(), aborting\n"),
@@ -410,7 +410,7 @@ continue_:
     } // end IF
   } // end IF
   ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::connected ((*iterator).second.second->builder,
-                                                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO));
+                                                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L));
 
 #if defined (_DEBUG)
   ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
@@ -421,7 +421,7 @@ continue_:
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s/%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
+                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L),
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
     //goto error;
   } // end IF

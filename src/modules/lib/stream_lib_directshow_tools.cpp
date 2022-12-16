@@ -2159,9 +2159,9 @@ Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder* builder_in,
   HRESULT result = E_FAIL;
 
   if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
-    filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+    filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO_L;
   else if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
-    filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+    filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L;
   else if (InlineIsEqualGUID (deviceCategory_in, GUID_NULL))
   { // retrieve the first filter that has no input pin
     IEnumFilters* enumerator_p = NULL;
@@ -2688,7 +2688,7 @@ Stream_MediaFramework_DirectShow_Tools::getOutputFormat (IGraphBuilder* builder_
   ACE_ASSERT (filter_p);
 
   if (!ACE_OS::strcmp (filterName_in.c_str (),
-                       STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB))
+                       STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L))
   {
     ISampleGrabber* isample_grabber_p = NULL;
     result = filter_p->QueryInterface (IID_ISampleGrabber,
@@ -4317,7 +4317,7 @@ Stream_MediaFramework_DirectShow_Tools::getAudioRendererStatistics (IFilterGraph
   // step1: retrieve filter
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    graph_in->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO,
+    graph_in->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO_L,
                                 &filter_p);
   ACE_ASSERT (SUCCEEDED (result) && filter_p);
 

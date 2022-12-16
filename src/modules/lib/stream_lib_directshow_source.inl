@@ -133,14 +133,14 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
 
   // retrieve sample grabber filter
   IBaseFilter* filter_p = NULL;
-  result_2 = IGraphBuilder_->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+  result_2 = IGraphBuilder_->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L,
                                                &filter_p);
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IFilterGraph::FindFilterByName(%s): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
+                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L),
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
     IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
     if (COM_initialized) Common_Tools::finalizeCOM ();
@@ -223,11 +223,8 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_T::handleDataMessage"));
 
-  // sanity check(s)
-  ACE_ASSERT (message_inout);
-
-  message_inout->release (); message_inout = NULL;
   passMessageDownstream_out = false;
+  message_inout->release (); message_inout = NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -288,14 +285,14 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
       IBaseFilter* filter_p = NULL;
       ISampleGrabber* sample_grabber_p = NULL;
       result_2 =
-        IGraphBuilder_->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+        IGraphBuilder_->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L,
                                           &filter_p);
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IFilterGraph::FindFilterByName(%s): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
+                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L),
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
         goto error;
       } // end IF
@@ -430,7 +427,7 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
 
     BYTE* buffer_p = NULL;
     HRESULT result_2 = sample_in->GetPointer (&buffer_p);
-    if (FAILED (result_2))
+    if (unlikely (FAILED (result_2) || !buffer_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMediaSample::GetPointer(): \"%s\", aborting\n"),
@@ -439,7 +436,6 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
       message_p->release (); message_p = NULL;
       return result_2;
     } // end IF
-    ACE_ASSERT (buffer_p);
     unsigned int size = static_cast<unsigned int> (sample_in->GetSize ());
     message_p->base (reinterpret_cast<char*> (buffer_p),
                      size,

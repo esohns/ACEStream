@@ -369,7 +369,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
           goto error_3;
 
         result_2 =
-          inherited::configuration_->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+          inherited::configuration_->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L,
                                                                 &filter_p);
         if (FAILED (result_2))
           goto error_2;
@@ -385,7 +385,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
         filter_p->Release (); filter_p = NULL;
 
         result_2 =
-          inherited::configuration_->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+          inherited::configuration_->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L,
                                                                 &filter_p);
         if (FAILED (result_2))
           goto error_2;
@@ -472,13 +472,13 @@ continue_:
         } // end IF
 
       if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat (builder_p,
-                                                                    STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+                                                                    STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L,
                                                                     media_type_s))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::getCaptureFormat(\"%s\"), aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB)));
+                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L)));
         goto error;
       } // end IF
       release_media_type = true;
@@ -486,7 +486,7 @@ continue_:
       if (Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (media_type_s))
       {
         result_2 =
-          inherited::configuration_->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+          inherited::configuration_->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L,
                                                                 &filter_p);
         ACE_ASSERT (SUCCEEDED (result_2) && filter_p);
         IPin* pin_p =
@@ -1118,7 +1118,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   struct _GUID decompressor_guid = CLSID_Colour;
   IBaseFilter* filter_p = NULL, *filter_2 = NULL;
   struct _AMMediaType media_type_s;
-  LPCWSTR decompressor_name = STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
+  LPCWSTR decompressor_name = STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB_L;
   bool needs_converter = false;
   struct _AllocatorProperties allocator_properties;
   ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
@@ -1195,13 +1195,13 @@ continue_:
   } // end IF
 
   result =
-    graph_builder_p->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+    graph_builder_p->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L,
                                        &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
+                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
@@ -1242,12 +1242,12 @@ continue_:
   {
     // *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
     decompressor_guid = CLSID_AVIDec;
-    decompressor_name = STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI;
+    decompressor_name = STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI_L;
   } // end IF
   else if (InlineIsEqualGUID (media_type_s.subtype, MEDIASUBTYPE_MJPG))
   {
     decompressor_guid = CLSID_MjpegDec;
-    decompressor_name = STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
+    decompressor_name = STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG_L;
   } // end IF
   else
   {
@@ -1311,7 +1311,7 @@ continue_:
 
   // grab
   result =
-    graph_builder_p->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+    graph_builder_p->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L,
                                        &filter_p);
   if (FAILED (result))
   {
@@ -1320,7 +1320,7 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
+                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
@@ -1338,7 +1338,7 @@ continue_:
     } // end IF
     ACE_ASSERT (filter_2);
     result = graph_builder_p->AddFilter (filter_2,
-                                         STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB);
+                                         STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1369,8 +1369,8 @@ continue_:
   // render to a window (GtkDrawingArea) ?
 continue_2:
   result =
-    graph_builder_p->FindFilterByName ((windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                                                        : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
+    graph_builder_p->FindFilterByName ((windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO_L
+                                                        : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L),
                                        &filter_p);
   if (FAILED (result))
   {
@@ -1379,8 +1379,8 @@ continue_2:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                                                            : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO_L
+                                                            : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L)),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
@@ -1402,8 +1402,8 @@ continue_2:
     ACE_ASSERT (filter_2);
     result =
       graph_builder_p->AddFilter (filter_2,
-                                  (windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                                                   : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
+                                  (windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO_L
+                                                   : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1456,15 +1456,15 @@ continue_2:
   //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error_2;
   //} // end IF
-  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L;
   graph_configuration.push_back (graph_entry);
   graph_entry.filterName = decompressor_name;
   graph_configuration.push_back (graph_entry);
-  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
+  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L;
   graph_configuration.push_back (graph_entry);
   graph_entry.filterName =
-    (windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
+    (windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO_L
+                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L);
   graph_configuration.push_back (graph_entry);
   if (!Stream_MediaFramework_DirectShow_Tools::connect (graph_builder_p,
                                                         graph_configuration))

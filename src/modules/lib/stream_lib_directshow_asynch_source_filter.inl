@@ -261,7 +261,7 @@ Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<MessageType,
   ACE_NEW_NORETURN (pin_p,
                     OUTPUT_PIN_T (result_out,
                                   this,
-                                  STREAM_LIB_DIRECTSHOW_FILTER_PIN_OUTPUT_NAME));
+                                  STREAM_LIB_DIRECTSHOW_FILTER_PIN_OUTPUT_NAME_L));
   if (unlikely (!pin_p || (result_out && FAILED (*result_out))))
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -1113,7 +1113,7 @@ continue_:
   ACE_DEBUG ((LM_DEBUG,
             ACE_TEXT ("%s/%s: negotiated buffer properties: %d x %d byte(s) (alignment: %d, prefix: %d byte(s)\n"),
             ACE_TEXT (STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE),
-            ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_PIN_OUTPUT_NAME),
+            ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_PIN_OUTPUT_NAME_L),
             allocator_properties.cBuffers, allocator_properties.cbBuffer,
             allocator_properties.cbAlign, allocator_properties.cbPrefix));
 

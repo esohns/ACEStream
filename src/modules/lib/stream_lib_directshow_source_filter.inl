@@ -173,7 +173,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
   ACE_NEW_NORETURN (pin_p,
                     OUTPUT_PIN_T (&result,
                                   this,
-                                  STREAM_LIB_DIRECTSHOW_FILTER_PIN_OUTPUT_NAME));
+                                  STREAM_LIB_DIRECTSHOW_FILTER_PIN_OUTPUT_NAME_L));
   if (!pin_p || FAILED (result))
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -222,7 +222,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
   ACE_NEW_NORETURN (pin_p,
                     OUTPUT_PIN_T (&result,
                                   this,
-                                  STREAM_LIB_DIRECTSHOW_FILTER_PIN_OUTPUT_NAME));
+                                  STREAM_LIB_DIRECTSHOW_FILTER_PIN_OUTPUT_NAME_L));
   if (!pin_p || FAILED (result))
   {
     ACE_DEBUG ((LM_CRITICAL,

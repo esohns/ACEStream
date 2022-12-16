@@ -298,14 +298,14 @@ load_playback_devices (GtkListStore* listStore_in)
 
         VariantInit (&variant_s);
         result_2 =
-          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING,
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING_L,
                               &variant_s,
                               0);
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
-                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING_L),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
           goto error;
         } // end IF
@@ -313,7 +313,7 @@ load_playback_devices (GtkListStore* listStore_in)
           ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (variant_s.bstrVal));
         VariantClear (&variant_s);
         result_2 =
-          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING,
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING_L,
                               &variant_s,
                               0);
         if (SUCCEEDED (result_2))
@@ -325,11 +325,11 @@ load_playback_devices (GtkListStore* listStore_in)
         else // 0x80070002 : ERROR_FILE_NOT_FOUND
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
-                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING_L),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
 
         result_2 =
-          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING,
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING_L,
                               &variant_s,
                               0);
         if (SUCCEEDED (result_2))
@@ -341,11 +341,11 @@ load_playback_devices (GtkListStore* listStore_in)
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
-                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING_L),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
 
         result_2 =
-          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING,
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING_L,
                               &variant_s,
                               0);
         if (SUCCEEDED (result_2))
@@ -356,7 +356,7 @@ load_playback_devices (GtkListStore* listStore_in)
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
-                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING_L),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
         properties_p->Release (); properties_p = NULL;
         //ACE_DEBUG ((LM_DEBUG,
