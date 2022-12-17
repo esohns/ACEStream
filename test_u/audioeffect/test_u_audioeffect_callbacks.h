@@ -92,7 +92,7 @@ extern "C"
   G_MODULE_EXPORT void button_properties_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void button_report_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void button_reset_clicked_cb (GtkButton*, gpointer);
-  G_MODULE_EXPORT void button_settings_clicked_cb (GtkButton*, gpointer);
+  G_MODULE_EXPORT void button_device_settings_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void button_quit_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void combobox_channels_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_device_changed_cb (GtkWidget*, gpointer);

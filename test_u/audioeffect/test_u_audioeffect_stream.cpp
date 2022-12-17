@@ -553,7 +553,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     } // end IF
     filter_2->Release (); filter_2 = NULL;
   } // end IF
-  ACE_ASSERT ((*iterator).second.second->builder);
+  //ACE_ASSERT ((*iterator).second.second->builder);
 
   grab_samples_b =
     (inherited::configuration_->configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW) ||
@@ -638,22 +638,23 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
       return false;
     }
   } // end SWITCH
-  if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (((configuration_in.configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW) ? CLSID_AudioInputDeviceCategory
-                                                                                                                                              : GUID_NULL),
-                                                            configuration_in.configuration_->format,
-                                                            media_type_s,
-                                                            grab_samples_b,
-                                                            (use_framework_renderer_b ? render_device_id_i : -1),
-                                                            (*iterator).second.second->builder,
-                                                            (*iterator).second.second->effect,
-                                                            (*iterator).second.second->effectOptions,
-                                                            graph_configuration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadAudioRendererGraph(), aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
+  if ((*iterator).second.second->builder)
+    if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (((configuration_in.configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW) ? CLSID_AudioInputDeviceCategory
+                                                                                                                                                : GUID_NULL),
+                                                              configuration_in.configuration_->format,
+                                                              media_type_s,
+                                                              grab_samples_b,
+                                                              (use_framework_renderer_b ? render_device_id_i : -1),
+                                                              (*iterator).second.second->builder,
+                                                              (*iterator).second.second->effect,
+                                                              (*iterator).second.second->effectOptions,
+                                                              graph_configuration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadAudioRendererGraph(), aborting\n"),
+                  ACE_TEXT (stream_name_string_)));
+      goto error;
+    } // end IF
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
   if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
   { ACE_ASSERT (!graph_configuration.empty ());
@@ -662,7 +663,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   } // end IF
 
   if (has_directshow_source_filter_b)
-  {
+  { ACE_ASSERT ((*iterator).second.second->builder);
     result_2 =
       (*iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L,
                                                             &filter_p);
@@ -696,75 +697,78 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     filter_p->Release (); filter_p = NULL;
   } // end IF
 
-  result_2 =
-    (*iterator).second.second->builder->QueryInterface (IID_PPV_ARGS (&graph_streams_p));
-  if (FAILED (result_2))
+  if ((*iterator).second.second->builder)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IAMGraphStreams): \"%s\", aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    goto error;
-  } // end IF
-  ACE_ASSERT (graph_streams_p);
-  result_2 = graph_streams_p->SyncUsingStreamOffset (TRUE);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IAMGraphStreams::SyncUsingStreamOffset(FALSE): \"%s\", aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    goto error;
-  } // end IF
-  result_2 = graph_streams_p->SetMaxGraphLatency (max_latency_i);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IAMGraphStreams::SetMaxGraphLatency(%q): \"%s\", aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                max_latency_i,
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    goto error;
-  } // end IF
-  graph_streams_p->Release (); graph_streams_p = NULL;
+    result_2 =
+      (*iterator).second.second->builder->QueryInterface (IID_PPV_ARGS (&graph_streams_p));
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IAMGraphStreams): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (graph_streams_p);
+    result_2 = graph_streams_p->SyncUsingStreamOffset (TRUE);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IAMGraphStreams::SyncUsingStreamOffset(FALSE): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      goto error;
+    } // end IF
+    result_2 = graph_streams_p->SetMaxGraphLatency (max_latency_i);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IAMGraphStreams::SetMaxGraphLatency(%q): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  max_latency_i,
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      goto error;
+    } // end IF
+    graph_streams_p->Release (); graph_streams_p = NULL;
 
-  if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second->builder,
-                                                        graph_configuration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::connect(), aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
+    if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second->builder,
+                                                          graph_configuration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::connect(), aborting\n"),
+                  ACE_TEXT (stream_name_string_)));
+      goto error;
+    } // end IF
 
-  result_2 =
-    (*iterator).second.second->builder->QueryInterface (IID_PPV_ARGS (&media_filter_p));
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    goto error;
-  } // end IF
-  ACE_ASSERT (media_filter_p);
-  result_2 = media_filter_p->SetSyncSource (NULL);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    goto error;
-  } // end IF
-  media_filter_p->Release (); media_filter_p = NULL;
+    result_2 =
+      (*iterator).second.second->builder->QueryInterface (IID_PPV_ARGS (&media_filter_p));
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (media_filter_p);
+    result_2 = media_filter_p->SetSyncSource (NULL);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      goto error;
+    } // end IF
+    media_filter_p->Release (); media_filter_p = NULL;
 
-  if ((*iterator_2).second.second->builder)
-  {
-    (*iterator_2).second.second->builder->Release (); (*iterator_2).second.second->builder = NULL;
+    if ((*iterator_2).second.second->builder)
+    {
+      (*iterator_2).second.second->builder->Release (); (*iterator_2).second.second->builder = NULL;
+    } // end IF
+    (*iterator).second.second->builder->AddRef ();
+    (*iterator_2).second.second->builder = (*iterator).second.second->builder;
   } // end IF
-  (*iterator).second.second->builder->AddRef ();
-  (*iterator_2).second.second->builder = (*iterator).second.second->builder;
 
   if (inherited::configuration_->configuration_->sourceType != AUDIOEFFECT_SOURCE_FILE)
     session_data_r.formats.push_back (configuration_in.configuration_->format);

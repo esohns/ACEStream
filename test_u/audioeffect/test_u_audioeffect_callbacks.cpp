@@ -7062,14 +7062,13 @@ button_properties_clicked_cb (GtkButton* button_in,
   ACE_ASSERT (ui_cb_data_base_p);
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
-  GtkDrawingArea* drawing_area_p =
-    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
-  ACE_ASSERT (drawing_area_p);
-  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  ACE_ASSERT (window_p);
+  //GtkDrawingArea* drawing_area_p =
+  //  GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+  //                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
+  //ACE_ASSERT (drawing_area_p);
+  //GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  //ACE_ASSERT (window_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
@@ -7087,8 +7086,8 @@ button_properties_clicked_cb (GtkButton* button_in,
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
-      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->builder);
-
+      if (!(*directshow_modulehandler_configuration_iterator).second.second->builder)
+        break; // not using DirectShow
       IBaseFilter* filter_p = NULL;
       HRESULT result =
         (*directshow_modulehandler_configuration_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO_L,
@@ -7107,7 +7106,7 @@ button_properties_clicked_cb (GtkButton* button_in,
       IUnknown* iunknown_p = NULL;
       filter_p->QueryInterface (IID_PPV_ARGS (&iunknown_p));
       ACE_ASSERT (SUCCEEDED (result) && iunknown_p);
-      ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
+      //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
       LCID locale_id = 1033;
       // display modal properties dialog
       // *TODO*: implement modeless support (i.e. return immediately)
@@ -7135,7 +7134,7 @@ button_properties_clicked_cb (GtkButton* button_in,
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
       ACE_UNUSED_ARG (mediafoundation_ui_cb_data_p);
-      ACE_UNUSED_ARG (window_p);
+      //ACE_UNUSED_ARG (window_p);
       break;
     }
     default:
@@ -7150,7 +7149,7 @@ button_properties_clicked_cb (GtkButton* button_in,
   struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (ui_cb_data_base_p);
   ACE_UNUSED_ARG (ui_cb_data_p);
-  ACE_UNUSED_ARG (window_p);
+  //ACE_UNUSED_ARG (window_p);
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -9024,10 +9023,10 @@ button_about_clicked_cb (GtkButton* button_in,
 } // button_about_clicked_cb
 
 void
-button_settings_clicked_cb (GtkButton* button_in,
-                            gpointer userData_in)
+button_device_settings_clicked_cb (GtkButton* button_in,
+                                   gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::button_settings_clicked_cb"));
+  STREAM_TRACE (ACE_TEXT ("::button_device_settings_clicked_cb"));
 
   ACE_UNUSED_ARG (button_in);
 
@@ -9035,22 +9034,102 @@ button_settings_clicked_cb (GtkButton* button_in,
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != state_r.builders.end ());
-} // button_settings_clicked_cb
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (ui_cb_data_base_p);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      if (!(*directshow_modulehandler_configuration_iterator).second.second->builder)
+        break; // not using DirectShow
+      IBaseFilter* filter_p = NULL;
+      HRESULT result =
+        (*directshow_modulehandler_configuration_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO_L,
+                                                                                                     &filter_p);
+      if (FAILED (result))
+        break; // using Null renderer ?
+      ACE_ASSERT (filter_p);
+      ISpecifyPropertyPages* property_pages_p = NULL;
+      result = filter_p->QueryInterface (IID_PPV_ARGS (&property_pages_p));
+      ACE_ASSERT (SUCCEEDED (result) && property_pages_p);
+      struct tagCAUUID uuids_a;
+      ACE_OS::memset (&uuids_a, 0, sizeof (struct tagCAUUID));
+      result = property_pages_p->GetPages (&uuids_a);
+      ACE_ASSERT (SUCCEEDED (result) && uuids_a.pElems);
+      property_pages_p->Release (); property_pages_p = NULL;
+      IUnknown* iunknown_p = NULL;
+      filter_p->QueryInterface (IID_PPV_ARGS (&iunknown_p));
+      ACE_ASSERT (SUCCEEDED (result) && iunknown_p);
+      //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
+      LCID locale_id = 1033;
+      // display modal properties dialog
+      // *TODO*: implement modeless support (i.e. return immediately)
+      result =
+        OleCreatePropertyFrame (NULL,//gdk_win32_window_get_impl_hwnd (window_p), // Parent window {NULL ? modeless : modal}
+                                0, 0,                     // Reserved
+#if defined (OLE2ANSI)
+                                Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str (), // Caption for the dialog box
+#else
+                                ACE_TEXT_ALWAYS_WCHAR (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()), // Caption for the dialog box
+#endif // OLE2ANSI
+                                1,                        // Number of objects (just the filter)
+                                &iunknown_p,              // Array of object pointers
+                                uuids_a.cElems,           // Number of property pages
+                                uuids_a.pElems,           // Array of property page CLSIDs
+                                locale_id,                // Locale identifier
+                                0, NULL);                 // Reserved
+      ACE_ASSERT (SUCCEEDED (result));
+      iunknown_p->Release (); iunknown_p = NULL;
+      CoTaskMemFree (uuids_a.pElems); uuids_a.pElems = NULL;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
+      ACE_UNUSED_ARG (mediafoundation_ui_cb_data_p);
+      //ACE_UNUSED_ARG (window_p);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (ui_cb_data_base_p);
+  ACE_UNUSED_ARG (ui_cb_data_p);
+  //ACE_UNUSED_ARG (window_p);
+#endif // ACE_WIN32 || ACE_WIN64
+} // button_device_settings_clicked_cb
 
 void
 button_reset_clicked_cb (GtkButton* button_in,
                          gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::action_reset_clicked_cb"));
+  STREAM_TRACE (ACE_TEXT ("::button_reset_clicked_cb"));
 
   ACE_UNUSED_ARG (button_in);
 
