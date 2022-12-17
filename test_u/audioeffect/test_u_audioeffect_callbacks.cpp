@@ -4915,7 +4915,11 @@ idle_initialize_UI_cb (gpointer userData_in)
           break;
         }
         case STREAM_DEVICE_RENDERER_DIRECTSHOW:
-        { ACE_ASSERT (false); // *TODO*
+        { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+          GUID_s =
+            Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifier._id,
+                                                                                    false); // playback
+          GUID_2 = GUID_NULL; // *NOTE*: waveOut devices join the default audio session --> GUID_NULL
           break;
         }
         default:

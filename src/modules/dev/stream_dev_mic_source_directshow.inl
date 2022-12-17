@@ -330,6 +330,10 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
       } // end IF
 
       bool COM_initialized = Common_Tools::initializeCOM ();
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       bool is_running = false;
       bool is_active = false;
       ISampleGrabber* sample_grabber_p = NULL;
@@ -425,6 +429,7 @@ continue_:
                     ACE_TEXT ("%s: failed to ISampleGrabber::SetBufferSamples(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+        sample_grabber_p->Release (); sample_grabber_p = NULL;
         goto error;
       } // end IF
       result_2 = sample_grabber_p->SetCallback (this, 0);
@@ -434,9 +439,22 @@ continue_:
                     ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+        sample_grabber_p->Release (); sample_grabber_p = NULL;
+        goto error;
+      } // end IF
+
+      result_2 = sample_grabber_p->GetConnectedMediaType (&media_type_s);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ISampleGrabber::GetConnectedMediaType(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+        sample_grabber_p->Release (); sample_grabber_p = NULL;
         goto error;
       } // end IF
       sample_grabber_p->Release (); sample_grabber_p = NULL;
+      session_data_r.formats.push_back (media_type_s);
 
       // retrieve interfaces for media control and the video window
       result_2 =
@@ -475,7 +493,7 @@ continue_2:
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: capture format: \"%s\"\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (session_data_r.formats.back (), true).c_str ())));
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (session_data_r.formats.front (), true).c_str ())));
 #if defined (_DEBUG)
       log_file_name =
         Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
@@ -550,10 +568,8 @@ error:
         ICaptureGraphBuilder2_->Release (); ICaptureGraphBuilder2_ = NULL;
       } // end IF
 
-      //if (session_data_r.format)
-      //  Stream_Device_Tools::deleteMediaType (session_data_r.format);
-
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 

@@ -1855,12 +1855,9 @@ continue_2:
     reinterpret_cast<struct tWAVEFORMATEX*> (outputMediaType_in.pbFormat);
   ACE_ASSERT (waveformatex_p);
   if (Stream_MediaFramework_DirectSound_Tools::isFloat (*waveformatex_p))
-  {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("output format is floating point (was: %s); cannot use directshow resampler, continuing\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (outputMediaType_in, true).c_str ())));
-    goto continue_4;
-  } // end IF
 
   result = CoCreateInstance (CLSID_ACMWrapper, NULL,
                              CLSCTX_INPROC_SERVER,

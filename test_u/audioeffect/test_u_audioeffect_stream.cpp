@@ -266,8 +266,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
-  if ((!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW)) &&
-      !(*iterator_4).second.second->fileIdentifier.empty ())
+  if (!(*iterator_4).second.second->fileIdentifier.empty ())
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_DirectShow_Distributor_Module (this,
@@ -362,9 +361,9 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   if (module_p)
   {
     layout_in->append (module_p, branch_p, index_i);
-    ++index_i;
     module_p = NULL;
   } // end IF
+  ++index_i;
 
   if (!(*iterator_4).second.second->fileIdentifier.empty ())
   {
@@ -595,6 +594,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
         ACE_ASSERT (SUCCEEDED (result_2));
         break;
       }
+      case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+        break;
       default:
       {
         ACE_DEBUG ((LM_ERROR,
@@ -611,17 +612,21 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   switch (inherited::configuration_->configuration_->renderer)
   {
     case STREAM_DEVICE_RENDERER_WAVEOUT:
-    {
-      ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+    { ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
       render_device_id_i =
         (*iterator_3).second.second->deviceIdentifier.identifier._id;
       break;
     }
     case STREAM_DEVICE_RENDERER_WASAPI:
-    {
-      ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+    { ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
       render_device_id_i =
         static_cast<int> (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId ((*iterator_3).second.second->deviceIdentifier.identifier._guid));
+      break;
+    }
+    case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+    { ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+      render_device_id_i =
+        (*iterator_3).second.second->deviceIdentifier.identifier._id;
       break;
     }
     default:
