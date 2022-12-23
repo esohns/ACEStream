@@ -648,7 +648,6 @@ do_work (unsigned int bufferSize_in,
   struct Test_I_HTTPGet_StreamConfiguration stream_configuration;
   struct Test_I_HTTPGet_StreamConfiguration stream_configuration_2; // connection-
 
-  modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
     &configuration.connectionConfigurations;
   modulehandler_configuration.connectionManager =

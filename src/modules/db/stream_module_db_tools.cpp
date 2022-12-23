@@ -37,8 +37,7 @@ Stream_Module_DataBase_Tools::timestampToDatabaseString (const ACE_Time_Value& t
   std::string result;
 
   //ACE_Date_Time time_local (timestamp_in);
-  tm time_local;
-  // init structure
+  struct tm time_local;
   time_local.tm_sec = -1;
   time_local.tm_min = -1;
   time_local.tm_hour = -1;
@@ -49,17 +48,18 @@ Stream_Module_DataBase_Tools::timestampToDatabaseString (const ACE_Time_Value& t
   time_local.tm_yday = -1;
   time_local.tm_isdst = -1; // expect localtime !!!
   // *PORTABILITY*: this isn't entirely portable so do an ugly hack
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
   time_local.tm_gmtoff = 0;
   time_local.tm_zone = NULL;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // step1: compute UTC representation
   time_t time_seconds = timestamp_in.sec ();
   // *PORTABILITY*: the man page suggests calling this first...
   ACE_OS::tzset ();
-  if (!ACE_OS::localtime_r (&time_seconds,
-                            &time_local))
+  if (unlikely (!ACE_OS::localtime_r (&time_seconds,
+                                      &time_local)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_OS::localtime_r(): \"%m\", aborting\n")));
@@ -69,10 +69,10 @@ Stream_Module_DataBase_Tools::timestampToDatabaseString (const ACE_Time_Value& t
   // step2: create string
   // *TODO*: rewrite this in C++
   char time_string[BUFSIZ];
-  if (ACE_OS::strftime (time_string,
-                        sizeof (time_string),
-                        ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_DB_TOOLS_STRFTIME_FORMAT),
-                        &time_local) != STREAM_MODULE_DB_TOOLS_STRFTIME_SIZE)
+  if (unlikely (ACE_OS::strftime (time_string,
+                                  sizeof (char[BUFSIZ]),
+                                  ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_DB_TOOLS_STRFTIME_FORMAT),
+                                  &time_local) != STREAM_MODULE_DB_TOOLS_STRFTIME_SIZE))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_OS::strftime(): \"%m\", aborting\n")));
@@ -81,7 +81,7 @@ Stream_Module_DataBase_Tools::timestampToDatabaseString (const ACE_Time_Value& t
   result = time_string;
 
   // OK: append any usecs
-  if (timestamp_in.usec ())
+  if (likely (timestamp_in.usec ()))
   {
     std::ostringstream converter;
     converter << timestamp_in.usec ();

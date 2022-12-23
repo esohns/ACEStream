@@ -221,7 +221,6 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
   Test_I_HTTPGet_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
    , closeAfterReception (HTTP_DEFAULT_CLOSE_AFTER_RECEPTION)
-   , configuration (NULL)
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
@@ -245,26 +244,25 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
     passive = false;
   }
 
-  bool                                       closeAfterReception; // HTTP get module
-  struct Test_I_HTTPGet_Configuration*       configuration;
-  Net_IINETConnection_t*                     connection; // TCP target/IO module
-  Net_ConnectionConfigurations_t*            connectionConfigurations;
-  Test_I_Stream_InetConnectionManager_t*     connectionManager; // TCP IO module
-  std::string                                dataBaseOptionsFileName; // db writer module
-  std::string                                dataBaseTable; // db writer module
-  HTTP_Form_t                                HTTPForm; // HTTP get module
-  HTTP_Headers_t                             HTTPHeaders; // HTTP get module
-  bool                                       inbound; // net io module
-  struct Stream_Module_DataBase_LoginOptions loginOptions; // db writer module
-  enum Stream_Module_HTMLParser_Mode         mode; // html parser module
-  ACE_INET_Addr                              peerAddress; // db writer module
-  struct HTTP_ParserConfiguration*           parserConfiguration;      // parser module(s)
-  bool                                       printProgressDot; // file writer module
-  bool                                       pushStatisticMessages;
-  Test_I_StreamConfiguration_t*              streamConfiguration; // net source module
-  std::string                                targetFileName; // file writer module
-  std::string                                URL; // HTTP get module
-  bool                                       waitForConnect;
+  bool                                             closeAfterReception; // HTTP get module
+  Net_IINETConnection_t*                           connection; // TCP target/IO module
+  Net_ConnectionConfigurations_t*                  connectionConfigurations;
+  Test_I_Stream_InetConnectionManager_t*           connectionManager; // TCP IO module
+  std::string                                      dataBaseOptionsFileName; // db writer module
+  std::string                                      dataBaseTable; // db writer module
+  HTTP_Form_t                                      HTTPForm; // HTTP get module
+  HTTP_Headers_t                                   HTTPHeaders; // HTTP get module
+  bool                                             inbound; // net io module
+  struct Stream_Module_DataBase_LoginOptions_MySQL loginOptions; // db writer module
+  enum Stream_Module_HTMLParser_Mode               mode; // html parser module
+  ACE_INET_Addr                                    peerAddress; // db writer module
+  struct HTTP_ParserConfiguration*                 parserConfiguration;      // parser module(s)
+  bool                                             printProgressDot; // file writer module
+  bool                                             pushStatisticMessages;
+  Test_I_StreamConfiguration_t*                    streamConfiguration; // net source module
+  std::string                                      targetFileName; // file writer module
+  std::string                                      URL; // HTTP get module
+  bool                                             waitForConnect;
 };
 
 struct Test_I_HTTPGet_StreamConfiguration

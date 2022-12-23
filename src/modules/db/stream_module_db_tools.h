@@ -26,8 +26,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Time_Value.h"
 
-//#include "stream_db_exports.h"
-
 // definitions
 // *TODO*: remove ASAP
 #define STREAM_MODULE_DB_TOOLS_STRFTIME_FORMAT "%Y-%m-%d %H:%M:%S"
@@ -38,8 +36,7 @@ class Stream_Module_DataBase_Tools
 {
  public:
   // *IMPORTANT NOTE*: uses localtime() (i.e. returns a 'wall clock'
-  //                   representation). Note that databases are 'mobile assets';
-  //                   make sure you know what you are doing
+  //                   representation). Note that databases are 'mobile assets'
   //                   --> verify that:
   //                       - a (standardized) value (UTC/...) is stored
   //                       [- the DBMS supports timezone configuration]

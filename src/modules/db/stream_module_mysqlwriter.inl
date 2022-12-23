@@ -28,9 +28,6 @@
 
 #include "stream_module_db_defines.h"
 
-//#include "net_common_tools.h"
-//#include "net_configuration.h"
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -48,7 +45,7 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             SessionDataType>::Stream_Module_MySQLWriter_T (ISTREAM_T* stream_in)
 #else
                             SessionDataType>::Stream_Module_MySQLWriter_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , state_ (NULL)
  , manageLibrary_ (false)
@@ -283,7 +280,7 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
       break;
 
 error:
-      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+      inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
@@ -329,12 +326,10 @@ error:
                     result_2));
         goto commit;
       } // end IF
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: inserted %u record(s)\n"),
                   inherited::mod_->name (),
                   session_data_r.data.pageData.size ()));
-#endif // _DEBUG
 
 commit:
     //my_bool result_3 = mysql_commit (state_);
@@ -355,11 +350,9 @@ commit:
 close:
       mysql_close (state_);
       state_ = NULL;
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: closed database connection\n"),
                   inherited::mod_->name ()));
-#endif // _DEBUG
 
       break;
     }

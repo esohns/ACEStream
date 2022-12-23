@@ -58,18 +58,18 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::Stream_Module_MySQLReader_T"));
 
-//  int result = -1;
+  //int result = -1;
 
-//  if (manageLibrary_)
-//  {
-//    result = mysql_library_init (0,     // argc
-//                                 NULL,  // argv
-//                                 NULL); // groups
-//    if (result)
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("failed to mysql_library_init(): \"%s\", aborting\n"),
-//                  ACE_TEXT (mysql_error (NULL))));
-//  } // end IF
+  //if (manageLibrary_)
+  //{
+  //  result = mysql_library_init (0,     // argc
+  //                               NULL,  // argv
+  //                               NULL); // groups
+  //  if (result)
+  //    ACE_DEBUG ((LM_DEBUG,
+  //                ACE_TEXT ("failed to mysql_library_init(): \"%s\", aborting\n"),
+  //                ACE_TEXT (mysql_error (NULL))));
+  //} // end IF
 }
 
 template <ACE_SYNCH_DECL,
