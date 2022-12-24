@@ -244,7 +244,13 @@ Stream_CamSave_Message_T<DataType,
   } // end IF
   int result = message_p->copy (this->rd_ptr (),
                                 this->length ());
-  ACE_ASSERT (result == 0);
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Message_Block::copy: \"%m\", aborting\n")));
+    message_p->release (); message_p = NULL;
+    return NULL;
+  } // end IF
 
   // increment the reference counts of any continuation messages
   if (inherited::cont_)
@@ -253,7 +259,7 @@ Stream_CamSave_Message_T<DataType,
     if (unlikely (!message_p->cont_))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_CamSave_Message_T::duplicate(): \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to Stream_CamSave_Message_T::duplicate: \"%m\", aborting\n")));
       message_p->release (); message_p = NULL;
       return NULL;
     } // end IF
