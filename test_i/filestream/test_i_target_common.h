@@ -21,11 +21,6 @@
 #ifndef TEST_I_TARGET_COMMON_H
 #define TEST_I_TARGET_COMMON_H
 
-//#include <list>
-//#include <string>
-
-//#include "ace/os_include/sys/os_socket.h"
-//#include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
@@ -75,6 +70,7 @@ struct Test_I_Target_SessionData
   Test_I_Target_SessionData ()
    : Stream_SessionData ()
    , connection (NULL)
+   , connectionStates ()
    , size (0)
    , targetFileName ()
   {}
@@ -85,6 +81,8 @@ struct Test_I_Target_SessionData
     Stream_SessionData::operator+= (rhs_in);
 
     connection = ((connection == NULL) ? rhs_in.connection : connection);
+    connectionStates.insert (rhs_in.connectionStates.begin (),
+                             rhs_in.connectionStates.end ());
     size = ((size == 0) ? rhs_in.size : size);
     targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
                                               : targetFileName);
@@ -92,9 +90,10 @@ struct Test_I_Target_SessionData
     return *this;
   }
 
-  Net_IINETConnection_t* connection;
-  unsigned int           size;
-  std::string            targetFileName;
+  Net_IINETConnection_t*        connection;
+  Stream_Net_ConnectionStates_t connectionStates;
+  unsigned int                  size;
+  std::string                   targetFileName;
 };
 typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_SessionData_t;
 

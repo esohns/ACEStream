@@ -26,7 +26,11 @@
 
 #include "stream_configuration.h"
 
+#include "net_common.h"
 #include "net_configuration.h"
+
+typedef std::map<ACE_HANDLE, struct Net_ConnectionState*> Stream_Net_ConnectionStates_t;
+typedef Stream_Net_ConnectionStates_t::iterator Stream_Net_ConnectionStatesIterator_t;
 
 typedef std::map<std::string, // module name
                  struct Net_ConnectionConfiguration> Stream_Net_StreamConnectionConfigurations_t;

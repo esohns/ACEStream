@@ -72,6 +72,7 @@ struct Test_I_Source_SessionData
   Test_I_Source_SessionData ()
    : Stream_SessionData ()
    , connection (NULL)
+   , connectionStates ()
    , fileName ()
    , size (0)
    , targetFileName ()
@@ -82,6 +83,9 @@ struct Test_I_Source_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
 
+    connection = ((connection == NULL) ? rhs_in.connection : connection);
+    connectionStates.insert (rhs_in.connectionStates.begin (),
+                             rhs_in.connectionStates.end ());
     fileName = (fileName.empty () ? rhs_in.fileName : fileName);
     size = ((size == 0) ? rhs_in.size : size);
     targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
@@ -91,10 +95,11 @@ struct Test_I_Source_SessionData
     return *this;
   }
 
-  Net_IINETConnection_t* connection;
-  std::string            fileName;
-  unsigned int           size;
-  std::string            targetFileName;
+  Net_IINETConnection_t*        connection;
+  Stream_Net_ConnectionStates_t connectionStates;
+  std::string                   fileName;
+  unsigned int                  size;
+  std::string                   targetFileName;
 };
 typedef Stream_SessionData_T<struct Test_I_Source_SessionData> Test_I_Source_SessionData_t;
 

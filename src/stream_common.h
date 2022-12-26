@@ -194,15 +194,10 @@ enum Stream_SessionMessageType : int
 //         (see: available ACE_Atomic_Op template specializations)
 typedef unsigned long Stream_SessionId_t;
 
-struct Net_ConnectionState;
-typedef std::map<ACE_HANDLE, struct Net_ConnectionState*> Stream_ConnectionStates_t;
-typedef Stream_ConnectionStates_t::iterator Stream_ConnectionStatesIterator_t;
-
 struct Stream_SessionData
 {
   Stream_SessionData ()
    : aborted (false)
-   , connectionStates ()
    , lastCollectionTimeStamp (ACE_Time_Value::zero)
    , lock (NULL)
    , sessionId (0)
@@ -214,7 +209,6 @@ struct Stream_SessionData
   // *NOTE*: the idea is to 'copy' the data
   Stream_SessionData (const struct Stream_SessionData& data_in)
    : aborted (data_in.aborted)
-   , connectionStates (data_in.connectionStates)
    , lastCollectionTimeStamp (data_in.lastCollectionTimeStamp)
    , lock (data_in.lock)
    , sessionId (data_in.sessionId)
@@ -228,8 +222,6 @@ struct Stream_SessionData
   struct Stream_SessionData& operator+= (const struct Stream_SessionData& rhs_in)
   {
     aborted = (aborted ? aborted : rhs_in.aborted);
-    connectionStates.insert (rhs_in.connectionStates.begin (),
-                             rhs_in.connectionStates.end ());
     lastCollectionTimeStamp =
         ((lastCollectionTimeStamp >= rhs_in.lastCollectionTimeStamp) ? lastCollectionTimeStamp
                                                                      : rhs_in.lastCollectionTimeStamp);
@@ -251,16 +243,15 @@ struct Stream_SessionData
   //         - modules notify initialization/processing errors
   //         - stream processing ends 'early' (i.e. user abort, connection
   //           reset, ...)
-  bool                      aborted;
-  Stream_ConnectionStates_t connectionStates;
-  ACE_Time_Value            lastCollectionTimeStamp;
-  ACE_SYNCH_MUTEX*          lock;
-  Stream_SessionId_t        sessionId;
-  ACE_Time_Value            startOfSession;
-  struct Stream_State*      state;
-  struct Stream_Statistic   statistic;
+  bool                    aborted;
+  ACE_Time_Value          lastCollectionTimeStamp;
+  ACE_SYNCH_MUTEX*        lock;
+  Stream_SessionId_t      sessionId;
+  ACE_Time_Value          startOfSession;
+  struct Stream_State*    state;
+  struct Stream_Statistic statistic;
 
-  struct Stream_UserData*   userData;
+  struct Stream_UserData* userData;
 };
 
 typedef ACE_Message_Queue<ACE_MT_SYNCH,

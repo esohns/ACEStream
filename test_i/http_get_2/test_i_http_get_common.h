@@ -116,6 +116,7 @@ struct Test_I_HTTPGet_SessionData
   Test_I_HTTPGet_SessionData ()
    : Stream_SessionData ()
    , connection (NULL)
+   , connectionStates ()
    , data ()
    , format (STREAM_COMPRESSION_FORMAT_INVALID)
    //, parserContext (NULL)
@@ -126,7 +127,9 @@ struct Test_I_HTTPGet_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
 
-    connection = rhs_in.connection;
+    connection = ((connection == NULL) ? rhs_in.connection : connection);
+    connectionStates.insert (rhs_in.connectionStates.begin (),
+                             rhs_in.connectionStates.end ());
     data.insert (data.end (), rhs_in.data.begin (), rhs_in.data.end ());
     //parserContext = (parserContext ? parserContext : rhs_in.parserContext);
     targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
@@ -137,6 +140,7 @@ struct Test_I_HTTPGet_SessionData
   }
 
   Net_IINETConnection_t*                    connection;
+  Stream_Net_ConnectionStates_t             connectionStates;
   Test_I_StockRecords_t                     data; // html parser/spreadsheet writer module
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
   //Test_I_SAXParserContext*                  parserContext; // html parser/handler module

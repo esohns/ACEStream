@@ -519,7 +519,7 @@ link:
 
 error:
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        Stream_ConnectionStatesIterator_t iterator = session_data_r.connectionStates.find (handle_h);
+        Stream_Net_ConnectionStatesIterator_t iterator = session_data_r.connectionStates.find (handle_h);
         if (iterator != session_data_r.connectionStates.end ())
           session_data_r.connectionStates.erase (iterator);
       } // end lock scope
@@ -623,7 +623,7 @@ continue_2:
       if (!handles_.empty ())
       {
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-          Stream_ConnectionStatesIterator_t iterator = session_data_r.connectionStates.find (handles_.back ());
+          Stream_Net_ConnectionStatesIterator_t iterator = session_data_r.connectionStates.find (handles_.back ());
           ACE_ASSERT (iterator != session_data_r.connectionStates.end ());
           session_data_r.connectionStates.erase (iterator);
         } // end lock scope
@@ -1155,7 +1155,7 @@ link:
 
 error:
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        Stream_ConnectionStatesIterator_t iterator = session_data_r.connectionStates.find (handle_h);
+        Stream_Net_ConnectionStatesIterator_t iterator = session_data_r.connectionStates.find (handle_h);
         ACE_ASSERT (iterator != session_data_r.connectionStates.end ());
         session_data_r.connectionStates.erase (iterator);
       } // end lock scope
@@ -1286,7 +1286,7 @@ flush:
 
 continue_2:
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        Stream_ConnectionStatesIterator_t iterator = session_data_r.connectionStates.find (handles_.back ());
+        Stream_Net_ConnectionStatesIterator_t iterator = session_data_r.connectionStates.find (handles_.back ());
         ACE_ASSERT (iterator != session_data_r.connectionStates.end ());
         session_data_r.connectionStates.erase (iterator);
       } // end lock scope

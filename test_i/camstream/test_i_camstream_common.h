@@ -112,6 +112,7 @@ struct Test_I_CamStream_DirectShow_SessionData
 {
   Test_I_CamStream_DirectShow_SessionData ()
    : Test_I_DirectShow_SessionData ()
+   , connectionStates ()
    , direct3DDevice (NULL)
    , resetToken (0)
   {}
@@ -122,28 +123,14 @@ struct Test_I_CamStream_DirectShow_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Test_I_DirectShow_SessionData::operator+= (rhs_in);
 
-    // sanity check(s)
-//    ACE_ASSERT (rhs_in.inputFormat);
+    connectionStates.insert (rhs_in.connectionStates.begin (),
+                             rhs_in.connectionStates.end ());
 
-//    HRESULT result = S_OK; // *NOTE*: result is modified only when errors occur
-//    CMediaType media_type (*(rhs_in.inputFormat), &result);
-//    ACE_ASSERT (SUCCEEDED (result));
-//    if (media_type.IsPartiallySpecified ())
-//      goto continue_; // nothing to do
-
-//    if (inputFormat)
-//      Stream_MediaFramework_DirectShow_Tools::delete_ (inputFormat);
-//    inputFormat =
-//      Stream_MediaFramework_DirectShow_Tools::copy (*(rhs_in.inputFormat));
-//    if (!inputFormat)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), continuing\n")));
-
-//continue_:
     return *this;
   }
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  Stream_Net_ConnectionStates_t     connectionStates;
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   IDirect3DDevice9Ex*               direct3DDevice;
 #else
   IDirect3DDevice9*                 direct3DDevice;
@@ -157,6 +144,7 @@ struct Test_I_CamStream_MediaFoundation_SessionData
 {
   Test_I_CamStream_MediaFoundation_SessionData ()
    : Test_I_MediaFoundation_SessionData ()
+   , connectionStates ()
    , direct3DDevice (NULL)
    , direct3DManagerResetToken (0)
    , rendererNodeId (0)
@@ -169,10 +157,14 @@ struct Test_I_CamStream_MediaFoundation_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Test_I_MediaFoundation_SessionData::operator+= (rhs_in);
 
+    connectionStates.insert (rhs_in.connectionStates.begin (),
+                             rhs_in.connectionStates.end ());
+
     return *this;
   }
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  Stream_Net_ConnectionStates_t     connectionStates;
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   IDirect3DDevice9Ex*               direct3DDevice;
 #else
   IDirect3DDevice9*                 direct3DDevice;

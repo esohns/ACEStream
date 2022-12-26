@@ -89,6 +89,7 @@ struct HTTPGet_SessionData
   HTTPGet_SessionData ()
    : Stream_SessionData ()
    , connection (NULL)
+   , connectionStates ()
    , format (STREAM_COMPRESSION_FORMAT_INVALID)
    , targetFileName ()
   {};
@@ -98,7 +99,10 @@ struct HTTPGet_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
 
-    //format =
+    connection = ((connection == NULL) ? rhs_in.connection : connection);
+    connectionStates.insert (rhs_in.connectionStates.begin (),
+                             rhs_in.connectionStates.end ());
+    // format =
     targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
                                               : targetFileName);
 
@@ -106,6 +110,7 @@ struct HTTPGet_SessionData
   }
 
   Net_IINETConnection_t*                    connection;
+  Stream_Net_ConnectionStates_t             connectionStates;
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
   std::string                               targetFileName; // file writer module
 };
