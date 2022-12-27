@@ -116,7 +116,7 @@ Parser_Module_Parser::record (Bencoding_Dictionary_t*& record_inout)
 
   inherited::headFragment_ = NULL;
   inherited::fragment_ = NULL;
-  inherited::finished_ = true;
+  inherited::PARSER_BASE_T::finished_ = true;
 }
 
 void
@@ -134,7 +134,7 @@ Parser_Module_Parser::record_2 (Bencoding_List_t*& record_inout)
   Common_Parser_Bencoding_Tools::free (record_inout);
   ACE_ASSERT (!record_inout);
 
-  inherited::finished_ = true;
+  inherited::PARSER_BASE_T::finished_ = true;
 }
 
 void
@@ -151,7 +151,7 @@ Parser_Module_Parser::record_3 (std::string*& record_inout)
 
   delete record_inout; record_inout = NULL;
 
-  inherited::finished_ = true;
+  inherited::PARSER_BASE_T::finished_ = true;
 }
 
 void
@@ -166,5 +166,5 @@ Parser_Module_Parser::record_4 (unsigned int record_inout)
              ACE_TEXT("%d\n"),
              record_inout));
 
-  inherited::finished_ = true;
+  inherited::PARSER_BASE_T::finished_ = true;
 }
