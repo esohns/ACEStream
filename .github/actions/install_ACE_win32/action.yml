@@ -7,12 +7,5 @@ inputs:
 runs:
  using: "composite"
  steps:
-  - run: vcpkg install ace[ssl,xml]:x64-windows
+  - run: vcpkg --vcpkg-root=${{env.VCPKG_ROOT}} install ace[ssl,xml]:x64-windows
     shell: cmd
-#    if: inputs.os == 'ubuntu-latest'
-#  - run:
-#    shell: bash
-#    if: inputs.os == 'windows-latest'
-#  - run:
-#   shell: bash
-#   if: inputs.os == 'macos-latest'
