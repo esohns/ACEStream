@@ -191,6 +191,7 @@ class Test_I_Source_V4L_SessionData
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
    , connection (NULL)
+   , connectionStates ()
   {}
 
   Test_I_Source_V4L_SessionData& operator+= (const Test_I_Source_V4L_SessionData& rhs_in)
@@ -203,11 +204,14 @@ class Test_I_Source_V4L_SessionData
                                   struct Stream_UserData>::operator+= (rhs_in);
 
     connection = ((connection == NULL) ? rhs_in.connection : connection);
+    connectionStates.insert (rhs_in.connectionStates.begin (),
+                             rhs_in.connectionStates.end ());
 
     return *this;
   }
 
-  Net_IINETConnection_t* connection;
+  Net_IINETConnection_t*        connection;
+  Stream_Net_ConnectionStates_t connectionStates;
 };
 typedef Stream_SessionData_T<Test_I_Source_V4L_SessionData> Test_I_Source_V4L_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64

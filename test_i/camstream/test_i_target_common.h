@@ -241,6 +241,7 @@ class Test_I_Target_SessionData
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
    , connection (NULL)
+   , connectionStates ()
   {}
 
   Test_I_Target_SessionData& operator+= (const Test_I_Target_SessionData& rhs_in)
@@ -253,13 +254,16 @@ class Test_I_Target_SessionData
                                   struct Stream_UserData>::operator+= (rhs_in);
 
     connection = ((connection == NULL) ? rhs_in.connection : connection);
+    connectionStates.insert (rhs_in.connectionStates.begin (),
+                             rhs_in.connectionStates.end ());
     targetFileName =
       (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
 
     return *this;
   }
 
-  Net_IINETConnection_t* connection;
+  Net_IINETConnection_t*        connection;
+  Stream_Net_ConnectionStates_t connectionStates;
 };
 typedef Stream_SessionData_T<Test_I_Target_SessionData> Test_I_Target_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
