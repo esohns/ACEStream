@@ -76,6 +76,13 @@ jobs:
       repository: esohns/Common
       path: modules/Common
 
+   - name: Add Common link [UNIX]
+     if: ${{ matrix.os=='ubuntu-latest' }}
+     run: |
+          cd ..
+          sudo ln -s ACEStream/modules/Common Common
+          cd ${{github.workspace}}
+
    - name: Add Common link [Win32]
      if: ${{ matrix.os=='windows-latest' }}
      run: |
@@ -84,7 +91,7 @@ jobs:
           cd ${{github.workspace}}
      shell: cmd
 
-   - name: Reset ACE link [UNIX]
+   - name: Reset ACE link (Common) [UNIX]
      if: ${{ matrix.os=='ubuntu-latest' }}
      run: |
           sudo rm -f modules/Common/modules/ACE
@@ -118,8 +125,8 @@ jobs:
           cd ${{github.workspace}}
 
    - name: Apply Patch To (Temporarily) Remove Dependency on ACENetwork [UNIX]
-#     run: git apply -C3 --verbose scripts/github_repo_build.patch
      if: ${{ matrix.os=='ubuntu-latest' }}
+#     run: git apply -C3 --verbose scripts/github_repo_build.patch
      run: patch -f -p1 < scripts/github_repo_build.patch
 
    - name: Configure CMake
