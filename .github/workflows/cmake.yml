@@ -61,6 +61,16 @@ jobs:
      with:
       os: ${{matrix.os}}
 
+#   - name: Set environment variables [UNIX]
+#     if: ${{ matrix.os=='ubuntu-latest' }}
+#     run: |
+#          echo "VCPKG_ROOT=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_ENV
+
+   - name: Set environment variables [Win32]
+     if: ${{ matrix.os=='windows-latest' }}
+     run: |
+          echo "VCPKG_ROOT=$Env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+
    - name: Remove Common link [UNIX]
      if: ${{ matrix.os=='ubuntu-latest' }}
      run: sudo rm -f modules/Common
@@ -103,11 +113,21 @@ jobs:
           git submodule update --init --recursive
           cd ${{github.workspace}}
 
-   - name: Configure CMake (Common)
+   - name: Configure CMake (Common) [UNIX]
+     if: ${{ matrix.os=='ubuntu-latest' }}
      run: |
           cd modules/Common
           cmake -B ${{github.workspace}}/modules/Common/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           cd ${{github.workspace}}
+
+   - name: Configure CMake (Common) [Win32]
+     if: ${{ matrix.os=='windows-latest' }}
+     run: |
+          cd modules/Common
+          cmake -B ${{github.workspace}}/modules/Common/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          cd ${{github.workspace}}
+     env:
+      VCPKG_ROOT: ${{env.VCPKG_ROOT}}
 
    - name: Generate LibreOffice headers [UNIX]
      if: ${{ matrix.os=='ubuntu-latest' }}
@@ -126,11 +146,17 @@ jobs:
 
    - name: Apply Patch To (Temporarily) Remove Dependency on ACENetwork [UNIX]
      if: ${{ matrix.os=='ubuntu-latest' }}
-#     run: git apply -C3 --verbose scripts/github_repo_build.patch
      run: patch -f -p1 < scripts/github_repo_build.patch
 
-   - name: Configure CMake
+   - name: Configure CMake [UNIX]
+     if: ${{ matrix.os=='ubuntu-latest' }}
      run: cmake -B ${{github.workspace}}/build -DCommon_DIR=modules/Common/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+   - name: Configure CMake [Win32]
+     if: ${{ matrix.os=='windows-latest' }}
+     run: cmake -B ${{github.workspace}}/build -DCommon_DIR=modules/Common/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+     env:
+      VCPKG_ROOT: ${{env.VCPKG_ROOT}}
 
    - name: Build
      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
