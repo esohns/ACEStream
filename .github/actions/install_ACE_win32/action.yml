@@ -7,5 +7,9 @@ inputs:
 runs:
  using: "composite"
  steps:
-  - run: vcpkg --vcpkg-root=${{env.VCPKG_ROOT}} install ace[ssl,xml]:x64-windows
+  - uses: lukka/run-vcpkg@v10
+    with:
+     vcpkgDirectory: '${{github.workspace}}/vcpkg'
+     vcpkgGitCommitId: '973a7d517c09c8cfb7e6a548fcc260ca34ba7b60'
+  - run: vcpkg install ace[ssl,xml]:x64-windows
     shell: cmd
