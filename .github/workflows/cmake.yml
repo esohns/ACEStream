@@ -7,8 +7,11 @@ on:
   branches: [ master ]
 
 env:
- # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+ # set CMake build type here (Release, Debug, RelWithDebInfo, etc.)
  BUILD_TYPE: Release
+ # set vcpkg root/installed directories
+ VCPKG_ROOT: C:/vcpkg
+ VCPKG_INSTALLED_DIR: C:/vcpkg/installed
 
 jobs:
 
@@ -55,21 +58,21 @@ jobs:
      with:
       os: ${{matrix.os}}
 
-   - name: Install dependencies (ACE) [Win32]
-     if: ${{ matrix.os=='windows-latest' }}
-     uses: ./.github/actions/install_ACE_win32
-     with:
-      os: ${{matrix.os}}
+#   - name: Install dependencies (ACE) [Win32]
+#     if: ${{ matrix.os=='windows-latest' }}
+#     uses: ./.github/actions/install_ACE_win32
+#     with:
+#      os: ${{matrix.os}}
 
 #   - name: Set environment variables [UNIX]
 #     if: ${{ matrix.os=='ubuntu-latest' }}
 #     run: |
 #          echo "VCPKG_ROOT=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_ENV
 
-   - name: Set environment variables [Win32]
-     if: ${{ matrix.os=='windows-latest' }}
-     run: |
-          echo "VCPKG_ROOT=$Env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+#   - name: Set environment variables [Win32]
+#     if: ${{ matrix.os=='windows-latest' }}
+#     run: |
+#          echo "VCPKG_ROOT=$Env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
    - name: Remove Common link [UNIX]
      if: ${{ matrix.os=='ubuntu-latest' }}
@@ -154,9 +157,7 @@ jobs:
 
    - name: Configure CMake [Win32]
      if: ${{ matrix.os=='windows-latest' }}
-     run: cmake -B ${{github.workspace}}/build -DCommon_DIR=modules/Common/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-     env:
-      VCPKG_ROOT: ${{env.VCPKG_ROOT}}
+     run: cmake -B ${{github.workspace}}/build -DCommon_DIR=modules/Common/build -DVCPKG_USE=ON -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
    - name: Build
      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}

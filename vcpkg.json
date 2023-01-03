@@ -1,0 +1,18 @@
+{
+  "name": "esohns-acestream",
+  "dependencies": [
+    {
+      "name": "ace",
+      "features": [ "ssl", "xml" ]
+    },
+    "assimp",
+    "directxsdk",
+    "ffmpeg",
+    "freeglut",
+    "glm",
+    "gtk",
+    "libiconv",
+    "libxml2",
+    "pdcurses"
+  ]
+}
