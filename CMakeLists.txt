@@ -117,8 +117,6 @@ if (MSVC)
  remove_definitions (/D_WIN32_WINNT)
 endif (MSVC)
 
-include (FindPkgConfig)
-
 option (TRACING "enable tracing" OFF)
 if (TRACING)
  add_definitions (-DACESTREAM_NTRACE=0)
