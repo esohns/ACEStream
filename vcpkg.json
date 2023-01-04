@@ -7,12 +7,16 @@
     },
     "assimp",
     "directxsdk",
+    "faad2",
     "ffmpeg",
     "freeglut",
     "glm",
     "gtk",
     "libiconv",
+    "libnoise",
     "libxml2",
+    "mpg123",
+    "opencv",
     "pdcurses"
   ]
 }

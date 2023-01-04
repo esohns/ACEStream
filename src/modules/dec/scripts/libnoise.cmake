@@ -1,7 +1,7 @@
 set (LIBNOISE_SUPPORT_DEFAULT ON)
-set (LIBNOISE_DIR "$ENV{LIB_ROOT}/libnoise")
-set (LIBNOISE_INCLUDE_DIRS "${LIBNOISE_DIR}/include")
 if (UNIX)
+ set (LIBNOISE_DIR "$ENV{LIB_ROOT}/libnoise")
+ set (LIBNOISE_INCLUDE_DIRS "${LIBNOISE_DIR}/include")
  set (LIBNOISE_LIBRARY "libnoise.so")
  find_library (LIBNOISE_LIB ${LIBNOISE_LIBRARY}
                PATHS ${LIBNOISE_DIR}
@@ -15,19 +15,32 @@ if (UNIX)
   set (LIBNOISE_FOUND TRUE)
  endif (NOT LIBNOISE_LIB)
 elseif (WIN32)
- set (LIBNOISE_LIBRARY "libnoise.lib")
- find_library (LIBNOISE_LIB ${LIBNOISE_LIBRARY}
-               PATHS ${LIBNOISE_DIR}
-               PATH_SUFFIXES build/msvc/${CMAKE_BUILD_TYPE}
-               DOC "searching for ${LIBNOISE_LIBRARY}"
-               NO_DEFAULT_PATH)
- if (NOT LIBNOISE_LIB)
-  message (WARNING "could not find ${LIBNOISE_LIBRARY}, continuing")
- else ()
-  message (STATUS "Found ${LIBNOISE_LIBRARY} library \"${LIBNOISE_LIB}\"")
-  set (LIBNOISE_FOUND TRUE)
-  set (LIBNOISE_LIB_DIR "${LIBNOISE_DIR}/build/msvc/${CMAKE_BUILD_TYPE}")
- endif (NOT LIBNOISE_LIB)
+ if (VCPKG_USE)
+#  cmake_policy (SET CMP0074 OLD)
+  find_package (libnoise CONFIG)
+  if (libnoise_FOUND)
+   set (LIBNOISE_FOUND TRUE)
+   set (LIBNOISE_INCLUDE_DIRS ${VCPKG_INCLUDE_DIR_BASE})
+   set (LIBNOISE_LIB_DIR ${VCPKG_LIB_DIR}/bin)
+  endif (libnoise_FOUND)
+ endif (VCPKG_USE)
+ if (NOT LIBNOISE_FOUND)
+  set (LIBNOISE_DIR "$ENV{LIB_ROOT}/libnoise")
+  set (LIBNOISE_INCLUDE_DIRS "${LIBNOISE_DIR}/include")
+  set (LIBNOISE_LIBRARY "libnoise.lib")
+  find_library (LIBNOISE_LIB ${LIBNOISE_LIBRARY}
+                PATHS ${LIBNOISE_DIR}
+                PATH_SUFFIXES build/msvc/${CMAKE_BUILD_TYPE}
+                DOC "searching for ${LIBNOISE_LIBRARY}"
+                NO_DEFAULT_PATH)
+  if (NOT LIBNOISE_LIB)
+   message (WARNING "could not find ${LIBNOISE_LIBRARY}, continuing")
+  else ()
+   message (STATUS "found ${LIBNOISE_LIBRARY} library \"${LIBNOISE_LIB}\"")
+   set (LIBNOISE_FOUND TRUE)
+   set (LIBNOISE_LIB_DIR "${LIBNOISE_DIR}/build/msvc/${CMAKE_BUILD_TYPE}")
+  endif (NOT LIBNOISE_LIB)
+ endif (NOT LIBNOISE_FOUND)
 endif ()
 if (LIBNOISE_FOUND)
  option (LIBNOISE_SUPPORT "enable libnoise support" ${LIBNOISE_SUPPORT_DEFAULT})
