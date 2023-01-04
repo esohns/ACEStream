@@ -18,8 +18,12 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 #undef NANOSECONDS
 #include "reftime.h"
+#else
+#define MILLISECONDS_TO_100NS_UNITS(lMs) Int32x32To64 ((lMs), (10000))
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 #include "ace/Log_Msg.h"
 

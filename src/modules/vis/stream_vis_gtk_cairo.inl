@@ -274,7 +274,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     gdk_surface_create_similar_surface (window_in,
                                         CAIRO_CONTENT_COLOR, // CAIRO_CONTENT_COLOR_ALPHA
                                         gdk_surface_get_width (window_in),
-                                        gdk_surface_get_height (window_in)));
+                                        gdk_surface_get_height (window_in));
   if (unlikely (!surface_))
   {
     ACE_DEBUG ((LM_ERROR,

@@ -45,11 +45,9 @@
 #include "Dmodshow.h"
 #include "dvdmedia.h"
 #include "mfapi.h"
-#include "mtype.h"
 #include "oleauto.h"
 #include "qedit.h"
 #include "winnt.h"
-//#include "reftime.h"
 #include "strsafe.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
@@ -62,6 +60,7 @@
 
 #if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 #include "fourcc.h"
+#include "mtype.h"
 #endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 #include "ace/Log_Msg.h"
@@ -81,6 +80,47 @@
 // initialize statics
 Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_DirectShow_Tools::Stream_MediaMajorTypeToStringMap;
 ACE_HANDLE Stream_MediaFramework_DirectShow_Tools::logFileHandle = ACE_INVALID_HANDLE;
+
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
+#else
+HRESULT
+CopyMediaType (struct _AMMediaType* pmtTarget,
+               const struct _AMMediaType* pmtSource)
+{ ASSERT (pmtSource != pmtTarget);
+  *pmtTarget = *pmtSource;
+
+  if (pmtSource->cbFormat != 0)
+  { ASSERT(pmtSource->pbFormat != NULL);
+    pmtTarget->pbFormat = (PBYTE)CoTaskMemAlloc (pmtSource->cbFormat);
+    if (pmtTarget->pbFormat == NULL)
+    {
+      pmtTarget->cbFormat = 0;
+      return E_OUTOFMEMORY;
+    }
+    CopyMemory ((PVOID)pmtTarget->pbFormat, (PVOID)pmtSource->pbFormat, pmtTarget->cbFormat);
+  }
+
+  if (pmtTarget->pUnk != NULL)
+    pmtTarget->pUnk->AddRef();
+
+  return S_OK;
+}
+
+void
+FreeMediaType (struct _AMMediaType& mt)
+{
+  if (mt.cbFormat != 0)
+  {
+    CoTaskMemFree ((PVOID)mt.pbFormat); mt.pbFormat = NULL;
+    mt.cbFormat = 0;
+  }
+
+  if (mt.pUnk != NULL)
+  {
+    mt.pUnk->Release (); mt.pUnk = NULL;
+  }
+}
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 bool
 Stream_MediaFramework_DirectShow_Tools::initialize ()

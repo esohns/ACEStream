@@ -43,13 +43,14 @@
 struct acestream_visualization_gtk_cairo_cbdata
 {
   // *TODO*: in gtk4, use a GdkDrawingContext*
-  cairo_t*                   context;
-  Common_IDispatch*          dispatch;
-  Common_ISetP_T<GdkWindow>* resizeNotification;
+  cairo_t*                    context;
+  Common_IDispatch*           dispatch;
 #if GTK_CHECK_VERSION (4,0,0)
-  GdkSurface*                window;
+  Common_ISetP_T<GdkSurface>* resizeNotification;
+  GdkSurface*                 window;
 #else
-  GdkWindow*                 window;
+  Common_ISetP_T<GdkWindow>*  resizeNotification;
+  GdkWindow*                  window;
 #endif // GTK_CHECK_VERSION (4,0,0)
 };
 
