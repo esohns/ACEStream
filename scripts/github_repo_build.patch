@@ -1,9 +1,9 @@
 diff --git a/src/modules/CMakeLists.txt b/src/modules/CMakeLists.txt
-index d6f44ec2..c016b824 100644
+index a7db961c..448aead9 100644
 --- a/src/modules/CMakeLists.txt
 +++ b/src/modules/CMakeLists.txt
-@@ -8,6 +8,6 @@ add_subdirectory (lib)
- add_subdirectory (misc)
+@@ -9,6 +9,6 @@ add_subdirectory (misc)
+ add_subdirectory (ml)
  # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
  #                   interdependencies
 -add_subdirectory (net)
@@ -11,11 +11,11 @@ index d6f44ec2..c016b824 100644
  add_subdirectory (stat)
  add_subdirectory (vis)
 diff --git a/test_i/CMakeLists.txt b/test_i/CMakeLists.txt
-index 4bae436a..f28012c7 100644
+index 1de98353..a9c9bf47 100644
 --- a/test_i/CMakeLists.txt
 +++ b/test_i/CMakeLists.txt
-@@ -286,12 +286,12 @@ add_subdirectory (camera_ar)
- add_subdirectory (commandspeech)
+@@ -292,12 +292,12 @@ add_subdirectory (commandspeech)
+ add_subdirectory (extract_stream)
  # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
  #                   interdependencies
 -add_subdirectory (camstream)
@@ -33,8 +33,8 @@ index 4bae436a..f28012c7 100644
  # *IMPORTANT NOTE* /END
  add_subdirectory (imagesave)
  add_subdirectory (mp3player)
-@@ -302,7 +302,7 @@ add_custom_target (test_i ALL
- add_dependencies (test_i avsave camera_ar commandspeech imagesave mp3player speechcommand)
+@@ -308,7 +308,7 @@ add_custom_target (test_i ALL
+ add_dependencies (test_i avsave camera_ar camera_ml commandspeech extract_stream imagesave mp3player speechcommand)
  # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
  #                   interdependencies
 -add_dependencies (test_i camsource camtarget filesource filetarget HTTP_get_1 HTTP_get_2 POP_receive SMTP_send)
@@ -43,10 +43,10 @@ index 4bae436a..f28012c7 100644
   add_dependencies (test_i camtarget_source camtarget_source_mf)
  endif (WIN32)
 diff --git a/test_u/CMakeLists.txt b/test_u/CMakeLists.txt
-index 9ea5b076..79f2fe12 100644
+index c01acad1..85c7d376 100644
 --- a/test_u/CMakeLists.txt
 +++ b/test_u/CMakeLists.txt
-@@ -305,7 +305,7 @@ add_subdirectory (document)
+@@ -309,7 +309,7 @@ add_subdirectory (document)
  add_subdirectory (filecopy)
  # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
  #                   interdependencies
@@ -55,8 +55,8 @@ index 9ea5b076..79f2fe12 100644
  # *IMPORTANT NOTE* /END
  add_subdirectory (imagescreen)
  add_subdirectory (parser)
-@@ -317,7 +317,7 @@ add_custom_target (test_u ALL
- add_dependencies (test_u audioeffect branch camsave camerascreen document filecopy imagescreen parser RIFF_decoder)
+@@ -322,7 +322,7 @@ add_custom_target (test_u ALL
+ add_dependencies (test_u audioeffect branch camsave camerascreen document filecopy imagescreen parser QR_decode RIFF_decoder)
  # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
  #                   interdependencies
 -add_dependencies (test_u HTTP_GET)
