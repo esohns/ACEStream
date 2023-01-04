@@ -288,9 +288,11 @@ elseif (WIN32)
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
                            ${ACE_PATH})
- file (TO_NATIVE_PATH "${IMAGEMAGICK_PATH}" IMAGEMAGICK_NATIVE_PATH)
- string (REPLACE "\\" "\\\\" IMAGEMAGICK_NATIVE_PATH ${IMAGEMAGICK_NATIVE_PATH})
- set (ENVIRONMENT "MAGICK_CODER_MODULE_PATH=${IMAGEMAGICK_NATIVE_PATH}\\\\modules\\\\coders")
+ if (IMAGEMAGICK_SUPPORT)
+  file (TO_NATIVE_PATH ${IMAGEMAGICK_PATH} IMAGEMAGICK_NATIVE_PATH)
+  string (REPLACE "\\" "\\\\" IMAGEMAGICK_NATIVE_PATH ${IMAGEMAGICK_NATIVE_PATH})
+  set (ENVIRONMENT "MAGICK_CODER_MODULE_PATH=${IMAGEMAGICK_NATIVE_PATH}\\\\modules\\\\coders")
+ endif (IMAGEMAGICK_SUPPORT)
 endif ()
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}
