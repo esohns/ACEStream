@@ -14,5 +14,5 @@ runs:
      # Run vcpkg with the command specified by the `runVcpkgFormatString` input
      runVcpkgInstall: true
      vcpkgJsonGlob: '**/vcpkg.json'
-     #vcpkgJsonGlob: '${{ runner.workspace }}/a/Common/vcpkg.json'
+     #vcpkgJsonGlob: '${{ runner.workspace }}/a/ACEStream/vcpkg.json'
      appendedCacheKey: vcpkginstall
