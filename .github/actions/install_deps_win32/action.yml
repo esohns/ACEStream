@@ -16,3 +16,6 @@ runs:
      vcpkgJsonGlob: '**/vcpkg.json'
      #vcpkgJsonGlob: '${{ runner.workspace }}/a/ACEStream/vcpkg.json'
      appendedCacheKey: vcpkginstall
+
+  - run: choco install libreoffice-fresh
+    shell: cmd
