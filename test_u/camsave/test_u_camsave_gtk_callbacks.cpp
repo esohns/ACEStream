@@ -38,6 +38,7 @@
 #undef GetObject
 #include "mfidl.h"
 #include "mfreadwrite.h"
+#include "olectl.h"
 #if defined (UUIDS_H)
 #else
 // *NOTE*: uuids.h doesn't have double include protection

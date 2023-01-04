@@ -23,6 +23,8 @@
 #include "amvideo.h"
 #include "vfwmsgs.h"
 
+#include "refclock.h"
+
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
 #include "ace/OS_Memory.h"

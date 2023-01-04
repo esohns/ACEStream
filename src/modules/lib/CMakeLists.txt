@@ -159,12 +159,6 @@ elseif (WIN32)
       stream_lib_directdraw_common.h
       stream_lib_directdraw_tools.cpp
       stream_lib_directdraw_tools.h
-      stream_lib_directshow_allocator.cpp
-      stream_lib_directshow_allocator.h
-      stream_lib_directshow_allocator.inl
-      stream_lib_directshow_asynch_source_filter.cpp
-      stream_lib_directshow_asynch_source_filter.h
-      stream_lib_directshow_asynch_source_filter.inl
       stream_lib_directshow_common.h
       stream_lib_directshow_message_base.cpp
       stream_lib_directshow_message_base.h
@@ -172,9 +166,6 @@ elseif (WIN32)
       stream_lib_directshow_source.cpp
       stream_lib_directshow_source.h
       stream_lib_directshow_source.inl
-      stream_lib_directshow_source_filter.cpp
-      stream_lib_directshow_source_filter.h
-      stream_lib_directshow_source_filter.inl
       stream_lib_directshow_target.cpp
       stream_lib_directshow_target.h
       stream_lib_directshow_target.inl
@@ -204,6 +195,19 @@ elseif (WIN32)
       stream_lib_mediafoundation_target.inl
       stream_lib_mediafoundation_tools.cpp
       stream_lib_mediafoundation_tools.h)
+ if (DIRECTSHOW_BASECLASSES_SUPPORT)
+  set (source_files
+       ${source_files}
+       stream_lib_directshow_allocator.cpp
+       stream_lib_directshow_allocator.h
+       stream_lib_directshow_allocator.inl
+       stream_lib_directshow_asynch_source_filter.cpp
+       stream_lib_directshow_asynch_source_filter.h
+       stream_lib_directshow_asynch_source_filter.inl
+       stream_lib_directshow_source_filter.cpp
+       stream_lib_directshow_source_filter.h
+       stream_lib_directshow_source_filter.inl)
+ endif (DIRECTSHOW_BASECLASSES_SUPPORT)
 endif ()
 
 # Include dir for installed targets
@@ -306,17 +310,11 @@ elseif (WIN32)
       ${source_files}
       stream_lib_directdraw_common.h
       stream_lib_directdraw_tools.h
-      stream_lib_directshow_allocator.h
-      stream_lib_directshow_allocator.inl
-      stream_lib_directshow_asynch_source_filter.h
-      stream_lib_directshow_asynch_source_filter.inl
       stream_lib_directshow_common.h
       stream_lib_directshow_message_base.h
       stream_lib_directshow_message_base.inl
       stream_lib_directshow_source.h
       stream_lib_directshow_source.inl
-      stream_lib_directshow_source_filter.h
-      stream_lib_directshow_source_filter.inl
       stream_lib_directshow_target.h
       stream_lib_directshow_target.inl
       stream_lib_directshow_tools.h
@@ -336,6 +334,16 @@ elseif (WIN32)
       stream_lib_mediafoundation_target.h
       stream_lib_mediafoundation_target.inl
       stream_lib_mediafoundation_tools.h)
+ if (DIRECTSHOW_BASECLASSES_SUPPORT)
+  set (source_files
+       ${source_files}
+       stream_lib_directshow_allocator.h
+       stream_lib_directshow_allocator.inl
+       stream_lib_directshow_asynch_source_filter.h
+       stream_lib_directshow_asynch_source_filter.inl
+       stream_lib_directshow_source_filter.h
+       stream_lib_directshow_source_filter.inl)
+ endif (DIRECTSHOW_BASECLASSES_SUPPORT)
 endif ()
 install (FILES
          ${source_files}

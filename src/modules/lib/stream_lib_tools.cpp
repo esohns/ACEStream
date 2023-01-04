@@ -28,7 +28,9 @@
 #include "d3d9.h"
 #include "dvdmedia.h"
 #include "dxva.h"
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 #include "fourcc.h"
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
@@ -907,6 +909,7 @@ Stream_MediaFramework_Tools::mediaSubTypeToString (REFGUID mediaSubType_in,
 
   std::string result;
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   // within FOURCC range ? --> use helper class
   if ((mediaSubType_in.Data2 == 0x0000) &&
       (mediaSubType_in.Data3 == 0x0010) &&
@@ -920,13 +923,13 @@ Stream_MediaFramework_Tools::mediaSubTypeToString (REFGUID mediaSubType_in,
        (mediaSubType_in.Data4[7] == 0x71)))
   {
     // handle exceptions
-    if ((mediaSubType_in == MEDIASUBTYPE_PCM)               ||
-        (mediaSubType_in == MEDIASUBTYPE_IEEE_FLOAT)        ||
-        (mediaSubType_in == MEDIASUBTYPE_DRM_Audio)         ||
-        (mediaSubType_in == MEDIASUBTYPE_MPEG1AudioPayload) ||
-        (mediaSubType_in == MEDIASUBTYPE_DOLBY_AC3_SPDIF)   ||
-        (mediaSubType_in == MEDIASUBTYPE_RAW_SPORT)         ||
-        (mediaSubType_in == MEDIASUBTYPE_SPDIF_TAG_241h))
+    if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_PCM)               ||
+        InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IEEE_FLOAT)        ||
+        InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_DRM_Audio)         ||
+        InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_MPEG1AudioPayload) ||
+        InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_DOLBY_AC3_SPDIF)   ||
+        InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_RAW_SPORT)         ||
+        InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_SPDIF_TAG_241h))
       goto continue_;
 
     FOURCCMap fourcc_map (&mediaSubType_in);
@@ -935,6 +938,8 @@ Stream_MediaFramework_Tools::mediaSubTypeToString (REFGUID mediaSubType_in,
   } // end IF
 
 continue_:
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
+
   Stream_MediaFramework_GUIDToStringMapConstIterator_t iterator;
   switch (mediaFramework_in)
   {

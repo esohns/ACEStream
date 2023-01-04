@@ -24,8 +24,24 @@
 #include "mmsystem.h"
 #include "Unknwn.h"
 
+#include "strmif.h"
+#if _MSC_VER >= 1100
+#define AM_NOVTABLE __declspec (novtable)
+#else
+#define AM_NOVTABLE
+#endif
+#include "combase.h"
 #undef NANOSECONDS
-#include "streams.h"
+#include "reftime.h"
+#include "wxdebug.h"
+#include "wxlist.h"
+#include "wxutil.h"
+#include "mtype.h"
+#include "amfilter.h"
+#include "source.h"
+
+// #undef NANOSECONDS
+// #include "streams.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Message_Queue.h"

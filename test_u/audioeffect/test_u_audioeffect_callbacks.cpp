@@ -35,6 +35,7 @@
 #include "mfidl.h"
 #include "mfreadwrite.h"
 #include "mmdeviceapi.h"
+#include "olectl.h"
 #include "OleAuto.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
