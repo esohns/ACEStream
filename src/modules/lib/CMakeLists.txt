@@ -1,3 +1,6 @@
+if (WIN32)
+ include (directxsdk)
+endif (WIN32)
 include (ffmpeg)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../dev/scripts")
@@ -13,7 +16,9 @@ if (UNIX)
  include (FindPkgConfig)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
  pkg_check_modules (PKG_V4L REQUIRED libv4l2)
-endif (UNIX)
+elseif (WIN32)
+ include (DirectXBaseClasses)
+endif ()
 
 if (WIN32)
  if (${CMAKE_SYSTEM_VERSION} LESS 5.1)      # < Windows XP (see: <sdkddkver.h>)
@@ -30,6 +35,10 @@ endif (WIN32)
 
 add_library (${PROJECT_NAME}_MediaFramework STATIC "")
 
+if (WIN32 AND DIRECTXSDK_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${DIRECTXSDK_INCLUDE_DIR}>)
+endif (WIN32 AND DIRECTXSDK_SUPPORT)
 if (FFMPEG_SUPPORT)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
@@ -49,26 +58,10 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${PKG_V4L_INCLUDE_DIRS}>)
 elseif (WIN32)
- if (DEFINED ENV{DXSDK_DIR})
+ if (DIRECTSHOW_BASECLASSES_SUPPORT)
   target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                              $<BUILD_INTERFACE:$ENV{DXSDK_DIR}/Include>)
- else ()
-#  set (DXSDK_DIR
-#       "$ENV{PROGRAMFILES}/Microsoft DirectX SDK (June 2010)")
-#      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-##      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-# message (STATUS "DirectX SDK directory: \"${DXSDK_DIR}\"")
-  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/DXSDK/Include>)
- endif (DEFINED ENV{DXSDK_DIR})
-# set(_PF86 "ProgramFiles(x86)")
-# cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "$ENV{LIB_ROOT}/DShowBaseClasses")
-# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
-
- target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
+                              $<BUILD_INTERFACE:${DS_BASECLASSES_INCLUDE_DIRS}>)
+ endif (DIRECTSHOW_BASECLASSES_SUPPORT)
 endif ()
 
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
@@ -243,6 +236,9 @@ set_property (TARGET ${PROJECT_NAME}_MediaFramework PROPERTY FOLDER "modules")
 add_dependencies (${PROJECT_NAME}_MediaFramework Common)
 add_dependencies (${PROJECT_NAME}_MediaFramework ${PROJECT_NAME})
 
+if (WIN32 AND DIRECTXSDK_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${DIRECTXSDK_LIBRARIES})
+endif (WIN32 AND DIRECTXSDK_SUPPORT)
 if (FFMPEG_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC
                         ${ffmpeg_LIBRARIES})
@@ -256,20 +252,16 @@ if (UNIX)
                          ${LIBCAMERA_LIBRARIES})
  endif (LIBCAMERA_SUPPORT)
 elseif (WIN32)
- if (DEFINED ENV{DXSDK_DIR})
-  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC $ENV{DXSDK_DIR}/Lib/${CMAKE_VS_PLATFORM_NAME}/D3dx9.lib)
- else ()
-  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC $ENV{LIB_ROOT}/DXSDK/Lib/${CMAKE_VS_PLATFORM_NAME}/D3dx9.lib)
- endif (DEFINED ENV{DXSDK_DIR})
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC dsound.lib)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC mfuuid.lib)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC Shlwapi.lib)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC strmiids.lib)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC Winmm.lib)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC wmcodecdspuuid.lib)
- target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/${CMAKE_BUILD_TYPE}/BaseClasses${LIB_FILE_SUFFIX}.lib)
-
- target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${ACE_LIBRARY})
+ if (DIRECTSHOW_BASECLASSES_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${DS_BASECLASSES_LIBRARIES})
+ endif (DIRECTSHOW_BASECLASSES_SUPPORT)
+# target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${ACE_LIBRARY})
 endif ()
 
 #set_target_properties (${PROJECT_NAME}_MediaFramework PROPERTIES DEFINE_SYMBOL STREAM_LIB_BUILD_DLL)
