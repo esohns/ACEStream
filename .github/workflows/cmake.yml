@@ -142,7 +142,7 @@ jobs:
      if: ${{ matrix.os=='windows-latest' }}
      run: |
           cd src\\modules\\doc\\scripts
-          .\\make_oo_headers.bat
+          .\\make_oo_headers.cmd
           cd ${{github.workspace}}
 
    - name: Apply Patch To (Temporarily) Remove Dependency on ACENetwork [UNIX]
