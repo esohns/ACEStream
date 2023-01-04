@@ -17,6 +17,7 @@
     "libxml2",
     "mpg123",
     "opencv",
-    "pdcurses"
+    "pdcurses",
+    "zlib"
   ]
 }

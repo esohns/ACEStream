@@ -263,14 +263,20 @@ elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if (GUI_SUPPORT)
-  set (ARGS "-g.\\\\etc\\\\${ui_definition_file} ${ARGS}")
-
   if (GTK_SUPPORT)
+   if (GTK_USE)
+    set (ARGS "-g.\\\\etc\\\\${ui_definition_file} ${ARGS}")
+   endif (GTK_USE)
+
    file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              ${GTK_PATH})
   endif (GTK_SUPPORT)
   if (WXWIDGETS_SUPPORT)
+   if (WXWIDGETS_USE)
+    set (ARGS "-g.\\\\etc\\\\${ui_definition_file} ${ARGS}")
+   endif (WXWIDGETS_USE)
+
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              ${wxWidgets_LIB_DIR})
   endif (WXWIDGETS_SUPPORT)

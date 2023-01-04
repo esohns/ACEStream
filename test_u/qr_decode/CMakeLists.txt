@@ -11,7 +11,10 @@ if (UNIX)
 
  include (FindPkgConfig)
  pkg_check_modules (PKG_V4L REQUIRED libv4l2)
-endif (UNIX)
+elseif (WIN32)
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
+ include (DirectXBaseClasses)
+endif ()
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
@@ -19,16 +22,9 @@ string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 ############## definitions ###############
 
 ############## includes ###############
-if (WIN32)
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "$ENV{LIB_ROOT}/DShowBaseClasses")
-#      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-#      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
-# *TODO*: repair pkgconfig support
- include_directories ("${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses")
-endif (WIN32)
-
+if (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
+ include_directories (${DS_BASECLASSES_INCLUDE_DIRS})
+endif (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
 if (FFMPEG_SUPPORT)
  include_directories (${ffmpeg_INCLUDE_DIRS})
 endif (FFMPEG_SUPPORT)
@@ -153,7 +149,6 @@ create_target_launcher (${EXECUTABLE}
                         ARGS "-l -t"
 #                         FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                                             ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/${EXECUTABLE}
                         ENVIRONMENT foo=bar)
 

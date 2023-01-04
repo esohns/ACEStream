@@ -15,11 +15,17 @@ if (UNIX)
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
 # pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavformat libavcodec)
-endif (UNIX)
+elseif (WIN32)
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
+ include (DirectXBaseClasses)
+endif ()
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
+if (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
+ include_directories (${DS_BASECLASSES_INCLUDE_DIRS})
+endif (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
 if (FFMPEG_SUPPORT)
  include_directories (${ffmpeg_INCLUDE_DIRS})
 endif (FFMPEG_SUPPORT)
@@ -44,15 +50,6 @@ if (UNIX)
 
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/test_i)
 elseif (WIN32)
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "D:/projects/DShowBaseClasses")
-#      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-#      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
-
-# *TODO*: repair pkgconfig support
- include_directories ("${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses")
-
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/include)
@@ -190,12 +187,6 @@ elseif (WIN32)
  endif (MSVC)
 # target_link_libraries (${EXECUTABLE} dxguid.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
-
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-#  target_link_libraries (${EXECUTABLE} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/strmbasd.lib)
- else ()
-#  target_link_libraries (${EXECUTABLE} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
- endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif ()
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
@@ -308,14 +299,21 @@ elseif (WIN32)
 #  message (STATUS "ui_definition_file: ${ui_definition_file}")
   string (REGEX REPLACE "\\\\" "\\\\\\\\" ui_definition_file "${ui_definition_file}")
 #  message (STATUS "ui_definition_file: ${ui_definition_file}")
-  set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
 
   if (GTK_SUPPORT)
+   if (GTK_USE)
+    set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
+   endif (GTK_USE)
+
    file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              ${GTK_PATH})
   endif (GTK_SUPPORT)
   if (WXWIDGETS_SUPPORT)
+   if (WXWIDGETS_USE)
+    set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
+   endif (WXWIDGETS_USE)
+
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              ${wxWidgets_LIB_DIR})
   endif (WXWIDGETS_SUPPORT)

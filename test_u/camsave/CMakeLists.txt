@@ -293,17 +293,25 @@ elseif (WIN32)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if (GUI_SUPPORT)
   file (TO_NATIVE_PATH "${ui_definition_file}" ui_definition_file)
-  string (REGEX REPLACE "\\\\" "/" ui_definition_file "${ui_definition_file}")
-  set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
+  string (REPLACE "\\" "\\\\" ui_definition_file ${ui_definition_file})
 
   if (GTK_SUPPORT)
+   if (GTK_USE)
+    set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
+   endif (GTK_USE)
+
    file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              ${GTK_PATH})
   endif (GTK_SUPPORT)
   if (WXWIDGETS_SUPPORT)
+   if (WXWIDGETS_USE)
+    set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
+   endif (WXWIDGETS_USE)
+
+   file (TO_CMAKE_PATH ${wxWidgets_LIB_DIR} WXWIDGETS_PATH)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                             ${wxWidgets_LIB_DIR})
+                             ${WXWIDGETS_PATH})
   endif (WXWIDGETS_SUPPORT)
  else ()
   set (ARGS "-g ${ARGS}")
@@ -311,7 +319,7 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
- file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
+ file (TO_CMAKE_PATH ${ACE_LIB_DIR} ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${LIBPNG_PATH}
                            ${FFMPEG_PATH}

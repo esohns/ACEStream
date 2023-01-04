@@ -97,7 +97,7 @@ elseif (WIN32)
                             ${WXWIDGETS_PATH})
  endif (WXWIDGETS_SUPPORT)
 endif ()
-file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIB_PATH)
+file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIB_PATH)
 set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                           ${ACE_LIB_PATH})
 create_target_launcher (${EXECUTABLE}
@@ -105,7 +105,6 @@ create_target_launcher (${EXECUTABLE}
                         ARGS "-d -e -f test_1.txt -l -t"
 #                         FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                                             ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/parser
                         ENVIRONMENT foo=bar)
 
