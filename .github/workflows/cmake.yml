@@ -100,7 +100,7 @@ jobs:
      if: ${{ matrix.os=='windows-latest' }}
      run: |
           cd ..
-          mklink /D Common ACEStream/modules/Common
+          mklink /D Common ACEStream\\modules\\Common
           cd ${{github.workspace}}
      shell: cmd
 

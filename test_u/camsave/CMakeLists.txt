@@ -230,36 +230,38 @@ elseif (WIN32)
                          DIRECTORY)
  set (ACE_DLL_FILE ACE${LIB_FILE_SUFFIX}.dll)
  set (ACE_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_DLL_FILE})
- file (TO_NATIVE_PATH $ENV{LIB_ROOT} LIB_ROOT)
- string (REPLACE "\\" "\\\\" LIB_ROOT ${LIB_ROOT})
- install (FILES ${ACE_DLL_FQPATH}
-                ${LIB_ROOT}/gtk3/bin/libatk-1.0-0.dll
-                ${LIB_ROOT}/gtk3/bin/libfreetype-6.dll
-                ${LIB_ROOT}/gtk3/bin/libintl-8.dll
-                ${LIB_ROOT}/gtk3/bin/libcairo-2.dll
-                ${LIB_ROOT}/gtk3/bin/libfontconfig-1.dll
-                ${LIB_ROOT}/gtk3/bin/libgio-2.0-0.dll
-                ${LIB_ROOT}/gtk3/bin/libglib-2.0-0.dll
-                ${LIB_ROOT}/gtk3/bin/libgmodule-2.0-0.dll
-                ${LIB_ROOT}/gtk3/bin/libgobject-2.0-0.dll
-                ${LIB_ROOT}/gtk3/bin/libgthread-2.0-0.dll
-                ${LIB_ROOT}/gtk3/bin/libgdk_pixbuf-2.0-0.dll
-                ${LIB_ROOT}/gtk3/bin/libgdk-3-0.dll
-                ${LIB_ROOT}/gtk3/bin/libgtk-3-0.dll
-                ${LIB_ROOT}/gtk3/bin/libpango-1.0-0.dll
-                ${LIB_ROOT}/gtk3/bin/libpangocairo-1.0-0.dll
-                ${LIB_ROOT}/gtk3/bin/libpangoft2-1.0-0.dll
-                ${LIB_ROOT}/gtk3/bin/libpangowin32-1.0-0.dll
-                ${LIB_ROOT}/gtk3/bin/libiconv-2.dll
-                ${LIB_ROOT}/gtk3/bin/libpng15-15.dll
-                ${LIB_ROOT}/gtk3/bin/liblzma-5.dll
-                ${LIB_ROOT}/gtk3/bin/zlib1.dll
-                ${LIB_ROOT}/gtk3/bin/libxml2-2.dll
-                ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxmsw316d_core_vc_x64_custom.dll
-                ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxmsw316d_html_vc_x64_custom.dll
-                ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxmsw316d_xrc_vc_x64_custom.dll
-                ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxbase316d_xml_vc_x64_custom.dll
-          DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
+ if (DEFINED $ENV{LIB_ROOT})
+  file (TO_NATIVE_PATH $ENV{LIB_ROOT} LIB_ROOT)
+  string (REPLACE "\\" "\\\\" LIB_ROOT ${LIB_ROOT})
+  install (FILES ${ACE_DLL_FQPATH}
+                 ${LIB_ROOT}/gtk3/bin/libatk-1.0-0.dll
+                 ${LIB_ROOT}/gtk3/bin/libfreetype-6.dll
+                 ${LIB_ROOT}/gtk3/bin/libintl-8.dll
+                 ${LIB_ROOT}/gtk3/bin/libcairo-2.dll
+                 ${LIB_ROOT}/gtk3/bin/libfontconfig-1.dll
+                 ${LIB_ROOT}/gtk3/bin/libgio-2.0-0.dll
+                 ${LIB_ROOT}/gtk3/bin/libglib-2.0-0.dll
+                 ${LIB_ROOT}/gtk3/bin/libgmodule-2.0-0.dll
+                 ${LIB_ROOT}/gtk3/bin/libgobject-2.0-0.dll
+                 ${LIB_ROOT}/gtk3/bin/libgthread-2.0-0.dll
+                 ${LIB_ROOT}/gtk3/bin/libgdk_pixbuf-2.0-0.dll
+                 ${LIB_ROOT}/gtk3/bin/libgdk-3-0.dll
+                 ${LIB_ROOT}/gtk3/bin/libgtk-3-0.dll
+                 ${LIB_ROOT}/gtk3/bin/libpango-1.0-0.dll
+                 ${LIB_ROOT}/gtk3/bin/libpangocairo-1.0-0.dll
+                 ${LIB_ROOT}/gtk3/bin/libpangoft2-1.0-0.dll
+                 ${LIB_ROOT}/gtk3/bin/libpangowin32-1.0-0.dll
+                 ${LIB_ROOT}/gtk3/bin/libiconv-2.dll
+                 ${LIB_ROOT}/gtk3/bin/libpng15-15.dll
+                 ${LIB_ROOT}/gtk3/bin/liblzma-5.dll
+                 ${LIB_ROOT}/gtk3/bin/zlib1.dll
+                 ${LIB_ROOT}/gtk3/bin/libxml2-2.dll
+                 ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxmsw316d_core_vc_x64_custom.dll
+                 ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxmsw316d_html_vc_x64_custom.dll
+                 ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxmsw316d_xrc_vc_x64_custom.dll
+                 ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxbase316d_xml_vc_x64_custom.dll
+           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
+ endif (DEFINED $ENV{LIB_ROOT})
  install (FILES ${ui_definition_file} ${CMAKE_CURRENT_SOURCE_DIR}/etc/${EXECUTABLE}.fbp
           DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
