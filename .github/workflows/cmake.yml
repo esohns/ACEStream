@@ -129,6 +129,7 @@ jobs:
           cd modules/Common
           cmake -B ${{github.workspace}}/modules/Common/build -DVCPKG_USE=ON -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           cd ${{github.workspace}}
+     shell: cmd
 
    - name: Generate LibreOffice headers [UNIX]
      if: ${{ matrix.os=='ubuntu-latest' }}
@@ -144,6 +145,7 @@ jobs:
           cd src\\modules\\doc\\scripts
           .\\make_oo_headers.cmd
           cd ${{github.workspace}}
+     shell: cmd
 
    - name: Apply Patch To (Temporarily) Remove Dependency on ACENetwork [UNIX]
      if: ${{ matrix.os=='ubuntu-latest' }}
@@ -151,7 +153,8 @@ jobs:
 
    - name: Apply Patch To (Temporarily) Remove Dependency on ACENetwork [Win32]
      if: ${{ matrix.os=='windows-latest' }}
-     run: git apply scripts/github_repo_build.patch
+     run: git apply -v --reject --whitespace=fix scripts/github_repo_build.patch
+     shell: cmd
 
    - name: Configure CMake [UNIX]
      if: ${{ matrix.os=='ubuntu-latest' }}
@@ -160,6 +163,7 @@ jobs:
    - name: Configure CMake [Win32]
      if: ${{ matrix.os=='windows-latest' }}
      run: cmake -B ${{github.workspace}}/build -DCommon_DIR=modules/Common/build -DVCPKG_USE=ON -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+     shell: cmd
 
    - name: Build
      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
