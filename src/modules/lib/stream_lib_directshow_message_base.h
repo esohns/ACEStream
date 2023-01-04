@@ -23,13 +23,11 @@
 
 #include "ace/Global_Macros.h"
 
-#include <strmif.h>
+#include "strmif.h"
 
 #include "stream_data_message_base.h"
 #include "stream_message_base.h"
 #include "stream_session_message_base.h"
-
-#include "stream_lib_directshow_allocator.h"
 
 // forward declarations
 class ACE_Allocator;
