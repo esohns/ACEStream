@@ -42,18 +42,23 @@
 
 struct acestream_visualization_gtk_cairo_cbdata
 {
+  // *TODO*: in gtk4, use a GdkDrawingContext*
   cairo_t*                   context;
   Common_IDispatch*          dispatch;
   Common_ISetP_T<GdkWindow>* resizeNotification;
+#if GTK_CHECK_VERSION (4,0,0)
+  GdkSurface*                window;
+#else
   GdkWindow*                 window;
+#endif // GTK_CHECK_VERSION (4,0,0)
 };
 
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
 gboolean acestream_visualization_gtk_cairo_draw_cb (GtkWidget*, cairo_t*, gpointer);
 #else
 gboolean acestream_visualization_gtk_cairo_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
 //gboolean acestream_visualization_gtk_cairo_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
 void acestream_visualization_gtk_cairo_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
 
 gboolean acestream_visualization_gtk_cairo_idle_update_cb (gpointer);
@@ -92,7 +97,11 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
  , public Common_Math_FFT_T<ValueType>
  //, public Common_ICounter
  , public Common_IDispatch
+#if GTK_CHECK_VERSION (4,0,0)
+ , public Common_ISetP_T<GdkSurface>
+#else
  , public Common_ISetP_T<GdkWindow>
+#endif // GTK_CHECK_VERSION (4,0,0)
 {
   typedef Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
                                          TimePolicyType,
@@ -126,7 +135,11 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   virtual void dispatch (void*);
 
   // implement Common_ISetP_T
+#if GTK_CHECK_VERSION (4,0,0)
+  virtual void setP (GdkSurface*); // target window
+#else
   virtual void setP (GdkWindow*); // target window
+#endif // GTK_CHECK_VERSION (4,0,0)
 
  private:
   // convenient types
@@ -140,7 +153,11 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   // override ACE_Task_Base members
   virtual int svc (void);
 
+#if GTK_CHECK_VERSION (4,0,0)
+  bool initialize_Cairo (GdkSurface*, // target window
+#else
   bool initialize_Cairo (GdkWindow*, // target window
+#endif // GTK_CHECK_VERSION (4,0,0)
                          cairo_t*&); // return value: cairo context
 
   unsigned int                                       bufferedSamples_;

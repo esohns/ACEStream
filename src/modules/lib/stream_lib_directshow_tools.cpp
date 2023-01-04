@@ -25,7 +25,8 @@
 
 #include "amvideo.h"
 #include "mmreg.h"
- // *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
+
+// *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
 //            incompatible versions of the IKsPropertySet interface.Applications
 //            that require the KS proxy module should use the version defined in
 //            ksproxy.h.The DirectSound version of IKsPropertySet is described
@@ -38,7 +39,6 @@
 #include "control.h"
 #undef GetObject
 #include "evr.h"
-#include "fourcc.h"
 #include "ksmedia.h"
 #include "ksproxy.h"
 #include "dmoreg.h"
@@ -59,6 +59,10 @@
 #endif // UUIDS_H
 #include "vfwmsgs.h"
 #include "wmcodecdsp.h"
+
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
+#include "fourcc.h"
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
@@ -3310,7 +3314,10 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
 
   mediaType_inout.subtype = mediaSubType_in;
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   FOURCCMap fourcc_map (&mediaType_inout.subtype);
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
+
   unsigned int frames_per_second_i = 0;
   if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo))
   {
@@ -3320,9 +3327,15 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
       Stream_MediaFramework_Tools::toBitCount (mediaType_inout.subtype,
                                                STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
     video_info_header_p->bmiHeader.biCompression =
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
       (Stream_MediaFramework_Tools::isCompressedVideo (mediaType_inout.subtype,
                                                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? fourcc_map.GetFOURCC ()
                                                                                          : BI_RGB);
+#else
+      (Stream_MediaFramework_Tools::isCompressedVideo (mediaType_inout.subtype,
+                                                       STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? mediaType_inout.subtype.Data1
+                                                                                         : BI_RGB);
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
     video_info_header_p->bmiHeader.biSizeImage =
       DIBSIZE (video_info_header_p->bmiHeader);
     frames_per_second_i =
@@ -3339,9 +3352,15 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
       Stream_MediaFramework_Tools::toBitCount (mediaType_inout.subtype,
                                                STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
     video_info_header2_p->bmiHeader.biCompression =
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
       (Stream_MediaFramework_Tools::isCompressedVideo (mediaType_inout.subtype,
                                                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? fourcc_map.GetFOURCC ()
                                                                                          : BI_RGB);
+#else
+      (Stream_MediaFramework_Tools::isCompressedVideo (mediaType_inout.subtype,
+                                                       STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? mediaType_inout.subtype.Data1
+                                                                                         : BI_RGB);
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
     video_info_header2_p->bmiHeader.biSizeImage =
       DIBSIZE (video_info_header2_p->bmiHeader);
     frames_per_second_i =
@@ -3644,8 +3663,16 @@ Stream_MediaFramework_DirectShow_Tools::compressionToSubType (DWORD biCompressio
 
   struct _GUID result = GUID_NULL;
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   FOURCCMap fourcc_map (biCompression_in);
   result = fourcc_map;
+#else
+  result.Data1 = biCompression_in;
+  //result.Data2 = 0;
+  result.Data3 = 0x10;
+  ((DWORD*)result.Data4)[0] = 0xaa000080;
+  ((DWORD*)result.Data4)[1] = 0x719b3800;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
   //ACE_DEBUG ((LM_DEBUG,
   //            ACE_TEXT ("converted %u compression to \"%s\" subtype\n"),

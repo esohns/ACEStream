@@ -233,7 +233,10 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #else
     gdk_threads_enter ();
 #endif // GTK_CHECK_VERSION (3,6,0)
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (4,0,0)
+    width_ = gdk_surface_get_width (configuration_in.window);
+    height_ = gdk_surface_get_height (configuration_in.window);
+#elif GTK_CHECK_VERSION (3,0,0)
     gdk_window_get_geometry (configuration_in.window,
                              NULL,
                              NULL,
@@ -763,7 +766,13 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     gtk_widget_set_double_buffered (widget_p, FALSE);
     gtk_widget_show_all (GTK_WIDGET (inherited::window_));
 
+#if GTK_CHECK_VERSION (4,0,0)
+    GtkNative* native_p = gtk_widget_get_native (widget_p);
+    ACE_ASSERT (native_p);
+    CBData_.window = gtk_native_get_surface (native_p);
+#else
     CBData_.window = gtk_widget_get_window (widget_p);
+#endif // GTK_CHECK_VERSION (4,0,0)
     ACE_ASSERT (CBData_.window);
     if (unlikely (!initialize_Cairo (CBData_.window,
                                      CBData_.context)))
@@ -892,7 +901,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
                                                   MediaType,
+#if GTK_CHECK_VERSION (4,0,0)
+                                                  ValueType>::initialize_Cairo (GdkSurface* window_in,
+#else
                                                   ValueType>::initialize_Cairo (GdkWindow* window_in,
+#endif // GTK_CHECK_VERSION (4,0,0)
                                                                                 cairo_t*& cairoContext_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo"));
@@ -901,6 +914,18 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (window_in);
   ACE_ASSERT (!cairoContext_out);
 
+#if GTK_CHECK_VERSION (4,0,0)
+  GdkDrawingContext* drawing_context_p =
+    gdk_surface_create_cairo_context (window_in);
+  if (unlikely (!drawing_context_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to gdk_surface_create_cairo_context(), aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+  cairoContext_out = gdk_drawing_context_get_cairo_context ();
+#else
   cairoContext_out = gdk_cairo_create (window_in);
   if (unlikely (!cairoContext_out))
   {
@@ -909,6 +934,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return false;
   } // end IF
+#endif // GTK_CHECK_VERSION (4,0,0)
 
   //cairo_set_line_cap (cairoContext_out, CAIRO_LINE_CAP_BUTT);
   cairo_set_line_width (cairoContext_out, 1.0);
@@ -1006,7 +1032,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
                                                   MediaType,
+#if GTK_CHECK_VERSION (4,0,0)
+                                                  ValueType>::setP (GdkSurface* window_in)
+#else
                                                   ValueType>::setP (GdkWindow* window_in)
+#endif // GTK_CHECK_VERSION (4,0,0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::setP"));
 
@@ -1063,13 +1093,16 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     //ACE_ASSERT (CBData_.context);
     //CBData_.window = window_in;
 
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (4,0,0)
+   width_ = gdk_surface_get_width (window_in);
+   height_ = gdk_surface_get_height (window_in);
+#elif GTK_CHECK_VERSION (3,0,0)
     gdk_window_get_geometry (window_in,
                              NULL,
                              NULL,
                              &width_,
                              &height_);
-#elif GTK_CHECK_VERSION(2,0,0)
+#elif GTK_CHECK_VERSION (2,0,0)
     gdk_window_get_geometry (window_in,
                              NULL,
                              NULL,

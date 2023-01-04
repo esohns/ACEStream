@@ -65,7 +65,11 @@ class Stream_Module_Vis_GTK_Cairo_T
  , public Stream_Visualization_Base
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_IDispatch
+#if GTK_CHECK_VERSION (4,0,0)
+ , public Common_ISetP_T<GdkSurface>
+#else
  , public Common_ISetP_T<GdkWindow>
+#endif // GTK_CHECK_VERSION (4,0,0)
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -102,7 +106,11 @@ class Stream_Module_Vis_GTK_Cairo_T
   virtual void dispatch (void*);
 
   // implement Common_ISetP_T
+#if GTK_CHECK_VERSION (4,0,0)
+  virtual void setP (GdkSurface*); // target window
+#else
   virtual void setP (GdkWindow*); // target window
+#endif // GTK_CHECK_VERSION (4,0,0)
 
   // implement Common_UI_IFullscreen
   virtual void toggle ();

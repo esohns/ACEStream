@@ -197,7 +197,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               SessionMessageType,
                               SessionDataType,
                               SessionDataContainerType,
+#if GTK_CHECK_VERSION (4,0,0)
+                              MediaType>::setP (GdkSurface* window_in)
+#else
                               MediaType>::setP (GdkWindow* window_in)
+#endif // GTK_CHECK_VERSION (4,0,0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::setP"));
 
@@ -266,7 +270,20 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   GDK_THREADS_ENTER ();
 #endif // GTK_CHECK_VERSION (3,6,0)
   surface_ =
-#if GTK_CHECK_VERSION (3,10,0)
+#if GTK_CHECK_VERSION (4,0,0)
+    gdk_surface_create_similar_surface (window_in,
+                                        CAIRO_CONTENT_COLOR, // CAIRO_CONTENT_COLOR_ALPHA
+                                        gdk_surface_get_width (window_in),
+                                        gdk_surface_get_height (window_in)));
+  if (unlikely (!surface_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to gdk_surface_create_similar_surface(%@), returning\n"),
+                inherited::mod_->name (),
+                window_in));
+    return;
+  } // end IF
+#elif GTK_CHECK_VERSION (3,10,0)
     gdk_window_create_similar_image_surface (window_in,
                                              CAIRO_FORMAT_RGB24,
                                              gdk_window_get_width (window_in),
@@ -278,10 +295,6 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to gdk_window_create_similar_image_surface(%@), returning\n"),
                 inherited::mod_->name (),
                 window_in));
-#if GTK_CHECK_VERSION (3,6,0)
-#else
-    GDK_THREADS_LEAVE ();
-#endif // GTK_CHECK_VERSION (3,6,0)
     return;
   } // end IF
 #elif GTK_CHECK_VERSION (3,0,0)
@@ -301,10 +314,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #endif // GTK_CHECK_VERSION (3,6,0)
     return;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("%s: created %ux%u surface buffer\n"),
-              inherited::mod_->name (),
-              gdk_window_get_width (window_in),
-              gdk_window_get_height (window_in)));
+  //ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("%s: created %ux%u surface buffer\n"),
+  //            inherited::mod_->name (),
+  //            gdk_window_get_width (window_in),
+  //            gdk_window_get_height (window_in)));
 #elif GTK_CHECK_VERSION (2,0,0)
     gdk_pixbuf_get_from_drawable (NULL,
                                   GDK_DRAWABLE (window_in),

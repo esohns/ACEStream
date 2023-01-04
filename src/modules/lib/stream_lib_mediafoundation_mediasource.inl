@@ -22,7 +22,6 @@
 #include "mfapi.h"
 #include "mferror.h"
 #include "shlwapi.h"
-#include "wxdebug.h"
 
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
@@ -403,7 +402,9 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::CreateInstance"));
 
   // sanity check(s)
-  CheckPointer (interface_out, E_POINTER);
+  ACE_ASSERT (interface_out && (parent_in == NULL));
+  if (interface_out == NULL)
+    return E_POINTER;
   // This object does not support aggregation.
   if (parent_in)
     return CLASS_E_NOAGGREGATION;

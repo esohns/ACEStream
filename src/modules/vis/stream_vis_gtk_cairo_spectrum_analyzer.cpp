@@ -128,7 +128,14 @@ acestream_visualization_gtk_cairo_size_allocate_cb (GtkWidget* widget_in,
   ACE_ASSERT (cbdata_p);
   ACE_ASSERT (cbdata_p->resizeNotification);
 
+#if GTK_CHECK_VERSION (4,0,0)
+  GtkNative* native_p = gtk_widget_get_native (widget_in);
+  if (!native_p)
+    return; // <-- not realized yet
+  GdkSurface* window_p = gtk_native_get_surface (native_p);
+#else
   GdkWindow* window_p = gtk_widget_get_window (widget_in);
+#endif // GTK_CHECK_VERSION (4,0,0)
   if (!window_p)
     return; // <-- not realized yet
 
@@ -152,9 +159,13 @@ acestream_visualization_gtk_cairo_idle_update_cb (gpointer userData_in)
   ACE_ASSERT (cbdata_p);
   ACE_ASSERT (cbdata_p->window);
 
+#if GTK_CHECK_VERSION (4,0,0)
+  gdk_surface_queue_render (cbdata_p->window);
+#else
   gdk_window_invalidate_rect (cbdata_p->window,
                               NULL,   // whole window
                               FALSE); // invalidate children ?
+#endif // GTK_CHECK_VERSION (4,0,0)
 
   return G_SOURCE_CONTINUE;
 }
