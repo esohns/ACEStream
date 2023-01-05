@@ -94,14 +94,12 @@ jobs:
      run: |
           cd ..
           sudo ln -s ACEStream/modules/Common Common
-          cd ${{github.workspace}}
 
    - name: Add Common link [Win32]
      if: ${{ matrix.os=='windows-latest' }}
      run: |
           cd ..
           mklink /D Common ACEStream\\modules\\Common
-          cd ${{github.workspace}}
      shell: cmd
 
    - name: Reset ACE link (Common) [UNIX]
@@ -114,21 +112,18 @@ jobs:
      run: |
           cd modules/Common
           git submodule update --init --recursive
-          cd ${{github.workspace}}
 
    - name: Configure CMake (Common) [UNIX]
      if: ${{ matrix.os=='ubuntu-latest' }}
      run: |
           cd modules/Common
           cmake -B ${{github.workspace}}/modules/Common/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          cd ${{github.workspace}}
 
    - name: Configure CMake (Common) [Win32]
      if: ${{ matrix.os=='windows-latest' }}
      run: |
           cd modules/Common
           cmake -B ${{github.workspace}}/modules/Common/build -DVCPKG_USE=ON -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          cd ${{github.workspace}}
      shell: cmd
 
    - name: Generate LibreOffice headers [UNIX]
@@ -137,14 +132,12 @@ jobs:
           cd src/modules/doc/scripts
           chmod u+x make_oo_headers.sh
           sudo ./make_oo_headers.sh
-          cd ${{github.workspace}}
 
    - name: Generate LibreOffice headers [Win32]
      if: ${{ matrix.os=='windows-latest' }}
      run: |
           cd src\\modules\\doc\\scripts
           .\\make_oo_headers.cmd
-          cd ${{github.workspace}}
      shell: cmd
 
    - name: Apply Patch To (Temporarily) Remove Dependency on ACENetwork [UNIX]
