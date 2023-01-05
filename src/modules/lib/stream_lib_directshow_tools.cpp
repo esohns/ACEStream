@@ -3678,6 +3678,66 @@ Stream_MediaFramework_DirectShow_Tools::toRGB (const struct _AMMediaType& mediaT
   return result_s;
 }
 
+bool
+Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (const struct tWAVEFORMATEX& format_in,
+                                                          struct _AMMediaType& mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx"));
+
+  bool result = false;
+
+  Stream_MediaFramework_DirectShow_Tools::free (mediaType_inout);
+
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
+  HRESULT result_2 = CreateAudioMediaType (&format_in,
+                                           &mediaType_inout,
+                                           TRUE);
+  if (FAILED (result_2))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+  else
+    result = true;
+  goto continue_;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
+
+  mediaType_inout.majortype = MEDIATYPE_Audio;
+  if (format_in.wFormatTag == WAVE_FORMAT_EXTENSIBLE)
+    mediaType_inout.subtype = ((PWAVEFORMATEXTENSIBLE)&format_in)->SubFormat;
+  else
+    mediaType_inout.subtype = FOURCCMap (format_in.wFormatTag);
+  mediaType_inout.formattype = FORMAT_WaveFormatEx;
+  mediaType_inout.bFixedSizeSamples = TRUE;
+  mediaType_inout.bTemporalCompression = FALSE;
+  mediaType_inout.lSampleSize = format_in.nBlockAlign;
+  mediaType_inout.pUnk = NULL;
+
+  if (format_in.wFormatTag == WAVE_FORMAT_PCM)
+    mediaType_inout.cbFormat = sizeof (WAVEFORMATEX);
+  else
+    mediaType_inout.cbFormat = sizeof (WAVEFORMATEX) + format_in.cbSize;
+  mediaType_inout.pbFormat = (PBYTE)CoTaskMemAlloc (mediaType_inout.cbFormat);
+  if (mediaType_inout.pbFormat == NULL)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to CoTaskMemAlloc(%u), aborting\n"),
+                mediaType_inout.cbFormat));
+    goto continue_;
+  }
+  if (format_in.wFormatTag == WAVE_FORMAT_PCM)
+  {
+    CopyMemory (mediaType_inout.pbFormat, &format_in, sizeof (PCMWAVEFORMAT));
+    ((WAVEFORMATEX*)mediaType_inout.pbFormat)->cbSize = 0;
+  }
+  else
+    CopyMemory (mediaType_inout.pbFormat, &format_in, mediaType_inout.cbFormat);
+
+  result = true;
+
+continue_:
+  return result;
+}
+
 struct tWAVEFORMATEX*
 Stream_MediaFramework_DirectShow_Tools::toWaveFormatEx (const struct _AMMediaType& mediaType_in)
 {

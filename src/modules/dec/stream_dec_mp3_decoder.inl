@@ -18,17 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "mmreg.h"
-#include "mtype.h"
- // *NOTE*: uuids.h doesn't have double include protection
-#if defined (UUIDS_H)
-#else
-#define UUIDS_H
-#include "uuids.h"
-#endif // UUIDS_H
-#endif // ACE_WIN32 || ACE_WIN64
-
 #include "fmt123.h"
 
 #include "ace/Log_Msg.h"
@@ -305,12 +294,12 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   format_s.wBitsPerSample = mpg123_encsize (encoding_i) * 8;
   format_s.nBlockAlign = (format_s.nChannels * (format_s.wBitsPerSample / 8));
   format_s.nAvgBytesPerSec = (format_s.nSamplesPerSec * format_s.nBlockAlign);
-  result_3 = CreateAudioMediaType (&format_s, &media_type_2, TRUE);
-  if (FAILED (result_3))
+  if (!Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (format_s,
+                                                                 media_type_2))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to CreateAudioMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_3, true).c_str ())));
+                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx(), aborting\n"),
+                inherited::mod_->name ()));
     goto continue_;
   } // end IF
 #else

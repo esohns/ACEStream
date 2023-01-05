@@ -46,7 +46,6 @@
 #define INITGUID
 #include "dsound.h"
 #include "dvdmedia.h"
-#include "fourcc.h"
 #include "mediaobj.h"
 #include "mfapi.h"
 #include "Mferror.h"
@@ -63,6 +62,10 @@
 #endif // UUIDS_H
 #include "vfwmsgs.h"
 #include "wmcodecdsp.h"
+
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
+#include "fourcc.h"
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (FFMPEG_SUPPORT)
@@ -2096,8 +2099,10 @@ Stream_Module_Decoder_Tools::loadVideoRendererGraph (REFGUID deviceCategory_in,
   bool is_partially_connected = false;
   struct _GUID CLSID_s = GUID_NULL;
   struct _GUID preferred_subtype = outputFormat_in.subtype;
-  FOURCCMap fourcc_map;
   struct _AMMediaType* media_type_p = NULL;
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
+  FOURCCMap fourcc_map;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
   // initialize return value(s)
   Stream_MediaFramework_DirectShow_Tools::clear (graphConfiguration_out);
@@ -2167,8 +2172,12 @@ decompress:
   } // end IF
   ACE_ASSERT (graph_entry.mediaType);
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   fourcc_map.SetFOURCC (&graph_entry.mediaType->subtype);
   switch (fourcc_map.GetFOURCC ())
+#else
+  switch (graph_entry.mediaType->subtype.Data1)
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
   {
     // *** compressed types ***
     case FCC ('H264'):
@@ -2522,7 +2531,6 @@ Stream_Module_Decoder_Tools::loadTargetRendererGraph (IBaseFilter* sourceFilter_
   IBaseFilter* filter_3 = NULL;
   IPin* pin_p = NULL;
   struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry graph_entry;
-  FOURCCMap fourcc_map;
   bool skip_decode = false;
   bool skip_resize = false;
   bool is_partially_connected = false;
@@ -2538,6 +2546,9 @@ Stream_Module_Decoder_Tools::loadTargetRendererGraph (IBaseFilter* sourceFilter_
   DWORD dwFlags = 0;
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
+  FOURCCMap fourcc_map;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
   // initialize return value(s)
   Stream_MediaFramework_DirectShow_Tools::clear (graphConfiguration_out);
@@ -2700,8 +2711,12 @@ continue_:
     goto decode;
 
 decompress:
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   fourcc_map.SetFOURCC (&graph_entry.mediaType->subtype);
   switch (fourcc_map.GetFOURCC ())
+#else
+  switch (graph_entry.mediaType->subtype.Data1)
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
   {
     // *** compressed types ***
     case FCC ('H264'):

@@ -1,8 +1,15 @@
+if (WIN32)
+ include (directxsdk)
+endif (WIN32)
 include (ffmpeg)
 include (ImageMagick)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../lib/scripts")
+if (WIN32)
+ include (DirectXBaseClasses)
+endif (WIN32)
 include (sox)
+
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 include (deepspeech)
 include (faad)
@@ -31,10 +38,10 @@ endif (WIN32)
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
-if (FAAD_SUPPORT)
+if (WIN32 AND DIRECTXSDK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${faad_INCLUDE_DIRS}>)
-endif (FAAD_SUPPORT)
+                             $<BUILD_INTERFACE:${DIRECTXSDK_INCLUDE_DIR}>)
+endif (WIN32 AND DIRECTXSDK_SUPPORT)
 if (FFMPEG_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
@@ -43,10 +50,20 @@ if (IMAGEMAGICK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
 endif (IMAGEMAGICK_SUPPORT)
+
+if (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${DS_BASECLASSES_INCLUDE_DIRS}>)
+endif (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
 if (SOX_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${SOX_INCLUDE_DIRS}>)
 endif (SOX_SUPPORT)
+
+if (FAAD_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${faad_INCLUDE_DIRS}>)
+endif (FAAD_SUPPORT)
 if (DEEPSPEECH_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${DEEPSPEECH_INCLUDE_DIRS}>)
@@ -95,27 +112,6 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 elseif (WIN32)
- if (DEFINED ENV{DXSDK_DIR})
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:$ENV{DXSDK_DIR}/Include>)
- else ()
-  set (DXSDK_DIR
-       "$ENV{LIB_ROOT}/DXSDK")
-# message (STATUS "DirectX SDK directory: \"${DXSDK_DIR}\"")
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:${DXSDK_DIR}/Include>)
- endif (DEFINED ENV{DXSDK_DIR})
-# set(_PF86 "ProgramFiles(x86)")
-# cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "$ENV{LIB_ROOT}/DShowBaseClasses")
-#      "$ENV{PROGRAMFILES}/Microsoft Platform SDK/Samples/Multimedia/DirectShow/BaseClasses")
-#      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-#      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
-
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/3rd_party/msvc>)
 

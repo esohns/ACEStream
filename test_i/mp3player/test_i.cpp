@@ -59,6 +59,10 @@
 
 #include "stream_file_sink.h"
 
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#include "stream_lib_directshow_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "stream_stat_common.h"
 
 #include "test_i_defines.h"
@@ -344,15 +348,11 @@ do_work (unsigned int bufferSize_in,
   waveformatex_s.nAvgBytesPerSec =
     (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
   // waveformatex_s.cbSize = 0;
-  HRESULT result =
-    CreateAudioMediaType (&waveformatex_s,
-                          &modulehandler_configuration.outputFormat,
-                          TRUE); // set format ?
-  if (unlikely (FAILED (result)))
+  if (!Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (waveformatex_s,
+                                                                 modulehandler_configuration.outputFormat))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to CreateAudioMediaType(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx(), returning\n")));
     return;
   } // end IF
 #else

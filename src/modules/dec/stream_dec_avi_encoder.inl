@@ -26,7 +26,7 @@
 #include "mmsystem.h"
 #include "aviriff.h"
 #include "dvdmedia.h"
-#include "fourcc.h"
+//#include "fourcc.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
@@ -1598,7 +1598,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   struct _rifflist RIFF_list;
   struct _avimainheader AVI_header_avih;
   struct _avistreamheader AVI_header_strh;
-  FOURCCMap fourcc_map;
+  //FOURCCMap fourcc_map;
   struct tagBITMAPINFOHEADER AVI_header_strf_video;
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;

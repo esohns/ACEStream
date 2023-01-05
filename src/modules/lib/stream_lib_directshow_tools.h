@@ -228,6 +228,8 @@ class Stream_MediaFramework_DirectShow_Tools
   static struct _AMMediaType toRGB (const struct _AMMediaType&); // media type
   // *IMPORTANT NOTE*: callers must 'DeleteMediaType' any return values
   inline static DMO_MEDIA_TYPE* toDMOMediaType (const struct _AMMediaType& mediaType_in) { return reinterpret_cast<DMO_MEDIA_TYPE*> (Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in)); }
+  static bool fromWaveFormatEx (const struct tWAVEFORMATEX&, // format
+                                struct _AMMediaType&);       // return value: media type
   // *IMPORTANT NOTE*: callers must 'CoTaskMemFree' any return values
   static struct tWAVEFORMATEX* toWaveFormatEx (const struct _AMMediaType&); // media type
   static struct _GUID compressionToSubType (DWORD); // biCompression
