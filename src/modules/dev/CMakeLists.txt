@@ -1,3 +1,12 @@
+if (WIN32)
+ include (directxsdk)
+endif (WIN32)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../lib/scripts")
+if (WIN32)
+ include (DirectXBaseClasses)
+endif (WIN32)
+
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 include (libcamera)
 
@@ -15,6 +24,18 @@ elseif (WIN32)
 endif ()
 
 add_library (${PROJECT_NAME}_Device STATIC "")
+
+string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
+string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
+
+if (WIN32 AND DIRECTXSDK_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${DIRECTXSDK_INCLUDE_DIR}>)
+endif (WIN32 AND DIRECTXSDK_SUPPORT)
+if (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${DS_BASECLASSES_INCLUDE_DIRS}>)
+endif (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
 
 if (LIBCAMERA_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
@@ -38,35 +59,14 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../vis>)
 elseif (WIN32)
- if (DEFINED ENV{DXSDK_DIR})
-  target_include_directories (${PROJECT_NAME}_Device PUBLIC
-                              $<BUILD_INTERFACE:$ENV{DXSDK_DIR}/Include>)
- else ()
-#  set (DXSDK_DIR
-#       "$ENV{PROGRAMFILES}/Microsoft DirectX SDK (June 2010)/Include")
-#      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-##      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-# message (STATUS "DirectX SDK directory: \"${DXSDK_DIR}\"")
-  target_include_directories (${PROJECT_NAME}_Device PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/DXSDK/Include>)
- endif (DEFINED ENV{DXSDK_DIR})
-# set(_PF86 "ProgramFiles(x86)")
- cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "$ENV{LIB_ROOT}/DShowBaseClasses")
-#      "$ENV{PROGRAMFILES}/Microsoft Platform SDK/Samples/Multimedia/DirectShow/BaseClasses")
-#      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-#      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
- target_include_directories (${PROJECT_NAME}_Device PUBLIC
-                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
-
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/error>)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/log>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/image>)
+# target_include_directories (${PROJECT_NAME}_Device PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/log>)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
@@ -75,6 +75,8 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc>)
 
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
@@ -204,13 +206,15 @@ elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC winmm.lib)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC Wmcodecdspuuid.lib)
 
- target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/${CMAKE_BUILD_TYPE}/BaseClasses${LIB_FILE_SUFFIX}.lib)
+ if (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${DS_BASECLASSES_LIBRARIES})
+ endif (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
 
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${ACE_LIBRARY})
 
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC Common)
 endif ()
-target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${PROJECT_NAME}_Decoder)
+#target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${PROJECT_NAME}_Decoder)
 
 #set_target_properties (${PROJECT_NAME}_Device PROPERTIES DEFINE_SYMBOL STREAM_DEV_BUILD_DLL)
 #set_target_properties (${PROJECT_NAME}_Device PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

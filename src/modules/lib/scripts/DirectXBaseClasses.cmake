@@ -1,8 +1,7 @@
 if (WIN32)
 # DirectShow base classes
  if (DEFINED ENV{LIB_ROOT})
-  set (DIRECTSHOW_BASECLASSES_DIRECTORY
-       "$ENV{LIB_ROOT}/DShowBaseClasses")
+  set (DIRECTSHOW_BASECLASSES_DIRECTORY "$ENV{LIB_ROOT}/DShowBaseClasses")
  endif (DEFINED ENV{LIB_ROOT})
 #      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 #      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
