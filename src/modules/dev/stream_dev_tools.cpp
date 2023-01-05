@@ -66,8 +66,6 @@ extern "C"
 
 #include "common_file_tools.h"
 
-#include "common_error_tools.h"
-
 #include "common_time_common.h"
 
 #include "stream_macros.h"
