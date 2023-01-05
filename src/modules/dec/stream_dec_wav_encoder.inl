@@ -25,7 +25,6 @@
 #include "mmsystem.h"
 #include "aviriff.h"
 #include "dvdmedia.h"
-#include "fourcc.h"
 #include "mfobjects.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)

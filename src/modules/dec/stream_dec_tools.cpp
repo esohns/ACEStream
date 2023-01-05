@@ -51,7 +51,6 @@
 #include "Mferror.h"
 #undef GetObject
 #include "mfidl.h"
-#include "mtype.h"
 #include "qedit.h"
 #include "strmif.h"
 // *NOTE*: uuids.h doesn't have double include protection
@@ -2954,7 +2953,7 @@ decode:
                   ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IMediaObject): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       i_dmo_wrapper_filter_p->Release (); i_dmo_wrapper_filter_p = NULL;
-      DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
+      Stream_MediaFramework_DirectShow_Tools::delete_ (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p), true); dmo_media_type_p = NULL;
       goto error;
     } // end IF
     ACE_ASSERT (i_dmo_wrapper_filter_p);
@@ -2966,12 +2965,12 @@ decode:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMediaObject::SetInputType(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-      DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
+      Stream_MediaFramework_DirectShow_Tools::delete_ (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p), true); dmo_media_type_p = NULL;
       i_media_object_p->Release (); i_media_object_p = NULL;
       i_dmo_wrapper_filter_p->Release (); i_dmo_wrapper_filter_p = NULL;
       goto error;
     } // end IF
-    DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
+    Stream_MediaFramework_DirectShow_Tools::delete_ (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p), true); dmo_media_type_p = NULL;
     i_media_object_p->Release (); i_media_object_p = NULL;
     i_dmo_wrapper_filter_p->Release (); i_dmo_wrapper_filter_p = NULL;
   } // end IF
@@ -3157,7 +3156,7 @@ decode:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IMediaObject): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
+    Stream_MediaFramework_DirectShow_Tools::delete_ (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p), true); dmo_media_type_p = NULL;
     goto error;
   } // end IF
   ACE_ASSERT (i_media_object_p);
@@ -3169,11 +3168,11 @@ decode:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaObject::SetInputType(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
+    Stream_MediaFramework_DirectShow_Tools::delete_ (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p), true); dmo_media_type_p = NULL;
     i_media_object_p->Release (); i_media_object_p = NULL;
     goto error;
   } // end IF
-  DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
+  Stream_MediaFramework_DirectShow_Tools::delete_ (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p), true); dmo_media_type_p = NULL;
   dmo_media_type_p =
     Stream_MediaFramework_DirectShow_Tools::toDMOMediaType (*graph_entry.mediaType);
   if (!dmo_media_type_p)
@@ -3236,7 +3235,7 @@ decode:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaObject::SetOutputType(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
+    Stream_MediaFramework_DirectShow_Tools::delete_ (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p), true); dmo_media_type_p = NULL;
     i_media_object_p->Release (); i_media_object_p = NULL;
     goto error;
   } // end IF
@@ -3252,7 +3251,7 @@ decode:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
+    Stream_MediaFramework_DirectShow_Tools::delete_ (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p), true); dmo_media_type_p = NULL;
     goto error;
   } // end IF
   graphConfiguration_out.push_back (graph_entry);
