@@ -20,9 +20,6 @@
 
 #include "strmif.h"
 #include "vfwmsgs.h"
-//// *NOTE*: wxWidgets may have #defined __WXDEBUG__
-//#undef __WXDEBUG__
-#include "wxdebug.h"
 
 #include "ace/Log_Msg.h"
 
@@ -921,7 +918,8 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::QueryInterface"));
 
   // sanity check(s)
-  CheckPointer (interface_out, E_POINTER);
+  if (interface_out == NULL)
+    return E_POINTER;
 
   // Always set out parameter to NULL, validating it first.
   *interface_out = NULL;
