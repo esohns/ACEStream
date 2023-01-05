@@ -3698,14 +3698,19 @@ Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (const struct tWAVEFORM
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
   else
     result = true;
-  goto continue_;
 #endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
   mediaType_inout.majortype = MEDIATYPE_Audio;
   if (format_in.wFormatTag == WAVE_FORMAT_EXTENSIBLE)
     mediaType_inout.subtype = ((PWAVEFORMATEXTENSIBLE)&format_in)->SubFormat;
   else
-    mediaType_inout.subtype = FOURCCMap (format_in.wFormatTag);
+  {
+    mediaType_inout.subtype.Data1 = format_in.wFormatTag;
+    mediaType_inout.subtype.Data2 = 0;
+    mediaType_inout.subtype.Data3 = 0x10;
+    ((DWORD*)mediaType_inout.subtype.Data4)[0] = 0xaa000080;
+    ((DWORD*)mediaType_inout.subtype.Data4)[1] = 0x719b3800;
+  } // end ELSE
   mediaType_inout.formattype = FORMAT_WaveFormatEx;
   mediaType_inout.bFixedSizeSamples = TRUE;
   mediaType_inout.bTemporalCompression = FALSE;
