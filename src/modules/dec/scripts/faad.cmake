@@ -10,12 +10,18 @@ if (UNIX)
 elseif (WIN32)
  if (VCPKG_USE)
 #  cmake_policy (SET CMP0074 OLD)
-  find_package (faad2 CONFIG)
-  if (faad2_FOUND)
+#  find_package (faad2 CONFIG)
+  find_library (FAAD_LIBRARY faad.lib
+                PATHS ${VCPKG_LIB_DIR}
+                PATH_SUFFIXES lib
+                DOC "searching for faad.lib"
+                NO_DEFAULT_PATH)
+  if (FAAD_LIBRARY)
    set (FAAD_FOUND TRUE)
    set (faad_INCLUDE_DIRS ${VCPKG_INCLUDE_DIR_BASE})
+   set (faad_LIBRARIES "${FAAD_LIBRARY}")
    set (faad_LIB_DIR ${VCPKG_LIB_DIR}/bin)
-  endif (faad2_FOUND)
+  endif (FAAD_LIBRARY)
  endif (VCPKG_USE)
  if (NOT FAAD_FOUND)
   set (FAAD_LIB_FILE "libfaad2_dll.lib")

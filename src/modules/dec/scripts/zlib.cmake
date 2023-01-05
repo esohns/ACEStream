@@ -10,14 +10,20 @@ if (UNIX)
 elseif (WIN32)
  if (VCPKG_USE)
 #  cmake_policy (SET CMP0074 OLD)
-  find_package (zlib CONFIG)
-  if (zlib_FOUND)
+#  find_package (zlib CONFIG)
+  find_library (ZLIB_LIBRARY zlib.lib
+                PATHS ${VCPKG_LIB_DIR}
+                PATH_SUFFIXES lib
+                DOC "searching for zlib.lib"
+                NO_DEFAULT_PATH)
+  if (ZLIB_LIBRARY)
    set (ZLIB_FOUND TRUE)
    set (ZLIB_INCLUDE_DIRS ${VCPKG_INCLUDE_DIR_BASE})
+   set (ZLIB_LIBRARIES "${ZLIB_LIBRARY}")
    set (ZLIB_LIB_DIR ${VCPKG_LIB_DIR}/bin)
-  endif (zlib_FOUND)
+  endif (ZLIB_LIBRARY)
  endif (VCPKG_USE)
- if (NOT zlib_FOUND)
+ if (NOT ZLIB_FOUND)
   set (ZLIB_LIB_FILE "zlib${LIB_FILE_SUFFIX}.lib")
   find_library (ZLIB_LIBRARY ${ZLIB_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/zlib/build
@@ -33,7 +39,7 @@ elseif (WIN32)
    set (ZLIB_LIBRARIES "${ZLIB_LIBRARY}")
    set (ZLIB_LIB_DIR "$ENV{LIB_ROOT}/zlib/build/${CMAKE_BUILD_TYPE}")
   endif (NOT ZLIB_LIBRARY)
- endif (NOT zlib_FOUND)
+ endif (NOT ZLIB_FOUND)
 endif ()
 if (ZLIB_FOUND)
  option (ZLIB_SUPPORT "enable zlib support" ${ZLIB_SUPPORT_DEFAULT})
