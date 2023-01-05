@@ -86,11 +86,11 @@ ACE_HANDLE Stream_MediaFramework_DirectShow_Tools::logFileHandle = ACE_INVALID_H
 HRESULT
 CopyMediaType (struct _AMMediaType* pmtTarget,
                const struct _AMMediaType* pmtSource)
-{ ASSERT (pmtSource != pmtTarget);
+{ ACE_ASSERT (pmtSource != pmtTarget);
   *pmtTarget = *pmtSource;
 
   if (pmtSource->cbFormat != 0)
-  { ASSERT(pmtSource->pbFormat != NULL);
+  { ACE_ASSERT (pmtSource->pbFormat != NULL);
     pmtTarget->pbFormat = (PBYTE)CoTaskMemAlloc (pmtSource->cbFormat);
     if (pmtTarget->pbFormat == NULL)
     {
@@ -119,6 +119,16 @@ FreeMediaType (struct _AMMediaType& mt)
   {
     mt.pUnk->Release (); mt.pUnk = NULL;
   }
+}
+
+void
+DeleteMediaType (struct _AMMediaType* pmt)
+{
+  if (pmt == NULL)
+    return;
+
+  FreeMediaType (*pmt);
+  CoTaskMemFree ((PVOID)pmt);
 }
 #endif // DIRECTSHOW_BASECLASSES_SUPPORT
 

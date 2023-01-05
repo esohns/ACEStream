@@ -18,13 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
-#undef NANOSECONDS
-#include "reftime.h"
-#else
-#define MILLISECONDS_TO_100NS_UNITS(lMs) Int32x32To64 ((lMs), (10000))
-#endif // DIRECTSHOW_BASECLASSES_SUPPORT
-
 #include "ace/Log_Msg.h"
 
 #include "common_tools.h"
@@ -338,7 +331,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                                       &bytes_per_second_i);
   ACE_ASSERT (SUCCEEDED (result) && bytes_per_second_i);
   LONGLONG duration_i =
-    (LONGLONG)(total_length_i * MILLISECONDS_TO_100NS_UNITS(1000) / (double)bytes_per_second_i);
+    (LONGLONG)(total_length_i * 1000 * 1000 * 10 / (double)bytes_per_second_i); // convert to 100ns units
   result = sample_p->SetSampleDuration (duration_i);
   ACE_ASSERT (SUCCEEDED (result));
   baseTimeStamp_ += duration_i;

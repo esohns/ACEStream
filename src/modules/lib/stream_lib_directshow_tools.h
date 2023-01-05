@@ -24,11 +24,11 @@
 #include <map>
 #include <string>
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
 #include "minwindef.h"
 #else
 #include "windef.h"
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
 #include "ks.h"
 #include "guiddef.h"
 //#undef GetObject
@@ -37,7 +37,7 @@
 //#include "strmif.h"
 #include "mediaobj.h"
 
-#if defined(SOX_SUPPORT)
+#if defined (SOX_SUPPORT)
 #include "sox.h"
 #endif // SOX_SUPPORT
 
