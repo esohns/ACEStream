@@ -89,7 +89,6 @@ extern "C"
 #include "stream_lib_alsa_defines.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 int

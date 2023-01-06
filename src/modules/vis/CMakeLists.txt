@@ -1,8 +1,12 @@
-set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/gl/scripts")
-include (glut)
+if (WIN32)
+ include (directxsdk)
+endif (WIN32)
 
 include (ffmpeg)
 include (ImageMagick)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/gl/scripts")
+include (glut)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts")
 include (PreUIFramework)
@@ -10,6 +14,11 @@ include (SetUIFramework)
 if (GTK_SUPPORT) # *NOTE*: _SUPPORT, not _USE !
  include (SetGTKVersion)
 endif (GTK_SUPPORT)
+
+if (WIN32)
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../lib/scripts")
+ include (DirectXBaseClasses)
+endif (WIN32)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../dec/scripts")
 include (opencv)
@@ -31,10 +40,11 @@ endif (WIN32)
 
 add_library (${PROJECT_NAME}_Visualization STATIC "")
 
-if (GLUT_SUPPORT)
+if (WIN32 AND DIRECTXSDK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             "$<BUILD_INTERFACE:${GLUT_INCLUDE_DIRS}>")
-endif (GLUT_SUPPORT)
+                             $<BUILD_INTERFACE:${DIRECTXSDK_INCLUDE_DIR}>)
+endif (WIN32 AND DIRECTXSDK_SUPPORT)
+
 if (FFMPEG_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
@@ -43,6 +53,12 @@ if (IMAGEMAGICK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
 endif (IMAGEMAGICK_SUPPORT)
+
+if (GLUT_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             "$<BUILD_INTERFACE:${GLUT_INCLUDE_DIRS}>")
+endif (GLUT_SUPPORT)
+
 if (CURSES_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              "$<BUILD_INTERFACE:${CURSES_INCLUDE_DIRS}>")
@@ -60,6 +76,12 @@ if (GTK_SUPPORT)
   endif (GTKGLAREA_SUPPORT)
  endif (GTKGL_SUPPORT)
 endif (GTK_SUPPORT)
+
+if (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${DS_BASECLASSES_INCLUDE_DIRS}>)
+endif (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
+
 if (OPENCV_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              "$<BUILD_INTERFACE:${OPENCV_INCLUDE_DIRS}>")
@@ -90,23 +112,6 @@ if (UNIX)
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui/gtk>)
  endif (GTK_SUPPORT)
 elseif (WIN32)
- if (DEFINED ENV{DXSDK_DIR})
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{DXSDK_DIR}/Include>)
- else ()
-  set (DXSDK_DIR
-       "$ENV{LIB_ROOT}/DXSDK/Include")
-# message (STATUS "DirectX SDK directory: \"${DXSDK_DIR}\"")
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${DXSDK_DIR}>)
- endif (DEFINED ENV{DXSDK_DIR})
-# set(_PF86 "ProgramFiles(x86)")
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      $ENV{LIB_ROOT}/DShowBaseClasses)
-# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
- target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
-
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC

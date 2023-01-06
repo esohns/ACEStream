@@ -2,8 +2,8 @@ if (WIN32)
  include (directxsdk)
 endif (WIN32)
 
-set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../lib/scripts")
 if (WIN32)
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../lib/scripts")
  include (DirectXBaseClasses)
 endif (WIN32)
 
