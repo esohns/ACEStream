@@ -199,10 +199,6 @@ elseif (WIN32)
    endif (GTKGL_SUPPORT)
   endif (GTK_SUPPORT)
  endif (GUI_SUPPORT)
-
- if (FFMPEG_SUPPORT)
-  target_link_libraries (${EXECUTABLE} PUBLIC $ENV{LIB_ROOT}/ffmpeg/lib/avfilter.lib)
- endif (FFMPEG_SUPPORT)
 endif ()
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})

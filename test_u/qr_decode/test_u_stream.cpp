@@ -93,11 +93,13 @@ Test_U_Stream::load (Stream_ILayout* layout_inout,
   layout_inout->append (module_p, NULL, 0);
 #endif // ACE_WIN32 || ACE_WIN64
   module_p = NULL;
+#if defined (OPENCV_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_NEW_RETURN (module_p,
                   Test_U_DirectShow_QRDecoder_Module (this,
                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_OPENCV_QR_DECODER_DEFAULT_NAME_STRING)),
                   false);
+
 #else
   ACE_NEW_RETURN (module_p,
                   Test_U_QRDecoder_Module (this,
@@ -107,6 +109,7 @@ Test_U_Stream::load (Stream_ILayout* layout_inout,
   ACE_ASSERT (module_p);
   layout_inout->append (module_p, NULL, 0);
   module_p = NULL;
+#endif // OPENCV_SUPPORT
 
   delete_out = true;
 

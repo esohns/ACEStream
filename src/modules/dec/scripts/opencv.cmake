@@ -19,7 +19,8 @@ elseif (WIN32)
   endif (opencv_FOUND)
  endif (VCPKG_USE)
  if (NOT OPENCV_FOUND)
-  set (OPENCV_VERSION "460")
+#  set (OPENCV_VERSION "460")
+  set (OPENCV_VERSION "453")
   set (OPENCV_CORE_LIB_FILE "opencv_core${OPENCV_VERSION}${LIB_FILE_SUFFIX}.lib")
   find_library (OPENCV_CORE_LIBRARY ${OPENCV_CORE_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/opencv/build/lib/

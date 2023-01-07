@@ -26,6 +26,8 @@
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
+#include "common_file_tools.h"
+
 #include "stream_macros.h"
 
 #include "stream_lib_directdraw_tools.h"
@@ -379,22 +381,50 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
   ID3DBlob* error_blob_p = NULL;
 
   // COMPILE VERTEX SHADER
-  HRESULT result = D3DCompileFromFile (ACE_TEXT_ALWAYS_WCHAR (filename_in.c_str ()),
-                                       NULL,
-                                       D3D_COMPILE_STANDARD_FILE_INCLUDE,
-                                       ACE_TEXT_ALWAYS_CHAR ("vs_main"),
-                                       ACE_TEXT_ALWAYS_CHAR ("vs_5_0"),
-                                       flags_i,
-                                       0,
-                                       &blob_p,
-                                       &error_blob_p);
-  if (unlikely (FAILED (result)))
+  uint8_t* data_p = NULL;
+  ACE_UINT64 file_size_i = 0;
+  bool result = Common_File_Tools::load (filename_in,
+                                         data_p,
+                                         file_size_i,
+                                         0);
+  if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to D3DCompileFromFile(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to Common_File_Tools::load(\"%s\"), aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (filename_in.c_str ())));
+    return false;
+  } // end IF
+  ACE_ASSERT (data_p && file_size_i);
+
+  HRESULT result_2 = D3DCompile (data_p,
+                                 file_size_i,
+                                 NULL,
+                                 NULL,
+                                 NULL, // D3D_COMPILE_STANDARD_FILE_INCLUDE
+                                 ACE_TEXT_ALWAYS_CHAR ("vs_main"),
+                                 ACE_TEXT_ALWAYS_CHAR ("vs_5_0"),
+                                 flags_i,
+                                 0,
+                                 &blob_p,
+                                 &error_blob_p);
+  //HRESULT result_2 = D3DCompileFromFile (ACE_TEXT_ALWAYS_WCHAR (filename_in.c_str ()),
+  //                                     NULL,
+  //                                     D3D_COMPILE_STANDARD_FILE_INCLUDE,
+  //                                     ACE_TEXT_ALWAYS_CHAR ("vs_main"),
+  //                                     ACE_TEXT_ALWAYS_CHAR ("vs_5_0"),
+  //                                     flags_i,
+  //                                     0,
+  //                                     &blob_p,
+  //                                     &error_blob_p);
+  if (unlikely (FAILED (result_2)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                //ACE_TEXT ("%s: failed to D3DCompileFromFile(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to D3DCompile(\"%s\"): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (filename_in.c_str ()),
-                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
     if (error_blob_p)
     {
       OutputDebugStringA ((char*)error_blob_p->GetBufferPointer ());
@@ -402,46 +432,59 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
     } // end IF
     if (blob_p)
     { blob_p->Release (); blob_p = NULL; } // end IF
+    delete [] data_p; data_p = NULL;
     return false;
   } // end IF
   ACE_ASSERT (blob_p);
 
-  result = device_in->CreateVertexShader (blob_p->GetBufferPointer (),
-                                          blob_p->GetBufferSize (),
-                                          NULL,
-                                          &vertexShader_);
-  ACE_ASSERT (SUCCEEDED (result) && vertexShader_);
+  result_2 = device_in->CreateVertexShader (blob_p->GetBufferPointer (),
+                                            blob_p->GetBufferSize (),
+                                            NULL,
+                                            &vertexShader_);
+  ACE_ASSERT (SUCCEEDED (result_2) && vertexShader_);
 
   struct D3D11_INPUT_ELEMENT_DESC input_element_descriptor_s[] =
   {
     { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
   };
-  result = device_in->CreateInputLayout (input_element_descriptor_s,
-                                         ARRAYSIZE (input_element_descriptor_s),
-                                         blob_p->GetBufferPointer (),
-                                         blob_p->GetBufferSize (),
-                                         &inputLayout_);
-  ACE_ASSERT (SUCCEEDED (result) && inputLayout_);
+  result_2 = device_in->CreateInputLayout (input_element_descriptor_s,
+                                           ARRAYSIZE (input_element_descriptor_s),
+                                           blob_p->GetBufferPointer (),
+                                           blob_p->GetBufferSize (),
+                                           &inputLayout_);
+  ACE_ASSERT (SUCCEEDED (result_2) && inputLayout_);
   blob_p->Release (); blob_p = NULL;
 
   // COMPILE PIXEL SHADER
-  result = D3DCompileFromFile (ACE_TEXT_ALWAYS_WCHAR (filename_in.c_str ()),
-                               NULL,
-                               D3D_COMPILE_STANDARD_FILE_INCLUDE,
-                               ACE_TEXT_ALWAYS_CHAR ("ps_main"),
-                               ACE_TEXT_ALWAYS_CHAR ("ps_5_0"),
-                               flags_i,
-                               0,
-                               &blob_p,
-                               &error_blob_p);
-  if (unlikely (FAILED (result)))
+  result_2 = D3DCompile (data_p,
+                         file_size_i,
+                         NULL,
+                         NULL,
+                         NULL, // D3D_COMPILE_STANDARD_FILE_INCLUDE
+                         ACE_TEXT_ALWAYS_CHAR ("ps_main"),
+                         ACE_TEXT_ALWAYS_CHAR ("ps_5_0"),
+                         flags_i,
+                         0,
+                         &blob_p,
+                         &error_blob_p);
+  //result_2 = D3DCompileFromFile (ACE_TEXT_ALWAYS_WCHAR (filename_in.c_str ()),
+  //                             NULL,
+  //                             D3D_COMPILE_STANDARD_FILE_INCLUDE,
+  //                             ACE_TEXT_ALWAYS_CHAR ("ps_main"),
+  //                             ACE_TEXT_ALWAYS_CHAR ("ps_5_0"),
+  //                             flags_i,
+  //                             0,
+  //                             &blob_p,
+  //                             &error_blob_p);
+  if (unlikely (FAILED (result_2)))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to D3DCompileFromFile(\"%s\"): \"%s\", aborting\n"),
+                //ACE_TEXT ("%s: failed to D3DCompileFromFile(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to D3DCompile(\"%s\"): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (filename_in.c_str ()),
-                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
     if (error_blob_p)
     {
       OutputDebugStringA ((char*)error_blob_p->GetBufferPointer ());
@@ -449,14 +492,16 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
     } // end IF
     if (blob_p)
     { blob_p->Release (); blob_p = NULL; } // end IF
+    delete [] data_p; data_p = NULL;
     return false;
   } // end IF
+  delete [] data_p; data_p = NULL;
 
-  result = device_in->CreatePixelShader (blob_p->GetBufferPointer (),
-                                         blob_p->GetBufferSize (),
-                                         NULL,
-                                         &pixelShader_);
-  ACE_ASSERT (SUCCEEDED (result) && pixelShader_);
+  result_2 = device_in->CreatePixelShader (blob_p->GetBufferPointer (),
+                                           blob_p->GetBufferSize (),
+                                           NULL,
+                                           &pixelShader_);
+  ACE_ASSERT (SUCCEEDED (result_2) && pixelShader_);
   blob_p->Release (); blob_p = NULL;
 
   return true;
