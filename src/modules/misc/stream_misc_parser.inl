@@ -745,6 +745,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
  , inherited2 ()
  , headFragment_ (NULL)
  , parserQueue_ (STREAM_QUEUE_MAX_SLOTS, NULL)
+ , resetQueue_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Parser_T::Stream_Module_Parser_T"));
 
@@ -814,14 +815,14 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
       } // end IF
     } // end IF
     parserQueue_.flush ();
+    resetQueue_ = false;
   } // end IF
 
   // sanity check(s)
   ACE_ASSERT (configuration_in.parserConfiguration);
-  //bool reset_queue = false;
   if (!configuration_in.parserConfiguration->messageQueue)
   {
-    //reset_queue = true;
+    resetQueue_ = true;
     const_cast<ConfigurationType&> (configuration_in).parserConfiguration->messageQueue =
       &parserQueue_;
     ACE_DEBUG ((LM_DEBUG,
@@ -839,9 +840,6 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return false;
   } // end IF
-  //if (reset_queue)
-  //  const_cast<ConfigurationType&> (configuration_in).parserConfiguration->messageQueue =
-  //    NULL;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -982,6 +980,9 @@ continue_:
         headFragment_->release (); headFragment_ = NULL;
       } // end IF
 
+      if (resetQueue_)
+        inherited::configuration_->parserConfiguration->messageQueue = NULL;
+
       break;
     }
     default:
@@ -1113,6 +1114,8 @@ continue_:
                       inherited::mod_->name ()));
           goto error;
         } // end IF
+        //if (inherited2::finished_)
+        //  break;
         if (headFragment_)
           goto continue_;
 

@@ -242,6 +242,7 @@ class Stream_Module_Parser_T
 
   DataMessageType* headFragment_;
   MESSAGE_QUEUE_T  parserQueue_;
+  bool             resetQueue_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T ())
