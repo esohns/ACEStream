@@ -1056,45 +1056,18 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
       {
         // initialize message ?
         message_p = static_cast<DataMessageType*> (message_block_p);
-        //if (message_p->isInitialized ())
-        //  goto continue_;
 
-        //// sanity check(s)
-        //ACE_ASSERT (inherited::sessionData_);
-        //session_data_p = &inherited::sessionData_->getR ();
-        //ACE_NEW_NORETURN (message_data_p,
-        //                  typename DataMessageType::DATA_T::DATA_T ());
-        //if (!message_data_p)
-        //{
-        //  ACE_DEBUG ((LM_CRITICAL,
-        //              ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
-        //              inherited::mod_->name ()));
-        //  goto error;
-        //} // end IF
-        //ACE_NEW_NORETURN (message_data_container_p,
-        //                  typename DataMessageType::DATA_T (message_data_p));
-        //if (!message_data_container_p)
-        //{
-        //  ACE_DEBUG ((LM_CRITICAL,
-        //              ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
-        //              inherited::mod_->name ()));
-        //  goto error;
-        //} // end IF
-        //message_data_p = NULL;
-        //message_p->initialize (message_data_container_p,
-        //                       session_data_p->sessionId,
-        //                       NULL);
-        //message_data_container_p = NULL;
-
-        if (headFragment_)
-        { // enqueue at the end
-          ACE_Message_Block* message_block_2 = headFragment_;
-          while (message_block_2->cont ())
-            message_block_2 = message_block_2->cont ();
-          message_block_2->cont (message_p);
-        } // end IF
-        else
-          headFragment_ = message_p;
+        //{ ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+          if (headFragment_)
+          { // enqueue at the end
+            ACE_Message_Block* message_block_2 = headFragment_;
+            while (message_block_2->cont ())
+              message_block_2 = message_block_2->cont ();
+            message_block_2->cont (message_p);
+          } // end IF
+          else
+            headFragment_ = message_p;
+        //} // end lock scope
 continue_:
         // parse next data fragment(s)
         try {
