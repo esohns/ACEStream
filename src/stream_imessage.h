@@ -21,6 +21,8 @@
 #ifndef STREAM_IMESSAGE_T_H
 #define STREAM_IMESSAGE_T_H
 
+#include "common_iget.h"
+
 #include "stream_common.h"
 
 class Stream_IMessage
