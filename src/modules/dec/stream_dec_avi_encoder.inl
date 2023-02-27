@@ -53,6 +53,7 @@ extern "C"
 #include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
+#include "common_os_tools.h"
 
 #include "common_image_tools.h"
 
@@ -1618,7 +1619,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: invalid/unknown media format type (was: \"%s\"), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::GUIDToString (media_type_s.formattype).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (media_type_s.formattype).c_str ())));
     goto error;
   } // end ELSE
   if (InlineIsEqualGUID (media_type_2.formattype, FORMAT_WaveFormatEx))
@@ -1629,7 +1630,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: invalid/unknown media format type (was: \"%s\"), continuing\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::GUIDToString (media_type_2.formattype).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (media_type_2.formattype).c_str ())));
   } // end ELSE
 
   // RIFF

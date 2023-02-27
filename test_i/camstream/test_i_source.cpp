@@ -49,6 +49,7 @@
 #endif // HAVE_CONFIG_H
 
 #include "common_file_tools.h"
+#include "common_os_tools.h"
 
 #include "common_event_tools.h"
 
@@ -2413,9 +2414,9 @@ ACE_TMAIN (int argc_in,
 
   // step1g: set process resource limits
   // *NOTE*: settings will be inherited by any child processes
-  if (!Common_Tools::setResourceLimits (false, // file descriptors
-                                        true,  // stack traces
-                                        true)) // pending signals
+  if (!Common_OS_Tools::setResourceLimits (false, // file descriptors
+                                           true,  // stack traces
+                                           true)) // pending signals
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));

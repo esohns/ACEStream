@@ -20,7 +20,7 @@
 
 #include "ace/Log_Msg.h"
 
-#include "common_tools.h"
+#include "common_os_tools.h"
 
 #include "stream_defines.h"
 #include "stream_macros.h"
@@ -971,7 +971,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: received extended media session event (type was: %s)\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ())));
       break;
     }
     case MEStreamSinkFormatInvalidated:
@@ -1371,7 +1371,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in.identifier._guid).c_str ())));
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in.identifier._guid).c_str ())));
       return false;
     } // end IF
     release_media_source = true;

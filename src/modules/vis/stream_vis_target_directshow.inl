@@ -43,7 +43,7 @@
 
 #include "ace/Log_Msg.h"
 
-#include "common_tools.h"
+#include "common_os_tools.h"
 
 #include "common_log_tools.h"
 
@@ -1274,7 +1274,7 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to CoCreateInstance(%s): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::GUIDToString (STREAM_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER).c_str ()),
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (STREAM_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER).c_str ()),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
       goto error;
     } // end IF
@@ -1463,7 +1463,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: invalid/unknown renderer filter (was: %s), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ())));
     goto error;
   } // end ELSE
 

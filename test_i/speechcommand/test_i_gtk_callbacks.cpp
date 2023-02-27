@@ -37,6 +37,8 @@
 #include "ace/Log_Msg.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_os_tools.h"
+
 #include "common_timer_manager.h"
 
 #include "common_ui_gtk_common.h"
@@ -105,8 +107,8 @@ load_capture_devices (GtkListStore* listStore_in)
         //            (capabilities_s.vDriverVersion & 0xFFFF0000) >> 16, (capabilities_s.vDriverVersion & 0xFFFF)));
 
         device_identifier_string =
-          Common_Tools::GUIDToString (Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (i,
-                                                                                                              true));
+          Common_OS_Tools::GUIDToString (Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (i,
+                                                                                                                 true));
         gtk_list_store_append (listStore_in, &iterator);
         gtk_list_store_set (listStore_in, &iterator,
                             0, ACE_TEXT_ALWAYS_CHAR (capabilities_s.szPname),
@@ -167,14 +169,14 @@ load_capture_devices (GtkListStore* listStore_in)
         device_identifier_string =
           ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal));
         PropVariantClear (&property_s);
-        GUID_s = Common_Tools::StringToGUID (device_identifier_string);
+        GUID_s = Common_OS_Tools::StringToGUID (device_identifier_string);
         device_id_i =
           Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId (GUID_s);
         if (unlikely (device_id_i == std::numeric_limits<unsigned int>::max ()))
         {
           ACE_DEBUG ((LM_WARNING,
                       ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId(%s), continuing\n"),
-                      ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+                      ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ())));
           continue;
         } // end IF
 
@@ -2461,7 +2463,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
           (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifierDiscriminator =
             Stream_Device_Identifier::GUID;
           (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
-            Common_Tools::StringToGUID (device_identifier_string);
+            Common_OS_Tools::StringToGUID (device_identifier_string);
           break;
         }
         default:
@@ -2474,7 +2476,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       } // end SWITCH
 
       //format_string =
-      //  Common_Tools::GUIDToString (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype);
+      //  Common_OS_Tools::GUIDToString (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype);
 
       if (directshow_ui_cb_data_p->streamConfiguration)
       {
@@ -2518,7 +2520,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
           (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifierDiscriminator =
             Stream_Device_Identifier::GUID;
           (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
-            Common_Tools::StringToGUID (device_identifier_string);
+            Common_OS_Tools::StringToGUID (device_identifier_string);
           struct tWAVEFORMATEX* waveformatex_p =
             Stream_MediaFramework_DirectSound_Tools::getDeviceDriverFormat ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid);
           if (unlikely (!waveformatex_p))
@@ -2559,7 +2561,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       //              ACE_TEXT (Common_Error_Tools::errorToString (result_3).c_str ())));
       //  return;
       //} // end IF
-      //format_string = Common_Tools::GUIDToString (GUID_2);
+      //format_string = Common_OS_Tools::GUIDToString (GUID_2);
 
       if ((*mediafoundation_modulehandler_configuration_iterator).second.second->session)
       {
@@ -2590,7 +2592,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
-                    ACE_TEXT (Common_Tools::GUIDToString ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
+                    ACE_TEXT (Common_OS_Tools::GUIDToString ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
         return;
       } // end IF
 #else
@@ -2812,7 +2814,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getMasterVolumeControl(\"%s\") (waveIn card id was: %u), returning\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ()),
                 card_id_i));
     goto error_2;
   } // end IF
@@ -2828,7 +2830,7 @@ continue_:
   { // *NOTE*: the stereo mix device does not have a boost control
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getMicrophoneBoostControl(\"%s\") (device id was: %u), continuing\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ()),
                 card_id_i));
     goto continue_2;
   } // end IF

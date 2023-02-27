@@ -1182,7 +1182,7 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::GUIDToString ((*iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString ((*iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);

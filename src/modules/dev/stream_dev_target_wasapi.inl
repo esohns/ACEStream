@@ -24,6 +24,8 @@
 
 #include "ace/Log_Msg.h"
 
+#include "common_os_tools.h"
+
 #include "stream_defines.h"
 #include "stream_macros.h"
 
@@ -384,7 +386,7 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to retrieve device handle (id was: \"%s\"), aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::GUIDToString (device_identifier_s).c_str ())));
+                    ACE_TEXT (Common_OS_Tools::GUIDToString (device_identifier_s).c_str ())));
         goto error;
       } // end IF
 continue_:

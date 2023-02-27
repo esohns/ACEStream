@@ -17,6 +17,7 @@
 #include "ace/OS_NS_Thread.h"
 
 #include "common_file_tools.h"
+#include "common_os_tools.h"
 
 #include "common_ui_ifullscreen.h"
 #include "common_ui_tools.h"
@@ -1308,7 +1309,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
     ACE_NEW_NORETURN (client_data_p,
                       wxStringClientData ());
     ACE_ASSERT (client_data_p);
-    client_data_p->SetData (Common_Tools::GUIDToString (*iterator));
+    client_data_p->SetData (Common_OS_Tools::GUIDToString (*iterator));
 
     index_i =
       choice_format->Append (Stream_MediaFramework_Tools::mediaSubTypeToString (*iterator,
@@ -1411,7 +1412,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
     dynamic_cast<wxStringClientData*> (choice_format->GetClientObject (event_in.GetSelection ()));
   ACE_ASSERT (client_data_p);
   struct _GUID format_s =
-    Common_Tools::StringToGUID (client_data_p->GetData ().ToStdString ());
+    Common_OS_Tools::StringToGUID (client_data_p->GetData ().ToStdString ());
   ACE_ASSERT (!InlineIsEqualGUID (format_s, GUID_NULL));
   int index_i = wxNOT_FOUND;
   Common_UI_Resolutions_t resolutions_a =
@@ -1484,7 +1485,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
     dynamic_cast<wxStringClientData*> (choice_format->GetClientObject (choice_format->GetSelection ()));
   ACE_ASSERT (client_data_p);
   struct _GUID format_s =
-    Common_Tools::StringToGUID (client_data_p->GetData ().ToStdString ());
+    Common_OS_Tools::StringToGUID (client_data_p->GetData ().ToStdString ());
   ACE_ASSERT (!InlineIsEqualGUID (format_s, GUID_NULL));
   client_data_p =
     dynamic_cast<wxStringClientData*> (choice_resolution->GetClientObject (event_in.GetSelection ()));
@@ -1561,7 +1562,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
     dynamic_cast<wxStringClientData*> (choice_format->GetClientObject (choice_format->GetSelection ()));
   ACE_ASSERT (client_data_p);
   struct _GUID format_s =
-    Common_Tools::StringToGUID (client_data_p->GetData ().ToStdString ());
+    Common_OS_Tools::StringToGUID (client_data_p->GetData ().ToStdString ());
   ACE_ASSERT (!InlineIsEqualGUID (format_s, GUID_NULL));
   client_data_p =
     dynamic_cast<wxStringClientData*> (choice_resolution->GetClientObject (choice_resolution->GetSelection ()));
@@ -2371,7 +2372,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (device_identifier.identifier._guid).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (device_identifier.identifier._guid).c_str ())));
     return;
   } // end IF
   ACE_ASSERT (media_source_p);

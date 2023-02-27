@@ -24,6 +24,7 @@
 #include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
+#include "common_os_tools.h"
 
 #include "common_timer_tools.h"
 
@@ -180,7 +181,7 @@ Test_I_MSOffice_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMe
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::GUIDToString (clsid).c_str ()),
+                    ACE_TEXT (Common_OS_Tools::GUIDToString (clsid).c_str ()),
                     ACE_TEXT (Common_Error_Tools::errorToString (hr, false, false).c_str ())));
         goto error;
       } // end IF

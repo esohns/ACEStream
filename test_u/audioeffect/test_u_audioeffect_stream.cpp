@@ -28,6 +28,8 @@
 
 #include "ace/Log_Msg.h"
 
+#include "common_os_tools.h"
+
 #include "common_log_tools.h"
 
 #include "stream_macros.h"
@@ -1571,7 +1573,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString ((*iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString ((*iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (media_source_p);
@@ -1632,7 +1634,7 @@ continue_3:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadAudioRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::GUIDToString ((*iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString ((*iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
@@ -2027,7 +2029,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: received extended media session event (type was: %s)\n"),
                   ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ())));
       break;
     }
     case MEStreamSinkFormatInvalidated:

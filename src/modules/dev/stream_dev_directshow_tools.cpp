@@ -53,8 +53,9 @@
 #include "ace/Synch.h"
 
 #include "common.h"
+#include "common_os_tools.h"
+
 #include "common_time_common.h"
-#include "common_tools.h"
 
 #include "common_error_tools.h"
 
@@ -120,7 +121,7 @@ Stream_Device_DirectShow_Tools::devicePathToString (const std::string& devicePat
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(%s): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (*iterator).c_str ()),
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (*iterator).c_str ()),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       goto error;
     } // end IF
@@ -252,7 +253,7 @@ Stream_Device_DirectShow_Tools::devicePath (const std::string& friendlyName_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(%s): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (*iterator).c_str ()),
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (*iterator).c_str ()),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       goto error;
     } // end IF
@@ -381,7 +382,7 @@ Stream_Device_DirectShow_Tools::devicePath (ULONG deviceId_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(%s): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (*iterator).c_str ()),
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (*iterator).c_str ()),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       goto error;
     } // end IF
@@ -495,7 +496,7 @@ Stream_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceCategory_in).c_str ())));
     return result;
   } // end ELSE
 
@@ -530,7 +531,7 @@ Stream_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(%s): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceCategory_in).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
     enumerator_p->Release (); enumerator_p = NULL;
     //result = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
@@ -881,7 +882,7 @@ Stream_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder* builder_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceCategory_in).c_str ())));
     return false;
   } // end ELSE
 
@@ -1236,7 +1237,7 @@ Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceCategory_in).c_str ())));
     Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
     return false; // *TODO*: prevent false negatives
   } // end ELSE
@@ -1401,7 +1402,7 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const struct Stream_Device_Iden
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(%s): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceCategory_in).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     enumerator_p->Release (); enumerator_p = NULL;
     //result = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
@@ -1514,7 +1515,7 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const struct Stream_Device_Iden
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceCategory_in).c_str ())));
     filter_p->Release (); filter_p = NULL;
     goto error;
   } // end ELSE

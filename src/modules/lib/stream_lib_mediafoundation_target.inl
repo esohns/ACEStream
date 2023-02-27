@@ -20,7 +20,7 @@
 
 #include "ace/Log_Msg.h"
 
-#include "common_tools.h"
+#include "common_os_tools.h"
 
 #include "stream_defines.h"
 #include "stream_macros.h"
@@ -756,7 +756,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: received extended media session event (type was: %s)\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ())));
       break;
     }
     case MESessionTopologySet:

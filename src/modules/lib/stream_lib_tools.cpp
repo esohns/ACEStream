@@ -55,7 +55,7 @@ extern "C"
 
 #include "ace/Log_Msg.h"
 
-#include "common_tools.h"
+#include "common_os_tools.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "common_error_tools.h"
@@ -562,7 +562,7 @@ Stream_MediaFramework_Tools::isCompressed (REFGUID subType_in,
 
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (deviceCategory_in).c_str ())));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -893,7 +893,7 @@ Stream_MediaFramework_Tools::mediaFormatTypeToString (REFGUID mediaFormatType_in
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaFormatType_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (mediaFormatType_in).c_str ())));
     return result;
   } // end IF
   result = (*iterator).second;
@@ -951,8 +951,8 @@ continue_:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-                    ACE_TEXT (Common_Tools::GUIDToString (mediaSubType_in).c_str ())));
-        return Common_Tools::GUIDToString (mediaSubType_in);
+                    ACE_TEXT (Common_OS_Tools::GUIDToString (mediaSubType_in).c_str ())));
+        return Common_OS_Tools::GUIDToString (mediaSubType_in);
       } // end IF
       break;
     }
@@ -964,8 +964,8 @@ continue_:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-                    ACE_TEXT (Common_Tools::GUIDToString (mediaSubType_in).c_str ())));
-        return Common_Tools::GUIDToString (mediaSubType_in);
+                    ACE_TEXT (Common_OS_Tools::GUIDToString (mediaSubType_in).c_str ())));
+        return Common_OS_Tools::GUIDToString (mediaSubType_in);
       } // end IF
       break;
     }
@@ -1001,7 +1001,7 @@ Stream_MediaFramework_Tools::mediaMajorTypeToString (REFGUID mediaMajorType_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media type (was: \"%s\"), aborting\n"),
-                    ACE_TEXT (Common_Tools::GUIDToString (mediaMajorType_in).c_str ())));
+                    ACE_TEXT (Common_OS_Tools::GUIDToString (mediaMajorType_in).c_str ())));
         return result;
       } // end IF
       break;
@@ -1014,7 +1014,7 @@ Stream_MediaFramework_Tools::mediaMajorTypeToString (REFGUID mediaMajorType_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media type (was: \"%s\"), aborting\n"),
-                    ACE_TEXT (Common_Tools::GUIDToString (mediaMajorType_in).c_str ())));
+                    ACE_TEXT (Common_OS_Tools::GUIDToString (mediaMajorType_in).c_str ())));
         return result;
       } // end IF
       break;

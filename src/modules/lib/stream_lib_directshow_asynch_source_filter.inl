@@ -26,7 +26,7 @@
 #include "ace/Message_Block.h"
 #include "ace/OS_Memory.h"
 
-#include "common_tools.h"
+#include "common_os_tools.h"
 
 #include "stream_macros.h"
 
@@ -777,7 +777,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknnown media type format (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaType_->formattype).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (mediaType_->formattype).c_str ())));
     return E_OUTOFMEMORY;
   } // end ELSE
 

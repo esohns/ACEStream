@@ -23,7 +23,7 @@
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
 
-#include "common_tools.h"
+#include "common_os_tools.h"
 
 #include "common_log_tools.h"
 
@@ -654,7 +654,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to CoCreateInstance(%s): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::GUIDToString (filterIdentifier_in).c_str ()),
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (filterIdentifier_in).c_str ()),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       return false;
     } // end IF

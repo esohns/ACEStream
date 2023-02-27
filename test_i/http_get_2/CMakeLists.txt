@@ -148,6 +148,8 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 #endif (SSL_SUPPORT)
 if (UNIX)
 elseif (WIN32)
+ target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+
  set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
 # target_link_libraries (${EXECUTABLE} PUBLIC ntdll.lib)
 # target_link_libraries (${EXECUTABLE} PUBLIC dxguid.lib)

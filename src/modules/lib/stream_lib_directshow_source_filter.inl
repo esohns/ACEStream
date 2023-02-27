@@ -29,7 +29,7 @@
 #include "ace/Message_Block.h"
 #include "ace/OS_Memory.h"
 
-#include "common_tools.h"
+#include "common_os_tools.h"
 
 #include "stream_macros.h"
 
@@ -937,7 +937,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::G
                 ACE_TEXT ("%s/%s: invalid/unknown media type format type (was: \"%s\"), aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaType_out->formattype).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (mediaType_out->formattype).c_str ())));
     return E_FAIL;
   } // end ELSE
 
@@ -999,7 +999,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
                   ACE_TEXT ("%s/%s: invalid/unknown media type format type (was: \"%s\"), aborting\n"),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
-                  ACE_TEXT (Common_Tools::GUIDToString (inherited::m_mt.formattype).c_str ())));
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (inherited::m_mt.formattype).c_str ())));
       return E_FAIL;
     } // end ELSE
     frameInterval_ = avg_time_per_frame;
@@ -1027,7 +1027,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
                 ACE_TEXT ("%s/%s: invalid/unknown media type major type (was: \"%s\"), aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
-                ACE_TEXT (Common_Tools::GUIDToString (inherited::m_mt.majortype).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (inherited::m_mt.majortype).c_str ())));
     return E_FAIL;
   } // end ELSE
 
@@ -2311,7 +2311,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::G
                   ACE_TEXT ("%s/%s: invalid/unknnown media type format (was: \"%s\"), aborting\n"),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
-                  ACE_TEXT (Common_Tools::GUIDToString (inherited::m_mt.formattype).c_str ())));
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (inherited::m_mt.formattype).c_str ())));
       return E_FAIL;
     } // end ELSE
   } // end IF
@@ -2341,7 +2341,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::G
                   ACE_TEXT ("%s/%s: invalid/unknnown media type format (was: \"%s\"), aborting\n"),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
-                  ACE_TEXT (Common_Tools::GUIDToString (inherited::m_mt.formattype).c_str ())));
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (inherited::m_mt.formattype).c_str ())));
       return E_FAIL;
     } // end ELSE
   } // end ELSE

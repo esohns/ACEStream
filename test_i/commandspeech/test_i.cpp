@@ -53,7 +53,7 @@
 #endif // HAVE_CONFIG_H
 
 #include "common_file_tools.h"
-#include "common_tools.h"
+#include "common_os_tools.h"
 
 #include "common_error_tools.h"
 
@@ -887,7 +887,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in.identifier._guid).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in.identifier._guid).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (media_source_p);
@@ -2447,12 +2447,12 @@ ACE_TMAIN (int argc_in,
 
   // step1g: set process resource limits
   // *NOTE*: settings will be inherited by any child processes
-  if (unlikely (!Common_Tools::setResourceLimits (false,   // file descriptors
-                                                  true,    // stack traces
-                                                  false))) // pending signals
+  if (unlikely (!Common_OS_Tools::setResourceLimits (false,   // file descriptors
+                                                     true,    // stack traces
+                                                     false))) // pending signals
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
+                ACE_TEXT ("failed to Common_OS_Tools::setResourceLimits(), aborting\n")));
     goto error;
   } // end IF
 

@@ -61,6 +61,8 @@
 #include "ace/OS.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_os_tools.h"
+
 #include "common_timer_manager.h"
 
 #include "common_ui_gtk_common.h"
@@ -1816,7 +1818,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   std::string format_string = g_value_get_string (&value);
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
+  struct _GUID GUID_s = Common_OS_Tools::StringToGUID (format_string);
   ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
 #else
   __u32 format_i = 0;
@@ -1891,7 +1893,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s =
-    Common_Tools::StringToGUID (g_value_get_string (&value));
+    Common_OS_Tools::StringToGUID (g_value_get_string (&value));
   ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
 #else
   __u32 format_i = 0;

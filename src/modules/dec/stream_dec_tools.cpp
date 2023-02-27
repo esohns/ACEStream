@@ -91,8 +91,8 @@ extern "C"
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
+#include "common_os_tools.h"
 #include "common_string_tools.h"
-#include "common_tools.h"
 
 #include "common_error_tools.h"
 
@@ -1408,7 +1408,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (CLSID_ACMWrapper).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (CLSID_ACMWrapper).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
@@ -1458,7 +1458,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (CLSID_DMOWrapperFilter).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (CLSID_DMOWrapperFilter).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
@@ -1803,7 +1803,7 @@ continue_:
   else
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("invalid/unknown effect (was: \"%s\"), continuing\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (effect_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (effect_in).c_str ())));
   wrapper_filter_p->Release (); wrapper_filter_p = NULL;
   result = filter_p->QueryInterface (IID_PPV_ARGS (&media_object_p));
   if (FAILED (result))
@@ -1868,7 +1868,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (CLSID_ACMWrapper).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (CLSID_ACMWrapper).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
@@ -1943,8 +1943,8 @@ continue_2:
           ACE_DEBUG ((LM_WARNING,
                       ACE_TEXT ("%s: adjusted output format (was: \"%s\") to \"%s\"\n"),
                       ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
-                      ACE_TEXT (Common_Tools::GUIDToString (KSDATAFORMAT_SUBTYPE_IEEE_FLOAT).c_str ()),
-                      ACE_TEXT (Common_Tools::GUIDToString (KSDATAFORMAT_SUBTYPE_PCM).c_str ())));
+                      ACE_TEXT (Common_OS_Tools::GUIDToString (KSDATAFORMAT_SUBTYPE_IEEE_FLOAT).c_str ()),
+                      ACE_TEXT (Common_OS_Tools::GUIDToString (KSDATAFORMAT_SUBTYPE_PCM).c_str ())));
           graph_entry.mediaType->subtype = MEDIASUBTYPE_PCM;
           graph_entry.mediaType->lSampleSize =
             waveformatextensible_p->Format.nBlockAlign;
@@ -1954,7 +1954,7 @@ continue_2:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: invalid/unknown output sub-format (was: \"%s\"), aborting\n"),
                       ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
-                      ACE_TEXT (Common_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
+                      ACE_TEXT (Common_OS_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
           goto error;
         } // end ELSE
         break;
@@ -1984,7 +1984,7 @@ continue_4:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (CLSID_SampleGrabber).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (CLSID_SampleGrabber).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
@@ -2025,7 +2025,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
@@ -2117,7 +2117,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererGraph (REFGUID deviceCategory_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceCategory_in).c_str ())));
     goto error;
   } // end ELSE
 
@@ -2217,7 +2217,7 @@ decompress:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (CLSID_s).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (CLSID_s).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
@@ -2340,7 +2340,7 @@ decode:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (CLSID_s).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (CLSID_s).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
@@ -2422,7 +2422,7 @@ grab:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (CLSID_SampleGrabber).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (CLSID_SampleGrabber).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
@@ -2477,7 +2477,7 @@ render:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (CLSID_s).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (CLSID_s).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
@@ -2688,7 +2688,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown format type (was: %s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (graph_entry.mediaType->formattype).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (graph_entry.mediaType->formattype).c_str ())));
     goto error;
   } // end ELSE
   //skip_resize = (source_height == height) && (source_width == width);
@@ -2752,7 +2752,7 @@ decompress:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (CLSID_s).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (CLSID_s).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
@@ -3224,7 +3224,7 @@ decode:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown format type (was: %s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (dmo_media_type_p->formattype).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (dmo_media_type_p->formattype).c_str ())));
     goto error;
   } // end ELSE
   result = i_media_object_p->SetOutputType (0,
@@ -3297,7 +3297,7 @@ grab:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (CLSID_s).c_str ()),
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (CLSID_s).c_str ()),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
       goto error;
     } // end IF
@@ -3472,7 +3472,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (REFGUID deviceIdentifier
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
       goto error;
     } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
@@ -3607,7 +3607,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (REFGUID deviceIdentifier
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::load(%s,%s), aborting\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (MFT_CATEGORY_AUDIO_DECODER).c_str ()),
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (MFT_CATEGORY_AUDIO_DECODER).c_str ()),
                   ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
       goto error;
     } // end IF
@@ -3780,7 +3780,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::load(%s,%s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (MFT_CATEGORY_AUDIO_EFFECT).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (MFT_CATEGORY_AUDIO_EFFECT).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
     goto error;
   } // end IF
@@ -3822,7 +3822,7 @@ clean_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("could not find effect (CLSID was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (effect_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (effect_in).c_str ())));
     goto error;
   } // end IF
 
@@ -4234,7 +4234,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (REFGUID deviceIdentifier
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
       goto error;
     } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
@@ -4345,7 +4345,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (REFGUID deviceIdentifier
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::load(%s,%s), aborting\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (MFT_CATEGORY_VIDEO_DECODER).c_str ()),
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (MFT_CATEGORY_VIDEO_DECODER).c_str ()),
                   ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
       goto error;
     } // end IF
@@ -4536,7 +4536,7 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::load(%s,%s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (MFT_CATEGORY_VIDEO_DECODER).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (MFT_CATEGORY_VIDEO_DECODER).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
     goto error;
   } // end IF
@@ -5105,7 +5105,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const IMFMediaType* medi
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::load(%s,%s), aborting\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (MFT_CATEGORY_VIDEO_DECODER).c_str ()),
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (MFT_CATEGORY_VIDEO_DECODER).c_str ()),
                   ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
       goto error;
     } // end IF
@@ -5289,7 +5289,7 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::load(%s,%s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (MFT_CATEGORY_VIDEO_DECODER).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (MFT_CATEGORY_VIDEO_DECODER).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
     goto error;
   } // end IF
@@ -5721,7 +5721,7 @@ Stream_Module_Decoder_Tools::loadTargetRendererTopology (const std::string& URL_
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::load(%s,%s), aborting\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (MFT_CATEGORY_VIDEO_DECODER).c_str ()),
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (MFT_CATEGORY_VIDEO_DECODER).c_str ()),
                   ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
       goto error;
     } // end IF

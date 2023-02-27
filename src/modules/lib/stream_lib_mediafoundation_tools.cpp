@@ -44,8 +44,9 @@
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
+#include "common_os_tools.h"
+
 #include "common_time_common.h"
-#include "common_tools.h"
 
 #include "common_error_tools.h"
 
@@ -144,7 +145,7 @@ Stream_MediaFramework_MediaFoundation_Tools::identifierToString (REFGUID deviceI
       ACE_ASSERT (SUCCEEDED (result) && (property_s.vt == VT_LPWSTR));
       properties_p->Release (); properties_p = NULL;
       GUID_s =
-        Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
+        Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
       if (!InlineIsEqualGUID (GUID_s, deviceIdentifier_in))
       {
         PropVariantClear (&property_s);
@@ -171,7 +172,7 @@ Stream_MediaFramework_MediaFoundation_Tools::identifierToString (REFGUID deviceI
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown device category (was: %s, aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceCategory_in).c_str ())));
     return ACE_TEXT_ALWAYS_CHAR ("");
   } // end ELSE
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
@@ -298,7 +299,7 @@ Stream_MediaFramework_MediaFoundation_Tools::canRender (const IMFMediaType* medi
     ACE_ASSERT (false); // *TODO*
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown major media type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ())));
     goto error;
   } // end ELSE
 
@@ -456,7 +457,7 @@ Stream_MediaFramework_MediaFoundation_Tools::isPartial (const IMFMediaType* medi
     ACE_ASSERT (false); // *TODO*
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown major media type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ())));
     // *TODO*: false negative !
   } // end ELSE
 
@@ -718,7 +719,7 @@ continue_6:
   else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown major media type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ())));
 
   return false;
 }
@@ -832,7 +833,7 @@ Stream_MediaFramework_MediaFoundation_Tools::reconfigure (IMFMediaType* mediaTyp
     ACE_ASSERT (false); // *TODO*
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown major media type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ())));
   } // end ELSE
 
   return false;
@@ -1855,7 +1856,7 @@ Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (REFGUID deviceIdent
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::identifierToString(\"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
     goto error;
   } // end IF
 
@@ -1871,7 +1872,7 @@ Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (REFGUID deviceIdent
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown device category (was: %s, aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceCategory_in).c_str ())));
     goto error;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
@@ -1948,7 +1949,7 @@ Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (REFGUID deviceIdent
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFActivate::GetString(%s): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
+                    ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ()),
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto error;
       } // end IF
@@ -2182,7 +2183,7 @@ Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (const std::stri
     //{
     //  ACE_DEBUG ((LM_ERROR,
     //              ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
-    //              ACE_TEXT (Common_Tools::GUIDToString (CLSID_ACEStream_MediaFramework_MF_MediaSource).c_str ()),
+    //              ACE_TEXT (Common_OS_Tools::GUIDToString (CLSID_ACEStream_MediaFramework_MF_MediaSource).c_str ()),
     //              ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     //  goto error;
     //} // end IF
@@ -2644,19 +2645,19 @@ Stream_MediaFramework_MediaFoundation_Tools::addResampler (const IMFMediaType* m
                                        MF_TOPONODE_DRAIN_ALWAYS);
   ACE_ASSERT (SUCCEEDED (result));
   // *TODO*: {E139E0EE-F14D-4A53-BC1E-B805723E0105}
-  result = topology_node_p->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{E139E0EE-F14D-4A53-BC1E-B805723E0105}")),
+  result = topology_node_p->SetUINT32 (Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{E139E0EE-F14D-4A53-BC1E-B805723E0105}")),
                                        0);
   ACE_ASSERT (SUCCEEDED (result));
   // *TODO*: {4DB04908-0D94-47B3-933E-86BDAA16FA77}
-  result = topology_node_p->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{4DB04908-0D94-47B3-933E-86BDAA16FA77}")),
+  result = topology_node_p->SetUINT32 (Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{4DB04908-0D94-47B3-933E-86BDAA16FA77}")),
                                        0);
   ACE_ASSERT (SUCCEEDED (result));
   // MF_TOPOLOGY_D3D_MANAGER: {66289BFB-1DF1-4951-A97A-D7BD1D03AC76}
-  result = topology_node_p->SetUnknown (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{66289BFB-1DF1-4951-A97A-D7BD1D03AC76}")),
+  result = topology_node_p->SetUnknown (Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{66289BFB-1DF1-4951-A97A-D7BD1D03AC76}")),
                                         NULL);
   ACE_ASSERT (SUCCEEDED (result));
   // MF_TOPONODE_SAMPLE_PROCESSING_TRACKER: {D81F457D-B4B6-4816-B27F-2C0EDF6AB303}
-  result = topology_node_p->SetUnknown (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{D81F457D-B4B6-4816-B27F-2C0EDF6AB303}")),
+  result = topology_node_p->SetUnknown (Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{D81F457D-B4B6-4816-B27F-2C0EDF6AB303}")),
                                         NULL);
   ACE_ASSERT (SUCCEEDED (result));
 
@@ -2966,7 +2967,7 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (REFGUID majorMediaType
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown major media type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (majorMediaType_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (majorMediaType_in).c_str ())));
     return false;
   } // end ELSE
   if (FAILED (result))
@@ -3171,7 +3172,7 @@ continue_:
   result = topology_node_p->SetUINT32 (MF_TOPONODE_DISABLE_PREROLL, TRUE);
   ACE_ASSERT (SUCCEEDED (result));
   // *TODO*: {E139E0EE-F14D-4A53-BC1E-B805723E0105}
-  result = topology_node_p->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{E139E0EE-F14D-4A53-BC1E-B805723E0105}")),
+  result = topology_node_p->SetUINT32 (Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{E139E0EE-F14D-4A53-BC1E-B805723E0105}")),
                                        0);
   ACE_ASSERT (SUCCEEDED (result));
 
@@ -3304,28 +3305,28 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
     ACE_ASSERT (SUCCEEDED (result));
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
     // IID_IMFTelemetrySession: {627D2CA6-E1CD-4898-999D-101308F1D431}
-    //result = attributes_p->SetUnknown (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{627D2CA6-E1CD-4898-999D-101308F1D431}")),
+    //result = attributes_p->SetUnknown (Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{627D2CA6-E1CD-4898-999D-101308F1D431}")),
     //                                   NULL);
     //ACE_ASSERT (SUCCEEDED (result));
     // MF_TELEMETRY_SESSION_OBJECT_ATTRIBUTE: {2ACF1917-3743-41DF-A564-E727A80EA33D}
-    result = attributes_p->SetGUID (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{2ACF1917-3743-41DF-A564-E727A80EA33D}")),
+    result = attributes_p->SetGUID (Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{2ACF1917-3743-41DF-A564-E727A80EA33D}")),
                                     GUID_NULL);
     ACE_ASSERT (SUCCEEDED (result));
     // *TODO*: {B1BEA77F-99BA-4AF5-AF20-76D209550E73}
-    result = attributes_p->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{B1BEA77F-99BA-4AF5-AF20-76D209550E73}")),
+    result = attributes_p->SetUINT32 (Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{B1BEA77F-99BA-4AF5-AF20-76D209550E73}")),
                                       0);
     ACE_ASSERT (SUCCEEDED (result));
     //// *TODO*: {8B1034CF-AE42-4A7C-A0A6-BFD7EE052CCB}
-    //result = attributes_p->SetBlob (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{8B1034CF-AE42-4A7C-A0A6-BFD7EE052CCB}")),
+    //result = attributes_p->SetBlob (Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{8B1034CF-AE42-4A7C-A0A6-BFD7EE052CCB}")),
     //                                NULL,
     //                                0);
     //ACE_ASSERT (SUCCEEDED (result));
     // MF_LOW_LATENCY: {9C27891A-ED7A-40E1-88E8-B22727A024EE}
-    result = attributes_p->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{9C27891A-ED7A-40E1-88E8-B22727A024EE}")),
+    result = attributes_p->SetUINT32 (Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{9C27891A-ED7A-40E1-88E8-B22727A024EE}")),
                                       TRUE);
     ACE_ASSERT (SUCCEEDED (result));
     // MF_SESSION_PREROLL_FROM_RATE0: {09A7FF3E-F62A-465E-B1F9-E63D190B1A10}
-    result = attributes_p->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{09A7FF3E-F62A-465E-B1F9-E63D190B1A10}")),
+    result = attributes_p->SetUINT32 (Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{09A7FF3E-F62A-465E-B1F9-E63D190B1A10}")),
                                       TRUE);
     ACE_ASSERT (SUCCEEDED (result));
 
@@ -4368,7 +4369,7 @@ Stream_MediaFramework_MediaFoundation_Tools::reset (IMFTopology* topology_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown device category (was: %s, aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ())));
     return false;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
@@ -5841,7 +5842,7 @@ Stream_MediaFramework_MediaFoundation_Tools::load (REFGUID category_in,
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("cannot find filter (category was: %s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (category_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (category_in).c_str ())));
     return false;
   } // end IF
 
@@ -6085,8 +6086,8 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("invalid/unknown media majortype (was: \"%s\"), continuing\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (guid_s).c_str ())));
-    result += Common_Tools::GUIDToString (guid_s);
+                ACE_TEXT (Common_OS_Tools::GUIDToString (guid_s).c_str ())));
+    result += Common_OS_Tools::GUIDToString (guid_s);
   } // end IF
   else
     result += (*iterator).second;
@@ -6296,7 +6297,7 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
     else
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media type attribute (was: \"%s\"), continuing\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (guid_s).c_str ())));
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (guid_s).c_str ())));
   } // end FOR
   if (!is_video_b)
     return result;

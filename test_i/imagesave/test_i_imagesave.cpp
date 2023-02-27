@@ -54,7 +54,7 @@
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
-#include "common_tools.h"
+#include "common_os_tools.h"
 
 #include "common_log_tools.h"
 #include "common_logger.h"
@@ -1061,12 +1061,12 @@ ACE_TMAIN (int argc_in,
 
   // step1g: set process resource limits
   // *NOTE*: settings will be inherited by any child processes
-  if (!Common_Tools::setResourceLimits (false,  // file descriptors
-                                        true,   // stack traces
-                                        false)) // pending signals
+  if (!Common_OS_Tools::setResourceLimits (false,  // file descriptors
+                                           true,   // stack traces
+                                           false)) // pending signals
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
+                ACE_TEXT ("failed to Common_OS_Tools::setResourceLimits(), aborting\n")));
 
     Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                    previous_signal_actions,

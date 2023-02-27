@@ -86,6 +86,7 @@ extern "C"
 #include "ace/Synch_Traits.h"
 
 #include "common_file_tools.h"
+#include "common_os_tools.h"
 #include "common_process_tools.h"
 
 #include "common_image_tools.h"
@@ -175,8 +176,8 @@ load_capture_devices (GtkListStore* listStore_in)
         //            (capabilities_s.vDriverVersion & 0xFFFF0000) >> 16, (capabilities_s.vDriverVersion & 0xFFFF)));
 
         device_identifier_string =
-          Common_Tools::GUIDToString (Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (i,
-                                                                                                              true));
+          Common_OS_Tools::GUIDToString (Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (i,
+                                                                                                                 true));
         gtk_list_store_append (listStore_in, &iterator);
         gtk_list_store_set (listStore_in, &iterator,
                             0, ACE_TEXT_ALWAYS_CHAR (capabilities_s.szPname),
@@ -237,7 +238,7 @@ load_capture_devices (GtkListStore* listStore_in)
         device_identifier_string =
           ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal));
         PropVariantClear (&property_s);
-        GUID_s = Common_Tools::StringToGUID (device_identifier_string);
+        GUID_s = Common_OS_Tools::StringToGUID (device_identifier_string);
         device_id_i =
           Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId (GUID_s);
 
@@ -641,13 +642,13 @@ load_all_formats (GtkListStore* listStore_in)
   gtk_list_store_append (listStore_in, &iterator);
   gtk_list_store_set (listStore_in, &iterator,
                       0, Stream_MediaFramework_Tools::mediaSubTypeToString (MEDIASUBTYPE_PCM, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str (),
-                      1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (MEDIASUBTYPE_PCM).c_str ()),
+                      1, ACE_TEXT_ALWAYS_CHAR (Common_OS_Tools::GUIDToString (MEDIASUBTYPE_PCM).c_str ()),
                       2, -1,
                       -1);
   gtk_list_store_append (listStore_in, &iterator);
   gtk_list_store_set (listStore_in, &iterator,
                       0, Stream_MediaFramework_Tools::mediaSubTypeToString (MEDIASUBTYPE_IEEE_FLOAT, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str (),
-                      1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (MEDIASUBTYPE_IEEE_FLOAT).c_str ()),
+                      1, ACE_TEXT_ALWAYS_CHAR (Common_OS_Tools::GUIDToString (MEDIASUBTYPE_IEEE_FLOAT).c_str ()),
                       2, -1,
                       -1);
 #else
@@ -797,7 +798,7 @@ load_formats (UINT deviceId_in,
   gtk_list_store_append (listStore_in, &iterator);
   gtk_list_store_set (listStore_in, &iterator,
                       0, Stream_MediaFramework_Tools::mediaSubTypeToString (MEDIASUBTYPE_PCM, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str (),
-                      1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (MEDIASUBTYPE_PCM).c_str ()),
+                      1, ACE_TEXT_ALWAYS_CHAR (Common_OS_Tools::GUIDToString (MEDIASUBTYPE_PCM).c_str ()),
                       2, -1,
                       -1);
 
@@ -819,7 +820,7 @@ load_formats (REFGUID deviceId_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getDeviceDriverFormat(%s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceId_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceId_in).c_str ())));
     return false;
   } // end IF
   struct _GUID GUID_s =
@@ -837,7 +838,7 @@ load_formats (REFGUID deviceId_in,
   gtk_list_store_append (listStore_in, &iterator);
   gtk_list_store_set (listStore_in, &iterator,
                       0, Stream_MediaFramework_Tools::mediaSubTypeToString (GUID_s, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str (),
-                      1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (GUID_s).c_str ()),
+                      1, ACE_TEXT_ALWAYS_CHAR (Common_OS_Tools::GUIDToString (GUID_s).c_str ()),
                       2, -1,
                       -1);
 
@@ -904,7 +905,7 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
                         0, ACE_TEXT_ALWAYS_CHAR (Stream_MediaFramework_Tools::mediaSubTypeToString (*iterator_2, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ()),
-                        1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (*iterator_2).c_str ()),
+                        1, ACE_TEXT_ALWAYS_CHAR (Common_OS_Tools::GUIDToString (*iterator_2).c_str ()),
                         2, -1,
                         -1);
   } // end FOR
@@ -1020,7 +1021,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
                         0, ACE_TEXT_ALWAYS_CHAR (Stream_MediaFramework_Tools::mediaSubTypeToString (*iterator_2, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ()),
-                        1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (*iterator_2).c_str ()),
+                        1, ACE_TEXT_ALWAYS_CHAR (Common_OS_Tools::GUIDToString (*iterator_2).c_str ()),
                         2, -1,
                         -1);
   } // end FOR
@@ -1147,7 +1148,7 @@ load_sample_rates (REFGUID deviceId_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getDeviceDriverFormat(%s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceId_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceId_in).c_str ())));
     return false;
   } // end IF
   struct _GUID GUID_s =
@@ -1163,8 +1164,8 @@ load_sample_rates (REFGUID deviceId_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown sub type (was: %s; expected: %s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaSubType_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (mediaSubType_in).c_str ())));
     CoTaskMemFree (audio_info_p); audio_info_p = NULL;
     return false;
   } // end IF
@@ -1636,7 +1637,7 @@ load_sample_resolutions (REFGUID deviceId_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getDeviceDriverFormat(%s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceId_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceId_in).c_str ())));
     return false;
   } // end IF
   struct _GUID GUID_s =
@@ -1652,8 +1653,8 @@ load_sample_resolutions (REFGUID deviceId_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown sub type (was: %s; expected: %s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaSubType_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (mediaSubType_in).c_str ())));
     CoTaskMemFree (audio_info_p); audio_info_p = NULL;
     return false;
   } // end IF
@@ -2364,7 +2365,7 @@ load_channels (REFGUID deviceId_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getDeviceDriverFormat(%s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceId_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceId_in).c_str ())));
     return false;
   } // end IF
   struct _GUID GUID_s =
@@ -2380,8 +2381,8 @@ load_channels (REFGUID deviceId_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown sub type (was: %s; expected: %s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaSubType_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (mediaSubType_in).c_str ())));
     CoTaskMemFree (audio_info_p); audio_info_p = NULL;
     return false;
   } // end IF
@@ -3211,7 +3212,7 @@ load_audio_effects (GtkListStore* listStore_in)
         gtk_list_store_append (listStore_in, &iterator);
         gtk_list_store_set (listStore_in, &iterator,
                             0, friendly_name_string.c_str (),
-                            1, Common_Tools::GUIDToString (class_id).c_str (),
+                            1, Common_OS_Tools::GUIDToString (class_id).c_str (),
                             -1);
       } // end WHILE
       enum_DMO_p->Release (); enum_DMO_p = NULL;
@@ -3259,7 +3260,7 @@ error_2:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::load(%s,%s), aborting\n"),
-                    ACE_TEXT (Common_Tools::GUIDToString (MFT_CATEGORY_AUDIO_EFFECT).c_str ()),
+                    ACE_TEXT (Common_OS_Tools::GUIDToString (MFT_CATEGORY_AUDIO_EFFECT).c_str ()),
                     ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (MFAudioFormat_PCM, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
         goto error;
       } // end IF
@@ -3275,7 +3276,7 @@ error_2:
         gtk_list_store_append (listStore_in, &iterator);
         gtk_list_store_set (listStore_in, &iterator,
                             0, friendly_name_string.c_str (),
-                            1, Common_Tools::GUIDToString (GUID_s).c_str (),
+                            1, Common_OS_Tools::GUIDToString (GUID_s).c_str (),
                             -1);
       } // end FOR
 
@@ -3480,7 +3481,7 @@ get_buffer_size (gpointer userData_in)
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
+  struct _GUID GUID_s = Common_OS_Tools::StringToGUID (format_string);
   if (InlineIsEqualGUID (GUID_s, GUID_NULL))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -4954,8 +4955,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getSessionVolumeControl(\"%s\",\"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_2).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_2).c_str ())));
     goto error;
   } // end IF
   switch (ui_cb_data_base_p->mediaFramework)
@@ -5694,7 +5695,7 @@ continue_:
       effect_string_2 = g_value_get_string (&value);
       g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct _GUID effect_id_2 = Common_Tools::StringToGUID (effect_string_2);
+      struct _GUID effect_id_2 = Common_OS_Tools::StringToGUID (effect_string_2);
       if (InlineIsEqualGUID (effect_id_2, GUID_NULL))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -8405,7 +8406,7 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
       effect_string = g_value_get_string (&value);
       g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      GUID_s = Common_Tools::StringToGUID (effect_string);
+      GUID_s = Common_OS_Tools::StringToGUID (effect_string);
       if (InlineIsEqualGUID (GUID_s, GUID_NULL))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -9411,7 +9412,7 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
                             1, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_STRING);
   struct _GUID effect_GUID =
-    Common_Tools::StringToGUID (g_value_get_string (&value_2));
+    Common_OS_Tools::StringToGUID (g_value_get_string (&value_2));
   if (InlineIsEqualGUID (effect_GUID, GUID_NULL))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -9554,7 +9555,7 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown effect (was: \"%s\"; GUID: %s), continuing\n"),
                     ACE_TEXT (effect_string.c_str ()),
-                    ACE_TEXT (Common_Tools::GUIDToString (effect_GUID).c_str ())));
+                    ACE_TEXT (Common_OS_Tools::GUIDToString (effect_GUID).c_str ())));
       } // end ELSE
       break;
     }
@@ -9888,7 +9889,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
         return;
       }
     } // end SWITCH
-    format_string = Common_Tools::GUIDToString (GUID_s);
+    format_string = Common_OS_Tools::GUIDToString (GUID_s);
     g_value_init (&value, G_TYPE_STRING);
     g_value_set_string (&value,
                         format_string.c_str ());
@@ -10174,7 +10175,7 @@ combobox_device_changed_cb (GtkWidget* widget_in,
           (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifierDiscriminator =
             Stream_Device_Identifier::GUID;
           (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
-            Common_Tools::StringToGUID (device_identifier_string);
+            Common_OS_Tools::StringToGUID (device_identifier_string);
           break;
         }
         default:
@@ -10187,7 +10188,7 @@ combobox_device_changed_cb (GtkWidget* widget_in,
       } // end SWITCH
 
       format_string =
-        Common_Tools::GUIDToString (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype);
+        Common_OS_Tools::GUIDToString (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype);
 
       if (directshow_ui_cb_data_p->streamConfiguration)
       {
@@ -10207,7 +10208,7 @@ combobox_device_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
       (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
-        Common_Tools::StringToGUID (device_identifier_string);
+        Common_OS_Tools::StringToGUID (device_identifier_string);
 
       struct _GUID GUID_2 = GUID_NULL;
       HRESULT result_3 =
@@ -10220,7 +10221,7 @@ combobox_device_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT (Common_Error_Tools::errorToString (result_3).c_str ())));
         return;
       } // end IF
-      format_string = Common_Tools::GUIDToString (GUID_2);
+      format_string = Common_OS_Tools::GUIDToString (GUID_2);
 
       if ((*mediafoundation_modulehandler_configuration_iterator).second.second->session)
       {
@@ -10251,7 +10252,7 @@ combobox_device_changed_cb (GtkWidget* widget_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
-                    ACE_TEXT (Common_Tools::GUIDToString ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
+                    ACE_TEXT (Common_OS_Tools::GUIDToString ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
         return;
       } // end IF
 #else
@@ -10309,7 +10310,7 @@ combobox_device_changed_cb (GtkWidget* widget_in,
         case STREAM_DEVICE_CAPTURER_WASAPI:
         {
           result_2 =
-            load_formats (Common_Tools::StringToGUID (device_identifier_string),
+            load_formats (Common_OS_Tools::StringToGUID (device_identifier_string),
                           list_store_2);
           goto continue_;
         }
@@ -10359,7 +10360,7 @@ combobox_device_changed_cb (GtkWidget* widget_in,
         case STREAM_DEVICE_CAPTURER_WASAPI:
         {
           result_2 =
-            load_formats (Common_Tools::StringToGUID (device_identifier_string),
+            load_formats (Common_OS_Tools::StringToGUID (device_identifier_string),
                           list_store_2);
           goto continue_;
         }
@@ -10563,7 +10564,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getMasterVolumeControl(\"%s\") (waveIn card id was: %u), returning\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ()),
                 card_id_i));
     goto error_2;
   } // end IF
@@ -10579,7 +10580,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getMicrophoneBoostControl(\"%s\") (waveIn card id was: %u), continuing\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ()),
                 card_id_i));
     goto continue_2;
   } // end IF
@@ -10894,7 +10895,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
+  struct _GUID GUID_s = Common_OS_Tools::StringToGUID (format_string);
   if (InlineIsEqualGUID (GUID_s, GUID_NULL))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -10948,7 +10949,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                             2, &value_3);
   ACE_ASSERT (G_VALUE_TYPE (&value_3) == G_TYPE_UINT);
   struct _GUID GUID_2 =
-    Common_Tools::StringToGUID (g_value_get_string (&value_2));
+    Common_OS_Tools::StringToGUID (g_value_get_string (&value_2));
   g_value_unset (&value_2);
   unsigned int index_i = g_value_get_uint (&value_3);
   g_value_unset (&value_3);
@@ -11321,7 +11322,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
+  struct _GUID GUID_s = Common_OS_Tools::StringToGUID (format_string);
   if (InlineIsEqualGUID (GUID_s, GUID_NULL))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -11393,7 +11394,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
                             2, &value_3);
   ACE_ASSERT (G_VALUE_TYPE (&value_3) == G_TYPE_UINT);
   struct _GUID GUID_2 =
-    Common_Tools::StringToGUID (g_value_get_string (&value_2));
+    Common_OS_Tools::StringToGUID (g_value_get_string (&value_2));
   g_value_unset (&value_2);
   unsigned int index_i = g_value_get_uint (&value_3);
   g_value_unset (&value_3);
@@ -11781,7 +11782,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
+  struct _GUID GUID_s = Common_OS_Tools::StringToGUID (format_string);
   if (InlineIsEqualGUID (GUID_s, GUID_NULL))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -11876,7 +11877,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                             2, &value_3);
   ACE_ASSERT (G_VALUE_TYPE (&value_3) == G_TYPE_UINT);
   struct _GUID GUID_2 =
-    Common_Tools::StringToGUID (g_value_get_string (&value_2));
+    Common_OS_Tools::StringToGUID (g_value_get_string (&value_2));
   g_value_unset (&value_2);
   unsigned int index_i = g_value_get_uint (&value_3);
   g_value_unset (&value_3);
@@ -12262,7 +12263,7 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
+  struct _GUID GUID_s = Common_OS_Tools::StringToGUID (format_string);
   if (InlineIsEqualGUID (GUID_s, GUID_NULL))
   {
     ACE_DEBUG ((LM_ERROR,

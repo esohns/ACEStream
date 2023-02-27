@@ -37,6 +37,8 @@
 #include "ace/Log_Msg.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_os_tools.h"
+
 #include "common_timer_manager.h"
 
 #include "common_ui_tools.h"
@@ -157,8 +159,8 @@ load_playback_devices (GtkListStore* listStore_in)
         //            (capabilities_s.vDriverVersion & 0xFFFF0000) >> 16, (capabilities_s.vDriverVersion & 0xFFFF)));
 
         device_identifier_string =
-          Common_Tools::GUIDToString (Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (i,
-                                                                                                              false)); // playback
+          Common_OS_Tools::GUIDToString (Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (i,
+                                                                                                                 false)); // playback
         gtk_list_store_append (listStore_in, &iterator);
         gtk_list_store_set (listStore_in, &iterator,
                             0, ACE_TEXT_ALWAYS_CHAR (capabilities_s.szPname),
@@ -222,14 +224,14 @@ load_playback_devices (GtkListStore* listStore_in)
         device_identifier_string =
           ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal));
         PropVariantClear (&property_s);
-        GUID_s = Common_Tools::StringToGUID (device_identifier_string);
+        GUID_s = Common_OS_Tools::StringToGUID (device_identifier_string);
         device_id_i =
           Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId (GUID_s);
         if (unlikely (device_id_i == std::numeric_limits<unsigned int>::max ()))
         {
           ACE_DEBUG ((LM_WARNING,
                       ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId(%s), continuing\n"),
-                      ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+                      ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ())));
           continue;
         } // end IF
 
@@ -2626,7 +2628,7 @@ combobox_target_changed_cb (GtkWidget* widget_in,
 
       Stream_Device_Identifier device_identifier;
       device_identifier.identifier._guid =
-        Common_Tools::StringToGUID (device_identifier_string);
+        Common_OS_Tools::StringToGUID (device_identifier_string);
       device_identifier.identifierDiscriminator = Stream_Device_Identifier::GUID;
       (*mediafoundation_modulehandler_configuration_iterator_2).second.second->deviceIdentifier =
         device_identifier;
@@ -2785,7 +2787,7 @@ combobox_target_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // retrieve volume control handle
   // step1: retrieve DirectSound device GUID from wave device id
-  struct _GUID GUID_s = Common_Tools::StringToGUID (device_identifier_string);
+  struct _GUID GUID_s = Common_OS_Tools::StringToGUID (device_identifier_string);
   ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
   IAudioEndpointVolume* i_audio_endpoint_volume_p =
     Stream_MediaFramework_DirectSound_Tools::getMasterVolumeControl (GUID_s);
@@ -2793,7 +2795,7 @@ combobox_target_changed_cb (GtkWidget* widget_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getMasterVolumeControl(\"%s\") (waveIn card id was: %u), returning\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ()),
                 card_id_i));
     goto error_2;
   } // end IF

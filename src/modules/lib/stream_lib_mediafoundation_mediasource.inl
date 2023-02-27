@@ -26,6 +26,8 @@
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
 
+#include "common_os_tools.h"
+
 #include "stream_macros.h"
 
 #include "stream_lib_mediafoundation_tools.h"
@@ -1288,7 +1290,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 //  // *TODO*: {FAFB680A-39EA-4850-AF71-78FDFB651088}
 //  ACE_DEBUG ((LM_ERROR,
 //              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
-//              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+//              ACE_TEXT (Common_OS_Tools::GUIDToString (guidKey_in).c_str ())));
 //
 //  return MF_E_ATTRIBUTENOTFOUND;
 //}
@@ -1316,7 +1318,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 //
 //  ACE_DEBUG ((LM_ERROR,
 //              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
-//              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+//              ACE_TEXT (Common_OS_Tools::GUIDToString (guidKey_in).c_str ())));
 //
 //  return MF_E_ATTRIBUTENOTFOUND;
 //}
@@ -1346,7 +1348,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 //
 //  ACE_DEBUG ((LM_ERROR,
 //              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
-//              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+//              ACE_TEXT (Common_OS_Tools::GUIDToString (guidKey_in).c_str ())));
 //
 //  return MF_E_ATTRIBUTENOTFOUND;
 //}
@@ -1369,7 +1371,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 //  // *TODO*: {0B5E1C7E-BD76-46BC-896C-B2EDB40DD803}
 //  ACE_DEBUG ((LM_WARNING,
 //              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), continuing\n"),
-//              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+//              ACE_TEXT (Common_OS_Tools::GUIDToString (guidKey_in).c_str ())));
 //
 //  IUNKNOWN_MAP_ITERATOR_T iterator = unknowns_.find (guidKey_in);
 //  ACE_ASSERT (iterator != unknowns_.end ());
@@ -1401,7 +1403,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 //  // *TODO*: {0B5E1C7E-BD76-46BC-896C-B2EDB40DD803}
 //  ACE_DEBUG ((LM_WARNING,
 //              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), continuing\n"),
-//              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+//              ACE_TEXT (Common_OS_Tools::GUIDToString (guidKey_in).c_str ())));
 //
 //  unknowns_.insert (std::make_pair (guidKey_in, unknown_in));
 //
@@ -1582,8 +1584,8 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   // IID_IMFRateControl: {88DDCD21-03C3-4275-91ED-55EE3929328F}
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("invalid/unknown service/interface GUID (was: \"%s\",\"%s\"), aborting\n"),
-              ACE_TEXT (Common_Tools::GUIDToString (guidService).c_str ()),
-              ACE_TEXT (Common_Tools::GUIDToString (riid).c_str ())));
+              ACE_TEXT (Common_OS_Tools::GUIDToString (guidService).c_str ()),
+              ACE_TEXT (Common_OS_Tools::GUIDToString (riid).c_str ())));
 
   return MF_E_UNSUPPORTED_SERVICE;
 }

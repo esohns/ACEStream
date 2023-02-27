@@ -31,7 +31,7 @@
 #endif // HAVE_CONFIG_H
 
 #include "common_file_tools.h"
-#include "common_tools.h"
+#include "common_os_tools.h"
 
 #include "common_log_tools.h"
 
@@ -628,7 +628,7 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in.identifier._guid).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in.identifier._guid).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (media_source_p);
@@ -637,7 +637,7 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getCaptureFormat(\"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in.identifier._guid).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in.identifier._guid).c_str ())));
     goto error;
   } // end IF
   if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (deviceIdentifier_in,

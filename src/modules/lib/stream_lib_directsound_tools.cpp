@@ -46,7 +46,7 @@
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
-#include "common_tools.h"
+#include "common_os_tools.h"
 
 #include "common_error_tools.h"
 
@@ -658,7 +658,7 @@ Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId (REFGUID 
   if (cb_data_s.deviceId == std::numeric_limits<ULONG>::max ())
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve device id (GUID was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_in).c_str ())));
 
   return cb_data_s.deviceId;
 }
@@ -696,7 +696,7 @@ Stream_MediaFramework_DirectSound_Tools::getDefaultDevice (bool capture_in)
   property_store_p->Release (); property_store_p = NULL;
   ACE_ASSERT (property_s.vt == VT_LPWSTR);
   result =
-    Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
+    Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
   PropVariantClear (&property_s);
 
   return result;
@@ -748,13 +748,13 @@ Stream_MediaFramework_DirectSound_Tools::getDevices (bool capture_in,
     property_store_p->Release (); property_store_p = NULL;
     ACE_ASSERT (property_s.vt == VT_LPWSTR);
     GUID_s =
-      Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
+      Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
     PropVariantClear (&property_s);
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("found %s device: \"%s\": GUID: \"%s\", id: %u\n"),
                 (capture_in ? ACE_TEXT ("capture") : ACE_TEXT ("render")),
                 ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToString (GUID_s).c_str ()),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ()),
                 Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId (GUID_s)));
     result.push_back (GUID_s);
   } // end FOR
@@ -820,7 +820,7 @@ Stream_MediaFramework_DirectSound_Tools::endpointIdToDirectSoundGUID (const std:
     property_store_p->Release (); property_store_p = NULL;
     ACE_ASSERT (property_s.vt == VT_LPWSTR);
     result_s =
-      Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
+      Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
     PropVariantClear (&property_s);
     break;
   } // end FOR
@@ -847,7 +847,7 @@ Stream_MediaFramework_DirectSound_Tools::getMasterVolumeControl (REFGUID deviceI
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve device handle (id was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
     return NULL;
   } // end IF
 
@@ -875,7 +875,7 @@ Stream_MediaFramework_DirectSound_Tools::getSessionVolumeControl (REFGUID device
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve device handle (id was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
     return NULL;
   } // end IF
 
@@ -906,7 +906,7 @@ Stream_MediaFramework_DirectSound_Tools::getMicrophoneBoostControl (REFGUID devi
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve device handle (id was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
     return NULL;
   } // end IF
 
@@ -1383,7 +1383,7 @@ Stream_MediaFramework_DirectSound_Tools::canRender (REFGUID deviceIdentifier_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve device handle (id was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
     return false; // *TODO*: false negative !
   } // end IF
 
@@ -1427,7 +1427,7 @@ Stream_MediaFramework_DirectSound_Tools::getDeviceDriverFormat (REFGUID deviceId
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve device handle (id was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
     return NULL;
   } // end IF
 
@@ -1464,7 +1464,7 @@ Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat (REFGUID device
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve device handle (id was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
     return NULL;
   } // end IF
 
@@ -1534,7 +1534,7 @@ Stream_MediaFramework_DirectSound_Tools::getDevice (REFGUID deviceIdentifier_in)
     property_store_p->Release (); property_store_p = NULL;
     ACE_ASSERT (property_s.vt == VT_LPWSTR);
     GUID_s =
-      Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
+      Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
     PropVariantClear (&property_s);
     if (InlineIsEqualGUID (GUID_s, deviceIdentifier_in))
       break;
@@ -1545,7 +1545,7 @@ Stream_MediaFramework_DirectSound_Tools::getDevice (REFGUID deviceIdentifier_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve device handle (id was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
     return NULL;
   } // end IF
 
@@ -1683,7 +1683,7 @@ Stream_MediaFramework_DirectSound_Tools::extensibleTo (const struct tWAVEFORMATE
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown sub-format (was: \"%s\"), aborting\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
       ACE_OS::memset (&result, 0, sizeof (struct tWAVEFORMATEX));
     } // end IF
   } // end IF
@@ -1820,8 +1820,8 @@ Stream_MediaFramework_DirectSound_Tools::toString (const struct tWAVEFORMATEX& f
     {
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("invalid/unknown wave subformat (was: \"%s\"), continuing\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
-      result += Common_Tools::GUIDToString (waveformatextensible_p->SubFormat);
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
+      result += Common_OS_Tools::GUIDToString (waveformatextensible_p->SubFormat);
     } // end IF
     else
       result += (*iterator).second;
@@ -1921,8 +1921,8 @@ Stream_MediaFramework_DirectSound_Tools::toString_2 (const struct tWAVEFORMATEX&
     {
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("invalid/unknown wave subformat (was: \"%s\"), continuing\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
-      result += Common_Tools::GUIDToString (waveformatextensible_p->SubFormat);
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
+      result += Common_OS_Tools::GUIDToString (waveformatextensible_p->SubFormat);
     } // end IF
     else
       result += (*iterator).second;

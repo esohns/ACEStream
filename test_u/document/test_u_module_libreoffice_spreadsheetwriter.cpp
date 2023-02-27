@@ -39,8 +39,8 @@
 #include "rtl/bootstrap.h"
 
 #include "common_file_tools.h"
+#include "common_os_tools.h"
 #include "common_string_tools.h"
-#include "common_tools.h"
 
 #include "common_timer_tools.h"
 
@@ -211,7 +211,7 @@ Test_U_LibreOffice_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessag
         document::MacroExecMode::ALWAYS_EXECUTE_NO_WARN;
 
       filename_string =
-        Common_Tools::environment (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_ENV_UNO_HOME));
+        Common_OS_Tools::environment (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_ENV_UNO_HOME));
       if (filename_string.empty ())
       {
         // *NOTE*: strip suffix from .ini/.rc file (see

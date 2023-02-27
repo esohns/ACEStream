@@ -1051,7 +1051,7 @@ Stream_CameraAR_MediaFoundation_Stream::initialize (const inherited::CONFIGURATI
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::GUIDToString ((*iterator).second.second->deviceIdentifier.identifier._guid))));
+                ACE_TEXT (Common_OS_Tools::GUIDToString ((*iterator).second.second->deviceIdentifier.identifier._guid))));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
@@ -1069,12 +1069,10 @@ continue_:
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: capture format: \"%s\"\n"),
               ACE_TEXT (stream_name_string_),
               ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration_->format).c_str ())));
-#endif // _DEBUG
 
   ACE_ASSERT (session_data_p->formats.empty ());
   media_type_p =

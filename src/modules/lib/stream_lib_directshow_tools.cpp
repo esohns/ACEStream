@@ -67,8 +67,9 @@
 #include "ace/OS.h"
 
 #include "common.h"
+#include "common_os_tools.h"
+
 #include "common_time_common.h"
-#include "common_tools.h"
 
 #include "common_error_tools.h"
 
@@ -2267,7 +2268,7 @@ Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder* builder_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceCategory_in).c_str ())));
     return false;
   } // end ELSE
 
@@ -2470,8 +2471,8 @@ Stream_MediaFramework_DirectShow_Tools::toString_2 (const struct _AMMediaType& m
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("invalid/unknown media majortype (was: \"%s\"), continuing\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaType_in.majortype).c_str ())));
-    result += Common_Tools::GUIDToString (mediaType_in.majortype);
+                ACE_TEXT (Common_OS_Tools::GUIDToString (mediaType_in.majortype).c_str ())));
+    result += Common_OS_Tools::GUIDToString (mediaType_in.majortype);
   } // end IF
   else
     result += (*iterator).second;
@@ -2486,8 +2487,8 @@ Stream_MediaFramework_DirectShow_Tools::toString_2 (const struct _AMMediaType& m
     if (!InlineIsEqualGUID (mediaType_in.formattype, GUID_NULL)) // <-- 'don't care'
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), continuing\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
-    result += Common_Tools::GUIDToString (mediaType_in.formattype);
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
+    result += Common_OS_Tools::GUIDToString (mediaType_in.formattype);
   } // end IF
   else
     result += (*iterator).second;
@@ -2672,7 +2673,7 @@ Stream_MediaFramework_DirectShow_Tools::toString_2 (const struct _AMMediaType& m
   else if (!InlineIsEqualGUID (mediaType_in.formattype, GUID_NULL)) // <-- 'don't care'
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), continuing\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
 
   return result;
 }
@@ -3457,7 +3458,7 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown audio media format (was: \"%s\"), returning\n"),
-                    ACE_TEXT (Common_Tools::GUIDToString (mediaSubType_in).c_str ())));
+                    ACE_TEXT (Common_OS_Tools::GUIDToString (mediaSubType_in).c_str ())));
       } // end ELSE
     } // end ELSE
   } // end ELSE IF
@@ -3465,7 +3466,7 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), returning\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaType_inout.formattype).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (mediaType_inout.formattype).c_str ())));
   } // end ELSE
 }
 
@@ -3516,7 +3517,7 @@ Stream_MediaFramework_DirectShow_Tools::setResolution (const Common_Image_Resolu
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), returning\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaType_inout.formattype).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (mediaType_inout.formattype).c_str ())));
     return;
   } // end ELSE
   //ACE_ASSERT (frame_size_i); // *NOTE*: biBitCount may not be set (i.e. 0) for compressed formats
@@ -3549,7 +3550,7 @@ Stream_MediaFramework_DirectShow_Tools::setFramerate (const unsigned int& frameR
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), returning\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaType_inout.formattype).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (mediaType_inout.formattype).c_str ())));
     return;
   } // end ELSE
 }
@@ -3881,8 +3882,8 @@ Stream_MediaFramework_DirectShow_Tools::toString (const struct _AMMediaType& med
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("invalid/unknown media majortype (was: \"%s\"), continuing\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaType_in.majortype).c_str ())));
-    result += Common_Tools::GUIDToString (mediaType_in.majortype);
+                ACE_TEXT (Common_OS_Tools::GUIDToString (mediaType_in.majortype).c_str ())));
+    result += Common_OS_Tools::GUIDToString (mediaType_in.majortype);
   } // end IF
   else
     result += (*iterator).second;
@@ -3915,8 +3916,8 @@ Stream_MediaFramework_DirectShow_Tools::toString (const struct _AMMediaType& med
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), continuing\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
-    result += Common_Tools::GUIDToString (mediaType_in.formattype);
+                ACE_TEXT (Common_OS_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
+    result += Common_OS_Tools::GUIDToString (mediaType_in.formattype);
   } // end IF
   else
     result += (*iterator).second;
@@ -4215,7 +4216,7 @@ Stream_MediaFramework_DirectShow_Tools::toString (const struct _AMMediaType& med
   else
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), continuing\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
 
   return result;
 }
@@ -4691,7 +4692,7 @@ Stream_MediaFramework_DirectShow_Tools::toAVSampleFormat (const struct _AMMediaT
       else
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-                    ACE_TEXT (Common_Tools::GUIDToString (mediaType_in.subtype).c_str ())));
+                    ACE_TEXT (Common_OS_Tools::GUIDToString (mediaType_in.subtype).c_str ())));
       break;
     }
     case 64:
@@ -5063,7 +5064,7 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct _AMMediaType& mediaType
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid format type (was: \"%s\"), returning\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
+                ACE_TEXT (Common_OS_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
     return;
   } // end IF
   struct tWAVEFORMATEX* waveformatex_p =
@@ -5100,7 +5101,7 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct _AMMediaType& mediaType
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown subformat (was: \"%s\"), returning\n"),
-                    ACE_TEXT (Common_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
+                    ACE_TEXT (Common_OS_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
         return;
       } // end ELSE
       break;

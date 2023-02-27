@@ -18,6 +18,7 @@
 #include "ace/OS_NS_Thread.h"
 
 #include "common_file_tools.h"
+#include "common_os_tools.h"
 
 #include "common_ui_ifullscreen.h"
 #include "common_ui_tools.h"
@@ -1407,7 +1408,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
     dynamic_cast<wxStringClientData*> (choice_format->GetClientObject (event_in.GetSelection ()));
   ACE_ASSERT (client_data_p);
   struct _GUID format_s =
-    Common_Tools::StringToGUID (client_data_p->GetData ().ToStdString ());
+    Common_OS_Tools::StringToGUID (client_data_p->GetData ().ToStdString ());
   ACE_ASSERT (!InlineIsEqualGUID (format_s, GUID_NULL));
   int index_i = wxNOT_FOUND;
   //Common_UI_Resolutions_t resolutions_a =
@@ -1480,7 +1481,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
     dynamic_cast<wxStringClientData*> (choice_format->GetClientObject (choice_format->GetSelection ()));
   ACE_ASSERT (client_data_p);
   struct _GUID format_s =
-    Common_Tools::StringToGUID (client_data_p->GetData ().ToStdString ());
+    Common_OS_Tools::StringToGUID (client_data_p->GetData ().ToStdString ());
   ACE_ASSERT (!InlineIsEqualGUID (format_s, GUID_NULL));
   client_data_p =
     dynamic_cast<wxStringClientData*> (choice_resolution->GetClientObject (event_in.GetSelection ()));

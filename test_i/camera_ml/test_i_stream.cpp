@@ -23,6 +23,8 @@
 
 #include "ace/Log_Msg.h"
 
+#include "common_os_tools.h"
+
 #include "stream_macros.h"
 
 #include "stream_dec_defines.h"
@@ -1075,7 +1077,7 @@ Stream_CameraML_MediaFoundation_Stream::initialize (const inherited::CONFIGURATI
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::GUIDToString ((*iterator).second.second->deviceIdentifier.identifier._guid))));
+                ACE_TEXT (Common_OS_Tools::GUIDToString ((*iterator).second.second->deviceIdentifier.identifier._guid))));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);

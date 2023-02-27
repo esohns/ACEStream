@@ -67,6 +67,8 @@
 #include "ace/OS.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_os_tools.h"
+
 #include "common_timer_manager.h"
 
 #include "common_ui_ifullscreen.h"
@@ -559,7 +561,7 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
                                                          STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
     gtk_list_store_set (listStore_in, &iterator,
                         0, media_subtype_string.c_str (),
-                        1, Common_Tools::GUIDToString (*iterator_2).c_str (),
+                        1, Common_OS_Tools::GUIDToString (*iterator_2).c_str (),
                         -1);
   } // end FOR
 
@@ -687,7 +689,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
                                                          STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
     gtk_list_store_set (listStore_in, &iterator,
                         0, media_subtype_string.c_str (),
-                        1, Common_Tools::GUIDToString (*iterator_2).c_str (),
+                        1, Common_OS_Tools::GUIDToString (*iterator_2).c_str (),
                         -1);
   } // end FOR
 
@@ -1730,7 +1732,7 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
   std::string format_string = g_value_get_string (&value);
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID media_subtype = Common_Tools::StringToGUID (format_string);
+  struct _GUID media_subtype = Common_OS_Tools::StringToGUID (format_string);
   ACE_ASSERT (!InlineIsEqualGUID (media_subtype, GUID_NULL));
   Common_Image_Resolution_t resolution_s;
 #else
@@ -3254,7 +3256,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   g_value_init (&value, G_TYPE_STRING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   g_value_set_string (&value,
-                      Common_Tools::GUIDToString (format_s).c_str ());
+                      Common_OS_Tools::GUIDToString (format_s).c_str ());
 #else
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
   converter.clear ();
@@ -5698,7 +5700,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   std::string format_string = g_value_get_string (&value);
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
+  struct _GUID GUID_s = Common_OS_Tools::StringToGUID (format_string);
   ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
 #else
   __u32 format_i = 0;
@@ -5979,7 +5981,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s =
-    Common_Tools::StringToGUID (g_value_get_string (&value));
+    Common_OS_Tools::StringToGUID (g_value_get_string (&value));
   ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
 #else
   __u32 format_i = 0;
