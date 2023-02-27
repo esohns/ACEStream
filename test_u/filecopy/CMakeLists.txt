@@ -117,7 +117,6 @@ add_dependencies (${EXECUTABLE} Common)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC rt)
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_CAP_LIBRARIES})
@@ -132,6 +131,8 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} PUBLIC Userenv.lib)
 # *TODO*: repair WIN32 pkgconfig support
 endif ()
+target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
+
 target_link_libraries (${EXECUTABLE} PUBLIC Common)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonLog)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonSignal)
