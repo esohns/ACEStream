@@ -19,11 +19,7 @@
  ***************************************************************************/
 
 #if defined (IMAGEMAGICK_SUPPORT)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "MagickWand/MagickWand.h"
-#else
-#include "wand/magick_wand.h"
-#endif // ACE_WIN32 || ACE_WIN64
 #endif // IMAGEMAGICK_SUPPORT
 
 #include "ace/Malloc_Base.h"
@@ -81,8 +77,7 @@ Stream_ImageScreen_Message_T<SessionDataType>::~Stream_ImageScreen_Message_T ()
 #if defined (IMAGEMAGICK_SUPPORT)
   if (inherited::data_.relinquishMemory)
   {
-    MagickRelinquishMemory (inherited::data_.relinquishMemory);
-    inherited::data_.relinquishMemory = NULL;
+    MagickRelinquishMemory (inherited::data_.relinquishMemory); inherited::data_.relinquishMemory = NULL;
   } // end IF
 #endif // IMAGEMAGICK_SUPPORT
 }

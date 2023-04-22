@@ -18,12 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "ace/config-lite.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "MagickWand/MagickWand.h"
-#else
-#include "wand/magick_wand.h"
-#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
 

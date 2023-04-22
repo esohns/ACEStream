@@ -605,7 +605,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
               AV_CODEC_FLAG_LOOP_FILTER    |
               //AV_CODEC_FLAG_GRAY           |
               //AV_CODEC_FLAG_PSNR           |
-              AV_CODEC_FLAG_TRUNCATED      |
+//              AV_CODEC_FLAG_TRUNCATED      |
               //AV_CODEC_FLAG_INTERLACED_DCT |
               AV_CODEC_FLAG_LOW_DELAY      |
               //AV_CODEC_FLAG_GLOBAL_HEADER  |
@@ -615,8 +615,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       //AV_CODEC_FLAG_CLOSED_GOP;
 //      if (codec_p->capabilities & CODEC_CAP_TRUNCATED)
 //        flags |= CODEC_FLAG_TRUNCATED;
-      if (codec_p->capabilities & AV_CODEC_CAP_TRUNCATED)
-        flags |= AV_CODEC_FLAG_TRUNCATED;
+//      if (codec_p->capabilities & AV_CODEC_CAP_TRUNCATED)
+//        flags |= AV_CODEC_FLAG_TRUNCATED;
 
 //      flags2 = CODEC_FLAG2_FAST          |
 //               CODEC_FLAG2_CHUNKS        |

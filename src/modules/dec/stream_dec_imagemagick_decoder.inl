@@ -32,11 +32,7 @@ extern "C"
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "MagickWand/MagickWand.h"
-#else
-#include "wand/magick_wand.h"
-#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
 
@@ -263,14 +259,10 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (result == MagickTrue);
   message_inout->release (); message_inout = NULL;
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = MagickSetImageDepth (context_, 8);
-#else
-  result = MagickSetImageChannelDepth (context_,
-                                       AllChannels,
-//                                       static_cast<ChannelType> (RedChannel | GreenChannel | BlueChannel | AlphaChannel),
-                                       8);
-#endif // ACE_WIN32 || ACE_WIN64
+//  result = MagickSetImageChannelDepth (context_,
+//                                       AllChannels,
+//                                       8);
   ACE_ASSERT (result == MagickTrue);
   result = MagickSetImageFormat (context_, "RGBA");
   ACE_ASSERT (result == MagickTrue);
