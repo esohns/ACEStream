@@ -41,8 +41,8 @@
 
 #include "common_event_tools.h"
 
+#include "common_logger_queue.h"
 #include "common_log_tools.h"
-#include "common_logger.h"
 
 #include "common_signal_tools.h"
 
@@ -1147,8 +1147,6 @@ ACE_TMAIN (int argc_in,
   if (number_of_dispatch_threads == 0)
     number_of_dispatch_threads = 1;
 
-  Common_MessageStack_t* logstack_p = NULL;
-  ACE_SYNCH_MUTEX* lock_p = NULL;
 //  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
   struct Test_I_Target_Configuration configuration;
 #if defined (GUI_SUPPORT)
@@ -1159,8 +1157,6 @@ ACE_TMAIN (int argc_in,
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-  logstack_p = &state_r.logStack;
-  lock_p = &state_r.logStackLock;
 //  lock_2 = &state_r.subscribersLock;
 #endif // GTK_USE
   struct Test_I_Target_UI_CBData ui_cb_data;
@@ -1169,8 +1165,9 @@ ACE_TMAIN (int argc_in,
 #endif // GUI_SUPPORT
 
   // step1d: initialize logging and/or tracing
-  Common_Logger_t logger (logstack_p,
-                          lock_p);
+  Common_Logger_Queue_t logger;
+  logger.initialize (&state_r.logQueue,
+                     &state_r.logQueueLock);
 
   std::string log_file_name;
   if (log_to_file)
@@ -1182,8 +1179,9 @@ ACE_TMAIN (int argc_in,
                                             false,                                // log to syslog ?
                                             false,                                // trace messages ?
                                             trace_information,                    // debug messages ?
-                                            (gtk_glade_file.empty () ? NULL
-                                                                     : &logger))) // logger ?
+                                            NULL))                                // (ui-) logger ?
+//                                            (gtk_glade_file.empty () ? NULL
+//                                                                     : &logger))) // (ui-) logger ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Log_Tools::initializeLogging(), aborting\n")));

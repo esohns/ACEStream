@@ -52,7 +52,6 @@
 #include "common_os_tools.h"
 
 #include "common_log_tools.h"
-#include "common_logger.h"
 
 #include "common_signal_tools.h"
 

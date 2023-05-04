@@ -17,6 +17,7 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "common_log_common.h"
 #include "stdafx.h"
 
 #include "test_u_filecopy_callbacks.h"
@@ -598,12 +599,12 @@ idle_update_log_display_cb (gpointer userData_in)
   gchar* converted_text = NULL;
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
     // sanity check
-    if (state_r.logStack.empty ())
+    if (state_r.logQueue.empty ())
       return G_SOURCE_CONTINUE;
 
     // step1: convert text
-    for (Common_MessageStackConstIterator_t iterator_2 = state_r.logStack.begin ();
-         iterator_2 != state_r.logStack.end ();
+    for (Common_Log_MessageQueueConstIterator_t iterator_2 = state_r.logQueue.begin ();
+         iterator_2 != state_r.logQueue.end ();
          iterator_2++)
     {
       converted_text = Common_UI_GTK_Tools::localeToUTF8 (*iterator_2);
@@ -625,7 +626,7 @@ idle_update_log_display_cb (gpointer userData_in)
       g_free (converted_text);
     } // end FOR
 
-    state_r.logStack.clear ();
+    state_r.logQueue.clear ();
   } // end lock scope
 
   // step3: scroll the view accordingly

@@ -52,8 +52,8 @@
 
 #include "common_event_tools.h"
 
+#include "common_logger_queue.h"
 #include "common_log_tools.h"
-#include "common_logger.h"
 
 #include "common_signal_tools.h"
 
@@ -2616,8 +2616,6 @@ ACE_TMAIN (int argc_in,
   if (number_of_dispatch_threads == 0)
     number_of_dispatch_threads = 1;
 
-  Common_MessageStack_t* logstack_p = NULL;
-  ACE_SYNCH_MUTEX* lock_p = NULL;
 //  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
 #if defined (GUI_SUPPORT)
 //  struct Test_I_CamStream_UI_CBData* ui_cb_data_p = NULL;
@@ -2627,8 +2625,6 @@ ACE_TMAIN (int argc_in,
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-  logstack_p = &state_r.logStack;
-  lock_p = &state_r.logStackLock;
 //  lock_2 = &state_r.subscribersLock;
 #endif // GTK_USE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2721,8 +2717,9 @@ ACE_TMAIN (int argc_in,
 #endif // GUI_SUPPORT
 
   // step1d: initialize logging and/or tracing
-  Common_Logger_t logger (logstack_p,
-                          lock_p);
+  Common_Logger_Queue_t logger;
+  logger.initialize (&state_r.logQueue,
+                     &state_r.logQueueLock);
   std::string log_file_name;
   if (log_to_file)
     log_file_name =

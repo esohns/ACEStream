@@ -322,7 +322,9 @@ struct Stream_ImageScreen_UI_CBData
    , stream (NULL)
    , subscribers ()
   {
+#if defined (GTK_USE) || defined (QT_USE) || defined (WXWIDGETS_USE)
     progressData.state = UIState;
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
   }
 
   struct Stream_ImageScreen_Configuration* configuration;

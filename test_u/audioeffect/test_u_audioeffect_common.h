@@ -53,7 +53,6 @@ extern "C"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
 #if defined (GTKGL_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "gl/GL.h"
@@ -61,7 +60,6 @@ extern "C"
 #include "GL/gl.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GTKGL_SUPPORT
-#endif // GTK_USE
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)

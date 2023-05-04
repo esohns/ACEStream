@@ -37,11 +37,11 @@
 #endif // HAVE_CONFIG_H
 
 #include "common_os_tools.h"
+#include "common_tools.h"
 
 #include "common_image_defines.h"
 
 #include "common_log_tools.h"
-#include "common_logger.h"
 
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
