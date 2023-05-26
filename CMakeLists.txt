@@ -86,8 +86,6 @@ foreach (path BIN CMAKE SHARE INCLUDE LIB)
   set (${var} ${RELATIVE_INSTALL_PATH})
  endif ()
 # message (STATUS "set \"${var}\" to \"${${var}}\"")
-
-#endif ()
 endforeach ()
 
 # project options
