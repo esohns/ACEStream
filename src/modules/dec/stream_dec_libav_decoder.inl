@@ -539,20 +539,22 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       //        AV_CODEC_FLAG_4MV            |
               AV_CODEC_FLAG_OUTPUT_CORRUPT |
               AV_CODEC_FLAG_QPEL           |
-              //AV_CODEC_FLAG_DROPCHANGED          |
+              //AV_CODEC_FLAG_DROPCHANGED    |
+              //AV_CODEC_FLAG_RECON_FRAME    |
+              //AV_CODEC_FLAG_COPY_OPAQUE    |
+              //AV_CODEC_FLAG_FRAME_DURATION |
               //AV_CODEC_FLAG_PASS1          |
               //AV_CODEC_FLAG_PASS2          |
               AV_CODEC_FLAG_LOOP_FILTER    |
               //AV_CODEC_FLAG_GRAY           |
               //AV_CODEC_FLAG_PSNR           |
-              AV_CODEC_FLAG_TRUNCATED      |
               //AV_CODEC_FLAG_INTERLACED_DCT |
               AV_CODEC_FLAG_LOW_DELAY      |
               //AV_CODEC_FLAG_GLOBAL_HEADER  |
               AV_CODEC_FLAG_BITEXACT;//       |
               //AV_CODEC_FLAG_AC_PRED        |
-      //AV_CODEC_FLAG_INTERLACED_ME  |
-      //AV_CODEC_FLAG_CLOSED_GOP;
+              //AV_CODEC_FLAG_INTERLACED_ME  |
+              //AV_CODEC_FLAG_CLOSED_GOP;
 
       flags2 = AV_CODEC_FLAG2_FAST          |
       //         AV_CODEC_FLAG2_NO_OUTPUT           |
