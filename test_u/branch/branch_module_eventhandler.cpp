@@ -34,7 +34,7 @@ Branch_Module_EventHandler::Branch_Module_EventHandler (ISTREAM_T* stream_in)
 
 ACE_Task<ACE_MT_SYNCH,
          Common_TimePolicy_t>*
-Branch_Module_EventHandler:: clone ()
+Branch_Module_EventHandler:: clone () const
 {
   STREAM_TRACE (ACE_TEXT ("Branch_Module_EventHandler::clone"));
 

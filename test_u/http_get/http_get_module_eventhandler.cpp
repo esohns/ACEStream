@@ -37,7 +37,7 @@ HTTPGet_Module_EventHandler::HTTPGet_Module_EventHandler (ISTREAM_T* stream_in)
 
 ACE_Task<ACE_MT_SYNCH,
          Common_TimePolicy_t>*
-HTTPGet_Module_EventHandler:: clone ()
+HTTPGet_Module_EventHandler:: clone () const
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_Module_EventHandler::clone"));
 

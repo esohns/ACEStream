@@ -66,7 +66,7 @@ Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
                                     SessionMessageType,
                                     SessionDataType,
                                     SessionDataContainerType,
-                                    UserDataType>::clone ()
+                                    UserDataType>::clone () const
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_EventHandler_T::clone"));
 

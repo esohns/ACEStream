@@ -155,7 +155,7 @@ Parser_Module_Parser::record_3 (std::string*& record_inout)
 }
 
 void
-Parser_Module_Parser::record_4 (unsigned int record_inout)
+Parser_Module_Parser::record_4 (ACE_INT64 record_inout)
 {
   COMMON_TRACE (ACE_TEXT ("Parser_Module_Parser::record_4"));
 

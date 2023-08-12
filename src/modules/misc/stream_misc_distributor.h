@@ -169,15 +169,13 @@ class Stream_Miscellaneous_Distributor_WriterTask_T
 #endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Miscellaneous_Distributor_WriterTask_T () {}
 
-  // override (part of) Common_ITask_T
-  inline virtual void waitForIdleState () const { OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this); this_p->idle (); }
-
   // implement (part of) Stream_ITaskBase_T
   virtual void handleControlMessage (ControlMessageType&); // control message handle
   inline virtual void handleDataMessage (DataMessageType*& message_inout, bool& passMessageDownstream_out) { ACE_UNUSED_ARG (passMessageDownstream_out); forward (message_inout, false, false); }
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
   inline virtual void handleUserMessage (ACE_Message_Block*& message_inout, bool& passMessageDownstream_out) { ACE_UNUSED_ARG (passMessageDownstream_out); forward (message_inout, false, false); }
+  inline virtual void waitForIdleState (bool waitForever_in = true) const { ACE_ASSERT (waitForever_in); OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this); this_p->idle (); }
 
   // implement Stream_IDistributorModule
   virtual bool initialize (const Stream_Branches_t&);

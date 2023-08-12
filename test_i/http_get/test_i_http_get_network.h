@@ -44,6 +44,7 @@
 #include "net_common.h"
 #include "net_connection_manager.h"
 #include "net_sock_connector.h"
+#include "net_socket_common.h"
 #include "net_stream_asynch_tcpsocket_base.h"
 #include "net_stream_tcpsocket_base.h"
 #include "net_tcpconnection_base.h"

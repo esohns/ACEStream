@@ -77,7 +77,7 @@ class Parser_Module_Parser
   virtual void record (Bencoding_Dictionary_t*&); // data record
   virtual void record_2 (Bencoding_List_t*&); // data record
   virtual void record_3 (std::string*&); // data record
-  virtual void record_4 (unsigned int); // data record
+  virtual void record_4 (ACE_INT64); // data record
 };
 
 // declare module

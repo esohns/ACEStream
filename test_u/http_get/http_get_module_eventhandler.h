@@ -61,7 +61,7 @@ class HTTPGet_Module_EventHandler
 
   // implement Common_IClone_T
   virtual ACE_Task<ACE_MT_SYNCH,
-                   Common_TimePolicy_t>* clone ();
+                   Common_TimePolicy_t>* clone () const;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_Module_EventHandler ())
