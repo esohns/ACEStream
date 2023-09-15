@@ -158,7 +158,7 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Device)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
-add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
+add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 if (FFMPEG_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ffmpeg_LIBRARIES})
@@ -221,7 +221,7 @@ target_precompile_headers (${EXECUTABLE}
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
-         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
+         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
 if (UNIX)
  install (FILES ${ui_definition_file}
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
@@ -260,7 +260,7 @@ elseif (WIN32)
                  ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxmsw316d_html_vc_x64_custom.dll
                  ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxmsw316d_xrc_vc_x64_custom.dll
                  ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxbase316d_xml_vc_x64_custom.dll
-           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
+           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
  endif (DEFINED $ENV{LIB_ROOT})
  install (FILES ${ui_definition_file} ${CMAKE_CURRENT_SOURCE_DIR}/etc/${EXECUTABLE}.fbp
           DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
