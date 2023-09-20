@@ -160,9 +160,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
                                                  PinConfigurationType>::Stream_MediaFramework_DirectShow_Source_Filter_T ()
  : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE), // name
               NULL,                                                            // owner
-              CLSID_ACEStream_MediaFramework_Source_Filter,                    // CLSID
-              NULL)                                                            // result
+              CLSID_ACEStream_MediaFramework_Source_Filter)                    // CLSID
  , configuration_ (NULL)
+ , outputPin_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_T::Stream_MediaFramework_DirectShow_Source_Filter_T"));
 
@@ -170,13 +170,12 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
   //                   sucessful QueryInterface()
 
   // *NOTE*: the pin will inherited::AddPin() itself to 'this'
-  OUTPUT_PIN_T* pin_p = NULL;
   HRESULT result = E_FAIL;
-  ACE_NEW_NORETURN (pin_p,
+  ACE_NEW_NORETURN (outputPin_,
                     OUTPUT_PIN_T (&result,
                                   this,
                                   STREAM_LIB_DIRECTSHOW_FILTER_PIN_OUTPUT_NAME_L));
-  if (!pin_p || FAILED (result))
+  if (!outputPin_ || FAILED (result))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
@@ -191,7 +190,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
   // *NOTE*: 'this' 'owns' the output pin
   // *IMPORTANT NOTE*: increments this' reference count as well; should be 1
   //                   after this call
-  pin_p->AddRef ();
+  //outputPin_->AddRef ();
 }
 
 template <typename MessageType,
@@ -726,7 +725,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
   //                   sucessful QueryInterface()
 
   // sanity check(s)
-  ACE_ASSERT (inherited::m_pFilter);
+  ACE_ASSERT (parentFilter_in);
   ACE_ASSERT (result_out);
   ACE_ASSERT (SUCCEEDED (*result_out));
 } // (Constructor)

@@ -102,9 +102,9 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
  , handler_ (this,
              false)
  , mediaType_ ()
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
- , task_ (NULL)
-#endif // ACE_WIN32 || ACE_WIN64
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ //, task_ (NULL)
+//#endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dec_Noise_Source_T::Stream_Dec_Noise_Source_T"));
 
@@ -165,8 +165,8 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_MediaFramework_DirectShow_Tools::free (mediaType_);
 
-  if (unlikely (task_))
-    AvRevertMmThreadCharacteristics (task_);
+  //if (unlikely (task_))
+  //  AvRevertMmThreadCharacteristics (task_);
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -234,11 +234,11 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     Stream_MediaFramework_DirectShow_Tools::free (mediaType_);
 
-    if (unlikely (task_))
-    {
-      AvRevertMmThreadCharacteristics (task_);
-      task_ = NULL;
-    } // end IF
+    //if (unlikely (task_))
+    //{
+    //  AvRevertMmThreadCharacteristics (task_);
+    //  task_ = NULL;
+    //} // end IF
 #else
     ACE_OS::memset (&mediaType_, 0, sizeof (struct Stream_MediaFramework_ALSA_MediaType));
 #endif // ACE_WIN32 || ACE_WIN64
@@ -390,7 +390,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       ACE_ASSERT ((bufferSize_ % frameSize_) == 0);
       buffer_time_us =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        static_cast<suseconds_t> ((bufferSize_ * 1000000.0) / static_cast<double> (waveformatex_p->nSamplesPerSec));
+        static_cast<suseconds_t> ((bufferSize_ * 1000000.0) / static_cast<double> (frameSize_ * waveformatex_p->nSamplesPerSec));
 #else
         static_cast<suseconds_t> ((bufferSize_ * 1000000.0) / static_cast<double> (frameSize_ * mediaType_.rate));
 #endif // ACE_WIN32 || ACE_WIN64
@@ -526,7 +526,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       for (int i = 0; i < numberOfPoles_; i++)
       {
         double x =
-          static_cast<double> (Common_Tools::getRandomNumber (realDistribution_)) -0.5;
+          static_cast<double> (Common_Tools::getRandomNumber (realDistribution_)) - 0.5;
         for (int j = 0; j < numberOfPoles_; j++)
           x -= multipliers_[j] * history_[j];
         history_[i] = x;
@@ -539,20 +539,20 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       z_ = inherited::configuration_->generatorConfiguration->z;
 #endif // LIBNOISE_SUPPORT
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      DWORD task_index_i = 0;
-      ACE_ASSERT (!task_);
-      task_ =
-        AvSetMmThreadCharacteristics (TEXT (STREAM_LIB_WASAPI_CAPTURE_DEFAULT_TASKNAME),
-                                      &task_index_i);
-      if (!task_)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to AvSetMmThreadCharacteristics(): \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
-#endif // ACE_WIN32 || ACE_WIN64
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//      DWORD task_index_i = 0;
+//      ACE_ASSERT (!task_);
+//      task_ =
+//        AvSetMmThreadCharacteristics (TEXT (STREAM_LIB_WASAPI_CAPTURE_DEFAULT_TASKNAME),
+//                                      &task_index_i);
+//      if (!task_)
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("%s: failed to AvSetMmThreadCharacteristics(): \"%m\", aborting\n"),
+//                    inherited::mod_->name ()));
+//        goto error;
+//      } // end IF
+//#endif // ACE_WIN32 || ACE_WIN64
 
       // start sample generator timer
       interval.set (0, buffer_time_us);
@@ -618,13 +618,13 @@ error:
         inherited::timerId_ = -1;
       } // end IF
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (likely (task_))
-      {
-        AvRevertMmThreadCharacteristics (task_);
-        task_ = NULL;
-      } // end IF
-#endif // ACE_WIN32 || ACE_WIN64
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//      if (likely (task_))
+//      {
+//        AvRevertMmThreadCharacteristics (task_);
+//        task_ = NULL;
+//      } // end IF
+//#endif // ACE_WIN32 || ACE_WIN64
 
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       {

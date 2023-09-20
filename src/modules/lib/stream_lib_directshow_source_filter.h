@@ -30,10 +30,10 @@
 #else
 #define AM_NOVTABLE
 #endif
+#include "wxdebug.h"
 #include "combase.h"
 #undef NANOSECONDS
 #include "reftime.h"
-#include "wxdebug.h"
 #include "wxlist.h"
 #include "wxutil.h"
 #include "mtype.h"
@@ -98,12 +98,12 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
 
   // implement/overload IMemAllocator
   inline virtual STDMETHODIMP QueryInterface (REFIID riid, __deref_out void** ppv) { return NonDelegatingQueryInterface (riid, ppv); }
-  inline virtual STDMETHODIMP_(ULONG) AddRef () { return inherited::NonDelegatingAddRef (); }
-  inline virtual STDMETHODIMP_(ULONG) Release () { return inherited::NonDelegatingRelease (); }
+  inline virtual STDMETHODIMP_(ULONG) AddRef () { return 1; CUnknown::NonDelegatingAddRef (); }
+  inline virtual STDMETHODIMP_(ULONG) Release () { return 0; CUnknown::NonDelegatingRelease (); }
   virtual STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**);
 
   //inline virtual int GetPinCount () { return 1; }
-  //virtual CBasePin* GetPin (int);
+  //inline virtual CBasePin* GetPin (int) { return outputPin_; }
   //virtual HRESULT AddPin (CBasePin*);
   //virtual HRESULT RemovePin (CBasePin*);
 
@@ -128,6 +128,7 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
 
  protected:
   ConfigurationType* configuration_;
+  OUTPUT_PIN_T*      outputPin_;
 
  private:
   // convenient types

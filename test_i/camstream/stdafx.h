@@ -12,11 +12,11 @@
 
 // Windows Header Files
 #include "windows.h"
-#if defined (UUIDS_H)
-#else
-#define UUIDS_H
-#include "uuids.h"
-#endif // UUIDS_H
+//#if defined (UUIDS_H)
+//#else
+//#define UUIDS_H
+//#include "uuids.h"
+//#endif // UUIDS_H
 
 //#include "streams.h"
 #endif // _MSC_VER

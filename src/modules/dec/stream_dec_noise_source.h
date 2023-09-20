@@ -196,7 +196,7 @@ class Stream_Dec_Noise_Source_T
   Common_Timer_Handler                        handler_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType                         mediaType_;
-  HANDLE                                      task_;
+  //HANDLE                                      task_;
 #else
   struct Stream_MediaFramework_ALSA_MediaType mediaType_;
 #endif // ACE_WIN32 || ACE_WIN64

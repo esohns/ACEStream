@@ -30,10 +30,10 @@
 #else
 #define AM_NOVTABLE
 #endif
+#include "wxdebug.h"
 #include "combase.h"
 #undef NANOSECONDS
 #include "reftime.h"
-#include "wxdebug.h"
 #include "wxlist.h"
 #include "wxutil.h"
 #include "mtype.h"

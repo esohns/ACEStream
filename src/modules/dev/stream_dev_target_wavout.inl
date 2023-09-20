@@ -18,6 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
+#include "uuids.h"
+#endif // UUIDS_H
+
 #include "ace/Log_Msg.h"
 
 #include "stream_defines.h"

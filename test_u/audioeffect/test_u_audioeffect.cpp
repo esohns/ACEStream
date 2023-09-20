@@ -564,6 +564,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
                           IAMStreamConfig*& IAMStreamConfig_out,
                           struct _AMMediaType& captureMediaType_out,
                           bool useDirectShowSource_in,
+                          bool useDirectShowDestination_in,
                           bool mute_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
@@ -610,7 +611,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   } // end IF
 
   if (!useDirectShowSource_in)
-    goto continue_2;
+    goto continue_3;
 
   if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (deviceIdentifier_in,
                                                         CLSID_AudioInputDeviceCategory,
@@ -632,7 +633,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
 
   goto continue_3;
 
-continue_2:
+//continue_2:
   result = CoCreateInstance (CLSID_FilterGraph, NULL,
                              CLSCTX_INPROC_SERVER,
                              IID_PPV_ARGS (&IGraphBuilder_out));
@@ -656,7 +657,8 @@ continue_2:
   ACE_ASSERT (!configuration_in.filterConfiguration.pinConfiguration->format);
   configuration_in.filterConfiguration.pinConfiguration->format =
     &captureMediaType_out;
-  if (!filter_p->initialize (configuration_in.filterConfiguration))
+  Common_IInitialize_T<struct Test_U_AudioEffect_DirectShow_FilterConfiguration>* iinitialize_p = filter_p;
+  if (!iinitialize_p->initialize (configuration_in.filterConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Source_Filter_T::initialize(), aborting\n")));
@@ -703,6 +705,9 @@ continue_3:
   } // end IF
 
 continue_4:
+  if (!useDirectShowDestination_in)
+    goto continue_5;
+
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   union Stream_MediaFramework_DirectSound_AudioEffectOptions effect_options;
@@ -749,6 +754,7 @@ continue_4:
   } // end IF
   media_filter_p->Release (); media_filter_p = NULL;
 
+continue_5:
   return true;
 
 error:
@@ -1655,6 +1661,7 @@ do_work (
                                   directShowCBData_in.streamConfiguration,
                                   directshow_stream_configuration.format,
                                   useFrameworkSource_in, // use DirectShow source ? : WASAPI
+                                  directshow_stream_configuration.renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW,
                                   mute_in);
       if (!result)
       {
@@ -1662,10 +1669,14 @@ do_work (
                     ACE_TEXT ("failed to do_initialize_directshow(), returning\n")));
         goto error;
       } // end IF
-      ACE_ASSERT ((*directshow_modulehandler_iterator).second.second->builder);
-      if (false) // use DirectShow source ?
+      if (useFrameworkSource_in) // use DirectShow source ?
       {
+        ACE_ASSERT ((*directshow_modulehandler_iterator).second.second->builder);
         ACE_ASSERT (directShowCBData_in.streamConfiguration);
+      } // end IF
+      if (directshow_stream_configuration.renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW)
+      {
+        ACE_ASSERT ((*directshow_modulehandler_iterator).second.second->builder);
       } // end IF
       Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format,
                                                     (*directshow_modulehandler_iterator).second.second->outputFormat);

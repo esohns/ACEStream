@@ -3545,9 +3545,10 @@ get_buffer_size (gpointer userData_in)
   g_value_unset (&value);
 
   unsigned int bps = (sample_rate * (bits_per_sample / 8) * channels);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: lower buffer sizes result in lower latency
-  return static_cast<unsigned int> ((STREAM_DEC_NOISE_BUFFER_LATENCY_MS * bps) / (float)MILLISECONDS);
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+  // *TODO*: the modifier is needed to prevent crackle on Win32... :-(
+  return static_cast<unsigned int> ((STREAM_DEC_NOISE_BUFFER_LATENCY_MS * bps * 2.0f) / (float)MILLISECONDS);
 #else
   ACE_UNUSED_ARG (format_e);
   return static_cast<unsigned int> ((STREAM_DEC_NOISE_BUFFER_LATENCY_MS * bps) / (float)1000);

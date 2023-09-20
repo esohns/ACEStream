@@ -32,11 +32,11 @@
 //#include <DShow.h>
 #include "Mferror.h"
 // *NOTE*: uuids.h doesn't have double include protection
-#if defined (UUIDS_H)
-#else
-#define UUIDS_H
-#include "uuids.h"
-#endif // UUIDS_H
+//#if defined (UUIDS_H)
+//#else
+//#define UUIDS_H
+//#include "uuids.h"
+//#endif // UUIDS_H
 #include "vfwmsgs.h"
 #include "vmr9.h"
 #include "WinUser.h"

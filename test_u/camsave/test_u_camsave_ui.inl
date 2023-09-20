@@ -1,11 +1,11 @@
 #if defined (ACE_WIN64) || defined (ACE_WIN32)
 #include "OleCtl.h"
 // *NOTE*: uuids.h doesn't have double include protection
-#if defined (UUIDS_H)
-#else
-#define UUIDS_H
-#include "uuids.h"
-#endif // UUIDS_H
+//#if defined (UUIDS_H)
+//#else
+//#define UUIDS_H
+//#include "uuids.h"
+//#endif // UUIDS_H
 #endif // ACE_WIN64 || ACE_WIN32
 
 #include "wx/aboutdlg.h"
