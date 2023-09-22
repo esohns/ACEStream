@@ -90,10 +90,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  //   // *TODO*: check whether this sequence works
-  //   queue_.deactivate ();
-  //   queue_.wait ();
-
   // *NOTE*: deactivate the queue so it does not accept new data
   result = queue_.deactivate ();
   if (unlikely (result == -1))

@@ -154,8 +154,7 @@ continue_:
       case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES:
       {
         total_length_i = message_block_p->total_length ();
-        available_tokens_i = std::min (total_length_i,
-                                       availableTokens_);
+        available_tokens_i = std::min (total_length_i, availableTokens_);
         availableTokens_ -= available_tokens_i;
         break;
       }
@@ -316,10 +315,6 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
         (snd_pcm_format_width (media_type_s.format) / 8) *
         media_type_s.channels;
 #endif // ACE_WIN32 || ACE_WIN64
-      // *NOTE*: add 10% for good measure; fixes some (!) audio glitches when
-      //         playing back
-      average_bytes_per_second_i =
-        static_cast<ACE_UINT64> (static_cast<float> (average_bytes_per_second_i) * static_cast<float> (1.1));
       availableTokens_ =
         static_cast<ACE_UINT64> (static_cast<float> (average_bytes_per_second_i) * static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US) / 1000000.0F);
       inherited::configuration_->delayConfiguration->averageTokensPerInterval =
@@ -535,11 +530,11 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
 
   int result = -1;
   ACE_UINT64 available_tokens_i = 0;
-  unsigned int total_length_i = 0;
+  size_t total_length_i = 0;
   ACE_Message_Block* message_block_p = message_inout;
   message_inout = NULL;
 
-continue_:
+//continue_:
 { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
   while (!availableTokens_)
   {
@@ -559,8 +554,7 @@ continue_:
     case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
     {
       total_length_i = message_block_p->total_length ();
-      available_tokens_i = std::min (static_cast<ACE_UINT64> (total_length_i),
-                                     availableTokens_);
+      available_tokens_i = std::min (total_length_i, availableTokens_);
       availableTokens_ -= available_tokens_i;
       break;
     }
@@ -616,7 +610,17 @@ continue_:
       } // end IF
 
       if (available_tokens_i < total_length_i)
-        goto continue_;
+      {
+        result = inherited::ungetq (message_block_p, NULL);
+        if (unlikely (result == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Task::ungetq(): \"%m\", returning\n"),
+                      inherited::mod_->name ()));
+          message_block_p->release ();
+          return;
+        } // end IF
+      } // end IF
 
       break;
     }
@@ -719,11 +723,12 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
                                    (snd_pcm_format_width (media_type_s.format) / 8) *
                                    media_type_s.channels;
 #endif // ACE_WIN32 || ACE_WIN64
-      availableTokens_ = average_bytes_per_second_i;
+      availableTokens_ =
+        static_cast<ACE_UINT64> (static_cast<float> (average_bytes_per_second_i) * static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US) / 1000000.0F);
       inherited::configuration_->delayConfiguration->averageTokensPerInterval =
-        average_bytes_per_second_i;
+        availableTokens_;
       inherited::configuration_->delayConfiguration->interval =
-        ACE_Time_Value (1, 0);
+        ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
       inherited::configuration_->delayConfiguration->mode =
         STREAM_MISCELLANEOUS_DELAY_MODE_BYTES;
 
@@ -731,14 +736,16 @@ continue_:
       switch (inherited::configuration_->delayConfiguration->mode)
       {
         case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
+        {
+          // ACE_FALLTHROUGH;
+        }
         case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
         {
-          availableTokens_ =
-            inherited::configuration_->delayConfiguration->averageTokensPerInterval;
-          break;
+          // ACE_FALLTHROUGH;
         }
         case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER:
-        {
+        case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES:
+        { ACE_ASSERT (inherited::configuration_->delayConfiguration->averageTokensPerInterval);
           availableTokens_ =
             inherited::configuration_->delayConfiguration->averageTokensPerInterval;
           break;

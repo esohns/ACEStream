@@ -590,7 +590,7 @@ DATASTREAM_MODULE_DUPLEX (Test_U_AudioEffect_SessionData,                       
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
+typedef Stream_Module_Delay_2<ACE_MT_SYNCH,
                               Common_TimePolicy_t,
                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
                               Stream_ControlMessage_t,

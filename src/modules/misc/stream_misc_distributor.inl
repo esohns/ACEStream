@@ -98,11 +98,29 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
         goto continue_;
       } // end IF
 
+      // iff this is a abort message, handle differently
       // iff this is a session message, update its' data
+      bool is_abort_b = false;
       switch (messageBlock_in->msg_type ())
       {
-        case ACE_Message_Block::MB_STOP: // see: stop()
         case STREAM_MESSAGE_CONTROL:
+        {
+          ControlMessageType* message_p =
+            static_cast<ControlMessageType*> (messageBlock_in);
+
+          switch (message_p->type ())
+          {
+            case STREAM_CONTROL_MESSAGE_ABORT:
+            {
+              is_abort_b = true;
+              break;
+            }
+            default:
+              break;
+          } // end SWITCH
+          break;
+        }
+        case ACE_Message_Block::MB_STOP: // see: stop()
         case STREAM_MESSAGE_DATA:
         case STREAM_MESSAGE_OBJECT:
           break;
@@ -144,9 +162,19 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
         }
       } // end SWITCH
 
-      result =
-        (highPriority_in ? (*iterator).second->enqueue_head (message_block_p, NULL)
-                         : (*iterator).second->enqueue_tail (message_block_p, NULL));
+      if (is_abort_b && ((*iterator).second->state () == ACE_Message_Queue_Base::DEACTIVATED))
+      {
+        // retrieve branch head module writer
+        QUEUE_TO_MODULE_CONST_ITERATOR_T iterator_2 =
+          modules_.find ((*iterator).second);
+        ACE_ASSERT (iterator_2 != modules_.end ());
+        ACE_ASSERT ((*iterator_2).second);
+        result = (*iterator_2).second->writer ()->put (message_block_p, NULL);
+      } // end IF
+      else
+        result =
+          (highPriority_in ? (*iterator).second->enqueue_head (message_block_p, NULL)
+                           : (*iterator).second->enqueue_tail (message_block_p, NULL));
       if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -355,6 +383,10 @@ error:
           (*iterator).second->decrease ();
         } // end FOR
         data_.clear ();
+
+        heads_.clear ();
+        modules_.clear ();
+        queues_.clear ();
       } // end lock scope
 
       break;
@@ -742,53 +774,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType>
-void
-Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
-                                              TimePolicyType,
-                                              ConfigurationType,
-                                              ControlMessageType,
-                                              DataMessageType,
-                                              SessionMessageType,
-                                              SessionDataType>::wait (bool waitForMessageQueues_in) const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::wait"));
-
-  int result = -1;
-  ACE_Time_Value one_second (1, 0);
-  OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
-
-  // step1: wait for the message queue to empty
-  if (likely (waitForMessageQueues_in))
-    this_p->idle ();
-
-retry:
-  { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-    if (!queues_.empty ())
-      goto wait;
-  } // end lock scope
-
-  return;
-
-wait:
-  result = ACE_OS::sleep (one_second);
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_OS::sleep(%#T), returning\n"),
-                inherited::mod_->name (),
-                &one_second));
-    return;
-  } // end IF
-  goto retry;
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
 int
 Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
@@ -888,20 +873,25 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
   } while (true);
 
 done:
+  // *IMPORTANT NOTE*: retain state information here so that ABORT works consistently
+  //                   --> clean up in SESSION_MESSAGE_END
   { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
     iterator = queues_.find (ACE_OS::thr_self ());
     ACE_ASSERT (iterator != queues_.end ());
     ACE_ASSERT ((*iterator).second);
-    iterator_2 = modules_.find ((*iterator).second);
-    ACE_ASSERT (iterator_2 != modules_.end ());
-    iterator_3 =
-        std::find_if (heads_.begin (), heads_.end (),
-                      std::bind2nd (BRANCH_TO_HEAD_MAP_FIND_S (),
-                                    (*iterator_2).second));
-    ACE_ASSERT (iterator_3 != heads_.end ());
-    heads_.erase (iterator_3);
-    modules_.erase (iterator_2);
-    queues_.erase (iterator);
+    // *IMPORTANT NOTE*: deactivate the queue here so abort messages can
+    //                   redirect to the head modules' queue directly
+    (*iterator).second->deactivate ();
+  //  iterator_2 = modules_.find ((*iterator).second);
+  //  ACE_ASSERT (iterator_2 != modules_.end ());
+  //  iterator_3 =
+  //      std::find_if (heads_.begin (), heads_.end (),
+  //                    std::bind2nd (BRANCH_TO_HEAD_MAP_FIND_S (),
+  //                                  (*iterator_2).second));
+  //  ACE_ASSERT (iterator_3 != heads_.end ());
+  //  heads_.erase (iterator_3);
+  //  modules_.erase (iterator_2);
+  //  queues_.erase (iterator);
   } // end lock scope
 
   ACE_DEBUG ((LM_DEBUG,

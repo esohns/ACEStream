@@ -253,7 +253,6 @@ class Stream_Miscellaneous_Distributor_WriterTask_T
   virtual void stop (bool = true,   // wait for completion ?
                      bool = false); // high priority ?
   virtual void idle ();
-  virtual void wait (bool = true) const; // wait for the message queue(s) ? : worker thread(s) only
 
   // implement Stream_IModuleLinkCB
   virtual void onLink (ACE_Module_Base*);
