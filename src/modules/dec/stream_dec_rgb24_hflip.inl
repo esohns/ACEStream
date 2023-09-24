@@ -24,11 +24,9 @@
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#include "stream_lib_alsa_common.h"
+#include "stream_lib_directshow_tools.h"
+#include "stream_lib_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
-
-#include "stream_dec_defines.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -194,6 +192,14 @@ Stream_Decoder_RGB24_HFlip_T<ACE_SYNCH_USE,
                                 media_type_s);
       resolution_ =
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
+      if (media_type_s.subtype != MEDIASUBTYPE_RGB24)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid media subtype format (was: \"%s\"), aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (media_type_s.subtype).c_str ())));
+        goto error;
+      } // end IF
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
@@ -201,11 +207,19 @@ Stream_Decoder_RGB24_HFlip_T<ACE_SYNCH_USE,
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
       resolution_ = media_type_s.resolution;
+      if (media_type_s.format != AV_PIX_FMT_RGB24)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid pixel format (was: \"%s\"), aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_s.format).c_str ())));
+        goto error;
+      } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 
       break;
 
-//error:
+error:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #endif // ACE_WIN32 || ACE_WIN64

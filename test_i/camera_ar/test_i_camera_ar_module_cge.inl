@@ -34,6 +34,7 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
  : inherited (stream_in)
  , inherited2 ()
  , inherited3 ()
+ , resolution_ ({0, 0})
  , previousImage (NULL)
  , currentImage (NULL)
  , previousFilteredImage (NULL)
@@ -62,8 +63,8 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
 
   uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   float red_f, green_f, blue_f, luminance_f, difference_f;
-  int screen_width_i = ScreenWidth ();
-  int screen_height_i = ScreenHeight ();
+  static int screen_width_i = ScreenWidth ();
+  static int screen_height_i = ScreenHeight ();
 
   // backup previous frame data
   ACE_OS::memmove (previousImage, currentImage, sizeof (float) * screen_width_i * screen_height_i);
@@ -187,7 +188,6 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      Common_Image_Resolution_t resolution_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
@@ -198,37 +198,51 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      resolution_s =
+      resolution_ =
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
 #else
-      resolution_s = media_type_s.resolution;
+      resolution_ = media_type_s.resolution;
 #endif // ACE_WIN32 || ACE_WIN64
 
-      int result =
-        inherited3::ConstructConsole (
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                      resolution_s.cx, resolution_s.cy,
-#else
-                                      resolution_s.width, resolution_s.height,
-#endif // ACE_WIN32 || ACE_WIN64
-                                      8, 8);
-      if (unlikely (!result))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to olcConsoleGameEngine::ConstructConsole(), aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
+      previousImage = new float[ScreenWidth () * ScreenHeight ()];
+      currentImage = new float[ScreenWidth () * ScreenHeight ()];
+      previousFilteredImage = new float[ScreenWidth () * ScreenHeight ()];
+      currentFilteredImage = new float[ScreenWidth () * ScreenHeight ()];
+      previousMotionImage = new float[ScreenWidth () * ScreenHeight ()];
+      currentMotionImage = new float[ScreenWidth () * ScreenHeight ()];
+      flowFieldX = new float[ScreenWidth () * ScreenHeight ()];
+      flowFieldY = new float[ScreenWidth () * ScreenHeight ()];
+
+      ACE_OS::memset (previousImage, 0, sizeof (float) * ScreenWidth () * ScreenHeight ());
+      ACE_OS::memset (currentImage, 0, sizeof (float) * ScreenWidth () * ScreenHeight ());
+      ACE_OS::memset (previousFilteredImage, 0, sizeof (float) * ScreenWidth () * ScreenHeight ());
+      ACE_OS::memset (currentFilteredImage, 0, sizeof (float) * ScreenWidth () * ScreenHeight ());
+      ACE_OS::memset (previousMotionImage, 0, sizeof (float) * ScreenWidth () * ScreenHeight ());
+      ACE_OS::memset (currentMotionImage, 0, sizeof (float) * ScreenWidth () * ScreenHeight ());
+      ACE_OS::memset (flowFieldX, 0, sizeof (float) * ScreenWidth () * ScreenHeight ());
+      ACE_OS::memset (flowFieldY,	0, sizeof (float) * ScreenWidth () * ScreenHeight ());
+
+      ballX = inherited3::ScreenWidth () / 2.0f;
+      ballY = inherited3::ScreenHeight () / 2.0f;
 
       break;
 
-error:
+//error:
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
       return;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      delete[] previousImage;
+      delete[] currentImage;
+      delete[] previousFilteredImage;
+      delete[] currentFilteredImage;
+      delete[] previousMotionImage;
+      delete[] currentMotionImage;
+      delete[] flowFieldX;
+      delete[] flowFieldY;
+
       break;
     }
     default:
@@ -244,26 +258,21 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_CGE_T::OnUserCreate"));
 
-  previousImage = new float[ScreenWidth () * ScreenHeight ()];
-  currentImage = new float[ScreenWidth () * ScreenHeight ()];
-  previousFilteredImage = new float[ScreenWidth () * ScreenHeight ()];
-  currentFilteredImage = new float[ScreenWidth () * ScreenHeight ()];
-  previousMotionImage = new float[ScreenWidth () * ScreenHeight ()];
-  currentMotionImage = new float[ScreenWidth () * ScreenHeight ()];
-  flowFieldX = new float[ScreenWidth () * ScreenHeight ()];
-  flowFieldY = new float[ScreenWidth () * ScreenHeight ()];
-
-  ACE_OS::memset (previousImage, 0, sizeof (float) * ScreenWidth () * ScreenHeight ());
-  ACE_OS::memset (currentImage, 0, sizeof (float) * ScreenWidth () * ScreenHeight ());
-  ACE_OS::memset (previousFilteredImage, 0, sizeof (float) * ScreenWidth () * ScreenHeight ());
-  ACE_OS::memset (currentFilteredImage, 0, sizeof (float) * ScreenWidth () * ScreenHeight ());
-  ACE_OS::memset (previousMotionImage, 0, sizeof (float) * ScreenWidth () * ScreenHeight ());
-  ACE_OS::memset (currentMotionImage, 0, sizeof (float) * ScreenWidth () * ScreenHeight ());
-  ACE_OS::memset (flowFieldX, 0, sizeof (float) * ScreenWidth () * ScreenHeight ());
-  ACE_OS::memset (flowFieldY,	0, sizeof (float) * ScreenWidth () * ScreenHeight ());
-
-  ballX = inherited3::ScreenWidth () / 2.0f;
-  ballY = inherited3::ScreenHeight () / 2.0f;
+  int result =
+    inherited3::ConstructConsole (
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                  resolution_.cx, resolution_.cy,
+#else
+                                  resolution_.width, resolution_.height,
+#endif // ACE_WIN32 || ACE_WIN64
+                                  8, 8);
+  if (unlikely (!result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to olcConsoleGameEngine::ConstructConsole(), aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
 
   return true;
 }
@@ -312,25 +321,16 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   return !inherited3::GetKey (VK_ESCAPE).bPressed;
 }
 
-template <typename TaskType,
-          typename MediaType>
-bool
-Test_I_CameraAR_Module_CGE_T<TaskType,
-                             MediaType>::OnUserDestroy ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_CGE_T::OnUserDestroy"));
-
-  delete [] previousImage;
-  delete [] currentImage;
-  delete [] previousFilteredImage;
-  delete [] currentFilteredImage;
-  delete [] previousMotionImage;
-  delete [] currentMotionImage;
-  delete [] flowFieldX;
-  delete [] flowFieldY;
-
-  return true;
-}
+//template <typename TaskType,
+//          typename MediaType>
+//bool
+//Test_I_CameraAR_Module_CGE_T<TaskType,
+//                             MediaType>::OnUserDestroy ()
+//{
+//  STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_CGE_T::OnUserDestroy"));
+//
+//  return true;
+//}
 
 template <typename TaskType,
           typename MediaType>
@@ -360,6 +360,8 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   int error = -1;
   bool stop_processing = false;
   bool start_cge = false;
+  bool cge_started = false;
+  bool handle_message = true;
 
   do
   {
@@ -377,8 +379,8 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
       result = 0; // OK, queue has been deactivate()d
       break;
     } // end IF
-
     ACE_ASSERT (message_block_p);
+
     if (unlikely (message_block_p->msg_type () == ACE_Message_Block::MB_STOP))
     {
       if (unlikely (inherited::thr_count_ > 1))
@@ -401,6 +403,7 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
       break; // done
     } // end IF
 
+    handle_message = true;
     switch (message_block_p->msg_type ())
     {
       case STREAM_MESSAGE_CONTROL:
@@ -415,7 +418,14 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
       }
       case STREAM_MESSAGE_DATA:
       case STREAM_MESSAGE_OBJECT:
+      {
+        if (!cge_started)
+        {
+          message_block_p->release ();
+          handle_message = false;
+        } // end IF
         break;
+      }
       case ACE_Message_Block::MB_USER:
         break;
       default:
@@ -429,8 +439,9 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
     } // end SWITCH
 
     // process manually
-    inherited::handleMessage (message_block_p,
-                              stop_processing);
+    if (likely (handle_message))
+      inherited::handleMessage (message_block_p,
+                                stop_processing);
     if (unlikely (stop_processing))
       inherited::stop (false, // wait ?
                        true); // high priority ?
@@ -438,7 +449,9 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
     if (start_cge && !stop_processing)
     {
       start_cge = false;
+      cge_started = true;
       inherited3::Start ();
+      cge_started = false;
     } // end IF
 
     message_block_p = NULL;
@@ -498,10 +511,13 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_CGE_T::processNextMessage"));
 
   ACE_Message_Block* message_block_p = NULL;
-  int result = inherited::getq (message_block_p, NULL);
+  ACE_Time_Value no_wait = COMMON_TIME_NOW;
+  int result = inherited::getq (message_block_p, &no_wait);
   if (unlikely (result == -1))
   {
     int error = ACE_OS::last_error ();
+    if (likely (error == EWOULDBLOCK))
+      return false; // continue CGE
     if (unlikely (error != ESHUTDOWN))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: worker thread %t failed to ACE_Task::getq(): \"%m\", aborting\n"),

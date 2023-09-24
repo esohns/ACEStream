@@ -1,4 +1,9 @@
 include (ffmpeg)
+include (ImageMagick)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
+include (opencv)
+
 include (tensorflow)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis/scripts")
@@ -12,20 +17,19 @@ if (UNIX)
 
  include (FindPkgConfig)
  pkg_check_modules (PKG_V4L REQUIRED libv4l2)
-elseif (WIN32)
-# set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
-# include (DirectXBaseClasses)
-endif ()
+endif (UNIX)
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
+
+if (OPENCV_SUPPORT)
+ include_directories (${OPENCV_INCLUDE_DIRS})
+endif (OPENCV_SUPPORT)
 if (TENSORFLOW_SUPPORT)
  include_directories (${tensorflow_INCLUDE_DIRS})
 endif (TENSORFLOW_SUPPORT)
 if (UNIX)
-# include_directories (/usr/include/c++/12/x86_64-redhat-linux)
-# include_directories (/usr/include/c++/12)
  include_directories (${PKG_V4L_INCLUDE_DIRS})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/include)
@@ -35,10 +39,6 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 elseif (WIN32)
-# if (DIRECTSHOW_BASECLASSES_SUPPORT)
-#  include_directories (${DS_BASECLASSES_INCLUDE_DIRS})
-# endif (DIRECTSHOW_BASECLASSES_SUPPORT)
-
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/include)
@@ -128,6 +128,9 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 if (FFMPEG_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)
+if (OPENCV_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${OPENCV_LIBRARIES})
+endif (OPENCV_SUPPORT)
 if (TENSORFLOW_SUPPORT)
  if (TENSORFLOW_CC_SUPPORT)
   target_link_libraries (${EXECUTABLE} PUBLIC ${tensorflow_cc_LIBRARIES})
@@ -140,19 +143,7 @@ if (UNIX)
 # target_link_libraries (${EXECUTABLE} PUBLIC stdc++fs)
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_V4L_LIBRARIES})
 elseif (WIN32)
- target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
-
-# target_link_libraries (${EXECUTABLE} PUBLIC dxguid.lib)
- target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
-
-# if (DIRECTSHOW_BASECLASSES_SUPPORT)
-# *NOTE*: need unicode build (see above)
-#  if (CMAKE_BUILD_TYPE STREQUAL Debug)
-#   target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/${CMAKE_BUILD_TYPE}/BaseClassesdu.lib)
-#  else ()
-#   target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/${CMAKE_BUILD_TYPE}/BaseClassesu.lib)
-#  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
-# endif (DIRECTSHOW_BASECLASSES_SUPPORT)
+# target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
 endif ()
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
@@ -215,6 +206,10 @@ elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
+ file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
+ if (OPENCV_SUPPORT)
+  file (TO_CMAKE_PATH "${OPENCV_LIB_DIR}" OPENCV_PATH)
+ endif (OPENCV_SUPPORT)
  if (GTK_SUPPORT)
   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
  endif (GTK_SUPPORT)
@@ -224,6 +219,8 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${FFMPEG_PATH}
+                           ${IMAGEMAGICK_PATH}
+                           ${OPENCV_PATH}
                            ${ACE_LIBRARY_PATH})
  if (GTK_SUPPORT)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}

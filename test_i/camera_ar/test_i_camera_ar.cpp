@@ -1006,9 +1006,9 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (OLC_CGE_SUPPORT)
       directshow_stream_configuration.module = &directshow_CGE;
 #endif // OLC_CGE_SUPPORT
-#if defined (OLC_PGE_SUPPORT)
+//#if defined (OLC_PGE_SUPPORT)
       // directshow_stream_configuration.module = &directshow_PGE;
-#endif // OLC_PGE_SUPPORT
+//#endif // OLC_PGE_SUPPORT
       directshow_stream_configuration.renderer = renderer_in;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
@@ -1031,7 +1031,9 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       //      bufferSize_in;
       mediafoundation_stream_configuration.messageAllocator =
           &mediafoundation_message_allocator;
+#if defined (OLC_CGE_SUPPORT)
       mediafoundation_stream_configuration.module = &mediafoundation_CGE;
+#endif // OLC_CGE_SUPPORT
       //mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
       //  renderer_in;
 
@@ -1122,7 +1124,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
-      directshow_modulehandler_configuration_2.flipImage = true;
+      //directshow_modulehandler_configuration_2.flipImage = true;
       directshow_modulehandler_configuration_2.outputFormat = *media_type_p;
       Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
                                                          directshow_modulehandler_configuration_2.outputFormat);

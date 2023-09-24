@@ -23,14 +23,17 @@
 
 #include <map>
 #include <string>
+#include <vector>
+
+#if defined (OPENCV_SUPPORT)
+#include "opencv2/core/mat.hpp"
+#endif // OPENCV_SUPPORT
 
 #if defined (TENSORFLOW_CC_SUPPORT)
 #undef Status
 #undef Success
 #include "tensorflow/core/framework/tensor_shape.h"
 #endif // TENSORFLOW_CC_SUPPORT
-
-#include "opencv2/core/mat.hpp"
 
 #include "ace/Global_Macros.h"
 #include "ace/Message_Block.h"

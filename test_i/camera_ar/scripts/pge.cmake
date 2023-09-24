@@ -3,7 +3,8 @@ if (DEFINED ENV{LIB_ROOT})
 endif (DEFINED ENV{LIB_ROOT})
 find_path (CGE_INCLUDE_DIR
            olcConsoleGameEngine.h
-           HINTS ${CGE_DIR})
+           HINTS ${CGE_DIR}
+           PATH_SUFFIXES "ConsoleGameEngine")
 if (NOT CGE_INCLUDE_DIR)
  message (WARNING "could not find olcConsoleGameEngine.h, continuing")
 else ()

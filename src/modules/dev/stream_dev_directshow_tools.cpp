@@ -1633,8 +1633,9 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const struct Stream_Device_Iden
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IKsPropertySet::Get(AMPROPERTY_PIN_CATEGORY): \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to IKsPropertySet::Get(AMPROPERTY_PIN_CATEGORY): \"%s\", falling back to default pin\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+      goto default_; // *TODO*: suddenly retuns E_HANDLE ?
       property_set_p->Release (); property_set_p = NULL;
       pin_p->Release (); pin_p = NULL;
       enumerator_2->Release (); enumerator_2 = NULL;
@@ -1644,6 +1645,7 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const struct Stream_Device_Iden
     property_set_p->Release (); property_set_p = NULL;
     if (InlineIsEqualGUID (GUID_s, PIN_CATEGORY_CAPTURE))
     {
+default_:
       pin_2 = pin_p;
       pin_p = NULL;
       break;

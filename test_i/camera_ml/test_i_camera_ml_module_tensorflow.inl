@@ -20,17 +20,24 @@
 
 #include <fstream>
 #include <regex>
+#include <set>
 #include <sstream>
+
+#if defined (OPENCV_SUPPORT)
+#include "opencv2/imgproc/imgproc.hpp"
+#endif // OPENCV_SUPPORT
 
 #if defined (TENSORFLOW_CC_SUPPORT)
 #include "tensorflow/core/framework/types.pb.h"
 #endif // TENSORFLOW_CC_SUPPORT
 
-#include "opencv2/imgproc/imgproc.hpp"
-
 #include "ace/Log_Msg.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_lib_directshow_tools.h"
+#else
 #include "stream_lib_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
 #include "stream_macros.h"
 
 #if defined (TENSORFLOW_CC_SUPPORT)
@@ -415,8 +422,8 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_2::drawBoundingBoxes"));
 
-  for (int j = 0;
-       j < static_cast<int> (indices_in.size ());
+  for (size_t j = 0;
+       j < indices_in.size ();
        j++)
   {
     double xMin = boxes_in (0, indices_in.at (j), 1);
