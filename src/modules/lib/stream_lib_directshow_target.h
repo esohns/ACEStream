@@ -92,6 +92,7 @@ class Stream_MediaFramework_DirectShow_Target_T
   //typedef FilterType inherited4;
 
  public:
+  typedef typename inherited::ISTREAM_T ISTREAM_T;
   Stream_MediaFramework_DirectShow_Target_T (ISTREAM_T*); // stream handle
   virtual ~Stream_MediaFramework_DirectShow_Target_T ();
 

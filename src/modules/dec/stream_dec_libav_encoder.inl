@@ -693,8 +693,9 @@ continue_2:
       if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avformat_write_header() failed: \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
+                    ACE_TEXT ("%s: avformat_write_header() failed: \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
       headerWritten_ = true;

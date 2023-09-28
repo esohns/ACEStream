@@ -26,7 +26,7 @@
 
 #include "olcConsoleGameEngine.h"
 #else
-#include "olcConsoleGameEngineSDL.h"
+#include "archive/olcConsoleGameEngineSDL.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"

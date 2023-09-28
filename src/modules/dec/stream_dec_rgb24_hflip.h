@@ -76,6 +76,7 @@ class Stream_Decoder_RGB24_HFlip_T
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  typedef typename inherited::ISTREAM_T ISTREAM_T;
   Stream_Decoder_RGB24_HFlip_T (ISTREAM_T*); // stream handle
 #else
   Stream_Decoder_RGB24_HFlip_T (typename inherited::ISTREAM_T*); // stream handle

@@ -485,6 +485,7 @@ audio:
                   ACE_TEXT (Stream_Module_Decoder_Tools::audioFormatToString (inherited::audioCodecContext_->sample_fmt).c_str ())));
 
 //      audioStream_->codec = audioCodecContext_;
+      inherited::audioStream_->codecpar = avcodec_parameters_alloc ();
       avcodec_parameters_from_context (inherited::audioStream_->codecpar,
                                        inherited::audioCodecContext_);
 
@@ -580,6 +581,7 @@ video:
                   ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::videoCodecContext_->pix_fmt).c_str ())));
 
 //      videoStream_->codec = inherited::videoCodecContext_;
+      inherited::videoStream_->codecpar = avcodec_parameters_alloc ();
       avcodec_parameters_from_context (inherited::videoStream_->codecpar,
                                        inherited::videoCodecContext_);
 
@@ -610,8 +612,9 @@ continue_2:
       if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avformat_write_header() failed: \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
+                    ACE_TEXT ("%s: avformat_write_header() failed: \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
       inherited::headerWritten_ = true;

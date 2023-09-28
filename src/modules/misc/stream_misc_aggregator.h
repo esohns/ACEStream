@@ -194,6 +194,7 @@ class Stream_Module_Aggregator_WriterTask_T
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  typedef typename inherited::ISTREAM_T ISTREAM_T;
   Stream_Module_Aggregator_WriterTask_T (ISTREAM_T*);                     // stream handle
 #else
   Stream_Module_Aggregator_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
@@ -232,10 +233,14 @@ class Stream_Module_Aggregator_WriterTask_T
   typedef typename SESSIONID_TO_STREAM_MAP_T::iterator SESSIONID_TO_STREAM_MAP_ITERATOR_T;
   typedef std::pair<Stream_SessionId_t, STREAM_T*> SESSIONID_TO_STREAM_PAIR_T;
   struct SESSIONID_TO_STREAM_MAP_FIND_S
-   : public std::binary_function<SESSIONID_TO_STREAM_PAIR_T,
-                                 STREAM_T*,
-                                 bool>
+   //: public std::binary_function<SESSIONID_TO_STREAM_PAIR_T,
+   //                              STREAM_T*,
+   //                              bool>
   {
+    typedef SESSIONID_TO_STREAM_PAIR_T first_argument_type;
+    typedef STREAM_T*                  second_argument_type;
+    typedef bool                       result_type;
+
     inline bool operator () (const SESSIONID_TO_STREAM_PAIR_T& entry_in, STREAM_T* stream_in) const { return (entry_in.second == stream_in); }
   };
 
@@ -328,6 +333,7 @@ class Stream_Module_Aggregator_WriterTask_2
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  typedef typename inherited::ISTREAM_T ISTREAM_T;
   Stream_Module_Aggregator_WriterTask_2 (ISTREAM_T*);                     // stream handle
 #else
   Stream_Module_Aggregator_WriterTask_2 (typename inherited::ISTREAM_T*); // stream handle
@@ -364,10 +370,14 @@ class Stream_Module_Aggregator_WriterTask_2
   typedef typename SESSIONID_TO_STREAM_MAP_T::iterator SESSIONID_TO_STREAM_MAP_ITERATOR_T;
   typedef std::pair<Stream_SessionId_t, STREAM_T*> SESSIONID_TO_STREAM_PAIR_T;
   struct SESSIONID_TO_STREAM_MAP_FIND_S
-   : public std::binary_function<SESSIONID_TO_STREAM_PAIR_T,
-                                 typename inherited::TASK_BASE_T::ISTREAM_T*,
-                                 bool>
+   //: public std::binary_function<SESSIONID_TO_STREAM_PAIR_T,
+   //                              typename inherited::TASK_BASE_T::ISTREAM_T*,
+   //                              bool>
   {
+    typedef SESSIONID_TO_STREAM_PAIR_T                  first_argument_type;
+    typedef typename inherited::TASK_BASE_T::ISTREAM_T* second_argument_type;
+    typedef bool                                        result_type;
+
     inline bool operator() (const SESSIONID_TO_STREAM_PAIR_T& entry_in, typename inherited::TASK_BASE_T::ISTREAM_T* stream_in) const { return !ACE_OS::strcmp (entry_in.second->name (), stream_in->name ()); }
   };
   typedef std::map<Stream_SessionId_t,

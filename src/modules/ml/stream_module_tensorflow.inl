@@ -33,7 +33,7 @@ Stream_Module_Tensorflow_T<ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                           SessionMessageType>::Stream_Module_Tensorflow_T (ISTREAM_T* stream_in)
+                           SessionMessageType>::Stream_Module_Tensorflow_T (typename inherited::ISTREAM_T* stream_in)
 #else
                            SessionMessageType>::Stream_Module_Tensorflow_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
@@ -219,7 +219,7 @@ Stream_Module_Tensorflow_2<ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                           SessionMessageType>::Stream_Module_Tensorflow_2 (typename TaskType::ISTREAM_T* stream_in)
+                           SessionMessageType>::Stream_Module_Tensorflow_2 (typename inherited::ISTREAM_T* stream_in)
 #else
                            SessionMessageType>::Stream_Module_Tensorflow_2 (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
@@ -333,8 +333,8 @@ Stream_Module_Tensorflow_2<ConfigurationType,
   ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (inherited::sessionData_);
 
-  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+//  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+//    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
 
   switch (message_inout->type ())
   {
@@ -342,7 +342,7 @@ Stream_Module_Tensorflow_2<ConfigurationType,
     {
       break;
 
-error:
+//error:
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;

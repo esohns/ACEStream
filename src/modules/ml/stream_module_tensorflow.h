@@ -69,7 +69,7 @@ class Stream_Module_Tensorflow_T
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Module_Tensorflow_T (ISTREAM_T*); // stream handle
+  Stream_Module_Tensorflow_T (typename inherited::ISTREAM_T*); // stream handle
 #else
   Stream_Module_Tensorflow_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
@@ -127,7 +127,7 @@ class Stream_Module_Tensorflow_2
  public:
          // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Module_Tensorflow_2 (ISTREAM_T*); // stream handle
+  Stream_Module_Tensorflow_2 (typename inherited::ISTREAM_T*); // stream handle
 #else
   Stream_Module_Tensorflow_2 (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64

@@ -416,6 +416,8 @@ struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration
    , direct3DConfiguration (NULL)
    , filterConfiguration (NULL)
    , filterCLSID (GUID_NULL)
+   , labelFile ()
+   , modelFile ()
    , outputFormat ()
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    //, sourceFormat ()
@@ -474,6 +476,8 @@ struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration
   struct Stream_MediaFramework_Direct3D_Configuration*   direct3DConfiguration;
   struct Stream_CameraML_DirectShow_FilterConfiguration* filterConfiguration;
   CLSID                                                  filterCLSID;
+  std::string                                            labelFile; // tensorflow
+  std::string                                            modelFile; // tensorflow
   struct _AMMediaType                                    outputFormat;
   bool                                                   push;
   //struct _AMMediaType                                   sourceFormat;
@@ -497,6 +501,8 @@ struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration
    , direct3DConfiguration (NULL)
    , manageMediaSession (false)
    , mediaFoundationConfiguration (NULL)
+   , labelFile ()
+   , modelFile ()
    , outputFormat (NULL)
    , session (NULL)
    , subscriber (NULL)
@@ -510,10 +516,12 @@ struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration
   struct Stream_MediaFramework_Direct3D_Configuration*        direct3DConfiguration;
   bool                                                        manageMediaSession;
   struct Stream_MediaFramework_MediaFoundation_Configuration* mediaFoundationConfiguration;
+  std::string                                                 labelFile; // tensorflow
+  std::string                                                 modelFile; // tensorflow
   IMFMediaType*                                               outputFormat;
   IMFMediaSession*                                            session;
-  Stream_CameraML_MediaFoundation_ISessionNotify_t*       subscriber;
-  Stream_CameraML_MediaFoundation_Subscribers_t*          subscribers;
+  Stream_CameraML_MediaFoundation_ISessionNotify_t*           subscriber;
+  Stream_CameraML_MediaFoundation_Subscribers_t*              subscribers;
   IMFVideoDisplayControl*                                     windowController;
 };
 #else

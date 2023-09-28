@@ -191,7 +191,8 @@ class Stream_HeadModuleTaskBase_T
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_HeadModuleTaskBase_T (ISTREAM_T*);                     // stream handle
+  typedef typename TASK_BASE_T::ISTREAM_T ISTREAM_T;
+  Stream_HeadModuleTaskBase_T (ISTREAM_T*); // stream handle
 #else
   Stream_HeadModuleTaskBase_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64

@@ -89,6 +89,7 @@ class Stream_Vis_Target_Direct3D_T
                                          MediaType> inherited;
 
  public:
+  typedef typename inherited::ISTREAM_T ISTREAM_T;
   Stream_Vis_Target_Direct3D_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Vis_Target_Direct3D_T ();
 

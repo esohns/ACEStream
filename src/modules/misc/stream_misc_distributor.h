@@ -24,6 +24,9 @@
 #include <map>
 #include <string>
 #include <utility>
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#include <xstddef>
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 #include "ace/Module.h"
@@ -163,6 +166,7 @@ class Stream_Miscellaneous_Distributor_WriterTask_T
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  typedef typename inherited::ISTREAM_T ISTREAM_T;
   Stream_Miscellaneous_Distributor_WriterTask_T (ISTREAM_T*); // stream handle
 #else
   Stream_Miscellaneous_Distributor_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
@@ -198,21 +202,33 @@ class Stream_Miscellaneous_Distributor_WriterTask_T
   typedef typename QUEUE_TO_MODULE_MAP_T::const_iterator QUEUE_TO_MODULE_CONST_ITERATOR_T;
   typedef std::pair<typename inherited::MESSAGE_QUEUE_T*, MODULE_T*> QUEUE_TO_MODULE_PAIR_T;
   struct QUEUE_TO_MODULE_MAP_FIND_S
-   : public std::binary_function<QUEUE_TO_MODULE_PAIR_T,
-                                 MODULE_T*,
-                                 bool>
+   //: public std::binary_function<QUEUE_TO_MODULE_PAIR_T,
+   //                              MODULE_T*,
+   //                              bool>
   {
-    inline bool operator() (const QUEUE_TO_MODULE_PAIR_T& entry_in, MODULE_T* module_in) const { return (entry_in.second == module_in); }
+    typedef QUEUE_TO_MODULE_PAIR_T first_argument_type;
+    typedef MODULE_T*              second_argument_type;
+    typedef bool                   result_type;
+
+    inline bool operator() (const QUEUE_TO_MODULE_PAIR_T& entry_in,
+                            MODULE_T* module_in) const
+    {
+      return (entry_in.second == module_in);
+    }
   };
   typedef std::map<std::string,
                    MODULE_T*> BRANCH_TO_HEAD_MAP_T;
   typedef typename BRANCH_TO_HEAD_MAP_T::const_iterator BRANCH_TO_HEAD_CONST_ITERATOR_T;
   typedef std::pair<std::string, MODULE_T*> BRANCH_TO_HEAD_PAIR_T;
   struct BRANCH_TO_HEAD_MAP_FIND_S
-   : public std::binary_function<BRANCH_TO_HEAD_PAIR_T,
-                                 MODULE_T*,
-                                 bool>
+   //: public std::binary_function<BRANCH_TO_HEAD_PAIR_T,
+   //                              MODULE_T*,
+   //                              bool>
   {
+    typedef BRANCH_TO_HEAD_PAIR_T first_argument_type;
+    typedef MODULE_T*             second_argument_type;
+    typedef bool                  result_type;
+
     inline bool operator() (const BRANCH_TO_HEAD_PAIR_T& entry_in, MODULE_T* module_in) const { return !ACE_OS::strcmp (entry_in.second->name (), module_in->name ()); }
   };
 

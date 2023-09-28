@@ -79,6 +79,7 @@ class Stream_Vis_Target_Win32_Base_T
   typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;
 
  public:
+  typedef typename inherited::ISTREAM_T ISTREAM_T;
   Stream_Vis_Target_Win32_Base_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Vis_Target_Win32_Base_T ();
 

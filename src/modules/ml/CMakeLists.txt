@@ -2,10 +2,21 @@ include (tensorflow)
 
 add_library (${PROJECT_NAME}_MachineLearning STATIC "")
 
+if (WIN32)
+# set (CMAKE_CXX_STANDARD 17)
+ if (MSVC)
+  target_compile_options (${PROJECT_NAME}_MachineLearning PUBLIC "/std:c++17")
+ endif (MSVC)
+endif (WIN32)
+
 if (TENSORFLOW_SUPPORT)
  target_include_directories (${PROJECT_NAME}_MachineLearning PUBLIC
                              $<BUILD_INTERFACE:${tensorflow_INCLUDE_DIRS}>)
 endif (TENSORFLOW_SUPPORT)
+if (TENSORFLOW_CC_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_MachineLearning PUBLIC
+                             "$<BUILD_INTERFACE:${tensorflow_cc_INCLUDE_DIRS}>")
+endif (TENSORFLOW_CC_SUPPORT)
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_MachineLearning PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -67,15 +78,6 @@ add_dependencies (${PROJECT_NAME}_MachineLearning ${PROJECT_NAME})
 #if (TENSORFLOW_SUPPORT)
 # target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC ${tensorflow_LIBRARIES})
 #endif (TENSORFLOW_SUPPORT)
-if (WIN32)
- if (MSVC)
-  if (MSVC_VERSION GREATER 1600)
-#   target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC ucrt${LIB_FILE_SUFFIX}.lib)
-#   target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC vcruntime${LIB_FILE_SUFFIX}.lib)
-  endif (MSVC_VERSION GREATER 1600)
- endif (MSVC)
-# target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC ${ACE_LIBRARY})
-endif ()
 target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC Common)
 target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC ${PROJECT_NAME})
 

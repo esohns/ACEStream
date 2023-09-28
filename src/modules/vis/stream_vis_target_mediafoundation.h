@@ -91,6 +91,7 @@ class Stream_Vis_Target_MediaFoundation_T
   typedef Common_UI_WindowTypeConverter_T<HWND> inherited2;
 
  public:
+  typedef typename inherited::ISTREAM_T ISTREAM_T;
   Stream_Vis_Target_MediaFoundation_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Vis_Target_MediaFoundation_T ();
 

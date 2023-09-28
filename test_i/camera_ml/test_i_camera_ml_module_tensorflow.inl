@@ -162,10 +162,18 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
 
 //  auto input_tensor_mapped = tensor.tensor<float, 4> ();
   auto input_tensor_mapped = tensor.tensor<uint8_t, 4> ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  for (int y = 0; y < static_cast<int> (resolution_.cy); ++y)
+#else
   for (int y = 0; y < static_cast<int> (resolution_.height); ++y)
+#endif // ACE_WIN32 || ACE_WIN64
   {
     const uchar* source_row = (uchar*)data_p + (y * stride_);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    for (int x = 0; x < static_cast<int> (resolution_.cx); ++x)
+#else
     for (int x = 0; x < static_cast<int> (resolution_.width); ++x)
+#endif // ACE_WIN32 || ACE_WIN64
     {
       const uchar* source_pixel = source_row + (x * 3);
       for (int c = 0; c < 3; ++c)
@@ -251,22 +259,33 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       resolution_ =
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
+      stride_ = resolution_.cx * 3;
 #else
       ACE_ASSERT (Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_s.format.pixelformat) == 24);
       resolution_.height = media_type_s.format.height;
       resolution_.width = media_type_s.format.width;
-#endif // ACE_WIN32 || ACE_WIN64
       stride_ = resolution_.width * 3;
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      stride_ = resolution_.cx * 3;
+#else
+      stride_ = resolution_.width * 3;
+#endif // ACE_WIN32 || ACE_WIN64
 
       shape_ = tensorflow::TensorShape ();
       shape_.AddDim (1);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      shape_.AddDim (resolution_.cy);
+      shape_.AddDim (resolution_.cx);
+#else
       shape_.AddDim (resolution_.height);
       shape_.AddDim (resolution_.width);
+#endif // ACE_WIN32 || ACE_WIN64
       shape_.AddDim (3);
 
       break;
 
-error:
+//error:
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
       return;
@@ -314,14 +333,13 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
   std::smatch matcherEntry;
   std::smatch matcherId;
   std::smatch matcherName;
-  const std::regex reEntry ("item \\{([\\S\\s]*?)\\}");
-  const std::regex reId ("[0-9]+");
-  const std::regex reName ("\'.+\'");
+  std::regex reEntry ("item \\{([\\S\\s]*?)\\}");
+  std::regex reId ("[0-9]+");
+  std::regex reName ("\'.+\'");
   std::string entry;
 
-  auto stringBegin =
-    std::sregex_iterator (file_string.begin (), file_string.end (), reEntry);
-  auto stringEnd = std::sregex_iterator();
+  std::sregex_iterator stringBegin (file_string.begin (), file_string.end (), reEntry);
+  std::sregex_iterator stringEnd;
 
   int id;
   std::string name;
@@ -437,7 +455,7 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
     cv::rectangle (image_in, tl, br, cv::Scalar (0, 255, 255), 1);
 
     // Ceiling the score down to 3 decimals (weird!)
-    float scoreRounded = floorf (scores_in (indices_in.at (j)) * 1000) / 1000;
+    float scoreRounded = std::floor (scores_in (indices_in.at (j)) * 1000.0f) / 1000.0f;
     std::string score_string = std::to_string (scoreRounded).substr (0, 5);
     std::string caption = labelMap_[classes_in (indices_in.at(j))] + " (" + score_string + ")";
 

@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <functional>
+
 #include "ace/Log_Msg.h"
 #include "ace/Message_Queue.h"
 #include "ace/Task.h"
@@ -258,8 +260,9 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
           ACE_ASSERT (iterator_2 != modules_.end ());
           iterator_3 =
             std::find_if (heads_.begin (), heads_.end (),
-                          std::bind2nd (BRANCH_TO_HEAD_MAP_FIND_S (),
-                                        (*iterator_2).second));
+                          std::bind (BRANCH_TO_HEAD_MAP_FIND_S (),
+                                     std::placeholders::_1,
+                                     (*iterator_2).second));
           ACE_ASSERT (iterator_3 != heads_.end ());
 
           // flush data messages
@@ -551,8 +554,9 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
   { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, return_value);
     iterator =
         std::find_if (heads_.begin (), heads_.end (),
-                      std::bind2nd (BRANCH_TO_HEAD_MAP_FIND_S (),
-                                    headModule_in));
+                      std::bind (BRANCH_TO_HEAD_MAP_FIND_S (),
+                                 std::placeholders::_1,
+                                 headModule_in));
     if (likely (iterator != heads_.end ()))
       return_value = (*iterator).first;
   } // end lock scope
@@ -722,7 +726,10 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
   message_block_p = NULL;
 
   if (waitForCompletion_in)
-    wait (true); // wait for message queue(s) ?
+  {
+    Common_ITask* itask_p = this;
+    itask_p->wait (true); // wait for message queue(s) ?
+  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -817,8 +824,9 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
     module_p = (*iterator_2).second;
     iterator_3 =
         std::find_if (heads_.begin (), heads_.end (),
-                      std::bind2nd (BRANCH_TO_HEAD_MAP_FIND_S (),
-                                    (*iterator_2).second));
+                      std::bind (BRANCH_TO_HEAD_MAP_FIND_S (),
+                                 std::placeholders::_1,
+                                 (*iterator_2).second));
     ACE_ASSERT (iterator_3 != heads_.end ());
     branch_string = (*iterator_3).first;
   } // end lock scope

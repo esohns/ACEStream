@@ -86,6 +86,7 @@ class Stream_MediaFramework_MediaFoundation_Target_T
                                                               struct Stream_MediaFramework_MediaFoundation_Configuration> inherited4;
 
  public:
+  typedef typename inherited::ISTREAM_T ISTREAM_T;
   Stream_MediaFramework_MediaFoundation_Target_T (ISTREAM_T*); // stream handle
   virtual ~Stream_MediaFramework_MediaFoundation_Target_T ();
 
