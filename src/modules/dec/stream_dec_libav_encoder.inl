@@ -152,6 +152,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       avcodec_free_context (&audioCodecContext_);
     if (audioFrame_)
     {
+      av_free (audioFrame_->buf[0]); audioFrame_->buf[0] = NULL;
       av_frame_free (&audioFrame_); ACE_ASSERT (!audioFrame_);
     } // end IF
     audioFrameSize_ = 0;
@@ -166,6 +167,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       avcodec_free_context (&videoCodecContext_);
     if (videoFrame_)
     {
+      av_free (videoFrame_->buf[0]); videoFrame_->buf[0] = NULL;
       av_frame_free (&videoFrame_); ACE_ASSERT (!videoFrame_);
     } // end IF
     videoFrameSize_ = 0;
@@ -231,10 +233,10 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVEncoder_T::handleDataMessage"));
 
   // sanity check(s)
-  if (unlikely (!headerWritten_))
-    return; // --> not fully initialized (yet)
-  if (unlikely (!formatContext_))
-    return; // --> disregard 'late' messages
+  //if (unlikely (!headerWritten_))
+  //  return; // --> not fully initialized (yet)
+  //if (unlikely (!formatContext_))
+  //  return; // --> disregard 'late' messages
 
   int result = -1;
   ACE_Message_Block* message_block_p = message_inout;
@@ -261,16 +263,18 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
     {
       codec_context_p = videoCodecContext_;
       frame_p = videoFrame_;
+      //frame_p->duration = 1;
       frame_p->nb_samples = 1;
-      ++videoSamples_;
+      // *TODO*: this may not be accurate (only works if every message contains a single full frame)
       frame_p->pts = videoSamples_;
+      ++videoSamples_;
       stream_p = videoStream_;
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown message media type (was: %d), continuing\n"),
+                  ACE_TEXT ("%s: invalid/unknown message media type (was: %d), aborting\n"),
                   inherited::mod_->name (),
                   message_inout->getMediaType ()));
       goto error;
@@ -287,7 +291,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
     if (unlikely (result < 0))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to avcodec_send_frame(): \"%s\", returning\n"),
+                  ACE_TEXT ("%s: failed to avcodec_send_frame(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
       goto error;
@@ -299,10 +303,10 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       result = avcodec_receive_packet (codec_context_p, &packet_s);
       if (result == AVERROR (EAGAIN) || result == AVERROR_EOF)
         break;
-      if (result < 0)
+      if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to avcodec_receive_packet(): \"%s\", returning\n"),
+                    ACE_TEXT ("%s: failed to avcodec_receive_packet(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
@@ -329,12 +333,12 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
 
       /* Write the frame to the media file. */
 //      result = av_write_frame (formatContext_, &packet_s);
-      result = av_interleaved_write_frame (formatContext_, &packet_s);
-//      av_packet_unref (&packet_s);
-      if (result < 0)
+      result = av_interleaved_write_frame (formatContext_,
+                                           &packet_s);
+      if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to av_interleaved_write_frame(): \"%s\", returning\n"),
+                    ACE_TEXT ("%s: failed to av_interleaved_write_frame(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
@@ -349,8 +353,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
   return;
 
 error:
-//  this->notify (STREAM_SESSION_MESSAGE_ABORT);
-  ;
+  this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,

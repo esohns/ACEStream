@@ -3490,6 +3490,385 @@ Stream_MediaFramework_Tools::isAcceleratedFormat (enum AVPixelFormat format_in)
   return false;
 }
 
+int
+Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::AVPixelFormatToBitCount"));
+
+    switch (format_in)
+  {
+    case AV_PIX_FMT_YUV420P:
+      return 8;
+    case AV_PIX_FMT_YUYV422:
+      break;
+    case AV_PIX_FMT_RGB24:
+      return 8;
+    case AV_PIX_FMT_BGR24:
+      return 8;
+    case AV_PIX_FMT_YUV422P:
+      return 8;
+    case AV_PIX_FMT_YUV444P:
+      break;
+    case AV_PIX_FMT_YUV410P:
+      break;
+    case AV_PIX_FMT_YUV411P:
+      break;
+    case AV_PIX_FMT_GRAY8:
+      return 8;
+    case AV_PIX_FMT_MONOWHITE:
+    case AV_PIX_FMT_MONOBLACK:
+      return 1;
+    case AV_PIX_FMT_PAL8:
+      return 8;
+    case AV_PIX_FMT_YUVJ420P:
+      break;
+    case AV_PIX_FMT_YUVJ422P:
+      break;
+    case AV_PIX_FMT_YUVJ444P:
+      break;
+    case AV_PIX_FMT_XVMC:
+      break;
+    case AV_PIX_FMT_UYVY422:
+      break;
+    case AV_PIX_FMT_UYYVYY411:
+      break;
+    case AV_PIX_FMT_BGR8:
+      return 8;
+    case AV_PIX_FMT_BGR4:
+      return 4;
+    case AV_PIX_FMT_BGR4_BYTE:
+      return 8;
+    case AV_PIX_FMT_RGB8:
+      return 8;
+    case AV_PIX_FMT_RGB4:
+      return 4;
+    case AV_PIX_FMT_RGB4_BYTE:
+      return 8;
+    case AV_PIX_FMT_NV12:
+      break;
+    case AV_PIX_FMT_NV21:
+      break;
+    case AV_PIX_FMT_ARGB:
+      return 8;
+    case AV_PIX_FMT_RGBA:
+      return 8;
+    case AV_PIX_FMT_ABGR:
+      return 8;
+    case AV_PIX_FMT_BGRA:
+      return 8;
+    case AV_PIX_FMT_GRAY16BE:
+      return 16;
+    case AV_PIX_FMT_GRAY16LE:
+      return 16;
+    case AV_PIX_FMT_YUV440P:
+      break;
+    case AV_PIX_FMT_YUVJ440P:
+      break;
+    case AV_PIX_FMT_YUVA420P:
+      break;
+    case AV_PIX_FMT_RGB48BE:
+      return 48;
+    case AV_PIX_FMT_RGB48LE:
+      return 48;
+    case AV_PIX_FMT_RGB565BE:
+      return 5;
+    case AV_PIX_FMT_RGB565LE:
+      return 5;
+    case AV_PIX_FMT_RGB555BE:
+      return 5;
+    case AV_PIX_FMT_RGB555LE:
+      return 5;
+    case AV_PIX_FMT_BGR565BE:
+      return 5;
+    case AV_PIX_FMT_BGR565LE:
+      return 5;
+    case AV_PIX_FMT_BGR555BE:
+      return 5;
+    case AV_PIX_FMT_BGR555LE:
+      return 5;
+    case AV_PIX_FMT_VAAPI:
+      break;
+    case AV_PIX_FMT_YUV420P16LE:
+      return 16;
+    case AV_PIX_FMT_YUV420P16BE:
+      return 16;
+    case AV_PIX_FMT_YUV422P16LE:
+      return 16;
+    case AV_PIX_FMT_YUV422P16BE:
+      return 16;
+    case AV_PIX_FMT_YUV444P16LE:
+      return 16;
+    case AV_PIX_FMT_YUV444P16BE:
+      return 16;
+    case AV_PIX_FMT_DXVA2_VLD:
+      break;
+    case AV_PIX_FMT_RGB444LE:
+      return 4;
+    case AV_PIX_FMT_RGB444BE:
+      return 4;
+    case AV_PIX_FMT_BGR444LE:
+      return 4;
+    case AV_PIX_FMT_BGR444BE:
+      return 4;
+    case AV_PIX_FMT_YA8:
+      return 8;
+    case AV_PIX_FMT_BGR48BE:
+      return 16;
+    case AV_PIX_FMT_BGR48LE:
+      return 16;
+    case AV_PIX_FMT_YUV420P9BE:
+      break;
+    case AV_PIX_FMT_YUV420P9LE:
+      break;
+    case AV_PIX_FMT_YUV420P10BE:
+      break;
+    case AV_PIX_FMT_YUV420P10LE:
+      break;
+    case AV_PIX_FMT_YUV422P10BE:
+      break;
+    case AV_PIX_FMT_YUV422P10LE:
+      break;
+    case AV_PIX_FMT_YUV444P9BE:
+      break;
+    case AV_PIX_FMT_YUV444P9LE:
+      break;
+    case AV_PIX_FMT_YUV444P10BE:
+      break;
+    case AV_PIX_FMT_YUV444P10LE:
+      break;
+    case AV_PIX_FMT_YUV422P9BE:
+      break;
+    case AV_PIX_FMT_YUV422P9LE:
+      break;
+    case AV_PIX_FMT_GBRP:
+      break;
+    case AV_PIX_FMT_GBRP9BE:
+      break;
+    case AV_PIX_FMT_GBRP9LE:
+      break;
+    case AV_PIX_FMT_GBRP10BE:
+      break;
+    case AV_PIX_FMT_GBRP10LE:
+      break;
+    case AV_PIX_FMT_GBRP16BE:
+      break;
+    case AV_PIX_FMT_GBRP16LE:
+      break;
+    case AV_PIX_FMT_YUVA422P:
+      break;
+    case AV_PIX_FMT_YUVA444P:
+      break;
+    case AV_PIX_FMT_YUVA420P9BE:
+      break;
+    case AV_PIX_FMT_YUVA420P9LE:
+      break;
+    case AV_PIX_FMT_YUVA422P9BE:
+      break;
+    case AV_PIX_FMT_YUVA422P9LE:
+      break;
+    case AV_PIX_FMT_YUVA444P9BE:
+      break;
+    case AV_PIX_FMT_YUVA444P9LE:
+      break;
+    case AV_PIX_FMT_YUVA420P10BE:
+      break;
+    case AV_PIX_FMT_YUVA420P10LE:
+      break;
+    case AV_PIX_FMT_YUVA422P10BE:
+      break;
+    case AV_PIX_FMT_YUVA422P10LE:
+      break;
+    case AV_PIX_FMT_YUVA444P10BE:
+      break;
+    case AV_PIX_FMT_YUVA444P10LE:
+      break;
+    case AV_PIX_FMT_YUVA420P16BE:
+      break;
+    case AV_PIX_FMT_YUVA420P16LE:
+      break;
+    case AV_PIX_FMT_YUVA422P16BE:
+      break;
+    case AV_PIX_FMT_YUVA422P16LE:
+      break;
+    case AV_PIX_FMT_YUVA444P16BE:
+      break;
+    case AV_PIX_FMT_YUVA444P16LE:
+      break;
+    case AV_PIX_FMT_VDPAU:
+      break;
+    case AV_PIX_FMT_XYZ12LE:
+      break;
+    case AV_PIX_FMT_XYZ12BE:
+      break;
+    case AV_PIX_FMT_NV16:
+      return 16;
+    case AV_PIX_FMT_NV20LE:
+      return 20;
+    case AV_PIX_FMT_NV20BE:
+      return 20;
+    case AV_PIX_FMT_RGBA64BE:
+      return 16;
+    case AV_PIX_FMT_RGBA64LE:
+      return 16;
+    case AV_PIX_FMT_BGRA64BE:
+      return 16;
+    case AV_PIX_FMT_BGRA64LE:
+      return 16;
+    case AV_PIX_FMT_YVYU422:
+      break;
+    case AV_PIX_FMT_YA16BE:
+      return 16;
+    case AV_PIX_FMT_YA16LE:
+      return 16;
+    case AV_PIX_FMT_GBRAP:
+      break;
+    case AV_PIX_FMT_GBRAP16BE:
+      return 16;
+    case AV_PIX_FMT_GBRAP16LE:
+      return 16;
+    case AV_PIX_FMT_QSV:
+      break;
+    case AV_PIX_FMT_MMAL:
+      break;
+    case AV_PIX_FMT_D3D11VA_VLD:
+      break;
+    case AV_PIX_FMT_CUDA:
+      break;
+    case AV_PIX_FMT_0RGB:
+      return 8;
+    case AV_PIX_FMT_RGB0:
+      return 8;
+    case AV_PIX_FMT_0BGR:
+      return 8;
+    case AV_PIX_FMT_BGR0:
+      return 8;
+    case AV_PIX_FMT_YUV420P12BE:
+      return 12;
+    case AV_PIX_FMT_YUV420P12LE:
+      return 12;
+    case AV_PIX_FMT_YUV420P14BE:
+      return 14;
+    case AV_PIX_FMT_YUV420P14LE:
+      return 14;
+    case AV_PIX_FMT_YUV422P12BE:
+      return 12;
+    case AV_PIX_FMT_YUV422P12LE:
+      return 12;
+    case AV_PIX_FMT_YUV422P14BE:
+      return 14;
+    case AV_PIX_FMT_YUV422P14LE:
+      return 14;
+    case AV_PIX_FMT_YUV444P12BE:
+      return 12;
+    case AV_PIX_FMT_YUV444P12LE:
+      return 12;
+    case AV_PIX_FMT_YUV444P14BE:
+      return 14;
+    case AV_PIX_FMT_YUV444P14LE:
+      return 14;
+    case AV_PIX_FMT_GBRP12BE:
+      return 12;
+    case AV_PIX_FMT_GBRP12LE:
+      return 12;
+    case AV_PIX_FMT_GBRP14BE:
+      return 14;
+    case AV_PIX_FMT_GBRP14LE:
+      return 14;
+    case AV_PIX_FMT_YUVJ411P:
+      break;
+    case AV_PIX_FMT_BAYER_BGGR8:
+      return 8;
+    case AV_PIX_FMT_BAYER_RGGB8:
+      return 8;
+    case AV_PIX_FMT_BAYER_GBRG8:
+      return 8;
+    case AV_PIX_FMT_BAYER_GRBG8:
+      return 8;
+    case AV_PIX_FMT_BAYER_BGGR16LE:
+      return 16;
+    case AV_PIX_FMT_BAYER_BGGR16BE:
+      return 16;
+    case AV_PIX_FMT_BAYER_RGGB16LE:
+      return 16;
+    case AV_PIX_FMT_BAYER_RGGB16BE:
+      return 16;
+    case AV_PIX_FMT_BAYER_GBRG16LE:
+      return 16;
+    case AV_PIX_FMT_BAYER_GBRG16BE:
+      return 16;
+    case AV_PIX_FMT_BAYER_GRBG16LE:
+      return 16;
+    case AV_PIX_FMT_BAYER_GRBG16BE:
+      return 16;
+    case AV_PIX_FMT_YUV440P10LE:
+      return 10;
+    case AV_PIX_FMT_YUV440P10BE:
+      return 10;
+    case AV_PIX_FMT_YUV440P12LE:
+      return 12;
+    case AV_PIX_FMT_YUV440P12BE:
+      return 12;
+    case AV_PIX_FMT_AYUV64LE:
+      return 16;
+    case AV_PIX_FMT_AYUV64BE:
+      return 16;
+    case AV_PIX_FMT_VIDEOTOOLBOX:
+      break;
+    case AV_PIX_FMT_P010LE:
+      return 10;
+    case AV_PIX_FMT_P010BE:
+      return 10;
+    case AV_PIX_FMT_GBRAP12BE:
+      return 12;
+    case AV_PIX_FMT_GBRAP12LE:
+      return 12;
+    case AV_PIX_FMT_GBRAP10BE:
+      return 10;
+    case AV_PIX_FMT_GBRAP10LE:
+      return 10;
+    case AV_PIX_FMT_MEDIACODEC:
+      break;
+    case AV_PIX_FMT_GRAY12BE:
+      return 12;
+    case AV_PIX_FMT_GRAY12LE:
+      return 12;
+    case AV_PIX_FMT_GRAY10BE:
+      return 10;
+    case AV_PIX_FMT_GRAY10LE:
+      return 10;
+    case AV_PIX_FMT_P016LE:
+      return 16;
+    case AV_PIX_FMT_P016BE:
+      return 16;
+    case AV_PIX_FMT_D3D11:
+      break;
+    case AV_PIX_FMT_GRAY9BE:
+      return 9;
+    case AV_PIX_FMT_GRAY9LE:
+      return 9;
+    case AV_PIX_FMT_GBRPF32BE:
+      return 32;
+    case AV_PIX_FMT_GBRPF32LE:
+      return 32;
+    case AV_PIX_FMT_GBRAPF32BE:
+      return 32;
+    case AV_PIX_FMT_GBRAPF32LE:
+      return 32;
+    case AV_PIX_FMT_DRM_PRIME:
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown ffmpeg pixel format (was: %d), aborting\n"),
+                  format_in));
+      break;
+    }
+  } // end SWITCH
+
+  ACE_ASSERT (false);
+  return 0;
+}
+
 enum AVPixelFormat
 Stream_MediaFramework_Tools::AVHWDeviceTypeToPixelFormat (enum AVHWDeviceType type_in)
 {

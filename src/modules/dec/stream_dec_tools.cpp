@@ -2307,7 +2307,8 @@ decompress:
 
 decode:
   ACE_ASSERT (graph_entry.mediaType);
-  if (InlineIsEqualGUID (graph_entry.mediaType->subtype, outputFormat_in.subtype) ||
+  if (InlineIsEqualGUID (GUID_NULL, outputFormat_in.subtype)                      ||
+      InlineIsEqualGUID (graph_entry.mediaType->subtype, outputFormat_in.subtype) ||
       skip_decode)
     goto grab;
 

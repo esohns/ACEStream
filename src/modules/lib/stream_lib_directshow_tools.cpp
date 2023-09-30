@@ -3525,7 +3525,7 @@ Stream_MediaFramework_DirectShow_Tools::setResolution (const Common_Image_Resolu
 }
 
 void
-Stream_MediaFramework_DirectShow_Tools::setFramerate (const unsigned int& frameRate_in,
+Stream_MediaFramework_DirectShow_Tools::setFramerate (unsigned int frameRate_in,
                                                       struct _AMMediaType& mediaType_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::setFramerate"));

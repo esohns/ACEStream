@@ -599,9 +599,9 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   outputFormat_inout = *media_type_p;
   delete media_type_p; media_type_p = NULL;
 
-  // *NOTE*: the default save format is ARGB32
   ACE_ASSERT (InlineIsEqualGUID (outputFormat_inout.majortype, MEDIATYPE_Video));
-  outputFormat_inout.subtype =
+  // *NOTE*: the default save format is BGRA32 (does not work on WMP, does play on vlc)
+  outputFormat_inout.subtype = // also try MEDIASUBTYPE_RGB555; (sort of) works on WMP
     STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT;
   outputFormat_inout.bFixedSizeSamples = TRUE;
   outputFormat_inout.bTemporalCompression = FALSE;
@@ -1253,18 +1253,23 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      //directshow_video_modulehandler_configuration.flipImage = true;
       directshow_video_modulehandler_configuration.messageAllocator =
         &directshow_message_allocator;
       directshow_video_modulehandler_configuration_2 =
         directshow_video_modulehandler_configuration;
+      directshow_video_modulehandler_configuration_2.handleResize = false; // there is a resize module downstream that handles resize messages
       directshow_video_modulehandler_configuration_3 =
         directshow_video_modulehandler_configuration;
       directshow_video_modulehandler_configuration_4 =
         directshow_video_modulehandler_configuration;
       directshow_video_modulehandler_configuration_5 =
         directshow_video_modulehandler_configuration;
+      // *NOTE*: "flipped_raw_rgb" is set in the encoder (i.e. it stores
+      //         positive heights, indicating the image scanlines are bottom-up
+      //         in memory, while ours are in fact top-down)
+      //         --> it is a complete mess :-(
       directshow_video_modulehandler_configuration_5.flipImage = true;
+      directshow_video_modulehandler_configuration_5.handleResize = false; // write input data as-is
 
       // capture
       directshow_audio_modulehandler_configuration_2 =

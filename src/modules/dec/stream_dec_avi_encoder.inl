@@ -1894,7 +1894,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   AVI_header_strf_video =
     (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo) ? video_info_header_p->bmiHeader
                                                                    : video_info_header2_p->bmiHeader);
-  AVI_header_strf_video.biHeight = -AVI_header_strf_video.biHeight;
+  // *NOTE*: the negative header size is microsoft-specific rubbish (specifies
+  //         bottom-up versus top-down scanlines). Also, it seems vlc cannot
+  //         handle it properly
+  //AVI_header_strf_video.biHeight = -AVI_header_strf_video.biHeight;
   result =
     messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_strf_video),
                               (3 * 4) + (2 * 2) + (6 * 4));

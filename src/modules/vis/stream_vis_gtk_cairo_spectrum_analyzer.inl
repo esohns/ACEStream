@@ -1197,7 +1197,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       }
       case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM:
       {
-        double x = 0.0;
+        double x;
         // step2aa: draw thin, white columns
         cairo_set_source_rgb (cbdata_p->context, 1.0, 1.0, 1.0);
         // *IMPORTANT NOTE*: - the first ('DC'-)slot does not contain frequency

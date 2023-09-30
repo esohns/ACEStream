@@ -214,7 +214,7 @@ class Stream_MediaFramework_DirectShow_Tools
                          struct _AMMediaType&); // in/out: media type
   static void setResolution (const Common_Image_Resolution_t&, // resolution
                              struct _AMMediaType&); // in/out: media type
-  static void setFramerate (const unsigned int&,   // framerate (i.e. fps)
+  static void setFramerate (unsigned int,          // framerate (i.e. fps)
                             struct _AMMediaType&); // in/out: media type
   static unsigned int toBitrate (const struct _AMMediaType&); // media type
   static unsigned int toFrameBits (const struct _AMMediaType&); // media type

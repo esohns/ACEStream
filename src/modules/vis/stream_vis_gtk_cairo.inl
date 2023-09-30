@@ -426,12 +426,12 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   ACE_GUARD (ACE_Thread_Mutex, aGuard, surfaceLock_);
 
-#if GTK_CHECK_VERSION(3,10,0)
+#if GTK_CHECK_VERSION (3,10,0)
   cairo_surface_flush (surface_);
   ACE_OS::memcpy (cairo_image_surface_get_data (surface_),
 #else
   ACE_OS::memcpy (gdk_pixbuf_get_pixels (surface_),
-#endif // GTK_CHECK_VERSION
+#endif // GTK_CHECK_VERSION (3,10,0)
                   message_inout->rd_ptr (),
                   message_inout->length ());
 
@@ -444,7 +444,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //  ACE_ASSERT (pixbuf_p);
 //  g_object_unref (surface_);
 //  surface_ = pixbuf_p;
-#endif // GTK_CHECK_VERSION(3,10,0)
+#endif // GTK_CHECK_VERSION (3,10,0)
 }
 
 template <ACE_SYNCH_DECL,

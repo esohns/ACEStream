@@ -1299,12 +1299,10 @@ Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_in,
     Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
     return false; // *TODO*: prevent false negatives
   } // end IF
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: set capture format: %s\n"),
               ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_s, true).c_str ())));
-#endif // _DEBUG
   stream_config_p->Release (); stream_config_p = NULL;
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 

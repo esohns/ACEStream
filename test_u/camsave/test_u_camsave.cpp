@@ -646,7 +646,7 @@ continue_:
   saveFormat_inout = *media_type_p;
   delete media_type_p; media_type_p = NULL;
 
-  // *NOTE*: the default save format is ARGB32
+  // *NOTE*: the default save format is BGRA32
   ACE_ASSERT (InlineIsEqualGUID (saveFormat_inout.majortype, MEDIATYPE_Video));
   saveFormat_inout.subtype = MEDIASUBTYPE_RGB32;
   saveFormat_inout.bFixedSizeSamples = TRUE;
@@ -1431,6 +1431,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         deviceIdentifier_in;
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
+      directshow_modulehandler_configuration.handleResize = false; // there is a resize module downstream that handles resize messages
       directshow_modulehandler_configuration.lock = &state_r.subscribersLock;
 
       if (statisticReportingInterval_in)
@@ -1644,6 +1645,7 @@ error:
 
 #if defined (FFMPEG_SUPPORT)
       directshow_modulehandler_configuration_4 = directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_4.handleResize = false; // write as-is
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_4)));

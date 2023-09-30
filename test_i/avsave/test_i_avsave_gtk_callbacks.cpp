@@ -1637,14 +1637,15 @@ set_capture_format (struct Stream_AVSave_UI_CBData* CBData_in)
                     framerate_numerator_i / framerate_denominator_i));
         return;
       } // end IF
-      if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*directshow_stream_iterator).second.second->builder,
-                                                             CLSID_VideoInputDeviceCategory,
-                                                             directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), returning\n")));
-        return;
-      } // end IF
+      // *IMPORTANT NOTE*: this is set in Stream_AVSave_DirectShow_Stream::initialize()
+      //if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*directshow_stream_iterator).second.second->builder,
+      //                                                       CLSID_VideoInputDeviceCategory,
+      //                                                       directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), returning\n")));
+      //  return;
+      //} // end IF
 
       // step2: adjust output format
       // sanity check(s)

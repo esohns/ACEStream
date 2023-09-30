@@ -153,6 +153,7 @@ class Stream_MediaFramework_Tools
 #if defined (FFMPEG_SUPPORT)
   // ffmpeg
   static bool isAcceleratedFormat (enum AVPixelFormat);
+  static int AVPixelFormatToBitCount (enum AVPixelFormat); // format
   static enum AVPixelFormat AVHWDeviceTypeToPixelFormat (enum AVHWDeviceType);
   static enum AVPixelFormat AVHWDeviceTypeToIntermediatePixelFormat (enum AVHWDeviceType);
   static enum AVCodecID ffmpegFormatToffmpegCodecId (enum AVSampleFormat); // format

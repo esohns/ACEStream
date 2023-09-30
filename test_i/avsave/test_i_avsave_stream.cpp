@@ -134,7 +134,7 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&distributor_, NULL, 0);
       branch_p = &distributor_;
       branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-//      configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+      //branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
       Stream_IDistributorModule* idistributor_p =
           dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
       ACE_ASSERT (idistributor_p);
@@ -183,7 +183,7 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Stream_AVSave_DirectShow_SessionData* session_data_p = NULL;
-  inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
+  inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2, iterator_3;
   Stream_AVSave_DirectShow_Source* source_impl_p = NULL;
   struct _AllocatorProperties allocator_properties;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
@@ -204,10 +204,13 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
   // sanity check(s)
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  //iterator_2 =
-  //  const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
+  iterator_2 =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING));
+  iterator_3 =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"));
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
-  //ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
+  ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
+  ACE_ASSERT (iterator_3 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
 
   // ---------------------------------------------------------------------------
   // step1: set up directshow filter graph
@@ -280,24 +283,6 @@ continue_:
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-
-  //// sanity check(s)
-  //ACE_ASSERT ((*iterator).second.second->direct3DConfiguration);
-
-  //if (!Stream_Device_Tools::getDirect3DDevice (*(*iterator).second.second->direct3DConfiguration,
-  //                                                    direct3D_manager_p,
-  //                                                    reset_token))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to Stream_Device_Tools::getDirect3DDevice(), aborting\n"),
-  //              ACE_TEXT (stream_name_string_)));
-  //  goto error;
-  //} // end IF
-  //ACE_ASSERT ((*iterator).second.second->direct3DConfiguration->handle);
-  //ACE_ASSERT ((*iterator).second.second->direct3DConfiguration->handle);
-  //ACE_ASSERT (direct3D_manager_p);
-  //ACE_ASSERT (reset_token);
-  //direct3D_manager_p->Release (); direct3D_manager_p = NULL;
 
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
                                                             configuration_in.configuration_->format.video,
@@ -487,7 +472,6 @@ continue_:
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
-  //ACE_ASSERT ((*iterator).second.second->direct3DConfiguration);
 
   session_data_p =
     &const_cast<Stream_AVSave_DirectShow_SessionData&> (inherited::sessionData_->getR ());
@@ -496,6 +480,19 @@ continue_:
   session_data_p->formats.push_back (media_type_s);
   session_data_p->stream = this;
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
+
+  Common_Image_Resolution_t resolution_s =
+    Stream_MediaFramework_DirectShow_Tools::toResolution (configuration_in.configuration_->format.video);
+  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                         (*iterator_2).second.second->outputFormat);
+  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                         (*iterator_3).second.second->outputFormat);
+  unsigned int frame_rate_num =
+    Stream_MediaFramework_DirectShow_Tools::toFramerate (configuration_in.configuration_->format.video);
+  Stream_MediaFramework_DirectShow_Tools::setFramerate (frame_rate_num,
+                                                        (*iterator_2).second.second->outputFormat);
+  Stream_MediaFramework_DirectShow_Tools::setFramerate (frame_rate_num,
+                                                        (*iterator_3).second.second->outputFormat);
 
   // step7: assemble stream
   if (configuration_in.configuration_->setupPipeline)
