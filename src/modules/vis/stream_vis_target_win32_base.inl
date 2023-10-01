@@ -256,9 +256,9 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
   WNDCLASSEX window_class_ex_s;
   window_class_ex_s.cbSize = sizeof (WNDCLASSEX);
   window_class_ex_s.style = CS_HREDRAW | CS_VREDRAW;
-  //window_class_ex_s.lpfnWndProc = DefWindowProc;
-  window_class_ex_s.lpfnWndProc =
-    libacestream_vis_target_win32_base_window_proc_cb;
+  window_class_ex_s.lpfnWndProc = DefWindowProc;
+  //window_class_ex_s.lpfnWndProc =
+  //  libacestream_vis_target_win32_base_window_proc_cb;
   window_class_ex_s.cbClsExtra = 0;
   window_class_ex_s.cbWndExtra = 0;
   window_class_ex_s.hInstance = (HINSTANCE)GetModuleHandle (NULL);
@@ -267,7 +267,7 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
   window_class_ex_s.hCursor = NULL;
   window_class_ex_s.hbrBackground = (HBRUSH)COLOR_WINDOW;
   window_class_ex_s.lpszMenuName = NULL;
-  ACE_TCHAR szClassName[256] = ACE_TEXT ("SampleWindowClass");
+  ACE_TCHAR szClassName[256] = ACE_TEXT ("ACEStream Visualization WindowClass");
 #if defined (UNICODE)
   window_class_ex_s.lpszClassName = ACE_TEXT_ALWAYS_WCHAR (szClassName);
 #else
@@ -275,13 +275,16 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
 #endif // UNICODE
   window_class_ex_s.hIconSm = NULL;
   ATOM atom = RegisterClassEx (&window_class_ex_s);
-  if (unlikely (atom == 0))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to RegisterClassEx(): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-    return NULL;
+  if (unlikely (atom == 0)) // most likely reason: already registered this window class
+  { DWORD error_i = ::GetLastError ();
+    if (unlikely (error_i != ERROR_CLASS_ALREADY_EXISTS))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to RegisterClassEx(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Error_Tools::errorToString (error_i).c_str ())));
+      return NULL;
+    } // end IF
   } // end IF
 
   DWORD window_style_i = (WS_OVERLAPPED     |

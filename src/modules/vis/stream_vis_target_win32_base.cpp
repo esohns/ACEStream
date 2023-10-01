@@ -26,6 +26,7 @@ libacestream_vis_target_win32_base_window_proc_cb (HWND hWnd, UINT message, WPAR
 {
   switch (message) 
   {
+    //case WM_CLOSE:
     case WM_DESTROY:
       PostQuitMessage (0);
       break;

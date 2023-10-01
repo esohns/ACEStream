@@ -272,6 +272,7 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      HWND window_h = inherited::window_;
       if (inherited::window_)
       {
         inherited::notify_ = false;
@@ -284,7 +285,10 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
       } // end IF
 
       if (inherited::thr_count_)
+      {
+        PostMessage (window_h, WM_QUIT, 0, NULL);
         inherited::wait ();
+      } // end IF
 
       break;
     }
@@ -530,9 +534,16 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
 
   inherited::notify_ = true;
 
+  BOOL result;
   struct tagMSG message_s;
-  while (GetMessage (&message_s, window_, 0, 0) != -1)
+  while (result = GetMessage (&message_s, inherited::window_, 0, 0) != 0)
   {
+    if (result == -1)
+    {
+      // handle the error and possibly exit
+      break;
+    }
+
     TranslateMessage (&message_s);
     DispatchMessage (&message_s);
   } // end WHILE
