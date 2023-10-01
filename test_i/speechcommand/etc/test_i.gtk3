@@ -26,45 +26,6 @@
     <property name="step_increment">1</property>
     <property name="page_increment">1</property>
   </object>
-  <object class="GtkFileFilter" id="filefilter_txt"/>
-  <object class="GtkFileChooserDialog" id="filechooserdialog_save">
-    <property name="can_focus">False</property>
-    <property name="modal">True</property>
-    <property name="type_hint">dialog</property>
-    <property name="action">select-folder</property>
-    <property name="filter">filefilter_txt</property>
-    <property name="local_only">False</property>
-    <property name="preview_widget_active">False</property>
-    <property name="use_preview_label">False</property>
-    <child internal-child="vbox">
-      <object class="GtkBox" id="filechooserdialog_box_save">
-        <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox" id="filechooserdialog_buttonbox_save">
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-      </object>
-    </child>
-  </object>
   <object class="GtkAboutDialog" id="dialog_about">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -108,30 +69,68 @@
       </object>
     </child>
   </object>
-  <object class="GtkEntryBuffer" id="entrybuffer_destination">
+  <object class="GtkEntryBuffer" id="entrybuffer_model">
+    <property name="text" translatable="yes">deepspeech-0.9.3-models.pbmm</property>
+  </object>
+  <object class="GtkEntryBuffer" id="entrybuffer_save">
     <property name="text" translatable="yes">output.txt</property>
   </object>
-  <object class="GtkListStore" id="liststore_source">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name device -->
-      <column type="gchararray"/>
-      <!-- column-name card_id -->
-      <column type="guint"/>
-    </columns>
+  <object class="GtkEntryBuffer" id="entrybuffer_scorer">
+    <property name="text" translatable="yes">deepspeech-0.9.3-models.scorer</property>
   </object>
-  <object class="GtkAdjustment" id="scrolledwindow_hadjustment">
-    <property name="upper">100</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
+  <object class="GtkFileFilter" id="filefilter_model">
+    <patterns>
+      <pattern>*.pbmm</pattern>
+    </patterns>
   </object>
-  <object class="GtkAdjustment" id="scrolledwindow_vadjustment">
-    <property name="upper">100</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
+  <object class="GtkFileFilter" id="filefilter_scorer">
+    <patterns>
+      <pattern>*.scorer</pattern>
+    </patterns>
   </object>
-  <object class="GtkTextBuffer" id="textbuffer"/>
+  <object class="GtkFileFilter" id="filefilter_txt">
+    <patterns>
+      <pattern>*.txt</pattern>
+    </patterns>
+  </object>
+  <object class="GtkFileChooserDialog" id="filechooserdialog_save">
+    <property name="can_focus">False</property>
+    <property name="modal">True</property>
+    <property name="type_hint">dialog</property>
+    <property name="action">select-folder</property>
+    <property name="filter">filefilter_txt</property>
+    <property name="local_only">False</property>
+    <property name="preview_widget_active">False</property>
+    <property name="use_preview_label">False</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="filechooserdialog_box_save">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="filechooserdialog_buttonbox_save">
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+      </object>
+    </child>
+  </object>
   <object class="GtkDialog" id="dialog_main">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -529,6 +528,77 @@
                       </packing>
                     </child>
                     <child>
+                      <object class="GtkFrame" id="frame_model">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label_xalign">0</property>
+                        <child>
+                          <object class="GtkAlignment" id="alignment_model">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <child>
+                              <object class="GtkBox" id="box_model">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="orientation">vertical</property>
+                                <property name="homogeneous">True</property>
+                                <child>
+                                  <object class="GtkFileChooserButton" id="filechooserbutton_model">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip_markup" translatable="yes">select model file</property>
+                                    <property name="tooltip_text" translatable="yes">select model file</property>
+                                    <property name="create_folders">False</property>
+                                    <property name="filter">filefilter_model</property>
+                                    <property name="local_only">False</property>
+                                    <property name="preview_widget_active">False</property>
+                                    <property name="show_hidden">True</property>
+                                    <property name="use_preview_label">False</property>
+                                    <property name="focus_on_click">False</property>
+                                    <signal name="file-set" handler="filechooserbutton_model_file_set_cb" swapped="no"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkFileChooserButton" id="filechooserbutton_scorer">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip_markup" translatable="yes">select scorer file</property>
+                                    <property name="tooltip_text" translatable="yes">select scorer file</property>
+                                    <property name="create_folders">False</property>
+                                    <property name="filter">filefilter_scorer</property>
+                                    <property name="local_only">False</property>
+                                    <property name="preview_widget_active">False</property>
+                                    <property name="show_hidden">True</property>
+                                    <property name="use_preview_label">False</property>
+                                    <property name="focus_on_click">False</property>
+                                    <signal name="file-set" handler="filechooserbutton_scorer_file_set_cb" swapped="no"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child type="label_item">
+                          <placeholder/>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
                       <object class="GtkFrame" id="frame_save">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -575,13 +645,14 @@
                                         <property name="has_tooltip">True</property>
                                         <property name="tooltip_markup" translatable="yes">destination file</property>
                                         <property name="tooltip_text" translatable="yes">destination file</property>
-                                        <property name="buffer">entrybuffer_destination</property>
+                                        <property name="buffer">entrybuffer_save</property>
                                         <property name="editable">False</property>
                                         <property name="has_frame">False</property>
                                         <property name="invisible_char">●</property>
                                         <property name="truncate_multiline">True</property>
                                         <property name="shadow_type">etched-in</property>
                                         <property name="caps_lock_warning">False</property>
+                                        <property name="progress_pulse_step">0.080000005662441254</property>
                                         <property name="primary_icon_stock">gtk-save</property>
                                         <property name="primary_icon_activatable">False</property>
                                         <property name="secondary_icon_activatable">False</property>
@@ -614,7 +685,7 @@
                                         <property name="dialog">filechooserdialog_save</property>
                                         <property name="focus_on_click">False</property>
                                         <property name="title" translatable="yes">choose a folder</property>
-                                        <signal name="current-folder-changed" handler="filechooserbutton_cb" swapped="no"/>
+                                        <signal name="current-folder-changed" handler="filechooserbutton_save_current_folder_changed_cb" swapped="no"/>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -640,7 +711,7 @@
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
-                        <property name="position">1</property>
+                        <property name="position">2</property>
                       </packing>
                     </child>
                     <child>
@@ -754,7 +825,7 @@
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
-                        <property name="position">2</property>
+                        <property name="position">3</property>
                       </packing>
                     </child>
                   </object>
@@ -960,4 +1031,25 @@
       <action-widget response="0">quit</action-widget>
     </action-widgets>
   </object>
+  <object class="GtkListStore" id="liststore_source">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name device -->
+      <column type="gchararray"/>
+      <!-- column-name card_id -->
+      <column type="guint"/>
+    </columns>
+  </object>
+  <object class="GtkAdjustment" id="scrolledwindow_hadjustment">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="scrolledwindow_vadjustment">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkTextBuffer" id="textbuffer"/>
 </interface>

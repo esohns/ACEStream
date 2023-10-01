@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="2.16"/>
+  <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkAction" id="action_record">
     <property name="label">Record</property>
@@ -18,13 +18,6 @@
     <property name="upper">100</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment_port">
-    <property name="lower">1</property>
-    <property name="upper">65535</property>
-    <property name="value">537</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">100</property>
   </object>
   <object class="GtkAdjustment" id="adjustment_session_messages">
     <property name="upper">100</property>
@@ -72,6 +65,9 @@
       </object>
     </child>
   </object>
+  <object class="GtkEntryBuffer" id="entrybuffer_save">
+    <property name="text" translatable="yes">output.txt</property>
+  </object>
   <object class="GtkFileFilter" id="filefilter_txt"/>
   <object class="GtkFileChooserDialog" id="filechooserdialog_save">
     <property name="can_focus">False</property>
@@ -79,11 +75,14 @@
     <property name="role">GtkFileChooserDialog</property>
     <property name="type_hint">dialog</property>
     <property name="deletable">False</property>
-    <property name="action">save</property>
+    <property name="action">select-folder</property>
+    <property name="create_folders">False</property>
     <property name="filter">filefilter_txt</property>
     <property name="local_only">False</property>
     <property name="preview_widget_active">False</property>
     <property name="show_hidden">True</property>
+    <property name="use_preview_label">False</property>
+    <signal name="current-folder-changed" handler="filechooserdialog_save_current_folder_changed_cb" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkVBox" id="filechooserdialog_vbox">
         <property name="visible">True</property>
@@ -334,27 +333,64 @@
                                     <property name="receives_default">True</property>
                                     <property name="relief">half</property>
                                     <property name="use_stock">True</property>
+                                    <property name="focus_on_click">False</property>
                                     <signal name="toggled" handler="togglebutton_save_toggled_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkFileChooserButton" id="filechooserbutton_save">
+                                  <object class="GtkHBox" id="hbox_save_2">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="tooltip_markup">save to file</property>
-                                    <property name="action">save</property>
-                                    <property name="filter">filefilter_txt</property>
-                                    <property name="local_only">False</property>
-                                    <property name="preview_widget_active">False</property>
-                                    <property name="show_hidden">True</property>
-                                    <property name="dialog">filechooserdialog_save</property>
-                                    <property name="focus_on_click">False</property>
-                                    <signal name="file-set" handler="filechooserbutton_file_set_cb" swapped="no"/>
+                                    <child>
+                                      <object class="GtkEntry" id="entry_save">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="buffer">entrybuffer_save</property>
+                                        <property name="has_frame">False</property>
+                                        <property name="invisible_char">●</property>
+                                        <property name="truncate_multiline">True</property>
+                                        <property name="shadow_type">etched-in</property>
+                                        <property name="caps_lock_warning">False</property>
+                                        <property name="primary_icon_stock">gtk-floppy</property>
+                                        <property name="primary_icon_activatable">False</property>
+                                        <property name="secondary_icon_activatable">False</property>
+                                        <property name="primary_icon_sensitive">True</property>
+                                        <property name="secondary_icon_sensitive">True</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">True</property>
+                                        <property name="fill">False</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkFileChooserButton" id="filechooserbutton_save">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="tooltip_markup">save to file</property>
+                                        <property name="action">select-folder</property>
+                                        <property name="create_folders">False</property>
+                                        <property name="filter">filefilter_txt</property>
+                                        <property name="local_only">False</property>
+                                        <property name="preview_widget_active">False</property>
+                                        <property name="show_hidden">True</property>
+                                        <property name="use_preview_label">False</property>
+                                        <property name="dialog">filechooserdialog_save</property>
+                                        <property name="focus_on_click">False</property>
+                                        <property name="title" translatable="yes">Select a Directory</property>
+                                        <signal name="current-folder-changed" handler="filechooserbutton_save_current_folder_changed_cb" swapped="no"/>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">True</property>
+                                        <property name="fill">False</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>

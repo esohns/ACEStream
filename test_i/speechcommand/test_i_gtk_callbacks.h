@@ -54,10 +54,12 @@ G_MODULE_EXPORT gboolean drawingarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
 #else
 G_MODULE_EXPORT gboolean drawingarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
 #endif // GTK_CHECK_VERSION(3,0,0)
-G_MODULE_EXPORT void filechooserbutton_save_file_set_cb (GtkFileChooserButton*, gpointer);
+G_MODULE_EXPORT void filechooserbutton_save_current_folder_changed_cb (GtkFileChooserButton*, gpointer);
 G_MODULE_EXPORT gboolean hscale_boost_change_value_cb (GtkRange*, GtkScrollType*, gdouble, gpointer);
 G_MODULE_EXPORT void hscale_boost_value_changed_cb (GtkRange*, gpointer);
 G_MODULE_EXPORT void hscale_volume_value_changed_cb (GtkRange*, gpointer);
+G_MODULE_EXPORT void filechooserbutton_model_file_set_cb (GtkFileChooserButton*, gpointer);
+G_MODULE_EXPORT void filechooserbutton_scorer_file_set_cb (GtkFileChooserButton*, gpointer);
 G_MODULE_EXPORT void radiobutton_2d_toggled_cb (GtkToggleButton*, gpointer);
 G_MODULE_EXPORT void textview_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
 G_MODULE_EXPORT void togglebutton_3d_toggled_cb (GtkToggleButton*, gpointer);

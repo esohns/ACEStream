@@ -245,8 +245,10 @@ target_precompile_headers (${EXECUTABLE}
 
 set (model_file "deepspeech-0.9.3-models.pbmm")
 set (scorer_file "deepspeech-0.9.3-models.scorer")
-set (model_file "etc/${model_file}")
-set (scorer_file "etc/${scorer_file}")
+set (german_model_file "model.pbmm")
+set (german_scorer_file "de-aashishag-1-prune-kenlm.scorer")
+set (model_file "etc/${german_model_file}")
+set (scorer_file "etc/${german_scorer_file}")
 set (ui_definition_file "")
 if (GUI_SUPPORT)
  if (GTK_USE)

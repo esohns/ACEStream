@@ -1100,6 +1100,77 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_file_filter_set_name (file_filter_p,
                             ACE_TEXT ("TXT files"));
 
+  std::string model_file_string;
+  std::string scorer_file_string;
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      model_file_string =
+        (*directshow_modulehandler_configuration_iterator).second.second->modelFile;
+      scorer_file_string =
+        (*directshow_modulehandler_configuration_iterator).second.second->scorerFile;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      model_file_string =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->modelFile;
+      scorer_file_string =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->scorerFile;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return G_SOURCE_REMOVE;
+    }
+  } // end SWITCH
+#else
+  model_file_string =
+    (*modulehandler_configuration_iterator).second.second->modelFile;
+  scorer_file_string =
+    (*modulehandler_configuration_iterator).second.second->scorerFile;
+#endif // ACE_WIN32 || ACE_WIN64
+  GtkFileChooserButton* model_file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_MODEL_NAME)));
+  ACE_ASSERT (model_file_chooser_button_p);
+  GtkFileChooserButton* scorer_file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SCORER_NAME)));
+  ACE_ASSERT (scorer_file_chooser_button_p);
+  gboolean result = false;
+  // *NOTE*: gtk does not complain if the file doesn't exist, but the button
+  //         will display "(None)" --> create empty file
+  GFile* file_p = g_file_new_for_path (model_file_string.c_str ());
+  ACE_ASSERT (file_p);
+  GError* error_p = NULL;
+  result =
+    gtk_file_chooser_set_file (GTK_FILE_CHOOSER (model_file_chooser_button_p),
+                               file_p,
+                               &error_p);
+  ACE_ASSERT (result && !error_p);
+  g_object_unref (file_p); file_p = NULL;
+  file_p = g_file_new_for_path (scorer_file_string.c_str ());
+  ACE_ASSERT (file_p);
+  result =
+    gtk_file_chooser_set_file (GTK_FILE_CHOOSER (scorer_file_chooser_button_p),
+                                file_p,
+                                &error_p);
+  ACE_ASSERT (result && !error_p);
+  g_object_unref (file_p); file_p = NULL;
+  //if (unlikely (!result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to gtk_file_chooser_set_file(\"%s\"): \"%m\", aborting\n"),
+  //              ACE_TEXT (filename_string.c_str ())));
+  //  return G_SOURCE_REMOVE;
+  //} // end IF
+
   std::string filename_string;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
@@ -1145,7 +1216,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME)));
   ACE_ASSERT (file_chooser_dialog_p);
-  gboolean result = false;
+  result = false;
   if (!filename_string.empty ())
   {
     if (!Common_File_Tools::isDirectory (filename_string))
@@ -1160,7 +1231,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                       ACE_TEXT (filename_string.c_str ())));
           return G_SOURCE_REMOVE;
         } // end IF
-      GFile* file_p = g_file_new_for_path (filename_string.c_str ());
+      file_p = g_file_new_for_path (filename_string.c_str ());
       ACE_ASSERT (file_p);
       GFile* file_2 = g_file_get_parent (file_p);
       ACE_ASSERT (file_2);
@@ -1680,6 +1751,9 @@ idle_update_info_display_cb (gpointer userData_in)
   GtkTextBuffer* text_buffer_p = gtk_text_view_get_buffer (text_view_p);
   ACE_ASSERT (text_buffer_p);
 
+  struct Test_I_SpeechCommand_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_SpeechCommand_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p);
   Stream_Decoder_DeepSpeech_Result_t* result_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p =
@@ -1760,7 +1834,7 @@ idle_update_info_display_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_DATA_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p,
-                                     static_cast<gdouble> (ui_cb_data_base_p->progressData.statistic.bytes));
+                                     static_cast<gdouble> (ui_cb_data_p->progressData.statistic.bytes));
 
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -3747,23 +3821,38 @@ hscale_boost_value_changed_cb (GtkRange* range_in,
 } // hscale_boost_value_changed_cb
 
 void
-button_quit_clicked_cb (GtkWidget* widget_in,
-                        gpointer userData_in)
+filechooserbutton_model_file_set_cb (GtkFileChooserButton* button_in,
+                                     gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::button_quit_clicked_cb"));
-
-  ACE_UNUSED_ARG (widget_in);
+  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_model_file_set_cb"));
 
   // sanity check(s)
   struct Test_I_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Test_I_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_r.builders.end ());
 
-  Stream_IStreamControlBase* stream_p = NULL;
-  enum Stream_StateMachine_ControlState status_e = STREAM_STATE_INVALID;
+  char* filename_p = NULL;
+  GFile* file_p = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button_in));
+  if (!file_p)
+    return;
+  filename_p = g_file_get_path (file_p);
+  if (!filename_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to g_file_get_path(): \"%m\", returning\n")));
+    g_object_unref (file_p); file_p = NULL;
+    return;
+  } // end IF
+  g_object_unref (file_p); file_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p =
-    NULL;
+  struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
   Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
@@ -3780,12 +3869,9 @@ button_quit_clicked_cb (GtkWidget* widget_in,
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
-      ACE_ASSERT (directshow_ui_cb_data_p->stream);
-      stream_p = directshow_ui_cb_data_p->stream;
-      Test_I_DirectShow_IStreamControlBase_t* istream_control_p =
-        dynamic_cast<Test_I_DirectShow_IStreamControlBase_t*> (directshow_ui_cb_data_p->stream);
-      ACE_ASSERT (istream_control_p);
-      status_e = istream_control_p->status ();
+
+      (*directshow_modulehandler_configuration_iterator).second.second->modelFile =
+        Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -3795,15 +3881,13 @@ button_quit_clicked_cb (GtkWidget* widget_in,
         static_cast<struct Test_I_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
-      stream_p = mediafoundation_ui_cb_data_p->stream;
-      Test_I_MediaFoundation_IStreamControlBase_t* istream_control_p =
-        dynamic_cast<Test_I_MediaFoundation_IStreamControlBase_t*> (mediafoundation_ui_cb_data_p->stream);
-      ACE_ASSERT (istream_control_p);
-      status_e = istream_control_p->status ();
+
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->modelFile =
+        Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
       break;
     }
     default:
@@ -3818,54 +3902,109 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   // sanity check(s)
   struct Test_I_ALSA_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-  ACE_ASSERT (ui_cb_data_p->stream);
-  stream_p = ui_cb_data_p->stream;
-  Test_I_ALSA_IStreamControlBase_t* istream_control_p =
-    dynamic_cast<Test_I_ALSA_IStreamControlBase_t*> (ui_cb_data_p->stream);
-  ACE_ASSERT (istream_control_p);
-  status_e = istream_control_p->status ();
+
+  (*modulehandler_configuration_iterator).second.second->modelFile =
+    Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
 #endif // ACE_WIN32 || ACE_WIN64
-  ACE_ASSERT (stream_p);
+  g_free (filename_p);
+} // filechooserbutton_model_file_set_cb
 
-  if ((status_e == STREAM_STATE_RUNNING) ||
-      (status_e == STREAM_STATE_PAUSED))
-    stream_p->stop (false, // wait for completion ?
-                    false, // recurse upstream ?
-                    true); // high priority ?
+void
+filechooserbutton_scorer_file_set_cb (GtkFileChooserButton* button_in,
+                                      gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_scorer_file_set_cb"));
 
-  // wait for processing thread(s)
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock);
-    while (!ui_cb_data_base_p->progressData.pendingActions.empty ())
-      ui_cb_data_base_p->UIState->condition.wait (NULL);
-  } // end lock scope
+  // sanity check(s)
+  struct Test_I_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Test_I_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_r.builders.end ());
 
-  // step1: remove event sources
-  { ACE_GUARD (ACE_Thread_Mutex, aGuard, ui_cb_data_base_p->UIState->lock);
-    for (Common_UI_GTK_EventSourceIdsIterator_t iterator = ui_cb_data_base_p->UIState->eventSourceIds.begin ();
-         iterator != ui_cb_data_base_p->UIState->eventSourceIds.end ();
-         iterator++)
-      if (!g_source_remove (*iterator))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-                    *iterator));
-    ui_cb_data_base_p->UIState->eventSourceIds.clear ();
-  } // end lock scope
-
-  // step2: initiate shutdown sequence
-  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
-                                                      true); // high priority ?
-
-  int result = ACE_OS::raise (SIGINT);
-  if (result == -1)
+  char* filename_p = NULL;
+  GFile* file_p = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button_in));
+  if (!file_p)
+    return;
+  filename_p = g_file_get_path (file_p);
+  if (!filename_p)
+  {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_OS::raise(%S): \"%m\", continuing\n"),
-                SIGINT));
-} // button_quit_clicked_cb
+                ACE_TEXT ("failed to g_file_get_path(): \"%m\", returning\n")));
+    g_object_unref (file_p); file_p = NULL;
+    return;
+  } // end IF
+  g_object_unref (file_p); file_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      (*directshow_modulehandler_configuration_iterator).second.second->scorerFile =
+        Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->scorerFile =
+        Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_I_ALSA_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+
+  (*modulehandler_configuration_iterator).second.second->scorerFile =
+    Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
+#endif // ACE_WIN32 || ACE_WIN64
+  g_free (filename_p);
+} // filechooserbutton_scorer_file_set_cb
 
 void
 textview_size_allocate_cb (GtkWidget* widget_in,
@@ -4384,10 +4523,10 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
 #endif // GTK_CHECK_VERSION(3,0,0)
 
 void
-filechooserbutton_save_file_set_cb (GtkFileChooserButton* button_in,
-                                    gpointer userData_in)
+filechooserbutton_save_current_folder_changed_cb (GtkFileChooserButton* button_in,
+                                                  gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_save_file_set_cb"));
+  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_save_current_folder_changed_cb"));
 
   // sanity check(s)
   struct Test_I_UI_CBData* ui_cb_data_base_p =
@@ -4474,7 +4613,128 @@ filechooserbutton_save_file_set_cb (GtkFileChooserButton* button_in,
     Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
 #endif // ACE_WIN32 || ACE_WIN64
   g_free (filename_p);
-} // filechooserbutton_save_file_set_cb
+} // filechooserbutton_save_current_folder_changed_cb
+
+void
+button_quit_clicked_cb (GtkWidget* widget_in,
+                        gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::button_quit_clicked_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+
+  // sanity check(s)
+  struct Test_I_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Test_I_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+
+  Stream_IStreamControlBase* stream_p = NULL;
+  enum Stream_StateMachine_ControlState status_e = STREAM_STATE_INVALID;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT (directshow_ui_cb_data_p->stream);
+      stream_p = directshow_ui_cb_data_p->stream;
+      Test_I_DirectShow_IStreamControlBase_t* istream_control_p =
+        dynamic_cast<Test_I_DirectShow_IStreamControlBase_t*> (directshow_ui_cb_data_p->stream);
+      ACE_ASSERT (istream_control_p);
+      status_e = istream_control_p->status ();
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
+      stream_p = mediafoundation_ui_cb_data_p->stream;
+      Test_I_MediaFoundation_IStreamControlBase_t* istream_control_p =
+        dynamic_cast<Test_I_MediaFoundation_IStreamControlBase_t*> (mediafoundation_ui_cb_data_p->stream);
+      ACE_ASSERT (istream_control_p);
+      status_e = istream_control_p->status ();
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_I_ALSA_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT (ui_cb_data_p->stream);
+  stream_p = ui_cb_data_p->stream;
+  Test_I_ALSA_IStreamControlBase_t* istream_control_p =
+    dynamic_cast<Test_I_ALSA_IStreamControlBase_t*> (ui_cb_data_p->stream);
+  ACE_ASSERT (istream_control_p);
+  status_e = istream_control_p->status ();
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (stream_p);
+
+  if ((status_e == STREAM_STATE_RUNNING) ||
+      (status_e == STREAM_STATE_PAUSED))
+    stream_p->stop (false, // wait for completion ?
+                    false, // recurse upstream ?
+                    true); // high priority ?
+
+  // wait for processing thread(s)
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock);
+    while (!ui_cb_data_base_p->progressData.pendingActions.empty ())
+      ui_cb_data_base_p->UIState->condition.wait (NULL);
+  } // end lock scope
+
+  // step1: remove event sources
+  { ACE_GUARD (ACE_Thread_Mutex, aGuard, ui_cb_data_base_p->UIState->lock);
+    for (Common_UI_GTK_EventSourceIdsIterator_t iterator = ui_cb_data_base_p->UIState->eventSourceIds.begin ();
+         iterator != ui_cb_data_base_p->UIState->eventSourceIds.end ();
+         iterator++)
+      if (!g_source_remove (*iterator))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+                    *iterator));
+    ui_cb_data_base_p->UIState->eventSourceIds.clear ();
+  } // end lock scope
+
+  // step2: initiate shutdown sequence
+  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
+                                                      true); // high priority ?
+
+  int result = ACE_OS::raise (SIGINT);
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_OS::raise(%S): \"%m\", continuing\n"),
+                SIGINT));
+} // button_quit_clicked_cb
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
