@@ -703,7 +703,9 @@ do_work (const std::string& bootstrapFileName_in,
   Test_I_HTTPGet_ConnectionConfiguration_t connection_configuration;
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_I_HTTPGet_ModuleHandlerConfiguration modulehandler_configuration_2; // connection-
   struct Test_I_HTTPGet_StreamConfiguration stream_configuration;
+  struct Test_I_HTTPGet_StreamConfiguration stream_configuration_2; // connection-
   Net_ConnectionConfigurationsIterator_t iterator;
   struct Common_EventDispatchState event_dispatch_state_s;
   struct Net_UserData user_data_s;
@@ -751,7 +753,7 @@ do_work (const std::string& bootstrapFileName_in,
   connection_configuration.allocatorConfiguration = &allocator_configuration;
   connection_configuration.allocatorConfiguration->defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
   connection_configuration.streamConfiguration =
-    &configuration.streamConfiguration;
+    &configuration.streamConfiguration_2;
 
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                  &connection_configuration));
@@ -802,6 +804,7 @@ do_work (const std::string& bootstrapFileName_in,
   } // end IF
   stock_item.ISIN = ACE_TEXT_ALWAYS_CHAR (TEST_I_ISIN_DAX);
   modulehandler_configuration.stockItems.insert (stock_item);
+  modulehandler_configuration.stopOnUnlink = true;
   modulehandler_configuration.streamConfiguration = &configuration.streamConfiguration;
   modulehandler_configuration.fileIdentifier.identifier = fileName_in;
   //modulehandler_configuration.hostName = hostName_in;
@@ -833,6 +836,17 @@ do_work (const std::string& bootstrapFileName_in,
   configuration.streamConfiguration.initialize (module_configuration,
                                                 modulehandler_configuration,
                                                 stream_configuration);
+
+  modulehandler_configuration_2 = modulehandler_configuration;
+  modulehandler_configuration_2.concurrency =
+    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+  modulehandler_configuration_2.streamConfiguration =
+    &configuration.streamConfiguration_2;
+  stream_configuration_2 = stream_configuration;
+  stream_configuration_2.module = NULL;
+  configuration.streamConfiguration_2.initialize (module_configuration,
+                                                  modulehandler_configuration_2,
+                                                  stream_configuration_2);
 
   // step0b: initialize event dispatch
   event_dispatch_configuration_s.numberOfProactorThreads =

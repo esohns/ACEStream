@@ -2218,15 +2218,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       ACE_thread_t thread_id = inherited::threadIds_[0].id ();
       ACE_THR_FUNC_RETURN status;
       // *TODO*: do not join() here; instead signal a condition upon leaving
-      //         svc() in this case
-      // *WARNING*: also, do NOT fiddle with inherited::threadIds_[0] after
-      //            join()ing; it may have gone away...
+      //         svc()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_hthread_t handle = inherited::threadIds_[0].handle ();
       if (likely (handle != ACE_INVALID_HANDLE))
       {
         { ACE_GUARD (ACE_Reverse_Lock<ACE_Thread_Mutex>, aGuard_2, reverse_lock);
-          result = ACE_Thread::join (handle, &status);
+          result = 0; // ACE_Thread::join (handle, &status);
         } // end lock scope
         if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
@@ -2238,7 +2236,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       if (likely (static_cast<int> (thread_id) != -1))
       {
         { ACE_GUARD (ACE_Reverse_Lock<ACE_Thread_Mutex>, aGuard_2, reverse_lock);
-          result = ACE_Thread::join (thread_id, NULL, &status);
+          result = 0; // ACE_Thread::join (thread_id, NULL, &status);
         } // end lock scope
       } // end IF
       if (unlikely (result == -1))

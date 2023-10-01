@@ -667,7 +667,7 @@ do_work (unsigned int bufferSize_in,
     &configuration.streamConfiguration;
   modulehandler_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
-  //modulehandler_configuration.stream = stream_p;
+  modulehandler_configuration.stopOnUnlink = true;
   modulehandler_configuration.URL = URL_in;
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)

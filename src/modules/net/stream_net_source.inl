@@ -274,8 +274,8 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
     {
       if (isOpen_)
       { ACE_ASSERT (connection_);
-        // *TODO*: the stream can control several connections, so this may be
-        //         wrong...
+        // *TODO*: the stream could control several connections, so this might
+        //         be wrong...
         isOpen_ = false;
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: disconnected (id was: %u)\n"),

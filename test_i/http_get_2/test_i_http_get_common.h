@@ -296,12 +296,14 @@ struct Test_I_HTTPGet_Configuration
    , parserConfiguration ()
    , connectionConfigurations ()
    , streamConfiguration ()
+   , streamConfiguration_2 ()
   {}
 
   // **************************** parser data **********************************
   struct HTTP_ParserConfiguration      parserConfiguration;
   Net_ConnectionConfigurations_t       connectionConfigurations;
   Test_I_HTTPGet_StreamConfiguration_t streamConfiguration;
+  Test_I_HTTPGet_StreamConfiguration_t streamConfiguration_2; // connection-
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,

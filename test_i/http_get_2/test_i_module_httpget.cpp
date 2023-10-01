@@ -130,16 +130,8 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_MESSAGE_BEGIN:
+    case STREAM_SESSION_MESSAGE_LINK:
     {
-      // sanity check(s)
-      //ACE_ASSERT (!inherited::sessionData_);
-
-      // *TODO*: remove type inferences
-      inherited::sessionData_ =
-        &const_cast<Test_I_HTTPGet_SessionData_t&> (message_inout->getR ());
-      inherited::sessionData_->increase ();
-
       iterator_ = inherited::configuration_->stockItems.begin ();
       do
       {
@@ -153,26 +145,26 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
       } while (true);
       // sanity check(s)
       if (iterator_ == inherited::configuration_->stockItems.end ())
-        return;
+        break;
 
-      const Test_I_HTTPGet_SessionData_t& sesion_data_container_r =
-        message_inout->getR ();
-      const Test_I_HTTPGet_SessionData& session_data_r =
-        sesion_data_container_r.getR ();
+      //const Test_I_HTTPGet_SessionData_t& sesion_data_container_r =
+      //  message_inout->getR ();
+      //const Test_I_HTTPGet_SessionData& session_data_r =
+      //  sesion_data_container_r.getR ();
 
       // sanity check(s)
       // *TODO*: remove type inferences
-      ACE_ASSERT (session_data_r.lock);
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        if (session_data_r.connectionStates.empty () ||
-            ((*session_data_r.connectionStates.begin ()).second->status != NET_CONNECTION_STATUS_OK))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: no connection, returning\n"),
-                      inherited::mod_->name ()));
-          return;
-        } // end IF
-      } // end lock scope
+      //ACE_ASSERT (session_data_r.lock);
+      //{ ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+      //  if (session_data_r.connectionStates.empty () ||
+      //      ((*session_data_r.connectionStates.begin ()).second->status != NET_CONNECTION_STATUS_OK))
+      //  {
+      //    ACE_DEBUG ((LM_ERROR,
+      //                ACE_TEXT ("%s: no connection, returning\n"),
+      //                inherited::mod_->name ()));
+      //    return;
+      //  } // end IF
+      //} // end lock scope
 
       //std::string url_string = inherited::configuration_->URL;
       //std::string::size_type position =
@@ -207,6 +199,8 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
 
       break;
     }
+    case STREAM_SESSION_MESSAGE_BEGIN:
+      break;
     case STREAM_SESSION_MESSAGE_END:
       break;
     default:
