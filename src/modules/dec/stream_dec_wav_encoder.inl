@@ -548,8 +548,7 @@ continue_:
       RIFF_chunk_fmt_p =
         reinterpret_cast<struct _riffchunk*> (RIFF_wave_p + 1);
       RIFF_chunk_data_p =
-        reinterpret_cast<struct _riffchunk*> (reinterpret_cast<BYTE*> (RIFF_chunk_fmt_p + 1) +
-                                              16);
+        reinterpret_cast<struct _riffchunk*> (reinterpret_cast<BYTE*> (RIFF_chunk_fmt_p + 1) + 16);
 
       // update RIFF header sizes
       RIFF_wave_p->cb = static_cast<DWORD> (file_size_i - 8);
@@ -663,14 +662,22 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                            media_type_s);
   ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
   ACE_ASSERT (media_type_s.pbFormat);
+  struct tWAVEFORMATEX* wave_format_ex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
+  struct tWAVEFORMATEX dummy_s;
+  if (wave_format_ex_p->wFormatTag == WAVE_FORMAT_EXTENSIBLE)
+  {
+    dummy_s =
+      Stream_MediaFramework_DirectSound_Tools::extensibleTo (*wave_format_ex_p);
+    wave_format_ex_p = &dummy_s;
+  } // end IF
 
   struct _rifflist* RIFF_wave_p =
     reinterpret_cast<struct _rifflist*> (messageBlock_inout->wr_ptr ());
   struct _riffchunk* RIFF_chunk_fmt_p =
     reinterpret_cast<struct _riffchunk*> (RIFF_wave_p + 1);
   struct _riffchunk* RIFF_chunk_data_p =
-    reinterpret_cast<struct _riffchunk*> (reinterpret_cast<BYTE*> (RIFF_chunk_fmt_p + 1) +
-                                          16);
+    reinterpret_cast<struct _riffchunk*> (reinterpret_cast<BYTE*> (RIFF_chunk_fmt_p + 1) + 16);
 
   RIFF_wave_p->fcc = FCC ('RIFF');
   RIFF_wave_p->cb = 0 + // update here
@@ -683,7 +690,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   RIFF_chunk_fmt_p->fcc = FCC ('fmt ');
   RIFF_chunk_fmt_p->cb = 16;
   ACE_OS::memcpy (RIFF_chunk_fmt_p + 1,
-                  media_type_s.pbFormat,
+                  wave_format_ex_p,
                   16);
 
   RIFF_chunk_data_p->fcc = FCC ('data');

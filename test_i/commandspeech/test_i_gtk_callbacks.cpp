@@ -1833,6 +1833,42 @@ idle_session_end_cb (gpointer userData_in)
   ACE_ASSERT (text_view_p);
   gtk_widget_set_sensitive (GTK_WIDGET (text_view_p), FALSE);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
+  switch (ui_cb_data_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      directshow_ui_cb_data_p->spectrumAnalyzerCBData.dispatch = NULL;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      mediafoundation_ui_cb_data_p->spectrumAnalyzerCBData.dispatch = NULL;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), continuing\n"),
+                  ui_cb_data_p->mediaFramework));
+      break;
+    }
+  } // end SWITCH
+#else
+  struct Test_I_ALSA_UI_CBData* alsa_ui_cb_data_p =
+    static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
+  ACE_ASSERT (alsa_ui_cb_data_p);
+  alsa_ui_cb_data_p->spectrumAnalyzerCBData.dispatch = NULL;
+#endif // ACE_WIN32 || ACE_WIN64
+
   return G_SOURCE_REMOVE;
 }
 
@@ -1854,6 +1890,9 @@ idle_update_info_display_cb (gpointer userData_in)
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTBUFFER_NAME)));
   ACE_ASSERT (text_buffer_p);
 
+  struct Test_I_CommandSpeech_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_CommandSpeech_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -1865,7 +1904,6 @@ idle_update_info_display_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_I_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
@@ -1873,7 +1911,6 @@ idle_update_info_display_cb (gpointer userData_in)
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_I_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
@@ -1888,11 +1925,9 @@ idle_update_info_display_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  // sanity check(s)
-  struct Test_I_ALSA_UI_CBData* ui_cb_data_p =
+  struct Test_I_ALSA_UI_CBData* alsa_ui_cb_data_p =
     static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_p);
-  ACE_ASSERT (ui_cb_data_p->configuration);
+  ACE_ASSERT (alsa_ui_cb_data_p);
 #endif // ACE_WIN32 || ACE_WIN64
 
   GtkSpinButton* spin_button_p = NULL;
@@ -1929,7 +1964,7 @@ idle_update_info_display_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_DATA_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p,
-                                     static_cast<gdouble> (ui_cb_data_base_p->progressData.statistic.bytes));
+                                     static_cast<gdouble> (ui_cb_data_p->progressData.statistic.bytes));
 
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -3938,11 +3973,23 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
+  GtkComboBox* combo_box_p =
+      GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_ADAPTER_NAME)));
+  ACE_ASSERT (combo_box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
+                            gtk_toggle_button_get_active (toggleButton_in));
   GtkBox* box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BOX_DISPLAY_2_NAME)));
   ACE_ASSERT (box_p);
   gtk_widget_set_sensitive (GTK_WIDGET (box_p),
+                            gtk_toggle_button_get_active (toggleButton_in));
+  GtkButtonBox* button_box_p =
+      GTK_BUTTON_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTONBOX_DISPLAY_NAME)));
+  ACE_ASSERT (button_box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_box_p),
                             gtk_toggle_button_get_active (toggleButton_in));
 } // togglebutton_display_toggled_cb
 
@@ -4201,6 +4248,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_NAME)));
   ACE_ASSERT (text_view_p);
   gtk_widget_set_sensitive (GTK_WIDGET (text_view_p), TRUE);
+  gtk_widget_grab_focus (GTK_WIDGET (text_view_p));
 
   // step1: set up progress reporting
   GtkProgressBar* progress_bar_p =

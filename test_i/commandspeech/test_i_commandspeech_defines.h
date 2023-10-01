@@ -41,6 +41,7 @@
 #define TEST_I_UI_GTK_BUTTON_REPORT_NAME               "button_report"
 #define TEST_I_UI_GTK_BUTTON_QUIT_NAME                 "button_quit"
 #define TEST_I_UI_GTK_BUTTON_VOICE_RESET_NAME          "button_voice_reset"
+#define TEST_I_UI_GTK_BUTTONBOX_DISPLAY_NAME           "buttonbox_display"
 #define TEST_I_UI_GTK_COMBOBOX_ADAPTER_NAME            "combobox_adapter"
 #define TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME            "combobox_display"
 #define TEST_I_UI_GTK_COMBOBOX_TARGET_NAME             "combobox_target"
