@@ -92,17 +92,10 @@ Test_U_EventHandler::notify (Stream_SessionId_t sessionId_in,
 
   switch (message_in.type ())
   {
-    case STREAM_SESSION_MESSAGE_BEGIN:
+    case STREAM_SESSION_MESSAGE_ABORT:
     {
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("received session begin message (session id: %u)\n"),
-                  sessionId_in));
-      break;
-    }
-    case STREAM_SESSION_MESSAGE_END:
-    {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("received session end message (session id: %u)\n"),
+                  ACE_TEXT ("received session abort message (session id: %u)\n"),
                   sessionId_in));
       break;
     }
@@ -126,17 +119,10 @@ Test_U_EventHandler::notify (Stream_SessionId_t sessionId_in,
 
   switch (message_in.type ())
   {
-    case STREAM_SESSION_MESSAGE_BEGIN:
+    case STREAM_SESSION_MESSAGE_ABORT:
     {
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("received session begin message (session id: %u)\n"),
-                  sessionId_in));
-      break;
-    }
-    case STREAM_SESSION_MESSAGE_END:
-    {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("received session end message (session id: %u)\n"),
+                  ACE_TEXT ("received session abort message (session id: %u)\n"),
                   sessionId_in));
       break;
     }

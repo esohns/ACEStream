@@ -178,7 +178,9 @@ Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
   cv::imshow (cv::String (ACE_TEXT_ALWAYS_CHAR ("ACEStream OpenCV display")),
 //              image_BGR);
               frame_matrix);
-  cv::waitKey (1);
+  int key_i = cv::waitKey (1);
+  if (unlikely (key_i == 27)) // ASCII Escape
+    this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,
@@ -247,9 +249,9 @@ Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
       break;
 
 //error:
-//      this->notify (STREAM_SESSION_MESSAGE_ABORT)
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
-//      break;
+      break;
     }
 //    case STREAM_SESSION_MESSAGE_RESIZE:
 //    {
