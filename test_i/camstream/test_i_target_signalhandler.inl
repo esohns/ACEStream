@@ -200,6 +200,7 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
 
     // step5: stop reactor (&& proactor, if applicable)
     Common_Event_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
-                                               false);                                    // don't block
+                                               false,  // don't block
+                                               false); // don't close singletons
   } // end IF
 }

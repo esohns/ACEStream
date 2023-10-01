@@ -2373,7 +2373,8 @@ clean:
   timer_manager_p->stop ();
 
   Common_Event_Tools::finalizeEventDispatch (event_dispatch_state_s,
-                                             true); // wait ?
+                                             true,  // wait ?
+                                             true); // close singletons ?
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)

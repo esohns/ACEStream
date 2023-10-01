@@ -328,8 +328,10 @@ Test_I_EventHandler_T<NotificationType,
                                  buffers_a,
                                  filename_string);
 #else
-    ACE_UNUSED_ARG (buffers_a);
-    ACE_ASSERT (false); // *TODO*
+    Common_Image_Tools::savePNG (sessionData_->formats.front ().video.resolution,
+                                 sessionData_->formats.front ().video.format,
+                                 buffers_a,
+                                 filename_string);
 #endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 
