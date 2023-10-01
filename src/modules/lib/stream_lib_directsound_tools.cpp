@@ -1664,8 +1664,7 @@ Stream_MediaFramework_DirectSound_Tools::extensibleTo (const struct tWAVEFORMATE
   {
     const WAVEFORMATEXTENSIBLE* waveformatextensible_p =
       reinterpret_cast<const WAVEFORMATEXTENSIBLE*> (&format_in);
-    if (InlineIsEqualGUID (waveformatextensible_p->SubFormat,
-                           KSDATAFORMAT_SUBTYPE_PCM))
+    if (InlineIsEqualGUID (waveformatextensible_p->SubFormat, KSDATAFORMAT_SUBTYPE_PCM))
     {
       result.wFormatTag = WAVE_FORMAT_PCM;
       if ((format_in.wBitsPerSample == 32) &&

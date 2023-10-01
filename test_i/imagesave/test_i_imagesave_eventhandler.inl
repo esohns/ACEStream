@@ -317,14 +317,14 @@ Test_I_EventHandler_T<NotificationType,
   if ((*stream_iterator).second.second->frameNumber == numberOfFrames_)
   { ACE_ASSERT (sessionData_);
     ACE_ASSERT (!sessionData_->formats.empty ());
-    std::string filename_string = Common_File_Tools::getWorkingDirectory ();
+    std::string filename_string = Common_File_Tools::getTempDirectory ();
     filename_string += ACE_DIRECTORY_SEPARATOR_STR_A;
     filename_string += ACE_TEXT_ALWAYS_CHAR ("output.bmp");
     uint8_t* buffers_a[1];
     buffers_a[0] = reinterpret_cast<uint8_t*> (message_in.rd_ptr ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     Common_Image_Tools::saveBMP (sessionData_->formats.front ().video.resolution,
-                                 AV_PIX_FMT_RGB24,
+                                 Stream_MediaFramework_Tools::AVPixelFormatToBitCount (sessionData_->formats.front ().video.format, false),
                                  buffers_a,
                                  filename_string);
 #else

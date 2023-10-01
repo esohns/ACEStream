@@ -3491,27 +3491,36 @@ Stream_MediaFramework_Tools::isAcceleratedFormat (enum AVPixelFormat format_in)
 }
 
 int
-Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_in)
+Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_in, bool raw_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::AVPixelFormatToBitCount"));
 
-    switch (format_in)
+  int result = 0;
+  int coded_multiplier = (raw_in ? 1 : 4);
+
+  switch (format_in)
   {
     case AV_PIX_FMT_YUV420P:
       return 8;
     case AV_PIX_FMT_YUYV422:
       break;
     case AV_PIX_FMT_RGB24:
-      return 8;
     case AV_PIX_FMT_BGR24:
-      return 8;
+    {
+      result = 8;
+      coded_multiplier = 3;
+      break;
+    }
     case AV_PIX_FMT_YUV422P:
       return 8;
     case AV_PIX_FMT_YUV444P:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUV410P:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUV411P:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_GRAY8:
       return 8;
@@ -3521,16 +3530,22 @@ Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_
     case AV_PIX_FMT_PAL8:
       return 8;
     case AV_PIX_FMT_YUVJ420P:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVJ422P:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVJ444P:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_XVMC:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_UYVY422:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_UYYVYY411:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_BGR8:
       return 8;
@@ -3545,31 +3560,36 @@ Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_
     case AV_PIX_FMT_RGB4_BYTE:
       return 8;
     case AV_PIX_FMT_NV12:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_NV21:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_ARGB:
-      return 8;
     case AV_PIX_FMT_RGBA:
-      return 8;
     case AV_PIX_FMT_ABGR:
-      return 8;
     case AV_PIX_FMT_BGRA:
-      return 8;
+    {
+      result = 8;
+      break;
+    }
     case AV_PIX_FMT_GRAY16BE:
       return 16;
     case AV_PIX_FMT_GRAY16LE:
       return 16;
     case AV_PIX_FMT_YUV440P:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVJ440P:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA420P:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_RGB48BE:
-      return 48;
+      return 16;
     case AV_PIX_FMT_RGB48LE:
-      return 48;
+      return 16;
     case AV_PIX_FMT_RGB565BE:
       return 5;
     case AV_PIX_FMT_RGB565LE:
@@ -3587,6 +3607,7 @@ Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_
     case AV_PIX_FMT_BGR555LE:
       return 5;
     case AV_PIX_FMT_VAAPI:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUV420P16LE:
       return 16;
@@ -3601,6 +3622,7 @@ Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_
     case AV_PIX_FMT_YUV444P16BE:
       return 16;
     case AV_PIX_FMT_DXVA2_VLD:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_RGB444LE:
       return 4;
@@ -3617,88 +3639,126 @@ Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_
     case AV_PIX_FMT_BGR48LE:
       return 16;
     case AV_PIX_FMT_YUV420P9BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUV420P9LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUV420P10BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUV420P10LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUV422P10BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUV422P10LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUV444P9BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUV444P9LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUV444P10BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUV444P10LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUV422P9BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUV422P9LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_GBRP:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_GBRP9BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_GBRP9LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_GBRP10BE:
-      break;
+      return 10;
     case AV_PIX_FMT_GBRP10LE:
-      break;
+      return 10;
     case AV_PIX_FMT_GBRP16BE:
-      break;
+      return 16;
     case AV_PIX_FMT_GBRP16LE:
-      break;
+      return 16;
     case AV_PIX_FMT_YUVA422P:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA444P:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA420P9BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA420P9LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA422P9BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA422P9LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA444P9BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA444P9LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA420P10BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA420P10LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA422P10BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA422P10LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA444P10BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA444P10LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA420P16BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA420P16LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA422P16BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA422P16LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA444P16BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YUVA444P16LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_VDPAU:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_XYZ12LE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_XYZ12BE:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_NV16:
       return 16;
@@ -3715,24 +3775,30 @@ Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_
     case AV_PIX_FMT_BGRA64LE:
       return 16;
     case AV_PIX_FMT_YVYU422:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_YA16BE:
       return 16;
     case AV_PIX_FMT_YA16LE:
       return 16;
     case AV_PIX_FMT_GBRAP:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_GBRAP16BE:
       return 16;
     case AV_PIX_FMT_GBRAP16LE:
       return 16;
     case AV_PIX_FMT_QSV:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_MMAL:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_D3D11VA_VLD:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_CUDA:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_0RGB:
       return 8;
@@ -3775,6 +3841,7 @@ Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_
     case AV_PIX_FMT_GBRP14LE:
       return 14;
     case AV_PIX_FMT_YUVJ411P:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_BAYER_BGGR8:
       return 8;
@@ -3813,6 +3880,7 @@ Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_
     case AV_PIX_FMT_AYUV64BE:
       return 16;
     case AV_PIX_FMT_VIDEOTOOLBOX:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_P010LE:
       return 10;
@@ -3827,6 +3895,7 @@ Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_
     case AV_PIX_FMT_GBRAP10LE:
       return 10;
     case AV_PIX_FMT_MEDIACODEC:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_GRAY12BE:
       return 12;
@@ -3841,6 +3910,7 @@ Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_
     case AV_PIX_FMT_P016BE:
       return 16;
     case AV_PIX_FMT_D3D11:
+      ACE_ASSERT (false); // *TODO*
       break;
     case AV_PIX_FMT_GRAY9BE:
       return 9;
@@ -3855,6 +3925,7 @@ Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_
     case AV_PIX_FMT_GBRAPF32LE:
       return 32;
     case AV_PIX_FMT_DRM_PRIME:
+      ACE_ASSERT (false); // *TODO*
       break;
     default:
     {
@@ -3865,8 +3936,9 @@ Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_
     }
   } // end SWITCH
 
-  ACE_ASSERT (false);
-  return 0;
+  result *= coded_multiplier;
+
+  return result;
 }
 
 enum AVPixelFormat

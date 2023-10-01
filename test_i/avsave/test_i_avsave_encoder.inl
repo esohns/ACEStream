@@ -520,7 +520,7 @@ video:
       ACE_ASSERT (inherited::videoCodecContext_);
 
       inherited::videoCodecContext_->bits_per_raw_sample =
-        Stream_MediaFramework_Tools::AVPixelFormatToBitCount (static_cast<AVPixelFormat> (inherited::videoFrame_->format));
+        Stream_MediaFramework_Tools::AVPixelFormatToBitCount (static_cast<AVPixelFormat> (inherited::videoFrame_->format), true);
       ACE_ASSERT (inherited::videoCodecContext_->codec_id == video_coded_id);
       inherited::videoCodecContext_->pix_fmt =
           static_cast<AVPixelFormat> (inherited::videoFrame_->format);
