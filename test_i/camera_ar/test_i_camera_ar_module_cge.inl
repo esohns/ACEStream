@@ -99,7 +99,7 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   int patch_size_i = 9;
   int search_size_i = 7;
 
-  float patch_difference_max_f, patch_difference_x_f, patch_difference_y_f;
+  float patch_difference_max_f/*, patch_difference_x_f, patch_difference_y_f*/;
   float accumulated_difference_f, patch_pixel_f, base_pixel_f;
   int search_vector_x_i, search_vector_y_i, patch_pixel_x_i, patch_pixel_y_i;
   int base_pixel_x_i, base_pixel_y_i;
@@ -107,8 +107,8 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
     for (int y = 0; y < screen_height_i; y++)
     {
       patch_difference_max_f = INFINITY;
-      patch_difference_x_f = 0.0f;
-      patch_difference_y_f = 0.0f;
+//      patch_difference_x_f = 0.0f;
+//      patch_difference_y_f = 0.0f;
       flowFieldX[y * screen_width_i + x] = 0.0f;
       flowFieldY[y * screen_width_i + x] = 0.0f;
 

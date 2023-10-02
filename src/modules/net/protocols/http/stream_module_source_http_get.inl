@@ -382,12 +382,10 @@ error:
                     ACE_TEXT (inherited::configuration_->URL.c_str ())));
         goto error_2;
       } // end IF
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: started HTTP request for \"%s\"\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (inherited::configuration_->URL.c_str ())));
-#endif // _DEBUG
       break;
 
 error_2:

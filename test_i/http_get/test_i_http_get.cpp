@@ -224,7 +224,7 @@ do_processArguments (int argc_in,
                         static_cast<ACE_UINT32> (INADDR_LOOPBACK),
                         1,
                         0);
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_INET_Addr::set (): \"%m\", aborting\n")));
@@ -242,6 +242,7 @@ do_processArguments (int argc_in,
 
   int option = 0;
   std::stringstream converter;
+  bool port_set_b = false;
   while ((option = argumentParser ()) != EOF)
   {
     switch (option)
@@ -287,6 +288,7 @@ do_processArguments (int argc_in,
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << argumentParser.opt_arg ();
         converter >> port_out;
+        port_set_b = true;
         break;
       }
       case 'r':
@@ -374,6 +376,9 @@ do_processArguments (int argc_in,
                 ACE_TEXT (URI_out.c_str ())));
     return false;
   } // end IF
+  port_out = port_set_b ? port_out
+                        : (useSSL_out ? HTTPS_DEFAULT_SERVER_PORT
+                                      : HTTP_DEFAULT_SERVER_PORT);
 
 //  std::string hostname_string = hostName_out;
 //  size_t position =
@@ -405,17 +410,17 @@ do_processArguments (int argc_in,
 
   // step2: validate address/verify host name exists
   //        --> resolve
-  ACE_TCHAR buffer[HOST_NAME_MAX];
-  ACE_OS::memset (buffer, 0, sizeof (buffer));
-  result = remoteHost_out.get_host_name (buffer,
-                                         sizeof (buffer));
-  if (result == -1)
+  ACE_TCHAR buffer_a[HOST_NAME_MAX];
+  ACE_OS::memset (buffer_a, 0, sizeof (ACE_TCHAR[HOST_NAME_MAX]));
+  result = remoteHost_out.get_host_name (buffer_a,
+                                         sizeof (ACE_TCHAR[HOST_NAME_MAX]));
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_INET_Addr::get_host_name(): \"%m\", aborting\n")));
     return false;
   } // end IF
-  std::string hostname = ACE_TEXT_ALWAYS_CHAR (buffer);
+  std::string hostname = ACE_TEXT_ALWAYS_CHAR (buffer_a);
   std::string dotted_decimal_string;
   if (!Net_Common_Tools::getAddress (hostname,
                                      dotted_decimal_string))
@@ -620,6 +625,8 @@ do_work (unsigned int bufferSize_in,
     connection_configuration.socketConfiguration.address.is_loopback ();
 //  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.writeOnly =
 //    true;
+  connection_configuration.socketConfiguration.version = TLS1_2_VERSION;
+
   connection_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
   connection_configuration.messageAllocator = &message_allocator;

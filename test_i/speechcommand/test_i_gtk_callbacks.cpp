@@ -1792,11 +1792,11 @@ idle_update_info_display_cb (gpointer userData_in)
   } // end SWITCH
 #else
   // sanity check(s)
-  struct Test_I_ALSA_UI_CBData* ui_cb_data_p =
+  struct Test_I_ALSA_UI_CBData* alsa_ui_cb_data_p =
     static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_p);
-  ACE_ASSERT (ui_cb_data_p->configuration);
-  result_p = &ui_cb_data_p->progressData.words;
+  ACE_ASSERT (alsa_ui_cb_data_p);
+  ACE_ASSERT (alsa_ui_cb_data_p->configuration);
+  result_p = &alsa_ui_cb_data_p->progressData.words;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result_p);
 

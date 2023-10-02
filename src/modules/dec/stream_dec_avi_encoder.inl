@@ -42,6 +42,7 @@ extern "C"
 #include "libavformat/avformat.h"
 #include "libavformat/avio.h"
 #include "libavutil/channel_layout.h"
+#include "libavutil/opt.h"
 #include "libavutil/pixfmt.h"
 #include "libavutil/rational.h"
 #ifdef __cplusplus
@@ -853,7 +854,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   result = av_interleaved_write_frame (formatContext_, &packet_s);
 //  result = av_write_frame (formatContext_, &packet_s);
-  av_packet_unref (&packet_s);
+//  av_packet_unref (&packet_s);
   if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1262,8 +1263,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      codec_context_p->debug_mv = 0;
 //      codec_context_p->dct_algo = FF_DCT_AUTO;
 //      codec_context_p->idct_algo = FF_IDCT_AUTO;
-      videoCodecContext_->bits_per_coded_sample =
-        Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (media_type_s.format);
+//      videoCodecContext_->bits_per_coded_sample =
+//        Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (media_type_s.format);
 //      codec_context_p->bits_per_raw_sample = 8;
 //      codec_context_p->thread_count = 0;
 //      codec_context_p->thread_type = 0;
@@ -1300,7 +1301,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       } // end IF
       ACE_ASSERT (stream_p->codecpar);
       formatContext_->streams[0] = stream_p;
-
+      stream_p->time_base = videoCodecContext_->time_base;
+      stream_p->avg_frame_rate = media_type_s.frameRate;
+      stream_p->codecpar = avcodec_parameters_alloc ();
       avcodec_parameters_from_context (stream_p->codecpar,
                                        videoCodecContext_);
 
@@ -1484,6 +1487,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       //ACE_ASSERT (stream_p->codecpar);
       formatContext_->streams[1] = stream_p;
 
+      stream_p->time_base = audioCodecContext_->time_base;
       avcodec_parameters_from_context (stream_p->codecpar,
                                        audioCodecContext_);
 #endif // FFMPEG_SUPPORT
@@ -2161,6 +2165,14 @@ continue_2:
                 ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
+
+  // *NOTE*: on windows, vlc does not show an image at all, unless this is set (the images appear upside down though :-()
+  // *TODO*: is this required on linux too ?
+  result =
+    av_opt_set (formatContext_->priv_data,
+                ACE_TEXT_ALWAYS_CHAR ("flipped_raw_rgb"), ACE_TEXT_ALWAYS_CHAR ("true"),
+                0);
+  ACE_ASSERT (result >= 0);
 
   try {
     result = avformat_write_header (formatContext_, // context handle

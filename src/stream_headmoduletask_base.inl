@@ -2216,7 +2216,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     case STREAM_HEADMODULECONCURRENCY_PASSIVE:
     {
       ACE_thread_t thread_id = inherited::threadIds_[0].id ();
-      ACE_THR_FUNC_RETURN status;
+//      ACE_THR_FUNC_RETURN status;
       // *TODO*: do not join() here; instead signal a condition upon leaving
       //         svc()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

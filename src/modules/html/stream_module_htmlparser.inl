@@ -144,9 +144,9 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 
   do
   {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("parsing HTML (%Q byte(s))...\n"),
-                message_block_p->total_length ()));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("parsing HTML (%Q byte(s))...\n"),
+    //            message_block_p->total_length ()));
 
     result = htmlParseChunk (parserContext_.parserContext, // context
                              message_block_p->rd_ptr (),   // chunk

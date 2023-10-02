@@ -1291,12 +1291,11 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   MODULE_T* module_p = NULL;
   int result = inherited::top (module_p);
-  if (unlikely ((result == -1) ||
-                !module_p))
+  if (unlikely ((result == -1) || !module_p))
   { // connection failed ?
-//    ACE_DEBUG ((LM_WARNING,
-//                ACE_TEXT ("%s: failed to ACE_Stream::top(), continuing\n"),
-//                ACE_TEXT (name_.c_str ())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Stream::top(), returning\n"),
+                ACE_TEXT (name_.c_str ())));
     return;
   } // end IF
   ACE_ASSERT (module_p);
