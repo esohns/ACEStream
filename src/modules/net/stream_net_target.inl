@@ -214,12 +214,10 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
   if (likely (iterator == configuration_in.connectionConfigurations->end ()))
     iterator =
       configuration_in.connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-#if defined (_DEBUG)
   else
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: applying connection configuration\n"),
                 inherited::mod_->name ()));
-#endif // _DEBUG
   ACE_ASSERT (iterator != configuration_in.connectionConfigurations->end ());
   typename ConnectorType::ISTREAM_CONNECTION_T::CONFIGURATION_T* configuration_p =
     static_cast<typename ConnectorType::ISTREAM_CONNECTION_T::CONFIGURATION_T*> ((*iterator).second);

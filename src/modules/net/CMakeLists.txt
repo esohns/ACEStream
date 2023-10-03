@@ -1,3 +1,6 @@
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACENetwork/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/scripts")
+include (SSLConfig)
+
 add_library (${PROJECT_NAME}_Network STATIC "")
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
@@ -13,6 +16,10 @@ if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find ACENetwork, aborting")
 endif (NOT EXISTS ${ACENetwork_DIR})
 
+if (SSL_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Network PUBLIC
+                             $<BUILD_INTERFACE:${SSL_INCLUDE_DIRS}>)
+endif (SSL_SUPPORT)
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)

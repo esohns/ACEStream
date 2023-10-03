@@ -24,6 +24,10 @@
 #include <regex>
 #include <string>
 
+#if defined(SSL_SUPPORT)
+#include "openssl/ssl.h";
+#endif // SSL_SUPPORT
+
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/Init_ACE.h"
@@ -623,10 +627,10 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   connection_configuration.socketConfiguration.useLoopBackDevice =
     connection_configuration.socketConfiguration.address.is_loopback ();
-//  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.writeOnly =
-//    true;
-  connection_configuration.socketConfiguration.version = TLS1_2_VERSION;
-
+#if defined (SSL_SUPPORT)
+  //connection_configuration.socketConfiguration.method = TLSv1_2_method ();
+  //connection_configuration.socketConfiguration.maximalVersion = TLS1_3_VERSION;
+#endif // SSL_SUPPORT
   connection_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
   connection_configuration.messageAllocator = &message_allocator;
@@ -638,9 +642,6 @@ do_work (unsigned int bufferSize_in,
 
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                  &connection_configuration));
-  //Net_ConnectionConfigurationsIterator_t iterator =
-  //  configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  //ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
 
   // ********************** stream configuration data **************************
   // ********************** prser configuration data ***************************
@@ -892,12 +893,13 @@ ACE_TMAIN (int argc_in,
   // start profile timer...
   process_profile.start ();
 
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Common_Tools::initialize (false,  // COM ?
                             false); // RNG ?
 #else
-  Common_Tools::initialize (false);        // RNG ?
+  Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
+  Net_Common_Tools::initialize ();
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
@@ -957,6 +959,7 @@ ACE_TMAIN (int argc_in,
   {
     do_printUsage (ACE::basename (argv_in[0]));
 
+    Net_Common_Tools::finalize ();
     Common_Tools::finalize ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1026,6 +1029,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Log_Tools::initializeLogging(), aborting\n")));
 
+    Net_Common_Tools::finalize ();
     Common_Tools::finalize ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1057,6 +1061,7 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
 
     Common_Log_Tools::finalizeLogging ();
+    Net_Common_Tools::finalize ();
     Common_Tools::finalize ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1080,6 +1085,7 @@ ACE_TMAIN (int argc_in,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
+    Net_Common_Tools::finalize ();
     Common_Tools::finalize ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1105,6 +1111,7 @@ ACE_TMAIN (int argc_in,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
+    Net_Common_Tools::finalize ();
     Common_Tools::finalize ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1167,6 +1174,7 @@ ACE_TMAIN (int argc_in,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
+    Net_Common_Tools::finalize ();
     Common_Tools::finalize ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1225,6 +1233,7 @@ ACE_TMAIN (int argc_in,
                                  previous_signal_actions,
                                  previous_signal_mask);
   Common_Log_Tools::finalizeLogging ();
+  Net_Common_Tools::finalize ();
   Common_Tools::finalize ();
   // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
