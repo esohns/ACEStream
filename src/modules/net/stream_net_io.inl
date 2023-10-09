@@ -303,8 +303,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::initialize"));
 
   bool result = false;
-  enum Stream_HeadModuleConcurrency concurrency_e =
-      STREAM_HEADMODULECONCURRENCY_INVALID;
+//  enum Stream_HeadModuleConcurrency concurrency_e =
+//      STREAM_HEADMODULECONCURRENCY_INVALID;
 
   if (unlikely (inherited::isInitialized_))
   {
@@ -317,9 +317,10 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   inbound_ = configuration_in.inbound;
   outboundNotificationHandle_ = configuration_in.outboundNotificationHandle;
 
-  concurrency_e = configuration_in.concurrency;
-  if (concurrency_e != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
+  if (inbound_ &&
+      (configuration_in.concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
   {
+//    concurrency_e = configuration_in.concurrency;
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: trying to correct (head-module-) concurrency setting\n"),
                 inherited::mod_->name ()));
@@ -332,7 +333,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
-  const_cast<ConfigurationType&> (configuration_in).concurrency = concurrency_e;
+  //const_cast<ConfigurationType&> (configuration_in).concurrency = concurrency_e;
 
   return result;
 }
@@ -632,7 +633,7 @@ continue_3:
         if (likely (!session_data_r.connection && manageSessionData_))
           session_data_r.connection = connection_p;
         else
-        {
+        { ACE_ASSERT (session_data_r.connection == connection_p);
           ACE_DEBUG ((LM_WARNING,
                       ACE_TEXT ("%s: session data already contains connection handle (was: 0x%@, is: 0x%@), continuing\n"),
                       inherited::mod_->name (),

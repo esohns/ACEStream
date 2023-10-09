@@ -111,12 +111,12 @@ Test_I_Stream_Module_HTMLWriter::handleSessionMessage (Test_I_Stream_SessionMess
                        BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("head")), // name
                        NULL);                                    // content
       ACE_ASSERT (head_node_p);
-      xmlNodePtr node_p =
-          xmlNewChild (head_node_p,                                    // parent
-                       NULL,                                           // namespace
-                       BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("title")),      // name
-                       BAD_CAST (session_data_r.data.title.c_str ())); // content
-      ACE_ASSERT (node_p);
+      xmlNodePtr node_p = NULL;
+      //    xmlNewChild (head_node_p,                                    // parent
+      //                 NULL,                                           // namespace
+      //                 BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("title")),      // name
+      //                 BAD_CAST (session_data_r.data.title.c_str ())); // content
+      //ACE_ASSERT (node_p);
 
       // ------------------------------- body ----------------------------------
       xmlNodePtr body_node_p =

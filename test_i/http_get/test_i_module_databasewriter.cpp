@@ -304,13 +304,10 @@ error:
                     number_of_records, result_3));
         goto commit;
       } // end IF
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s/%s: inserted %u record(s)\n"),
+                  ACE_TEXT ("%s: inserted %u record(s)\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (session_data_r.data.title.c_str ()),
                   result_3));
-#endif // _DEBUG
 commit:
       //my_bool result_3 = mysql_commit (state_);
       //if (result_3)

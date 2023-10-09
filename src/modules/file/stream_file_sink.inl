@@ -765,6 +765,9 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_STEP:
     {
+      if (likely (!inherited::configuration_->splitOnStep))
+        break;
+
       result = stream_.get_local_addr (path_);
       if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,

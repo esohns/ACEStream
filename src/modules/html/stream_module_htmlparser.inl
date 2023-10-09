@@ -163,6 +163,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                   error_p ? ACE_TEXT (error_p->message) : ACE_TEXT ("")));
       xmlCtxtResetLastError (parserContext_.parserContext);
     } // end IF
+
     do
     { message_block_p = message_block_p->cont ();
     } while (message_block_p && !message_block_p->length ());

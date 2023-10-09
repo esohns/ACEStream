@@ -105,20 +105,17 @@ struct Test_I_DataSet
 {
   Test_I_DataSet ()
    : pageData ()
-   , title ()
   {}
 
   struct Test_I_DataSet& operator+= (const struct Test_I_DataSet& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     pageData.insert (rhs_in.pageData.begin (), rhs_in.pageData.end ());
-    title = (title.empty () ? rhs_in.title : title);
 
     return *this;
   }
 
   Test_I_PageData_t pageData;
-  std::string       title;
 };
 typedef std::list<struct Test_I_DataSet> Test_I_DataSets_t;
 typedef Test_I_DataSets_t::const_iterator Test_I_DataSetsIterator_t;
@@ -131,12 +128,12 @@ enum Test_I_SAXParserState : int
   SAXPARSER_STATE_IN_HTML,
   SAXPARSER_STATE_IN_BODY,
   ////////////////////////////////////////
-  SAXPARSER_STATE_READ_DATE,
-  SAXPARSER_STATE_READ_DESCRIPTION,
-  SAXPARSER_STATE_READ_TITLE,
+  SAXPARSER_STATE_READ_DATE_1,
+  SAXPARSER_STATE_READ_DATE_2,
   ////////////////////////////////////////
-  SAXPARSER_STATE_READ_ITEM,
-  SAXPARSER_STATE_READ_ITEMS
+  SAXPARSER_STATE_READ_ITEMS_1,
+  SAXPARSER_STATE_READ_ITEMS_2,
+  SAXPARSER_STATE_READ_ITEMS_3
 };
 struct Test_I_Stream_SessionData;
 struct Test_I_SAXParserContext

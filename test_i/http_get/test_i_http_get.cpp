@@ -174,6 +174,7 @@ do_processArguments (int argc_in,
                      unsigned int& bufferSize_out,
                      std::string& dataBaseOptionsFileName_out,
                      bool& outputToDataBase_out,
+                     std::string& dataBase_out,
                      std::string& outputDataBaseTable_out,
                      std::string& outputFileName_out,
                      bool& logToFile_out,
@@ -204,6 +205,8 @@ do_processArguments (int argc_in,
   dataBaseOptionsFileName_out +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB_OPTIONS_FILE);
   outputToDataBase_out = false;
+  dataBase_out =
+    ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB);
   outputDataBaseTable_out =
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB_TABLE);
   outputFileName_out = path;
@@ -268,6 +271,8 @@ do_processArguments (int argc_in,
       case 'd':
       {
         outputToDataBase_out = true;
+        dataBase_out =
+          ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         break;
       }
       case 'e':
@@ -513,7 +518,8 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 void
 do_work (unsigned int bufferSize_in,
          const std::string& dataBaseOptionsFileName_in,
-         bool dataBase_in,
+         bool outputToDataBase_in,
+         const std::string& dataBase_in,
          const std::string& dataBaseTable_in,
          const std::string& fileName_in,
          const std::string& hostName_in,
@@ -571,22 +577,8 @@ do_work (unsigned int bufferSize_in,
   Test_I_FileWriter_Module file_writer (stream_p,
                                         ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
   module_p = &file_writer;
-  if (dataBase_in)
+  if (outputToDataBase_in)
     module_p = &database_writer;
-  //Test_I_IModuleHandler_t* module_handler_p =
-  //  dynamic_cast<Test_I_IModuleHandler_t*> (module_p->writer ());
-  //if (!module_handler_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: dynamic_cast<Test_I_IModuleHandler_t>(0x%@) failed, returning\n"),
-  //              module_p->name (),
-  //              module_p->writer ()));
-
-  //  // clean up
-  //  delete stream_p;
-
-  //  return;
-  //} // end IF
 
   struct Common_Parser_FlexAllocatorConfiguration allocator_configuration;
 
@@ -703,9 +695,9 @@ do_work (unsigned int bufferSize_in,
 
   // step0b: initialize event dispatch
   configuration.dispatchConfiguration.numberOfProactorThreads =
-          (!useReactor_in ? numberOfDispatchThreads_in : 0);
+    (!useReactor_in ? numberOfDispatchThreads_in : 0);
   configuration.dispatchConfiguration.numberOfReactorThreads =
-          (useReactor_in ? numberOfDispatchThreads_in : 0);
+    ( useReactor_in ? numberOfDispatchThreads_in : 0);
   if (!Common_Event_Tools::initializeEventDispatch (configuration.dispatchConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -754,9 +746,6 @@ do_work (unsigned int bufferSize_in,
   struct Common_EventDispatchState dispatch_state_s;
   dispatch_state_s.configuration = &configuration.dispatchConfiguration;
   configuration.signalHandlerConfiguration.dispatchState = &dispatch_state_s;
-  //configuration.signalHandlerConfiguration.statisticReportingHandler =
-  //  connection_manager_p;
-  //configuration.signalHandlerConfiguration.statisticReportingTimerID = timer_id;
   if (!signalHandler_in.initialize (configuration.signalHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -834,25 +823,6 @@ do_work (unsigned int bufferSize_in,
   // step3: clean up
   timer_manager_p->stop ();
 
-  //		{ // synch access
-  //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
-
-  //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-  //					 iterator != CBData_in.event_source_ids.end();
-  //					 iterator++)
-  //				g_source_remove(*iterator);
-  //		} // end lock scope
-  //timer_manager_p->stop ();
-
-  //  { // synch access
-  //    ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
-
-  //		for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-  //				 iterator != CBData_in.event_source_ids.end();
-  //				 iterator++)
-  //			g_source_remove(*iterator);
-  //	} // end lock scope
-
   //result = event_handler.close (ACE_Module_Base::M_DELETE_NONE);
   //if (result == -1)
   //  ACE_DEBUG ((LM_ERROR,
@@ -913,7 +883,9 @@ ACE_TMAIN (int argc_in,
   database_options_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   database_options_file +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB_OPTIONS_FILE);
-  bool output_to_database = false;
+  bool output_to_database_b = false;
+  std::string database =
+    ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB);
   std::string output_database_table =
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB_TABLE);
   std::string path = configuration_path;
@@ -941,7 +913,8 @@ ACE_TMAIN (int argc_in,
                             argv_in,
                             buffer_size,
                             database_options_file,
-                            output_to_database,
+                            output_to_database_b,
+                            database,
                             output_database_table,
                             output_file,
                             log_to_file,
@@ -988,10 +961,10 @@ ACE_TMAIN (int argc_in,
 //                ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
 //    use_thread_pool = true;
 //  } // end IF
-  if ((output_to_database && output_database_table.empty ())                ||
+  if ((output_to_database_b && (database.empty () || output_database_table.empty ())) ||
       (!database_options_file.empty () &&
-       !Common_File_Tools::isReadable (database_options_file))              ||
-      host_name.empty ()                                                    ||
+       !Common_File_Tools::isReadable (database_options_file))                        ||
+      host_name.empty ()                                                              ||
 //      (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool) ||
       URL.empty ())
   {
@@ -1128,7 +1101,8 @@ ACE_TMAIN (int argc_in,
   // step2: do actual work
   do_work (buffer_size,
            database_options_file,
-           output_to_database,
+           output_to_database_b,
+           database,
            output_database_table,
            output_file,
            host_name,

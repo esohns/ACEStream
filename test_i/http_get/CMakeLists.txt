@@ -194,7 +194,7 @@ if (UNIX)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
  create_target_launcher (${EXECUTABLE}
                          COMMAND ${COMMAND}
-                         ARGS "-c./etc/options.cnf -d news -e articles -f output.txt -l -p 80 -t -u http://www.heise.de/newsticker.html"
+                         ARGS "-c./etc/options.cnf -d news -e articles -f output.txt -l -p 80 -t -u http://www.heise.de/newsticker/"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get
@@ -224,7 +224,7 @@ elseif (WIN32)
                            ${ZLIB_LIBRARY_PATH})
  create_target_launcher (${EXECUTABLE}
                          COMMAND ${COMMAND}
-                         ARGS "-c.\\\\etc\\\\options.cnf -f output.txt -l -p 443 -r -t -u https://www.heise.de/newsticker.html"
+                         ARGS "-c.\\\\etc\\\\options.cnf -f output.txt -l -p 443 -r -t -u https://www.heise.de/newsticker/"
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get

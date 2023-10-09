@@ -179,8 +179,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // sessi
 //                              Stream_INotify_t,                         // stream notification interface type
 //                              Test_I_HTMLParser);                       // writer type
 
-typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
-                                   Common_TimePolicy_t,
+typedef Stream_Module_FileWriter_2<Common_TimePolicy_t,
                                    struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                                    Stream_ControlMessage_t,
                                    Test_I_Stream_Message,
