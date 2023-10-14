@@ -98,8 +98,8 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
 
   // implement/overload IMemAllocator
   inline virtual STDMETHODIMP QueryInterface (REFIID riid, __deref_out void** ppv) { return NonDelegatingQueryInterface (riid, ppv); }
-  inline virtual STDMETHODIMP_(ULONG) AddRef () { return 1; CUnknown::NonDelegatingAddRef (); }
-  inline virtual STDMETHODIMP_(ULONG) Release () { return 0; CUnknown::NonDelegatingRelease (); }
+  inline virtual STDMETHODIMP_(ULONG) AddRef () { return inherited::NonDelegatingAddRef (); }
+  inline virtual STDMETHODIMP_(ULONG) Release () { return inherited::NonDelegatingRelease (); }
   virtual STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**);
 
   //inline virtual int GetPinCount () { return 1; }

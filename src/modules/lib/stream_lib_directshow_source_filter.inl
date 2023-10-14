@@ -190,7 +190,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
   // *NOTE*: 'this' 'owns' the output pin
   // *IMPORTANT NOTE*: increments this' reference count as well; should be 1
   //                   after this call
-  //outputPin_->AddRef ();
+  outputPin_->AddRef ();
 }
 
 template <typename MessageType,

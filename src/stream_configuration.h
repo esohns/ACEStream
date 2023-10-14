@@ -98,6 +98,7 @@ struct Stream_ModuleHandlerConfiguration
    , autoStart (false)
    , computeThroughput (false)
    , concurrency (STREAM_HEADMODULECONCURRENCY_PASSIVE)
+   , connectionConfigurationName ()
 #if defined (_DEBUG)
    , debug (false)
 #endif // _DEBUG
@@ -141,6 +142,7 @@ struct Stream_ModuleHandlerConfiguration
   //                     finished once the thread returns from start(), i.e.
   //                     there is no point in calling wait().]
   enum Stream_HeadModuleConcurrency           concurrency;                          // head module(s)
+  std::string                                 connectionConfigurationName;          // net target
 #if defined (_DEBUG)
   bool                                        debug;
 #endif // _DEBUG

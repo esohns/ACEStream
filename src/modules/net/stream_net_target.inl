@@ -209,7 +209,12 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
   // sanity check(s)
   // *TODO*: remove type inferences
   ACE_ASSERT (configuration_in.connectionConfigurations);
-  Net_ConnectionConfigurationsIterator_t iterator =
+  Net_ConnectionConfigurationsIterator_t iterator;
+  if (!configuration_in.connectionConfigurationName.empty ())
+    iterator =
+      configuration_in.connectionConfigurations->find (configuration_in.connectionConfigurationName);
+  else
+   iterator =
     configuration_in.connectionConfigurations->find (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ())));
   if (likely (iterator == configuration_in.connectionConfigurations->end ()))
     iterator =
@@ -368,10 +373,13 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       // sanity check(s)
       // *TODO*: remove type inferences
       ACE_ASSERT (inherited::configuration_->connectionConfigurations);
-
-      iterator_2 =
+      if (!inherited::configuration_->connectionConfigurationName.empty ())
+        iterator_2 =
+          inherited::configuration_->connectionConfigurations->find (inherited::configuration_->connectionConfigurationName);
+      else
+       iterator_2 =
         inherited::configuration_->connectionConfigurations->find (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ())));
-      if (likely (iterator_2 == inherited::configuration_->connectionConfigurations->end ()))
+      if (iterator_2 == inherited::configuration_->connectionConfigurations->end ())
         iterator_2 =
           inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
       else
@@ -417,8 +425,8 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                                                          *configuration_p,
                                                          user_data_s,
                                                          peer_SAP,
-                                                         true, // wait ?
-                                                         true);
+                                                         true,  // wait ?
+                                                         true); // is peer address ?
       if (handle_h == ACE_INVALID_HANDLE)
       {
         ACE_DEBUG ((LM_ERROR,

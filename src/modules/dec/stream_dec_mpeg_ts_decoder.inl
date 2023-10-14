@@ -162,6 +162,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (message_inout->capacity () >= STREAM_DEC_MPEG_TS_PACKET_SIZE);
 
+  // append incoming data to existing data buffer (iff any)
   if (!buffer_)
     buffer_ = message_inout;
   else
@@ -171,8 +172,6 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
       message_block_p = message_block_p->cont ();
     message_block_p->cont (message_inout);
   } // end ELSE
-  message_block_p = message_inout;
-  // message_block_p points at the trailing fragment
 
   if (missingPSIBytes_)
   {
