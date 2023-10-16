@@ -4115,6 +4115,12 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
+  // *IMPORTANT NOTE*: the module might be on several streams and thus removed
+  //                   several times --> reset its' next pointer the first time
+  //                   around, otherwise it would point into void space
+  // *WARNING*: do not invoke the overload here
+  module_in->MODULE_T::next (NULL);
+
   if (likely (reset_in))
   {
     result = module_in->close (ACE_Module_Base::M_FLAGS_NOT_SET); // use the modules' set flags

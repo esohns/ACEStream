@@ -798,7 +798,8 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::onLink"));
 
   // sanity check(s)
-  ACE_ASSERT (module_in);
+  if (!module_in) // *NOTE*: downstream is being removed --> nothing to do
+    return;
 
   MODULE_T* module_p = static_cast<MODULE_T*> (module_in);
   MODULE_T* module_2 = NULL;
