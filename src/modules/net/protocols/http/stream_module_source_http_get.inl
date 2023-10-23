@@ -598,7 +598,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
 //  std::istringstream input_stream (message_in.rd_ptr (),
 //                                   message_in.length ());
   input_stream.get (*converter.rdbuf ());
-  if (!input_stream)
+  if (input_stream.fail ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to extract first line from HTTP response, aborting\n"),

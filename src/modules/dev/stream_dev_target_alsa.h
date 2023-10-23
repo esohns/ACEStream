@@ -39,7 +39,7 @@ extern "C"
 
 extern const char libacestream_default_dev_target_alsa_module_name_string[];
 
-static void stream_dev_target_alsa_async_callback (snd_async_handler_t*);
+extern void stream_dev_target_alsa_async_cb (snd_async_handler_t*);
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

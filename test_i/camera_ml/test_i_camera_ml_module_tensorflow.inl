@@ -202,7 +202,8 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
   tensorflow::TTypes<float>::Flat scores = outputs[1].flat<float> ();
   tensorflow::TTypes<float>::Flat classes = outputs[2].flat<float> ();
   tensorflow::TTypes<float>::Flat number_of_detections = outputs[3].flat<float> ();
-  tensorflow::TTypes<float, 3>::Tensor boxes = outputs[0].flat_outer_dims<float,3> ();
+  tensorflow::TTypes<float, 3>::Tensor boxes = outputs[0].flat_outer_dims<float, 3> ();
+  ACE_UNUSED_ARG (number_of_detections);
 
   good_indices_a = filterBoxes (scores, boxes, 0.8, 0.5);
 //  for (size_t i = 0; i < goodIdxs.size(); i++)
@@ -215,7 +216,12 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
   drawBoundingBoxes (frame_matrix, scores, classes, boxes, good_indices_a);
 
   // draw fps
-  cv::putText (frame_matrix, std::to_string (fps).substr (0, 5), cv::Point (0, frame_matrix.rows), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar (255, 255, 255));
+  cv::putText (frame_matrix,
+               std::to_string (fps).substr (0, 5),
+               cv::Point (0, frame_matrix.rows),
+               cv::FONT_HERSHEY_SIMPLEX,
+               0.7,
+               cv::Scalar (255, 255, 255));
 }
 
 template <typename ConfigurationType,

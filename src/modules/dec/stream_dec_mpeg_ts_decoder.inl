@@ -222,7 +222,13 @@ defragment:
 
     // sanity check(s)
     //ACE_ASSERT (packet_header_p->payload_unit_start_indicator);
-    ACE_ASSERT (packet_header_p->synchronization == STREAM_DEC_MPEG_TS_SYNCHRONIZATION_BYTE);
+    if (unlikely (packet_header_p->synchronization != STREAM_DEC_MPEG_TS_SYNCHRONIZATION_BYTE))
+    {
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: invalid synchronization byte, continuing\n"),
+                  inherited::mod_->name ()));
+      goto continue_;
+    } // end IF
 
     packet_identifier =
       (packet_header_p->packet_identifier_hi << 8 | packet_header_p->packet_identifier_lo);

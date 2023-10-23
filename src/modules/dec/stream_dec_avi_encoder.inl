@@ -756,6 +756,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       goto error;
     }
   } // end SWITCH
+  ACE_UNUSED_ARG (is_audio_b);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   message_block_p =

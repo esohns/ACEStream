@@ -78,9 +78,7 @@ class Stream_DataBlockAllocatorHeap_T
   // convenient types
   typedef Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
                                           ConfigurationType> OWN_TYPE_T;
-  // *NOTE*: 'long' allows efficient atomic increments on many platforms (see
-  //         available ACE_Atomic_Op template specializations)
-  typedef ACE_Atomic_Op<ACE_SYNCH_MUTEX_T, long> CACHE_SIZE_COUNTER_T;
+  typedef ACE_Atomic_Op<ACE_SYNCH_MUTEX_T, unsigned long long> CACHE_SIZE_COUNTER_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_DataBlockAllocatorHeap_T (const Stream_DataBlockAllocatorHeap_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_DataBlockAllocatorHeap_T& operator= (const Stream_DataBlockAllocatorHeap_T&))

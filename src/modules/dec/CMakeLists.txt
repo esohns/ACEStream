@@ -49,6 +49,10 @@ endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
+ target_compile_options (${PROJECT_NAME}_Decoder PUBLIC
+                         ${MAGICK_CXX_FLAGS})
+ target_link_options (${PROJECT_NAME}_Decoder PUBLIC
+                      ${MAGICK_LD_FLAGS})
 endif (IMAGEMAGICK_SUPPORT)
 
 if (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)

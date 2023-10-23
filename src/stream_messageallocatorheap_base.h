@@ -104,12 +104,10 @@ class Stream_MessageAllocatorHeapBase_T
 #endif /* ACE_HAS_MALLOC_STATS */
   inline virtual void dump (void) const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
-  bool                                   block_;
-  DATABLOCK_ALLOCATOR_T                  dataBlockAllocator_;
-  ACE_SYNCH_SEMAPHORE_T                  freeMessageCounter_;
-  // *NOTE*: currently, only the (unsigned) 'long' specialization may (!)
-  //         support the interlocked exchange_add opcode (see ace/Atomic_Op.h)
-  ACE_Atomic_Op<ACE_SYNCH_MUTEX_T, long> poolSize_;
+  bool                                                 block_;
+  DATABLOCK_ALLOCATOR_T                                dataBlockAllocator_;
+  ACE_SYNCH_SEMAPHORE_T                                freeMessageCounter_;
+  ACE_Atomic_Op<ACE_SYNCH_MUTEX_T, unsigned long long> poolSize_;
 };
 
 // include template definition
