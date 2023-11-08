@@ -97,7 +97,10 @@ set (source_files
      stream_misc_queue_target.inl
      stream_misc_splitter.cpp
      stream_misc_splitter.h
-     stream_misc_splitter.inl)
+     stream_misc_splitter.inl
+     stream_misc_window_source.cpp
+     stream_misc_window_source.h
+     stream_misc_window_source.inl)
 
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
@@ -169,6 +172,8 @@ install (FILES
          stream_misc_queue_target.inl
          stream_misc_splitter.h
          stream_misc_splitter.inl
+         stream_misc_window_source.h
+         stream_misc_window_source.inl
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT mod_include)
 

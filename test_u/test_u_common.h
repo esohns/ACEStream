@@ -94,6 +94,7 @@ struct Test_U_DirectShow_MessageData
   double        sampleTime;
 };
 typedef Stream_DataBase_T<struct Test_U_DirectShow_MessageData> Test_U_DirectShow_MessageData_t;
+
 struct Test_U_MediaFoundation_MessageData
 {
   Test_U_MediaFoundation_MessageData ()

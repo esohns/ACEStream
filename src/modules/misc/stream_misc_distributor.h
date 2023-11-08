@@ -24,7 +24,7 @@
 #include <map>
 #include <string>
 #include <utility>
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <xstddef>
 #endif // ACE_WIN32 || ACE_WIN64
 

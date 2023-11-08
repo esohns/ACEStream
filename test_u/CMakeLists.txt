@@ -303,8 +303,9 @@ install (TARGETS ${PROJECT_NAME}_Test_U
 
 add_subdirectory (audioeffect)
 add_subdirectory (branch)
-add_subdirectory (camsave)
 add_subdirectory (camerascreen)
+add_subdirectory (camsave)
+add_subdirectory (capturewindow)
 add_subdirectory (document)
 add_subdirectory (filecopy)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork

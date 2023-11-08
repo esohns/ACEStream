@@ -36,6 +36,7 @@
 
 #include "stream_common.h"
 #include "stream_configuration.h"
+#include "stream_istreamcontrol.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -49,9 +50,6 @@
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "test_u_defines.h"
-
-// forward declarations
-class Stream_IStreamControlBase;
 
 struct Test_U_ModuleHandlerConfiguration
  : virtual Stream_ModuleHandlerConfiguration

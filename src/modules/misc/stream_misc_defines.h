@@ -39,6 +39,7 @@
 #define STREAM_MISC_QUEUE_SOURCE_DEFAULT_NAME_STRING                "QueueSource"
 #define STREAM_MISC_QUEUE_SINK_DEFAULT_NAME_STRING                  "QueueSink"
 #define STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING                    "Splitter"
+#define STREAM_MISC_WINDOW_SOURCE_DEFAULT_NAME_STRING               "WindowSource"
 
 // stream
 #define STREAM_MISC_DEFAULT_INPUT_STREAM_NAME_STRING                "InputStream"
