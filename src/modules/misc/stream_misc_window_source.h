@@ -133,7 +133,15 @@ class Stream_Module_Window_Source_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Window_Source_T (const Stream_Module_Window_Source_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Window_Source_T& operator= (const Stream_Module_Window_Source_T&))
 
-  Common_Timer_Handler handler_;
+  Common_Timer_Handler      handler_;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HDC                       captureContext_;
+  HBITMAP                   captureBitmap_;
+  HDC                       sourceContext_;
+  Common_Image_Resolution_t resolution_;
+  BITMAPINFO                bitmapInfo_;
+#else
+#endif // ACE_WIN32 || ACE_WIN64
 };
 
 // include template definition

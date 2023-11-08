@@ -67,6 +67,13 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
  : inherited (stream_in) // stream handle
  , handler_ (this,
              false)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , captureContext_ (NULL)
+ , captureBitmap_ (NULL)
+ , sourceContext_ (NULL)
+ , resolution_ ()
+#else
+#endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Window_Source_T::Stream_Module_Window_Source_T"));
 
@@ -124,6 +131,13 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
                     timer_id));
       handler_.set (-1);
     } // end IF
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ReleaseDC (NULL, captureContext_); captureContext_ = NULL;
+    DeleteObject (captureBitmap_); captureBitmap_ = NULL;
+    ReleaseDC (inherited::configuration_->window, sourceContext_); sourceContext_ = NULL;
+#else
+#endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 
   if (unlikely (!configuration_in.window))
@@ -220,7 +234,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
         if (unlikely (inherited::timerId_ == -1))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", returning\n"),
+                      ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", aborting\n"),
                       inherited::mod_->name (),
                       &interval));
           goto error;
@@ -236,6 +250,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
       ACE_ASSERT (!session_data_r.formats.empty ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
@@ -247,6 +262,28 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
       frames_per_second_i = 10000000 / static_cast<int> (video_info_header_p->AvgTimePerFrame);
 
       ACE_ASSERT (inherited::configuration_->allocatorConfiguration->defaultBufferSize >= video_info_header_p->bmiHeader.biSizeImage);
+
+      ACE_ASSERT (inherited::configuration_->window);
+      sourceContext_ = GetDC (inherited::configuration_->window);
+      ACE_ASSERT (sourceContext_);
+      captureContext_ = CreateCompatibleDC (sourceContext_);
+      ACE_ASSERT (captureContext_);
+      captureBitmap_ = CreateCompatibleBitmap (sourceContext_,
+                                               video_info_header_p->bmiHeader.biWidth,
+                                               video_info_header_p->bmiHeader.biHeight);
+      ACE_ASSERT (captureBitmap_);
+      if (unlikely (!SelectObject (captureContext_, captureBitmap_)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to SelectObject(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
+        goto error;
+      } // end IF
+      resolution_.cx = video_info_header_p->bmiHeader.biWidth;
+      resolution_.cy = video_info_header_p->bmiHeader.biHeight;
+      ACE_OS::memset (&bitmapInfo_, 0, sizeof (BITMAPINFO));
+      bitmapInfo_.bmiHeader = video_info_header_p->bmiHeader;
 #else
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
@@ -407,7 +444,25 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
 
   // step2: fill buffer
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-
+  if (!BitBlt (captureContext_, 0, 0, resolution_.cx, resolution_.cy, sourceContext_, 0, 0, SRCCOPY | CAPTUREBLT))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to BitBlt(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
+    goto error;
+  } // end IF
+  result =
+    GetDIBits (captureContext_, captureBitmap_, 0, resolution_.cy, message_block_p->wr_ptr (), &bitmapInfo_, DIB_RGB_COLORS);
+  if (result != resolution_.cy)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to GetDIBits(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
+    goto error;
+  } // end IF
+  message_block_p->wr_ptr (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
 #else
   message_block_p->wr_ptr (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
 #endif // ACE_WIN32 || ACE_WIN64

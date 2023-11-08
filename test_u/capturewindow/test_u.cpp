@@ -245,7 +245,8 @@ do_process_arguments (int argc_in,
 bool
 do_initialize_directshow (HWND windowHandle_in,
                           bool hasUI_in,
-                          struct _AMMediaType& outputFormat_inout)
+                          struct _AMMediaType& outputFormat_inout,
+                          struct Common_AllocatorConfiguration& allocatorConfiguration_inout)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
@@ -276,10 +277,12 @@ do_initialize_directshow (HWND windowHandle_in,
   ACE_ASSERT (result_2);
   ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
   video_info_header_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
-  video_info_header_p->bmiHeader.biWidth = window_rectangle_s.right - window_rectangle_s.left;
-  video_info_header_p->bmiHeader.biHeight = window_rectangle_s.top - window_rectangle_s.bottom;
+  video_info_header_p->bmiHeader.biWidth =
+    window_rectangle_s.right - window_rectangle_s.left;
+  video_info_header_p->bmiHeader.biHeight =
+    window_rectangle_s.bottom - window_rectangle_s.top;
   video_info_header_p->bmiHeader.biPlanes = 1;
-  video_info_header_p->bmiHeader.biBitCount = 32;
+  video_info_header_p->bmiHeader.biBitCount = 24;
   video_info_header_p->bmiHeader.biCompression = BI_RGB;
   video_info_header_p->bmiHeader.biSizeImage =
     DIBSIZE (video_info_header_p->bmiHeader);
@@ -293,6 +296,9 @@ do_initialize_directshow (HWND windowHandle_in,
     (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
 
   outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
+
+  allocatorConfiguration_inout.defaultBufferSize =
+    video_info_header_p->bmiHeader.biSizeImage;
 
   return true;
 
@@ -711,7 +717,7 @@ do_work (
         &allocator_configuration;
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
-      //directshow_modulehandler_configuration.lock = &state_r.subscribersLock;
+      directshow_modulehandler_configuration.window = windowHandle_in;
 
       //if (statisticReportingInterval_in)
       //{
@@ -875,8 +881,9 @@ do_work (
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       if (!do_initialize_directshow (windowHandle_in,
-                                     false,                             // has UI ?
-                                     directshow_stream_configuration.format))
+                                     false,                                 // has UI ?
+                                     directshow_stream_configuration.format,
+                                     allocator_configuration))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));

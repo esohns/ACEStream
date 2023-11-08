@@ -62,11 +62,13 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
  , context_ (NULL)
  , header_ ()
  //, CBData_ ()
+ , resolution_2 ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_GDI_T::Stream_Vis_Target_GDI_T"));
 
   ACE_OS::memset (&header_, 0, sizeof (struct tagBITMAPINFO));
   //ACE_OS::memset (&CBData_, 0, sizeof (struct libacestream_gdi_window_proc_cb_data));
+  ACE_OS::memset (&resolution_2, 0, sizeof (struct tagRECT));
 
   //CBData_.dc = &context_;
   //CBData_.lock = &(inherited::lock_);
@@ -126,17 +128,13 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  //ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-
   // sanity check(s)
   ACE_ASSERT (context_);
-  ACE_ASSERT (window_);
 
-  struct tagRECT rect_s;
-  GetWindowRect (inherited::window_, &rect_s);
+  //GetWindowRect (inherited::window_, &resolution_2);
 
   if (unlikely (StretchDIBits (context_,
-                               0, 0, rect_s.right - rect_s.left, rect_s.bottom - rect_s.top,
+                               0, 0, resolution_2.right - resolution_2.left, resolution_2.bottom - resolution_2.top,
                                0, 0, inherited::resolution_.cx, inherited::resolution_.cy,
                                message_inout->rd_ptr (),
                                &header_,
@@ -201,15 +199,15 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 
       header_.bmiHeader.biBitCount =
         Stream_MediaFramework_DirectShow_Tools::toFrameBits (media_type_s);
+      header_.bmiHeader.biCompression = BI_RGB;
       header_.bmiHeader.biWidth = resolution_.cx;
       // *IMPORTANT NOTE*: "...StretchDIBits creates a top-down image if the
       //                   sign of the biHeight member of the BITMAPINFOHEADER
       //                   structure for the DIB is negative. ..."
-      header_.bmiHeader.biHeight = -resolution_.cy;
+      header_.bmiHeader.biHeight = resolution_.cy;
       header_.bmiHeader.biPlanes = 1;
       header_.bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
-      header_.bmiHeader.biSizeImage = resolution_.cx * resolution_.cy * (header_.bmiHeader.biBitCount / 8);
-      header_.bmiHeader.biCompression = BI_RGB;
+      header_.bmiHeader.biSizeImage = DIBSIZE (header_.bmiHeader);
 
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
@@ -232,6 +230,8 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
                     inherited::window_,
                     context_));
       } // end ELSE
+      ACE_ASSERT (inherited::window_);
+      GetWindowRect (inherited::window_, &resolution_2);
 
       break;
 

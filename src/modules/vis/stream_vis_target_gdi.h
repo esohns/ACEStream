@@ -97,6 +97,7 @@ class Stream_Vis_Target_GDI_T
   virtual int svc ();
 
   //struct libacestream_gdi_window_proc_cb_data CBData_;
+  struct tagRECT resolution_2;
 };
 
 // include template definition
