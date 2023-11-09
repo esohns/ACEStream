@@ -92,6 +92,46 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType,
           typename MediaType>
+Stream_Module_Window_Source_T<ACE_SYNCH_USE,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              ConfigurationType,
+                              StreamControlType,
+                              StreamNotificationType,
+                              StreamStateType,
+                              SessionDataType,
+                              SessionDataContainerType,
+                              StatisticContainerType,
+                              TimerManagerType,
+                              MediaType>::~Stream_Module_Window_Source_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Window_Source_T::~Stream_Module_Window_Source_T"));
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (captureContext_)
+    DeleteDC (captureContext_);
+  if (captureBitmap_)
+    DeleteObject (captureBitmap_);
+  if (inherited::configuration_ && sourceContext_)
+    ReleaseDC (inherited::configuration_->window, sourceContext_);
+#else
+#endif // ACE_WIN32 || ACE_WIN64
+}
+
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename MediaType>
 bool
 Stream_Module_Window_Source_T<ACE_SYNCH_USE,
                               ControlMessageType,
@@ -111,11 +151,10 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Window_Source_T::initialize"));
 
   if (unlikely (inherited::isInitialized_))
-  {
+  { ACE_ASSERT (inherited::configuration_);
     long timer_id = handler_.get_2 ();
     if (unlikely (timer_id != -1))
     {
-      ACE_ASSERT (inherited::configuration_);
       typename TimerManagerType::INTERFACE_T* itimer_manager_p =
         (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
                                                  : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
@@ -133,7 +172,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
     } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    ReleaseDC (NULL, captureContext_); captureContext_ = NULL;
+    DeleteDC (captureContext_); captureContext_ = NULL;
     DeleteObject (captureBitmap_); captureBitmap_ = NULL;
     ReleaseDC (inherited::configuration_->window, sourceContext_); sourceContext_ = NULL;
 #else
@@ -419,8 +458,10 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::allocator_);
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+  ACE_ASSERT (inherited::sessionData_);
 
   ACE_Message_Block* message_block_p = NULL;
+  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
   int result = -1;
 
   // step1: allocate buffer
@@ -441,6 +482,9 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     goto error;
   } // end IF
+  DataMessageType* message_p = static_cast<DataMessageType*> (message_block_p);
+  message_p->initialize (session_data_r.sessionId,
+                         NULL);
 
   // step2: fill buffer
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

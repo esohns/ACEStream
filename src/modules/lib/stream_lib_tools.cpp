@@ -1280,7 +1280,7 @@ Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (enum AVPixelFormat pix
       //return MEDIASUBTYPE_None;
       return GUID_NULL;
     case AV_PIX_FMT_YUV420P:
-      return MEDIASUBTYPE_YV12;
+      return MEDIASUBTYPE_IMC1;
     case AV_PIX_FMT_YUYV422:
       return MEDIASUBTYPE_YUY2;
     case AV_PIX_FMT_RGB24:
@@ -4035,7 +4035,8 @@ Stream_MediaFramework_Tools::ffmpegFormatToffmpegCodecId (enum AVSampleFormat fo
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown ffmpeg sample format (was: %d), aborting\n"),
+                  ACE_TEXT ("invalid/unknown ffmpeg sample format (was: \"%s\" [%d]), aborting\n"),
+                  ACE_TEXT (av_get_sample_fmt_name (format_in)),
                   format_in));
       break;
     }

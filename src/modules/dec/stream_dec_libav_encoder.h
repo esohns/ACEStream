@@ -109,7 +109,7 @@ class Stream_Decoder_LibAVEncoder_T
 
   //ACE_Thread_Condition<ACE_Thread_Mutex> condition_;
   bool                                   isFirst_; // the first thread allocates the format context
-  bool                                   isLast_;  // the last thread deallocates the format context
+  int                                    isLast_;  // the last thread deallocates the format context
   unsigned int                           numberOfStreamsInitialized_;
 
  private:

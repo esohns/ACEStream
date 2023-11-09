@@ -1136,10 +1136,15 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     {
       directshow_video_modulehandler_configuration.allocatorConfiguration =
         &allocator_configuration;
+      directshow_video_modulehandler_configuration.codecId =
+        AV_CODEC_ID_RAWVIDEO;
       directshow_video_modulehandler_configuration.deviceIdentifier =
         deviceIdentifier_in;
       directshow_video_modulehandler_configuration.display = displayDevice_in;
+      directshow_video_modulehandler_configuration.fileFormat =
+        ACE_TEXT_ALWAYS_CHAR ("avi");
       directshow_video_modulehandler_configuration.lock = &state_r.subscribersLock;
+      directshow_video_modulehandler_configuration.numberOfStreams = 2;
 
       if (statisticReportingInterval_in)
       {

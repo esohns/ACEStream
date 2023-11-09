@@ -96,7 +96,7 @@ class Stream_Module_Window_Source_T
 #else
    Stream_Module_Window_Source_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  inline virtual ~Stream_Module_Window_Source_T () {}
+  virtual ~Stream_Module_Window_Source_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed

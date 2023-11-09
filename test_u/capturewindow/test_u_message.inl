@@ -53,9 +53,9 @@ Test_U_Message_T<DataType,
                                                      ACE_Allocator* messageAllocator_in,
                                                      bool incrementMessageCounter_in)
 : inherited (sessionId_in,
-              dataBlock_in,               // use (don't own (!) memory of-) this data block
-              messageAllocator_in,        // message block allocator
-              incrementMessageCounter_in)
+             dataBlock_in,               // use (don't own (!) memory of-) this data block
+             messageAllocator_in,        // message block allocator
+             incrementMessageCounter_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_Message_T::Test_U_Message_T"));
 
@@ -134,11 +134,6 @@ Test_U_Message_T<DataType,
   } // end IF
 
   // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
-
-//  // *NOTE*: duplicates may reuse the device buffer memory, but only the
-//  //         original message will requeue it (see release() below)
-//  DataType& data_r = const_cast<DataType&> (message_p->getR ());
-//  data_r.device = -1;
 
   return message_p;
 }

@@ -31,6 +31,7 @@
 
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_converter.h"
+#include "stream_dec_libav_encoder.h"
 #endif // FFMPEG_SUPPORT
 
 #include "stream_misc_defines.h"
@@ -47,6 +48,7 @@
 #endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_vis_target_gdi.h"
+#include "stream_vis_target_direct2d.h"
 #else
 #include "stream_vis_wayland_window.h"
 #include "stream_vis_x11_window.h"
@@ -97,11 +99,20 @@ typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_ControlMessage_t,
                                                       Test_U_DirectShow_Message_t,
                                                       Test_U_DirectShow_SessionMessage_t,
-                                                      Test_U_DirectShow_SessionData_t> Test_U_DirectShow_Distributor_WriterTask_t;
+                                                      Test_U_CaptureWindow_DirectShow_SessionData_t> Test_U_DirectShow_Distributor_WriterTask_t;
 
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVConverter_T<Test_U_DirectShow_TaskBaseSynch_t,
                                         struct _AMMediaType> Test_U_DirectShow_LibAVConvert;
+
+typedef Stream_Decoder_LibAVEncoder_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_U_DirectShow_Message_t,
+                                      Test_U_DirectShow_SessionMessage_t,
+                                      Test_U_CaptureWindow_DirectShow_SessionData_t,
+                                      struct _AMMediaType> Test_U_DirectShow_LibAVEncoder;
 
 typedef Stream_Visualization_LibAVResize_T<Test_U_DirectShow_TaskBaseSynch_t,
                                            struct _AMMediaType> Test_U_DirectShow_LibAVResize;
@@ -207,15 +218,15 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//typedef Stream_Vis_Target_Direct2D_T<ACE_MT_SYNCH,
-//                                     Common_TimePolicy_t,
-//                                     struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration,
-//                                     Stream_ControlMessage_t,
-//                                     Test_U_DirectShow_Message_t,
-//                                     Test_U_DirectShow_SessionMessage_t,
-//                                     Test_U_DirectShow_SessionData,
-//                                     Test_U_DirectShow_SessionData_t,
-//                                     struct _AMMediaType> Test_U_DirectShow_Direct2D_Display;
+typedef Stream_Vis_Target_Direct2D_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Test_U_DirectShow_Message_t,
+                                     Test_U_DirectShow_SessionMessage_t,
+                                     Test_U_CaptureWindow_DirectShow_SessionData,
+                                     Test_U_CaptureWindow_DirectShow_SessionData_t,
+                                     struct _AMMediaType> Test_U_DirectShow_Direct2D_Display;
 
 typedef Stream_Vis_Target_GDI_T<ACE_MT_SYNCH,
                                 Common_TimePolicy_t,
@@ -311,6 +322,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_DirectShow_SessionData,      
                               Stream_INotify_t,                                 // stream notification interface type
                               Test_U_DirectShow_LibAVConvert);                  // writer type
 
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_DirectShow_SessionData,      // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_libav_encoder_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Test_U_DirectShow_LibAVEncoder);                  // writer type
+
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_DirectShow_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
@@ -367,12 +385,12 @@ DATASTREAM_MODULE_DUPLEX (Test_U_SessionData,                               // s
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                       // session data type
-//                              enum Stream_SessionMessageType,                                   // session event type
-//                              struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_vis_direct2d_module_name_string,
-//                              Stream_INotify_t,                                                 // stream notification interface type
-//                              Stream_CameraScreen_DirectShow_Direct2D_Display);                 // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                    // session event type
+                              struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_direct2d_module_name_string,
+                              Stream_INotify_t,                                                  // stream notification interface type
+                              Test_U_DirectShow_Direct2D_Display);                               // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_DirectShow_SessionData,       // session data type
                               enum Stream_SessionMessageType,                   // session event type

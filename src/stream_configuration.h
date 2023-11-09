@@ -32,6 +32,17 @@
 #include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (FFMPEG_SUPPORT)
+#ifdef __cplusplus
+extern "C"
+{
+#endif // __cplusplus
+#include "libavcodec/codec_id.h"
+#ifdef __cplusplus
+}
+#endif // __cplusplus
+#endif // FFMPEG_SUPPORT
+
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
@@ -96,6 +107,9 @@ struct Stream_ModuleHandlerConfiguration
   Stream_ModuleHandlerConfiguration ()
    : allocatorConfiguration (NULL)
    , autoStart (false)
+#if defined (FFMPEG_SUPPORT)
+   , codecId (AV_CODEC_ID_NONE)
+#endif // FFMPEG_SUPPORT
    , computeThroughput (false)
    , concurrency (STREAM_HEADMODULECONCURRENCY_PASSIVE)
    , connectionConfigurationName ()
@@ -104,6 +118,7 @@ struct Stream_ModuleHandlerConfiguration
 #endif // _DEBUG
    , defragmentMode (STREAM_DEFRAGMENT_INVALID)
    , demultiplex (false)
+   , fileFormat ()
    , flipImage (false)
    , frameNumber (0)
    , generateSessionMessages (true)
@@ -115,9 +130,9 @@ struct Stream_ModuleHandlerConfiguration
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
    , messageAllocator (NULL)
+   , numberOfStreams (1)
    , outboundNotificationHandle (NULL)
    , parserConfiguration (NULL)
-   //, passData (true)
    , passive (true)
    , printFinalReport (false)
    , reportingInterval (0)
@@ -132,6 +147,9 @@ struct Stream_ModuleHandlerConfiguration
 
   struct Common_AllocatorConfiguration*       allocatorConfiguration;
   bool                                        autoStart;                            // head module(s)
+#if defined (FFMPEG_SUPPORT)
+  enum AVCodecID                              codecId;                              // ffmpeg encoder
+#endif // FFMPEG_SUPPORT
   bool                                        computeThroughput;                    // statistic/... module(s)
   // *NOTE*: valid operating modes (see also: put()):
   //         active    : dedicated worker thread(s) running svc()
@@ -148,6 +166,7 @@ struct Stream_ModuleHandlerConfiguration
 #endif // _DEBUG
   enum Stream_MessageDefragmentMode           defragmentMode;                       // defragment module
   bool                                        demultiplex;                          // message handler module
+  std::string                                 fileFormat;                           // ffmpeg encoder (e.g. "avi", "mp4", ...)
   bool                                        flipImage;                            // (vertical-) ffmpeg converter
   unsigned int                                frameNumber;                          // frame grabber
   bool                                        generateSessionMessages;              // head module(s)
@@ -183,9 +202,9 @@ struct Stream_ModuleHandlerConfiguration
   enum Stream_MediaFramework_Type             mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
   Stream_IAllocator*                          messageAllocator;
+  int                                         numberOfStreams;                      // ffmpeg encoder
   Stream_IOutboundDataNotify*                 outboundNotificationHandle;           // IO module(s)
   struct Common_ParserConfiguration*          parserConfiguration;                  // parser module(s)
-  //bool                                        passData;                             // renderer module(s)
   bool                                        passive;                              // network/device/... module(s)
   bool                                        printFinalReport;                     // statistic module(s)
   unsigned int                                reportingInterval;                    // (statistic) reporting interval (second(s)) [0: off]

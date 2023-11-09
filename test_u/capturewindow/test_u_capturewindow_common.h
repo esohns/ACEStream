@@ -142,6 +142,7 @@ class Test_U_CaptureWindow_DirectShow_SessionData
                                    struct Test_U_DirectShow_StreamState,
                                    struct Test_U_StatisticData,
                                    struct Stream_UserData> ()
+   , stream (NULL)
   {}
 
   Test_U_CaptureWindow_DirectShow_SessionData& operator= (const Test_U_CaptureWindow_DirectShow_SessionData& rhs_in)
@@ -151,6 +152,8 @@ class Test_U_CaptureWindow_DirectShow_SessionData
                                   struct Test_U_DirectShow_StreamState,
                                   struct Test_U_StatisticData,
                                   struct Stream_UserData>::operator= (rhs_in);
+
+    stream = rhs_in.stream;
 
     return *this;
   }
@@ -163,8 +166,12 @@ class Test_U_CaptureWindow_DirectShow_SessionData
                                   struct Test_U_StatisticData,
                                   struct Stream_UserData>::operator+= (rhs_in);
 
+    stream = (stream ? stream : rhs_in.stream);
+
     return *this;
   }
+
+  Stream_Base_t* stream;
 };
 typedef Stream_SessionData_T<Test_U_CaptureWindow_DirectShow_SessionData> Test_U_CaptureWindow_DirectShow_SessionData_t;
 

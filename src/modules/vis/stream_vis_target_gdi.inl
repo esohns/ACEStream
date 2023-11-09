@@ -131,6 +131,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (context_);
 
+  // *TODO*: support dynamic resizing of output window ?
   //GetWindowRect (inherited::window_, &resolution_2);
 
   if (unlikely (StretchDIBits (context_,
@@ -267,11 +268,13 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
       if (inherited::window_)
       {
         inherited::notify_ = false;
-        if (unlikely (!CloseWindow (inherited::window_)))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+        PostMessage (inherited::window_, WM_CLOSE, 0, 0);
+        PostMessage (inherited::window_, WM_QUIT, 0, 0);
+        // if (unlikely (!DestroyWindow (inherited::window_)))
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("%s: failed to DestroyWindow(): \"%s\", continuing\n"),
+        //              inherited::mod_->name (),
+        //              ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
         inherited::window_ = NULL;
       } // end IF
 
@@ -382,11 +385,23 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 
   inherited::notify_ = true;
 
+  BOOL result_b = 0;
   struct tagMSG message_s;
-  while (GetMessage (&message_s, window_, 0, 0) != -1)
+  while ((result_b = GetMessage (&message_s, inherited::window_, 0, 0)) != 0)
   {
-    TranslateMessage (&message_s);
-    DispatchMessage (&message_s);
+    if (unlikely (result_b == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to GetMessage(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+      break;
+    } // end IF
+    else
+    {
+      TranslateMessage (&message_s);
+      DispatchMessage (&message_s);
+    } // end ELSE
   } // end WHILE
 
   if (unlikely (inherited::notify_))

@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <utility>
+
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
@@ -200,8 +202,7 @@ Stream_Module_Aggregator_ReaderTask_2<ACE_SYNCH_USE,
          iterator_2 != writer_p->readerLinks_.end ();
          ++iterator_2)
     {
-      if (ACE_OS::strcmp ((*iterator).second->name ().c_str (),
-                          (*iterator_2).first.c_str ()))
+      if ((*iterator).second != (*iterator_2).first)
         continue;
 
       ACE_ASSERT ((*iterator_2).second);
@@ -951,7 +952,7 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
  , sessionLock_ ()
  , sessionSessionData_ ()
  , sessions_ ()
- //, outboundStreamName_ ()
+ , tails_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_2::Stream_Module_Aggregator_WriterTask_2"));
 
@@ -1113,8 +1114,7 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
          iterator_2 != writerLinks_.end ();
          ++iterator_2)
     {
-      if (ACE_OS::strcmp ((*iterator).second->name ().c_str (),
-                          (*iterator_2).first.c_str ()))
+      if ((*iterator).second != (*iterator_2).first)
         continue;
 
       ACE_ASSERT ((*iterator_2).second);
@@ -1122,6 +1122,18 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
 
       break;
     } // end FOR
+
+    if (!task_p)
+    { ACE_ASSERT (writerLinks_.empty ());
+      SESSIONID_TO_TAIL_MAP_ITERATOR_T iterator_2 = tails_.find (sessionId_in);
+      ACE_ASSERT (iterator_2 != tails_.end ());
+
+      //module_p = (*iterator).second->tail ();
+      //ACE_ASSERT (module_p);
+      //task_p = module_p->next () ? module_p->next ()->writer ()
+      //                           : module_p->writer ();
+      task_p = (*iterator_2).second;
+    } // end IF
   } // end lock scope
   ACE_ASSERT (task_p);
 
@@ -1466,9 +1478,25 @@ insert:
       const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         session_data_container_r.getR ();
       ACE_ASSERT (session_data_r.stream);
+      typename inherited::MODULE_T* tail_p = NULL;
+      typename inherited::TASK_T* tail_2 = NULL;
+retry:
+      tail_p = session_data_r.stream->tail ();
+      ACE_ASSERT (tail_p);
+      tail_p = tail_p->next ();
+      // *NOTE*: when 'this' is pushed onto new streams, its' successor gets
+      //         reset; i.e. there is a race condition when e.g. multiple
+      //         connections (with this on the stream) are started
+      //         simultaneously
+      while (!tail_p)
+        goto retry;
+      tail_2 = tail_p->writer ();
+      ACE_ASSERT (tail_2);
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
         sessions_.insert (std::make_pair (session_id,
                                           session_data_r.stream));
+        tails_.insert (std::make_pair (session_id,
+                                       tail_2));
       } // end lock scope
     } // *WARNING*: control falls through here
     case STREAM_SESSION_MESSAGE_LINK:
@@ -1541,7 +1569,7 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
   MODULE_T* module_2 = NULL;
   typename inherited::IGET_T* iget_p = NULL;
   typename inherited::STREAM_T* stream_p = NULL;
-  typename inherited::TASK_BASE_T::ISTREAM_T* istream_p = NULL;
+  //typename inherited::TASK_BASE_T::ISTREAM_T* istream_p = NULL;
   std::string stream_name;
 
   // sanity check(s)
@@ -1568,17 +1596,17 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
   } // end IF
   stream_p =
       &const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
-  istream_p =
-      dynamic_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (stream_p);
-  if (unlikely (!istream_p))
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IStream_T>(0x%@) failed, continuing\n"),
-                inherited::mod_->name (),
-                stream_p));
-    goto continue_;
-  } // end IF
-  stream_name = istream_p->name ();
+  //istream_p =
+  //    dynamic_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (stream_p);
+  //if (unlikely (!istream_p))
+  //{
+  //  ACE_DEBUG ((LM_DEBUG,
+  //              ACE_TEXT ("%s: dynamic_cast<Stream_IStream_T>(0x%@) failed, continuing\n"),
+  //              inherited::mod_->name (),
+  //              stream_p));
+  //  goto continue_;
+  //} // end IF
+  //stream_name = istream_p->name ();
 
 continue_:
   module_2 = const_cast<MODULE_T*> (module_p)->next ();
@@ -1590,7 +1618,7 @@ continue_:
 
     // step2: add map entry
     { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
-      readerLinks_.insert (std::make_pair (stream_name,
+      readerLinks_.insert (std::make_pair (stream_p,
                                            module_p));
     } // end lock scope
     //ACE_DEBUG ((LM_DEBUG,
@@ -1606,7 +1634,7 @@ continue_:
 
   // step2: add map entry
   { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
-    writerLinks_.insert (std::make_pair (stream_name,
+    writerLinks_.insert (std::make_pair (stream_p,
                                          const_cast<MODULE_T*> (module_p)));
   } // end lock scope
 

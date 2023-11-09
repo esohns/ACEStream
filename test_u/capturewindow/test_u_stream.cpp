@@ -49,6 +49,8 @@
 #include "stream_lib_mediafoundation_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "test_u_capturewindow_defines.h"
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
  : inherited ()
@@ -60,12 +62,14 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
                  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
  , convert_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
+ , encode_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
  , GDIDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GDI_DEFAULT_NAME_STRING))
- //, Direct2DDisplay_ (this,
- //                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT2D_DEFAULT_NAME_STRING))
+ , Direct2DDisplay_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT2D_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_DirectShow_Stream::Test_U_DirectShow_Stream"));
 
@@ -107,12 +111,11 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&GDIDisplay_, branch_p, index_i);
       break;
     }
-    //case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
-    //{
-    //  //layout_in->append (&convert_, NULL, 0);
-    //  layout_in->append (&Direct2DDisplay_, NULL, 0);
-    //  break;
-    //}
+    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
+    {
+      layout_in->append (&Direct2DDisplay_, branch_p, index_i);
+      break;
+    }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -126,7 +129,9 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   ++index_i;
 
   // save branch
-
+  layout_in->append (&convert_, branch_p, index_i);
+  layout_in->append (&resize_, branch_p, index_i);
+  layout_in->append (&encode_, branch_p, index_i);
 
   return true;
 }
@@ -194,8 +199,13 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
 
   // ---------------------------------------------------------------------------
   // step5: update session data
-  session_data_p->formats.push_back (configuration_in.configuration_->format);
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format,
+                                                media_type_s);
+  session_data_p->formats.push_back (media_type_s);
+  session_data_p->stream = this;
+  session_data_p->targetFileName =
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_CAPTUREWINDOW_DEFAULT_FILENAME);
 
   // ---------------------------------------------------------------------------
   // step6: initialize head module

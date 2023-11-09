@@ -258,7 +258,7 @@ do_initialize_directshow (HWND windowHandle_in,
 
   ACE_OS::memset (&outputFormat_inout, 0, sizeof (struct _AMMediaType));
   outputFormat_inout.majortype = MEDIATYPE_Video;
-  outputFormat_inout.subtype = MEDIASUBTYPE_RGB32;
+  outputFormat_inout.subtype = MEDIASUBTYPE_RGB24;
   outputFormat_inout.bFixedSizeSamples = TRUE;
   outputFormat_inout.bTemporalCompression = FALSE;
   outputFormat_inout.formattype = FORMAT_VideoInfo;
@@ -690,7 +690,7 @@ do_work (
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
-  struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // converter
+  struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // converter/resize
   struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // display
   struct Test_U_CaptureWindow_DirectShow_StreamConfiguration directshow_stream_configuration;
   Test_U_DirectShow_EventHandler_t directshow_ui_event_handler;
@@ -717,6 +717,9 @@ do_work (
         &allocator_configuration;
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
+      directshow_modulehandler_configuration.codecId = AV_CODEC_ID_H263;
+      directshow_modulehandler_configuration.fileFormat =
+        ACE_TEXT_ALWAYS_CHAR ("avi");
       directshow_modulehandler_configuration.window = windowHandle_in;
 
       //if (statisticReportingInterval_in)
@@ -790,9 +793,9 @@ do_work (
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      //if (bufferSize_in)
-      //  directShowCBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-      //      bufferSize_in;
+      directShowConfiguration_in.signalHandlerConfiguration.stream =
+        &directshow_stream;
+
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_stream_configuration.messageAllocator =
           &directshow_message_allocator;
@@ -803,6 +806,14 @@ do_work (
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
                                                                  directshow_stream_configuration);
+
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_2)));
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_2)));
+
       directshow_modulehandler_configuration_3 = directshow_modulehandler_configuration;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (directshow_stream_configuration.renderer),
                                                                              std::make_pair (&module_configuration,
@@ -898,6 +909,14 @@ do_work (
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format);
       ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration_2.outputFormat = *media_type_p;
+      directshow_modulehandler_configuration_2.outputFormat.subtype =
+        // MEDIASUBTYPE_NV12;
+        MEDIASUBTYPE_IMC1; // *NOTE*: maps to AV_PIX_FMT_YUV420P, required for H263
+      Common_Image_Resolution_t resolution_s;
+      resolution_s.cx = 704;
+      resolution_s.cy = 576;
+      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                             directshow_modulehandler_configuration_2.outputFormat);
       delete media_type_p; media_type_p = NULL;
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format);

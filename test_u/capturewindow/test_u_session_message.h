@@ -81,6 +81,8 @@ class Test_U_SessionMessage_T
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
+  inline enum Stream_MediaType_Type getMediaType () const { return STREAM_MEDIATYPE_VIDEO; }
+
  private:
   // convenient types
   typedef Test_U_SessionMessage_T<DataMessageType,

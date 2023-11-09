@@ -4436,7 +4436,8 @@ Stream_MediaFramework_DirectShow_Tools::toChannels (const struct _AMMediaType& m
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toBitrate"));
 
   // sanity check(s)
-  ACE_ASSERT (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx));
+  if (!InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx))
+    return 0;
   ACE_ASSERT (mediaType_in.pbFormat);
 
   struct tWAVEFORMATEX* waveformatex_p =
@@ -4673,7 +4674,9 @@ Stream_MediaFramework_DirectShow_Tools::toAVSampleFormat (const struct _AMMediaT
   enum AVSampleFormat result = AV_SAMPLE_FMT_NONE;
 
   // sanity check(s)
-  ACE_ASSERT (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx));
+  if (!InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx))
+    return result;
+  ACE_ASSERT (mediaType_in.pbFormat);
 
   struct tWAVEFORMATEX* waveformatex_p =
     (struct tWAVEFORMATEX*)mediaType_in.pbFormat;

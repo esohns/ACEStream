@@ -70,8 +70,7 @@ struct Branch_SessionData
     return *this;
   }
 
-  Stream_IStream_T<ACE_MT_SYNCH,
-                   Common_TimePolicy_t>* stream; // used by aggregator modules
+  Stream_Base_t* stream; // used by aggregator modules
 };
 typedef Stream_SessionData_T<struct Branch_SessionData> Branch_SessionData_t;
 

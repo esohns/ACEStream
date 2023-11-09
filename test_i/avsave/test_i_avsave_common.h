@@ -263,8 +263,7 @@ struct Stream_AVSave_SessionDataBase
     return *this;
   }
 
-  Stream_IStream_T<ACE_MT_SYNCH,
-                   Common_TimePolicy_t>* stream; // used by aggregator modules
+  Stream_Base_t* stream; // used by aggregator modules
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_AVSave_DirectShow_StreamState;

@@ -77,6 +77,8 @@ class Test_U_Message_T
   // implement Stream_MessageBase_T
   inline virtual int command () const { return ACE_Message_Block::MB_DATA; }
 
+  inline enum Stream_MediaType_Type getMediaType () const { return STREAM_MEDIATYPE_VIDEO; }
+
  protected:
   // convenient types
   typedef Test_U_Message_T<DataType,

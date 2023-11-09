@@ -85,7 +85,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
  , videoStream_ (NULL)
  //, condition_ (inherited::lock_)
  , isFirst_ (true)
- , isLast_ (false)
+ , isLast_ (0)
  , numberOfStreamsInitialized_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVEncoder_T::Stream_Decoder_LibAVEncoder_T"));
@@ -175,7 +175,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
     videoStream_ = NULL; // *TODO*: how are these freed ?
 
     isFirst_ = true;
-    isLast_ = false;
+    isLast_ = 0;
     numberOfStreamsInitialized_ = 0;
   } // end IF
 
@@ -284,7 +284,13 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
 
   do
   { ACE_ASSERT (message_block_p);
-    frame_p->data[0] = reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ());
+    result = av_image_fill_pointers (videoFrame_->data,
+                                     static_cast<AVPixelFormat> (videoFrame_->format),
+                                     videoFrame_->height,
+                                     reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
+                                     videoFrame_->linesize);
+    ACE_ASSERT (result >= 0);
+    //frame_p->data[0] = reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ());
 
     // send the frame to the encoder
     result = avcodec_send_frame (codec_context_p, frame_p);
@@ -399,10 +405,10 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       struct Stream_MediaFramework_FFMPEG_AudioMediaType audio_media_type_s;
       struct Stream_MediaFramework_FFMPEG_VideoMediaType video_media_type_s;
       const struct AVOutputFormat* output_format_p = NULL;
-      // *NOTE*: derive these from the specified input formats
-      enum AVCodecID video_coded_id = AV_CODEC_ID_RAWVIDEO;
+      enum AVCodecID video_coded_id = inherited::configuration_->codecId;
+      // *NOTE*: derive this from the specified input format (see below)
+      // *TODO*: make this configurable as well
       enum AVCodecID audio_coded_id = AV_CODEC_ID_NONE;
-//      bool is_first_b = true;
 
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_AUDIO,
@@ -413,20 +419,19 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
 
       // *IMPORTANT NOTE*: initialize the format/output context only once
       if (!isFirst_)
-      {
-//        is_first_b = false;
         goto continue_;
-      } // end IF
       isFirst_ = false;
 
-      output_format_p = av_guess_format (ACE_TEXT_ALWAYS_CHAR ("avi"),
-                                         NULL,
-                                         NULL);
+      output_format_p =
+        av_guess_format (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->fileFormat.c_str ()),
+                         NULL,
+                         NULL);
       if (unlikely (!output_format_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: av_guess_format(\"avi\") failed: \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
+                    ACE_TEXT ("%s: av_guess_format(\"%s\") failed: \"%m\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (inherited::configuration_->fileFormat.c_str ())));
         goto error;
       } // end IF
       result =
@@ -689,7 +694,7 @@ error:
       break;
 
 continue_2:
-      if (numberOfStreamsInitialized_ < 2)
+      if (numberOfStreamsInitialized_ < static_cast<unsigned int> (inherited::configuration_->numberOfStreams))
         goto continue_3;
 
       result = avformat_write_header (formatContext_, NULL);
@@ -711,11 +716,9 @@ continue_3:
       int result = -1;
 
       // *IMPORTANT NOTE*: finalize the format context only once
-      if (!isLast_)
-      {
-        isLast_ = true;
+      ++isLast_;
+      if (static_cast<unsigned int> (isLast_) < numberOfStreamsInitialized_)
         goto continue_4;
-      } // end IF
 
       if (!headerWritten_)
         goto continue_5;
