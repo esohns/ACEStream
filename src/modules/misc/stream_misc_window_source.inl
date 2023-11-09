@@ -458,7 +458,8 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::allocator_);
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
-  ACE_ASSERT (inherited::sessionData_);
+  if (unlikely (!inherited::sessionData_))
+    return;
 
   ACE_Message_Block* message_block_p = NULL;
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();

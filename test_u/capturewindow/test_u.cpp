@@ -717,9 +717,9 @@ do_work (
         &allocator_configuration;
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
-      directshow_modulehandler_configuration.codecId = AV_CODEC_ID_H263;
+      directshow_modulehandler_configuration.codecId = AV_CODEC_ID_H264;
       directshow_modulehandler_configuration.fileFormat =
-        ACE_TEXT_ALWAYS_CHAR ("avi");
+        ACE_TEXT_ALWAYS_CHAR ("mp4");
       directshow_modulehandler_configuration.window = windowHandle_in;
 
       //if (statisticReportingInterval_in)
@@ -905,19 +905,22 @@ do_work (
       ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration.outputFormat = *media_type_p;
       delete media_type_p; media_type_p = NULL;
+
+      directshow_modulehandler_configuration_2.flipImage = true;
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format);
       ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration_2.outputFormat = *media_type_p;
       directshow_modulehandler_configuration_2.outputFormat.subtype =
-        // MEDIASUBTYPE_NV12;
-        MEDIASUBTYPE_IMC1; // *NOTE*: maps to AV_PIX_FMT_YUV420P, required for H263
-      Common_Image_Resolution_t resolution_s;
-      resolution_s.cx = 704;
-      resolution_s.cy = 576;
-      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-                                                             directshow_modulehandler_configuration_2.outputFormat);
+        MEDIASUBTYPE_NV12; // *NOTE*: required by H264
+        //MEDIASUBTYPE_IMC1; // *NOTE*: maps to AV_PIX_FMT_YUV420P, required for H263
+      //Common_Image_Resolution_t resolution_s;
+      //resolution_s.cx = 704;
+      //resolution_s.cy = 576;
+      //Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+      //                                                       directshow_modulehandler_configuration_2.outputFormat);
       delete media_type_p; media_type_p = NULL;
+
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format);
       ACE_ASSERT (media_type_p);

@@ -634,13 +634,13 @@ video:
                                   videoFrame_->height,
                                   1); // *TODO*: linesize alignment
 
-      //videoStream_->time_base.num = 1;
-      //videoStream_->time_base.den = video_media_type_s.frameRate.num;
+      videoStream_->time_base.num = 1;
+      videoStream_->time_base.den = video_media_type_s.frameRate.num;
       videoStream_->avg_frame_rate.num = video_media_type_s.frameRate.num;
       videoStream_->avg_frame_rate.den = video_media_type_s.frameRate.den;
 
       videoCodecContext_->bit_rate =
-          videoFrameSize_ * videoStream_->time_base.den * 8;
+          videoFrameSize_ * video_media_type_s.frameRate.num * 8;
       /* Resolution must be a multiple of two. */
       videoCodecContext_->width    = videoFrame_->width;
       videoCodecContext_->height   = videoFrame_->height;
