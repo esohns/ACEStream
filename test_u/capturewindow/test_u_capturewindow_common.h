@@ -44,6 +44,10 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directdraw_common.h"
+#else
+#if defined (FFMPEG_SUPPORT)
+#include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_vis_common.h"
@@ -228,11 +232,51 @@ class Test_U_CaptureWindow_MediaFoundation_SessionData
 typedef Stream_SessionData_T<Test_U_CaptureWindow_MediaFoundation_SessionData> Test_U_CaptureWindow_MediaFoundation_SessionData_t;
 #else
 struct Test_U_StreamState;
-typedef Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
-                                      struct Stream_MediaFramework_FFMPEG_MediaType,
-                                      struct Test_U_StreamState,
-                                      struct Test_U_StatisticData,
-                                      struct Stream_UserData> Test_U_CaptureWindow_SessionData;
+class Test_U_CaptureWindow_SessionData
+ : public Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
+                                        struct Stream_MediaFramework_FFMPEG_VideoMediaType,
+                                        struct Test_U_StreamState,
+                                        struct Test_U_StatisticData,
+                                        struct Stream_UserData>
+{
+ public:
+  Test_U_CaptureWindow_SessionData ()
+   : Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
+                                   struct Stream_MediaFramework_FFMPEG_VideoMediaType,
+                                   struct Test_U_StreamState,
+                                   struct Test_U_StatisticData,
+                                   struct Stream_UserData> ()
+   , stream (NULL)
+  {}
+
+  Test_U_CaptureWindow_SessionData& operator= (const Test_U_CaptureWindow_SessionData& rhs_in)
+  {
+    Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
+                                  struct Stream_MediaFramework_FFMPEG_VideoMediaType,
+                                  struct Test_U_StreamState,
+                                  struct Test_U_StatisticData,
+                                  struct Stream_UserData>::operator= (rhs_in);
+
+    stream = rhs_in.stream;
+
+    return *this;
+  }
+  Test_U_CaptureWindow_SessionData& operator+= (const Test_U_CaptureWindow_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
+                                  struct Stream_MediaFramework_FFMPEG_VideoMediaType,
+                                  struct Test_U_StreamState,
+                                  struct Test_U_StatisticData,
+                                  struct Stream_UserData>::operator+= (rhs_in);
+
+    stream = (stream ? stream : rhs_in.stream);
+
+    return *this;
+  }
+
+  Stream_Base_t* stream;
+};
 typedef Stream_SessionData_T<Test_U_CaptureWindow_SessionData> Test_U_CaptureWindow_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -260,7 +304,7 @@ typedef Stream_ISessionDataNotify_T<Test_U_CaptureWindow_MediaFoundation_Session
 typedef std::list<Test_U_MediaFoundation_ISessionNotify_t*> Test_U_MediaFoundation_Subscribers_t;
 typedef Test_U_MediaFoundation_Subscribers_t::iterator Test_U_MediaFoundation_SubscribersIterator_t;
 #else
-typedef Test_U_Message_T<struct Test_U_MessageData,
+typedef Test_U_Message_T<struct Test_U_CaptureWindow_MessageData,
                          Test_U_CaptureWindow_SessionData_t> Test_U_Message_t;
 typedef Test_U_SessionMessage_T<Test_U_Message_t,
                                 Test_U_CaptureWindow_SessionData_t> Test_U_SessionMessage_t;
@@ -289,7 +333,7 @@ struct Test_U_CaptureWindow_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                            window;
 #else
-  Window                          window;
+  unsigned long                   window;
 #endif // ACE_WIN32 || ACE_WIN64
 };
 //extern const char stream_name_string_[];
@@ -382,18 +426,18 @@ struct Test_U_CaptureWindow_MediaFoundation_ModuleHandlerConfiguration
 };
 #else
 struct Test_U_CaptureWindow_StreamConfiguration;
-struct Test_U_CaptureWindow_ModuleHandlerConfiguration;
+struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_U_CaptureWindow_StreamConfiguration,
-                               struct Test_U_CaptureWindow_ModuleHandlerConfiguration> Test_U_StreamConfiguration_t;
-struct Test_U_CaptureWindow_ModuleHandlerConfiguration
- : Test_U_ModuleHandlerConfiguration
+                               struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration> Test_U_StreamConfiguration_t;
+struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration
+ : Test_U_CaptureWindow_ModuleHandlerConfiguration
 {
-  Test_U_CaptureWindow_ModuleHandlerConfiguration ()
-   : Test_U_ModuleHandlerConfiguration ()
+  Test_U_CaptureWindow_2_ModuleHandlerConfiguration ()
+   : Test_U_CaptureWindow_ModuleHandlerConfiguration ()
+   , display ()
+   , fullScreen (false)
 #if defined (FFMPEG_SUPPORT)
-   , codecFormat (AV_PIX_FMT_NONE)
-   , codecId (AV_CODEC_ID_NONE)
    , outputFormat ()
 #endif // FFMPEG_SUPPORT
    , subscriber (NULL)
@@ -402,15 +446,15 @@ struct Test_U_CaptureWindow_ModuleHandlerConfiguration
    , waylandDisplay (NULL)
   {}
 
+  struct Common_UI_Display                           display;
+  bool                                               fullScreen;
 #if defined (FFMPEG_SUPPORT)
-  enum AVPixelFormat                            codecFormat; // preferred output-
-  enum AVCodecID                                codecId;
-  struct Stream_MediaFramework_FFMPEG_MediaType outputFormat;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat;
 #endif // FFMPEG_SUPPORT
-  Test_U_ISessionNotify_t*                      subscriber;
-  Test_U_Subscribers_t*                         subscribers;
-  struct wl_shell_surface*                      surface;
-  struct wl_display*                            waylandDisplay;
+  Test_U_ISessionNotify_t*                           subscriber;
+  Test_U_Subscribers_t*                              subscribers;
+  struct wl_shell_surface*                           surface;
+  struct wl_display*                                 waylandDisplay;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -504,8 +548,8 @@ struct Test_U_CaptureWindow_StreamConfiguration
     printFinalReport = true;
   }
 
-  struct Stream_MediaFramework_FFMPEG_MediaType format; // session data-
-  enum Stream_Visualization_VideoRenderer       renderer;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType format; // session data-
+  enum Stream_Visualization_VideoRenderer            renderer;
 };
 
 typedef Stream_IStreamControl_T<enum Stream_ControlType,

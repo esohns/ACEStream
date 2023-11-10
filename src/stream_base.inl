@@ -589,7 +589,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       if (unlikely (!imodule_p))
       {
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModule_T> failed, continuing"),
+                    ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModule_T> failed, continuing\n"),
                     ACE_TEXT (name_.c_str ()),
                     (*iterator)->name ()));
         continue;

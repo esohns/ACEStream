@@ -303,7 +303,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
                   ACE_TEXT (sox_strerror (result))));
       goto error;
     } // end IF
-    ACE_ASSERT (output_buffer_p->tell_off == inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+    // ACE_ASSERT (output_buffer_p->tell_off == inherited::configuration_->allocatorConfiguration->defaultBufferSize);
 
     // output buffer is full --> (dispatch and- ?) allocate another one
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

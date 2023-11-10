@@ -250,7 +250,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
     {
       codec_context_p = audioCodecContext_;
       frame_p = audioFrame_;
-      frame_p->nb_samples = message_block_p->length () / audioFrameSize_;
+      frame_p->nb_samples = static_cast<int> (message_block_p->length ()) / audioFrameSize_;
       frame_p->pts =
         av_rescale_q (audioSamples_,
                       {1, audioCodecContext_->sample_rate},

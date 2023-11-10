@@ -617,7 +617,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
     filename += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
     filename += ACE_DIRECTORY_SEPARATOR_CHAR;
     filename +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_IMAGE_FILE);
+      ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_OPENGL_DEFAULT_TEXTURE_FILE);
     *texture_id_p = Common_GL_Tools::loadTexture (filename);
     if (!*texture_id_p)
     {
@@ -638,14 +638,14 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   glBindTexture (GL_TEXTURE_2D, *texture_id_p);
   COMMON_GL_ASSERT;
 
-  glLoadIdentity ();				// Reset the transformation matrix.
+  glLoadIdentity (); // Reset the transformation matrix.
   COMMON_GL_ASSERT;
 
-  glTranslatef (0.0f, 0.0f, -5.0f);		// Move back into the screen 7
+  glTranslatef (0.0f, 0.0f, -5.0f); // Move back into the screen 7
   COMMON_GL_ASSERT;
 
   static GLfloat cube_rotation = 0.0f;
-  glRotatef (cube_rotation, 1.0f, 1.0f, 1.0f);		// Rotate The Cube On X, Y, and Z
+  glRotatef (cube_rotation, 1.0f, 1.0f, 1.0f); // Rotate The Cube On X, Y, and Z
   COMMON_GL_ASSERT;
 
   //static GLfloat rot_x = 0.0f;
@@ -691,7 +691,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   glEnd ();
   COMMON_GL_ASSERT;
 
-  cube_rotation -= 1.0f;					// Decrease The Rotation Variable For The Cube
+  cube_rotation -= 1.0f; // Decrease The Rotation Variable For The Cube
 
   processInstructions (ui_cb_data_base_p);
 

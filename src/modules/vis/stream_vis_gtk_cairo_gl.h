@@ -42,14 +42,16 @@ class Stream_Visualization_GTK_Cairo_OpenGL
   // implement Common_IDispatch_T
   virtual void dispatch (const enum Stream_Statistic_AnalysisEventType&);
 
+#if defined (GTKGL_SUPPORT)
   Stream_Visualization_GTKGL_Instructions_t          instructions_;
+#endif // GTKGL_SUPPORT
   ACE_Thread_Mutex                                   instructionsLock_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_GTK_Cairo_OpenGL (const Stream_Visualization_GTK_Cairo_OpenGL&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_GTK_Cairo_OpenGL& operator= (const Stream_Visualization_GTK_Cairo_OpenGL&))
 
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
   GdkRGBA                                            backgroundColor_;
   GdkRGBA                                            foregroundColor_;
 #else

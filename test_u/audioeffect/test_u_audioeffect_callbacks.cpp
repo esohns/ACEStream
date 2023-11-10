@@ -4184,6 +4184,11 @@ idle_initialize_UI_cb (gpointer userData_in)
   GtkBox* box_p = NULL;
   Common_UI_GTK_GLContextsIterator_t opengl_contexts_iterator;
 #if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
+  GtkGLArea* gl_area_p = NULL;
+  GdkGLContext* gl_context_p = NULL;
+  GError* error_p = NULL;
+#endif // GTK_CHECK_VERSION (3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
   /* Attribute list for gtkglarea widget. Specifies a
@@ -5142,8 +5147,10 @@ idle_initialize_UI_cb (gpointer userData_in)
 #else
   mode_2d =
     (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
+#if defined (GTKGL_SUPPORT)
   mode_3d =
     (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode;
+#endif /* GTKGL_SUPPORT */
 #endif // ACE_WIN32 || ACE_WIN64
   check_button_p =
     GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -5162,7 +5169,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
 //#if GTK_CHECK_VERSION(3,10,0)
 //#else
   g_object_set (G_OBJECT (drawing_area_p),
@@ -5182,20 +5189,15 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_DISPLAY_NAME)));
   ACE_ASSERT (box_p);
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
-  GtkGLArea* gl_area_p =
-    GTK_GL_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GLAREA_NAME)));
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
+  gl_area_p = GTK_GL_AREA (gtk_gl_area_new ());
   ACE_ASSERT (gl_area_p);
   gtk_widget_realize (GTK_WIDGET (gl_area_p));
-  GdkGLContext* context_p = gtk_gl_area_get_context (gl_area_p);
-  ACE_ASSERT (context_p);
-  ACE_ASSERT (ui_cb_data_base_p->UIState);
-  ui_cb_data_base_p->UIState->OpenGLContexts.insert (std::make_pair (gl_area_p, context_p));
-  opengl_contexts_iterator =
-      ui_cb_data_base_p->UIState->OpenGLContexts.find (gl_area_p);
-  ACE_ASSERT (opengl_contexts_iterator != ui_cb_data_base_p->UIState->OpenGLContexts.end ());
+  gl_context_p = gtk_gl_area_get_context (gl_area_p);
+  //ACE_ASSERT (gl_context_p);
+  state_r.OpenGLContexts.insert (std::make_pair (gl_area_p, gl_context_p));
+  opengl_contexts_iterator = state_r.OpenGLContexts.find (gl_area_p);
 
   gint major_version, minor_version;
   gtk_gl_area_get_required_version (gl_area_p,
@@ -5350,7 +5352,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_set_can_focus (GTK_WIDGET ((*opengl_contexts_iterator).first), FALSE);
   gtk_widget_set_hexpand (GTK_WIDGET ((*opengl_contexts_iterator).first), TRUE);
   gtk_widget_set_vexpand (GTK_WIDGET ((*opengl_contexts_iterator).first), TRUE);
-  //gtk_widget_set_visible (GTK_WIDGET ((*opengl_contexts_iterator).first), TRUE);
+  gtk_widget_set_visible (GTK_WIDGET ((*opengl_contexts_iterator).first), TRUE);
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 
@@ -5413,25 +5415,25 @@ idle_initialize_UI_cb (gpointer userData_in)
                       G_CALLBACK (glarea_realize_cb),
                       userData_in);
   ACE_ASSERT (result_2);
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
-//  result_2 =
-//    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-//                      ACE_TEXT_ALWAYS_CHAR ("create-context"),
-//                      G_CALLBACK (glarea_create_context_cb),
-//                      userData_in);
-//  ACE_ASSERT (result_2);
-//  result_2 =
-//    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-//                      ACE_TEXT_ALWAYS_CHAR ("render"),
-//                      G_CALLBACK (glarea_render_cb),
-//                      userData_in);
-//  ACE_ASSERT (result_2);
-//  result_2 =
-//    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-//                      ACE_TEXT_ALWAYS_CHAR ("resize"),
-//                      G_CALLBACK (glarea_resize_cb),
-//                      userData_in);
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
+ result_2 =
+   g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
+                     ACE_TEXT_ALWAYS_CHAR ("create-context"),
+                     G_CALLBACK (glarea_create_context_cb),
+                     userData_in);
+ ACE_ASSERT (result_2);
+ result_2 =
+   g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
+                     ACE_TEXT_ALWAYS_CHAR ("render"),
+                     G_CALLBACK (glarea_render_cb),
+                     userData_in);
+ ACE_ASSERT (result_2);
+ result_2 =
+   g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
+                     ACE_TEXT_ALWAYS_CHAR ("resize"),
+                     G_CALLBACK (glarea_resize_cb),
+                     userData_in);
 #else
 #if defined (GTKGLAREA_SUPPORT)
   result_2 =
@@ -5506,11 +5508,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   // debug info
 #if defined (GTKGL_SUPPORT)
   ACE_ASSERT ((*opengl_contexts_iterator).first);
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
-  GdkGLContext* gl_context_p = NULL;
-  GError* error_p = gtk_gl_area_get_error ((*opengl_contexts_iterator).first);
-  if (error_p)
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
+  error_p = gtk_gl_area_get_error ((*opengl_contexts_iterator).first);
+  if (unlikely (error_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to realize OpenGL widget: \"%s\", continuing\n"),
@@ -5760,25 +5761,25 @@ continue_:
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
     ACE_ASSERT (toggle_button_p);
 
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
     g_signal_handlers_block_by_func (G_OBJECT (toggle_button_p),
-                                     G_CALLBACK (togglebutton_save_toggled_cb),
+                                     (gpointer)G_CALLBACK (togglebutton_save_toggled_cb),
                                      userData_in);
 #elif GTK_CHECK_VERSION(2, 0, 0)
     gtk_signal_handler_block_by_func (GTK_OBJECT (toggle_button_p),
                                       G_CALLBACK (togglebutton_save_toggled_cb),
                                       userData_in);
-#endif // GTK_CHECK_VERSION(x,0,0)
+#endif // GTK_CHECK_VERSION (x,0,0)
     gtk_toggle_button_set_active (toggle_button_p, TRUE);
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
     g_signal_handlers_unblock_by_func (G_OBJECT (toggle_button_p),
-                                       G_CALLBACK (togglebutton_save_toggled_cb),
+                                       (gpointer)G_CALLBACK (togglebutton_save_toggled_cb),
                                        userData_in);
-#elif GTK_CHECK_VERSION(2,0,0)
+#elif GTK_CHECK_VERSION (2,0,0)
     gtk_signal_handler_unblock_by_func (GTK_OBJECT (toggle_button_p),
                                         G_CALLBACK (togglebutton_save_toggled_cb),
                                         userData_in);
-#endif // GTK_CHECK_VERSION(x,0,0)
+#endif // GTK_CHECK_VERSION (x,0,0)
   } // end IF
 
   is_active_b =
@@ -6471,7 +6472,15 @@ continue_2:
   // trigger refresh of the 3D OpenGL area
   ACE_ASSERT (!state_r.OpenGLContexts.empty ());
   Common_UI_GTK_GLContextsIterator_t iterator_2 = state_r.OpenGLContexts.begin ();
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
+  window_p = gtk_widget_get_window (GTK_WIDGET (&(*iterator_2).first));
+#else
   window_p = gtk_widget_get_window (GTK_WIDGET (&(*iterator_2).first->darea));
+#endif // GTK_CHECK_VERSION (3,16,0)
+#else
+  window_p = gtk_widget_get_window (GTK_WIDGET (&(*iterator_2).first->darea));
+#endif // GTK_CHECK_VERSION
   if (unlikely (!window_p))
     goto continue_3; // <-- not realized yet
 
@@ -8977,9 +8986,11 @@ togglebutton_3d_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
+#if defined (GTKGL_SUPPORT)
   (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode =
       (is_active ? STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_DEFAULT
                  : STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_INVALID);
+#endif // GTKGL_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 } // togglebutton_3d_toggled_cb
 
@@ -12901,7 +12912,7 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  notification_p = data_p->resizeNotification;
+  notification_p = ui_cb_data_p->resizeNotification;
 #endif // ACE_WIN32 || ACE_WIN64
   if (notification_p)
   {

@@ -1159,6 +1159,10 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (cbdata_p->window);
   ACE_ASSERT (mode2D_ != NULL);
 
+#if GTK_CHECK_VERSION (3,10,0)
+  cairo_surface_t* surface_p = NULL;
+#endif // GTK_CHECK_VERSION (3,10,0)
+
 #define CAIRO_ERROR_WORKAROUND(X)                                \
   if (cairo_status (X) != CAIRO_STATUS_SUCCESS) {                \
     cairo_destroy (cbdata_p->context); cbdata_p->context = NULL; \
@@ -1248,10 +1252,12 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     } // end IF
   } // end FOR
 #if GTK_CHECK_VERSION (3,10,0)
-  cairo_surface_mark_dirty (cairoSurface_);
-  //ACE_ASSERT (cairo_status (cairoSurface_) == CAIRO_STATUS_SUCCESS);
-  cairo_surface_flush (cairoSurface_);
-  //ACE_ASSERT (cairo_status (cairoSurface_) == CAIRO_STATUS_SUCCESS);
+  surface_p = cairo_get_target (cbdata_p->context);
+  ACE_ASSERT (surface_p);
+  cairo_surface_mark_dirty (surface_p);
+  //ACE_ASSERT (cairo_surface_status (surface_p) == CAIRO_STATUS_SUCCESS);
+  cairo_surface_flush (surface_p);
+  //ACE_ASSERT (cairo_surface_status (surface_p) == CAIRO_STATUS_SUCCESS);
 #endif // GTK_CHECK_VERSION (3,10,0)
   // *IMPORTANT NOTE*: this assert fails intermittently on Gtk2 Win32;
   //                   the result is CAIRO_STATUS_NO_MEMORY

@@ -21,6 +21,11 @@
 #ifndef STREAM_MODULE_WINDOW_SOURCE_H
 #define STREAM_MODULE_WINDOW_SOURCE_H
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "gtk/gtk.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
@@ -141,6 +146,8 @@ class Stream_Module_Window_Source_T
   Common_Image_Resolution_t resolution_;
   BITMAPINFO                bitmapInfo_;
 #else
+  unsigned int              frameSize_;
+  GdkWindow*                window_;
 #endif // ACE_WIN32 || ACE_WIN64
 };
 

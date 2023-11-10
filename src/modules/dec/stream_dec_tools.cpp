@@ -23,7 +23,6 @@
 
 #include <cmath>
 
-#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "audiosessiontypes.h"
 #include "winnt.h"

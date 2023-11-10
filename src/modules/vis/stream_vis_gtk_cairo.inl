@@ -351,6 +351,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   width_2 = cairo_image_surface_get_width (surface_);
   height_2 = cairo_image_surface_get_height (surface_);
   row_stride_2 = cairo_image_surface_get_stride (surface_);
+  ACE_UNUSED_ARG (n_channels_i);
   format_e = cairo_image_surface_get_format (surface_);
 #else
   ACE_ASSERT (GDK_IS_PIXBUF (surface_));
@@ -716,10 +717,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
 #if GTK_CHECK_VERSION (3,10,0)
   ACE_ASSERT (context_p);
-  cairo_surface_flush ();
+  cairo_surface_flush (surface_);
   cairo_set_source_surface (context_p, surface_, 0.0, 0.0);
   cairo_paint (context_p);
-#elif GTK_CHECK_VERSION(3, 0, 0)
+#elif GTK_CHECK_VERSION (3,0,0)
   ACE_ASSERT (context_p);
   gdk_cairo_set_source_pixbuf (context_p, surface_, 0.0, 0.0);
   //cairo_pattern_t* pattern_p = cairo_get_source (context_p);

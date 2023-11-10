@@ -37,9 +37,7 @@
 #include "stream_misc_defines.h"
 #include "stream_misc_distributor.h"
 #include "stream_misc_messagehandler.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_misc_window_source.h"
-#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_stat_statistic_report.h"
 
@@ -120,7 +118,7 @@ typedef Stream_Visualization_LibAVResize_T<Test_U_DirectShow_TaskBaseSynch_t,
 #else
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
-                               struct Test_U_CaptureWindow_ModuleHandlerConfiguration,
+                               struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,
                                Stream_ControlMessage_t,
                                Test_U_Message_t,
                                Test_U_SessionMessage_t,
@@ -129,7 +127,7 @@ typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                struct Stream_UserData> Test_U_TaskBaseSynch_t;
 typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                 Common_TimePolicy_t,
-                                struct Test_U_CaptureWindow_ModuleHandlerConfiguration,
+                                struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,
                                 Stream_ControlMessage_t,
                                 Test_U_Message_t,
                                 Test_U_SessionMessage_t,
@@ -137,12 +135,43 @@ typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                 enum Stream_SessionMessageType,
                                 struct Stream_UserData> Test_U_TaskBaseAsynch_t;
 
+typedef Stream_Module_Window_Source_T<ACE_MT_SYNCH,
+                                      Stream_ControlMessage_t,
+                                      Test_U_Message_t,
+                                      Test_U_SessionMessage_t,
+                                      struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,
+                                      enum Stream_ControlType,
+                                      enum Stream_SessionMessageType,
+                                      struct Test_U_StreamState,
+                                      Test_U_CaptureWindow_SessionData,
+                                      Test_U_CaptureWindow_SessionData_t,
+                                      struct Test_U_StatisticData,
+                                      Common_Timer_Manager_t,
+                                      struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_U_WindowSource;
+
+typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_U_Message_t,
+                                                      Test_U_SessionMessage_t,
+                                                      Test_U_CaptureWindow_SessionData_t> Test_U_Distributor_WriterTask_t;
+
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVConverter_T<Test_U_TaskBaseSynch_t,
-                                        struct Stream_MediaFramework_FFMPEG_MediaType> Test_U_LibAVConvert;
+                                        struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_U_LibAVConvert;
+
+typedef Stream_Decoder_LibAVEncoder_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_U_Message_t,
+                                      Test_U_SessionMessage_t,
+                                      Test_U_CaptureWindow_SessionData_t,
+                                      struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_U_LibAVEncoder;
 
 typedef Stream_Visualization_LibAVResize_T<Test_U_TaskBaseSynch_t,
-                                           struct Stream_MediaFramework_FFMPEG_MediaType> Test_U_LibAVResize;
+                                           struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_U_LibAVResize;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -195,26 +224,26 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 #else
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
-                                                      struct Test_U_CaptureWindow_ModuleHandlerConfiguration,
+                                                      struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,
                                                       Stream_ControlMessage_t,
                                                       Test_U_Message_t,
                                                       Test_U_SessionMessage_t,
                                                       Stream_CommandType_t,
                                                       struct Test_U_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Test_U_SessionData,
-                                                      Test_U_SessionData_t> Test_U_Statistic_ReaderTask_t;
+                                                      Test_U_CaptureWindow_SessionData,
+                                                      Test_U_CaptureWindow_SessionData_t> Test_U_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
-                                                      struct Test_U_CaptureWindow_ModuleHandlerConfiguration,
+                                                      struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,
                                                       Stream_ControlMessage_t,
                                                       Test_U_Message_t,
                                                       Test_U_SessionMessage_t,
                                                       Stream_CommandType_t,
                                                       struct Test_U_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Test_U_SessionData,
-                                                      Test_U_SessionData_t> Test_U_Statistic_WriterTask_t;
+                                                      Test_U_CaptureWindow_SessionData,
+                                                      Test_U_CaptureWindow_SessionData_t> Test_U_Statistic_WriterTask_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -250,19 +279,19 @@ typedef Stream_Vis_Target_GDI_T<ACE_MT_SYNCH,
 #else
 typedef Stream_Module_Vis_Wayland_Window_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
-                                           struct Test_U_CaptureWindow_ModuleHandlerConfiguration,
+                                           struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,
                                            Stream_ControlMessage_t,
                                            Test_U_Message_t,
                                            Test_U_SessionMessage_t,
-                                           Test_U_SessionData_t,
+                                           Test_U_CaptureWindow_SessionData_t,
                                            struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_U_Wayland_Display;
 typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
-                                       struct Test_U_CaptureWindow_ModuleHandlerConfiguration,
+                                       struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,
                                        Stream_ControlMessage_t,
                                        Test_U_Message_t,
                                        Test_U_SessionMessage_t,
-                                       Test_U_SessionData_t,
+                                       Test_U_CaptureWindow_SessionData_t,
                                        struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_U_X11_Display;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -287,11 +316,11 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
 #else
 typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
-                                       struct Test_U_CaptureWindow_ModuleHandlerConfiguration,
+                                       struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,
                                        Stream_ControlMessage_t,
                                        Test_U_Message_t,
                                        Test_U_SessionMessage_t,
-                                       Test_U_SessionData,
+                                       Test_U_CaptureWindow_SessionData,
                                        struct Stream_UserData> Test_U_MessageHandler;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -337,21 +366,43 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_DirectShow_SessionData,      
                               Test_U_DirectShow_LibAVResize);                      // writer type
 #endif // FFMPEG_SUPPORT
 #else
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_SessionData,                          // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,  // module handler configuration type
+                              libacestream_default_misc_window_source_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_U_WindowSource);                                      // writer type
+
+DATASTREAM_MODULE_DUPLEX (Test_U_CaptureWindow_SessionData,                         // session data type
+                          enum Stream_SessionMessageType,                           // session event type
+                          struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_misc_distributor_module_name_string,
+                          Stream_INotify_t,                                         // stream notification interface type
+                          Test_U_Distributor_WriterTask_t::READER_TASK_T,           // reader type
+                          Test_U_Distributor_WriterTask_t,                          // writer type
+                          Test_U_Distributor);                                      // name
 
 #if defined (FFMPEG_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Test_U_CaptureWindow_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_SessionData,                            // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,    // module handler configuration type
                               libacestream_default_dec_libav_converter_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Test_U_LibAVConvert);                      // writer type
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_U_LibAVConvert);                                        // writer type
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Test_U_CaptureWindow_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_SessionData,                          // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,  // module handler configuration type
+                              libacestream_default_dec_libav_encoder_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_U_LibAVEncoder);                                      // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_SessionData,                         // session data type
+                              enum Stream_SessionMessageType,                           // session event type
+                              struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_libav_resize_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Test_U_LibAVResize);                      // writer type
+                              Stream_INotify_t,                                         // stream notification interface type
+                              Test_U_LibAVResize);                                      // writer type
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -374,14 +425,14 @@ DATASTREAM_MODULE_DUPLEX (Test_U_CaptureWindow_MediaFoundation_SessionData,     
                           Test_U_MediaFoundation_Statistic_WriterTask_t, // writer type
                           Test_U_MediaFoundation_StatisticReport);  // name
 #else
-DATASTREAM_MODULE_DUPLEX (Test_U_SessionData,                               // session data type
-                          enum Stream_SessionMessageType,                   // session event type
-                          struct Test_U_CaptureWindow_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_DUPLEX (Test_U_CaptureWindow_SessionData,                         // session data type
+                          enum Stream_SessionMessageType,                           // session event type
+                          struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration, // module handler configuration type
                           libacestream_default_stat_report_module_name_string,
-                          Stream_INotify_t,                                 // stream notification interface type
-                          Test_U_Statistic_ReaderTask_t,            // reader type
-                          Test_U_Statistic_WriterTask_t,            // writer type
-                          Test_U_StatisticReport);                  // name
+                          Stream_INotify_t,                                         // stream notification interface type
+                          Test_U_Statistic_ReaderTask_t,                            // reader type
+                          Test_U_Statistic_WriterTask_t,                            // writer type
+                          Test_U_StatisticReport);                                  // name
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -407,18 +458,18 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_MediaFoundation_SessionData, 
                               Stream_INotify_t,                                 // stream notification interface type
                               Test_U_MediaFoundation_GDI_Display); // writer type
 #else
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Test_U_CaptureWindow_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_SessionData,                           // session data type
+                              enum Stream_SessionMessageType,                             // session event type
+                              struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,   // module handler configuration type
                               libacestream_default_vis_wayland_window_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Test_U_Wayland_Display);                          // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Test_U_CaptureWindow_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_INotify_t,                                           // stream notification interface type
+                              Test_U_Wayland_Display);                                    // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_SessionData,                         // session data type
+                              enum Stream_SessionMessageType,                           // session event type
+                              struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_x11_window_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Test_U_X11_Display);                          // writer type
+                              Stream_INotify_t,                                         // stream notification interface type
+                              Test_U_X11_Display);                                      // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -436,12 +487,12 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_MediaFoundation_SessionData, 
                               Stream_INotify_t,                                 // stream notification interface type
                               Test_U_MediaFoundation_MessageHandler);   // writer type
 #else
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_SessionData,                           // session data type
-                              enum Stream_SessionMessageType,                       // session event type
-                              struct Test_U_CaptureWindow_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_SessionData,                            // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,    // module handler configuration type
                               libacestream_default_misc_messagehandler_module_name_string,
-                              Stream_INotify_t,                                     // stream notification interface type
-                              Test_U_MessageHandler);                       // writer type
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_U_MessageHandler);                                      // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 
 #endif

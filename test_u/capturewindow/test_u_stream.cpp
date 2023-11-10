@@ -77,7 +77,7 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
 
 bool
 Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
-                                             bool& delete_out)
+                                bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_DirectShow_Stream::load"));
 
@@ -828,16 +828,22 @@ error:
 #else
 Test_U_Stream::Test_U_Stream ()
  : inherited ()
- //, source_ (this,
- //           ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING))
+ , source_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_WINDOW_SOURCE_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
- , convert_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
+ , distributor_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
+ , convert_2 (this,
+              ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
+ , encode_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
-// , WaylandDisplay_ (this,
-//                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING))
+ , convert_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
+ , WaylandDisplay_ (this,
+                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING))
  , X11Display_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 {
@@ -857,17 +863,31 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
 
-  //layout_in->append (&source_, NULL, 0);
-  //layout_in->append (&statisticReport_, NULL, 0);
-  layout_in->append (&convert_, NULL, 0);
-  layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
+  unsigned int index_i = 0;
+  Stream_Branches_t branches_a;
+
+  layout_in->append (&source_, NULL, 0);
+  layout_in->append (&statisticReport_, NULL, 0);
+
+  layout_in->append (&distributor_, NULL, 0);
+  branch_p = &distributor_;
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+  Stream_IDistributorModule* idistributor_p =
+    dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
+  ACE_ASSERT (idistributor_p);
+  idistributor_p->initialize (branches_a);
+
+  // display branch
   switch (inherited::configuration_->configuration_->renderer)
   {
-//    case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
-//      layout_in->append (&WaylandDisplay_, NULL, 0);
-//      break;
+    case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
+      layout_in->append (&WaylandDisplay_, branch_p, index_i);
+      break;
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
-      layout_in->append (&X11Display_, NULL, 0);
+      layout_in->append (&convert_, branch_p, index_i);
+      layout_in->append (&X11Display_, branch_p, index_i);
       break;
     default:
     {
@@ -878,6 +898,13 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
       return false;
     }
   } // end SWITCH
+
+  ++index_i;
+
+  // save branch
+  layout_in->append (&convert_2, branch_p, index_i);
+  layout_in->append (&resize_, branch_p, index_i);
+  layout_in->append (&encode_, branch_p, index_i);
 
   return true;
 }
@@ -893,7 +920,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   ACE_ASSERT (configuration_in.configuration_);
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
-  Test_U_SessionData* session_data_p = NULL;
+  Test_U_CaptureWindow_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
 //  Test_U_V4L_Source* source_impl_p = NULL;
 
@@ -916,7 +943,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   ACE_ASSERT (inherited::sessionData_);
 
   session_data_p =
-    &const_cast<Test_U_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Test_U_CaptureWindow_SessionData&> (inherited::sessionData_->getR ());
   iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 
@@ -925,6 +952,9 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
+  session_data_p->stream = this;
+  session_data_p->targetFileName =
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_CAPTUREWINDOW_DEFAULT_FILENAME);
 
   // ---------------------------------------------------------------------------
 

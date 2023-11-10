@@ -939,11 +939,11 @@ ACE_TMAIN (int argc_in,
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (VALGRIND_SUPPORT)
+#if defined (VALGRIND_USE)
   if (RUNNING_ON_VALGRIND)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("running on valgrind...\n")));
-#endif // VALGRIND_SUPPORT
+#endif // VALGRIND_USE
 
   // step0: process profile
   result = process_profile.start ();

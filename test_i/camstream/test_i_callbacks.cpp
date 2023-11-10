@@ -17,6 +17,7 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "camstream/test_i_camstream_network.h"
 #include "stdafx.h"
 
 #include "test_i_callbacks.h"
@@ -8124,11 +8125,11 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   // sanity check(s)
-  struct Test_I_Target_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Test_I_Target_V4L_UI_CBData*> (userData_in);
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Target_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64

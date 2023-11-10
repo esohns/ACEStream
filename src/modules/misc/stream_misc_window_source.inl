@@ -25,10 +25,23 @@
 #define UUIDS_H
 #include "uuids.h"
 #endif // UUIDS_H
+#else
+#if defined (FFMPEG_SUPPORT)
+#ifdef __cplusplus
+extern "C"
+{
+#include "libavutil/imgutils.h"
+}
+#endif // __cplusplus
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "common_ui_gtk_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
 #include "common_timer_manager_common.h"
 
 #include "stream_macros.h"
@@ -116,6 +129,8 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
   if (inherited::configuration_ && sourceContext_)
     ReleaseDC (inherited::configuration_->window, sourceContext_);
 #else
+  if (window_)
+    g_object_unref (window_);
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -176,6 +191,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
     DeleteObject (captureBitmap_); captureBitmap_ = NULL;
     ReleaseDC (inherited::configuration_->window, sourceContext_); sourceContext_ = NULL;
 #else
+    g_object_unref (window_); window_ = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 
@@ -186,6 +202,19 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return false;
   } // end IF
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  window_ = Common_UI_GTK_Tools::get (configuration_in.window);
+  if (!window_)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Common_UI_GTK_Tools::get (%d), aborting\n"),
+                inherited::mod_->name (),
+                configuration_in.window));
+    return false;
+  } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -253,6 +282,10 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
       long timer_id = -1;
       unsigned int frames_per_second_i = 0;
       suseconds_t frame_time_us = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+#endif // ACE_WIN32 || ACE_WIN64
 
       // schedule regular statistic collection ?
       // *NOTE*: the runtime-statistic module is responsible for regular
@@ -324,13 +357,20 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
       ACE_OS::memset (&bitmapInfo_, 0, sizeof (BITMAPINFO));
       bitmapInfo_.bmiHeader = video_info_header_p->bmiHeader;
 #else
-      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
-      frames_per_second_i = media_type_s.framesPerSecond;
+      frames_per_second_i = media_type_s.frameRate.num;
 
-      ACE_ASSERT (inherited::configuration_->allocatorConfiguration->defaultBufferSize >= media_type_s.sizeImage);
+#if defined (FFMPEG_SUPPORT)
+      frameSize_ = av_image_get_buffer_size (media_type_s.format,
+                                             media_type_s.resolution.width,
+                                             media_type_s.resolution.height,
+                                             1); // *TODO*: linesize alignment
+#else
+      ACE_ASSERT (false); // *TODO*
+#endif // FFMPEG_SUPPORT
+      ACE_ASSERT (inherited::configuration_->allocatorConfiguration->defaultBufferSize >= frameSize_);
 #endif // ACE_WIN32 || ACE_WIN64
       ACE_ASSERT (frames_per_second_i);
 
@@ -462,8 +502,15 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
     return;
 
   ACE_Message_Block* message_block_p = NULL;
+  DataMessageType* message_p = NULL;
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();
   int result = -1;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  GdkPixbuf* pixel_buffer_p = NULL;
+  guchar* data_p = NULL;
+  guint length_i = 0;
+#endif // ACE_WIN32 || ACE_WIN64
 
   // step1: allocate buffer
   try {
@@ -483,7 +530,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     goto error;
   } // end IF
-  DataMessageType* message_p = static_cast<DataMessageType*> (message_block_p);
+  message_p = static_cast<DataMessageType*> (message_block_p);
   message_p->initialize (session_data_r.sessionId,
                          NULL);
 
@@ -509,7 +556,31 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
   } // end IF
   message_block_p->wr_ptr (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
 #else
-  message_block_p->wr_ptr (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+  pixel_buffer_p = Common_UI_GTK_Tools::get (window_);
+  if (unlikely (!pixel_buffer_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Common_UI_GTK_Tools::get(%@), aborting\n"),
+                inherited::mod_->name (),
+                window_));
+    goto error;
+  } // end IF
+  data_p =
+    gdk_pixbuf_get_pixels_with_length (pixel_buffer_p,
+                                       &length_i);
+  ACE_ASSERT (data_p && length_i == frameSize_);
+  result = message_block_p->copy (reinterpret_cast<char*> (data_p),
+                                  frameSize_);
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%u): \"%m\", aborting\n"),
+                inherited::mod_->name (),
+                frameSize_));
+    g_object_unref (pixel_buffer_p); pixel_buffer_p = NULL;
+    goto error;
+  } // end IF
+  g_object_unref (pixel_buffer_p); pixel_buffer_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step3: push data downstream

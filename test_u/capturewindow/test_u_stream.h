@@ -186,9 +186,9 @@ class Test_U_Stream
                         struct Test_U_StreamState,
                         struct Test_U_CaptureWindow_StreamConfiguration,
                         struct Test_U_StatisticData,
-                        struct Test_U_CaptureWindow_ModuleHandlerConfiguration,
-                        Test_U_SessionData,
-                        Test_U_SessionData_t,
+                        struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,
+                        Test_U_CaptureWindow_SessionData,
+                        Test_U_CaptureWindow_SessionData_t,
                         Stream_ControlMessage_t,
                         Test_U_Message_t,
                         Test_U_SessionMessage_t>
@@ -202,9 +202,9 @@ class Test_U_Stream
                         struct Test_U_StreamState,
                         struct Test_U_CaptureWindow_StreamConfiguration,
                         struct Test_U_StatisticData,
-                        struct Test_U_CaptureWindow_ModuleHandlerConfiguration,
-                        Test_U_SessionData,
-                        Test_U_SessionData_t,
+                        struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,
+                        Test_U_CaptureWindow_SessionData,
+                        Test_U_CaptureWindow_SessionData_t,
                         Stream_ControlMessage_t,
                         Test_U_Message_t,
                         Test_U_SessionMessage_t> inherited;
@@ -225,11 +225,14 @@ class Test_U_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_U_Stream& operator= (const Test_U_Stream&))
 
   // modules
-  //Test_U_V4L_Source_Module      source_;
+  Test_U_WindowSource_Module    source_;
   Test_U_StatisticReport_Module statisticReport_;
-  Test_U_LibAVConvert_Module    convert_; // --> BGRA (Xlib)
+  Test_U_Distributor_Module     distributor_;
+  Test_U_LibAVConvert_Module    convert_2; // RGB --> NV12
+  Test_U_LibAVEncoder_Module    encode_; // --> H264
   Test_U_LibAVResize_Module     resize_; // --> window size/fullscreen
-//  Test_U_Wayland_Display_Module WaylandDisplay_;
+  Test_U_LibAVConvert_Module    convert_; // RGB24 --> BGRA
+  Test_U_Wayland_Display_Module WaylandDisplay_;
   Test_U_X11_Display_Module     X11Display_;
 };
 #endif // ACE_WIN32 || ACE_WIN64

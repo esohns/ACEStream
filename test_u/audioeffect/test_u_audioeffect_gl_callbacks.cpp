@@ -66,7 +66,7 @@ processInstructions (struct Test_U_AudioEffect_UI_CBDataBase* CBDataBase_in)
         }
         case STREAM_VISUALIZATION_INSTRUCTION_SET_COLOR_BG:
         {
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
           glClearColor ((float)instruction_p->color.red,
                         (float)instruction_p->color.green,
                         (float)instruction_p->color.blue,
@@ -76,12 +76,12 @@ processInstructions (struct Test_U_AudioEffect_UI_CBDataBase* CBDataBase_in)
                         (float)instruction_p->color.green / (float)std::numeric_limits<guint16>::max (),
                         (float)instruction_p->color.blue  / (float)std::numeric_limits<guint16>::max (),
                         1.0F);
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
           break;
         }
         case STREAM_VISUALIZATION_INSTRUCTION_SET_COLOR_FG:
         {
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
           glColor4f ((float)instruction_p->color.red,
                      (float)instruction_p->color.green,
                      (float)instruction_p->color.blue,
@@ -91,7 +91,7 @@ processInstructions (struct Test_U_AudioEffect_UI_CBDataBase* CBDataBase_in)
                      (float)instruction_p->color.green / (float)std::numeric_limits<guint16>::max (),
                      (float)instruction_p->color.blue  / (float)std::numeric_limits<guint16>::max (),
                      1.0F);
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
           break;
         }
         default:
@@ -201,8 +201,8 @@ glarea_realize_cb (GtkWidget* widget_in,
   texture_id_p =
     &((*modulehandler_configuration_iterator).second.second->OpenGLTextureId);
 
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
   // sanity check(s)
@@ -211,7 +211,7 @@ glarea_realize_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (widget_in);
 #endif // GTKGLAREA_SUPPORT
-#endif // GTK_CHECK_VERSION(3,16,0)
+#endif // GTK_CHECK_VERSION (3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
   // sanity check(s)
@@ -226,12 +226,12 @@ glarea_realize_cb (GtkWidget* widget_in,
   ACE_ASSERT (drawable_p);
   ACE_ASSERT (context_p);
 #endif // GTKGLAREA_SUPPORT
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (texture_id_p);
 
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
   GtkGLArea* gl_area_p = GTK_GL_AREA (widget_in);
   ACE_ASSERT (gl_area_p);
   // NOTE*: the OpenGL context has been created at this point
@@ -254,7 +254,7 @@ glarea_realize_cb (GtkWidget* widget_in,
 #if defined (GTKGLAREA_SUPPORT)
   if (!ggla_area_make_current (GGLA_AREA (widget_in)))
 #endif // GTKGLAREA_SUPPORT
-#endif // GTK_CHECK_VERSION(3,16,0)
+#endif // GTK_CHECK_VERSION (3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
   if (!gtk_gl_area_make_current (GTK_GL_AREA (widget_in)))
@@ -273,9 +273,9 @@ glarea_realize_cb (GtkWidget* widget_in,
   if (!result)
 #endif // GTKGLAREA_SUPPORT
     return;
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
 
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
 #else
@@ -284,7 +284,7 @@ glarea_realize_cb (GtkWidget* widget_in,
   if (!result)
     return;
 #endif // GTKGLAREA_SUPPORT
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
 
   // load texture
   if (*texture_id_p > 0)
@@ -293,42 +293,43 @@ glarea_realize_cb (GtkWidget* widget_in,
     COMMON_GL_ASSERT;
     *texture_id_p = 0;
   } // end IF
-  static GLubyte*image_p = NULL;
-  if (!image_p)
-  {
-    std::string filename =
-      Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                                        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
-                                                        false); // data
-    filename += ACE_DIRECTORY_SEPARATOR_CHAR;
-    filename +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_OPENGL_DEFAULT_TEXTURE_FILE);
-    *texture_id_p = Common_GL_Tools::loadTexture (filename);
-    if (!*texture_id_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_GL_Tools::loadTexture(\"%s\"), returning\n"),
-                  ACE_TEXT (filename.c_str ())));
-      goto error;
-    } // end IF
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("OpenGL texture id: %u\n"),
-                *texture_id_p));
-  } // end IF
+  // static GLubyte* image_p = NULL;
+  // if (!image_p)
+  // {
+  //   std::string filename =
+  //     Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+  //                                                       ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+  //                                                       false); // data
+  //   filename += ACE_DIRECTORY_SEPARATOR_CHAR;
+  //   filename +=
+  //     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_OPENGL_DEFAULT_TEXTURE_FILE);
+  //   *texture_id_p = Common_GL_Tools::loadTexture (filename);
+  //   if (!*texture_id_p)
+  //   {
+  //     ACE_DEBUG ((LM_ERROR,
+  //                 ACE_TEXT ("failed to Common_GL_Tools::loadTexture(\"%s\"), returning\n"),
+  //                 ACE_TEXT (filename.c_str ())));
+  //     goto error;
+  //   } // end IF
+  //   ACE_DEBUG ((LM_DEBUG,
+  //               ACE_TEXT ("OpenGL texture id: %u\n"),
+  //               *texture_id_p));
+  // } // end IF
 
   // initialize perspective
   gtk_widget_get_allocation (widget_in,
                              &allocation);
   glViewport (0, 0,
               static_cast<GLsizei> (allocation.width), static_cast<GLsizei> (allocation.height));
-  COMMON_GL_ASSERT;
+  // COMMON_GL_ASSERT;
 
   glMatrixMode (GL_PROJECTION);
-  COMMON_GL_ASSERT;
+  // COMMON_GL_ASSERT;
   glLoadIdentity (); // Reset The Projection Matrix
-  COMMON_GL_ASSERT;
+  // COMMON_GL_ASSERT;
 
-#if defined (GLU_SUPPORT)
+#if defined (GLUT_SUPPORT)
+  ACE_ASSERT (allocation.height);
   gluPerspective (45.0,
                   allocation.width / (GLdouble)allocation.height,
                   0.1,
@@ -341,13 +342,13 @@ glarea_realize_cb (GtkWidget* widget_in,
   fW = fH * (allocation.width / (GLdouble)allocation.height);
 
   glFrustum (-fW, fW, -fH, fH, 0.1, 100.0);
-#endif // GLU_SUPPORT
-  COMMON_GL_ASSERT;
+#endif // GLUT_SUPPORT
+  // COMMON_GL_ASSERT;
 
   glMatrixMode (GL_MODELVIEW);
-  COMMON_GL_ASSERT;
+  // COMMON_GL_ASSERT;
   glLoadIdentity (); // reset the projection matrix
-  COMMON_GL_ASSERT;
+  // COMMON_GL_ASSERT;
 
   /* light */
 //  GLfloat light_positions[2][4]   = { 50.0, 50.0, 0.0, 0.0,
@@ -377,16 +378,16 @@ glarea_realize_cb (GtkWidget* widget_in,
   //glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective
   //COMMON_GL_ASSERT;
   glEnable (GL_TEXTURE_2D);                           // Enable Texture Mapping
-  COMMON_GL_ASSERT;
+  // COMMON_GL_ASSERT;
   //glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
   //COMMON_GL_ASSERT;
   //glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
   //COMMON_GL_ASSERT;
 
-  glEnable (GL_BLEND);                                // Enable Semi-Transparency
-  COMMON_GL_ASSERT;
-  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  COMMON_GL_ASSERT;
+  // glEnable (GL_BLEND);                                // Enable Semi-Transparency
+  // COMMON_GL_ASSERT;
+  // glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  // COMMON_GL_ASSERT;
   //glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
   //COMMON_GL_ASSERT;
   //glDepthFunc (GL_LESS);                              // The Type Of Depth Testing To Do
@@ -394,13 +395,13 @@ glarea_realize_cb (GtkWidget* widget_in,
   //glDepthMask (GL_TRUE);
   //COMMON_GL_ASSERT;
 
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
 #else
   gdk_gl_drawable_gl_end (drawable_p);
 #endif // GTKGLAREA_SUPPORT
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
 
   return;
 
@@ -408,8 +409,8 @@ error:
   return;
 } // glarea_realize_cb
 
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
 GdkGLContext*
 glarea_create_context_cb (GtkGLArea* GLArea_in,
                           gpointer userData_in)
@@ -438,7 +439,7 @@ glarea_create_context_cb (GtkGLArea* GLArea_in,
   } // end IF
 
   gdk_gl_context_set_required_version (result_p,
-                                       2, 1);
+                                       3, 2);
 #if defined (_DEBUG)
   gdk_gl_context_set_debug_enabled (result_p,
                                     TRUE);
@@ -463,7 +464,7 @@ glarea_create_context_cb (GtkGLArea* GLArea_in,
 
   // initialize options
   glClearColor (0.0F, 0.0F, 0.0F, 1.0F);              // Black Background
-  COMMON_GL_ASSERT;
+  //COMMON_GL_ASSERT;
   //glClearDepth (1.0);                                 // Depth Buffer Setup
   //COMMON_GL_ASSERT;
   /* speedups */
@@ -478,24 +479,24 @@ glarea_create_context_cb (GtkGLArea* GLArea_in,
   //COMMON_GL_ASSERT;
   //glEnable (GL_LIGHTING);
   //COMMON_GL_ASSERT;
-  glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective
-  COMMON_GL_ASSERT;
-  glDepthFunc (GL_LESS);                              // The Type Of Depth Testing To Do
-  COMMON_GL_ASSERT;
-  glDepthMask (GL_TRUE);
-  COMMON_GL_ASSERT;
+  // glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective
+  // COMMON_GL_ASSERT;
+  // glDepthFunc (GL_LESS);                              // The Type Of Depth Testing To Do
+  // COMMON_GL_ASSERT;
+  // glDepthMask (GL_TRUE);
+  // COMMON_GL_ASSERT;
   glEnable (GL_TEXTURE_2D);                           // Enable Texture Mapping
-  COMMON_GL_ASSERT;
-  glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
-  COMMON_GL_ASSERT;
-  glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-  COMMON_GL_ASSERT;
-  glEnable (GL_BLEND);                                // Enable Semi-Transparency
-  COMMON_GL_ASSERT;
-  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  COMMON_GL_ASSERT;
-  glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
-  COMMON_GL_ASSERT;
+  // COMMON_GL_ASSERT;
+  // glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
+  // COMMON_GL_ASSERT;
+  // glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+  // COMMON_GL_ASSERT;
+  // glEnable (GL_BLEND);                                // Enable Semi-Transparency
+  // COMMON_GL_ASSERT;
+  // glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  // COMMON_GL_ASSERT;
+  // glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
+  // COMMON_GL_ASSERT;
 
   return result_p;
 }
@@ -507,17 +508,12 @@ glarea_render_cb (GtkGLArea* GLArea_in,
 {
   STREAM_TRACE (ACE_TEXT ("::glarea_render_cb"));
 
-  ACE_UNUSED_ARG (context_in);
-
   // sanity check(s)
   ACE_ASSERT (GLArea_in);
+  ACE_UNUSED_ARG (context_in);
   ACE_ASSERT (userData_in);
-
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-  struct Stream_Visualization_OpenGL_Instruction* instruction_p = NULL;
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
 
   GLuint* texture_id_p = NULL;
@@ -571,14 +567,14 @@ glarea_render_cb (GtkGLArea* GLArea_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_UI_CBData* data_p =
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
       static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 //  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->OpenGLTextureId);
 
   texture_id_p =
@@ -587,13 +583,13 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   ACE_ASSERT (texture_id_p);
 
   static bool is_first = true;
-  if (is_first)
+  if (unlikely (is_first))
   {
     is_first = false;
 
     // initialize options
     glClearColor (0.0F, 0.0F, 0.0F, 1.0F);              // Black Background
-    COMMON_GL_ASSERT;
+    // COMMON_GL_ASSERT;
     //glClearDepth (1.0);                                 // Depth Buffer Setup
     //COMMON_GL_ASSERT;
     /* speedups */
@@ -602,50 +598,54 @@ glarea_render_cb (GtkGLArea* GLArea_in,
     //  glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
     //  glHint (GL_POLYGON_SMOOTH_HINT, GL_FASTEST);
 //    COMMON_GL_ASSERT;
-    glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective
-    COMMON_GL_ASSERT;
-    glDepthFunc (GL_LESS);                              // The Type Of Depth Testing To Do
-    COMMON_GL_ASSERT;
-    glDepthMask (GL_TRUE);
-    COMMON_GL_ASSERT;
+    // glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective
+    // COMMON_GL_ASSERT;
+    // glDepthFunc (GL_LESS);                              // The Type Of Depth Testing To Do
+    // COMMON_GL_ASSERT;
+    // glDepthMask (GL_TRUE);
+    // COMMON_GL_ASSERT;
     glEnable (GL_TEXTURE_2D);                           // Enable Texture Mapping
-    COMMON_GL_ASSERT;
-    glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
-    COMMON_GL_ASSERT;
-    glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-    COMMON_GL_ASSERT;
-    glEnable (GL_BLEND);                                // Enable Semi-Transparency
-    COMMON_GL_ASSERT;
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // COMMON_GL_ASSERT;
+    // glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
+    // COMMON_GL_ASSERT;
+    // glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+    // COMMON_GL_ASSERT;
+    glDisable (GL_BLEND);
+    // glEnable (GL_BLEND);                                // Enable Semi-Transparency
+    // COMMON_GL_ASSERT;
+    // glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 //    glBlendFunc (GL_ONE, GL_ZERO);
 //    glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    COMMON_GL_ASSERT;
-    glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
-    COMMON_GL_ASSERT;
+    // COMMON_GL_ASSERT;
+    // glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
+    // COMMON_GL_ASSERT;
 
-    glColorMaterial (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    COMMON_GL_ASSERT;
-    glEnable (GL_COLOR_MATERIAL);
-    COMMON_GL_ASSERT;
-    glEnable (GL_NORMALIZE);
-    COMMON_GL_ASSERT;
+    // glColorMaterial (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+    // COMMON_GL_ASSERT;
+    // glEnable (GL_COLOR_MATERIAL);
+    // COMMON_GL_ASSERT;
+    // glEnable (GL_NORMALIZE);
+    // COMMON_GL_ASSERT;
 //    glEnable (GL_LIGHTING);
 //    COMMON_GL_ASSERT;
 
-    // initialize texture
-    std::string filename = Common_File_Tools::getWorkingDirectory ();
-    filename += ACE_DIRECTORY_SEPARATOR_CHAR;
-    filename += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-    filename += ACE_DIRECTORY_SEPARATOR_CHAR;
-    filename +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_IMAGE_FILE);
-    *texture_id_p = Common_GL_Tools::loadTexture (filename);
+    // initialize texture ?
     if (!*texture_id_p)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_GL_Texture::load(\"%s\"), returning\n"),
-                  ACE_TEXT (filename.c_str ())));
-      return FALSE;
+      std::string filename = Common_File_Tools::getWorkingDirectory ();
+      filename += ACE_DIRECTORY_SEPARATOR_CHAR;
+      filename += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+      filename += ACE_DIRECTORY_SEPARATOR_CHAR;
+      filename +=
+        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_OPENGL_DEFAULT_TEXTURE_FILE);
+      *texture_id_p = Common_GL_Tools::loadTexture (filename);
+      if (!*texture_id_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Common_GL_Tools::load(\"%s\"), returning\n"),
+                    ACE_TEXT (filename.c_str ())));
+        return FALSE;
+      } // end IF
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("OpenGL texture id: %u\n"),
@@ -657,17 +657,16 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   COMMON_GL_PRINT_ERROR;
 
   glBindTexture (GL_TEXTURE_2D, *texture_id_p);
-  COMMON_GL_ASSERT;
+  // COMMON_GL_ASSERT;
 
-  glLoadIdentity ();				// Reset the transformation matrix.
-  COMMON_GL_ASSERT;
+  glLoadIdentity (); // Reset the transformation matrix.
+  // COMMON_GL_ASSERT;
 
-  glTranslatef (0.0f, 0.0f, -5.0f);		// Move back into the screen 7
-  COMMON_GL_ASSERT;
+  glTranslatef (0.0f, 0.0f, -5.0f); // Move back into the screen
+  // COMMON_GL_ASSERT;
 
-  glRotatef (ui_cb_data_base_p->objectRotation,
-             1.0f, 1.0f, 1.0f); // Rotate The Cube On X, Y, and Z
-  COMMON_GL_ASSERT;
+  glRotatef (ui_cb_data_p->objectRotationStep, 1.0f, 1.0f, 1.0f); // Rotate The Cube On X, Y, and Z
+  // COMMON_GL_ASSERT;
 
   //static GLfloat rot_x = 0.0f;
   //static GLfloat rot_y = 0.0f;
@@ -710,9 +709,9 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   glTexCoord2f (0.0f, 1.0f); glVertex3f (-1.0f,  1.0f, -1.0f); // Top Left Of The Texture and Quad
 
   glEnd ();
-  COMMON_GL_ASSERT;
+  // COMMON_GL_ASSERT;
 
-  ui_cb_data_base_p->objectRotation -= 1.0f; // Decrease The Rotation Variable For The Cube
+  ui_cb_data_base_p->objectRotationStep -= 1.0f; // Decrease The Rotation Variable For The Cube
 
   processInstructions (ui_cb_data_base_p);
 
@@ -721,36 +720,7 @@ continue_:
   //rot_y += 0.20f;
   //rot_z += 0.4f;
 
-  //GLuint vertex_array_id = 0;
-  //glGenVertexArrays (1, &vertex_array_id);
-  //glBindVertexArray (vertex_array_id);
-
-  //static const GLfloat vertex_buffer_data[] = {
-  //  -1.0f, -1.0f, 0.0f,
-  //  1.0f, -1.0f, 0.0f,
-  //  -1.0f,  1.0f, 0.0f,
-  //  -1.0f,  1.0f, 0.0f,
-  //  1.0f, -1.0f, 0.0f,
-  //  1.0f,  1.0f, 0.0f,
-  //};
-
-  //GLuint vertex_buffer;
-  //glGenBuffers (1, &vertex_buffer);
-  //glBindBuffer (GL_ARRAY_BUFFER, vertex_buffer);
-  //glBufferData (GL_ARRAY_BUFFER,
-  //              sizeof (vertex_buffer_data), vertex_buffer_data,
-  //              GL_STATIC_DRAW);
-
-  ////GLuint program_id = LoadShaders ("Passthrough.vertexshader",
-  ////                                 "SimpleTexture.fragmentshader");
-  ////GLuint tex_id = glGetUniformLocation (program_id, "renderedTexture");
-  ////GLuint time_id = glGetUniformLocation (program_id, "time");
-
-  //glBindFramebuffer (GL_FRAMEBUFFER, 0);
-  //glViewport (0, 0,
-  //            data_p->area3D.width, data_p->area3D.height);
-
-  //gtk_gl_area_queue_render (GLArea_in);
+  // gtk_gl_area_queue_render (GLArea_in);
 
   return TRUE;
 }
@@ -823,18 +793,19 @@ glarea_resize_cb (GtkGLArea* GLArea_in,
   COMMON_GL_PRINT_ERROR;
 
   glMatrixMode (GL_PROJECTION);
-  COMMON_GL_ASSERT;
+  // COMMON_GL_ASSERT;
 
   glLoadIdentity ();
-  COMMON_GL_ASSERT;
+  // COMMON_GL_ASSERT;
 
+  ACE_ASSERT (height_in);
   gluPerspective (45.0,
                   static_cast<GLdouble> (width_in) / static_cast<GLdouble> (height_in),
                   0.1, 100.0);
-  COMMON_GL_ASSERT;
+  // COMMON_GL_ASSERT;
 
   glMatrixMode (GL_MODELVIEW);
-  COMMON_GL_ASSERT;
+  // COMMON_GL_ASSERT;
 }
 #else
 #if defined (GTKGLAREA_SUPPORT)

@@ -1,5 +1,29 @@
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts")
+include (PreUIFramework)
+include (SetUIFramework)
+if (GTK_SUPPORT) # *NOTE*: _SUPPORT, not _USE !
+ include (SetGTKVersion)
+endif (GTK_SUPPORT)
+
 add_library (${PROJECT_NAME}_Miscellaneous STATIC "")
 
+if (FFMPEG_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
+endif (FFMPEG_SUPPORT)
+if (GTK_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
+ if (GTKGL_SUPPORT)
+  if (GTKGLAREA_SUPPORT)
+# *NOTE*: check out the 'master' branch for gtk3-based applications
+# *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
+# *TODO*: verify automatically
+   target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                               $<BUILD_INTERFACE:$ENV{LIB_ROOT}/gtkglarea>)
+  endif (GTKGLAREA_SUPPORT)
+ endif (GTKGL_SUPPORT)
+endif (GTK_SUPPORT)
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
@@ -15,6 +39,10 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/parser>)
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui>)
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui/gtk>)
 elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -41,13 +69,7 @@ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
 target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
 target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dec>)
-target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dev>)
-target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../file>)
-target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
 
 ############## next target ################
 set (source_files
@@ -124,6 +146,10 @@ set_property (TARGET ${PROJECT_NAME}_Miscellaneous PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Miscellaneous Common)
 add_dependencies (${PROJECT_NAME}_Miscellaneous ${PROJECT_NAME})
+
+if (FFMPEG_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Miscellaneous PUBLIC ${ffmpeg_LIBRARIES})
+endif (FFMPEG_SUPPORT)
 
 target_link_libraries (${PROJECT_NAME}_Miscellaneous PUBLIC ${ACE_LIBRARY})
 

@@ -201,20 +201,20 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                   ACE_TEXT (configuration_in.display.device.c_str ())));
     const char* display_name_p =
       (x11_display_name.empty () ? NULL
-                                   : x11_display_name.c_str ());
+                                 : x11_display_name.c_str ());
     display_ = XOpenDisplay (display_name_p);
     if (unlikely (!display_))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to XOpenDisplay(\"%s\"): \"%m\", aborting\n"),
                   inherited::mod_->name (),
-                  display_name_p));
+                  ACE_TEXT (display_name_p)));
       return false;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: opened X11 connection to \"%s\" (display: %@, default depth: %d)\n"),
                 inherited::mod_->name (),
-                display_name_p, display_,
+                ACE_TEXT (display_name_p), display_,
                 DefaultDepth (display_, DefaultScreen (display_))));
     closeDisplay_ = true;
   } // end ELSE
@@ -277,8 +277,8 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
       (WidthOfScreen (DefaultScreenOfDisplay (display_)) - width_i) / 2;
     int y =
       (HeightOfScreen (DefaultScreenOfDisplay (display_)) - height_i) / 2;
-    depth_ =
-      static_cast<int> (Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_s.format.pixelformat));
+    depth_ = 32; // *TODO*: 24 doesn't work
+      // static_cast<int> (Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_s.format.pixelformat));
 
     if (!XMatchVisualInfo (display_, DefaultScreen (display_),
                            depth_, TrueColor,
