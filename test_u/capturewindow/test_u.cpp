@@ -831,6 +831,7 @@ do_work (
                                                                                              &directshow_modulehandler_configuration_2)));
 
       directshow_modulehandler_configuration_3 = directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_3.window = NULL;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (directshow_stream_configuration.renderer),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_3)));
