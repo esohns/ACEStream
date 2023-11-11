@@ -66,6 +66,8 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+ , convert_2 (this,
+              ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
  , GDIDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GDI_DEFAULT_NAME_STRING))
  , Direct2DDisplay_ (this,
@@ -113,6 +115,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
     {
+      layout_in->append (&convert_2, branch_p, index_i);
       layout_in->append (&Direct2DDisplay_, branch_p, index_i);
       break;
     }

@@ -95,6 +95,7 @@ class Test_U_DirectShow_Stream
   Test_U_DirectShow_LibAVConvert_Module     convert_; // RGB24 --> encoder input NV12, YUV420P, ...
   Test_U_DirectShow_LibAVEncoder_Module     encode_; // H264, H263
   Test_U_DirectShow_LibAVResize_Module      resize_; // --> window size/fullscreen
+  Test_U_DirectShow_LibAVConvert_Module     convert_2; // RGB24 --> display input RGB32
   Test_U_DirectShow_GDI_Display_Module      GDIDisplay_;
   Test_U_DirectShow_Direct2D_Display_Module Direct2DDisplay_;
 };

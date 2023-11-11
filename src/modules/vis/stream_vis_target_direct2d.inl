@@ -528,7 +528,8 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize_Direct2D(), aborting\n"),
                 inherited::mod_->name ()));
-    CloseWindow (inherited::window_); inherited::window_ = NULL;
+    DestroyWindow (inherited::window_); inherited::window_ = NULL;
+    inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
     return -1;
   } // end IF
 
@@ -538,7 +539,7 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
   struct tagMSG message_s;
   while (result = GetMessage (&message_s, inherited::window_, 0, 0) != 0)
   {
-    if (result == -1)
+    if (unlikely (result == -1))
     {
       // handle the error and possibly exit
       break;

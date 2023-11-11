@@ -701,8 +701,9 @@ do_work (
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
-  struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // converter/resize
+  struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // converter/resize --> encoder
   struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // display
+  struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_4; // converter --> display
   struct Test_U_CaptureWindow_DirectShow_StreamConfiguration directshow_stream_configuration;
   Test_U_DirectShow_EventHandler_t directshow_ui_event_handler;
   struct Test_U_CaptureWindow_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
@@ -817,7 +818,9 @@ do_work (
           &directshow_message_allocator;
       directshow_stream_configuration.module =
         &directshow_message_handler;
-      directshow_stream_configuration.renderer = STREAM_VISUALIZATION_VIDEORENDERER_GDI;
+      //directshow_stream_configuration.renderer = STREAM_VISUALIZATION_VIDEORENDERER_GDI;
+      directshow_stream_configuration.renderer =
+        STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
@@ -831,16 +834,13 @@ do_work (
                                                                                              &directshow_modulehandler_configuration_2)));
 
       directshow_modulehandler_configuration_3 = directshow_modulehandler_configuration;
-      directshow_modulehandler_configuration_3.window = NULL;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (directshow_stream_configuration.renderer),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_3)));
-      //directshow_stream_iterator =
-      //  directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      //ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.streamConfiguration.end ());
-      //directshow_stream_iterator_2 =
-      //  directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
-      //ACE_ASSERT (directshow_stream_iterator_2 != directShowConfiguration_in.streamConfiguration.end ());
+      directshow_modulehandler_configuration_4 = directshow_modulehandler_configuration;
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_4)));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -927,6 +927,7 @@ do_work (
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format);
       ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration_2.outputFormat = *media_type_p;
+      delete media_type_p; media_type_p = NULL;
       directshow_modulehandler_configuration_2.outputFormat.subtype =
         MEDIASUBTYPE_NV12; // *NOTE*: required by H264
         //MEDIASUBTYPE_IMC1; // *NOTE*: maps to AV_PIX_FMT_YUV420P, required for H263
@@ -935,16 +936,22 @@ do_work (
       //resolution_s.cy = 576;
       //Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
       //                                                       directshow_modulehandler_configuration_2.outputFormat);
-      delete media_type_p; media_type_p = NULL;
 
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format);
       ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration_3.outputFormat = *media_type_p;
       delete media_type_p; media_type_p = NULL;
+      directshow_modulehandler_configuration_3.window = NULL;
 
-      directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
-        directshow_modulehandler_configuration_3.window;
+      directshow_modulehandler_configuration_4.flipImage = true;
+      media_type_p =
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format);
+      ACE_ASSERT (media_type_p);
+      directshow_modulehandler_configuration_4.outputFormat = *media_type_p;
+      delete media_type_p; media_type_p = NULL;
+      Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB32,
+                                                         directshow_modulehandler_configuration_4.outputFormat);
 
       stream_p = &directshow_stream;
 
