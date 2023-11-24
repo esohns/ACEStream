@@ -151,16 +151,8 @@ elseif (WIN32)
  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
 
  set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
-# target_link_libraries (${EXECUTABLE} PUBLIC ntdll.lib)
-# target_link_libraries (${EXECUTABLE} PUBLIC dxguid.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC mf.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
-# set (LIB_FILE_SUFFIX "")
-# if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR
-#     CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-#  set (LIB_FILE_SUFFIX "d")
-# endif ()
-# target_link_libraries (${EXECUTABLE} PUBLIC $ENV{LIB_ROOT}/zlib/cmake/${CMAKE_BUILD_TYPE}/zlib${LIB_FILE_SUFFIX}.lib)
 endif ()
 target_link_libraries (${EXECUTABLE} PUBLIC Common)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonEvent)
@@ -234,7 +226,7 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "${LIBREOFFICE_LIB_DIRS}" OO_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_LIBRARY_PATH)
- file (TO_CMAKE_PATH ${ZLIB_LIB_DIR} ZLIB_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${ZLIB_LIB_DIR}" ZLIB_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${ACE_LIBRARY_PATH}
                            ${GTK_LIBRARY_PATH}
                            ${WXWIDGETS_LIBRARY_PATH}

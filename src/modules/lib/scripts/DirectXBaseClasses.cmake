@@ -13,8 +13,8 @@ if (WIN32)
  set (DIRECTSHOW_BASECLASSES_LIB_FILE BaseClasses${LIB_FILE_SUFFIX}.lib)
 # *TODO*: add unicode support
  find_library (BASECLASSES_LIBRARY ${DIRECTSHOW_BASECLASSES_LIB_FILE}
-               PATHS ${DIRECTSHOW_BASECLASSES_DIRECTORY}
-               PATH_SUFFIXES build/msvc/baseclasses/${CMAKE_BUILD_TYPE}
+               PATHS ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses
+               PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
                DOC "searching for \"${DIRECTSHOW_BASECLASSES_LIB_FILE}\"")
  if (BASECLASSES_LIBRARY)
   set (DS_BASECLASSES_FOUND TRUE)
