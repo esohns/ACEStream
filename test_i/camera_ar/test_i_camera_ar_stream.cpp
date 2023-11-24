@@ -21,7 +21,20 @@
 
 #include "test_i_camera_ar_stream.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
+#include "uuids.h"
+#endif // UUIDS_H
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/Log_Msg.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "common_os_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_macros.h"
 
@@ -47,8 +60,8 @@ Stream_CameraAR_DirectShow_Stream::Stream_CameraAR_DirectShow_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
- , statisticReport_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+ //, statisticReport_ (this,
+ //                    ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
 #if defined (FFMPEG_SUPPORT)
  , convert_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
@@ -57,18 +70,6 @@ Stream_CameraAR_DirectShow_Stream::Stream_CameraAR_DirectShow_Stream ()
 #endif // FFMPEG_SUPPORT
  , flip_ (this,
           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
-#if defined (GTK_SUPPORT)
- , GTKDisplay_ (this,
-                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
-#endif // GTK_SUPPORT
- , GDIDisplay_ (this,
-                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GDI_DEFAULT_NAME_STRING))
- , Direct2DDisplay_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT2D_DEFAULT_NAME_STRING))
- , Direct3DDisplay_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
- , DirectShowDisplay_ (this,
-                       ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraAR_DirectShow_Stream::Stream_CameraAR_DirectShow_Stream"));
 
@@ -93,35 +94,6 @@ Stream_CameraAR_DirectShow_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 #endif // FFMPEG_SUPPORT
   layout_in->append (&flip_, NULL, 0);
-
-  //  switch (inherited::configuration_->configuration_->renderer)
-//  {
-//#if defined (GTK_SUPPORT)
-//    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
-//      layout_in->append (&GTKDisplay_, NULL, 0);
-//      break;
-//#endif // GTK_SUPPORT
-//    case STREAM_VISUALIZATION_VIDEORENDERER_GDI:
-//      layout_in->append (&GDIDisplay_, NULL, 0);
-//      break;
-//    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
-//      layout_in->append (&Direct2DDisplay_, NULL, 0);
-//      break;
-//    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
-//      layout_in->append (&Direct3DDisplay_, NULL, 0);
-//      break;
-//    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
-//      layout_in->append (&DirectShowDisplay_, NULL, 0);
-//      break;
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: invalid/unknown renderer (was: %d), aborting\n"),
-//                  ACE_TEXT (stream_name_string_),
-//                  inherited::configuration_->configuration_->renderer));
-//      return false;
-//    }
-//  } // end SWITCH
 
   return true;
 }
@@ -536,11 +508,17 @@ Stream_CameraAR_MediaFoundation_Stream::Stream_CameraAR_MediaFoundation_Stream (
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
  //, statisticReport_ (this,
  //                    ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
- , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if defined (FFMPEG_SUPPORT)
+ , convert_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
+ , resize_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+#endif // FFMPEG_SUPPORT
+ , flip_ (this,
+          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
  , referenceCount_ (1)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraAR_MediaFoundation_Stream::Stream_CameraAR_MediaFoundation_Stream"));
@@ -588,7 +566,7 @@ Stream_CameraAR_MediaFoundation_Stream::start ()
   STREAM_TRACE (ACE_TEXT ("Stream_CameraAR_MediaFoundation_Stream::start"));
 
   // sanity check(s)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (mediaSession_);
 
   struct _GUID GUID_s = GUID_NULL;
@@ -617,19 +595,19 @@ Stream_CameraAR_MediaFoundation_Stream::start ()
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   inherited::start ();
 }
 
 void
 Stream_CameraAR_MediaFoundation_Stream::stop (bool waitForCompletion_in,
-                                                  bool recurseUpstream_in,
-                                                  bool highPriority_in)
+                                              bool recurseUpstream_in,
+                                              bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraAR_MediaFoundation_Stream::stop"));
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
   {
     HRESULT result = mediaSession_->Stop ();
@@ -639,7 +617,7 @@ Stream_CameraAR_MediaFoundation_Stream::stop (bool waitForCompletion_in,
                   ACE_TEXT (stream_name_string_),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   inherited::stop (waitForCompletion_in,
                    recurseUpstream_in,
@@ -684,7 +662,7 @@ Stream_CameraAR_MediaFoundation_Stream::Release ()
 
 HRESULT
 Stream_CameraAR_MediaFoundation_Stream::GetParameters (DWORD* flags_out,
-                                                           DWORD* queue_out)
+                                                       DWORD* queue_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraAR_MediaFoundation_Stream::GetParameters"));
 
@@ -710,15 +688,15 @@ Stream_CameraAR_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
 
   // sanity check(s)
   ACE_ASSERT (result_in);
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (mediaSession_);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   ACE_ASSERT (inherited::sessionData_);
 
   //Stream_CameraAR_SessionData& session_data_r =
   //  const_cast<Stream_CameraAR_SessionData&> (inherited::sessionData_->get ());
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = mediaSession_->EndGetEvent (result_in, &media_event_p);
   if (FAILED (result))
   {
@@ -728,7 +706,7 @@ Stream_CameraAR_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   ACE_ASSERT (media_event_p);
   result = media_event_p->GetType (&event_type);
   ACE_ASSERT (SUCCEEDED (result));
@@ -760,7 +738,7 @@ Stream_CameraAR_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
                   ACE_TEXT (stream_name_string_)));
       //IMFMediaSource* media_source_p = NULL;
       //if (!Stream_Device_Tools::getMediaSource (mediaSession_,
-      //                                                 media_source_p))
+      //                                          media_source_p))
       //{
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to Stream_Device_Tools::getMediaSource(), continuing\n")));
@@ -787,14 +765,14 @@ Stream_CameraAR_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: received MESessionEnded, closing sesion\n"),
                   ACE_TEXT (stream_name_string_)));
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       result = mediaSession_->Close ();
       if (FAILED (result))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
                     ACE_TEXT (stream_name_string_),
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       break;
     }
     case MESessionCapabilitiesChanged:
@@ -863,7 +841,7 @@ Stream_CameraAR_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
   PropVariantClear (&value);
   media_event_p->Release (); media_event_p = NULL;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = mediaSession_->BeginGetEvent (this, NULL);
   if (FAILED (result))
   {
@@ -873,13 +851,13 @@ Stream_CameraAR_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   return S_OK;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
 error:
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   if (media_event_p)
     media_event_p->Release ();
   PropVariantClear (&value);
@@ -889,19 +867,20 @@ error:
 
 bool
 Stream_CameraAR_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
-                                                  bool& delete_out)
+                                              bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraAR_MediaFoundation_Stream::load"));
 
   // initialize return value(s)
   delete_out = false;
 
-  // *NOTE*: one problem is that any module that was NOT enqueued onto the
-  //         stream (e.g. because initialize() failed) needs to be explicitly
-  //         close()d
   layout_in->append (&source_, NULL, 0);
-  //modules_out.push_back (&statisticReport_);
-  layout_in->append (&display_, NULL, 0);
+  // modules_out.push_back (&statisticReport_);
+#if defined(FFMPEG_SUPPORT)
+  layout_in->append (&convert_, NULL, 0);
+  layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+#endif // FFMPEG_SUPPORT
+  layout_in->append (&flip_, NULL, 0);
 
   return true;
 }
@@ -985,7 +964,7 @@ Stream_CameraAR_MediaFoundation_Stream::initialize (const inherited::CONFIGURATI
   } // end IF
   COM_initialized = true;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if ((*iterator).second.second->session)
   {
     ULONG reference_count = (*iterator).second.second->session->AddRef ();
@@ -1018,7 +997,7 @@ Stream_CameraAR_MediaFoundation_Stream::initialize (const inherited::CONFIGURATI
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       goto error;
     } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
     ACE_ASSERT (topology_p);
 
     //if ((*iterator).second.second->sampleGrabberNodeId)
@@ -1033,13 +1012,12 @@ Stream_CameraAR_MediaFoundation_Stream::initialize (const inherited::CONFIGURATI
     } // end IF
     ACE_ASSERT (node_id);
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
     goto continue_;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
-  ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
-  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._guid,
+  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second->deviceIdentifier,
                                                                configuration_in.configuration_->format,
                                                                source_impl_p,
                                                                NULL,
@@ -1100,7 +1078,7 @@ continue_:
   session_data_p->formats.push_back (media_type_p);
   media_type_p = NULL;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   //HRESULT result = E_FAIL;
   if (mediaSession_)
   {
@@ -1123,7 +1101,7 @@ continue_:
     goto error;
   } // end IF
   ACE_ASSERT (mediaSession_);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   topology_p->Release (); topology_p = NULL;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
@@ -1199,14 +1177,6 @@ Stream_CameraAR_Stream::Stream_CameraAR_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
  , flip_ (this,
           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
-//#if defined (GTK_SUPPORT)
-// , GTKDisplay_ (this,
-//                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
-//#endif // GTK_SUPPORT
-//// , WaylandDisplay_ (this,
-////                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING))
-// , X11Display_ (this,
-//                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraAR_Stream::Stream_CameraAR_Stream"));
 
@@ -1229,28 +1199,6 @@ Stream_CameraAR_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&convert_, NULL, 0);
   layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
   layout_in->append (&flip_, NULL, 0);
-//  switch (inherited::configuration_->configuration_->renderer)
-//  {
-//#if defined (GTK_SUPPORT)
-//    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
-//      layout_in->append (&GTKDisplay_, NULL, 0);
-//      break;
-//#endif // GTK_SUPPORT
-////    case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
-////      layout_in->append (&WaylandDisplay_, NULL, 0);
-////      break;
-//    case STREAM_VISUALIZATION_VIDEORENDERER_X11:
-//      layout_in->append (&X11Display_, NULL, 0);
-//      break;
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: invalid/unknown renderer (was: %d), aborting\n"),
-//                  ACE_TEXT (stream_name_string_),
-//                  inherited::configuration_->configuration_->renderer));
-//      return false;
-//    }
-//  } // end SWITCH
 
   return true;
 }

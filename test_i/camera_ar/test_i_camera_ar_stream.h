@@ -102,20 +102,13 @@ class Stream_CameraAR_DirectShow_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_CameraAR_DirectShow_Stream& operator= (const Stream_CameraAR_DirectShow_Stream&))
 
   // modules
-  Stream_CameraAR_DirectShow_Source_Module           source_;
-  Stream_CameraAR_DirectShow_StatisticReport_Module  statisticReport_;
+  Stream_CameraAR_DirectShow_Source_Module          source_;
+  //Stream_CameraAR_DirectShow_StatisticReport_Module statisticReport_;
 #if defined (FFMPEG_SUPPORT)
-  Stream_CameraAR_DirectShow_LibAVConvert_Module     convert_; // RGB
-  Stream_CameraAR_DirectShow_LibAVResize_Module      resize_; // --> window size/fullscreen
+  Stream_CameraAR_DirectShow_LibAVConvert_Module    convert_; // RGB
+  Stream_CameraAR_DirectShow_LibAVResize_Module     resize_; // --> window size/fullscreen
 #endif // FFMPEG_SUPPORT
-  Stream_CameraAR_DirectShow_HFlip_Module            flip_;
-#if defined (GTK_SUPPORT)
-  Stream_CameraAR_DirectShow_GTK_Display_Module      GTKDisplay_;
-#endif // GTK_SUPPORT
-  Stream_CameraAR_DirectShow_GDI_Display_Module      GDIDisplay_;
-  Stream_CameraAR_DirectShow_Direct2D_Display_Module Direct2DDisplay_;
-  Stream_CameraAR_DirectShow_Direct3D_Display_Module Direct3DDisplay_;
-  Stream_CameraAR_DirectShow_Display_Module          DirectShowDisplay_;
+  Stream_CameraAR_DirectShow_HFlip_Module           flip_;
 };
 
 class Stream_CameraAR_MediaFoundation_Stream
@@ -186,20 +179,17 @@ class Stream_CameraAR_MediaFoundation_Stream
   // modules
   Stream_CameraAR_MediaFoundation_Source_Module          source_;
   //Stream_CameraAR_MediaFoundation_StatisticReport_Module statisticReport_;
-  //Stream_CameraAR_MediaFoundation_Direct3DDisplay_Module direct3DDisplay_;
-  Stream_CameraAR_MediaFoundation_Display_Module         display_;
-  //Stream_CameraAR_MediaFoundation_DisplayNull_Module     mediaFoundationDisplayNull_;
-//#if defined (GUI_SUPPORT)
-//#if defined (GTK_USE)
-//  Stream_CameraAR_MediaFoundation_GTKCairoDisplay_Module            GTKCairoDisplay_;
-//#endif // GTK_USE
-//#endif // GUI_SUPPORT
+#if defined (FFMPEG_SUPPORT)
+  Stream_CameraAR_MediaFoundation_LibAVConvert_Module    convert_; // RGB
+  Stream_CameraAR_MediaFoundation_LibAVResize_Module     resize_; // --> window size/fullscreen
+#endif // FFMPEG_SUPPORT
+  Stream_CameraAR_MediaFoundation_HFlip_Module           flip_;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   // media session
-  IMFMediaSession*                                           mediaSession_;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  ULONG                                                      referenceCount_;
+  IMFMediaSession*                                       mediaSession_;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
+  ULONG                                                  referenceCount_;
 };
 #else
 class Stream_CameraAR_Stream

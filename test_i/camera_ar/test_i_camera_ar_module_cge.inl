@@ -341,7 +341,7 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_CGE_T::svc"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
   Common_Error_Tools::setThreadName (inherited::threadName_,
                                      NULL);
 #else
@@ -446,7 +446,7 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
       inherited::stop (false, // wait ?
                        true); // high priority ?
 
-    if (start_cge && !stop_processing)
+    if (unlikely (start_cge && !stop_processing))
     {
       start_cge = false;
       cge_started = true;
@@ -511,7 +511,7 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_CGE_T::processNextMessage"));
 
   ACE_Message_Block* message_block_p = NULL;
-  ACE_Time_Value no_wait = COMMON_TIME_NOW;
+  static ACE_Time_Value no_wait = COMMON_TIME_NOW;
   int result = inherited::getq (message_block_p, &no_wait);
   if (unlikely (result == -1))
   {

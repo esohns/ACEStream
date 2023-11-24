@@ -271,43 +271,6 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       // *TODO*: remove type inferences
       ACE_ASSERT (!session_data_r.formats.empty ());
 
-//      if (!direct3DDevice_)
-//      {
-//        if (!session_data_r.direct3DDevice)
-//        {
-//          struct _D3DPRESENT_PARAMETERS_ presentation_parameters;
-//          ACE_OS::memset (&presentation_parameters,
-//                          0,
-//                          sizeof (struct _D3DPRESENT_PARAMETERS_));
-//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-//          IDirect3DDevice9Ex* device_handle_p =
-//#else
-//          IDirect3DDevice9* device_handle_p =
-//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-//            session_data_r.direct3DDevice;
-//          ACE_ASSERT (!session_data_r.direct3DManagerResetToken);
-//          IDirect3DDeviceManager9* direct3D_manager_p = NULL;
-//          if (!Stream_Module_Device_Tools::getDirect3DDevice (inherited::configuration_->window,
-//                                                              *session_data_r.inputFormat,
-//                                                              device_handle_p,
-//                                                              presentation_parameters,
-//                                                              direct3D_manager_p,
-//                                                              session_data_r.direct3DManagerResetToken))
-//          {
-//            ACE_DEBUG ((LM_ERROR,
-//                        ACE_TEXT ("%s: failed to Stream_Module_Device_Tools::getDirect3DDevice(), aborting\n"),
-//                        inherited::mod_->name ()));
-//            goto error;
-//          } // end IF
-//          ACE_ASSERT (device_handle_p);
-//          ACE_ASSERT (direct3D_manager_p);
-//          direct3D_manager_p->Release (); direct3D_manager_p = NULL;
-//        } // end IF
-//        ACE_ASSERT (session_data_r.direct3DDevice);
-//        reference_count = session_data_r.direct3DDevice->AddRef ();
-//        direct3DDevice_ = session_data_r.direct3DDevice;
-//      } // end IF
-
       if (!mediaSession_)
       {
         if (session_data_r.session)

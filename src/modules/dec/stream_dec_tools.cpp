@@ -4160,13 +4160,13 @@ error:
 }
 
 bool
-Stream_Module_Decoder_Tools::loadVideoRendererTopology (REFGUID deviceIdentifier_in,
+Stream_Module_Decoder_Tools::loadVideoRendererTopology (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                         const IMFMediaType* mediaType_in,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
                                                         IMFSampleGrabberSinkCallback2* sampleGrabberSinkCallback_in,
 #else
                                                         IMFSampleGrabberSinkCallback* sampleGrabberSinkCallback_in,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
                                                         HWND windowHandle_in,
                                                         TOPOID& sampleGrabberSinkNodeId_out,
                                                         TOPOID& rendererNodeId_out,
@@ -4177,11 +4177,11 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (REFGUID deviceIdentifier
   bool release_topology = false;
   struct _GUID sub_type = GUID_NULL;
   MFT_REGISTER_TYPE_INFO mft_register_type_info = { GUID_NULL, GUID_NULL };
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
 #else
   IMFMediaSource* media_source_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   IMFMediaType* media_type_p = NULL;
   IMFActivate* activate_p = NULL;
   IMFTopologyNode* topology_node_p = NULL;
@@ -4193,7 +4193,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (REFGUID deviceIdentifier
   IUnknown* unknown_p = NULL;
   UINT32 item_count = 0;
   UINT32 flags = 0;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
   flags = (MFT_ENUM_FLAG_SYNCMFT        |
            MFT_ENUM_FLAG_ASYNCMFT       |
            MFT_ENUM_FLAG_HARDWARE       |
@@ -4204,14 +4204,14 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (REFGUID deviceIdentifier
   IMFActivate** decoders_p = NULL;
 #else
   CLSID* decoders_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
   IMFTransform* transform_p = NULL;
   TOPOID node_id = 0;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
   IMFVideoProcessorControl2* video_processor_control_p = NULL;
-#elif COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#elif COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   IMFVideoProcessorControl* video_processor_control_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00)
   IMFMediaSink* media_sink_p = NULL;
   IMFStreamSink* stream_sink_p = NULL;
   IMFMediaTypeHandler* media_type_handler_p = NULL;
@@ -4223,13 +4223,29 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (REFGUID deviceIdentifier
   rendererNodeId_out = 0;
   if (!topology_inout)
   {
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-    struct Stream_Device_Identifier device_identifier;
-    device_identifier.identifier._guid = deviceIdentifier_in;
-    if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (device_identifier,
+    if (!Stream_Device_MediaFoundation_Tools::getMediaSource (deviceIdentifier_in,
+                                                              MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                              media_source_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(), aborting\n")));
+      goto error;
+    } // end IF
+    ACE_ASSERT (media_source_p);
+
+    if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (media_source_p,
+                                                                mediaType_in))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
+      goto error;
+    } // end IF
+
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
+    if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (deviceIdentifier_in,
                                                                   MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                   media_source_p,
-                                                                  NULL, // do not load a dummy sink
+                                                                  NULL,
                                                                   topology_inout))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -4237,7 +4253,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (REFGUID deviceIdentifier
                   ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
       goto error;
     } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
     release_topology = true;
   } // end IF
   else if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (topology_inout,
@@ -4335,12 +4351,12 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (REFGUID deviceIdentifier
                                                             flags,
                                                             &mft_register_type_info,    // input type
                                                             NULL,                       // output type
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
                                                             decoders_p,                 // array of decoders
 #else
                                                             NULL,                       // attributes
                                                             decoders_p,                 // array of decoders
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
                                                             item_count))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -4358,7 +4374,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (REFGUID deviceIdentifier
       goto clean;
     } // end IF
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
     module_string =
       Stream_MediaFramework_MediaFoundation_Tools::toString (decoders_p[0]);
 
@@ -4376,7 +4392,7 @@ clean:
     ACE_NOTREACHED (return false;)
 
 clean:
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
     ACE_ASSERT (transform_p);
 
     //result = transform_p->GetAttributes (&attributes_p);
@@ -4397,7 +4413,7 @@ clean:
       goto error;
     } // end IF
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
     result = MFCreateTopologyNode (MF_TOPOLOGY_TRANSFORM_NODE,
                                    &topology_node_p);
     if (FAILED (result))
@@ -4409,7 +4425,7 @@ clean:
       goto error;
     } // end IF
     ACE_ASSERT (topology_node_p);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
     result = topology_node_p->SetObject (transform_p);
     ACE_ASSERT (SUCCEEDED (result));
     result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
@@ -4518,20 +4534,20 @@ transform:
 
   decoders_p = NULL;
   item_count = 0;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
   if (!Stream_MediaFramework_MediaFoundation_Tools::load (MFT_CATEGORY_VIDEO_PROCESSOR,
 #else
   if (!Stream_MediaFramework_MediaFoundation_Tools::load (MFT_CATEGORY_VIDEO_DECODER,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
                                                           flags,
                                                           &mft_register_type_info,    // input type
                                                           NULL,                       // output type
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
                                                           decoders_p,                 // array of decoders
 #else
                                                           NULL,                       // attributes
                                                           decoders_p,                 // array of decoders
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
                                                           item_count))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -4684,7 +4700,7 @@ clean_2:
               ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
 #endif // _DEBUG
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   result =
     transform_p->QueryInterface (IID_PPV_ARGS (&video_processor_control_p));
   if (FAILED (result))
@@ -4701,7 +4717,7 @@ clean_2:
   ACE_ASSERT (SUCCEEDED (result));
   video_processor_control_p->Release (); video_processor_control_p = NULL;
 continue_near:
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   transform_p->Release (); transform_p = NULL;
 
   // debug info
@@ -4779,11 +4795,11 @@ continue_2:
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
   result = activate_p->SetUINT32 (MF_SAMPLEGRABBERSINK_IGNORE_CLOCK,
                                   TRUE);
   ACE_ASSERT (SUCCEEDED (result));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
 
   result = activate_p->ActivateObject (IID_PPV_ARGS (&media_sink_p));
   ACE_ASSERT (SUCCEEDED (result));
@@ -4798,7 +4814,7 @@ continue_2:
   //ACE_ASSERT (SUCCEEDED (result));
   //media_type_handler_p->Release ();
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -4809,7 +4825,7 @@ continue_2:
     goto error;
   } // end IF
   ACE_ASSERT (topology_node_p);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   result = topology_node_p->SetObject (stream_sink_p);
   ACE_ASSERT (SUCCEEDED (result));
   stream_sink_p->Release (); stream_sink_p = NULL;
@@ -4850,7 +4866,7 @@ continue_3:
   if (!windowHandle_in)
     goto continue_4;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateVideoRendererActivate (windowHandle_in,
                                           &activate_p);
   if (FAILED (result))
@@ -4860,7 +4876,7 @@ continue_3:
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   ACE_ASSERT (activate_p);
 
   //// *NOTE*: select a (custom) video presenter

@@ -30,10 +30,13 @@
 
 #include "ace/Global_Macros.h"
 
-#include "stream_dec_common.h"
+//#include "stream_dec_common.h"
 
-#include "stream_dev_common.h"
-#include "stream_dev_defines.h"
+//#include "stream_dev_common.h"
+//#include "stream_dev_defines.h"
+// forward declarations
+struct Stream_Device_Identifier;
+typedef std::list<struct Stream_Device_Identifier> Stream_Device_List_t;
 
 class Stream_Device_MediaFoundation_Tools
 {
@@ -47,25 +50,31 @@ class Stream_Device_MediaFoundation_Tools
   //                              IMFMediaType*&);  // return value: media type
   //static bool setCaptureFormat (IMFSourceReaderEx*,   // source handle
   //                              const IMFMediaType*); // media type
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   static bool getCaptureFormat (IMFMediaSourceEx*, // source handle
 #else
   static bool getCaptureFormat (IMFMediaSource*,   // source handle
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
                                 IMFMediaType*&);   // return value: media type
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
+  static bool setCaptureFormat (IMFMediaSourceEx*,    // source handle
+#else
+  static bool setCaptureFormat (IMFMediaSource*,      // source handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
+                                const IMFMediaType*); // media type
   static bool setCaptureFormat (IMFTopology*,         // topology handle
                                 const IMFMediaType*); // media type
 
   // -------------------------------------
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   static bool loadDeviceTopology (const struct Stream_Device_Identifier&, // device identifier
                                   REFGUID,                                // device category
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
                                   IMFMediaSourceEx*&,                     // input/return value: media source handle
 #else
                                   IMFMediaSource*&,                       // input/return value: media source handle
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
                                   IMFSampleGrabberSinkCallback2*,         // sample grabber sink callback handle [NULL: use null-renderer]
 #else
                                   IMFSampleGrabberSinkCallback*,          // sample grabber sink callback handle [NULL: use null-renderer]
@@ -75,17 +84,20 @@ class Stream_Device_MediaFoundation_Tools
 
   // -------------------------------------
 
+  static bool getMediaSource (const struct Stream_Device_Identifier&, // device identifier
+                              REFGUID,                                // device category
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
+                              IMFMediaSourceEx*&); // return value: media source handle
+#else
+                              IMFMediaSource*&);   // return value: media source handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
+
+  static struct _GUID symbolicLinkToGUID (const std::string&);
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Device_MediaFoundation_Tools ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Device_MediaFoundation_Tools (const Stream_Device_MediaFoundation_Tools&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Device_MediaFoundation_Tools& operator= (const Stream_Device_MediaFoundation_Tools&))
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-  static bool setCaptureFormat (IMFMediaSourceEx*,    // source handle
-#else
-  static bool setCaptureFormat (IMFMediaSource*,      // source handle
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-                                const IMFMediaType*); // media type
 };
 
 #endif

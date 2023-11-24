@@ -150,17 +150,17 @@ class Stream_Module_Decoder_Tools
                                          REFGUID,                        // audio effect CLSID [GUID_NULL: no effect]
                                          const std::string&,             // audio effect options *TODO*
                                          IMFTopology*&);                 // input/return value: topology handle
-  static bool loadVideoRendererTopology (REFGUID,                        // device identifier
-                                         const IMFMediaType*,            // sample grabber sink input media type handle
+  static bool loadVideoRendererTopology (const struct Stream_Device_Identifier& , // device identifier
+                                         const IMFMediaType*,                     // sample grabber sink input media type handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
-                                         IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
+                                         IMFSampleGrabberSinkCallback2*,          // sample grabber sink callback handle [NULL: do not use tee/grabber]
 #else
-                                         IMFSampleGrabberSinkCallback*,  // sample grabber sink callback handle [NULL: do not use tee/grabber]
+                                         IMFSampleGrabberSinkCallback*,           // sample grabber sink callback handle [NULL: do not use tee/grabber]
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
-                                         HWND,                           // window handle [NULL: do not use tee/EVR]
-                                         TOPOID&,                        // return value: sample grabber sink node id
-                                         TOPOID&,                        // return value: EVR sink node id
-                                         IMFTopology*&);                 // input/return value: topology handle
+                                         HWND,                                    // window handle [NULL: do not use tee/EVR]
+                                         TOPOID&,                                 // return value: sample grabber sink node id
+                                         TOPOID&,                                 // return value: EVR sink node id
+                                         IMFTopology*&);                          // input/return value: topology handle
   static bool loadVideoRendererTopology (const IMFMediaType*, // input media type handle
                                          HWND,                // window handle [NULL: do not use tee/EVR]
                                          TOPOID&,             // return value: EVR sink node id

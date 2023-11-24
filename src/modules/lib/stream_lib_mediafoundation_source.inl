@@ -1363,15 +1363,14 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
   bool release_media_session = false;
   bool release_media_source = false;
   if (!IMFMediaSource_inout)
-  { ACE_ASSERT (deviceIdentifier_in.identifierDiscriminator == Stream_Device_Identifier::GUID);
-    if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (deviceIdentifier_in.identifier._guid,
-                                                                      MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                                      IMFMediaSource_inout))
+  {
+    if (!Stream_Device_MediaFoundation_Tools::getMediaSource (deviceIdentifier_in,
+                                                              MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                              IMFMediaSource_inout))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), aborting\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in.identifier._guid).c_str ())));
+                  ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), aborting\n"),
+                  inherited::mod_->name ()));
       return false;
     } // end IF
     release_media_source = true;

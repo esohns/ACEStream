@@ -18,6 +18,15 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
+#include "uuids.h"
+#endif // UUIDS_H
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
@@ -468,10 +477,13 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
   // initialize return value(s)
   Stream_MediaFramework_DirectShow_Tools::free (mediaType_inout);
 
+  struct _GUID GUID_s = GUID_NULL;
+  if (type_in == STREAM_MEDIATYPE_VIDEO)
+    GUID_s = FORMAT_VideoInfo;
   struct _AMMediaType* media_type_p = NULL;
   HRESULT result =
     MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (mediaType_in),
-                                        GUID_NULL,
+                                        GUID_s,
                                         &media_type_p);
   if (unlikely (FAILED (result)))
   {
@@ -482,6 +494,12 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
   } // end IF
   ACE_ASSERT (media_type_p);
   mediaType_inout = *media_type_p;
+
+  // *IMPORTANT NOTE*: MFCreateAMMediaTypeFromMFMediaType fails to set the correct resolution !!!
+  Common_Image_Resolution_t resolution_s =
+    Stream_MediaFramework_MediaFoundation_Tools::toResolution (mediaType_in);
+  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                         mediaType_inout);
 
   CoTaskMemFree (media_type_p); media_type_p = NULL;
 }

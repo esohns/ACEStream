@@ -94,7 +94,7 @@ Stream_MediaFramework_MediaFoundation_Tools::identifierToString (REFGUID deviceI
   std::string return_value;
 
   HRESULT result = E_FAIL;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
   if (InlineIsEqualGUID (deviceCategory_in, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID))
   {
     IMMDeviceEnumerator* enumerator_p = NULL;
@@ -250,6 +250,29 @@ Stream_MediaFramework_MediaFoundation_Tools::toFramerate (const IMFMediaType* me
   { ACE_ASSERT (denominator == 1);
     result = numerator;
   } // end ELSE
+
+  return result;
+}
+
+unsigned int
+Stream_MediaFramework_MediaFoundation_Tools::frameSize (const IMFMediaType* mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::frameSize"));
+
+  unsigned int result = 0;
+
+  // sanity check(s)
+  ACE_ASSERT (mediaType_in);
+
+  UINT32 sample_size_i = 0;
+  HRESULT result_2 = const_cast<IMFMediaType*> (mediaType_in)->GetUINT32 (MF_MT_SAMPLE_SIZE,
+                                                                          &sample_size_i);
+  if (FAILED (result_2))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_SAMPLE_SIZE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
+  else
+    result = sample_size_i;
 
   return result;
 }
@@ -905,7 +928,40 @@ Stream_MediaFramework_MediaFoundation_Tools::setFormat (REFGUID format_in,
   HRESULT result = mediaType_inout->SetGUID (MF_MT_SUBTYPE,
                                              format_in);
   ACE_ASSERT (SUCCEEDED (result));
-  // *TODO*: adjust bitrate, bitcount, image size, ...
+
+  UINT32 width, height;
+  result = MFGetAttributeSize (mediaType_inout,
+                               MF_MT_FRAME_SIZE,
+                               &width, &height);
+  ACE_ASSERT (SUCCEEDED (result));
+  ACE_ASSERT (width && height);
+  UINT32 image_size_i = 0;
+  result = MFCalculateImageSize (format_in,
+                                 width, height,
+                                 &image_size_i);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCalculateImageSize(\"%s\",%u,%u): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (format_in, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ()),
+                width, height,
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    return false;
+  } // end IF
+  result = mediaType_inout->SetUINT32 (MF_MT_SAMPLE_SIZE,
+                                       image_size_i);
+  ACE_ASSERT (SUCCEEDED (result));
+
+  UINT32 numerator, denonimator;
+  result = MFGetAttributeRatio (mediaType_inout,
+                                MF_MT_FRAME_RATE,
+                                &numerator, &denonimator);
+  ACE_ASSERT (SUCCEEDED (result));
+  ACE_ASSERT (numerator && denonimator);
+  UINT32 average_bitrate_i = image_size_i * 8 * (numerator / denonimator);
+  result = mediaType_inout->SetUINT32 (MF_MT_AVG_BITRATE,
+                                       average_bitrate_i);
+  ACE_ASSERT (SUCCEEDED (result));
 
   return true;
 }
@@ -923,7 +979,38 @@ Stream_MediaFramework_MediaFoundation_Tools::setResolution (Common_Image_Resolut
                                        MF_MT_FRAME_SIZE,
                                        resolution_in.cx, resolution_in.cy);
   ACE_ASSERT (SUCCEEDED (result));
-  // *TODO*: adjust bitrate, image size, ...
+
+  struct _GUID GUID_s = GUID_NULL;
+  result = mediaType_inout->GetGUID (MF_MT_SUBTYPE,
+                                     &GUID_s);
+  ACE_ASSERT (SUCCEEDED (result));
+  UINT32 image_size_i = 0;
+  result = MFCalculateImageSize (GUID_s,
+                                 resolution_in.cx, resolution_in.cy,
+                                 &image_size_i);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCalculateImageSize(\"%s\",%u,%u): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (GUID_s, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ()),
+                resolution_in.cx, resolution_in.cy,
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    return false;
+  } // end IF
+  result = mediaType_inout->SetUINT32 (MF_MT_SAMPLE_SIZE,
+                                       image_size_i);
+  ACE_ASSERT (SUCCEEDED (result));
+
+  UINT32 numerator, denonimator;
+  result = MFGetAttributeRatio (mediaType_inout,
+                                MF_MT_FRAME_RATE,
+                                &numerator, &denonimator);
+  ACE_ASSERT (SUCCEEDED (result));
+  ACE_ASSERT (numerator && denonimator);
+  UINT32 average_bitrate_i = image_size_i * 8 * (numerator / denonimator);
+  result = mediaType_inout->SetUINT32 (MF_MT_AVG_BITRATE,
+                                       average_bitrate_i);
+  ACE_ASSERT (SUCCEEDED (result));
 
   return true;
 }
@@ -1825,179 +1912,6 @@ Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (const IMFTopology* 
 }
 
 bool
-Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (REFGUID deviceIdentifier_in,
-                                                             REFGUID deviceCategory_in,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-                                                             IMFMediaSourceEx*& mediaSource_out)
-#else
-                                                             IMFMediaSource*& mediaSource_out)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::getMediaSource"));
-
-  bool result = false;
-
-  if (mediaSource_out)
-  {
-    mediaSource_out->Release (); mediaSource_out = NULL;
-  } // end IF
-
-  IMFAttributes* attributes_p = NULL;
-  UINT32 count = 0;
-  IMFActivate** devices_pp = NULL;
-  unsigned int index = 0;
-  struct _GUID GUID_s = GUID_NULL;
-  std::string device_identifier_string;
-
-  device_identifier_string =
-    Stream_MediaFramework_MediaFoundation_Tools::identifierToString (deviceIdentifier_in,
-                                                                     deviceCategory_in);
-  if (device_identifier_string.empty ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::identifierToString(\"%s\"), aborting\n"),
-                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
-    goto error;
-  } // end IF
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-  if (InlineIsEqualGUID (deviceCategory_in, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID))
-  {
-    //GUID_s = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_SYMBOLIC_LINK;
-    GUID_s = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_ENDPOINT_ID;
-  } // end IF
-  else if (InlineIsEqualGUID (deviceCategory_in, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID))
-    GUID_s = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK;
-  else
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown device category (was: %s, aborting\n"),
-                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceCategory_in).c_str ())));
-    goto error;
-  } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-
-  HRESULT result_2 = MFCreateAttributes (&attributes_p, 1);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    return false;
-  } // end IF
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-  result_2 =
-    attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
-                           deviceCategory_in);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFAttributes::SetGUID(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    goto error;
-  } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-  result_2 = MFEnumDeviceSources (attributes_p,
-                                  &devices_pp,
-                                  &count);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFEnumDeviceSources(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    goto error;
-  } // end IF
-#else
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (false);
-  ACE_NOTREACHED (return false;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-  ACE_ASSERT (devices_pp);
-  if (count == 0)
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("no capture devices found, aborting\n")));
-    goto error;
-  } // end IF
-
-  if (!InlineIsEqualGUID (deviceIdentifier_in, GUID_NULL))
-  {
-    WCHAR buffer_a[BUFSIZ];
-    UINT32 length;
-    bool found = false;
-    for (UINT32 i = 0; i < count; i++)
-    {
-#if defined (_DEBUG)
-      // sanity check(s)
-      length = 0;
-      result_2 =
-        devices_pp[index]->GetStringLength (GUID_s,
-                                            &length);
-      ACE_ASSERT (SUCCEEDED (result_2) && (length < sizeof (WCHAR[BUFSIZ])));
-#endif // _DEBUG
-      ACE_OS::memset (buffer_a, 0, sizeof (WCHAR[BUFSIZ]));
-      length = 0;
-      result_2 =
-        devices_pp[index]->GetString (GUID_s,
-                                      buffer_a,
-                                      sizeof (WCHAR[BUFSIZ]),
-                                      &length);
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMFActivate::GetString(%s): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_OS_Tools::GUIDToString (GUID_s).c_str ()),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        goto error;
-      } // end IF
-      if (!ACE_OS::strcmp (buffer_a,
-                           ACE_TEXT_ALWAYS_WCHAR (device_identifier_string.c_str ())))
-      {
-        found = true;
-        index = i;
-        break;
-      } // end IF
-    } // end FOR
-    if (!found)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("media source (device identifier was: \"%s\") not found, aborting\n"),
-                  ACE_TEXT (device_identifier_string.c_str ())));
-      goto error;
-    } // end IF
-  } // end IF
-  result_2 =
-    devices_pp[index]->ActivateObject (IID_PPV_ARGS (&mediaSource_out));
-  if (FAILED (result_2)) // MF_E_SHUTDOWN: 0xC00D3E85
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFActivate::ActivateObject(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    goto error;
-  } // end IF
-
-  result = true;
-
-error:
-  if (attributes_p)
-    attributes_p->Release ();
-
-  for (UINT32 i = 0; i < count; i++)
-    devices_pp[i]->Release ();
-  CoTaskMemFree (devices_pp);
-
-  if (!result && mediaSource_out)
-  {
-    mediaSource_out->Release (); mediaSource_out = NULL;
-  } // end IF
-
-  return result;
-}
-
-bool
 Stream_MediaFramework_MediaFoundation_Tools::getSampleGrabberNodeId (const IMFTopology* topology_in,
                                                                      TOPOID& nodeId_out)
 {
@@ -2892,7 +2806,7 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (REFGUID majorMediaType
   HRESULT result = S_OK;
   DWORD characteristics_i = 0;
   IMFMediaSink* media_sink_p = NULL;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (InlineIsEqualGUID (majorMediaType_in, MFMediaType_Audio))
   {
     if (InlineIsEqualGUID (deviceIdentifier_in, GUID_NULL))
@@ -2907,11 +2821,11 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (REFGUID majorMediaType
         return false;
       } // end IF
       ACE_ASSERT (media_type_p);
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       IMFSampleGrabberSinkCallback2* sample_grabber_p = NULL;
 #else
       IMFSampleGrabberSinkCallback* sample_grabber_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
       ACE_NEW_NORETURN (sample_grabber_p,
                         Stream_MediaFramework_MediaFoundation_Null ());
       if (!sample_grabber_p)
@@ -2977,7 +2891,7 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (REFGUID majorMediaType
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 continue_2:
   ACE_ASSERT (activate_p);
 
@@ -3035,7 +2949,7 @@ continue_3:
 continue_:
   IMFStreamSink* stream_sink_p = NULL;
   IMFMediaTypeHandler* media_type_handler_p = NULL;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   IMFPresentationTimeSource* presentation_time_source_p = NULL;
 
   IMFPresentationClock* presentation_clock_p = NULL;
@@ -3086,7 +3000,7 @@ continue_:
   //  goto error;
   //} // end IF
   presentation_clock_p->Release (); presentation_clock_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   result = media_sink_p->GetCharacteristics (&characteristics_i);
   ACE_ASSERT (SUCCEEDED (result));
   ACE_DEBUG ((LM_DEBUG,
@@ -4699,6 +4613,23 @@ Stream_MediaFramework_MediaFoundation_Tools::setInputFormat (IMFTopology* topolo
                     ACE_TEXT ("media type (was: %s) not supported%s, aborting\n"),
                     ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (mediaType_in).c_str ()),
                     ACE_TEXT (closest_match_string.c_str ())));
+#if defined (_DEBUG)
+        DWORD count_i = 0;
+        result = media_type_handler_p->GetMediaTypeCount (&count_i);
+        ACE_ASSERT (SUCCEEDED (result));
+        IMFMediaType* media_type_2 = NULL;
+        for (DWORD i = 0; i < count_i; i++)
+        {
+          result = media_type_handler_p->GetMediaTypeByIndex (i,
+                                                              &media_type_2);
+          ACE_ASSERT (SUCCEEDED (result) && media_type_2);
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("supported media type #%d:\n%s\n"),
+                      i,
+                      ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (media_type_2, true).c_str ())));
+          media_type_2->Release (); media_type_2 = NULL;
+        } // end FOR
+#endif // DEBUG
         media_type_handler_p->Release (); media_type_handler_p = NULL;
         topology_node_p->Release (); topology_node_p = NULL;
         return false;
@@ -6037,31 +5968,6 @@ Stream_MediaFramework_MediaFoundation_Tools::free (Stream_MediaFramework_MediaFo
   formats_in.clear ();
 }
 
-//std::string
-//Stream_MediaFramework_MediaFoundation_Tools::mediaSubTypeToString (REFGUID GUID_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::mediaSubTypeToString"));
-//
-//  //std::string result;
-//
-//  //GUID2STRING_MAP_ITERATOR_T iterator =
-//  //  Stream_MediaFramework_MediaFoundation_Tools::Stream_MediaSubType2StringMap.find (GUID_in);
-//  //if (iterator == Stream_MediaFramework_MediaFoundation_Tools::Stream_MediaSubType2StringMap.end ())
-//  //{
-//  //  ACE_DEBUG ((LM_ERROR,
-//  //              ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-//  //              ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (GUID_in).c_str ())));
-//  //  return result;
-//  //} // end IF
-//  //result = (*iterator).second;
-//
-//  //return result;
-//
-//  FOURCCMap fourcc_map (&GUID_in);
-//
-//  return Stream_Module_Decoder_Tools::FOURCCToString (fourcc_map.GetFOURCC ());
-//}
-
 std::string
 Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* mediaType_in,
                                                        bool condensed_in)
@@ -6250,10 +6156,10 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
       result += converter.str ();
     } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_FRAME_SIZE))
-    { ACE_ASSERT (value_v.vt == VT_UINT);
+    { ACE_ASSERT (value_v.vt == VT_UI8);
     } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_AVG_BITRATE))
-    { ACE_ASSERT (value_v.vt == VT_UINT);
+    { ACE_ASSERT (value_v.vt == VT_UI4);
       result += ACE_TEXT_ALWAYS_CHAR ("\naverage bitrate (1/s): ");
       converter.str (ACE_TEXT_ALWAYS_CHAR (""));
       converter.clear ();
@@ -6261,13 +6167,13 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
       result += converter.str ();
     } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_FRAME_RATE))
-    { ACE_ASSERT (value_v.vt == VT_UINT);
+    { ACE_ASSERT (value_v.vt == VT_UI8);
     } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_PIXEL_ASPECT_RATIO))
-    { ACE_ASSERT (value_v.vt == VT_UINT);
+    { ACE_ASSERT (value_v.vt == VT_UI8);
     } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_INTERLACE_MODE))
-    { ACE_ASSERT (value_v.vt == VT_UINT);
+    { ACE_ASSERT (value_v.vt == VT_UI4);
       result += ACE_TEXT_ALWAYS_CHAR ("\ninterlace mode: ");
       switch (static_cast<enum _MFVideoInterlaceMode> (value_v.uintVal))
       {
@@ -6360,14 +6266,34 @@ Stream_MediaFramework_MediaFoundation_Tools::toString_2 (const IMFMediaType* med
   HRESULT result_2 =
     const_cast<IMFMediaType*> (mediaType_in)->GetMajorType (&guid_s);
   ACE_ASSERT (SUCCEEDED (result_2));
+  UINT32 cbSize = 0;
   if (InlineIsEqualGUID (guid_s, MFMediaType_Video))
   {
-    ACE_ASSERT (false); // *TODO*
+    MFVIDEOFORMAT* video_format_p = NULL;
+    result_2 = MFCreateMFVideoFormatFromMFMediaType (const_cast<IMFMediaType*> (mediaType_in),
+                                                     &video_format_p,
+                                                     &cbSize);
+    ACE_ASSERT (SUCCEEDED (result_2));
+
+    std::ostringstream converter;
+    converter << video_format_p->videoInfo.dwWidth;
+    result += converter.str ();
+    result += ACE_TEXT_ALWAYS_CHAR ("x");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_format_p->videoInfo.dwHeight;
+    result += converter.str ();
+    result += ACE_TEXT_ALWAYS_CHAR (" ");
+    result +=
+      Stream_MediaFramework_Tools::mediaSubTypeToString (video_format_p->guidFormat,
+                                                         STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
+
+    CoTaskMemFree (video_format_p); video_format_p = NULL;
+  
     return result;
   } // end IF
 
   struct tWAVEFORMATEX* waveformatex_p = NULL;
-  UINT32 cbSize = 0;
   result_2 =
     MFCreateWaveFormatExFromMFMediaType (const_cast<IMFMediaType*> (mediaType_in),
                                          &waveformatex_p,

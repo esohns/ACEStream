@@ -24,13 +24,16 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define INITGUID // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
+
+#include "amvideo.h"
+#include "dvdmedia.h"
+#include "mfapi.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
 #include "uuids.h"
 #endif // UUIDS_H
-#include "mfapi.h"
 #else
 #include "linux/videodev2.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -58,6 +61,8 @@
 
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
+
+#include "common_ui_tools.h"
 
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
@@ -106,21 +111,6 @@ do_print_usage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-2          : use Direct2D renderer [")
-            << false
-            << ACE_TEXT_ALWAYS_CHAR ("])")
-            << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-3          : use Direct3D renderer [")
-            << true
-            << ACE_TEXT_ALWAYS_CHAR ("])")
-            << std::endl;
-#else
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-1          : use X11 renderer [")
-            << true
-            << ACE_TEXT_ALWAYS_CHAR ("])")
-            << std::endl;
-#endif // ACE_WIN32 || ACE_WIN64
   struct Stream_Device_Identifier device_identifier;
   std::string device_identifier_string;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -137,10 +127,11 @@ do_print_usage (const std::string& programName_in)
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      // *TODO*
-      ACE_ASSERT (false);
-      ACE_NOTSUP;
-      ACE_NOTREACHED (return;)
+      device_identifier =
+        Stream_Device_MediaFoundation_Tools::getDefaultCaptureDevice (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
+      ACE_ASSERT (device_identifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+      device_identifier_string =
+        Common_OS_Tools::GUIDToString (device_identifier.identifier._guid);
       break;
     }
     default:
@@ -212,38 +203,7 @@ do_process_arguments (int argc_in,
     Common_File_Tools::getWorkingDirectory ();
 
   // initialize results
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (mediaFramework_out)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      deviceIdentifier_out =
-        Stream_Device_DirectShow_Tools::getDefaultCaptureDevice (CLSID_VideoInputDeviceCategory);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      // *TODO*
-      ACE_ASSERT (false);
-      ACE_NOTSUP_RETURN (false);
-      ACE_NOTREACHED (return false;)
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  mediaFramework_out));
-      return false;
-    }
-  } // end SWITCH
-#else
-  deviceIdentifier_out.identifier =
-    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-  deviceIdentifier_out.identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  deviceIdentifier_out.identifier +=
-    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
-#endif // ACE_WIN32 || ACE_WIN64
+  deviceIdentifier_out.clear ();
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -259,9 +219,7 @@ do_process_arguments (int argc_in,
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:lo:tv");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  options_string += ACE_TEXT_ALWAYS_CHAR ("23m");
-#else
-  options_string += ACE_TEXT_ALWAYS_CHAR ("1");
+  options_string += ACE_TEXT_ALWAYS_CHAR ("m");
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
@@ -271,32 +229,16 @@ do_process_arguments (int argc_in,
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
                               0);                         // for now, don't use long options
 
+  bool device_identifier_set_b = false;
   int option = 0;
   std::stringstream converter;
   while ((option = argumentParser ()) != EOF)
   {
     switch (option)
     {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      case '2':
-      {
-        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D;
-        break;
-      }
-      case '3':
-      {
-        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D;
-        break;
-      }
-#else
-      case '1':
-      {
-        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_X11;
-        break;
-      }
-#endif // ACE_WIN32 || ACE_WIN64
       case 'd':
       {
+        device_identifier_set_b = true;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         deviceIdentifier_out.identifierDiscriminator =
           Stream_Device_Identifier::STRING;
@@ -367,6 +309,40 @@ do_process_arguments (int argc_in,
     } // end SWITCH
   } // end WHILE
 
+  if (device_identifier_set_b)
+    goto continue_;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (mediaFramework_out)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      deviceIdentifier_out =
+        Stream_Device_DirectShow_Tools::getDefaultCaptureDevice (CLSID_VideoInputDeviceCategory);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      deviceIdentifier_out =
+        Stream_Device_MediaFoundation_Tools::getDefaultCaptureDevice (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_out));
+      return false;
+    }
+  } // end SWITCH
+#else
+  deviceIdentifier_out.identifier =
+    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
+  deviceIdentifier_out.identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  deviceIdentifier_out.identifier +=
+    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
+#endif // ACE_WIN32 || ACE_WIN64
+
+continue_:
   return true;
 }
 
@@ -573,22 +549,24 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                                IMFMediaSession*& IMFMediaSession_out,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                               bool loadDevice_in)
+                               bool loadDevice_in,
+                               IMFMediaType*& captureFormat_out,
+                               IMFMediaType*& outputFormat_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_mediafoundation"));
 
   HRESULT result = E_FAIL;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
 #else
   IMFMediaSource* media_source_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   IMFTopology* topology_p = NULL;
 
   // sanity check(s)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (!IMFMediaSession_out);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   result = MFStartup (MF_VERSION,
                       MFSTARTUP_LITE);
@@ -602,35 +580,39 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
 
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
 
-  if (!loadDevice_in)
-    goto continue_2;
-
-  //if (!Stream_Device_Tools::loadDeviceGraph (deviceName_in,
-  //                                                  IGraphBuilder_out,
-  //                                                  IAMBufferNegotiation_out,
-  //                                                  IAMStreamConfig_out))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
-  //              ACE_TEXT (deviceName_in.c_str ())));
-  //  return false;
-  //} // end IF
-  //ACE_ASSERT (IGraphBuilder_out);
-  //ACE_ASSERT (IAMBufferNegotiation_out);
-  //ACE_ASSERT (IAMStreamConfig_out);
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-  ACE_ASSERT (deviceIdentifier_in.identifierDiscriminator == Stream_Device_Identifier::GUID);
-  if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (deviceIdentifier_in.identifier._guid,
-                                                                    MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                                    media_source_p))
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
+  if (!Stream_Device_MediaFoundation_Tools::getMediaSource (deviceIdentifier_in,
+                                                            MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                            media_source_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), aborting\n"),
-                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in.identifier._guid).c_str ())));
+                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(), aborting\n")));
     goto error;
   } // end IF
   ACE_ASSERT (media_source_p);
+
+  if (!Stream_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
+                                                              captureFormat_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));
+    goto error;
+  } // end IF
+  //Stream_MediaFramework_MediaFoundation_Tools::setFormat (MFVideoFormat_RGB32,
+  //                                                        captureFormat_out);
+  if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (media_source_p,
+                                                              captureFormat_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
+    goto error;
+  } // end IF
+
+  if (!loadDevice_in)
+  {
+    media_source_p->Release (); media_source_p = NULL;
+    goto continue_2;
+  } // end IF
 
   if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (deviceIdentifier_in,
                                                                 MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
@@ -646,7 +628,6 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
   media_source_p->Release (); media_source_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
-continue_2:
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IMFAttributes* attributes_p = NULL;
   result = MFCreateAttributes (&attributes_p, 4);
@@ -695,6 +676,17 @@ continue_2:
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   topology_p->Release (); topology_p = NULL;
 
+continue_2:
+  outputFormat_out =
+    Stream_MediaFramework_MediaFoundation_Tools::copy (captureFormat_out);
+  if (!outputFormat_out)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (outputFormat_out);
+
 //continue_3:
   return true;
 
@@ -703,12 +695,12 @@ error:
     media_source_p->Release ();
   if (topology_p)
     topology_p->Release ();
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (IMFMediaSession_out)
   {
     IMFMediaSession_out->Release (); IMFMediaSession_out = NULL;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   result = MFShutdown ();
   if (FAILED (result))
@@ -876,7 +868,6 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CameraAR_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
   struct Stream_CameraAR_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // converter
-  //struct Stream_CameraAR_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // display
   struct Stream_CameraAR_DirectShow_StreamConfiguration directshow_stream_configuration;
   Stream_CameraAR_DirectShow_EventHandler_t directshow_ui_event_handler;
   struct Stream_CameraAR_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
@@ -980,10 +971,10 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_CGE_DEFAULT_NAME_STRING));
 
 #endif // OLC_CGE_SUPPORT
-//#if defined (OLC_PGE_SUPPORT)
-//  Stream_CameraAR_DirectShow_PGE_Module directshow_PGE (&directshow_stream,
-//                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING));
-//#endif // OLC_PGE_SUPPORT
+#if defined (OLC_PGE_SUPPORT)
+  Stream_CameraAR_DirectShow_PGE_Module directshow_PGE (&directshow_stream,
+                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING));
+#endif // OLC_PGE_SUPPORT
 
   Stream_CameraAR_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                                         &heap_allocator,     // heap allocator handle
@@ -993,6 +984,10 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   Stream_CameraAR_MediaFoundation_CGE_Module mediafoundation_CGE (&mediafoundation_stream,
                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_CGE_DEFAULT_NAME_STRING));
 #endif // OLC_CGE_SUPPORT
+#if defined (OLC_PGE_SUPPORT)
+  Stream_CameraAR_MediaFoundation_PGE_Module mediafoundation_PGE (&mediafoundation_stream,
+                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING));
+#endif // OLC_PGE_SUPPORT
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1034,6 +1029,9 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (OLC_CGE_SUPPORT)
       mediafoundation_stream_configuration.module = &mediafoundation_CGE;
 #endif // OLC_CGE_SUPPORT
+//#if defined (OLC_PGE_SUPPORT)
+//      mediafoundation_stream_configuration.module = &mediafoundation_PGE;
+//#endif // OLC_PGE_SUPPORT
       //mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
       //  renderer_in;
 
@@ -1098,7 +1096,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
   IMFMediaSession* media_session_p = NULL;
-  bool load_device = true;
+  bool load_device = false;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1117,8 +1115,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       } // end IF
       //ACE_ASSERT (stream_config_p);
       // directShowCBData_in.streamConfiguration = stream_config_p;
-      //Stream_MediaFramework_DirectShow_Tools::setResolution ({ 160, 120},
-      //                                                       directshow_stream_configuration.format);
+      //Stream_MediaFramework_DirectShow_Tools::setResolution ({ 160, 99},
+      //                                                       directshow_modulehandler_configuration.format);
       Stream_MediaFramework_DirectShow_Tools::setResolution ({ 80, 60},
                                                              directshow_modulehandler_configuration.outputFormat);
       media_type_p =
@@ -1148,18 +1146,36 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     {
       if (!do_initialize_mediafoundation (deviceIdentifier_in,
                                           window_handle,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                                           mediafoundation_modulehandler_configuration.session,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                                          load_device)) // load device ?
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
+                                          load_device,
+                                          mediafoundation_stream_configuration.format,
+                                          mediafoundation_modulehandler_configuration.outputFormat))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_mediafoundation(), returning\n")));
         return;
       } // end IF
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      ACE_ASSERT (mediafoundation_modulehandler_configuration.session);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
+      if (load_device)
+      { ACE_ASSERT (mediafoundation_modulehandler_configuration.session); } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
+
+      allocator_configuration.defaultBufferSize =
+        Stream_MediaFramework_MediaFoundation_Tools::frameSize (mediafoundation_stream_configuration.format);
+
+      mediafoundation_modulehandler_configuration.concurrency =
+        STREAM_HEADMODULECONCURRENCY_ACTIVE;
+      Stream_MediaFramework_MediaFoundation_Tools::setResolution ({ 80, 60},
+                                                                  mediafoundation_modulehandler_configuration.outputFormat);
+      mediafoundation_modulehandler_configuration_2.outputFormat =
+        Stream_MediaFramework_MediaFoundation_Tools::copy (mediafoundation_modulehandler_configuration.outputFormat);
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_2.outputFormat);
+      //mediafoundation_modulehandler_configuration_2.flipImage = true;
+      Stream_MediaFramework_MediaFoundation_Tools::setFormat (MFVideoFormat_RGB24,
+                                                              mediafoundation_modulehandler_configuration_2.outputFormat);
+
       stream_p = &mediafoundation_stream;
 
       mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
@@ -1362,10 +1378,8 @@ ACE_TMAIN (int argc_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      // *TODO*
-      ACE_ASSERT (false);
-      ACE_NOTSUP_RETURN (false);
-      ACE_NOTREACHED (return false;)
+      device_identifier =
+        Stream_Device_MediaFoundation_Tools::getDefaultCaptureDevice (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
       break;
     }
     default:

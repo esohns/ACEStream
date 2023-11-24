@@ -1058,8 +1058,7 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
-  ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
-  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._guid,
+  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second->deviceIdentifier,
                                                                configuration_in.configuration_->format.video,
                                                                source_impl_p,
                                                                NULL,
@@ -1069,9 +1068,8 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
                                                                topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT ((*iterator).second.second->deviceIdentifier.identifier._string)));
+                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadVideoRendererTopology(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);

@@ -54,6 +54,7 @@ extern "C"
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_dev_mediafoundation_tools.h"
 #else
 class ACE_Message_Block;
 class ACE_Message_Queue_Base;
@@ -204,8 +205,7 @@ struct Stream_Device_Identifier
       case GUID:
         return identifier._guid;
       case STRING:
-        ACE_ASSERT (false); // *TODO*
-        break;
+        return Stream_Device_MediaFoundation_Tools::symbolicLinkToGUID (identifier._string);
       default:
       {
         ACE_DEBUG ((LM_ERROR,

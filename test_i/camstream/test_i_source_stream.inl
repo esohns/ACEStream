@@ -1058,8 +1058,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     input_mediatype_was_null = true;
   } // end IF
   ACE_ASSERT (configuration_in.configuration_->format);
-  ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
-  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._guid,
+  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second->deviceIdentifier,
                                                                configuration_in.configuration_->format,
                                                                source_impl_p,
                                                                NULL,//(*iterator).second.second->window,
@@ -1068,9 +1067,8 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                                                topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT ((*iterator).second.second->deviceIdentifier.identifier._string)));
+                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadVideoRendererTopology(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);

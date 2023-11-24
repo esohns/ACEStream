@@ -304,7 +304,7 @@ Test_I_CameraAR_Module_PGE_T<TaskType,
   while (ballY < 0) ballY += (float)inherited3::ScreenHeight ();
 
   // draw ball
-  inherited3::DrawRect (ballX - 4, ballY - 4, 8, 8, olc::Pixel (255, 0, 0, 255));
+  inherited3::DrawRect (static_cast<int32_t> (ballX - 4), static_cast<int32_t> (ballY - 4), 8, 8, olc::RED);
 
   return !inherited3::GetKey (olc::Key::ESCAPE).bPressed;
 }
@@ -433,7 +433,7 @@ Test_I_CameraAR_Module_PGE_T<TaskType,
       inherited::stop (false, // wait ?
                        true); // high priority ?
 
-    if (start_pge && !stop_processing)
+    if (unlikely (start_pge && !stop_processing))
     {
       start_pge = false;
       result_2 = inherited3::Start ();
@@ -467,10 +467,13 @@ Test_I_CameraAR_Module_PGE_T<TaskType,
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_PGE_T::processNextMessage"));
 
   ACE_Message_Block* message_block_p = NULL;
-  int result = inherited::getq (message_block_p, NULL);
+  static ACE_Time_Value no_wait = COMMON_TIME_NOW;
+  int result = inherited::getq (message_block_p, &no_wait);
   if (unlikely (result == -1))
   {
     int error = ACE_OS::last_error ();
+    if (likely (error == EWOULDBLOCK))
+      return false; // continue PGE
     if (unlikely (error != ESHUTDOWN))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: worker thread %t failed to ACE_Task::getq(): \"%m\", aborting\n"),

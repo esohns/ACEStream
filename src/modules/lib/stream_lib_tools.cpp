@@ -929,7 +929,10 @@ Stream_MediaFramework_Tools::mediaSubTypeToString (REFGUID mediaSubType_in,
         InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_MPEG1AudioPayload) ||
         InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_DOLBY_AC3_SPDIF)   ||
         InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_RAW_SPORT)         ||
-        InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_SPDIF_TAG_241h))
+        InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_SPDIF_TAG_241h)    ||
+        //////////////////////////////////
+        InlineIsEqualGUID (mediaSubType_in, MFVideoFormat_RGB24)            ||
+        InlineIsEqualGUID (mediaSubType_in, MFVideoFormat_RGB32))
       goto continue_;
 
     FOURCCMap fourcc_map (&mediaSubType_in);

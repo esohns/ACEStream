@@ -2348,24 +2348,22 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   ACE_NOTSUP;
   ACE_NOTREACHED (return;)
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
 #else
   IMFMediaSource* media_source_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-  ACE_ASSERT (device_identifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
-  if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (device_identifier.identifier._guid,
-                                                                    MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                                    media_source_p))
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
+  if (!Stream_Device_MediaFoundation_Tools::getMediaSource (device_identifier,
+                                                            MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                            media_source_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
-                ACE_TEXT (Common_OS_Tools::GUIDToString (device_identifier.identifier._guid).c_str ())));
+                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(), returning\n")));
     return;
   } // end IF
   ACE_ASSERT (media_source_p);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
 
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (cb_data_r.stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_NULL_DEFAULT_NAME_STRING)));
