@@ -448,3 +448,82 @@ Test_I_Module_PGE_T<TaskType,
 
   return false; // continue PGE
 }
+
+template <typename TaskType,
+          typename MediaType>
+std::vector<typename Test_I_Module_PGE_T<TaskType, MediaType>::flow_zone>
+Test_I_Module_PGE_T<TaskType,
+                    MediaType>::calculateFlow (char* oldImage, char* newImage, int width, int height)
+{
+  std::vector<flow_zone> zones;
+
+  static int step = 8;
+  static int winStep = step * 2 + 1;
+
+  int A2, A1B2, B1, C1, C2;
+  float u, v /*, uu, vv*/;
+  //uu = vv = 0.0f;
+  int wMax = width - step - 1;
+  int hMax = height - step - 1;
+  int globalY, globalX, localY, localX;
+
+  for (globalY = step + 1; globalY < hMax; globalY += winStep)
+    for (globalX = step + 1; globalX < wMax; globalX += winStep)
+    {
+      A2 = A1B2 = B1 = C1 = C2 = 0;
+
+      for (localY = -step; localY <= step; localY++)
+        for (localX = -step; localX <= step; localX++)
+        {
+          int address = (globalY + localY) * width + globalX + localX;
+
+          int gradX =
+            (newImage[(address - 1) * 3]) - (newImage[(address + 1) * 3]);
+          int gradY = (newImage[(address - width) * 3]) -
+                      (newImage[(address + width) * 3]);
+          int gradT = (oldImage[address * 3]) - (newImage[address * 3]);
+
+          A2 += gradX * gradX;
+          A1B2 += gradX * gradY;
+          B1 += gradY * gradY;
+          C2 += gradX * gradT;
+          C1 += gradY * gradT;
+        } // end FOR
+
+      int delta = (A1B2 * A1B2 - A2 * B1);
+
+      if (delta != 0)
+      {
+        /* system is not singular - solving by Kramer method */
+        float Idelta = step / static_cast<float> (delta);
+        int deltaX = -(C1 * A1B2 - C2 * B1);
+        int deltaY = -(A1B2 * C2 - A2 * C1);
+        u = deltaX * Idelta;
+        v = deltaY * Idelta;
+      }
+      else
+      {
+        /* singular system - find optical flow in gradient direction */
+        int norm = (A1B2 + A2) * (A1B2 + A2) + (B1 + A1B2) * (B1 + A1B2);
+        if (norm != 0)
+        {
+          float IGradNorm = step / static_cast<float> (norm);
+          float temp = -(C1 + C2) * IGradNorm;
+          u = (A1B2 + A2) * temp;
+          v = (B1 + A1B2) * temp;
+        }
+        else
+          u = v = 0.0f;
+      } // end ELSE
+
+      if (static_cast<float> (-winStep) < u && u < static_cast<float> (winStep) &&
+          static_cast<float> (-winStep) < v && v < static_cast<float> (winStep))
+      {
+        //uu += u;
+        //vv += v;
+        zones.push_back (flow_zone (globalX, globalY, u, v));
+      } // end IF
+    } // end FOR
+
+  return zones;
+}
