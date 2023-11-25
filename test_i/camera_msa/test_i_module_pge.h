@@ -715,24 +715,18 @@ class Test_I_Module_PGE_T
                                          // speed with the screen aspect ratio
     if (speed > 0.0f)
     {
-      if (x < 0.0f) x = 0.0f;
-      else if (x > 1.0f) x = 1.0f;
-      if (y < 0.0f) y = 0.0f;
-      else if (y > 1.0f) y = 1.0f;
       int index = solver_.getIndexForNormalizedPosition (x, y);
 
       float hue = std::fmod ((x + y) * 180.0f + frameCount, 360.0f);
       float r, g, b;
       Common_Image_Tools::HSVToRGB (hue, 1.0f, 1.0f, r, g, b);
 
-      static float colorMult = 5.0f;
-      solver_.rOld_[index] += r * colorMult;
-      solver_.gOld_[index] += g * colorMult;
-      solver_.bOld_[index] += b * colorMult;
+      solver_.rOld_[index] += r * FLUID_DEFAULT_COLOR_MULTIPLIER;
+      solver_.gOld_[index] += g * FLUID_DEFAULT_COLOR_MULTIPLIER;
+      solver_.bOld_[index] += b * FLUID_DEFAULT_COLOR_MULTIPLIER;
 
-      static float velocityMult = 30.0f;
-      solver_.uOld_[index] += dx * velocityMult;
-      solver_.vOld_[index] += dy * velocityMult;
+      solver_.uOld_[index] += dx * FLUID_DEFAULT_VELOCITY_MULTIPLIER;
+      solver_.vOld_[index] += dy * FLUID_DEFAULT_VELOCITY_MULTIPLIER;
     } // end IF
   }
 

@@ -36,7 +36,7 @@ Test_I_Module_PGE_T<TaskType,
  , inherited3 ()
  , previousImage_ (NULL)
  , currentImage_ (NULL)
- , solver_ (FLUID_DEFAULT_NX, FLUID_DEFAULT_NY)
+ , solver_ (0, 0)
  , aspectRatio2_ (0.0f)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::Test_I_Module_PGE_T"));
@@ -219,8 +219,8 @@ Test_I_Module_PGE_T<TaskType,
   for (int y = 0; y < height_i; y++)
     for (int x = 0; x < width_i; x++)
     {
-      int index_x = (int)(x * ratio_x);
-      int index_y = (int)(y * ratio_y);
+      int index_x = static_cast<int> (x * ratio_x);
+      int index_y = static_cast<int> (y * ratio_y);
       // blend pixels from camera and fluid images
       olc::Pixel a = p[y * width_i + x];
       olc::Pixel b = fluidImage_[index_y * solver_.getWidth () + index_x];
@@ -241,7 +241,8 @@ Test_I_Module_PGE_T<TaskType,
     if ((*iterator).productAboveLimit ())
     {
       addForce ((*iterator).x_ / static_cast<float> (width_i), (*iterator).y_ / static_cast<float> (height_i),
-                ((*iterator).u_ / 10.0f) / static_cast<float> (width_i), ((*iterator).v_ / 10.0f) / static_cast<float> (height_i), frame_count_i);
+                (*iterator).u_ / static_cast<float> (width_i), (*iterator).v_ / static_cast<float> (height_i),
+                frame_count_i);
       //(*iterator).draw (this);
     } // end IF
   } // end FOR

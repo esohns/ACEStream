@@ -25,17 +25,20 @@
 #define STREAM_PGE_DEFAULT_NAME_STRING "PGE"
 
 // fluid solver
-#define FLUID_DEFAULT_NX                100
-#define FLUID_DEFAULT_NY                100
-#define FLUID_DEFAULT_FLUID_WIDTH       128
-#define FLUID_DEFAULT_UV_CUTOFF         4.0f
+//#define FLUID_DEFAULT_NX                  100
+//#define FLUID_DEFAULT_NY                  100
+#define FLUID_DEFAULT_FLUID_WIDTH         128
+#define FLUID_DEFAULT_UV_CUTOFF           4.0f
 
-#define FLUID_DEFAULT_DT                1.0f
+#define FLUID_DEFAULT_DT                  1.0f
 //#define FLUID_DEFAULT_FADESPEED         0.0f
-#define FLUID_DEFAULT_FADESPEED         0.015f
-#define FLUID_DEFAULT_SOLVER_ITERATIONS 10
+#define FLUID_DEFAULT_FADESPEED           0.015f
+#define FLUID_DEFAULT_SOLVER_ITERATIONS   10
 
 //#define FLUID_DEFAULT_VISCOSITY         0.0001f
-#define FLUID_DEFAULT_VISCOSITY         0.00008f
+#define FLUID_DEFAULT_VISCOSITY           0.00008f
+
+#define FLUID_DEFAULT_COLOR_MULTIPLIER    5.0f
+#define FLUID_DEFAULT_VELOCITY_MULTIPLIER 3.0f;
 
 #endif // TEST_I_CAMERA_MSA_DEFINES_H

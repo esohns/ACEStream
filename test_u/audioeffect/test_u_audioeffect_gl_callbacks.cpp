@@ -338,7 +338,7 @@ glarea_realize_cb (GtkWidget* widget_in,
   GLdouble fW, fH;
 
   //fH = tan( (fovY / 2) / 180 * pi ) * zNear;
-  fH = tan (45.0 / 360 * M_PI) * 0.1;
+  fH = tan (45.0 / 360.0 * M_PI) * 0.1;
   fW = fH * (allocation.width / (GLdouble)allocation.height);
 
   glFrustum (-fW, fW, -fH, fH, 0.1, 100.0);
@@ -405,8 +405,8 @@ glarea_realize_cb (GtkWidget* widget_in,
 
   return;
 
-error:
-  return;
+//error:
+  //return;
 } // glarea_realize_cb
 
 #if GTK_CHECK_VERSION (3,0,0)
