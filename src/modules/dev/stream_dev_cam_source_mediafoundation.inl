@@ -320,7 +320,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //                    &inherited::configuration_->statisticCollectionInterval));
       } // end IF
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       // sanity check(s)
       ACE_ASSERT (!mediaSession_);
       ACE_ASSERT (!session_data_r.session);
@@ -333,7 +333,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         session_data_r.session = mediaSession_;
       } // end IF
       else
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       {
         // sanity check(s)
         ACE_ASSERT (!session_data_r.formats.empty ());
