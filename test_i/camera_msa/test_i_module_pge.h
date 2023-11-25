@@ -140,7 +140,7 @@ class Test_I_Module_PGE_T
     void reset()
     {
       destroy ();
-        
+
       r_    = new float[numCells_];
       rOld_ = new float[numCells_];
       g_    = new float[numCells_];
@@ -182,62 +182,60 @@ class Test_I_Module_PGE_T
       reset ();
     }
 
-    void setViscosity (float newVisc)
-    {
-      viscosity_ = newVisc;
-    }
+    //void setViscosity (float newVisc)
+    //{
+    //  viscosity_ = newVisc;
+    //}
 
-    void randomizeColor ()
-    {
-      for (int i = 0; i < getWidth (); i++)
-        for (int j = 0; j < getHeight (); j++)
-        {
-          int index = FLUID_IX (i, j);
-          r_[index] = rOld_[index] = Common_Tools::getRandomNumber (0.0f, 1.0f);
-          if (isRGB_)
-          {
-            g_[index] = gOld_[index] = Common_Tools::getRandomNumber (0.0f, 1.0f);
-            b_[index] = bOld_[index] = Common_Tools::getRandomNumber (0.0f, 1.0f);
-          } // end IF
-        } // end FOR
-    }
+    //void randomizeColor ()
+    //{
+    //  for (int i = 0; i < getWidth (); i++)
+    //    for (int j = 0; j < getHeight (); j++)
+    //    {
+    //      int index = FLUID_IX (i, j);
+    //      r_[index] = rOld_[index] = Common_Tools::getRandomNumber (0.0f, 1.0f);
+    //      if (isRGB_)
+    //      {
+    //        g_[index] = gOld_[index] = Common_Tools::getRandomNumber (0.0f, 1.0f);
+    //        b_[index] = bOld_[index] = Common_Tools::getRandomNumber (0.0f, 1.0f);
+    //      } // end IF
+    //    } // end FOR
+    //}
 
    private:
-    inline int FLUID_IX (int i, int j) { return ((i) + (NX_ + 2) * (j)); }
+    inline int FLUID_IX (int i, int j) { return (i + (NX_ + 2) * j); }
 
    public:
-    int getIndexForCellPosition (int i, int j)
+    inline int getIndexForCellPosition (int i, int j)
     {
-      if (i < 1) i = 1;
-      else if (i > NX_) i = NX_;
-      if (j < 1) j = 1;
-      else if (j > NY_) j = NY_;
+      //if (i < 1) i = 1;
+      //else if (i > NX_) i = NX_;
+      //if (j < 1) j = 1;
+      //else if (j > NY_) j = NY_;
 
       return FLUID_IX (i, j);
     }
 
-    int getIndexForNormalizedPosition (float x, float y)
+    inline int getIndexForNormalizedPosition (float x, float y)
     {
-      return getIndexForCellPosition ((int)std::floor (x * (NX_ + 2)),
-                                      (int)std::floor (y * (NY_ + 2)));
+      return getIndexForCellPosition (static_cast<int> (std::floor (x * (NX_ + 2))),
+                                      static_cast<int> (std::floor (y * (NY_ + 2))));
     }
 
-    int getWidth () { return NX_ + 2; }
-    int getHeight () { return NY_ + 2; }
+    inline int getWidth () { return NX_ + 2; }
+    inline int getHeight () { return NY_ + 2; }
 
    private:
     void fadeR ()
     {
-      //    float holdAmount = 1 - _avgDensity * _avgDensity * _fadeSpeed;  //
-      //    this is how fast the density will decay depending on how full the
-      //    screen currently is
+      //float holdAmount = 1.0f - _avgDensity * _avgDensity * _fadeSpeed;  // this is how fast the density will decay depending on how full the screen currently is
       float holdAmount = 1.0f - fadeSpeed_;
 
-      avgDensity_ = 0.0f;
-      avgSpeed_ = 0.0f;
+      //avgDensity_ = 0.0f;
+      //avgSpeed_ = 0.0f;
 
-      float totalDeviations = 0;
-      float currentDeviation;
+      //float totalDeviations = 0;
+      //float currentDeviation;
       //  float uniformityMult = uniformity * 0.05f;
 
       for (int i = 0; i < numCells_; i++)
@@ -245,42 +243,38 @@ class Test_I_Module_PGE_T
         // clear old values
         uOld_[i] = vOld_[i] = 0.0f;
         rOld_[i] = 0.0f;
-        //    gOld[i] = bOld[i] = 0;
 
         // calc avg speed
-        avgSpeed_ += u_[i] * u_[i] + v_[i] * v_[i];
+        //avgSpeed_ += u_[i] * u_[i] + v_[i] * v_[i];
 
         // calc avg density
         r_[i] = std::min (1.0f, r_[i]);
-        //    g[i] = Math.min(1.0f, g[i]);
-        //    b[i] = Math.min(1.0f, b[i]);
-        //    float density = Math.max(r[i], Math.max(g[i], b[i]));
-        float density = r_[i];
-        avgDensity_ += density; // add it up
+        //float density = r_[i];
+        //avgDensity_ += density; // add it up
 
         // calc deviation (for uniformity)
-        currentDeviation = density - avgDensity_;
-        totalDeviations += currentDeviation * currentDeviation;
+        //currentDeviation = density - avgDensity_;
+        //totalDeviations += currentDeviation * currentDeviation;
 
         // fade out old
         r_[i] *= holdAmount;
       } // end FOR
-      avgDensity_ *= invNumCells_;
-      avgSpeed_ *= invNumCells_;
+      //avgDensity_ *= invNumCells_;
+      //avgSpeed_ *= invNumCells_;
 
-      uniformity_ = 1.0f / (1.0f + totalDeviations * invNumCells_); // 0: very wide distribution, 1: very uniform
+      //uniformity_ = 1.0f / (1.0f + totalDeviations * invNumCells_); // 0: very wide distribution, 1: very uniform
     }
 
     void fadeRGB ()
     {
-//    float holdAmount = 1 - _avgDensity * _avgDensity * _fadeSpeed;  // this is how fast the density will decay depending on how full the screen currently is
+      //float holdAmount = 1.0f - _avgDensity * _avgDensity * _fadeSpeed;  // this is how fast the density will decay depending on how full the screen currently is
       float holdAmount = 1.0f - fadeSpeed_;
 
-      avgDensity_ = 0.0f;
-      avgSpeed_ = 0.0f;
+      //avgDensity_ = 0.0f;
+      //avgSpeed_ = 0.0f;
 
-      float totalDeviations = 0;
-      float currentDeviation;
+      //float totalDeviations = 0;
+      //float currentDeviation;
       //  float uniformityMult = uniformity * 0.05f;
 
       for (int i = 0; i < numCells_; i++)
@@ -291,29 +285,28 @@ class Test_I_Module_PGE_T
         gOld_[i] = bOld_[i] = 0.0f;
 
         // calc avg speed
-        avgSpeed_ += u_[i] * u_[i] + v_[i] * v_[i];
+        //avgSpeed_ += u_[i] * u_[i] + v_[i] * v_[i];
 
         // calc avg density
         r_[i] = std::min (1.0f, r_[i]);
         g_[i] = std::min (1.0f, g_[i]);
         b_[i] = std::min (1.0f, b_[i]);
-        float density = std::max (r_[i], std::max (g_[i], b_[i]));
-        //float density = r[i];
-        avgDensity_ += density;  // add it up
+        //float density = std::max (r_[i], std::max (g_[i], b_[i]));
+        //avgDensity_ += density;  // add it up
 
         // calc deviation (for uniformity)
-        currentDeviation = density - avgDensity_;
-        totalDeviations += currentDeviation * currentDeviation;
+        //currentDeviation = density - avgDensity_;
+        //totalDeviations += currentDeviation * currentDeviation;
 
         // fade out old
         r_[i] *= holdAmount;
         g_[i] *= holdAmount;
         b_[i] *= holdAmount;
       } // end FOR
-      avgDensity_ *= invNumCells_;
-      avgSpeed_ *= invNumCells_;
+      //avgDensity_ *= invNumCells_;
+      //avgSpeed_ *= invNumCells_;
 
-      uniformity_ = 1.0f / (1.0f + totalDeviations * invNumCells_);    // 0: very wide distribution, 1: very uniform
+      //uniformity_ = 1.0f / (1.0f + totalDeviations * invNumCells_);    // 0: very wide distribution, 1: very uniform
     }
 
     void addSourceUV ()
@@ -368,7 +361,7 @@ class Test_I_Module_PGE_T
         0.5f * (x[FLUID_IX (NX_, NY_ + 1)] + x[FLUID_IX (NX_ + 1, NY_)]);
     }
 
-    void setBoundaryRGB (int bound)
+    void setBoundaryRGB (int b)
     {
       int index1, index2;
       for (int i = 1; i <= NX_; i++)
@@ -377,28 +370,28 @@ class Test_I_Module_PGE_T
         {
           index1 = FLUID_IX (0, i);
           index2 = FLUID_IX (1, i);
-          r_[index1] = bound == 1 ? -r_[index2] : r_[index2];
-          g_[index1] = bound == 1 ? -g_[index2] : g_[index2];
-          b_[index1] = bound == 1 ? -b_[index2] : b_[index2];
+          r_[index1] = b == 1 ? -r_[index2] : r_[index2];
+          g_[index1] = b == 1 ? -g_[index2] : g_[index2];
+          b_[index1] = b == 1 ? -b_[index2] : b_[index2];
 
           index1 = FLUID_IX (NX_ + 1, i);
           index2 = FLUID_IX (NX_, i);
-          r_[index1] = bound == 1 ? -r_[index2] : r_[index2];
-          g_[index1] = bound == 1 ? -g_[index2] : g_[index2];
-          b_[index1] = bound == 1 ? -b_[index2] : b_[index2];
+          r_[index1] = b == 1 ? -r_[index2] : r_[index2];
+          g_[index1] = b == 1 ? -g_[index2] : g_[index2];
+          b_[index1] = b == 1 ? -b_[index2] : b_[index2];
         } // end IF
 
         index1 = FLUID_IX (i, 0);
         index2 = FLUID_IX (i, 1);
-        r_[index1] = bound == 2 ? -r_[index2] : r_[index2];
-        g_[index1] = bound == 2 ? -g_[index2] : g_[index2];
-        b_[index1] = bound == 2 ? -b_[index2] : b_[index2];
+        r_[index1] = b == 2 ? -r_[index2] : r_[index2];
+        g_[index1] = b == 2 ? -g_[index2] : g_[index2];
+        b_[index1] = b == 2 ? -b_[index2] : b_[index2];
 
         index1 = FLUID_IX (i, NY_ + 1);
         index2 = FLUID_IX (i, NY_);
-        r_[index1] = bound == 2 ? -r_[index2] : r_[index2];
-        g_[index1] = bound == 2 ? -g_[index2] : g_[index2];
-        b_[index1] = bound == 2 ? -b_[index2] : b_[index2];
+        r_[index1] = b == 2 ? -r_[index2] : r_[index2];
+        g_[index1] = b == 2 ? -g_[index2] : g_[index2];
+        b_[index1] = b == 2 ? -b_[index2] : b_[index2];
       } // end FOR
     }
 
@@ -610,7 +603,7 @@ class Test_I_Module_PGE_T
           x[FLUID_IX (i, j)] -=
             0.5f * NX_ * (p[FLUID_IX (i + 1, j)] - p[FLUID_IX (i - 1, j)]);
           y[FLUID_IX (i, j)] -=
-            0.5f * NY_ * (p[FLUID_IX (i, j + 1)] - p[FLUID_IX (i, j - 1)]); // *TODO*: shouldn't this be NY_ ???
+            0.5f * NY_ * (p[FLUID_IX (i, j + 1)] - p[FLUID_IX (i, j - 1)]);
         } // end FOR
 
       setBoundary (1, x);
@@ -748,11 +741,11 @@ class Test_I_Module_PGE_T
       return ((std::abs (u_) + std::abs (v_)) / 2.0f) > FLUID_DEFAULT_UV_CUTOFF;
     }
 
-    void draw (olc::PixelGameEngine* engine_in)
-    {
-      engine_in->DrawLine (x_, y_, x_ + static_cast<int32_t> (u_ * 3.0f), y_ + static_cast<int32_t> (v_ * 3.0f),
-                           olc::WHITE, 0xFFFFFFFF);
-    }
+    //void draw (olc::PixelGameEngine* engine_in)
+    //{
+    //  engine_in->DrawLine (x_, y_, x_ + static_cast<int32_t> (u_ * 3.0f), y_ + static_cast<int32_t> (v_ * 3.0f),
+    //                       olc::WHITE, 0xFFFFFFFF);
+    //}
 
     int   x_;
     int   y_;
