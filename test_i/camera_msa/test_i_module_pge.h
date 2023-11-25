@@ -771,8 +771,8 @@ class Test_I_Module_PGE_T
     static int winStep = step * 2 + 1;
 
     int A2, A1B2, B1, C1, C2;
-    float u, v, uu, vv;
-    uu = vv = 0.0f;
+    float u, v /*, uu, vv*/;
+    //uu = vv = 0.0f;
     int wMax = width - step - 1;
     int hMax = height - step - 1;
     int globalY, globalX, localY, localX;
@@ -831,8 +831,8 @@ class Test_I_Module_PGE_T
         if (static_cast<float> (-winStep) < u && u < static_cast<float> (winStep) &&
             static_cast<float> (-winStep) < v && v < static_cast<float> (winStep))
         {
-          uu += u;
-          vv += v;
+          //uu += u;
+          //vv += v;
           zones.push_back (flow_zone (globalX, globalY, u, v));
         } // end IF
       } // end FOR

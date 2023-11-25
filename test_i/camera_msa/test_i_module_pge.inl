@@ -61,15 +61,15 @@ Test_I_Module_PGE_T<TaskType,
   // store current image data
   ACE_OS::memcpy (currentImage_, data_p, sizeof (char) * screen_width_i * screen_height_i * 3);
 
-  //// update frame data
-  //for (int y = 0; y < screen_height_i; y++)
-  //  for (int x = 0; x < screen_width_i; x++)
-  //  {
-  //    // draw image
-  //    inherited3::Draw (x, y, olc::Pixel (data_p[0], data_p[1], data_p[2], 255U));
+  // update frame data
+  for (int y = 0; y < screen_height_i; y++)
+    for (int x = 0; x < screen_width_i; x++)
+    {
+      // draw image
+      inherited3::Draw (x, y, olc::Pixel (data_p[0], data_p[1], data_p[2], 128U)); // *NOTE*: leave some alpha for MSA
 
-  //    data_p += 3;
-  //  } // end FOR
+      data_p += 3;
+    } // end FOR
 }
 
 template <typename TaskType,
@@ -180,6 +180,8 @@ Test_I_Module_PGE_T<TaskType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::OnUserCreate"));
 
+  //olc::PixelGameEngine::SetPixelMode (olc::Pixel::ALPHA);
+
   float aspect_ratio_f =
     olc::PixelGameEngine::ScreenWidth () / static_cast<float> (olc::PixelGameEngine::ScreenHeight ());
   aspectRatio2_ = aspect_ratio_f * aspect_ratio_f;
@@ -219,7 +221,15 @@ Test_I_Module_PGE_T<TaskType,
     {
       int index_x = (int)(x * ratio_x);
       int index_y = (int)(y * ratio_y);
-      p[y * width_i + x] = fluidImage_[index_y * solver_.getWidth () + index_x];
+      // blend pixels from camera and fluid images
+      olc::Pixel a = p[y * width_i + x];
+      olc::Pixel b = fluidImage_[index_y * solver_.getWidth () + index_x];
+      float r, g, b_2;
+      float foreground_alpha_f = a.a / 255.0f;
+      r   = ((a.r / 255.0f) * foreground_alpha_f) + ((b.r / 255.0f) * (1.0f - foreground_alpha_f));
+      g   = ((a.g / 255.0f) * foreground_alpha_f) + ((b.g / 255.0f) * (1.0f - foreground_alpha_f));
+      b_2 = ((a.b / 255.0f) * foreground_alpha_f) + ((b.b / 255.0f) * (1.0f - foreground_alpha_f));
+      p[y * width_i + x] = olc::PixelF (r, g, b_2, 1.0f);
     } // end FOR
 
   std::vector<flow_zone> flow_zones_a =
