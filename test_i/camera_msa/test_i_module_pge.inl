@@ -535,7 +535,7 @@ Test_I_Module_PGE_T<TaskType,
         int deltaY = -(A1B2 * C2 - A2 * C1);
         u = deltaX * Idelta;
         v = deltaY * Idelta;
-      }
+      } // end IF
       else
       {
         /* singular system - find optical flow in gradient direction */
@@ -546,9 +546,11 @@ Test_I_Module_PGE_T<TaskType,
           float temp = -(C1 + C2) * IGradNorm;
           u = (A1B2 + A2) * temp;
           v = (B1 + A1B2) * temp;
-        }
+        } // end IF
         else
+        {
           u = v = 0.0f;
+        } // end ELSE
       } // end ELSE
 
       if (static_cast<float> (-winStep) < u && u < static_cast<float> (winStep) &&
