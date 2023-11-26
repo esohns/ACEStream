@@ -477,11 +477,46 @@ Test_I_Module_PGE_T<TaskType,
         {
           int address = (globalY + localY) * width + globalX + localX;
 
-          int gradX =
-            (newImage[(address - 1) * 3]) - (newImage[(address + 1) * 3]);
-          int gradY = (newImage[(address - width) * 3]) -
-                      (newImage[(address + width) * 3]);
-          int gradT = (oldImage[address * 3]) - (newImage[address * 3]);
+          float red_f, red_2, green_f, green_2, blue_f, blue_2;
+          blue_f  = static_cast<uint8_t> (newImage[(address - 1) * 3]) / 255.0f;
+          green_f = static_cast<uint8_t> (newImage[(address - 1) * 3 + 1]) / 255.0f;
+          red_f   = static_cast<uint8_t> (newImage[(address - 1) * 3 + 2]) / 255.0f;
+          blue_2  = static_cast<uint8_t> (newImage[(address + 1) * 3]) / 255.0f;
+          green_2 = static_cast<uint8_t> (newImage[(address + 1) * 3 + 1]) / 255.0f;
+          red_2   = static_cast<uint8_t> (newImage[(address + 1) * 3 + 2]) / 255.0f;
+          int luminance_i, luminance_2;
+          luminance_i =
+            static_cast<int> ((0.2990f * red_f + 0.5870f * green_f + 0.1140f * blue_f) * 255.0f);
+          luminance_2 =
+            static_cast<int> ((0.2990f * red_2 + 0.5870f * green_2 + 0.1140f * blue_2) * 255.0f);
+          int gradX = luminance_i - luminance_2;
+            //(newImage[(address - 1) * 3]) - (newImage[(address + 1) * 3]);
+
+          blue_f  = static_cast<uint8_t> (newImage[(address - width) * 3]) / 255.0f;
+          green_f = static_cast<uint8_t> (newImage[(address - width) * 3 + 1]) / 255.0f;
+          red_f   = static_cast<uint8_t> (newImage[(address - width) * 3 + 2]) / 255.0f;
+          blue_2  = static_cast<uint8_t> (newImage[(address + width) * 3]) / 255.0f;
+          green_2 = static_cast<uint8_t> (newImage[(address + width) * 3 + 1]) / 255.0f;
+          red_2   = static_cast<uint8_t> (newImage[(address + width) * 3 + 2]) / 255.0f;
+          luminance_i =
+            static_cast<int> ((0.2990f * red_f + 0.5870f * green_f + 0.1140f * blue_f) * 255.0f);
+          luminance_2 =
+            static_cast<int> ((0.2990f * red_2 + 0.5870f * green_2 + 0.1140f * blue_2) * 255.0f);
+          int gradY = luminance_i - luminance_2;
+            //(newImage[(address - width) * 3]) - (newImage[(address + width) * 3]);
+
+          blue_f  = static_cast<uint8_t> (oldImage[address * 3]) / 255.0f;
+          green_f = static_cast<uint8_t> (oldImage[address * 3 + 1]) / 255.0f;
+          red_f   = static_cast<uint8_t> (oldImage[address * 3 + 2]) / 255.0f;
+          blue_2  = static_cast<uint8_t> (newImage[address * 3]) / 255.0f;
+          green_2 = static_cast<uint8_t> (newImage[address * 3 + 1]) / 255.0f;
+          red_2   = static_cast<uint8_t> (newImage[address * 3 + 2]) / 255.0f;
+          luminance_i =
+            static_cast<int> ((0.2990f * red_f + 0.5870f * green_f + 0.1140f * blue_f) * 255.0f);
+          luminance_2 =
+            static_cast<int> ((0.2990f * red_2 + 0.5870f * green_2 + 0.1140f * blue_2) * 255.0f);
+          int gradT = luminance_i - luminance_2;
+            //(oldImage[address * 3]) - (newImage[address * 3]);
 
           A2 += gradX * gradX;
           A1B2 += gradX * gradY;
