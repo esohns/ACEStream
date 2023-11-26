@@ -162,7 +162,7 @@ typedef Stream_Visualization_LibAVResize_T<Test_U_MediaFoundation_TaskBaseSynch_
 #else
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
-                               struct Test_I_V4L_ModuleHandlerConfiguration,
+                               struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
                                Stream_ControlMessage_t,
                                Test_I_Message_t,
                                Test_I_SessionMessage_t,
@@ -171,7 +171,7 @@ typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                struct Stream_UserData> Test_U_TaskBaseSynch_t;
 typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                 Common_TimePolicy_t,
-                                struct Test_I_V4L_ModuleHandlerConfiguration,
+                                struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
                                 Stream_ControlMessage_t,
                                 Test_I_Message_t,
                                 Test_I_SessionMessage_t,
@@ -183,12 +183,12 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Stream_ControlMessage_t,
                                       Test_I_Message_t,
                                       Test_I_SessionMessage_t,
-                                      struct Test_I_V4L_ModuleHandlerConfiguration,
+                                      struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
-                                      struct Test_I_StreamState,
-                                      Test_I_V4L_SessionData,
-                                      Test_I_V4L_SessionData_t,
+                                      struct Test_I_CameraMSA_StreamState,
+                                      Test_I_CameraMSA_V4L_SessionData,
+                                      Test_I_CameraMSA_V4L_SessionData_t,
                                       struct Test_I_StatisticData,
                                       Common_Timer_Manager_t,
                                       struct Stream_UserData> Test_I_V4L_Source;
@@ -203,11 +203,11 @@ typedef Stream_Visualization_LibAVResize_T<Test_U_TaskBaseSynch_t,
 
 typedef Stream_Decoder_RGB24_HFlip_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     struct Test_I_V4L_ModuleHandlerConfiguration,
+                                     struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
                                      Stream_ControlMessage_t,
                                      Test_I_Message_t,
                                      Test_I_SessionMessage_t,
-                                     Test_I_V4L_SessionData_t,
+                                     Test_I_CameraMSA_V4L_SessionData_t,
                                      struct Stream_MediaFramework_V4L_MediaType> Test_I_V4L_HFlip;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -260,26 +260,26 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 #else
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
-                                                      struct Test_I_V4L_ModuleHandlerConfiguration,
+                                                      struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
                                                       Stream_ControlMessage_t,
                                                       Test_I_Message_t,
                                                       Test_I_SessionMessage_t,
                                                       Stream_CommandType_t,
                                                       struct Test_I_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Test_I_V4L_SessionData,
-                                                      Test_I_V4L_SessionData_t> Test_I_Statistic_ReaderTask_t;
+                                                      Test_I_CameraMSA_V4L_SessionData,
+                                                      Test_I_CameraMSA_V4L_SessionData_t> Test_I_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
-                                                      struct Test_I_V4L_ModuleHandlerConfiguration,
+                                                      struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
                                                       Stream_ControlMessage_t,
                                                       Test_I_Message_t,
                                                       Test_I_SessionMessage_t,
                                                       Stream_CommandType_t,
                                                       struct Test_I_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Test_I_V4L_SessionData,
-                                                      Test_I_V4L_SessionData_t> Test_I_Statistic_WriterTask_t;
+                                                      Test_I_CameraMSA_V4L_SessionData,
+                                                      Test_I_CameraMSA_V4L_SessionData_t> Test_I_Statistic_WriterTask_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -310,7 +310,7 @@ typedef Test_I_Module_PGE_T<Test_U_MediaFoundation_TaskBaseAsynch_t,
 #else
 //typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
 //                                       Common_TimePolicy_t,
-//                                       struct Test_I_V4L_ModuleHandlerConfiguration,
+//                                       struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
 //                                       Stream_ControlMessage_t,
 //                                       Test_I_Message_t,
 //                                       Test_I_SessionMessage_t,
@@ -385,32 +385,32 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_MediaFoundation_SessionData,     
                               Stream_INotify_t,                                             // stream notification interface type
                               Test_I_MediaFoundation_HFlip);                            // writer type
 #else
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_V4L_SessionData,                   // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
-                              struct Test_I_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dev_cam_source_v4l_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Test_I_V4L_Source);                       // writer type
 
 #if defined (FFMPEG_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_V4L_SessionData,                   // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
-                              struct Test_I_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_libav_converter_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Test_I_LibAVConvert);                      // writer type
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_V4L_SessionData,                   // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
-                              struct Test_I_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_libav_resize_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Test_I_LibAVResize);                      // writer type
 #endif // FFMPEG_SUPPORT
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_V4L_SessionData,                         // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_V4L_SessionData,                         // session data type
                               enum Stream_SessionMessageType,                          // session event type
-                              struct Test_I_V4L_ModuleHandlerConfiguration,   // module handler configuration type
+                              struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,   // module handler configuration type
                               libacestream_default_dec_rgb24_hflip_module_name_string,
                               Stream_INotify_t,                                        // stream notification interface type
                               Test_I_V4L_HFlip);                              // writer type
@@ -435,9 +435,9 @@ DATASTREAM_MODULE_DUPLEX (Test_I_CameraMSA_MediaFoundation_SessionData,         
                           Test_I_MediaFoundation_Statistic_WriterTask_t, // writer type
                           Test_I_MediaFoundation_StatisticReport);  // name
 #else
-DATASTREAM_MODULE_DUPLEX (Test_I_V4L_SessionData,                // session data type
+DATASTREAM_MODULE_DUPLEX (Test_I_CameraMSA_V4L_SessionData,                // session data type
                           enum Stream_SessionMessageType,                   // session event type
-                          struct Test_I_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                          struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
                           libacestream_default_stat_report_module_name_string,
                           Stream_INotify_t,                                 // stream notification interface type
                           Test_I_Statistic_ReaderTask_t,            // reader type
@@ -478,15 +478,15 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_MediaFoundation_SessionData,     
 #else
 //DATASTREAM_MODULE_INPUT_ONLY (Test_I_V4L_SessionData,                           // session data type
 //                              enum Stream_SessionMessageType,                       // session event type
-//                              struct Test_I_V4L_ModuleHandlerConfiguration, // module handler configuration type
+//                              struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
 //                              libacestream_default_misc_messagehandler_module_name_string,
 //                              Stream_INotify_t,                                     // stream notification interface type
 //                              Test_I_MessageHandler);                       // writer type
 
 #if defined (OLC_PGE_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_V4L_SessionData,                       // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_V4L_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                        // session event type
-                              struct Test_I_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_pge_module_name_string,
                               Stream_INotify_t,                                      // stream notification interface type
                               Test_I_PGE);                                  // writer type

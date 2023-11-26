@@ -405,8 +405,8 @@ glarea_realize_cb (GtkWidget* widget_in,
 
   return;
 
-//error:
-  //return;
+error:
+  return;
 } // glarea_realize_cb
 
 #if GTK_CHECK_VERSION (3,0,0)

@@ -235,7 +235,7 @@ Test_I_Module_PGE_T<TaskType,
 
   std::vector<flow_zone> flow_zones_a =
     calculateFlow (previousImage_, currentImage_, width_i, height_i);
-  for (std::vector<flow_zone>::iterator iterator = flow_zones_a.begin ();
+  for (typename std::vector<flow_zone>::iterator iterator = flow_zones_a.begin ();
        iterator != flow_zones_a.end ();
        ++iterator)
   {

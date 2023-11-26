@@ -268,7 +268,7 @@ class Test_I_CameraMSA_MediaFoundation_SessionData
 };
 typedef Stream_SessionData_T<Test_I_CameraMSA_MediaFoundation_SessionData> Test_I_CameraMSA_MediaFoundation_SessionData_t;
 #else
-struct Test_I_StreamState;
+struct Test_I_CameraMSA_StreamState;
 typedef Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
                                       struct Stream_MediaFramework_V4L_MediaType,
                                       struct Test_I_CameraMSA_StreamState,
@@ -307,12 +307,12 @@ typedef Stream_ISessionDataNotify_T<Test_I_CameraMSA_MediaFoundation_SessionData
 typedef std::list<Test_I_MediaFoundation_ISessionNotify_t*> Test_I_MediaFoundation_Subscribers_t;
 typedef Test_I_MediaFoundation_Subscribers_t::iterator Test_I_MediaFoundation_SubscribersIterator_t;
 #else
-typedef Test_I_Message_T<struct Test_I_MessageData,
-                         Test_I_V4L_SessionData_t> Test_I_Message_t;
+typedef Test_I_Message_T<struct Test_I_V4L_MessageData,
+                         Test_I_CameraMSA_V4L_SessionData_t> Test_I_Message_t;
 typedef Test_I_SessionMessage_T<Test_I_Message_t,
-                                Test_I_V4L_SessionData_t> Test_I_SessionMessage_t;
+                                Test_I_CameraMSA_V4L_SessionData_t> Test_I_SessionMessage_t;
 
-typedef Stream_ISessionDataNotify_T<Test_I_V4L_SessionData,
+typedef Stream_ISessionDataNotify_T<Test_I_CameraMSA_V4L_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_I_Message_t,
                                     Test_I_SessionMessage_t> Test_I_ISessionNotify_t;
@@ -663,7 +663,7 @@ struct Test_I_MediaFoundation_Configuration
   Test_I_MediaFoundation_StreamConfiguration_t        streamConfiguration;
 };
 #else
-struct Test_I_Configuration
+struct Test_I_V4L_Configuration
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  : Test_I_GTK_Configuration
@@ -672,7 +672,7 @@ struct Test_I_Configuration
  : Test_I_Configuration
 #endif // GUI_SUPPORT
 {
-  Test_I_Configuration ()
+  Test_I_V4L_Configuration ()
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    : Test_I_GTK_Configuration ()

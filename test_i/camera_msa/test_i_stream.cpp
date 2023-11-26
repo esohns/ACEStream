@@ -1169,8 +1169,8 @@ Test_I_Stream::Test_I_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING))
- , statisticReport_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+ // , statisticReport_ (this,
+ //                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , convert_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
@@ -1214,7 +1214,7 @@ Test_I_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   ACE_ASSERT (configuration_in.configuration_);
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
-  Test_I_V4L_SessionData* session_data_p = NULL;
+  Test_I_CameraMSA_V4L_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
 //  Test_I_V4L_Source* source_impl_p = NULL;
 
@@ -1237,7 +1237,7 @@ Test_I_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   ACE_ASSERT (inherited::sessionData_);
 
   session_data_p =
-    &const_cast<Test_I_V4L_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Test_I_CameraMSA_V4L_SessionData&> (inherited::sessionData_->getR ());
   iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 
@@ -1249,23 +1249,6 @@ Test_I_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
 
   // ---------------------------------------------------------------------------
 
-  // ******************* Camera Source ************************
-//  source_impl_p =
-//    dynamic_cast<Test_I_V4L_Source*> (source_.writer ());
-//  if (!source_impl_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_V4L_CamSource> failed, aborting\n"),
-//                ACE_TEXT (stream_name_string_)));
-//    goto error;
-//  } // end IF
-//  source_impl_p->setP (&(inherited::state_));
-
-//  // *NOTE*: push()ing the module will open() it
-//  //         --> set the argument that is passed along (head module expects a
-//  //             handle to the session data)
-//  source_.arg (inherited::sessionData_);
-
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))
     {
@@ -1275,7 +1258,7 @@ Test_I_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
       goto error;
     } // end IF
 
-  // -------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   inherited::isInitialized_ = true;
 

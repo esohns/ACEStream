@@ -21,6 +21,14 @@
 
 #include "test_i_msafluidsolver2d.h"
 
+#include <utility>
+
+#include "ace/OS.h"
+
+#include "common_tools.h"
+
+#include "test_i_camera_msa_defines.h"
+
 MSAFluidSolver2D::MSAFluidSolver2D (int NX, int NY)
  : r_ (NULL)
  , rOld_ (NULL)
@@ -33,10 +41,10 @@ MSAFluidSolver2D::MSAFluidSolver2D (int NX, int NY)
  , v_ (NULL)
  , vOld_ (NULL)
  , isInitialized_ (false)
- , viscosity_ (FLUID_DEFAULT_VISCOSITY)
  , dt_ (FLUID_DEFAULT_DT)
  , fadeSpeed_ (FLUID_DEFAULT_FADESPEED)
  , solverIterations_ (FLUID_DEFAULT_SOLVER_ITERATIONS)
+ , viscosity_ (FLUID_DEFAULT_VISCOSITY)
  , NX_ (0)
  , NY_ (0)
  , numCells_ (0)
@@ -107,10 +115,6 @@ MSAFluidSolver2D::reset ()
 void
 MSAFluidSolver2D::setup (int NX, int NY)
 {
-  dt_ = FLUID_DEFAULT_DT;
-  fadeSpeed_ = FLUID_DEFAULT_FADESPEED;
-  solverIterations_ = FLUID_DEFAULT_SOLVER_ITERATIONS;
-
   NX_ = NX;
   NY_ = NY;
   numCells_ = (NX_ + 2) * (NY_ + 2);

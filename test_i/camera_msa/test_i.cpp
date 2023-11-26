@@ -65,6 +65,7 @@
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
+#include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_common.h"
 #include "common_ui_gtk_manager_common.h"
 #endif // GTK_SUPPORT
@@ -893,7 +894,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
          struct Test_I_DirectShow_Configuration& directShowConfiguration_in,
          struct Test_I_MediaFoundation_Configuration& mediaFoundationConfiguration_in
 #else
-         struct Test_I_Configuration& configuration_in
+         struct Test_I_V4L_Configuration& configuration_in
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GUI_SUPPORT)
          , const std::string& UIDefinitionFilename_in
@@ -934,8 +935,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Test_I_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
   Test_I_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler;
 #else
-  struct Test_I_V4L_ModuleHandlerConfiguration modulehandler_configuration;
-  struct Test_I_V4L_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
+  struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
   Test_I_EventHandler_t ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1107,6 +1108,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   Test_I_PGE_Module PGE (&stream,
                          ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING));
 #endif // OLC_PGE_SUPPORT
+  Test_I_PGE* pge_p = NULL;
 
   stream_configuration.messageAllocator = &message_allocator;
 #if defined (OLC_PGE_SUPPORT)
@@ -1244,8 +1246,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 //  if (!Stream_MediaFramework_Tools::isRGB (stream_configuration.format.format.pixelformat))
 //    modulehandler_configuration.outputFormat.format.pixelformat =
 //      V4L2_PIX_FMT_RGB32;
-  modulehandler_configuration.outputFormat.format.width = 80;
-  modulehandler_configuration.outputFormat.format.height = 60;
+  // modulehandler_configuration.outputFormat.format.width = 80;
+  // modulehandler_configuration.outputFormat.format.height = 60;
 
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.outputFormat.format.pixelformat =
@@ -1325,8 +1327,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 
 #if defined (GUI_SUPPORT)
 #if defined (OLC_PGE_SUPPORT)
-  Test_I_PGE* pge_p =
-    static_cast<Test_I_PGE*> (PGE.writer ());
+  pge_p = static_cast<Test_I_PGE*> (PGE.writer ());
   UI_CBData_in.solver = &pge_p->getSolver ();
 #endif // OLC_PGE_SUPPORT
 #endif // GUI_SUPPORT
@@ -1389,16 +1390,11 @@ clean:
 #else
   do_finalize_v4l (deviceIdentifier_in);
 
-//#if defined (OLC_PGE_SUPPORT)
-//  stream.remove (&PGE,
-//                 true,
-//                 true);
-//#endif // OLC_PGE_SUPPORT
-#if defined (OLC_CGE_SUPPORT)
-  stream.remove (&CGE,
-                 true,
-                 true);
-#endif // OLC_CGE_SUPPORT
+#if defined (OLC_PGE_SUPPORT)
+ stream.remove (&PGE,
+                true,
+                true);
+#endif // OLC_PGE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_DEBUG ((LM_DEBUG,
@@ -1644,7 +1640,7 @@ ACE_TMAIN (int argc_in,
   struct Test_I_DirectShow_Configuration directshow_configuration;
   struct Test_I_MediaFoundation_Configuration mediafoundation_configuration;
 #else
-  struct Test_I_Configuration configuration;
+  struct Test_I_V4L_Configuration configuration;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)

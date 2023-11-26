@@ -21,8 +21,6 @@
 #ifndef TEST_I_MSAFLUIDSOLVER2D_H
 #define TEST_I_MSAFLUIDSOLVER2D_H
 
-#include "test_i_camera_msa_defines.h"
-
 class MSAFluidSolver2D
 {
  public:

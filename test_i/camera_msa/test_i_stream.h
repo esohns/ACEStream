@@ -200,7 +200,7 @@ class Test_I_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Test_I_CameraMSA_StreamState,
-                        struct Test_I_CameraMSA_V4L_StreamConfiguration,
+                        struct Test_I_V4L_StreamConfiguration,
                         struct Test_I_StatisticData,
                         struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
                         Test_I_CameraMSA_V4L_SessionData,
@@ -216,7 +216,7 @@ class Test_I_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Test_I_CameraMSA_StreamState,
-                        struct Test_I_CameraMSA_V4L_StreamConfiguration,
+                        struct Test_I_V4L_StreamConfiguration,
                         struct Test_I_StatisticData,
                         struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
                         Test_I_CameraMSA_V4L_SessionData,
@@ -241,16 +241,11 @@ class Test_I_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream& operator= (const Test_I_Stream&))
 
   // modules
-  Test_I_CameraMSA_V4L_Source_Module      source_;
-  Test_I_CameraMSA_StatisticReport_Module statisticReport_;
-  Test_I_CameraMSA_LibAVConvert_Module    convert_; // --> BGRA (Xlib)
-  Test_I_CameraMSA_LibAVResize_Module     resize_; // --> window size/fullscreen
-  Test_I_CameraMSA_V4L_HFlip_Module       flip_;
-//#if defined (GTK_SUPPORT)
-//  Test_I_CameraMSA_GTK_Display_Module     GTKDisplay_;
-//#endif // GTK_SUPPORT
-////  Test_I_CameraMSA_Wayland_Display_Module WaylandDisplay_;
-//  Test_I_CameraMSA_X11_Display_Module     X11Display_;
+  Test_I_V4L_Source_Module      source_;
+  // Test_I_StatisticReport_Module statisticReport_;
+  Test_I_LibAVConvert_Module    convert_; // --> BGRA (Xlib)
+  Test_I_LibAVResize_Module     resize_; // --> window size/fullscreen
+  Test_I_V4L_HFlip_Module       flip_;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
