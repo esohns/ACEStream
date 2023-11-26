@@ -36,6 +36,7 @@ Test_I_Module_PGE_T<TaskType,
  , inherited3 ()
  , previousImage_ (NULL)
  , currentImage_ (NULL)
+ , fluidImage_ (NULL)
  , solver_ (0, 0)
  , aspectRatio2_ (0.0f)
 {
@@ -238,7 +239,7 @@ Test_I_Module_PGE_T<TaskType,
        iterator != flow_zones_a.end ();
        ++iterator)
   {
-    if ((*iterator).productAboveLimit ())
+    if ((*iterator).productAboveLimit (solver_.UVCutoff_))
     {
       addForce ((*iterator).x_ / static_cast<float> (width_i), (*iterator).y_ / static_cast<float> (height_i),
                 (*iterator).u_ / static_cast<float> (width_i), (*iterator).v_ / static_cast<float> (height_i),
@@ -455,25 +456,26 @@ std::vector<typename Test_I_Module_PGE_T<TaskType, MediaType>::flow_zone>
 Test_I_Module_PGE_T<TaskType,
                     MediaType>::calculateFlow (char* oldImage, char* newImage, int width, int height)
 {
+  STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::calculateFlow"));
+
   std::vector<flow_zone> zones;
 
-  static int step = 8;
-  static int winStep = step * 2 + 1;
+  int winStep = solver_.step_ * 2 + 1;
 
   int A2, A1B2, B1, C1, C2;
   float u, v /*, uu, vv*/;
   //uu = vv = 0.0f;
-  int wMax = width - step - 1;
-  int hMax = height - step - 1;
+  int wMax = width - solver_.step_ - 1;
+  int hMax = height - solver_.step_ - 1;
   int globalY, globalX, localY, localX;
 
-  for (globalY = step + 1; globalY < hMax; globalY += winStep)
-    for (globalX = step + 1; globalX < wMax; globalX += winStep)
+  for (globalY = solver_.step_ + 1; globalY < hMax; globalY += winStep)
+    for (globalX = solver_.step_ + 1; globalX < wMax; globalX += winStep)
     {
       A2 = A1B2 = B1 = C1 = C2 = 0;
 
-      for (localY = -step; localY <= step; localY++)
-        for (localX = -step; localX <= step; localX++)
+      for (localY = -solver_.step_; localY <= solver_.step_; localY++)
+        for (localX = -solver_.step_; localX <= solver_.step_; localX++)
         {
           int address = (globalY + localY) * width + globalX + localX;
 
@@ -530,7 +532,7 @@ Test_I_Module_PGE_T<TaskType,
       if (delta != 0)
       {
         /* system is not singular - solving by Kramer method */
-        float Idelta = step / static_cast<float> (delta);
+        float Idelta = solver_.step_ / static_cast<float> (delta);
         int deltaX = -(C1 * A1B2 - C2 * B1);
         int deltaY = -(A1B2 * C2 - A2 * C1);
         u = deltaX * Idelta;
@@ -542,7 +544,7 @@ Test_I_Module_PGE_T<TaskType,
         int norm = (A1B2 + A2) * (A1B2 + A2) + (B1 + A1B2) * (B1 + A1B2);
         if (norm != 0)
         {
-          float IGradNorm = step / static_cast<float> (norm);
+          float IGradNorm = solver_.step_ / static_cast<float> (norm);
           float temp = -(C1 + C2) * IGradNorm;
           u = (A1B2 + A2) * temp;
           v = (B1 + A1B2) * temp;
@@ -564,3 +566,32 @@ Test_I_Module_PGE_T<TaskType,
 
   return zones;
 }
+
+template <typename TaskType,
+          typename MediaType>
+void
+Test_I_Module_PGE_T<TaskType,
+                    MediaType>::addForce (float x, float y, float dx, float dy, int frameCount)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::addForce"));
+
+  float speed =
+    dx * dx + dy * dy * aspectRatio2_; // balance the x and y components of
+                                        // speed with the screen aspect ratio
+  if (speed > 0.0f)
+  {
+    int index = solver_.getIndexForNormalizedPosition (x, y);
+
+    float hue = std::fmod ((x + y) * 180.0f + frameCount, 360.0f);
+    float r, g, b;
+    Common_Image_Tools::HSVToRGB (hue, 1.0f, 1.0f, r, g, b);
+
+    solver_.rOld_[index] += r * solver_.colorMultiplier_;
+    solver_.gOld_[index] += g * solver_.colorMultiplier_;
+    solver_.bOld_[index] += b * solver_.colorMultiplier_;
+
+    solver_.uOld_[index] += dx * solver_.velocityMultiplier_;
+    solver_.vOld_[index] += dy * solver_.velocityMultiplier_;
+  } // end IF
+}
+

@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="2.24"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkAdjustment" id="adjustment_frequency">
+    <property name="lower">1</property>
+    <property name="upper">16</property>
+    <property name="value">1</property>
+    <property name="step_increment">0.01</property>
+    <property name="page_increment">1</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment_lacunarity">
+    <property name="lower">1.5</property>
+    <property name="upper">3.5</property>
+    <property name="value">2.5</property>
+    <property name="step_increment">0.01</property>
+    <property name="page_increment">0.10000000000000001</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment_level">
+    <property name="lower">0.01</property>
+    <property name="upper">500</property>
+    <property name="value">50</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment_octaves">
+    <property name="lower">1</property>
+    <property name="upper">6</property>
+    <property name="value">6</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment_persistence">
+    <property name="upper">1</property>
+    <property name="value">0.5</property>
+    <property name="step_increment">0.10000000000000001</property>
+    <property name="page_increment">0.10000000000000001</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment_speed">
+    <property name="upper">10</property>
+    <property name="value">0.029999999999999999</property>
+    <property name="step_increment">0.01</property>
+    <property name="page_increment">1</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment_step">
+    <property name="upper">1</property>
+    <property name="value">0.050000000000000003</property>
+    <property name="step_increment">0.01</property>
+    <property name="page_increment">0.10000000000000001</property>
+  </object>
+  <object class="GtkDialog" id="dialog_main">
+    <property name="can_focus">False</property>
+    <property name="border_width">5</property>
+    <property name="type_hint">dialog</property>
+    <child internal-child="vbox">
+      <object class="GtkVBox" id="dialog-vbox1">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkHButtonBox" id="dialog-action_area1">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="button_reset">
+                <property name="label">gtk-revert-to-saved</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="relief">half</property>
+                <property name="use_stock">True</property>
+                <property name="focus_on_click">False</property>
+                <signal name="clicked" handler="button_reset_3_clicked_cb" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkVBox" id="vbox1">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkVBox" id="vbox2">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkHScale" id="scale_frequency">
+                    <property name="width_request">300</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">noise frequency</property>
+                    <property name="adjustment">adjustment_frequency</property>
+                    <property name="restrict_to_fill_level">False</property>
+                    <property name="fill_level">0</property>
+                    <property name="round_digits">2</property>
+                    <property name="digits">2</property>
+                    <signal name="value-changed" handler="scale_frequency_value_changed_cb" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkHScale" id="scale_octaves">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">noise octaves</property>
+                    <property name="adjustment">adjustment_octaves</property>
+                    <property name="restrict_to_fill_level">False</property>
+                    <property name="fill_level">0</property>
+                    <property name="round_digits">0</property>
+                    <property name="digits">0</property>
+                    <signal name="value-changed" handler="scale_octaves_value_changed_cb" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkHScale" id="scale_persistence">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">noise persistence</property>
+                    <property name="adjustment">adjustment_persistence</property>
+                    <property name="restrict_to_fill_level">False</property>
+                    <property name="fill_level">0</property>
+                    <property name="round_digits">2</property>
+                    <property name="digits">2</property>
+                    <signal name="value-changed" handler="scale_persistence_value_changed_cb" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkHScale" id="scale_lacunarity">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">noise lacunarity</property>
+                    <property name="adjustment">adjustment_lacunarity</property>
+                    <property name="restrict_to_fill_level">False</property>
+                    <property name="fill_level">0</property>
+                    <property name="round_digits">2</property>
+                    <property name="digits">2</property>
+                    <signal name="value-changed" handler="scale_lacunarity_value_changed_cb" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">3</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkVBox" id="vbox3">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkHScale" id="scale_step">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">step</property>
+                    <property name="adjustment">adjustment_step</property>
+                    <property name="restrict_to_fill_level">False</property>
+                    <property name="fill_level">0</property>
+                    <property name="round_digits">3</property>
+                    <property name="digits">3</property>
+                    <signal name="value-changed" handler="scale_step_value_changed_cb" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkHScale" id="scale_level">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">level</property>
+                    <property name="adjustment">adjustment_level</property>
+                    <property name="restrict_to_fill_level">False</property>
+                    <property name="fill_level">0</property>
+                    <property name="round_digits">0</property>
+                    <property name="digits">0</property>
+                    <signal name="value-changed" handler="scale_level_value_changed_cb" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkHScale" id="scale_speed">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">speed</property>
+                    <property name="adjustment">adjustment_speed</property>
+                    <property name="restrict_to_fill_level">False</property>
+                    <property name="fill_level">0</property>
+                    <property name="round_digits">2</property>
+                    <property name="digits">2</property>
+                    <signal name="value-changed" handler="scale_speed_value_changed_cb" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="0">button_reset</action-widget>
+    </action-widgets>
+  </object>
+</interface>

@@ -1467,7 +1467,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         *media_type_p;
       delete media_type_p; media_type_p = NULL;
 
-#if defined(GUI_SUPPORT)
+#if defined (GUI_SUPPORT)
       directShowCBData_in.progressData.audioFrameSize =
         (Stream_MediaFramework_DirectShow_Tools::toFrameBits (directshow_audio_stream_configuration.format.audio) / 8) *
         Stream_MediaFramework_DirectShow_Tools::toChannels (directshow_audio_stream_configuration.format.audio);
@@ -2701,7 +2701,8 @@ ACE_TMAIN (int argc_in,
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
 #if defined (GTK_USE)
-        result_2 = gtk_manager_p->initialize (directshow_ui_cb_data.configuration->GTKConfiguration);
+        result_2 =
+          gtk_manager_p->initialize (directshow_ui_cb_data.configuration->GTKConfiguration);
 #endif // GTK_USE
         break;
       }

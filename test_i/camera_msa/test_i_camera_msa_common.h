@@ -21,10 +21,6 @@
 #ifndef TEST_I_CAMERA_MSA_COMMON_H
 #define TEST_I_CAMERA_MSA_COMMON_H
 
-#include <list>
-#include <map>
-#include <string>
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "BaseTyps.h"
 #include "OAIdl.h"
@@ -57,10 +53,20 @@ extern "C"
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include <string>
+
+#if defined (GTK_SUPPORT)
+#include "gtk/gtk.h"
+#endif // GTK_SUPPORT
+
 #include "ace/Synch_Traits.h"
 
 #include "common_isubscribe.h"
 #include "common_tools.h"
+
+#if defined (GTK_SUPPORT)
+#include "common_ui_gtk_common.h"
+#endif // GTK_SUPPORT
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -606,10 +612,22 @@ typedef Stream_IStreamControl_T<enum Stream_ControlType,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_DirectShow_Configuration
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+ : Test_I_GTK_Configuration
+#endif // GTK_USE
+#else
  : Test_I_Configuration
+#endif // GUI_SUPPORT
 {
   Test_I_DirectShow_Configuration ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+   : Test_I_GTK_Configuration ()
+#endif // GTK_USE
+#else
    : Test_I_Configuration ()
+#endif // GUI_SUPPORT
    , direct3DConfiguration ()
    , streamConfiguration ()
   {}
@@ -620,10 +638,22 @@ struct Test_I_DirectShow_Configuration
 };
 
 struct Test_I_MediaFoundation_Configuration
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+ : Test_I_GTK_Configuration
+#endif // GTK_USE
+#else
  : Test_I_Configuration
+#endif // GUI_SUPPORT
 {
   Test_I_MediaFoundation_Configuration ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+   : Test_I_GTK_Configuration ()
+#endif // GTK_USE
+#else
    : Test_I_Configuration ()
+#endif // GUI_SUPPORT
    , direct3DConfiguration ()
    , streamConfiguration ()
   {}
@@ -634,10 +664,22 @@ struct Test_I_MediaFoundation_Configuration
 };
 #else
 struct Test_I_Configuration
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+ : Test_I_GTK_Configuration
+#endif // GTK_USE
+#else
  : Test_I_Configuration
+#endif // GUI_SUPPORT
 {
   Test_I_Configuration ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+   : Test_I_GTK_Configuration ()
+#endif // GTK_USE
+#else
    : Test_I_Configuration ()
+#endif // GUI_SUPPORT
    , streamConfiguration ()
   {}
 
@@ -647,10 +689,6 @@ struct Test_I_Configuration
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//typedef Stream_DirectShowAllocatorBase_T<struct Stream_AllocatorConfiguration,
-//                                         Stream_ControlMessage_t,
-//                                         Test_I_Message,
-//                                         Test_I_SessionMessage> Test_I_MessageAllocator_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Common_AllocatorConfiguration,
                                           Stream_ControlMessage_t,
@@ -683,8 +721,21 @@ typedef Test_I_EventHandler_T<Test_I_MediaFoundation_ISessionNotify_t,
 typedef Common_ISubscribe_T<Test_I_ISessionNotify_t> Test_I_ISubscribe_t;
 
 typedef Test_I_EventHandler_T<Test_I_ISessionNotify_t,
-                                           Test_I_Message_t,
-                                           Test_I_SessionMessage_t> Test_I_EventHandler_t;
+                              Test_I_Message_t,
+                              Test_I_SessionMessage_t> Test_I_EventHandler_t;
 #endif // ACE_WIN32 || ACE_WIN64
+
+//////////////////////////////////////////
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_SUPPORT)
+class MSAFluidSolver2D;
+struct Test_I_UI_GTK_CBData
+ : Common_UI_GTK_CBData
+{
+  MSAFluidSolver2D* solver;
+};
+#endif // GTK_SUPPORT
+#endif // GUI_SUPPORT
 
 #endif // TEST_I_CAMERA_MSA_COMMON_H

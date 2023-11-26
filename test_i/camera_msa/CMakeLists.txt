@@ -42,6 +42,7 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
 elseif (WIN32)
  if (DIRECTSHOW_BASECLASSES_SUPPORT)
   include_directories (${DS_BASECLASSES_INCLUDE_DIRS})
@@ -84,6 +85,8 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_message.cpp
      test_i_message.h
      test_i_message.inl
+     test_i_msafluidsolver2d.cpp
+     test_i_msafluidsolver2d.h
      test_i_session_message.cpp
      test_i_session_message.h
      test_i_session_message.inl
@@ -96,6 +99,14 @@ if (OLC_PGE_SUPPORT)
       test_i_module_pge.h
       test_i_module_pge.inl)
 endif (OLC_PGE_SUPPORT)
+if (GUI_SUPPORT)
+ if (GTK_SUPPORT)
+  set (${EXECUTABLE}_EXE_SRCS
+       ${${EXECUTABLE}_EXE_SRCS}
+       test_i_gtk_callbacks.cpp
+       test_i_gtk_callbacks.h)
+ endif (GTK_SUPPORT)
+endif (GUI_SUPPORT)
 
 if (UNIX)
 elseif (WIN32)
@@ -106,10 +117,27 @@ elseif (WIN32)
  endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
 endif ()
 
+set (ui_definition_file "")
+if (GUI_SUPPORT)
+ if (GTK_USE)
+  if (GTK3_USE)
+   set (ui_definition_file etc/test_i.gtk3)
+  elseif (GTK2_USE)
+   set (ui_definition_file etc/test_i.gtk2)
+  endif ()
+# elseif (WXWIDGETS_USE)
+#  if (WIN32)
+#   add_definitions(-DUNICODE -D_UNICODE)
+#  endif (WIN32)
+#  set (ui_definition_file etc/${EXECUTABLE}.xrc)
+ endif ()
+endif (GUI_SUPPORT)
+
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
-                ${${EXECUTABLE}_EXE_SRCS})
+                ${${EXECUTABLE}_EXE_SRCS}
+                ${ui_definition_file})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
 cmake_policy (SET CMP0012 NEW)
 if (WIN32 AND NOT BUILD_TEST_I)
@@ -158,18 +186,15 @@ target_link_libraries (${EXECUTABLE} PUBLIC CommonImage)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonLog)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonSignal)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonTimer)
-#if (GUI_SUPPORT)
-# target_link_libraries (${EXECUTABLE} PUBLIC CommonUI)
-# if (GTK_SUPPORT)
-#  target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_GTK)
-# endif (GTK_SUPPORT)
+if (GUI_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC CommonUI)
+ if (GTK_SUPPORT)
+  target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_GTK)
+ endif (GTK_SUPPORT)
 # if (WXWIDGETS_SUPPORT)
 #  target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_wxWidgets)
 # endif (WXWIDGETS_SUPPORT)
-#endif (GUI_SUPPORT)
-#if (UNIX)
-# target_link_libraries (${EXECUTABLE} PUBLIC CommonXML)
-#endif (UNIX)
+endif (GUI_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Decoder)
@@ -200,8 +225,8 @@ elseif (WIN32)
  install (FILES ${ACE_DLL_FQPATH}
 #                ${LIB_ROOT}/freeglut/bin/x64/freeglut.dll
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
-# install (FILES etc/${EXECUTABLE}.gtk3 ${EXECUTABLE}.gtk2 ${EXECUTABLE}.fbp
-#          DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+ install (FILES ${ui_definition_file}
+          DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()
 
@@ -213,11 +238,48 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 if (UNIX)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
+ if (GUI_SUPPORT)
+  if (GTK_USE)
+   set (ARGS "-g./${ui_definition_file} ${ARGS}")
+#  elseif (WXWIDGETS_USE)
+#   set (ENVIRONMENT "DISPLAY=:0")
+  endif ()
+ else ()
+  set (ARGS "-g ${ARGS}")
+ endif (GUI_SUPPORT)
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
 # set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
+
+ if (GUI_SUPPORT)
+  file (TO_NATIVE_PATH "${ui_definition_file}" ui_definition_file)
+#  message (STATUS "ui_definition_file: ${ui_definition_file}")
+  string (REGEX REPLACE "\\\\" "\\\\\\\\" ui_definition_file "${ui_definition_file}")
+#  message (STATUS "ui_definition_file: ${ui_definition_file}")
+
+  if (GTK_SUPPORT)
+   if (GTK_USE)
+    set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
+   endif (GTK_USE)
+
+   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                             ${GTK_PATH})
+  endif (GTK_SUPPORT)
+#  if (WXWIDGETS_SUPPORT)
+#   if (WXWIDGETS_USE)
+#    set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
+#   endif (WXWIDGETS_USE)
+
+#   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+#                             ${wxWidgets_LIB_DIR})
+#  endif (WXWIDGETS_SUPPORT)
+ else ()
+  set (ARGS "-g ${ARGS}")
+ endif (GUI_SUPPORT)
+
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
  if (GTK_SUPPORT)
