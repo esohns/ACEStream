@@ -180,7 +180,8 @@ enum Stream_SessionMessageType : int
   // *** control ***
   STREAM_SESSION_MESSAGE_BEGIN,
   STREAM_SESSION_MESSAGE_END,
-  STREAM_SESSION_MESSAGE_STEP, // i.e. next source file, data complete, ...
+  STREAM_SESSION_MESSAGE_STEP, // e.g. next source file, data complete, ...
+  STREAM_SESSION_MESSAGE_STEP_DATA, // progress has been made; e.g. more data has arrived, ...
   // *** data ***
   STREAM_SESSION_MESSAGE_STATISTIC,
   ////////////////////////////////////////
@@ -198,6 +199,7 @@ struct Stream_SessionData
 {
   Stream_SessionData ()
    : aborted (false)
+   , bytes (0)
    , lastCollectionTimeStamp (ACE_Time_Value::zero)
    , lock (NULL)
    , sessionId (0)
@@ -209,6 +211,7 @@ struct Stream_SessionData
   // *NOTE*: the idea is to 'copy' the data
   Stream_SessionData (const struct Stream_SessionData& data_in)
    : aborted (data_in.aborted)
+   , bytes (data_in.bytes)
    , lastCollectionTimeStamp (data_in.lastCollectionTimeStamp)
    , lock (data_in.lock)
    , sessionId (data_in.sessionId)
@@ -222,6 +225,7 @@ struct Stream_SessionData
   struct Stream_SessionData& operator+= (const struct Stream_SessionData& rhs_in)
   {
     aborted = (aborted ? aborted : rhs_in.aborted);
+    bytes += rhs_in.bytes;
     lastCollectionTimeStamp =
         ((lastCollectionTimeStamp >= rhs_in.lastCollectionTimeStamp) ? lastCollectionTimeStamp
                                                                      : rhs_in.lastCollectionTimeStamp);
@@ -232,6 +236,7 @@ struct Stream_SessionData
         (startOfSession >= rhs_in.startOfSession ? startOfSession
                                                  : rhs_in.startOfSession);
 
+    state = (state ? state : rhs_in.state);
     statistic += rhs_in.statistic;
 
     userData = (userData ? userData : rhs_in.userData);
@@ -244,12 +249,13 @@ struct Stream_SessionData
   //         - stream processing ends 'early' (i.e. user abort, connection
   //           reset, ...)
   bool                    aborted;
+  size_t                  bytes; // progress, i.e. STREAM_SESSION_MESSAGE_STEP_DATA
   ACE_Time_Value          lastCollectionTimeStamp;
   ACE_SYNCH_MUTEX*        lock;
   Stream_SessionId_t      sessionId;
   ACE_Time_Value          startOfSession;
   struct Stream_State*    state;
-  struct Stream_Statistic statistic;
+  struct Stream_Statistic statistic; // *TODO*: type should be a template parameter
 
   struct Stream_UserData* userData;
 };
@@ -284,6 +290,7 @@ struct Stream_State
    , moduleIsClone (false)
    , sessionData (NULL)
    , stateMachineLock (NULL)
+   , statistic (NULL)
    , userData (NULL)
   {}
 
@@ -297,6 +304,8 @@ struct Stream_State
     //stateMachineLock =
       //(stateMachineLock ? stateMachineLock : rhs_in.stateMachineLock);
 
+    statistic = (statistic ? statistic : rhs_in.statistic);
+
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
@@ -307,6 +316,7 @@ struct Stream_State
   bool                       moduleIsClone; // final-
   struct Stream_SessionData* sessionData;
   ACE_SYNCH_MUTEX*           stateMachineLock;
+  struct Stream_Statistic*   statistic;
 
   struct Stream_UserData*    userData;
 };

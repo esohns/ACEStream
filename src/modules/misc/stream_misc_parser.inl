@@ -25,7 +25,6 @@
 #include "stream_defines.h"
 #include "stream_macros.h"
 
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -52,17 +51,15 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
                           ParserInterfaceType,
                           ParserArgumentType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                          UserDataType>::Stream_Module_CppParser_T (ISTREAM_T* stream_in,
+                          UserDataType>::Stream_Module_CppParser_T (ISTREAM_T* stream_in)
 #else
-                          UserDataType>::Stream_Module_CppParser_T (typename inherited::ISTREAM_T* stream_in,
-#endif
-                                                                    bool traceScanning_in,
-                                                                    bool traceParsing_in)
+                          UserDataType>::Stream_Module_CppParser_T (typename inherited::ISTREAM_T* stream_in)
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , configuration_ (NULL)
  , fragment_ (NULL)
  , offset_ (0)
- , trace_ (traceParsing_in)
+ , trace_ (COMMON_PARSER_DEFAULT_YACC_TRACE)
  , parser_ (dynamic_cast<ParserInterfaceType*> (this), // parser
             &scanner_)                                 // scanner
 // , argument_ ()
@@ -78,12 +75,12 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
 
   scanner_.setP (this);
 
-  scanner_.set_debug (traceScanning_in ? 1 : 0);
-  parser_.set_debug_level (traceParsing_in ? 1 : 0);
-#if YYDEBUG
+  scanner_.set_debug (COMMON_PARSER_DEFAULT_LEX_TRACE ? 1 : 0);
+  parser_.set_debug_level (COMMON_PARSER_DEFAULT_YACC_TRACE ? 1 : 0);
+#if defined (YYDEBUG)
 //  yydebug = (trace_ ? 1 : 0);
 //  yysetdebug (trace_ ? 1 : 0);
-#endif
+#endif // YYDEBUG
 }
 
 template <ACE_SYNCH_DECL,
@@ -156,9 +153,7 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
     configuration_ = NULL;
     fragment_ = NULL;
     offset_ = 0;
-    trace_ = COMMON_PARSER_DEFAULT_YACC_TRACE;
 
-    blockInParse_ = false;
     isFirst_ = true;
 
     if (buffer_)
@@ -171,16 +166,13 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (configuration_in.parserConfiguration);
   configuration_ = configuration_in.parserConfiguration;
-  trace_ = configuration_->debugParser;
-
-  blockInParse_ = configuration_->block;
 
   scanner_.set_debug (configuration_->debugScanner ? 1 : 0);
 #if defined (YYDEBUG)
   parser_.set_debug_level (configuration_->debugParser ? 1 : 0);
 //  yydebug = (trace_ ? 1 : 0);
 //  yysetdebug (trace_ ? 1 : 0);
-#endif
+#endif // YYDEBUG
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -220,13 +212,7 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  try {
-    message_inout->dump_state ();
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Common_IDumpState::dump_state(), continuing\n"),
-                ACE_TEXT (inherited::mod_->name ())));
-  }
+  ACE_ASSERT (false); // *TODO*
 }
 
 template <ACE_SYNCH_DECL,
@@ -470,17 +456,18 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CppParser_T::switchBuffer"));
 
   // sanity check(s)
+  ACE_ASSERT (configuration_);
   ACE_ASSERT (fragment_);
 
   ACE_Message_Block* message_block_p = fragment_;
   if (!fragment_->cont ())
   {
     // sanity check(s)
-    if (!blockInParse_)
+    if (!configuration_->block)
       return false; // not enough data, cannot proceed
 
     waitBuffer (); // <-- wait for data
-    if (!fragment_->cont ())
+    if (unlikely (!fragment_->cont ()))
     {
       // *NOTE*: most probable reason: received session end
       ACE_DEBUG ((LM_DEBUG,
@@ -559,7 +546,8 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
   // *IMPORTANT NOTE*: 'this' is the parser thread currently blocked in yylex()
 
   // sanity check(s)
-  ACE_ASSERT (blockInParse_);
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->block);
   if (!inherited::msg_queue_)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -587,7 +575,8 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
     {
       case STREAM_MESSAGE_DATA:
       case STREAM_MESSAGE_OBJECT:
-        is_data = true; break;
+        is_data = true;
+        break;
       case STREAM_MESSAGE_SESSION:
       {
         session_message_p = static_cast<SessionMessageType*> (message_block_p);
@@ -598,7 +587,8 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
       default:
         break;
     } // end SWITCH
-    if (is_data) break;
+    if (is_data)
+      break;
 
     // requeue message
     result = inherited::msg_queue_->enqueue_tail (message_block_p, NULL);
@@ -616,7 +606,7 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
   // 2. append data ?
   if (message_block_p)
   {
-    // sanity check(s)
+-    // sanity check(s)
     ACE_ASSERT (fragment_);
 
     ACE_Message_Block* message_block_2 = fragment_;
@@ -658,8 +648,6 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CppParser_T::begin"));
 
-//  static int counter = 1;
-
   ACE_UNUSED_ARG (buffer_in);
   ACE_UNUSED_ARG (bufferSize_in);
 
@@ -673,8 +661,7 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
   scanner_.switch_streams (&stream_, NULL);
 
 //  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("parsing fragment #%d --> %d byte(s)\n"),
-//              counter++,
+//              ACE_TEXT ("parsing fragment (%u byte(s))\n"),
 //              fragment_->length ()));
 
   return true;
@@ -874,19 +861,40 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
   //             as such
   passMessageDownstream_out = false;
 
+  typename SessionMessageType::DATA_T* session_data_container_p =
+    inherited::sessionData_;
+
+  // *IMPORTANT NOTE*: send 'step data' session message so downstream modules know
+  //                   that some data has arrived
+  if (likely (session_data_container_p))
+  {
+    session_data_container_p->increase ();
+
+    typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+      const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_p->getR ());
+    session_data_r.bytes += message_inout->total_length ();
+  } // end IF
+  if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_STEP_DATA,
+                                               session_data_container_p,
+                                               NULL,
+                                               false))) // expedited ?
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
+                inherited::mod_->name (),
+                STREAM_SESSION_MESSAGE_STEP_DATA));
+
   // append the "\0\0"-sequence, as required by flex
   ACE_ASSERT (message_inout->capacity () - message_inout->length () >= COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE);
   *(message_inout->wr_ptr ()) = YY_END_OF_BUFFER_CHAR;
   *(message_inout->wr_ptr () + 1) = YY_END_OF_BUFFER_CHAR;
   // *NOTE*: DO NOT adjust the write pointer --> length() must stay as it was
 
-  //message_inout->finalize (); // reset any data it might already have
   result = parserQueue_.enqueue_tail (message_inout,
                                       NULL);
   if (unlikely (result == -1))
   {
     int error = ACE_OS::last_error ();
-    if (error != ESHUTDOWN)
+    if (unlikely (error != ESHUTDOWN))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue_tail(): \"%m\", returning\n"),
                   inherited::mod_->name ()));
@@ -1205,7 +1213,7 @@ Stream_Module_ParserH_T<ACE_SYNCH_USE,
                         ParserDriverType>::Stream_Module_ParserH_T (ISTREAM_T* stream_in)
 #else
                         ParserDriverType>::Stream_Module_ParserH_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in,                               // stream handle
               false,                                   // auto-start ? (active mode only)
               STREAM_HEADMODULECONCURRENCY_CONCURRENT, // concurrency mode
@@ -1568,4 +1576,75 @@ Stream_Module_ParserH_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     message_block_p->release (); message_block_p = NULL;
   } // end IF
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename UserDataType,
+          typename ParserDriverType>
+int
+Stream_Module_ParserH_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        ConfigurationType,
+                        SessionControlType,
+                        SessionEventType,
+                        StreamStateType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        StatisticContainerType,
+                        TimerManagerType,
+                        UserDataType,
+                        ParserDriverType>::put (ACE_Message_Block* messageBlock_in,
+                                                ACE_Time_Value* timeValue_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_ParserH_T::put"));
+
+  switch (messageBlock_in->msg_type ())
+  {
+    case STREAM_MESSAGE_DATA:
+    case STREAM_MESSAGE_OBJECT:
+    {
+      typename SessionMessageType::DATA_T* session_data_container_p =
+        inherited::sessionData_;
+
+      // *IMPORTANT NOTE*: send 'step data' session message so downstream modules know
+      //                   that some data has arrived
+      if (likely (session_data_container_p))
+      {
+        session_data_container_p->increase ();
+
+        typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_p->getR ());
+        session_data_r.bytes += messageBlock_in->total_length ();
+      } // end IF
+      if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_STEP_DATA,
+                                                   session_data_container_p,
+                                                   NULL,
+                                                   false))) // expedited ?
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
+                    inherited::mod_->name (),
+                    STREAM_SESSION_MESSAGE_STEP_DATA));
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+
+  return inherited::put (messageBlock_in,
+                         timeValue_in);
 }

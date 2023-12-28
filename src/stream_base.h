@@ -391,6 +391,7 @@ class Stream_Base_T
   SessionDataContainerType* sessionData_;
   ACE_SYNCH_MUTEX_T         sessionDataLock_;
   StateType                 state_;
+  StatisticContainerType    statistic_;
 
  private:
   // convenient types

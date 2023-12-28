@@ -73,10 +73,15 @@ Stream_Base_T<ACE_SYNCH_USE,
  , sessionData_ (NULL)
  , sessionDataLock_ ()
  , state_ ()
+ , statistic_ ()
  /////////////////////////////////////////
  , delete_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
+
+  { //ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
+    state_.statistic = &statistic_;
+  } // end lock scope
 
   if (unlikely (!initializeHeadTail ()))
   {
@@ -429,6 +434,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     //            &sessionDataLock_));
     // *TODO*: remove type inferences
     session_data_p->lock = &sessionDataLock_;
+    session_data_p->state = &state_;
 
     { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
       state_.sessionData = session_data_p;

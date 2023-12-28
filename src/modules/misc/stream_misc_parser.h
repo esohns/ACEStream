@@ -83,12 +83,10 @@ class Stream_Module_CppParser_T
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Module_CppParser_T (ISTREAM_T*,                     // stream handle
+  Stream_Module_CppParser_T (ISTREAM_T*); // stream handle
 #else
-  Stream_Module_CppParser_T (typename inherited::ISTREAM_T*, // stream handle
-#endif
-                             bool = false,                   // debug scanning ?
-                             bool = false);                  // debug parsing ?
+  Stream_Module_CppParser_T (typename inherited::ISTREAM_T*); // stream handle
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_CppParser_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -134,7 +132,6 @@ class Stream_Module_CppParser_T
 
   ACE_Message_Block*       fragment_;
   unsigned int             offset_; // parsed fragment bytes
-  bool                     trace_;
 
   // parser
   ParserType               parser_;
@@ -156,12 +153,12 @@ class Stream_Module_CppParser_T
   struct MEMORY_BUFFER_T
    : std::streambuf
   {
-    void set (char* buffer_in, unsigned int size_in) {
+    void set (char* buffer_in, unsigned int size_in)
+    {
       this->setg (buffer_in, buffer_in, buffer_in + size_in);
     }
   };
 
-  bool                     blockInParse_;
   bool                     isFirst_;
 
   struct yy_buffer_state*  buffer_;
@@ -214,7 +211,7 @@ class Stream_Module_Parser_T
   Stream_Module_Parser_T (ISTREAM_T*); // stream handle
 #else
   Stream_Module_Parser_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_Parser_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -318,8 +315,12 @@ class Stream_Module_ParserH_T
   Stream_Module_ParserH_T (ISTREAM_T*); // stream handle
 #else
   Stream_Module_ParserH_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_ParserH_T ();
+
+  // override some baseclass methods
+  virtual int put (ACE_Message_Block*,
+                   ACE_Time_Value* = NULL);
 
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
