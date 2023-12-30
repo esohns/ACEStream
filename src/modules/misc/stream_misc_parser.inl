@@ -59,13 +59,11 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
  , configuration_ (NULL)
  , fragment_ (NULL)
  , offset_ (0)
- , trace_ (COMMON_PARSER_DEFAULT_YACC_TRACE)
  , parser_ (dynamic_cast<ParserInterfaceType*> (this), // parser
             &scanner_)                                 // scanner
 // , argument_ ()
  , scanner_ ()
  , scannerState_ ()
- , blockInParse_ (false)
  , isFirst_ (true)
  , buffer_ (NULL)
  , streamBuffer_ ()
@@ -76,10 +74,10 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
   scanner_.setP (this);
 
   scanner_.set_debug (COMMON_PARSER_DEFAULT_LEX_TRACE ? 1 : 0);
-  parser_.set_debug_level (COMMON_PARSER_DEFAULT_YACC_TRACE ? 1 : 0);
 #if defined (YYDEBUG)
-//  yydebug = (trace_ ? 1 : 0);
-//  yysetdebug (trace_ ? 1 : 0);
+  parser_.set_debug_level (COMMON_PARSER_DEFAULT_YACC_TRACE ? 1 : 0);
+//  yydebug = (COMMON_PARSER_DEFAULT_YACC_TRACE ? 1 : 0);
+//  yysetdebug (COMMON_PARSER_DEFAULT_YACC_TRACE ? 1 : 0);
 #endif // YYDEBUG
 }
 
@@ -170,8 +168,8 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
   scanner_.set_debug (configuration_->debugScanner ? 1 : 0);
 #if defined (YYDEBUG)
   parser_.set_debug_level (configuration_->debugParser ? 1 : 0);
-//  yydebug = (trace_ ? 1 : 0);
-//  yysetdebug (trace_ ? 1 : 0);
+//  yydebug = (configuration_->debugParser ? 1 : 0);
+//  yysetdebug (configuration_->debugParser ? 1 : 0);
 #endif // YYDEBUG
 
   return inherited::initialize (configuration_in,
@@ -606,7 +604,7 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
   // 2. append data ?
   if (message_block_p)
   {
--    // sanity check(s)
+    // sanity check(s)
     ACE_ASSERT (fragment_);
 
     ACE_Message_Block* message_block_2 = fragment_;

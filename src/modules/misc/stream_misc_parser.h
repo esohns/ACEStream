@@ -25,6 +25,7 @@
 #include <string>
 
 #include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_iscanner.h"
@@ -107,7 +108,7 @@ class Stream_Module_CppParser_T
 
   // implement (part of) Common_ILexScanner_T
   inline virtual ACE_Message_Block* buffer () { return fragment_; }
-  inline virtual bool isBlocking () const { return blockInParse_; }
+  inline virtual bool isBlocking () const { ACE_ASSERT (configuration_); return configuration_->block; }
   inline virtual void offset (unsigned int offset_in) { offset_ += offset_in; }
   inline virtual unsigned int offset () const { return offset_; }
   virtual bool begin (const char*,   // buffer
