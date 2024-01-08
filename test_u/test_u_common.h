@@ -130,7 +130,6 @@ struct Test_U_SessionData
   Test_U_SessionData ()
    : Stream_SessionData ()
    , fileIdentifier ()
-   , userData (NULL)
   {}
 
   struct Test_U_SessionData& operator+= (const struct Test_U_SessionData& rhs_in)
@@ -141,14 +140,10 @@ struct Test_U_SessionData
     fileIdentifier =
       (fileIdentifier.empty () ? rhs_in.fileIdentifier : fileIdentifier);
 
-    userData = (userData ? userData : rhs_in.userData);
-
     return *this;
   }
 
   struct Common_File_Identifier fileIdentifier; // target-
-
-  struct Stream_UserData* userData;
 };
 typedef Stream_SessionData_T<struct Test_U_SessionData> Test_U_SessionData_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -153,10 +153,10 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: no output format specified, using default\n"),
                 inherited::mod_->name ()));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    inherited2::setFormat (MEDIASUBTYPE_RGB24,
+    inherited2::setFormat (MEDIASUBTYPE_RGB32,
 #else
 #if defined (FFMPEG_SUPPORT)
-    inherited2::setFormat (AV_PIX_FMT_RGB24,
+    inherited2::setFormat (AV_PIX_FMT_RGB32,
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
                            outputFormat_);
@@ -231,7 +231,12 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   } // end IF
   message_p = static_cast<DataMessageType*> (message_block_p);
   ACE_ASSERT (message_p);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  message_data_2.format = *Stream_MediaFramework_DirectShow_Tools::copy (outputFormat_);
+#else
   message_data_2.format = outputFormat_;
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Common_Image_Resolution_t resolution_s =
@@ -241,7 +246,7 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (media_type_s.codec == AV_CODEC_ID_NONE);
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-  unsigned int result = MagickSetFormat (context_, "RGB");
+  MagickBooleanType result = MagickSetFormat (context_, ACE_TEXT_ALWAYS_CHAR ("RGB"));
   ACE_ASSERT (result == MagickTrue);
   result = MagickSetSize (context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -264,7 +269,7 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
 //                                       AllChannels,
 //                                       8);
   ACE_ASSERT (result == MagickTrue);
-  result = MagickSetImageFormat (context_, "RGBA");
+  result = MagickSetImageFormat (context_, ACE_TEXT_ALWAYS_CHAR ("RGBA"));
   ACE_ASSERT (result == MagickTrue);
 //result = MagickSetImageAlphaChannel (context_,
 //                                     OpaqueAlphaChannel);
@@ -276,8 +281,8 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   data_p = MagickGetImageBlob (context_, // was: MagickWriteImageBlob
                                &size_2);
   ACE_ASSERT (data_p);
-  ACE_ASSERT (size_i == size_2);
-  // *TODO*: crashes in release()...(needs MagickRelinquishMemory())
+  ACE_ASSERT (size_i <= size_2);
+  // *IMPORTANT NOTE*: crashes in release()...(needs MagickRelinquishMemory())
   message_p->base (reinterpret_cast<char*> (data_p),
                    size_2,
                    ACE_Message_Block::DONT_DELETE); // own image data, but relinquish() in dtor

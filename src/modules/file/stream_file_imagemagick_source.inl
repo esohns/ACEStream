@@ -164,11 +164,11 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
     result = directory_.open (ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ()),
                               configuration_in.fileIdentifier.selector,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              NULL);
+                              configuration_in.fileIdentifier.comparator);
 #else
-                              alphasort);
+                              configuration_in.fileIdentifier.comparator ? configuration_in.fileIdentifier.comparator : ACE_OS::alphasort);
 #endif // ACE_WIN32 || ACE_WIN64
-    if (result == -1)
+    if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Dirent_Selector::open(\"%s\"): \"%m\", aborting\n"),
@@ -176,13 +176,11 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
                   ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ())));
       return false;
     } // end IF
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: processing %d file(s) in \"%s\"\n"),
                 inherited::mod_->name (),
                 directory_.length (),
                 ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ())));
-#endif // _DEBUG
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -256,7 +254,7 @@ next:
   if (directory_.length ())
   {
     file_path_string += ACE_DIRECTORY_SEPARATOR_STR;
-    file_path_string += directory_[file_index_i++]->d_name;
+    file_path_string += ACE_TEXT_ALWAYS_CHAR (directory_[file_index_i++]->d_name);
   } // end IF
   else if (!Common_File_Tools::isValidFilename (inherited::configuration_->fileIdentifier.identifier)) // empty directory ?
     goto continue_;
@@ -319,7 +317,8 @@ next:
     else if (result == -1)
     {
       error = ACE_OS::last_error ();
-      if (error != EWOULDBLOCK) // Win32: 10035
+      if (error && // *TODO*: why is errno not set on Win32 ?
+          error != EWOULDBLOCK) // Win32: 10035
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
@@ -404,14 +403,13 @@ next:
 //                            file_size_i);
 //#endif // _DEBUG
 
-    message_p =
-        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-    if (!message_p)
+    message_p = inherited::allocateMessage (static_cast<unsigned int> (file_size_i));
+    if (unlikely (!message_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), aborting\n"),
+                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%Q), aborting\n"),
                   inherited::mod_->name (),
-                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+                  file_size_i));
 
       finished = true;
       inherited::stop (false, false, false);
@@ -421,7 +419,7 @@ next:
     // *TODO*: crashes in release()...(needs MagickRelinquishMemory())
     message_p->base (reinterpret_cast<char*> (data_p),
                      file_size_i,
-                     ACE_Message_Block::DONT_DELETE); // own image datas
+                     ACE_Message_Block::DONT_DELETE); // own image data
     message_p->wr_ptr (file_size_i);
     inherited2::getMediaType (media_type_s,
                               STREAM_MEDIATYPE_VIDEO,
@@ -457,9 +455,7 @@ continue_:
         file_index_i < directory_.length ())
       goto next;
 
-    this->stop (false, // wait ?
-                true,  // high priority ?
-                true); // locked access ?
+    inherited::stop (false, false, false);
   } while (true);
 
 continue_2:

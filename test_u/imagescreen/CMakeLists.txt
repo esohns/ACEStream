@@ -28,8 +28,6 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
-
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/test_u)
 elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
@@ -40,8 +38,6 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
-
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/test_u)
 endif ()
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 

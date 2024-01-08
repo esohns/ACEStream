@@ -121,11 +121,11 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   bool reset_setup_pipeline = false;
   Stream_ImageScreen_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-#if defined (IMAGEMAGICK_SUPPORT)
-  Stream_ImageScreen_ImageMagick_Source* source_impl_p = NULL;
-#else
-  Stream_ImageScreen_Source* source_impl_p = NULL;
-#endif // IMAGEMAGICK_SUPPORT
+//#if defined (IMAGEMAGICK_SUPPORT)
+//  Stream_ImageScreen_ImageMagick_Source* source_impl_p = NULL;
+//#else
+//  Stream_ImageScreen_Source* source_impl_p = NULL;
+//#endif // IMAGEMAGICK_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
@@ -226,24 +226,24 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
 
   // ---------------------------------------------------------------------------
 
-  // ******************* Camera Source ************************
-  source_impl_p =
-#if defined (IMAGEMAGICK_SUPPORT)
-    static_cast<Stream_ImageScreen_ImageMagick_Source*> (imagemagick_source_.writer ());
-#else
-    static_cast<Stream_ImageScreen_Source*> (source_.writer ());
-#endif // IMAGEMAGICK_SUPPORT
-  ACE_ASSERT (source_impl_p);
-  source_impl_p->setP (&(inherited::state_));
-
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-#if defined (IMAGEMAGICK_SUPPORT)
-  imagemagick_source_.arg (inherited::sessionData_);
-#else
-  source_.arg (inherited::sessionData_);
-#endif // IMAGEMAGICK_SUPPORT
+  // ******************* Source ************************
+//  source_impl_p =
+//#if defined (IMAGEMAGICK_SUPPORT)
+//    static_cast<Stream_ImageScreen_ImageMagick_Source*> (imagemagick_source_.writer ());
+//#else
+//    static_cast<Stream_ImageScreen_Source*> (source_.writer ());
+//#endif // IMAGEMAGICK_SUPPORT
+//  ACE_ASSERT (source_impl_p);
+//  source_impl_p->setP (&(inherited::state_));
+//
+//  // *NOTE*: push()ing the module will open() it
+//  //         --> set the argument that is passed along (head module expects a
+//  //             handle to the session data)
+//#if defined (IMAGEMAGICK_SUPPORT)
+//  imagemagick_source_.arg (inherited::sessionData_);
+//#else
+//  source_.arg (inherited::sessionData_);
+//#endif // IMAGEMAGICK_SUPPORT
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))
