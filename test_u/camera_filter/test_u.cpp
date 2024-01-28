@@ -79,16 +79,12 @@
 
 #include "test_u_defines.h"
 
-#include "test_u_camerascreen_defines.h"
-#include "test_u_camerascreen_eventhandler.h"
-#include "test_u_camerascreen_signalhandler.h"
-#include "test_u_camerascreen_stream.h"
+#include "test_u_camera_filter_defines.h"
+#include "test_u_eventhandler.h"
+#include "test_u_signalhandler.h"
+#include "test_u_stream.h"
 
-#if defined (CURSES_SUPPORT)
-#include "test_u_camerascreen_curses.h"
-#endif // CURSES_SUPPORT
-
-const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CameraScreenStream");
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CameraFilterStream");
 
 void
 do_print_usage (const std::string& programName_in)
@@ -108,12 +104,6 @@ do_print_usage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
-#if defined (CURSES_SUPPORT)
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c          : use curses [")
-            << false
-            << ACE_TEXT_ALWAYS_CHAR ("])")
-            << std::endl;
-#endif // CURSES_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-1          : use GDI renderer [")
             << false
@@ -203,10 +193,6 @@ do_print_usage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : test device for method support and exit [")
-            << false
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
 }
 
 bool
@@ -220,7 +206,7 @@ do_process_arguments (int argc_in,
                       struct Common_UI_DisplayDevice& displayDevice_out,
                       enum Stream_Visualization_VideoRenderer& renderer_out,
                       bool& traceInformation_out,
-                      enum Stream_CameraScreen_ProgramMode& mode_out)
+                      bool& printVersionAndExit_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_process_arguments"));
 
@@ -271,12 +257,9 @@ do_process_arguments (int argc_in,
   renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_X11;
 #endif // ACE_WIN32 || ACE_WIN64
   traceInformation_out = false;
-  mode_out = STREAM_CAMERASCREEN_PROGRAMMODE_NORMAL;
+  printVersionAndExit_out = false;
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:glo:tvx");
-#if defined (CURSES_SUPPORT)
-  options_string += ACE_TEXT_ALWAYS_CHAR ("c");
-#endif // CURSES_SUPPORT
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:glo:tv");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("123m");
 #else
@@ -319,13 +302,6 @@ do_process_arguments (int argc_in,
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (CURSES_SUPPORT)
-      case 'c':
-      {
-        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_CURSES;
-        break;
-      }
-#endif // CURSES_SUPPORT
       case 'd':
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -369,17 +345,9 @@ do_process_arguments (int argc_in,
       }
       case 'v':
       {
-        mode_out = STREAM_CAMERASCREEN_PROGRAMMODE_PRINT_VERSION;
+        printVersionAndExit_out = true;
         break;
       }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-      case 'x':
-      {
-        mode_out = STREAM_CAMERASCREEN_PROGRAMMODE_TEST_METHODS;
-        break;
-      }
-#endif // ACE_WIN32 || ACE_WIN64
       // error handling
       case ':':
       {
@@ -971,10 +939,10 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
          struct Common_UI_DisplayDevice& displayDevice_in,
          enum Stream_Visualization_VideoRenderer renderer_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-         struct Stream_CameraScreen_DirectShow_Configuration& directShowConfiguration_in,
-         struct Stream_CameraScreen_MediaFoundation_Configuration& mediaFoundationConfiguration_in
+         struct Test_U_DirectShow_Configuration& directShowConfiguration_in,
+         struct Test_U_MediaFoundation_Configuration& mediaFoundationConfiguration_in
 #else
-         struct Stream_CameraScreen_Configuration& configuration_in
+         struct Test_U_Configuration& configuration_in
 #endif // ACE_WIN32 || ACE_WIN64
          )
 {
@@ -1041,26 +1009,22 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_AllocatorConfiguration allocator_configuration;
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
-  struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // converter
-  struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // display
-  struct Stream_CameraScreen_DirectShow_StreamConfiguration directshow_stream_configuration;
-  Stream_CameraScreen_DirectShow_EventHandler_t directshow_ui_event_handler;
-  struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
-  struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // converter
-  struct Stream_CameraScreen_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
-  Stream_CameraScreen_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler;
+  struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
+  struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // converter
+  struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // display
+  struct Test_U_CameraFilter_DirectShow_StreamConfiguration directshow_stream_configuration;
+  Test_U_DirectShow_EventHandler_t directshow_ui_event_handler;
+  struct Test_U_CameraFilter_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
+  struct Test_U_CameraFilter_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // converter
+  struct Test_U_CameraFilter_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
+  Test_U_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler;
 #else
-  struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration;
-  struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
-  Stream_CameraScreen_EventHandler_t ui_event_handler;
+  struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
+  Test_U_EventHandler_t ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Stream_CameraScreen_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
-  //Stream_CameraScreen_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
-  //Stream_CameraScreen_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-  //Stream_CameraScreen_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1114,8 +1078,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-//  Stream_CameraScreen_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator;
-//  Stream_CameraScreen_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator_2;
+//  Test_U_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator;
+//  Test_U_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator_2;
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.buffers = STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
@@ -1126,7 +1090,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                                                 modulehandler_configuration.outputFormat);
   modulehandler_configuration.subscriber = &ui_event_handler;
 
-  struct Stream_CameraScreen_V4L_StreamConfiguration stream_configuration;
+  struct Test_U_CameraFilter_V4L_StreamConfiguration stream_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
@@ -1138,18 +1102,18 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     return;
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_CameraScreen_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+  Test_U_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                   &heap_allocator,     // heap allocator handle
                                                                                   true);               // block ?
-  Stream_CameraScreen_DirectShow_Stream directshow_stream;
-  Stream_CameraScreen_DirectShow_MessageHandler_Module directshow_message_handler (&directshow_stream,
+  Test_U_DirectShow_Stream directshow_stream;
+  Test_U_DirectShow_MessageHandler_Module directshow_message_handler (&directshow_stream,
                                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
-  Stream_CameraScreen_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+  Test_U_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                             &heap_allocator,     // heap allocator handle
                                                                                             true);               // block ?
-  Stream_CameraScreen_MediaFoundation_Stream mediafoundation_stream;
-  Stream_CameraScreen_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (&mediafoundation_stream,
+  Test_U_MediaFoundation_Stream mediafoundation_stream;
+  Test_U_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (&mediafoundation_stream,
                                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   switch (mediaFramework_in)
   {
@@ -1216,11 +1180,11 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Stream_CameraScreen_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+  Test_U_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                             &heap_allocator,     // heap allocator handle
                                                             true);               // block ?
-  Stream_CameraScreen_Stream stream;
-  Stream_CameraScreen_MessageHandler_Module message_handler (&stream,
+  Test_U_Stream stream;
+  Test_U_MessageHandler_Module message_handler (&stream,
                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   configuration_in.signalHandlerConfiguration.stream = &stream;
@@ -1242,10 +1206,6 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
   Stream_IStreamControlBase* stream_p = NULL;
-#if defined (CURSES_SUPPORT)
-  Test_U_Curses_Manager_t* curses_manager_p = NULL;
-  struct Common_UI_Curses_Configuration* curses_configuration_p = NULL;
-#endif // CURSES_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND window_handle = NULL;
@@ -1360,140 +1320,6 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 
   switch (renderer_in)
   {
-#if defined (CURSES_SUPPORT)
-    case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
-    {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      DestroyWindow (directshow_modulehandler_configuration_3.window);
-      directshow_modulehandler_configuration_3.window = NULL;
-
-      switch (mediaFramework_in)
-      {
-        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-        {
-          curses_configuration_p = &directShowConfiguration_in.cursesConfiguration;
-          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
-                                                                                 std::make_pair (&module_configuration,
-                                                                                                 &directshow_modulehandler_configuration_2)));
-          break;
-        }
-        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-        {
-          curses_configuration_p = &mediaFoundationConfiguration_in.cursesConfiguration;
-          mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
-                                                                                      std::make_pair (&module_configuration,
-                                                                                                      &mediafoundation_modulehandler_configuration_2)));
-          break;
-        }
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                      mediaFramework_in));
-          return;
-        }
-      } // end SWITCH
-#else
-      curses_configuration_p = &configuration_in.cursesConfiguration;
-#endif // ACE_WIN32 || ACE_WIN64
-      ACE_ASSERT (curses_configuration_p);
-
-      curses_configuration_p->hooks.initHook = curses_init;
-      curses_configuration_p->hooks.finiHook = curses_fini;
-      curses_configuration_p->hooks.inputHook = curses_input;
-      curses_configuration_p->hooks.mainHook = curses_main;
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct _COORD coord_s;
-      ACE_OS::memset (&coord_s, 0, sizeof (struct _COORD));
-      coord_s.X = TEST_U_CURSES_CONSOLE_FONT_SIZE;
-      coord_s.Y = TEST_U_CURSES_CONSOLE_FONT_SIZE;
-      Common_UI_Tools::setConsoleFontSize (coord_s);
-      coord_s.X = TEST_U_CURSES_CONSOLE_WIDTH;
-      coord_s.Y = TEST_U_CURSES_CONSOLE_HEIGHT;
-      Common_UI_Tools::setConsoleSize (coord_s);
-
-      curses_configuration_p->height = TEST_U_CURSES_CONSOLE_HEIGHT; // lines
-      curses_configuration_p->width = TEST_U_CURSES_CONSOLE_WIDTH;   // columns
-#else
-      Common_UI_Tools::setConsoleFontSize (TEST_U_CURSES_CONSOLE_FONT_FACTOR);
-      Common_UI_Tools::setConsoleSize (TEST_U_CURSES_CONSOLE_WIDTH,
-                                       TEST_U_CURSES_CONSOLE_HEIGHT);
-
-      curses_configuration_p->height = TEST_U_CURSES_CONSOLE_HEIGHT; // lines
-      curses_configuration_p->width = TEST_U_CURSES_CONSOLE_WIDTH; // columns
-//      curses_configuration_p->height = 120; // lines
-//      curses_configuration_p->width = 45; // columns
-#endif // ACE_WIN32 || ACE_WIN64
-
-      curses_manager_p = TEST_U_CURSES_MANAGER_SINGLETON::instance ();
-      ACE_ASSERT (curses_manager_p);
-      struct Test_U_CursesState& state_r =
-        const_cast<struct Test_U_CursesState&> (curses_manager_p->getR ());
-      state_r.stream = stream_p;
-
-      if (!curses_manager_p->initialize (*curses_configuration_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Common_UI_Curses_Manager_T::initialize(), returning\n")));
-        goto clean;
-      } // end IF
-      if (!curses_manager_p->start (NULL))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Common_UI_Curses_Manager_T::start(), returning\n")));
-        goto clean;
-      } // end IF
-      ACE_OS::sleep (1);
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      Common_Image_Resolution_t resolution_s;
-      switch (mediaFramework_in)
-      {
-        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-        {
-          directshow_modulehandler_configuration_3.window_2 = state_r.std_window;
-          ACE_ASSERT (directshow_modulehandler_configuration_3.window_2);
-          resolution_s.cx = getmaxx (state_r.std_window);
-          resolution_s.cy = getmaxy (state_r.std_window);
-          Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-                                                                 directshow_modulehandler_configuration.outputFormat);
-          Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
-                                                             directshow_modulehandler_configuration_2.outputFormat);
-          break;
-        }
-        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-        {
-          mediafoundation_modulehandler_configuration.window_2 = state_r.std_window;
-          ACE_ASSERT (mediafoundation_modulehandler_configuration.window_2);
-          Stream_MediaFramework_MediaFoundation_Tools::setResolution (resolution_s,
-                                                                      mediafoundation_modulehandler_configuration.outputFormat);
-          Stream_MediaFramework_MediaFoundation_Tools::setFormat (MEDIASUBTYPE_RGB24,
-                                                                  mediafoundation_modulehandler_configuration_2.outputFormat);
-          break;
-        }
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                      mediaFramework_in));
-          return;
-        }
-      } // end SWITCH
-#else
-      modulehandler_configuration.window_2 = state_r.std_window;
-      ACE_ASSERT (modulehandler_configuration.window_2);
-      modulehandler_configuration.outputFormat.format.width =
-        getmaxx (state_r.std_window);
-      modulehandler_configuration.outputFormat.format.height =
-        getmaxy (state_r.std_window);
-      modulehandler_configuration_2.outputFormat.format.pixelformat =
-        V4L2_PIX_FMT_RGB24;
-#endif // ACE_WIN32 || ACE_WIN64
-
-      break;
-    }
-#endif // CURSES_SUPPORT
 #if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
     {
@@ -1602,7 +1428,7 @@ clean:
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      Stream_CameraScreen_MediaFoundation_StreamConfiguration_t::ITERATOR_T iterator =
+      Test_U_MediaFoundation_StreamConfiguration_t::ITERATOR_T iterator =
       mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
       do_finalize_mediafoundation ((*iterator).second.second->session);
@@ -1842,9 +1668,7 @@ ACE_TMAIN (int argc_in,
   struct Common_UI_DisplayDevice display_device_s =
     Common_UI_Tools::getDefaultDisplay ();
   bool trace_information = false;
-  enum Stream_CameraScreen_ProgramMode program_mode_e =
-      STREAM_CAMERASCREEN_PROGRAMMODE_NORMAL;
-  //bool run_stress_test = false;
+  bool print_version_and_exit_b = false;
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
@@ -1857,7 +1681,7 @@ ACE_TMAIN (int argc_in,
                              display_device_s,
                              video_renderer_e,
                              trace_information,
-                             program_mode_e))
+                             print_version_and_exit_b))
   {
     do_print_usage (ACE::basename (argv_in[0]));
     Common_Tools::finalize ();
@@ -1924,62 +1748,29 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1f: handle specific program modes
-  switch (program_mode_e)
+  if (print_version_and_exit_b)
   {
-    case STREAM_CAMERASCREEN_PROGRAMMODE_PRINT_VERSION:
-    {
-      do_print_version (ACE::basename (argv_in[0]));
+    do_print_version (ACE::basename (argv_in[0]));
 
-      Common_Log_Tools::finalizeLogging ();
-      Common_Tools::finalize ();
+    Common_Log_Tools::finalizeLogging ();
+    Common_Tools::finalize ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      // *PORTABILITY*: on Windows, finalize ACE...
-      result = ACE::fini ();
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
-      return EXIT_SUCCESS;
-    }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-    case STREAM_CAMERASCREEN_PROGRAMMODE_TEST_METHODS:
-    {
-      do_test_methods (device_identifier.identifier);
-
-      Common_Log_Tools::finalizeLogging ();
-      Common_Tools::finalize ();
-
-      return EXIT_SUCCESS;
-    }
-#endif // ACE_WIN32 || ACE_WIN64
-    case STREAM_CAMERASCREEN_PROGRAMMODE_NORMAL:
-      break;
-    default:
-    {
+    // *PORTABILITY*: on Windows, finalize ACE...
+    result = ACE::fini ();
+    if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown program mode (was: %d), aborting\n"),
-                  program_mode_e));
-
-      Common_Tools::finalize ();
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      // *PORTABILITY*: on Windows, finalize ACE...
-      result = ACE::fini ();
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
+                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif // ACE_WIN32 || ACE_WIN64
-      return EXIT_FAILURE;
-    }
-  } // end SWITCH
+    return EXIT_SUCCESS;
+  } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_Visualization_Tools::initialize (STREAM_VIS_FRAMEWORK_DEFAULT);
 
-  struct Stream_CameraScreen_DirectShow_Configuration directshow_configuration;
-  struct Stream_CameraScreen_MediaFoundation_Configuration mediafoundation_configuration;
+  struct Test_U_DirectShow_Configuration directshow_configuration;
+  struct Test_U_MediaFoundation_Configuration mediafoundation_configuration;
 #else
-  struct Stream_CameraScreen_Configuration configuration;
+  struct Test_U_Configuration configuration;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //#if defined (GTK_USE)
