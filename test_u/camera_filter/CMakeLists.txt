@@ -2,6 +2,7 @@
 #include (PreUIFramework)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/gl/scripts")
 include (assimp)
+include (glew)
 include (glut)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/image/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image/scripts")
 include (png)
@@ -27,6 +28,9 @@ endif (UNIX)
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
+if (GLEW_SUPPORT)
+ include_directories (${GLEW_INCLUDE_DIRS})
+endif (GLEW_SUPPORT)
 if (GLUT_SUPPORT)
  include_directories (${GLUT_INCLUDE_DIRS})
 endif (GLUT_SUPPORT)
@@ -94,6 +98,8 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_message.cpp
      test_u_message.h
      test_u_message.inl
+     test_u_module_opengl_glut.cpp
+     test_u_module_opengl_glut.h
      test_u_module_sobel_filter.cpp
      test_u_module_sobel_filter.h
      test_u_session_message.cpp
@@ -134,6 +140,9 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
+if (GLEW_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${GLEW_LIBRARIES})
+endif (GLEW_SUPPORT)
 if (GLUT_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${GLUT_LIBRARIES})
 endif (GLUT_SUPPORT)
@@ -229,6 +238,7 @@ elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  file (TO_CMAKE_PATH "${OPENGL_LIB_DIR}" OPENGL_PATH)
+ file (TO_CMAKE_PATH "${GLEW_LIB_DIR}" GLEW_PATH)
  file (TO_CMAKE_PATH "${GLUT_LIB_DIR}" GLUT_PATH)
  file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
@@ -243,6 +253,7 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${OPENGL_PATH}
+                           ${GLEW_PATH}
                            ${GLUT_PATH}
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}

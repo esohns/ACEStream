@@ -61,70 +61,74 @@ Test_U_CameraFilter_Sobel_Filter::handleDataMessage (Test_U_Message_t*& message_
 
   uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   int index_i;
+  uint8_t tlr, tlg, tlb, lr, lg, lb, blr, blg, blb, tr, tg, tb, br, bg, bb, trr, trg, trb, rr, rg, rb, brr, brg, brb;
+  float tl, l, bl, t, b, tr_2, r, br_2;
+  float Gx, Gy, G;
+  float theta_f;
   float hue_f;
   float r_f, g_f, b_f;
   for (int x = 1; x < resolution_.cx - 1; ++x)
     for (int y = 1; y < resolution_.cy - 1; ++y)
     {
       index_i = ((x - 1) + ((y - 1) * resolution_.cx)) * bytesPerPixel_;
-      uint8_t tlr = data_p[index_i];
-      uint8_t tlg = data_p[index_i + 1];
-      uint8_t tlb = data_p[index_i + 2];
+      tlr = data_p[index_i];
+      tlg = data_p[index_i + 1];
+      tlb = data_p[index_i + 2];
 
       index_i = ((x - 1) + (y * resolution_.cx)) * bytesPerPixel_;
-      uint8_t lr = data_p[index_i];
-      uint8_t lg = data_p[index_i + 1];
-      uint8_t lb = data_p[index_i + 2];
+      lr = data_p[index_i];
+      lg = data_p[index_i + 1];
+      lb = data_p[index_i + 2];
 
       index_i = ((x - 1) + ((y + 1) * resolution_.cx)) * bytesPerPixel_;
-      uint8_t blr = data_p[index_i];
-      uint8_t blg = data_p[index_i + 1];
-      uint8_t blb = data_p[index_i + 2];
+      blr = data_p[index_i];
+      blg = data_p[index_i + 1];
+      blb = data_p[index_i + 2];
 
       index_i = (x + ((y - 1) * resolution_.cx)) * bytesPerPixel_;
-      uint8_t tr = data_p[index_i];
-      uint8_t tg = data_p[index_i + 1];
-      uint8_t tb = data_p[index_i + 2];
+      tr = data_p[index_i];
+      tg = data_p[index_i + 1];
+      tb = data_p[index_i + 2];
 
       index_i = (x + ((y + 1) * resolution_.cx)) * bytesPerPixel_;
-      uint8_t br = data_p[index_i];
-      uint8_t bg = data_p[index_i + 1];
-      uint8_t bb = data_p[index_i + 2];
+      br = data_p[index_i];
+      bg = data_p[index_i + 1];
+      bb = data_p[index_i + 2];
 
       index_i = ((x + 1) + ((y - 1) * resolution_.cx)) * bytesPerPixel_;
-      uint8_t trr = data_p[index_i];
-      uint8_t trg = data_p[index_i + 1];
-      uint8_t trb = data_p[index_i + 2];
+      trr = data_p[index_i];
+      trg = data_p[index_i + 1];
+      trb = data_p[index_i + 2];
 
       index_i = ((x + 1) + (y * resolution_.cx)) * bytesPerPixel_;
-      uint8_t rr = data_p[index_i];
-      uint8_t rg = data_p[index_i + 1];
-      uint8_t rb = data_p[index_i + 2];
+      rr = data_p[index_i];
+      rg = data_p[index_i + 1];
+      rb = data_p[index_i + 2];
 
       index_i = ((x + 1) + ((y + 1) * resolution_.cx)) * bytesPerPixel_;
-      uint8_t brr = data_p[index_i];
-      uint8_t brg = data_p[index_i + 1];
-      uint8_t brb = data_p[index_i + 2];
+      brr = data_p[index_i];
+      brg = data_p[index_i + 1];
+      brb = data_p[index_i + 2];
 
-      float tl = (tlr + tlg + tlb) / 3.0f;
-      float l = (lr + lg + lb) / 3.0f;
-      float bl = (blr + blg + blb) / 3.0f;
-      float t = (tr + tg + tb) / 3.0f;
-      float b = (br + bg + bb) / 3.0f;
-      float tr_2 = (trr + trg + trb) / 3.0f;
-      float r = (rr + rg + rb) / 3.0f;
-      float br_2 = (brr + brg + brb) / 3.0f;
+      tl = (tlr + tlg + tlb) / 3.0f;
+      l = (lr + lg + lb) / 3.0f;
+      bl = (blr + blg + blb) / 3.0f;
+      t = (tr + tg + tb) / 3.0f;
+      b = (br + bg + bb) / 3.0f;
+      tr_2 = (trr + trg + trb) / 3.0f;
+      r = (rr + rg + rb) / 3.0f;
+      br_2 = (brr + brg + brb) / 3.0f;
 
-      float Gx = tl + 2.0f * l + bl - tr_2 - 2.0f * r - br_2;
-      float Gy = tl + 2.0f * t + tr_2 - bl - 2.0f * b - br_2;
-      float G = std::sqrt ((Gx * Gx) + (Gy * Gy));
-      float theta = std::atan (Gy / Gx);
+      Gx = tl + 2.0f * l + bl - tr_2 - 2.0f * r - br_2;
+      Gy = tl + 2.0f * t + tr_2 - bl - 2.0f * b - br_2;
+      G = std::sqrt ((Gx * Gx) + (Gy * Gy));
+      theta_f = std::atan (Gy / Gx);
       hue_f =
-        (std::fmod ((theta + static_cast<float> (M_PI_2)) + (frameCount_ / 12.0f), static_cast<float> (M_PI)) / static_cast<float> (M_PI)) * 360.0f;
+        (std::fmod ((theta_f + static_cast<float> (M_PI_2)) + (frameCount_ / 12.0f), static_cast<float> (M_PI)) / static_cast<float> (M_PI)) * 360.0f;
       Common_Image_Tools::HSVToRGB (hue_f, 1.0f, G / 255.0f, r_f, g_f, b_f);
 
       index_i = (x + (y * resolution_.cx)) * bytesPerPixel_;
-      buffer_[index_i] = static_cast<uint8_t> (r_f * 255.0f);
+      buffer_[index_i]     = static_cast<uint8_t> (r_f * 255.0f);
       buffer_[index_i + 1] = static_cast<uint8_t> (g_f * 255.0f);
       buffer_[index_i + 2] = static_cast<uint8_t> (b_f * 255.0f);
     } // end FOR

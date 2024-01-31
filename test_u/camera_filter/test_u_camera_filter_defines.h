@@ -21,4 +21,9 @@
 #ifndef TEST_U_CAMERA_FILTER_DEFINES_H
 #define TEST_U_CAMERA_FILTER_DEFINES_H
 
+#define TEST_U_VERTEX_SHADER_FILENAME   "shader.vert"
+#define TEST_U_FRAGMENT_SHADER_FILENAME "shader.frag"
+
+#define TEST_U_CANVAS_SCALE_FACTOR      30
+
 #endif

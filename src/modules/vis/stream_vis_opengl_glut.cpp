@@ -158,7 +158,8 @@ libacestream_glut_draw (void)
                                 cb_data_p->mediaType.resolution.width,
                                 cb_data_p->mediaType.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
-                                cb_data_p->textureId);
+                                cb_data_p->textureId,
+                                true);
   message_block_p->release ();
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -217,10 +218,6 @@ libacestream_glut_draw (void)
   COMMON_GL_PRINT_ERROR;
 
   cube_rotation -= 1.0f; // Decrease The Rotation Variable For The Cube
-
-  glPopMatrix ();
-  // *TODO*: find out why this reports GL_INVALID_OPERATION
-  COMMON_GL_PRINT_ERROR;
 
   glBindTexture (GL_TEXTURE_2D, 0);
   COMMON_GL_ASSERT;

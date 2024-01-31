@@ -69,8 +69,12 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
  , DirectShowDisplay_ (this,
                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
+#if defined (GLUT_SUPPORT)
  , OpenGLDisplay_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , OpenGLDisplay_2 (this,
+                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+#endif // GLUT_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_DirectShow_Stream::Test_U_DirectShow_Stream"));
 
@@ -90,7 +94,6 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   layout_in->append (&source_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
-  layout_in->append (&filter_, NULL, 0);
 
   switch (inherited::configuration_->configuration_->renderer)
   {
@@ -116,6 +119,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
     {
+      layout_in->append (&filter_, NULL, 0);
       layout_in->append (&Direct3DDisplay_, NULL, 0);
       break;
     }
@@ -129,9 +133,10 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
     {
-      layout_in->append (&convert_, NULL, 0);
-      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-      layout_in->append (&OpenGLDisplay_, NULL, 0);
+      //layout_in->append (&convert_, NULL, 0);
+      //layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+      //layout_in->append (&OpenGLDisplay_, NULL, 0);
+      layout_in->append (&OpenGLDisplay_2, NULL, 0);
       break;
     }
 #endif // GLUT_SUPPORT

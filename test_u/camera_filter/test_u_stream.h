@@ -22,11 +22,11 @@
 #define TEST_U_STREAM_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
 #include "minwindef.h"
 #else
 #include "windef.h"
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
 #include "winnt.h"
 #include "guiddef.h"
 #undef GetObject
@@ -46,6 +46,7 @@
 #include "test_u_common_modules.h"
 #include "test_u_message.h"
 #include "test_u_module_sobel_filter.h"
+#include "test_u_module_opengl_glut.h"
 #include "test_u_session_message.h"
 
 // forward declarations
@@ -117,6 +118,7 @@ class Test_U_DirectShow_Stream
   Test_U_DirectShow_Display_Module          DirectShowDisplay_;
 #if defined (GLUT_SUPPORT)
   Test_U_DirectShow_OpenGL_Display_Module   OpenGLDisplay_;
+  Test_U_CameraFilter_OpenGL_GLUT_Module    OpenGLDisplay_2;
 #endif // GLUT_SUPPORT
 };
 
