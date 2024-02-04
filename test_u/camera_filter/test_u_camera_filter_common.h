@@ -305,7 +305,7 @@ typedef Stream_ISessionDataNotify_T<Test_U_CameraFilter_MediaFoundation_SessionD
 typedef std::list<Test_U_MediaFoundation_ISessionNotify_t*> Test_U_MediaFoundation_Subscribers_t;
 typedef Test_U_MediaFoundation_Subscribers_t::iterator Test_U_MediaFoundation_SubscribersIterator_t;
 #else
-typedef Test_U_Message_T<struct Test_U_MessageData,
+typedef Test_U_Message_T<struct Test_U_V4L2_MessageData,
                          Test_U_CameraFilter_V4L_SessionData_t> Test_U_Message_t;
 typedef Test_U_SessionMessage_T<Test_U_Message_t,
                                 Test_U_CameraFilter_V4L_SessionData_t> Test_U_SessionMessage_t;
@@ -469,10 +469,10 @@ struct Test_U_CameraFilter_MediaFoundation_ModuleHandlerConfiguration
   IMFVideoDisplayControl*                                     windowController;
 };
 #else
-struct Test_U_V4L_StreamConfiguration;
+struct Test_U_CameraFilter_V4L_StreamConfiguration;
 struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Test_U_V4L_StreamConfiguration,
+                               struct Test_U_CameraFilter_V4L_StreamConfiguration,
                                struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration> Test_U_StreamConfiguration_t;
 struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration
  : Test_U_CameraFilter_ModuleHandlerConfiguration
@@ -637,10 +637,10 @@ struct Test_U_MediaFoundation_Configuration
   Test_U_MediaFoundation_StreamConfiguration_t        streamConfiguration;
 };
 #else
-struct Test_U_Configuration
+struct Test_U_V4L_Configuration
  : Test_U_Configuration
 {
-  Test_U_Configuration ()
+  Test_U_V4L_Configuration ()
    : Test_U_Configuration ()
    , streamConfiguration ()
   {}

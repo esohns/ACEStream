@@ -1224,6 +1224,8 @@ Test_U_Stream::Test_U_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+ , filter_ (this,
+            ACE_TEXT_ALWAYS_CHAR ("SobelFilter"))
 #if defined (GTK_SUPPORT)
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
@@ -1235,6 +1237,8 @@ Test_U_Stream::Test_U_Stream ()
 #if defined (GLUT_SUPPORT)
  , OpenGLDisplay_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , OpenGLDisplay_2 (this,
+                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
 #endif // GLUT_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_Stream::Test_U_Stream"));
@@ -1268,11 +1272,13 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
 //      layout_in->append (&WaylandDisplay_, NULL, 0);
 //      break;
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
+      layout_in->append (&filter_, NULL, 0);
       layout_in->append (&X11Display_, NULL, 0);
       break;
 #if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
-      layout_in->append (&OpenGLDisplay_, NULL, 0);
+//      layout_in->append (&OpenGLDisplay_, NULL, 0);
+      layout_in->append (&OpenGLDisplay_2, NULL, 0);
       break;
 #endif // GLUT_SUPPORT
     default:

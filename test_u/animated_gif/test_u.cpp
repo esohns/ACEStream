@@ -66,6 +66,7 @@
 #include "test_u_defines.h"
 
 #include "test_u_animated_gif_defines.h"
+#include "test_u_common_modules.h"
 #include "test_u_eventhandler.h"
 #include "test_u_signalhandler.h"
 #include "test_u_stream.h"
@@ -468,9 +469,8 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.outputFormat.lSampleSize =
     video_info_header_p->bmiHeader.biSizeImage;
 #else
-#if defined (FFMPEG_SUPPORT)
-  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGBA;
-#endif // FFMPEG_SUPPORT
+  modulehandler_configuration.outputFormat.format.pixelformat =
+    V4L2_PIX_FMT_BGRA32;
 #endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.slurpFiles = true;
   modulehandler_configuration.statisticReportingInterval =

@@ -73,9 +73,9 @@ struct Test_U_CameraFilter_OpenGL_GLUT_WindowData
   Stream_IStreamControlBase*                         stream;
 
   // canvas
-  int                                                columns;
-  int                                                rows;
-  int                                                scaleFactor;
+  // int                                                columns;
+  // int                                                rows;
+  // int                                                scaleFactor;
 
   // shader
   GLuint                                             programId;
@@ -88,6 +88,7 @@ struct Test_U_CameraFilter_OpenGL_GLUT_WindowData
 };
 
 class Test_U_CameraFilter_OpenGL_GLUT
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
  : public Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                   Common_TimePolicy_t,
                                   struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration,
@@ -98,7 +99,20 @@ class Test_U_CameraFilter_OpenGL_GLUT
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<struct _AMMediaType>
+#else
+ : public Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
+                                  Common_TimePolicy_t,
+                                  struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration,
+                                  Stream_ControlMessage_t,
+                                  Test_U_Message_t,
+                                  Test_U_SessionMessage_t,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<struct Stream_MediaFramework_V4L_MediaType>
+#endif // ACE_WIN32 || ACE_WIN64
 {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                   Common_TimePolicy_t,
                                   struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration,
@@ -109,6 +123,18 @@ class Test_U_CameraFilter_OpenGL_GLUT
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<struct _AMMediaType> inherited2;
+#else
+  typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
+                                  Common_TimePolicy_t,
+                                  struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration,
+                                  Stream_ControlMessage_t,
+                                  Test_U_Message_t,
+                                  Test_U_SessionMessage_t,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<struct Stream_MediaFramework_V4L_MediaType> inherited2;
+#endif // ACE_WIN32 || ACE_WIN64
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -120,6 +146,7 @@ class Test_U_CameraFilter_OpenGL_GLUT
   inline virtual ~Test_U_CameraFilter_OpenGL_GLUT () {}
 
   // override (part of) Stream_IModuleHandler_T
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   virtual bool initialize (const struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration&,
                            Stream_IAllocator*);
 
@@ -128,6 +155,16 @@ class Test_U_CameraFilter_OpenGL_GLUT
                                   bool&);                        // return value: pass message downstream ?
   virtual void handleSessionMessage (Test_U_DirectShow_SessionMessage_t*&, // session message handle
                                      bool&);                               // return value: pass message downstream ?
+#else
+  virtual bool initialize (const struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration&,
+                           Stream_IAllocator*);
+
+  // implement (part of) Stream_ITaskBase
+  virtual void handleDataMessage (Test_U_Message_t*&, // data message handle
+                                  bool&);             // return value: pass message downstream ?
+  virtual void handleSessionMessage (Test_U_SessionMessage_t*&, // session message handle
+                                     bool&);                    // return value: pass message downstream ?
+#endif // ACE_WIN32 || ACE_WIN64
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_CameraFilter_OpenGL_GLUT ())

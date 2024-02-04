@@ -163,11 +163,8 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
   {
     result = directory_.open (ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ()),
                               configuration_in.fileIdentifier.selector,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
                               configuration_in.fileIdentifier.comparator);
-#else
-                              configuration_in.fileIdentifier.comparator ? configuration_in.fileIdentifier.comparator : ACE_OS::alphasort);
-#endif // ACE_WIN32 || ACE_WIN64
+//                              configuration_in.fileIdentifier.comparator ? configuration_in.fileIdentifier.comparator : ACE_OS::alphasort);
     if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,

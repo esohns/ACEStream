@@ -61,7 +61,11 @@ Test_U_CameraFilter_OpenGL_GLUT::Test_U_CameraFilter_OpenGL_GLUT (typename inher
 }
 
 bool
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 Test_U_CameraFilter_OpenGL_GLUT::initialize (const struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration& configuration_in,
+#else
+Test_U_CameraFilter_OpenGL_GLUT::initialize (const struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration& configuration_in,
+#endif // ACE_WIN32 || ACE_WIN64
                                              Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_OpenGL_GLUT::initialize"));
@@ -82,7 +86,11 @@ Test_U_CameraFilter_OpenGL_GLUT::initialize (const struct Test_U_CameraFilter_Di
 }
 
 void
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 Test_U_CameraFilter_OpenGL_GLUT::handleDataMessage (Test_U_DirectShow_Message_t*& message_inout,
+#else
+Test_U_CameraFilter_OpenGL_GLUT::handleDataMessage (Test_U_Message_t*& message_inout,
+#endif // ACE_WIN32 || ACE_WIN64
                                                     bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_OpenGL_GLUT::handleDataMessage"));
@@ -90,7 +98,11 @@ Test_U_CameraFilter_OpenGL_GLUT::handleDataMessage (Test_U_DirectShow_Message_t*
 }
 
 void
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 Test_U_CameraFilter_OpenGL_GLUT::handleSessionMessage (Test_U_DirectShow_SessionMessage_t*& message_inout,
+#else
+Test_U_CameraFilter_OpenGL_GLUT::handleSessionMessage (Test_U_SessionMessage_t*& message_inout,
+#endif // ACE_WIN32 || ACE_WIN64
                                                        bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_OpenGL_GLUT::handleSessionMessage"));
@@ -104,7 +116,11 @@ Test_U_CameraFilter_OpenGL_GLUT::handleSessionMessage (Test_U_DirectShow_Session
     {
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       const typename Test_U_DirectShow_SessionMessage_t::DATA_T::DATA_T& session_data_r =
+#else
+      const typename Test_U_SessionMessage_t::DATA_T::DATA_T& session_data_r =
+#endif // ACE_WIN32 || ACE_WIN64
         inherited::sessionData_->getR ();
       ACE_ASSERT (!session_data_r.formats.empty ());
 
@@ -115,11 +131,18 @@ Test_U_CameraFilter_OpenGL_GLUT::handleSessionMessage (Test_U_DirectShow_Session
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
                                 CBData_.mediaType);
-
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       CBData_.resolution =
         Stream_MediaFramework_DirectShow_Tools::toResolution (CBData_.mediaType);
+#else
+      CBData_.resolution = CBData_.mediaType.resolution;
+#endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       glutInitWindowSize (CBData_.resolution.cx, CBData_.resolution.cy);
+#else
+      glutInitWindowSize (CBData_.resolution.width, CBData_.resolution.height);
+#endif // ACE_WIN32 || ACE_WIN64
 
       window_ = glutCreateWindow ("OpenGL GLUT");
       glutSetWindow (window_);
@@ -194,9 +217,9 @@ Test_U_CameraFilter_OpenGL_GLUT::handleSessionMessage (Test_U_DirectShow_Session
       glGenTextures (1, &CBData_.textureId);
       COMMON_GL_ASSERT;
 
-      CBData_.scaleFactor = TEST_U_CANVAS_SCALE_FACTOR;
-      CBData_.columns = CBData_.resolution.cx / CBData_.scaleFactor;
-      CBData_.rows = CBData_.resolution.cy / CBData_.scaleFactor;
+      // CBData_.scaleFactor = TEST_U_CANVAS_SCALE_FACTOR;
+      // CBData_.columns = CBData_.resolution.cx / CBData_.scaleFactor;
+      // CBData_.rows = CBData_.resolution.cy / CBData_.scaleFactor;
 
       if (!Common_GL_Tools::loadAndCompileShader (ACE_TEXT_ALWAYS_CHAR (TEST_U_VERTEX_SHADER_FILENAME),
                                                   GL_VERTEX_SHADER,
@@ -576,8 +599,13 @@ camera_filter_glut_draw (void)
   glProgramUniform1i (cb_data_p->programId, cb_data_p->textureLoc,
                       0);
   glProgramUniform2f (cb_data_p->programId, cb_data_p->textureSizeLoc,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                       static_cast<GLfloat> (cb_data_p->resolution.cx),
                       static_cast<GLfloat> (cb_data_p->resolution.cy));
+#else
+                      static_cast<GLfloat> (cb_data_p->resolution.width),
+                      static_cast<GLfloat> (cb_data_p->resolution.height));
+#endif // ACE_WIN32 || ACE_WIN64
 
   //glColor3f (1.0f, 1.0f, 1.0f);
 

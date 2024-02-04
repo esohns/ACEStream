@@ -272,6 +272,20 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AnimatedGIF_SessionData,                   
                               libacestream_default_vis_imagemagick_resize_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Test_U_ImageMagick_Resize);           // writer type
+
+typedef Test_U_ImageMagick_Target_T<ACE_MT_SYNCH,
+                                    Common_TimePolicy_t,
+                                    struct Test_U_AnimatedGIF_ModuleHandlerConfiguration,
+                                    Stream_ControlMessage_t,
+                                    Test_U_Message,
+                                    Test_U_SessionMessage,
+                                    struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_U_ImageMagick_Target;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AnimatedGIF_SessionData, // session data type
+                              enum Stream_SessionMessageType, // session event type
+                              struct Test_U_AnimatedGIF_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_imagemagick_target_module_name_string,
+                              Stream_INotify_t, // stream notification interface type
+                              Test_U_ImageMagick_Target); // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // IMAGEMAGICK_SUPPORT
 

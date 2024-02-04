@@ -27,6 +27,13 @@
 #include "stream_common.h"
 #include "stream_session_message_base.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (FFMPEG_SUPPORT)
+#include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "test_u_animated_gif_common.h"
 
 // forward declaratation(s)

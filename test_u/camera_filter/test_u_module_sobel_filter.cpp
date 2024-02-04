@@ -67,45 +67,83 @@ Test_U_CameraFilter_Sobel_Filter::handleDataMessage (Test_U_Message_t*& message_
   float theta_f;
   float hue_f;
   float r_f, g_f, b_f;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   for (int x = 1; x < resolution_.cx - 1; ++x)
     for (int y = 1; y < resolution_.cy - 1; ++y)
+#else
+  for (int x = 1; x < static_cast<int> (resolution_.width) - 1; ++x)
+    for (int y = 1; y < static_cast<int> (resolution_.height) - 1; ++y)
+#endif // ACE_WIN32 || ACE_WIN64
     {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       index_i = ((x - 1) + ((y - 1) * resolution_.cx)) * bytesPerPixel_;
+#else
+      index_i = ((x - 1) + ((y - 1) * resolution_.width)) * bytesPerPixel_;
+#endif // ACE_WIN32 || ACE_WIN64
       tlr = data_p[index_i];
       tlg = data_p[index_i + 1];
       tlb = data_p[index_i + 2];
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       index_i = ((x - 1) + (y * resolution_.cx)) * bytesPerPixel_;
+#else
+      index_i = ((x - 1) + (y * resolution_.width)) * bytesPerPixel_;
+#endif // ACE_WIN32 || ACE_WIN64
       lr = data_p[index_i];
       lg = data_p[index_i + 1];
       lb = data_p[index_i + 2];
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       index_i = ((x - 1) + ((y + 1) * resolution_.cx)) * bytesPerPixel_;
+#else
+      index_i = ((x - 1) + ((y + 1) * resolution_.width)) * bytesPerPixel_;
+#endif // ACE_WIN32 || ACE_WIN64
       blr = data_p[index_i];
       blg = data_p[index_i + 1];
       blb = data_p[index_i + 2];
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       index_i = (x + ((y - 1) * resolution_.cx)) * bytesPerPixel_;
+#else
+      index_i = (x + ((y - 1) * resolution_.width)) * bytesPerPixel_;
+#endif // ACE_WIN32 || ACE_WIN64
       tr = data_p[index_i];
       tg = data_p[index_i + 1];
       tb = data_p[index_i + 2];
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       index_i = (x + ((y + 1) * resolution_.cx)) * bytesPerPixel_;
+#else
+      index_i = (x + ((y + 1) * resolution_.width)) * bytesPerPixel_;
+#endif // ACE_WIN32 || ACE_WIN64
       br = data_p[index_i];
       bg = data_p[index_i + 1];
       bb = data_p[index_i + 2];
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       index_i = ((x + 1) + ((y - 1) * resolution_.cx)) * bytesPerPixel_;
+#else
+      index_i = ((x + 1) + ((y - 1) * resolution_.width)) * bytesPerPixel_;
+#endif // ACE_WIN32 || ACE_WIN64
       trr = data_p[index_i];
       trg = data_p[index_i + 1];
       trb = data_p[index_i + 2];
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       index_i = ((x + 1) + (y * resolution_.cx)) * bytesPerPixel_;
+#else
+      index_i = ((x + 1) + (y * resolution_.width)) * bytesPerPixel_;
+#endif // ACE_WIN32 || ACE_WIN64
       rr = data_p[index_i];
       rg = data_p[index_i + 1];
       rb = data_p[index_i + 2];
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       index_i = ((x + 1) + ((y + 1) * resolution_.cx)) * bytesPerPixel_;
+#else
+      index_i = ((x + 1) + ((y + 1) * resolution_.width)) * bytesPerPixel_;
+#endif // ACE_WIN32 || ACE_WIN64
       brr = data_p[index_i];
       brg = data_p[index_i + 1];
       brb = data_p[index_i + 2];
@@ -127,12 +165,20 @@ Test_U_CameraFilter_Sobel_Filter::handleDataMessage (Test_U_Message_t*& message_
         (std::fmod ((theta_f + static_cast<float> (M_PI_2)) + (frameCount_ / 12.0f), static_cast<float> (M_PI)) / static_cast<float> (M_PI)) * 360.0f;
       Common_Image_Tools::HSVToRGB (hue_f, 1.0f, G / 255.0f, r_f, g_f, b_f);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       index_i = (x + (y * resolution_.cx)) * bytesPerPixel_;
+#else
+      index_i = (x + (y * resolution_.width)) * bytesPerPixel_;
+#endif // ACE_WIN32 || ACE_WIN64
       buffer_[index_i]     = static_cast<uint8_t> (r_f * 255.0f);
       buffer_[index_i + 1] = static_cast<uint8_t> (g_f * 255.0f);
       buffer_[index_i + 2] = static_cast<uint8_t> (b_f * 255.0f);
     } // end FOR
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::memcpy (data_p, buffer_, resolution_.cx * resolution_.cy * bytesPerPixel_ * sizeof (uint8_t));
+#else
+  ACE_OS::memcpy (data_p, buffer_, resolution_.width * resolution_.height * bytesPerPixel_ * sizeof (uint8_t));
+#endif // ACE_WIN32 || ACE_WIN64
 
   ++frameCount_;
 }
@@ -155,9 +201,15 @@ Test_U_CameraFilter_Sobel_Filter::handleSessionMessage (Test_U_SessionMessage_t*
     {
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       const typename Test_U_DirectShow_SessionMessage_t::DATA_T::DATA_T& session_data_r =
           inherited::sessionData_->getR ();
+#else
+      const typename Test_U_SessionMessage_t::DATA_T::DATA_T& session_data_r =
+        inherited::sessionData_->getR ();
+#endif // ACE_WIN32 || ACE_WIN64
       ACE_ASSERT (!session_data_r.formats.empty ());
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       const struct _AMMediaType& media_type_r = session_data_r.formats.back ();
       ACE_ASSERT (Stream_MediaFramework_Tools::isRGB (media_type_r.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW));
 
@@ -168,6 +220,19 @@ Test_U_CameraFilter_Sobel_Filter::handleSessionMessage (Test_U_SessionMessage_t*
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_r);
 
       buffer_ = new uint8_t[resolution_.cx * resolution_.cy * bytesPerPixel_];
+#else
+      const struct Stream_MediaFramework_V4L_MediaType& media_type_r =
+        session_data_r.formats.back ();
+      ACE_ASSERT (Stream_MediaFramework_Tools::isRGB (media_type_r.format.pixelformat));
+
+      bytesPerPixel_ =
+        Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_r.format.pixelformat) / 8;
+      frameCount_ = 0;
+      resolution_.width = media_type_r.format.width;
+      resolution_.height = media_type_r.format.height;
+
+      buffer_ = new uint8_t[resolution_.width * resolution_.height * bytesPerPixel_];
+#endif // ACE_WIN32 || ACE_WIN64
 
       break;
 

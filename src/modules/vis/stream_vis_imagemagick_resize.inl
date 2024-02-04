@@ -24,6 +24,7 @@
 
 #include "common_image_tools.h"
 
+#include "stream_lib_v4l_common.h"
 #include "stream_macros.h"
 
 #include "stream_dec_tools.h"
@@ -507,6 +508,11 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   typename DataMessageType::DATA_T message_data_2;
   message_data_2.format = message_data_r.format;
   DataMessageType* message_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_s;
+#else
+  struct Stream_MediaFramework_V4L_MediaType media_type_s;
+#endif // ACE_WIN32 || ACE_WIN64
 
   //try {
   //  message_inout->defragment ();
@@ -539,7 +545,6 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   // sanity check(s)
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   inherited::getMediaType (message_data_r.format,
                            STREAM_MEDIATYPE_VIDEO,
@@ -556,11 +561,15 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 
   ACE_ASSERT (Stream_MediaFramework_Tools::isRGB32 (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW));
 #else
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
+  inherited::getMediaType (inherited::configuration_->outputFormat,
+                           STREAM_MEDIATYPE_VIDEO,
+                           media_type_s);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
               inherited::mod_->name (),
               message_data_r.format.resolution.width, message_data_r.format.resolution.height,
-              inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height));
+              media_type_s.format.width, media_type_s.format.height));
 
   ACE_ASSERT (message_data_r.format.codec == AV_CODEC_ID_NONE);
   ACE_ASSERT (Stream_Module_Decoder_Tools::isRGB32 (message_data_r.format.format));
@@ -628,8 +637,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                        resolution_2.cx, resolution_2.cy,
 #else
-                       inherited::configuration_->outputFormat.resolution.width,
-                       inherited::configuration_->outputFormat.resolution.height,
+                       media_type_s.format.width, media_type_s.format.height,
 #endif // ACE_WIN32 || ACE_WIN64
                        LanczosFilter);
 #else
@@ -637,8 +645,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                        resolution_2.cx, resolution_2.cy,
 #else
-                       inherited::configuration_->outputFormat.resolution.width,
-                       inherited::configuration_->outputFormat.resolution.height,
+                       media_type_s.format.width, media_type_s.format.height,
 #endif // ACE_WIN32 || ACE_WIN64
                        LanczosFilter,
                        1.0); // do not blur
@@ -676,8 +683,8 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_2,
                                                          message_data_2.format);
 #else
-  message_data_2.format.resolution =
-    inherited::configuration_->outputFormat.resolution;
+  message_data_2.format.resolution.width = media_type_s.format.width;
+  message_data_2.format.resolution.height = media_type_s.format.height;
 #endif // ACE_WIN32 || ACE_WIN64
   //message_data_2.format.resolution.cx = -message_data_2.format.resolution.cx;
   message_data_2.relinquishMemory = data_p;
@@ -757,7 +764,9 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
         Stream_MediaFramework_DirectShow_Tools::toResolution (inherited::configuration_->outputFormat);
       inherited::setResolution (resolution_s,
 #else
-      inherited::setResolution (inherited::configuration_->outputFormat.resolution,
+      Common_Image_Resolution_t resolution_s =
+        inherited::getResolution (inherited::configuration_->outputFormat);
+      inherited::setResolution (resolution_s,
 #endif // ACE_WIN32 || ACE_WIN64
                                 media_type_s);
       //media_type_s.resolution.cx = -media_type_s.resolution.cx;

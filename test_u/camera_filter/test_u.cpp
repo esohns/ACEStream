@@ -942,7 +942,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
          struct Test_U_DirectShow_Configuration& directShowConfiguration_in,
          struct Test_U_MediaFoundation_Configuration& mediaFoundationConfiguration_in
 #else
-         struct Test_U_Configuration& configuration_in
+         struct Test_U_V4L_Configuration& configuration_in
 #endif // ACE_WIN32 || ACE_WIN64
          )
 {
@@ -1770,7 +1770,7 @@ ACE_TMAIN (int argc_in,
   struct Test_U_DirectShow_Configuration directshow_configuration;
   struct Test_U_MediaFoundation_Configuration mediafoundation_configuration;
 #else
-  struct Test_U_Configuration configuration;
+  struct Test_U_V4L_Configuration configuration;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //#if defined (GTK_USE)
