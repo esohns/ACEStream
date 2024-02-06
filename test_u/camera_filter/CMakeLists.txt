@@ -3,6 +3,7 @@
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/gl/scripts")
 include (assimp)
 include (glew)
+include (glm)
 include (glut)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/image/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image/scripts")
 include (png)
@@ -14,6 +15,9 @@ include (libcamera)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis/scripts")
 include (wayland)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../scripts")
+include (pge)
 
 if (UNIX)
 # include (CheckLibraryExists)
@@ -31,6 +35,9 @@ string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 if (GLEW_SUPPORT)
  include_directories (${GLEW_INCLUDE_DIRS})
 endif (GLEW_SUPPORT)
+if (GLM_SUPPORT)
+ include_directories (${GLM_INCLUDE_DIRS})
+endif (GLM_SUPPORT)
 if (GLUT_SUPPORT)
  include_directories (${GLUT_INCLUDE_DIRS})
 endif (GLUT_SUPPORT)
@@ -40,6 +47,9 @@ endif (FFMPEG_SUPPORT)
 if (LIBCAMERA_SUPPORT)
  include_directories (${LIBCAMERA_INCLUDE_DIRS})
 endif (LIBCAMERA_SUPPORT)
+if (OLC_PGE_SUPPORT)
+ include_directories (${PGE_INCLUDE_DIR})
+endif (OLC_PGE_SUPPORT)
 if (UNIX)
  include_directories (${PKG_V4L_INCLUDE_DIRS})
 
@@ -98,6 +108,8 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_message.cpp
      test_u_message.h
      test_u_message.inl
+     test_u_module_marchingcubes_filter.cpp
+     test_u_module_marchingcubes_filter.h
      test_u_module_opengl_glut.cpp
      test_u_module_opengl_glut.h
      test_u_module_sobel_filter.cpp

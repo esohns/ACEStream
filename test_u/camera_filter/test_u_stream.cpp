@@ -55,8 +55,10 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
- , filter_ (this,
-            ACE_TEXT_ALWAYS_CHAR ("SobelFilter"))
+ , sobelFilter_ (this,
+                 ACE_TEXT_ALWAYS_CHAR ("SobelFilter"))
+ , marchingCubesFilter_ (this,
+                         ACE_TEXT_ALWAYS_CHAR ("MarchingCubesFilter"))
 #if defined (GTK_SUPPORT)
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
@@ -119,8 +121,9 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
     {
-      layout_in->append (&filter_, NULL, 0);
-      layout_in->append (&Direct3DDisplay_, NULL, 0);
+      //layout_in->append (&sobelFilter_, NULL, 0);
+      //layout_in->append (&Direct3DDisplay_, NULL, 0);
+      layout_in->append (&marchingCubesFilter_, NULL, 0);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:

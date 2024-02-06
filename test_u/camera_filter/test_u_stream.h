@@ -45,6 +45,7 @@
 #include "test_u_camera_filter_common.h"
 #include "test_u_common_modules.h"
 #include "test_u_message.h"
+#include "test_u_module_marchingcubes_filter.h"
 #include "test_u_module_sobel_filter.h"
 #include "test_u_module_opengl_glut.h"
 #include "test_u_session_message.h"
@@ -108,7 +109,8 @@ class Test_U_DirectShow_Stream
   Test_U_DirectShow_StatisticReport_Module  statisticReport_;
   Test_U_DirectShow_LibAVConvert_Module     convert_; // RGB
   Test_U_DirectShow_LibAVResize_Module      resize_; // --> window size/fullscreen
-  Test_U_CameraFilter_Sobel_Filter_Module   filter_;
+  Test_U_CameraFilter_Sobel_Filter_Module   sobelFilter_;
+  Test_U_CameraFilter_MarchingCubes_Filter_Module marchingCubesFilter_;
 #if defined (GTK_SUPPORT)
   Test_U_DirectShow_GTK_Display_Module      GTKDisplay_;
 #endif // GTK_SUPPORT
