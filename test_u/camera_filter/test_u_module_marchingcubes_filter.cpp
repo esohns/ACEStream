@@ -77,78 +77,76 @@ Test_U_CameraFilter_MarchingCubes_Filter::handleDataMessage (Test_U_Message_t*& 
 
   std::vector<std::vector<glm::vec2> > positions_a;
   std::vector<std::vector<uint8_t> > colors_a;
-  for (int i = 0; i < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM; i++)
+  for (int i = 0; i < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM; ++i)
   {
     std::vector<glm::vec2> temp_a;
     positions_a.push_back (temp_a);
     std::vector<uint8_t> temp_2;
     colors_a.push_back (temp_2);
-    for (int j = 0; j < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM; j++)
+    int x, y, x2, y2, r, g, b, index_i;
+    float r_2, g_2, b_2; 
+    for (int j = 0; j < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM; ++j)
     {
-      int x =
+      x =
         Common_GL_Tools::map (i, 0, ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM, minPixX_, maxPixX_);
-      int y =
+      y =
         Common_GL_Tools::map (j, 0, ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM, minPixY_, maxPixY_);
-      int x2 =
+      x2 =
         Common_GL_Tools::map (i + 1, 0, ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM, minPixX_, maxPixX_);
-      int y2 =
+      y2 =
         Common_GL_Tools::map (j + 1, 0, ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM, minPixY_, maxPixY_);
 
-      uint8_t r = 0;
-      uint8_t g = 0;
-      uint8_t b = 0;
-      for (int k = x; k < x2; k++)
-        for (int l = y; l < y2; l++)
+      r = g = b = 0;
+      for (int k = x; k < x2; ++k)
+        for (int l = y; l < y2; ++l)
         {
-          int index =
+          index_i =
             k * bytesPerPixel_ + l * resolution_.cx * bytesPerPixel_;
-          r += data_p[index];
-          g += data_p[index + 1];
-          b += data_p[index + 2];
+          r += data_p[index_i];
+          g += data_p[index_i + 1];
+          b += data_p[index_i + 2];
         } // end FOR
-      float r_2 = r / static_cast<float> ((x2 - x) * (y2 - y));
-      float g_2 = g / static_cast<float> ((x2 - x) * (y2 - y));
-      float b_2 = b / static_cast<float> ((x2 - x) * (y2 - y));
+      r_2 = r / static_cast<float> ((x2 - x) * (y2 - y));
+      g_2 = g / static_cast<float> ((x2 - x) * (y2 - y));
+      b_2 = b / static_cast<float> ((x2 - x) * (y2 - y));
 
-      colors_a[i].push_back (static_cast<uint8_t> (r_2 + g_2 + b_2 / 3.0f));
+      colors_a[i].push_back (static_cast<uint8_t> ((r_2 + g_2 + b_2) / 3.0f));
       positions_a[i].push_back (glm::vec2 (initX_ + stepW_ * i, initY_ + stepW_ * j));
     } // end FOR
   } // end FOR
 
   std::vector<std::vector<bool> > filled_a;
-  for (int x = 0; x < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; x++)
+  for (int x = 0; x < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; ++x)
   {
     std::vector<bool> temp_a;
+    temp_a.assign (ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1, false);
     filled_a.push_back (temp_a);
-    for (int y = 0; y < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; y++)
-      filled_a[x].push_back (false);
   } // end FOR
 
   std::vector<std::vector<std::vector<struct acestream_mc_filter_state> > > states_a;
   std::vector<std::vector<struct acestream_mc_filter_state> > temp_a;
   states_a.assign (ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD, temp_a);
-  for (int i = ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD - 1; i >= 0; i--)
-    for (int x = 0; x < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; x++)
+  for (int i = ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD - 1; i >= 0; --i)
+    for (int x = 0; x < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; ++x)
     {
       std::vector<struct acestream_mc_filter_state> temp_3;
       states_a[i].push_back (temp_3);
-      for (int y = 0; y < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; y++)
+      struct acestream_mc_filter_state state_s, state_2;
+      state_s.state = 0;
+      for (int y = 0; y < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; ++y)
       {
-        struct acestream_mc_filter_state state_s;
-        state_s.state = 0;
         states_a[i][x].push_back (state_s);
 
         if (filled_a[x][y] == false)
         {
-          struct acestream_mc_filter_state state_2;
           state_2.n1 =
-            colors_a[x][y] / 100.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD);
+            colors_a[x][y] / 255.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD);
           state_2.n2 =
-            colors_a[x + 1][y] / 100.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD);
+            colors_a[x + 1][y] / 255.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD);
           state_2.n3 =
-            colors_a[x + 1][y + 1] / 100.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD);
+            colors_a[x + 1][y + 1] / 255.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD);
           state_2.n4 =
-            colors_a[x][y + 1] / 100.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD);
+            colors_a[x][y + 1] / 255.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD);
           state_2.state = getState (static_cast<int> (std::ceil (state_2.n1)),
                                     static_cast<int> (std::ceil (state_2.n2)),
                                     static_cast<int> (std::ceil (state_2.n3)),
@@ -162,10 +160,10 @@ Test_U_CameraFilter_MarchingCubes_Filter::handleDataMessage (Test_U_Message_t*& 
 
   palette_.push_back (palette_[0]);
   palette_.erase (palette_.begin ());
-  for (int i = 0; i < ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD; i++)
-    for (int x = 0; x < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; x++)
-      for (int y = 0; y < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; y++)
-        //if (states_a[i][x][y].state != 0 && states_a[i][x][y].state != 15)
+  for (int i = 0; i < ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD; ++i)
+    for (int x = 0; x < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; ++x)
+      for (int y = 0; y < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; ++y)
+        if (states_a[i][x][y].state != 0 && states_a[i][x][y].state != 15)
           marchingCubes (positions_a[x][y], positions_a[x + 1][y], positions_a[x + 1][y + 1], positions_a[x][y + 1],
                          states_a[i][x][y].state,
                          states_a[i][x][y].n1 + 1.0f, states_a[i][x][y].n2 + 1.0f, states_a[i][x][y].n3 + 1.0f, states_a[i][x][y].n4 + 1.0f,
