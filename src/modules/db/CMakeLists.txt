@@ -25,8 +25,6 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/error>)
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/lib>)
- target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Database PUBLIC
@@ -68,6 +66,7 @@ target_sources (${PROJECT_NAME}_Database
 #                PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
                 PRIVATE ${absolute_source_files})
+
 target_precompile_headers (${PROJECT_NAME}_Database
                            PUBLIC stdafx.h)
 
