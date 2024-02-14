@@ -27,7 +27,9 @@
 #include "GL/glew.h"
 #endif // GLEW_SUPPORT
 #undef OK
+#if defined (OLC_PGE_SUPPORT)
 #include "olcPixelGameEngine.h"
+#endif // OLC_PGE_SUPPORT
 
 #include "ace/Basic_Types.h"
 #include "ace/Synch_Traits.h"
@@ -50,6 +52,7 @@
 
 #define ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM       30 * 2
 #define ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD  60 / 2
+#define ACESTREAM_MC_FILTER_DEFAULT_ALPHA_DECAY    15
 
 //////////////////////////////////////////
 

@@ -18,6 +18,7 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 #include "stdafx.h"
+#include "stream_vis_common.h"
 
 #include <iostream>
 #include <string>
@@ -254,7 +255,7 @@ do_process_arguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D;
 #else
-  renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_X11;
+  renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND;
 #endif // ACE_WIN32 || ACE_WIN64
   traceInformation_out = false;
   printVersionAndExit_out = false;
@@ -1309,6 +1310,13 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       break;
     }
 #endif // GLUT_SUPPORT
+    case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
+    {
+      modulehandler_configuration_2 = modulehandler_configuration;
+      modulehandler_configuration_2.outputFormat.format.pixelformat =
+        V4L2_PIX_FMT_BGRA32;
+      break;
+    }
     default:
       break;
   } // end SWITCH
@@ -1663,7 +1671,7 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   video_renderer_e = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D;
 #else
-  video_renderer_e = STREAM_VISUALIZATION_VIDEORENDERER_X11;
+  video_renderer_e = STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Common_UI_DisplayDevice display_device_s =
     Common_UI_Tools::getDefaultDisplay ();

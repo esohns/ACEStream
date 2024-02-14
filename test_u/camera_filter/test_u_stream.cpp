@@ -1227,16 +1227,18 @@ Test_U_Stream::Test_U_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
- , filter_ (this,
-            ACE_TEXT_ALWAYS_CHAR ("SobelFilter"))
+ , sobelFilter_ (this,
+                 ACE_TEXT_ALWAYS_CHAR ("SobelFilter"))
+ , marchingCubesFilter_ (this,
+                         ACE_TEXT_ALWAYS_CHAR ("MarchingCubesFilter"))
 #if defined (GTK_SUPPORT)
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
 #endif // GTK_SUPPORT
-// , WaylandDisplay_ (this,
-//                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING))
- , X11Display_ (this,
-                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
+ , WaylandDisplay_ (this,
+                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING))
+ // , X11Display_ (this,
+ //                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 #if defined (GLUT_SUPPORT)
  , OpenGLDisplay_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
@@ -1271,12 +1273,13 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&GTKDisplay_, NULL, 0);
       break;
 #endif // GTK_SUPPORT
-//    case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
-//      layout_in->append (&WaylandDisplay_, NULL, 0);
-//      break;
+    case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
+      layout_in->append (&marchingCubesFilter_, NULL, 0);
+      // layout_in->append (&WaylandDisplay_, NULL, 0);
+      break;
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
-      layout_in->append (&filter_, NULL, 0);
-      layout_in->append (&X11Display_, NULL, 0);
+      layout_in->append (&sobelFilter_, NULL, 0);
+      // layout_in->append (&X11Display_, NULL, 0);
       break;
 #if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:

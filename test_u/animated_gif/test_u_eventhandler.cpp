@@ -129,4 +129,5 @@ Test_U_EventHandler::notify (Stream_SessionId_t sessionId_in,
   enum Common_UI_EventType event_e =
     ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? COMMON_UI_EVENT_STATISTIC
                                                                      : COMMON_UI_EVENT_INVALID);
+  ACE_UNUSED_ARG (event_e);
 }

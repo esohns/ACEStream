@@ -100,8 +100,13 @@ Test_U_CameraFilter_MarchingCubes_Filter::handleDataMessage (Test_U_Message_t*& 
       for (int k = x; k < x2; ++k)
         for (int l = y; l < y2; ++l)
         {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
           index_i =
             k * bytesPerPixel_ + l * resolution_.cx * bytesPerPixel_;
+#else
+          index_i =
+            k * bytesPerPixel_ + l * resolution_.width * bytesPerPixel_;
+#endif // ACE_WIN32 || ACE_WIN64
           r += data_p[index_i];
           g += data_p[index_i + 1];
           b += data_p[index_i + 2];
@@ -411,7 +416,12 @@ Test_U_CameraFilter_MarchingCubes_Filter::OnUserUpdate (float fElapsedTime_in)
 {
   //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingCubes_Filter::OnUserUpdate"));
 
-  inherited3::Clear (olc::BLACK);
+  // inherited3::Clear (olc::BLACK);
+  int pixels =
+    inherited3::GetDrawTargetWidth () * inherited3::GetDrawTargetHeight ();
+  olc::Pixel* p = inherited3::GetDrawTarget ()->GetData ();
+  for (int i = 0; i < pixels; i++)
+    p[i].a = (p[i].a > ACESTREAM_MC_FILTER_DEFAULT_ALPHA_DECAY ? p[i].a - ACESTREAM_MC_FILTER_DEFAULT_ALPHA_DECAY : 0);
 
   // process next message
   if (processNextMessage ())

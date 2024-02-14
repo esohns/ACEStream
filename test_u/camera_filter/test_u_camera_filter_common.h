@@ -41,7 +41,7 @@
 #else
 #include "linux/videodev2.h"
 
-#include "X11/X.h"
+// #include "X11/X.h"
 #undef CursorShape
 #include "wayland-client.h"
 
@@ -329,7 +329,7 @@ struct Test_U_CameraFilter_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , window (NULL)
 #else
-   , window (0)
+   // , window (0)
 #endif // ACE_WIN32 || ACE_WIN64
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -348,7 +348,7 @@ struct Test_U_CameraFilter_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                            window;
 #else
-  Window                          window;
+  // Window                          window;
 #endif // ACE_WIN32 || ACE_WIN64
 };
 //extern const char stream_name_string_[];
