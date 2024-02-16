@@ -47,7 +47,10 @@
 #include "test_u_message.h"
 #include "test_u_module_marchingcubes_filter.h"
 #include "test_u_module_sobel_filter.h"
+#if defined (GLUT_SUPPORT)
 #include "test_u_module_opengl_glut.h"
+#include "test_u_module_opengl_glut_2.h"
+#endif // GLUT_SUPPORT
 #include "test_u_session_message.h"
 
 // forward declarations
@@ -105,22 +108,23 @@ class Test_U_DirectShow_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_U_DirectShow_Stream& operator= (const Test_U_DirectShow_Stream&))
 
   // modules
-  Test_U_DirectShow_Source_Module           source_;
-  Test_U_DirectShow_StatisticReport_Module  statisticReport_;
-  Test_U_DirectShow_LibAVConvert_Module     convert_; // RGB
-  Test_U_DirectShow_LibAVResize_Module      resize_; // --> window size/fullscreen
-  Test_U_CameraFilter_Sobel_Filter_Module   sobelFilter_;
+  Test_U_DirectShow_Source_Module                 source_;
+  Test_U_DirectShow_StatisticReport_Module        statisticReport_;
+  Test_U_DirectShow_LibAVConvert_Module           convert_; // RGB
+  Test_U_DirectShow_LibAVResize_Module            resize_; // --> window size/fullscreen
+  Test_U_CameraFilter_Sobel_Filter_Module         sobelFilter_;
   Test_U_CameraFilter_MarchingCubes_Filter_Module marchingCubesFilter_;
 #if defined (GTK_SUPPORT)
-  Test_U_DirectShow_GTK_Display_Module      GTKDisplay_;
+  Test_U_DirectShow_GTK_Display_Module            GTKDisplay_;
 #endif // GTK_SUPPORT
-  Test_U_DirectShow_GDI_Display_Module      GDIDisplay_;
-  Test_U_DirectShow_Direct2D_Display_Module Direct2DDisplay_;
-  Test_U_DirectShow_Direct3D_Display_Module Direct3DDisplay_;
-  Test_U_DirectShow_Display_Module          DirectShowDisplay_;
+  Test_U_DirectShow_GDI_Display_Module            GDIDisplay_;
+  Test_U_DirectShow_Direct2D_Display_Module       Direct2DDisplay_;
+  Test_U_DirectShow_Direct3D_Display_Module       Direct3DDisplay_;
+  Test_U_DirectShow_Display_Module                DirectShowDisplay_;
 #if defined (GLUT_SUPPORT)
-  Test_U_DirectShow_OpenGL_Display_Module   OpenGLDisplay_;
-  Test_U_CameraFilter_OpenGL_GLUT_Module    OpenGLDisplay_2;
+  Test_U_DirectShow_OpenGL_Display_Module         OpenGLDisplay_;
+  Test_U_CameraFilter_OpenGL_GLUT_Module          GLUTDisplay_;
+  Test_U_CameraFilter_OpenGL_GLUT_2_Module        GLUTDisplay_2;
 #endif // GLUT_SUPPORT
 };
 

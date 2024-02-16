@@ -110,8 +110,6 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_message.inl
      test_u_module_marchingcubes_filter.cpp
      test_u_module_marchingcubes_filter.h
-     test_u_module_opengl_glut.cpp
-     test_u_module_opengl_glut.h
      test_u_module_sobel_filter.cpp
      test_u_module_sobel_filter.h
      test_u_session_message.cpp
@@ -121,6 +119,14 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_signalhandler.h
      test_u_stream.cpp
      test_u_stream.h)
+if (GLUT_SUPPORT)
+set (${EXECUTABLE}_EXE_SRCS
+     ${${EXECUTABLE}_EXE_SRCS}
+     test_u_module_opengl_glut.cpp
+     test_u_module_opengl_glut.h
+     test_u_module_opengl_glut_2.cpp
+     test_u_module_opengl_glut_2.h)
+endif (GLUT_SUPPORT)
 
 if (UNIX)
 elseif (WIN32)
