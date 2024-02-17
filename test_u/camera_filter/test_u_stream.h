@@ -50,6 +50,7 @@
 #if defined (GLUT_SUPPORT)
 #include "test_u_module_opengl_glut.h"
 #include "test_u_module_opengl_glut_2.h"
+#include "test_u_module_opengl_glut_3.h"
 #endif // GLUT_SUPPORT
 #include "test_u_session_message.h"
 
@@ -125,6 +126,7 @@ class Test_U_DirectShow_Stream
   Test_U_DirectShow_OpenGL_Display_Module         OpenGLDisplay_;
   Test_U_CameraFilter_OpenGL_GLUT_Module          GLUTDisplay_;
   Test_U_CameraFilter_OpenGL_GLUT_2_Module        GLUTDisplay_2;
+  Test_U_CameraFilter_OpenGL_GLUT_3_Module        GLUTDisplay_3;
 #endif // GLUT_SUPPORT
 };
 
@@ -274,7 +276,9 @@ class Test_U_Stream
   // Test_U_X11_Display_Module               X11Display_;
 #if defined (GLUT_SUPPORT)
   Test_U_OpenGL_Display_Module                    OpenGLDisplay_;
-  Test_U_CameraFilter_OpenGL_GLUT_Module          OpenGLDisplay_2;
+  Test_U_CameraFilter_OpenGL_GLUT_Module          GLUTDisplay_;
+  Test_U_CameraFilter_OpenGL_GLUT_2_Module        GLUTDisplay_2;
+  Test_U_CameraFilter_OpenGL_GLUT_3_Module        GLUTDisplay_3;
 #endif // GLUT_SUPPORT
 };
 #endif // ACE_WIN32 || ACE_WIN64

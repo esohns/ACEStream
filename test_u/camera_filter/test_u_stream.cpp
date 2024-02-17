@@ -78,6 +78,8 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
                  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
  , GLUTDisplay_2 (this,
                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , GLUTDisplay_3 (this,
+                  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
 #endif // GLUT_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_DirectShow_Stream::Test_U_DirectShow_Stream"));
@@ -141,7 +143,8 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
       //layout_in->append (&convert_, NULL, 0);
       //layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
       //layout_in->append (&OpenGLDisplay_, NULL, 0);
-      layout_in->append (&GLUTDisplay_2, NULL, 0);
+      //layout_in->append (&GLUTDisplay_2, NULL, 0);
+      layout_in->append (&GLUTDisplay_3, NULL, 0);
       break;
     }
 #endif // GLUT_SUPPORT
@@ -1244,8 +1247,12 @@ Test_U_Stream::Test_U_Stream ()
 #if defined (GLUT_SUPPORT)
  , OpenGLDisplay_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
- , OpenGLDisplay_2 (this,
-                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , GLUTDisplay_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , GLUTDisplay_2 (this,
+                  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , GLUTDisplay_3 (this,
+                  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
 #endif // GLUT_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_Stream::Test_U_Stream"));
@@ -1286,7 +1293,9 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
 #if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
 //      layout_in->append (&OpenGLDisplay_, NULL, 0);
-      layout_in->append (&OpenGLDisplay_2, NULL, 0);
+      //layout_in->append (&GLUTDisplay_, NULL, 0);
+      //layout_in->append (&GLUTDisplay_2, NULL, 0);
+      layout_in->append (&GLUTDisplay_3, NULL, 0);
       break;
 #endif // GLUT_SUPPORT
     default:

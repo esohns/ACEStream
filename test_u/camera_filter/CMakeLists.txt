@@ -125,7 +125,9 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_module_opengl_glut.cpp
      test_u_module_opengl_glut.h
      test_u_module_opengl_glut_2.cpp
-     test_u_module_opengl_glut_2.h)
+     test_u_module_opengl_glut_2.h
+     test_u_module_opengl_glut_3.cpp
+     test_u_module_opengl_glut_3.h)
 endif (GLUT_SUPPORT)
 
 if (UNIX)
