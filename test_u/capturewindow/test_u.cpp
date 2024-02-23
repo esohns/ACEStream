@@ -352,7 +352,7 @@ do_initialize_directshow (HWND windowHandle_in,
 
   return true;
 
-error:
+//error:
   Stream_MediaFramework_DirectShow_Tools::free (outputFormat_inout);
 
   return false;
