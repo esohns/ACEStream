@@ -61,7 +61,7 @@ class Test_U_AudioEffect_DirectShow_Module_EventHandler
 
   // implement Common_IClone_T
   virtual ACE_Task<ACE_MT_SYNCH,
-                   Common_TimePolicy_t>* clone ();
+                   Common_TimePolicy_t>* clone () const;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Module_EventHandler ())
@@ -96,7 +96,7 @@ class Test_U_AudioEffect_MediaFoundation_Module_EventHandler
 
   // implement Common_IClone_T
   virtual ACE_Task<ACE_MT_SYNCH,
-                   Common_TimePolicy_t>* clone ();
+                   Common_TimePolicy_t>* clone () const;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Module_EventHandler ())
@@ -146,7 +146,7 @@ class Test_U_AudioEffect_Module_EventHandler
 
   // implement Common_IClone_T
   virtual ACE_Task<ACE_MT_SYNCH,
-                   Common_TimePolicy_t>* clone ();
+                   Common_TimePolicy_t>* clone () const;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_Module_EventHandler ())

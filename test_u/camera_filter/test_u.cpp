@@ -812,29 +812,10 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
               ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()), captureFormat_out.format.pixelformat,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
-//  if (!Stream_MediaFramework_Tools::isRGB (captureFormat_out.format.pixelformat))
-//  {
-//    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("\"%s\" (%d): setting RGB24 capture format\n"),
-//                ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor));
-//    Common_Image_Resolution_t resolution_s;
-//    resolution_s.height = captureFormat_out.format.height;
-//    resolution_s.width = captureFormat_out.format.width;
-//    struct v4l2_pix_format format_s =
-//        Stream_Device_Tools::getVideoCaptureFormat (deviceIdentifier_out.fileDescriptor,
-//                                                    V4L2_PIX_FMT_RGB24,
-//                                                    resolution_s,
-//                                                    captureFormat_out.frameRate);
-//    ACE_ASSERT (format_s.pixelformat == V4L2_PIX_FMT_RGB24);
-//    if (!Stream_Device_Tools::setFormat (deviceIdentifier_out.fileDescriptor,
-//                                         format_s))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
-//      return false;
-//    } // end IF
-//    captureFormat_out.format = format_s;
-//  } // end IF
+  captureFormat_out.format.width = 320;
+  captureFormat_out.format.height = 240;
+  Stream_Device_Tools::setFormat (deviceIdentifier_out.fileDescriptor,
+                                  captureFormat_out.format);
 
   // *NOTE*: Gtk 2 expects RGB24
   // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with

@@ -1216,6 +1216,69 @@ Stream_Device_Tools::getFormat (int fileDescriptor_in,
 }
 
 bool
+Stream_Device_Tools::setResolution (int fileDescriptor_in,
+                                    const Common_Image_Resolution_t& resolution_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::setFormat"));
+
+  int result = -1;
+
+  // sanity check(s)
+  ACE_ASSERT (fileDescriptor_in != -1);
+
+  struct v4l2_format format_s;
+  ACE_OS::memset (&format_s, 0, sizeof (struct v4l2_format));
+  format_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  result = ACE_OS::ioctl (fileDescriptor_in,
+                          VIDIOC_G_FMT,
+                          &format_s);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_OS::ioctl(%d,%s): \"%m\", aborting\n"),
+                fileDescriptor_in, ACE_TEXT ("VIDIOC_G_FMT")));
+    return false;
+  } // end IF
+  format_s.fmt.pix.bytesperline = 0;
+  format_s.fmt.pix.colorspace = 0;
+  format_s.fmt.pix.field = 0;
+  format_s.fmt.pix.height = resolution_in.height;
+  // format_s.fmt.pix.pixelformat = 0;
+  format_s.fmt.pix.priv = 0;
+  format_s.fmt.pix.quantization = 0;
+  format_s.fmt.pix.sizeimage = 0;
+  format_s.fmt.pix.width = resolution_in.height;
+  format_s.fmt.pix.xfer_func = 0;
+  result = ACE_OS::ioctl (fileDescriptor_in,
+                          VIDIOC_S_FMT,
+                          &format_s);
+  if (result == -1)
+  {// int error = ACE_OS::last_error (); ACE_UNUSED_ARG (error);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_OS::ioctl(%d,%s): \"%m\", aborting\n"),
+                fileDescriptor_in, ACE_TEXT ("VIDIOC_S_FMT")));
+    return false;
+  } // end IF
+  // validate result
+  if (//(format_s.fmt.pix.pixelformat != format_in.pixelformat) ||
+      (format_s.fmt.pix.height != resolution_in.height)           ||
+      (format_s.fmt.pix.width != resolution_in.width))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%d: failed to set capture resolution (was: %ux%u), aborting\n"),
+                fileDescriptor_in,
+                resolution_in.width, resolution_in.height));
+    return false;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%d: set capture resolution to %ux%u\n"),
+              fileDescriptor_in,
+              resolution_in.width, resolution_in.height));
+
+  return true;
+}
+
+bool
 Stream_Device_Tools::getFrameRate (int fileDescriptor_in,
                                    struct v4l2_fract& frameRate_out)
 {

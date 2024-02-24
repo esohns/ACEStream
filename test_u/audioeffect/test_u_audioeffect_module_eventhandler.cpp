@@ -33,7 +33,7 @@ Test_U_AudioEffect_DirectShow_Module_EventHandler::Test_U_AudioEffect_DirectShow
 
 ACE_Task<ACE_MT_SYNCH,
          Common_TimePolicy_t>*
-Test_U_AudioEffect_DirectShow_Module_EventHandler::clone ()
+Test_U_AudioEffect_DirectShow_Module_EventHandler::clone () const
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Module_EventHandler::clone"));
 
@@ -81,7 +81,7 @@ Test_U_AudioEffect_MediaFoundation_Module_EventHandler::Test_U_AudioEffect_Media
 
 ACE_Task<ACE_MT_SYNCH,
          Common_TimePolicy_t>*
-Test_U_AudioEffect_MediaFoundation_Module_EventHandler::clone ()
+Test_U_AudioEffect_MediaFoundation_Module_EventHandler::clone () const
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Module_EventHandler::clone"));
 
@@ -127,7 +127,7 @@ Test_U_AudioEffect_Module_EventHandler::Test_U_AudioEffect_Module_EventHandler (
 
 ACE_Task<ACE_MT_SYNCH,
          Common_TimePolicy_t>*
-Test_U_AudioEffect_Module_EventHandler::clone ()
+Test_U_AudioEffect_Module_EventHandler::clone () const
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Module_EventHandler::clone"));
 

@@ -74,6 +74,7 @@ Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& messag
 
     for (int i = 0; i < ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
     {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       int x =
         Common_Tools::getRandomNumber (0, static_cast<int> (resolution_.cx - 1));
       int y =
@@ -81,6 +82,15 @@ Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& messag
       uint8_t r = data_p[(y * resolution_.cx + x) * bytesPerPixel_ + 0];
       uint8_t g = data_p[(y * resolution_.cx + x) * bytesPerPixel_ + 1];
       uint8_t b = data_p[(y * resolution_.cx + x) * bytesPerPixel_ + 2];
+#else
+      int x =
+        Common_Tools::getRandomNumber (0, static_cast<int> (resolution_.width - 1));
+      int y =
+        Common_Tools::getRandomNumber (0, static_cast<int> (resolution_.height - 1));
+      uint8_t r = data_p[(y * resolution_.width + x) * bytesPerPixel_ + 0];
+      uint8_t g = data_p[(y * resolution_.width + x) * bytesPerPixel_ + 1];
+      uint8_t b = data_p[(y * resolution_.width + x) * bytesPerPixel_ + 2];
+#endif // ACE_WIN32 || ACE_WIN64
       float brightness_f = (0.2126f * r + 0.7152f * g + 0.0722f * b);
       if (Common_Tools::getRandomNumber (0.0f, 100.0f) > brightness_f)
       {
@@ -107,12 +117,23 @@ Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& messag
   ACE_OS::memset (avgWeights, 0, sizeof (float) * ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS);
 
   int delaunayIndex = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   for (int i = 0; i < resolution_.cx; i++)
     for (int j = 0; j < resolution_.cy; j++)
+#else
+  for (int i = 0; i < static_cast<int> (resolution_.width); i++)
+    for (int j = 0; j < static_cast<int> (resolution_.height); j++)
+#endif // ACE_WIN32 || ACE_WIN64
     {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       uint8_t r = data_p[(j * resolution_.cx + i) * bytesPerPixel_ + 0];
       uint8_t g = data_p[(j * resolution_.cx + i) * bytesPerPixel_ + 1];
       uint8_t b = data_p[(j * resolution_.cx + i) * bytesPerPixel_ + 2];
+#else
+      uint8_t r = data_p[(j * resolution_.width + i) * bytesPerPixel_ + 0];
+      uint8_t g = data_p[(j * resolution_.width + i) * bytesPerPixel_ + 1];
+      uint8_t b = data_p[(j * resolution_.width + i) * bytesPerPixel_ + 2];
+#endif // ACE_WIN32 || ACE_WIN64
       float brightness_f = (0.2126f * r + 0.7152f * g + 0.0722f * b);
       float weight = 1.0f - brightness_f / 255.0f;
 
@@ -147,7 +168,11 @@ Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& messag
   for (int i = 0; i < ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
   {
     int index =
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       static_cast<int> (std::floor (points_[i].x) + std::floor (points_[i].y) * resolution_.cx) * bytesPerPixel_;
+#else
+      static_cast<int> (std::floor (points_[i].x) + std::floor (points_[i].y) * resolution_.width) * bytesPerPixel_;
+#endif // ACE_WIN32 || ACE_WIN64
     uint8_t r = data_p[index + 0];
     uint8_t g = data_p[index + 1];
     uint8_t b = data_p[index + 2];
@@ -207,17 +232,11 @@ Test_U_CameraFilter_Voronoi_Filter::handleSessionMessage (Test_U_SessionMessage_
 
       bytesPerPixel_ =
         Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_r.format.pixelformat) / 8;
-      frameCount_ = 0;
       resolution_.width = media_type_r.format.width;
       resolution_.height = media_type_r.format.height;
 #endif // ACE_WIN32 || ACE_WIN64
 
       points_ = (jcv_point*)malloc (sizeof (jcv_point) * ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS);
-      for (int i = 0; i < ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
-      {
-        points_[i].x = Common_Tools::getRandomNumber (0.0f, static_cast<float> (resolution_.cx));
-        points_[i].y = Common_Tools::getRandomNumber (0.0f, static_cast<float> (resolution_.cy));
-      } // end FOR
 
       olc::rcode result =
         inherited3::Construct (

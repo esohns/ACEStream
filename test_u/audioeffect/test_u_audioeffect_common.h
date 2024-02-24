@@ -66,20 +66,20 @@ extern "C"
 #if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
 #if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
 #include "gtkgl/gdkgl.h"
 #endif // GTKGLAREA_SUPPORT
-#endif // GTK_CHECK_VERSION(3,16,0)
+#endif // GTK_CHECK_VERSION (3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
 #include "gtkgl/gdkgl.h"
 #else
 #include "gtk/gtkgl.h" // gtkglext
 #endif // GTKGLAREA_SUPPORT
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
 #endif // GTKGL_SUPPORT
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT

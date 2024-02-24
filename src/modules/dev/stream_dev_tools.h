@@ -155,6 +155,10 @@ class Stream_Device_Tools
                          const struct v4l2_pix_format&); // capture format
   static bool getFormat (int,                  // device handle file descriptor
                          struct v4l2_format&); // return value: format
+
+  static bool setResolution (int,                               // device handle file descriptor
+                             const Common_Image_Resolution_t&); // capture resolution
+
   // *NOTE*: v4l uses time-per-frame (s) intervals, so the actual frame rate
   //         (fps) is the reciprocal of this value
   static bool getFrameRate (int,                 // device handle file descriptor
