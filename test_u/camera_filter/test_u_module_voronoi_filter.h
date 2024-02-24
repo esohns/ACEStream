@@ -141,7 +141,7 @@ class Test_U_CameraFilter_Voronoi_Filter
 
   bool processNextMessage (); // return value: stop PGE ?
 
-  int closestPoint (jcv_diagram&, olc::vf2d&);
+  int pointToSite (jcv_diagram&, olc::vf2d&);
 
   uint8_t                   bytesPerPixel_;
   jcv_point*                points_;

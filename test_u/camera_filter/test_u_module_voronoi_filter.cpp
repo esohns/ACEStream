@@ -61,30 +61,36 @@ Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& messag
 #endif // ACE_WIN32 || ACE_WIN64
                                                        bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (
-    ACE_TEXT ("Test_U_CameraFilter_Voronoi_Filter::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_Voronoi_Filter::handleDataMessage"));
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
-  for (int i = 0; i < ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
+  
+  static bool is_first_b = true;
+  if (unlikely (is_first_b))
   {
-    int x =
-      Common_Tools::getRandomNumber (0, static_cast<int> (resolution_.cx - 1));
-    int y =
-      Common_Tools::getRandomNumber (0, static_cast<int> (resolution_.cy - 1));
-    uint8_t r = data_p[(y * resolution_.cx + x) * 4 + 0];
-    uint8_t g = data_p[(y * resolution_.cx + x) * 4 + 1];
-    uint8_t b = data_p[(y * resolution_.cx + x) * 4 + 2];
-    float brightness_f = (0.2126f * r + 0.7152f * g + 0.0722f * b);
-    if (Common_Tools::getRandomNumber (0.0f, 100.0f) > brightness_f)
+    is_first_b = false;
+
+    for (int i = 0; i < ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
     {
-      points_[i].x = static_cast<float> (x);
-      points_[i].y = static_cast<float> (y);
-    }
-    else
-      i--;
-  } // end FOR
+      int x =
+        Common_Tools::getRandomNumber (0, static_cast<int> (resolution_.cx - 1));
+      int y =
+        Common_Tools::getRandomNumber (0, static_cast<int> (resolution_.cy - 1));
+      uint8_t r = data_p[(y * resolution_.cx + x) * bytesPerPixel_ + 0];
+      uint8_t g = data_p[(y * resolution_.cx + x) * bytesPerPixel_ + 1];
+      uint8_t b = data_p[(y * resolution_.cx + x) * bytesPerPixel_ + 2];
+      float brightness_f = (0.2126f * r + 0.7152f * g + 0.0722f * b);
+      if (Common_Tools::getRandomNumber (0.0f, 100.0f) > brightness_f)
+      {
+        points_[i].x = static_cast<float> (x);
+        points_[i].y = static_cast<float> (y);
+      } // end IF
+      else
+        i--;
+    } // end FOR
+  } // end IF
 
   jcv_diagram diagram;
   ACE_OS::memset (&diagram, 0, sizeof (jcv_diagram));
@@ -94,7 +100,6 @@ Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& messag
   float weights[ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS];
   int counts[ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS];
   float avgWeights[ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS];
-
   for (int i = 0; i < ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
     centroids[i] = olc::vf2d (0.0f, 0.0f);
   ACE_OS::memset (weights, 0, sizeof (float) * ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS);
@@ -105,14 +110,14 @@ Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& messag
   for (int i = 0; i < resolution_.cx; i++)
     for (int j = 0; j < resolution_.cy; j++)
     {
-      uint8_t r = data_p[(j * resolution_.cx + i) * 4 + 0];
-      uint8_t g = data_p[(j * resolution_.cx + i) * 4 + 1];
-      uint8_t b = data_p[(j * resolution_.cx + i) * 4 + 2];
+      uint8_t r = data_p[(j * resolution_.cx + i) * bytesPerPixel_ + 0];
+      uint8_t g = data_p[(j * resolution_.cx + i) * bytesPerPixel_ + 1];
+      uint8_t b = data_p[(j * resolution_.cx + i) * bytesPerPixel_ + 2];
       float brightness_f = (0.2126f * r + 0.7152f * g + 0.0722f * b);
       float weight = 1.0f - brightness_f / 255.0f;
 
       olc::vf2d point_s (static_cast<float> (i), static_cast<float> (j));
-      delaunayIndex = closestPoint (diagram, point_s);
+      delaunayIndex = pointToSite (diagram, point_s);
       centroids[delaunayIndex].x += i * weight;
       centroids[delaunayIndex].y += j * weight;
       weights[delaunayIndex] += weight;
@@ -128,7 +133,7 @@ Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& messag
       avgWeights[i] = weights[i] / (counts[i] ? counts[i] : 1);
       if (avgWeights[i] > maxWeight)
         maxWeight = avgWeights[i];
-    }
+    } // end IF
     else
       centroids[i] = {points_[i].x, points_[i].y};
   } // end FOR
@@ -141,7 +146,8 @@ Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& messag
 
   for (int i = 0; i < ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
   {
-    int index = static_cast<int> (floor (points_[i].x) + floor (points_[i].y) * resolution_.cx) * 4;
+    int index =
+      static_cast<int> (std::floor (points_[i].x) + std::floor (points_[i].y) * resolution_.cx) * bytesPerPixel_;
     uint8_t r = data_p[index + 0];
     uint8_t g = data_p[index + 1];
     uint8_t b = data_p[index + 2];
@@ -157,10 +163,6 @@ Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& messag
     //                  olc::BLACK);
   } // end FOR
 
-  //delete [] avgWeights;
-  //delete [] counts;
-  //delete [] weights;
-  //delete [] centroids;
   jcv_diagram_free (&diagram);
 }
 
@@ -469,9 +471,9 @@ Test_U_CameraFilter_Voronoi_Filter::processNextMessage ()
 }
 
 int
-Test_U_CameraFilter_Voronoi_Filter::closestPoint (jcv_diagram& diagram, olc::vf2d& point)
+Test_U_CameraFilter_Voronoi_Filter::pointToSite (jcv_diagram& diagram, olc::vf2d& point)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_Voronoi_Filter::closestPoint"));
+  //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_Voronoi_Filter::pointToSite"));
 
   int result = 0;
   float min_distance_f = std::numeric_limits<float>::max ();
