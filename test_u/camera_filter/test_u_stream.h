@@ -45,7 +45,7 @@
 #include "test_u_camera_filter_common.h"
 #include "test_u_common_modules.h"
 #include "test_u_message.h"
-#include "test_u_module_marchingcubes_filter.h"
+#include "test_u_module_marchingsquares_filter.h"
 #include "test_u_module_sobel_filter.h"
 #if defined (GLUT_SUPPORT)
 #include "test_u_module_opengl_glut.h"
@@ -53,7 +53,7 @@
 #include "test_u_module_opengl_glut_3.h"
 #endif // GLUT_SUPPORT
 #if defined (JC_VORONOI_SUPPORT)
-#include "test_u_module_voronoi_filter.h"
+#include "test_u_module_weightedvoronoistipple_filter.h"
 #endif // JC_VORONOI_SUPPORT
 #include "test_u_session_message.h"
 
@@ -117,7 +117,7 @@ class Test_U_DirectShow_Stream
   Test_U_DirectShow_LibAVConvert_Module           convert_; // RGB
   Test_U_DirectShow_LibAVResize_Module            resize_; // --> window size/fullscreen
   Test_U_CameraFilter_Sobel_Filter_Module         sobelFilter_;
-  Test_U_CameraFilter_MarchingCubes_Filter_Module marchingCubesFilter_;
+  Test_U_CameraFilter_MarchingSquares_Filter_Module marchingSquaresFilter_;
 #if defined (GTK_SUPPORT)
   Test_U_DirectShow_GTK_Display_Module            GTKDisplay_;
 #endif // GTK_SUPPORT
@@ -132,7 +132,7 @@ class Test_U_DirectShow_Stream
   Test_U_CameraFilter_OpenGL_GLUT_3_Module        GLUTDisplay_3;
 #endif // GLUT_SUPPORT
 #if defined (JC_VORONOI_SUPPORT)
-  Test_U_CameraFilter_Voronoi_Filter_Module       voronoiFilter_;
+  Test_U_CameraFilter_WeightedVoronoiStipple_Filter_Module weightedVoronoiStippleFilter_;
 #endif // JC_VORONOI_SUPPORT
 };
 
@@ -274,7 +274,7 @@ class Test_U_Stream
   Test_U_LibAVConvert_Module                      convert_; // --> BGRA (Xlib)
   Test_U_LibAVResize_Module                       resize_; // --> window size/fullscreen
   Test_U_CameraFilter_Sobel_Filter_Module         sobelFilter_;
-  Test_U_CameraFilter_MarchingCubes_Filter_Module marchingCubesFilter_;
+  Test_U_CameraFilter_MarchingSquares_Filter_Module marchingSquaresFilter_;
 #if defined (GTK_SUPPORT)
   Test_U_GTK_Display_Module                       GTKDisplay_;
 #endif // GTK_SUPPORT
@@ -287,7 +287,7 @@ class Test_U_Stream
   Test_U_CameraFilter_OpenGL_GLUT_3_Module        GLUTDisplay_3;
 #endif // GLUT_SUPPORT
 #if defined (JC_VORONOI_SUPPORT)
-  Test_U_CameraFilter_Voronoi_Filter_Module       voronoiFilter_;
+  Test_U_CameraFilter_WeightedVoronoiStipple_Filter_Module weightedVoronoiStippleFilter_;
 #endif // JC_VORONOI_SUPPORT
 };
 #endif // ACE_WIN32 || ACE_WIN64

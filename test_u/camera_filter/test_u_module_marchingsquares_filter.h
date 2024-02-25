@@ -18,8 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_U_MODULE_VORONOI_FILTER_H
-#define TEST_U_MODULE_VORONOI_FILTER_H
+#ifndef TEST_U_MODULE_MARCHINGSQUARES_FILTER_H
+#define TEST_U_MODULE_MARCHINGSQUARES_FILTER_H
+
+#include <vector>
 
 #if defined (GLEW_SUPPORT)
 #include "GL/glew.h"
@@ -28,12 +30,13 @@
 #if defined (OLC_PGE_SUPPORT)
 #include "olcPixelGameEngine.h"
 #endif // OLC_PGE_SUPPORT
-#include "jc_voronoi.h"
 
 #include "ace/Basic_Types.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
+
+#include "common_gl_common.h"
 
 #include "stream_control_message.h"
 #include "stream_streammodule_base.h"
@@ -47,14 +50,26 @@
 
 //////////////////////////////////////////
 
-#define ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS 500
-#define ACESTREAM_VORONOI_FILTER_DEFAULT_ALPHA_DECAY      15
+#define ACESTREAM_MS_FILTER_DEFAULT_TILE_NUM       30 * 2
+#define ACESTREAM_MS_FILTER_DEFAULT_NUM_THRESHOLD  60 / 2
+#define ACESTREAM_MS_FILTER_DEFAULT_ALPHA_DECAY    15
 
 //////////////////////////////////////////
 
-extern const char libacestream_default_voronoi_filter_module_name_string[];
+struct acestream_ms_filter_state
+{
+  uint8_t state;
+  float   n1;
+  float   n2;
+  float   n3;
+  float   n4;
+};
 
-class Test_U_CameraFilter_Voronoi_Filter
+//////////////////////////////////////////
+
+extern const char libacestream_default_marchingsquares_filter_module_name_string[];
+
+class Test_U_CameraFilter_MarchingSquares_Filter
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  : public Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                   Common_TimePolicy_t,
@@ -108,11 +123,11 @@ class Test_U_CameraFilter_Voronoi_Filter
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_CameraFilter_Voronoi_Filter (ISTREAM_T*); // stream handle
+  Test_U_CameraFilter_MarchingSquares_Filter (ISTREAM_T*); // stream handle
 #else
-  Test_U_CameraFilter_Voronoi_Filter (typename inherited::ISTREAM_T*); // stream handle
+  Test_U_CameraFilter_MarchingSquares_Filter (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  inline virtual ~Test_U_CameraFilter_Voronoi_Filter () {}
+  inline virtual ~Test_U_CameraFilter_MarchingSquares_Filter () {}
 
   // implement (part of) Stream_ITaskBase_T
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -132,36 +147,48 @@ class Test_U_CameraFilter_Voronoi_Filter
   virtual bool OnUserDestroy ();
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Test_U_CameraFilter_Voronoi_Filter ())
-  ACE_UNIMPLEMENTED_FUNC (Test_U_CameraFilter_Voronoi_Filter (const Test_U_CameraFilter_Voronoi_Filter&))
-  ACE_UNIMPLEMENTED_FUNC (Test_U_CameraFilter_Voronoi_Filter& operator= (const Test_U_CameraFilter_Voronoi_Filter&))
+  ACE_UNIMPLEMENTED_FUNC (Test_U_CameraFilter_MarchingSquares_Filter ())
+  ACE_UNIMPLEMENTED_FUNC (Test_U_CameraFilter_MarchingSquares_Filter (const Test_U_CameraFilter_MarchingSquares_Filter&))
+  ACE_UNIMPLEMENTED_FUNC (Test_U_CameraFilter_MarchingSquares_Filter& operator= (const Test_U_CameraFilter_MarchingSquares_Filter&))
 
   // override (part of) ACE_Task_Base
   virtual int svc (void);
 
   bool processNextMessage (); // return value: stop PGE ?
 
-  int pointToSite (jcv_diagram&, olc::vf2d&);
+  uint8_t getState (int, int, int, int);
+  void marchingSquares (glm::vec2&, glm::vec2&, glm::vec2&, glm::vec2&,
+                        uint8_t,
+                        float, float, float, float,
+                        Common_GL_Color_t&);
+  void drawLine (glm::vec2&, glm::vec2&,
+                 Common_GL_Color_t&);
 
-  uint8_t                   bytesPerPixel_;
-  jcv_point*                points_;
-  Common_Image_Resolution_t resolution_;
+  uint8_t                        bytesPerPixel_;
+  Common_Image_Resolution_t      resolution_;
+  int                            imgWidth_;
+  int                            minPixX_, maxPixX_;
+  int                            minPixY_, maxPixY_;
+  float                          stepW_;
+  float                          areaWidth_;
+  float                          initX_, initY_;
+  std::vector<Common_GL_Color_t> palette_;
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_CameraFilter_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                   // session event type
                               struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_voronoi_filter_module_name_string,
+                              libacestream_default_marchingsquares_filter_module_name_string,
                               Stream_INotify_t,                                                 // stream notification interface type
-                              Test_U_CameraFilter_Voronoi_Filter);                                // writer type
+                              Test_U_CameraFilter_MarchingSquares_Filter);                                // writer type
 #else
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_CameraFilter_V4L_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                            // session event type
                               struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_voronoi_filter_module_name_string,
+                              libacestream_default_marchingsquares_filter_module_name_string,
                               Stream_INotify_t,                                          // stream notification interface type
-                              Test_U_CameraFilter_Voronoi_Filter);                        // writer type
+                              Test_U_CameraFilter_MarchingSquares_Filter);                        // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 
 #endif

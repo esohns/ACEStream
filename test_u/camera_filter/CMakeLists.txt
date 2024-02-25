@@ -104,8 +104,8 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_message.cpp
      test_u_message.h
      test_u_message.inl
-     test_u_module_marchingcubes_filter.cpp
-     test_u_module_marchingcubes_filter.h
+     test_u_module_marchingsquares_filter.cpp
+     test_u_module_marchingsquares_filter.h
      test_u_module_sobel_filter.cpp
      test_u_module_sobel_filter.h
      test_u_session_message.cpp
@@ -128,8 +128,8 @@ endif (GLUT_SUPPORT)
 if (JC_VORONOI_SUPPORT)
  set (${EXECUTABLE}_EXE_SRCS
       ${${EXECUTABLE}_EXE_SRCS}
-      test_u_module_voronoi_filter.cpp
-      test_u_module_voronoi_filter.h)
+      test_u_module_weightedvoronoistipple_filter.cpp
+      test_u_module_weightedvoronoistipple_filter.h)
 endif (JC_VORONOI_SUPPORT)
 
 if (UNIX)

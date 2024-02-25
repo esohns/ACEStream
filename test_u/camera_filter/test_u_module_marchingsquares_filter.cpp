@@ -20,7 +20,7 @@
 #include "stdafx.h"
 
 #define OLC_PGE_APPLICATION
-#include "test_u_module_marchingcubes_filter.h"
+#include "test_u_module_marchingsquares_filter.h"
 
 #if defined (GLM_SUPPORT)
 #include "glm/glm.hpp"
@@ -36,13 +36,13 @@
 
 #include "stream_macros.h"
 
-const char libacestream_default_marchingcubes_filter_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR ("MarchingCubesFilter");
+const char libacestream_default_marchingsquares_filter_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR ("MarchingSquaresFilter");
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_U_CameraFilter_MarchingCubes_Filter::Test_U_CameraFilter_MarchingCubes_Filter (ISTREAM_T* stream_in)
+Test_U_CameraFilter_MarchingSquares_Filter::Test_U_CameraFilter_MarchingSquares_Filter (ISTREAM_T* stream_in)
 #else
-Test_U_CameraFilter_MarchingCubes_Filter::Test_U_CameraFilter_MarchingCubes_Filter (typename inherited::ISTREAM_T* stream_in)
+Test_U_CameraFilter_MarchingSquares_Filter::Test_U_CameraFilter_MarchingSquares_Filter (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
@@ -57,19 +57,19 @@ Test_U_CameraFilter_MarchingCubes_Filter::Test_U_CameraFilter_MarchingCubes_Filt
  , initX_ (0.0f), initY_ (0.0f)
  , palette_ ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingCubes_Filter::Test_U_CameraFilter_MarchingCubes_Filter"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::Test_U_CameraFilter_MarchingSquares_Filter"));
 
 }
 
 void
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_U_CameraFilter_MarchingCubes_Filter::handleDataMessage (Test_U_DirectShow_Message_t*& message_inout,
+Test_U_CameraFilter_MarchingSquares_Filter::handleDataMessage (Test_U_DirectShow_Message_t*& message_inout,
 #else
-Test_U_CameraFilter_MarchingCubes_Filter::handleDataMessage (Test_U_Message_t*& message_inout,
+Test_U_CameraFilter_MarchingSquares_Filter::handleDataMessage (Test_U_Message_t*& message_inout,
 #endif // ACE_WIN32 || ACE_WIN64
-                                                             bool& passMessageDownstream_out)
+                                                               bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingCubes_Filter::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::handleDataMessage"));
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
@@ -77,7 +77,7 @@ Test_U_CameraFilter_MarchingCubes_Filter::handleDataMessage (Test_U_Message_t*& 
 
   std::vector<std::vector<glm::vec2> > positions_a;
   std::vector<std::vector<uint8_t> > colors_a;
-  for (int i = 0; i < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM; ++i)
+  for (int i = 0; i < ACESTREAM_MS_FILTER_DEFAULT_TILE_NUM; ++i)
   {
     std::vector<glm::vec2> temp_a;
     positions_a.push_back (temp_a);
@@ -85,16 +85,16 @@ Test_U_CameraFilter_MarchingCubes_Filter::handleDataMessage (Test_U_Message_t*& 
     colors_a.push_back (temp_2);
     int x, y, x2, y2, r, g, b, index_i;
     float r_2, g_2, b_2; 
-    for (int j = 0; j < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM; ++j)
+    for (int j = 0; j < ACESTREAM_MS_FILTER_DEFAULT_TILE_NUM; ++j)
     {
       x =
-        Common_GL_Tools::map (i, 0, ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM, minPixX_, maxPixX_);
+        Common_GL_Tools::map (i, 0, ACESTREAM_MS_FILTER_DEFAULT_TILE_NUM, minPixX_, maxPixX_);
       y =
-        Common_GL_Tools::map (j, 0, ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM, minPixY_, maxPixY_);
+        Common_GL_Tools::map (j, 0, ACESTREAM_MS_FILTER_DEFAULT_TILE_NUM, minPixY_, maxPixY_);
       x2 =
-        Common_GL_Tools::map (i + 1, 0, ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM, minPixX_, maxPixX_);
+        Common_GL_Tools::map (i + 1, 0, ACESTREAM_MS_FILTER_DEFAULT_TILE_NUM, minPixX_, maxPixX_);
       y2 =
-        Common_GL_Tools::map (j + 1, 0, ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM, minPixY_, maxPixY_);
+        Common_GL_Tools::map (j + 1, 0, ACESTREAM_MS_FILTER_DEFAULT_TILE_NUM, minPixY_, maxPixY_);
 
       r = g = b = 0;
       for (int k = x; k < x2; ++k)
@@ -121,37 +121,37 @@ Test_U_CameraFilter_MarchingCubes_Filter::handleDataMessage (Test_U_Message_t*& 
   } // end FOR
 
   std::vector<std::vector<bool> > filled_a;
-  for (int x = 0; x < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; ++x)
+  for (int x = 0; x < ACESTREAM_MS_FILTER_DEFAULT_TILE_NUM - 1; ++x)
   {
     std::vector<bool> temp_a;
-    temp_a.assign (ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1, false);
+    temp_a.assign (ACESTREAM_MS_FILTER_DEFAULT_TILE_NUM - 1, false);
     filled_a.push_back (temp_a);
   } // end FOR
 
-  std::vector<std::vector<std::vector<struct acestream_mc_filter_state> > > states_a;
-  std::vector<std::vector<struct acestream_mc_filter_state> > temp_a;
-  states_a.assign (ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD, temp_a);
-  for (int i = ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD - 1; i >= 0; --i)
-    for (int x = 0; x < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; ++x)
+  std::vector<std::vector<std::vector<struct acestream_ms_filter_state> > > states_a;
+  std::vector<std::vector<struct acestream_ms_filter_state> > temp_a;
+  states_a.assign (ACESTREAM_MS_FILTER_DEFAULT_NUM_THRESHOLD, temp_a);
+  for (int i = ACESTREAM_MS_FILTER_DEFAULT_NUM_THRESHOLD - 1; i >= 0; --i)
+    for (int x = 0; x < ACESTREAM_MS_FILTER_DEFAULT_TILE_NUM - 1; ++x)
     {
-      std::vector<struct acestream_mc_filter_state> temp_3;
+      std::vector<struct acestream_ms_filter_state> temp_3;
       states_a[i].push_back (temp_3);
-      struct acestream_mc_filter_state state_s, state_2;
+      struct acestream_ms_filter_state state_s, state_2;
       state_s.state = 0;
-      for (int y = 0; y < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; ++y)
+      for (int y = 0; y < ACESTREAM_MS_FILTER_DEFAULT_TILE_NUM - 1; ++y)
       {
         states_a[i][x].push_back (state_s);
 
         if (filled_a[x][y] == false)
         {
           state_2.n1 =
-            colors_a[x][y] / 255.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD);
+            colors_a[x][y] / 255.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MS_FILTER_DEFAULT_NUM_THRESHOLD);
           state_2.n2 =
-            colors_a[x + 1][y] / 255.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD);
+            colors_a[x + 1][y] / 255.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MS_FILTER_DEFAULT_NUM_THRESHOLD);
           state_2.n3 =
-            colors_a[x + 1][y + 1] / 255.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD);
+            colors_a[x + 1][y + 1] / 255.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MS_FILTER_DEFAULT_NUM_THRESHOLD);
           state_2.n4 =
-            colors_a[x][y + 1] / 255.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD);
+            colors_a[x][y + 1] / 255.0f - (i + 0.5f) / static_cast<float> (ACESTREAM_MS_FILTER_DEFAULT_NUM_THRESHOLD);
           state_2.state = getState (static_cast<int> (std::ceil (state_2.n1)),
                                     static_cast<int> (std::ceil (state_2.n2)),
                                     static_cast<int> (std::ceil (state_2.n3)),
@@ -165,25 +165,25 @@ Test_U_CameraFilter_MarchingCubes_Filter::handleDataMessage (Test_U_Message_t*& 
 
   palette_.push_back (palette_[0]);
   palette_.erase (palette_.begin ());
-  for (int i = 0; i < ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD; ++i)
-    for (int x = 0; x < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; ++x)
-      for (int y = 0; y < ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1; ++y)
+  for (int i = 0; i < ACESTREAM_MS_FILTER_DEFAULT_NUM_THRESHOLD; ++i)
+    for (int x = 0; x < ACESTREAM_MS_FILTER_DEFAULT_TILE_NUM - 1; ++x)
+      for (int y = 0; y < ACESTREAM_MS_FILTER_DEFAULT_TILE_NUM - 1; ++y)
         if (states_a[i][x][y].state != 0 && states_a[i][x][y].state != 15)
-          marchingCubes (positions_a[x][y], positions_a[x + 1][y], positions_a[x + 1][y + 1], positions_a[x][y + 1],
-                         states_a[i][x][y].state,
-                         states_a[i][x][y].n1 + 1.0f, states_a[i][x][y].n2 + 1.0f, states_a[i][x][y].n3 + 1.0f, states_a[i][x][y].n4 + 1.0f,
-                         palette_[i + 1]);
+          marchingSquares (positions_a[x][y], positions_a[x + 1][y], positions_a[x + 1][y + 1], positions_a[x][y + 1],
+                           states_a[i][x][y].state,
+                           states_a[i][x][y].n1 + 1.0f, states_a[i][x][y].n2 + 1.0f, states_a[i][x][y].n3 + 1.0f, states_a[i][x][y].n4 + 1.0f,
+                           palette_[i + 1]);
 }
 
 void
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_U_CameraFilter_MarchingCubes_Filter::handleSessionMessage (Test_U_DirectShow_SessionMessage_t*& message_inout,
+Test_U_CameraFilter_MarchingSquares_Filter::handleSessionMessage (Test_U_DirectShow_SessionMessage_t*& message_inout,
 #else
-Test_U_CameraFilter_MarchingCubes_Filter::handleSessionMessage (Test_U_SessionMessage_t*& message_inout,
+Test_U_CameraFilter_MarchingSquares_Filter::handleSessionMessage (Test_U_SessionMessage_t*& message_inout,
 #endif // ACE_WIN32 || ACE_WIN64
-                                                                bool& passMessageDownstream_out)
+                                                                  bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingCubes_Filter::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::handleSessionMessage"));
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
@@ -237,7 +237,7 @@ Test_U_CameraFilter_MarchingCubes_Filter::handleSessionMessage (Test_U_SessionMe
 
       areaWidth_ = static_cast<float> (resolution_.width);
 #endif // ACE_WIN32 || ACE_WIN64
-      stepW_ = areaWidth_ / static_cast<float> (ACESTREAM_MC_FILTER_DEFAULT_TILE_NUM - 1);
+      stepW_ = areaWidth_ / static_cast<float> (ACESTREAM_MS_FILTER_DEFAULT_TILE_NUM - 1);
       initX_ = -areaWidth_ / 2.0f;
       initY_ = initX_;
 
@@ -245,9 +245,9 @@ Test_U_CameraFilter_MarchingCubes_Filter::handleSessionMessage (Test_U_SessionMe
       float colDirection = Common_Tools::testRandomProbability (0.5f) ? -1.0f : 1.0f;
       float r, g, b;
       Common_GL_Color_t color;
-      for (int i = 0; i < ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD + 1; i++)
+      for (int i = 0; i < ACESTREAM_MS_FILTER_DEFAULT_NUM_THRESHOLD + 1; i++)
       {
-        Common_Image_Tools::HSVToRGB (std::fmod (360.0f / static_cast<float> (ACESTREAM_MC_FILTER_DEFAULT_NUM_THRESHOLD) * i * colDirection + initH + 360.0f, 360.0f), 80.0f / 100.0f, 1.0f, r, g, b);
+        Common_Image_Tools::HSVToRGB (std::fmod (360.0f / static_cast<float> (ACESTREAM_MS_FILTER_DEFAULT_NUM_THRESHOLD) * i * colDirection + initH + 360.0f, 360.0f), 80.0f / 100.0f, 1.0f, r, g, b);
         color.r = static_cast<uint8_t> (r * 255.0f);
         color.g = static_cast<uint8_t> (g * 255.0f);
         color.b = static_cast<uint8_t> (b * 255.0f);
@@ -290,20 +290,20 @@ error:
 }
 
 uint8_t
-Test_U_CameraFilter_MarchingCubes_Filter::getState (int n1, int n2, int n3, int n4)
+Test_U_CameraFilter_MarchingSquares_Filter::getState (int n1, int n2, int n3, int n4)
 {
-  //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingCubes_Filter::getState"));
+  //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::getState"));
 
   return (n1 * 8 + n2 * 4 + n3 * 2 + n4 * 1);
 }
 
 void
-Test_U_CameraFilter_MarchingCubes_Filter::marchingCubes (glm::vec2& xyz1, glm::vec2& xyz2, glm::vec2& xyz3, glm::vec2& xyz4,
-                                                         uint8_t state,
-                                                         float n1, float n2, float n3, float n4,
-                                                         Common_GL_Color_t& color)
+Test_U_CameraFilter_MarchingSquares_Filter::marchingSquares (glm::vec2& xyz1, glm::vec2& xyz2, glm::vec2& xyz3, glm::vec2& xyz4,
+                                                             uint8_t state,
+                                                             float n1, float n2, float n3, float n4,
+                                                             Common_GL_Color_t& color)
 {
-  //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingCubes_Filter::marchingCubes"));
+  //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::marchingSquares"));
 
   float amt = (1.0f - n1) / (n2 - n1);
   glm::vec2 a (
@@ -391,10 +391,11 @@ Test_U_CameraFilter_MarchingCubes_Filter::marchingCubes (glm::vec2& xyz1, glm::v
 }
 
 void
-Test_U_CameraFilter_MarchingCubes_Filter::drawLine (glm::vec2& pos1_in, glm::vec2& pos2_in,
-                                                    Common_GL_Color_t& color_in)
+Test_U_CameraFilter_MarchingSquares_Filter::drawLine (glm::vec2& pos1_in, glm::vec2& pos2_in,
+                                                      Common_GL_Color_t& color_in)
 {
-  //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingCubes_Filter::drawLine"));
+  //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::drawLine"));
+
   static olc::vf2d center_s (inherited3::ScreenWidth () / 2.0f,
                              inherited3::ScreenHeight () / 2.0f);
 
@@ -404,24 +405,24 @@ Test_U_CameraFilter_MarchingCubes_Filter::drawLine (glm::vec2& pos1_in, glm::vec
 }
 
 bool
-Test_U_CameraFilter_MarchingCubes_Filter::OnUserCreate ()
+Test_U_CameraFilter_MarchingSquares_Filter::OnUserCreate ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingCubes_Filter::OnUserCreate"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::OnUserCreate"));
 
   return true;
 }
 
 bool
-Test_U_CameraFilter_MarchingCubes_Filter::OnUserUpdate (float fElapsedTime_in)
+Test_U_CameraFilter_MarchingSquares_Filter::OnUserUpdate (float fElapsedTime_in)
 {
-  //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingCubes_Filter::OnUserUpdate"));
+  //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::OnUserUpdate"));
 
   // inherited3::Clear (olc::BLACK);
   int pixels =
     inherited3::GetDrawTargetWidth () * inherited3::GetDrawTargetHeight ();
   olc::Pixel* p = inherited3::GetDrawTarget ()->GetData ();
   for (int i = 0; i < pixels; i++)
-    p[i].a = (p[i].a > ACESTREAM_MC_FILTER_DEFAULT_ALPHA_DECAY ? p[i].a - ACESTREAM_MC_FILTER_DEFAULT_ALPHA_DECAY : 0);
+    p[i].a = (p[i].a > ACESTREAM_MS_FILTER_DEFAULT_ALPHA_DECAY ? p[i].a - ACESTREAM_MS_FILTER_DEFAULT_ALPHA_DECAY : 0);
 
   // process next message
   if (processNextMessage ())
@@ -431,7 +432,7 @@ Test_U_CameraFilter_MarchingCubes_Filter::OnUserUpdate (float fElapsedTime_in)
 }
 
 bool
-Test_U_CameraFilter_MarchingCubes_Filter::OnUserDestroy ()
+Test_U_CameraFilter_MarchingSquares_Filter::OnUserDestroy ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_PGE_T::OnUserDestroy"));
 
@@ -439,9 +440,9 @@ Test_U_CameraFilter_MarchingCubes_Filter::OnUserDestroy ()
 }
 
 int
-Test_U_CameraFilter_MarchingCubes_Filter::svc (void)
+Test_U_CameraFilter_MarchingSquares_Filter::svc (void)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingCubes_Filter::svc"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::svc"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
@@ -570,9 +571,9 @@ Test_U_CameraFilter_MarchingCubes_Filter::svc (void)
 }
 
 bool
-Test_U_CameraFilter_MarchingCubes_Filter::processNextMessage ()
+Test_U_CameraFilter_MarchingSquares_Filter::processNextMessage ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingCubes_Filter::processNextMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::processNextMessage"));
 
   ACE_Message_Block* message_block_p = NULL;
   static ACE_Time_Value no_wait = COMMON_TIME_NOW;

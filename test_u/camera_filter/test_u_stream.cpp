@@ -57,8 +57,8 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
  , sobelFilter_ (this,
                  ACE_TEXT_ALWAYS_CHAR ("SobelFilter"))
- , marchingCubesFilter_ (this,
-                         ACE_TEXT_ALWAYS_CHAR ("MarchingCubesFilter"))
+ , marchingSquaresFilter_ (this,
+                           ACE_TEXT_ALWAYS_CHAR ("MarchingSquaresFilter"))
 #if defined (GTK_SUPPORT)
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
@@ -82,8 +82,8 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
 #endif // GLUT_SUPPORT
 #if defined (JC_VORONOI_SUPPORT)
- , voronoiFilter_ (this,
-                   ACE_TEXT_ALWAYS_CHAR ("VoronoiFilter"))
+ , weightedVoronoiStippleFilter_ (this,
+                                  ACE_TEXT_ALWAYS_CHAR ("WeightedVoronoiStippleFilter"))
 #endif // JC_VORONOI_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_DirectShow_Stream::Test_U_DirectShow_Stream"));
@@ -131,8 +131,8 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     {
       //layout_in->append (&sobelFilter_, NULL, 0);
       //layout_in->append (&Direct3DDisplay_, NULL, 0);
-      //layout_in->append (&marchingCubesFilter_, NULL, 0);
-      layout_in->append (&voronoiFilter_, NULL, 0);
+      //layout_in->append (&marchingSquaresFilter_, NULL, 0);
+      layout_in->append (&weightedVoronoiStippleFilter_, NULL, 0);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
@@ -1239,8 +1239,8 @@ Test_U_Stream::Test_U_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
  , sobelFilter_ (this,
                  ACE_TEXT_ALWAYS_CHAR ("SobelFilter"))
- , marchingCubesFilter_ (this,
-                         ACE_TEXT_ALWAYS_CHAR ("MarchingCubesFilter"))
+ , marchingSquaresFilter_ (this,
+                           ACE_TEXT_ALWAYS_CHAR ("MarchingSquaresFilter"))
 #if defined (GTK_SUPPORT)
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
@@ -1260,8 +1260,8 @@ Test_U_Stream::Test_U_Stream ()
                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
 #endif // GLUT_SUPPORT
 #if defined (JC_VORONOI_SUPPORT)
- , voronoiFilter_ (this,
-                   ACE_TEXT_ALWAYS_CHAR ("VoronoiFilter"))
+ , weightedVoronoiStippleFilter_ (this,
+                                  ACE_TEXT_ALWAYS_CHAR ("WeightedVoronoiStippleFilter"))
 #endif // JC_VORONOI_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_Stream::Test_U_Stream"));
@@ -1293,8 +1293,8 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
 #endif // GTK_SUPPORT
     case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
       // layout_in->append (&WaylandDisplay_, NULL, 0);
-      // layout_in->append (&marchingCubesFilter_, NULL, 0);
-      layout_in->append (&voronoiFilter_, NULL, 0);
+      // layout_in->append (&marchingSquaresFilter_, NULL, 0);
+      layout_in->append (&weightedVoronoiStippleFilter_, NULL, 0);
       break;
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
       layout_in->append (&sobelFilter_, NULL, 0);

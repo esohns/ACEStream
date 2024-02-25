@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_u_module_voronoi_filter.h"
+#include "test_u_module_weightedvoronoistipple_filter.h"
 
 #define JC_VORONOI_IMPLEMENTATION
 #include "jc_voronoi.h"
@@ -34,13 +34,13 @@
 
 #include "stream_macros.h"
 
-const char libacestream_default_voronoi_filter_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR ("VoronoiFilter");
+const char libacestream_default_weighted_voronoi_stipple_filter_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR ("WeightedVoronoiStippleFilter");
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_U_CameraFilter_Voronoi_Filter::Test_U_CameraFilter_Voronoi_Filter (ISTREAM_T* stream_in)
+Test_U_CameraFilter_WeightedVoronoiStipple_Filter::Test_U_CameraFilter_WeightedVoronoiStipple_Filter (ISTREAM_T* stream_in)
 #else
-Test_U_CameraFilter_Voronoi_Filter::Test_U_CameraFilter_Voronoi_Filter (typename inherited::ISTREAM_T* stream_in)
+Test_U_CameraFilter_WeightedVoronoiStipple_Filter::Test_U_CameraFilter_WeightedVoronoiStipple_Filter (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
@@ -49,19 +49,19 @@ Test_U_CameraFilter_Voronoi_Filter::Test_U_CameraFilter_Voronoi_Filter (typename
  , points_ (NULL)
  , resolution_ ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_Voronoi_Filter::Test_U_CameraFilter_Voronoi_Filter"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::Test_U_CameraFilter_WeightedVoronoiStipple_Filter"));
 
 }
 
 void
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_DirectShow_Message_t*& message_inout,
+Test_U_CameraFilter_WeightedVoronoiStipple_Filter::handleDataMessage (Test_U_DirectShow_Message_t*& message_inout,
 #else
-Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& message_inout,
+Test_U_CameraFilter_WeightedVoronoiStipple_Filter::handleDataMessage (Test_U_Message_t*& message_inout,
 #endif // ACE_WIN32 || ACE_WIN64
-                                                       bool& passMessageDownstream_out)
+                                                                      bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_Voronoi_Filter::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::handleDataMessage"));
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
@@ -72,7 +72,7 @@ Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& messag
   {
     is_first_b = false;
 
-    for (int i = 0; i < ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
+    for (int i = 0; i < ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       int x =
@@ -104,17 +104,17 @@ Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& messag
 
   jcv_diagram diagram;
   ACE_OS::memset (&diagram, 0, sizeof (jcv_diagram));
-  jcv_diagram_generate (ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS, (const jcv_point*)points_, NULL, NULL, &diagram);
+  jcv_diagram_generate (ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS, (const jcv_point*)points_, NULL, NULL, &diagram);
 
-  olc::vf2d centroids[ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS];
-  float weights[ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS];
-  int counts[ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS];
-  float avgWeights[ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS];
-  for (int i = 0; i < ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
+  olc::vf2d centroids[ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS];
+  float weights[ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS];
+  int counts[ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS];
+  float avgWeights[ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS];
+  for (int i = 0; i < ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
     centroids[i] = olc::vf2d (0.0f, 0.0f);
-  ACE_OS::memset (weights, 0, sizeof (float) * ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS);
-  ACE_OS::memset (counts, 0, sizeof (int) * ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS);
-  ACE_OS::memset (avgWeights, 0, sizeof (float) * ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS);
+  ACE_OS::memset (weights, 0, sizeof (float) * ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS);
+  ACE_OS::memset (counts, 0, sizeof (int) * ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS);
+  ACE_OS::memset (avgWeights, 0, sizeof (float) * ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS);
 
   int delaunayIndex = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -146,7 +146,7 @@ Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& messag
     } // end FOR
 
   float maxWeight = 0.0f;
-  for (int i = 0; i < ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
+  for (int i = 0; i < ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
   {
     if (weights[i] > 0.0f)
     {
@@ -159,13 +159,13 @@ Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& messag
       centroids[i] = {points_[i].x, points_[i].y};
   } // end FOR
 
-  for (int i = 0; i < ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
+  for (int i = 0; i < ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
   {
     points_[i].x = Common_Math_Tools::lerp (points_[i].x, centroids[i].x, 1.0f);
     points_[i].y = Common_Math_Tools::lerp (points_[i].y, centroids[i].y, 1.0f);
   } // end FOR
 
-  for (int i = 0; i < ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
+  for (int i = 0; i < ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
   {
     int index =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -193,13 +193,13 @@ Test_U_CameraFilter_Voronoi_Filter::handleDataMessage (Test_U_Message_t*& messag
 
 void
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_U_CameraFilter_Voronoi_Filter::handleSessionMessage (Test_U_DirectShow_SessionMessage_t*& message_inout,
+Test_U_CameraFilter_WeightedVoronoiStipple_Filter::handleSessionMessage (Test_U_DirectShow_SessionMessage_t*& message_inout,
 #else
-Test_U_CameraFilter_Voronoi_Filter::handleSessionMessage (Test_U_SessionMessage_t*& message_inout,
+Test_U_CameraFilter_WeightedVoronoiStipple_Filter::handleSessionMessage (Test_U_SessionMessage_t*& message_inout,
 #endif // ACE_WIN32 || ACE_WIN64
-                                                          bool& passMessageDownstream_out)
+                                                                         bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_Voronoi_Filter::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::handleSessionMessage"));
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
@@ -236,7 +236,8 @@ Test_U_CameraFilter_Voronoi_Filter::handleSessionMessage (Test_U_SessionMessage_
       resolution_.height = media_type_r.format.height;
 #endif // ACE_WIN32 || ACE_WIN64
 
-      points_ = (jcv_point*)malloc (sizeof (jcv_point) * ACESTREAM_VORONOI_FILTER_DEFAULT_NUMBER_OF_POINTS);
+      points_ =
+        (jcv_point*)malloc (sizeof (jcv_point) * ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS);
 
       olc::rcode result =
         inherited3::Construct (
@@ -276,17 +277,17 @@ error:
 }
 
 bool
-Test_U_CameraFilter_Voronoi_Filter::OnUserCreate ()
+Test_U_CameraFilter_WeightedVoronoiStipple_Filter::OnUserCreate ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_Voronoi_Filter::OnUserCreate"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::OnUserCreate"));
 
   return true;
 }
 
 bool
-Test_U_CameraFilter_Voronoi_Filter::OnUserUpdate (float fElapsedTime_in)
+Test_U_CameraFilter_WeightedVoronoiStipple_Filter::OnUserUpdate (float fElapsedTime_in)
 {
-  //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_Voronoi_Filter::OnUserUpdate"));
+  //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::OnUserUpdate"));
 
   inherited3::Clear (olc::WHITE);
   //int pixels =
@@ -303,7 +304,7 @@ Test_U_CameraFilter_Voronoi_Filter::OnUserUpdate (float fElapsedTime_in)
 }
 
 bool
-Test_U_CameraFilter_Voronoi_Filter::OnUserDestroy ()
+Test_U_CameraFilter_WeightedVoronoiStipple_Filter::OnUserDestroy ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_PGE_T::OnUserDestroy"));
 
@@ -311,9 +312,9 @@ Test_U_CameraFilter_Voronoi_Filter::OnUserDestroy ()
 }
 
 int
-Test_U_CameraFilter_Voronoi_Filter::svc (void)
+Test_U_CameraFilter_WeightedVoronoiStipple_Filter::svc (void)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_Voronoi_Filter::svc"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::svc"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
@@ -442,9 +443,9 @@ Test_U_CameraFilter_Voronoi_Filter::svc (void)
 }
 
 bool
-Test_U_CameraFilter_Voronoi_Filter::processNextMessage ()
+Test_U_CameraFilter_WeightedVoronoiStipple_Filter::processNextMessage ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_Voronoi_Filter::processNextMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::processNextMessage"));
 
   ACE_Message_Block* message_block_p = NULL;
   static ACE_Time_Value no_wait = COMMON_TIME_NOW;
@@ -490,9 +491,9 @@ Test_U_CameraFilter_Voronoi_Filter::processNextMessage ()
 }
 
 int
-Test_U_CameraFilter_Voronoi_Filter::pointToSite (jcv_diagram& diagram, olc::vf2d& point)
+Test_U_CameraFilter_WeightedVoronoiStipple_Filter::pointToSite (jcv_diagram& diagram, olc::vf2d& point)
 {
-  //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_Voronoi_Filter::pointToSite"));
+  //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::pointToSite"));
 
   int result = 0;
   float min_distance_f = std::numeric_limits<float>::max ();
