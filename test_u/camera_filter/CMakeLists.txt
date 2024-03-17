@@ -155,8 +155,11 @@ endif (WIN32 AND NOT BUILD_TEST_U)
 add_dependencies (${EXECUTABLE} Common)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME})
+add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Device)
+add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_MediaFramework)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
+add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)

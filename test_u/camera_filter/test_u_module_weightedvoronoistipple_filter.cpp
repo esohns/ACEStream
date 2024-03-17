@@ -493,7 +493,7 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::processNextMessage ()
 int
 Test_U_CameraFilter_WeightedVoronoiStipple_Filter::pointToSite (jcv_diagram& diagram, olc::vf2d& point)
 {
-  //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::pointToSite"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::pointToSite"));
 
   int result = 0;
   float min_distance_f = std::numeric_limits<float>::max ();
