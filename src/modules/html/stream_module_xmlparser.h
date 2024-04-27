@@ -55,8 +55,8 @@ stream_xml_parser_sax_default_error_cb (void*,       // context
                                         const char*, // message
                                         ...);        // arguments
 void
-stream_xml_parser_sax_default_structured_error_cb (void*,        // user data
-                                                   xmlErrorPtr); // error
+stream_xml_parser_sax_default_structured_error_cb (void*,            // user data
+                                                   const xmlError*); // error
 
 // definitions
 #define STREAM_MODULE_XML_PARSER_DEFAULT_MODE STREAM_MODULE_XML_PARSER_MODE_DOM

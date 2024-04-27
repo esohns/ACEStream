@@ -472,6 +472,7 @@ continue_3:
       break;
     }
     case STREAM_SESSION_MESSAGE_STEP:
+    case STREAM_SESSION_MESSAGE_STEP_DATA:
       break;
     case STREAM_SESSION_MESSAGE_STATISTIC:
       break;

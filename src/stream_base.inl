@@ -506,7 +506,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 continue_:
   // step3: setup pipeline ?
   if (setupPipeline_in)
-    if (unlikely (!setup (NULL)))
+    if (unlikely (!setup (configuration_->configuration_->notificationStrategy)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Base_T::setup(), returning\n"),

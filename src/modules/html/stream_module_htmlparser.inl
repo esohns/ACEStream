@@ -155,7 +155,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
     if (unlikely (result))
     {
       xmlParserErrors parse_errors = static_cast<xmlParserErrors> (result);
-      xmlErrorPtr error_p = xmlGetLastError ();
+      const xmlError* error_p = xmlGetLastError ();
       ACE_DEBUG ((Stream_HTML_Tools::errorLevelToLogPriority (error_p ? error_p->level : XML_ERR_ERROR),
                   ACE_TEXT ("%s: failed to htmlParseChunk() (result was: %d): \"%s\", continuing\n"),
                   inherited::mod_->name (),
@@ -240,7 +240,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                                ACE_TEXT_ALWAYS_CHAR (""),
                                0,
                                1); // terminate
-      xmlErrorPtr error_p = xmlGetLastError ();
+      const xmlError* error_p = xmlGetLastError ();
       if (result)
       {
         xmlParserErrors parse_errors = static_cast<xmlParserErrors> (result);
