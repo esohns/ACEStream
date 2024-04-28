@@ -158,7 +158,7 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
     delete data_block_p; data_block_p = NULL;
     return NULL;
   } // end IF
-  message_block_p->msg_priority (bytes_in ? UINT64_MAX : 0);
+  message_block_p->msg_priority (bytes_in ? std::numeric_limits<unsigned long>::max () : 0);
 
   // ... and return the result
   // *NOTE*: the caller knows what to expect (either MessageType || SessionMessageType)
@@ -191,7 +191,7 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
     case STREAM_MESSAGE_CONTROL_PRIORITY:
       controlMessageAllocator_.free (handle_in);
       break;
-    case UINT64_MAX:
+    case std::numeric_limits<unsigned long>::max ():
       inherited::free (handle_in);
       break;
     default:
@@ -200,7 +200,7 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
       //            ACE_TEXT ("invalid/unknown message type (was: %d), continuing\n"),
       //            message_block_p->msg_type ()));
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("invalid/unknown message priority (was: %d), continuing\n"),
+                  ACE_TEXT ("invalid/unknown message priority (was: %u), continuing\n"),
                   message_block_p->msg_priority ()));
       break;
     }
