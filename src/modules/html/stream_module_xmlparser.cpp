@@ -147,7 +147,7 @@ stream_xml_parser_sax_default_error_cb (void* userData_in,
 
 void
 stream_xml_parser_sax_default_structured_error_cb (void* userData_in,
-                                                   const xmlError* error_in)
+                                                   xmlError* error_in)
 {
   STREAM_TRACE (ACE_TEXT ("::stream_xml_parser_sax_default_structured_error_cb"));
 
