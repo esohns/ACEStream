@@ -454,13 +454,13 @@ class Stream_Base_T
   virtual int unlink (void);
 
   // helper methods
-  bool finalize ();
+  bool finalize (bool); // initialize head/tail modules ?
   // calling ACE_Stream::close() deletes the head and tail modules
   // invoke this to re-create them (invokes ACE_Stream::open(NULL, head, tail))
   bool initializeHeadTail ();
 
   void deactivateModules ();
-  void unlinkModules ();
+  //void unlinkModules ();
 
   // support Common_IDumpState
   std::string dump_state (MODULE_T*,  // (substream-) head module

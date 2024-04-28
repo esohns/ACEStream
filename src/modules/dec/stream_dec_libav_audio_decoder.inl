@@ -732,14 +732,15 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
     } // end IF
 
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: reinit occurred; converting decoded sample format %s to %s (@ %u)\n"),
+                ACE_TEXT ("%s: reinit occurred; converting decoded sample format \"%s\" (@ %u Hz) to \"%s\" (@ %u Hz)\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (context_->sample_fmt).c_str ()),
+                context_->sample_rate,
                 ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (outputFormat_).c_str ()),
-                context_->sample_rate));
+                outputSampleRate_));
 
-    int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-      SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
+    //int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
+    //  SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
     transformContext_ =
       swr_alloc_set_opts (NULL,
                           Stream_Module_Decoder_Tools::channelsToLayout (outputChannels_), // out_ch_layout

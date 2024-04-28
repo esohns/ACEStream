@@ -198,7 +198,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // - pop/close all modules
   // *NOTE*: will implicitly (blocking !) wait for any active worker threads
   // - reset reader/writers tasks of all modules
-  result = finalize ();
+  result = finalize (true); // re-initialize head/tail modules
   if (unlikely (!result))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::finalize(), aborting\n"),
@@ -499,7 +499,13 @@ Stream_Base_T<ACE_SYNCH_USE,
     // *NOTE*: the head module writer task needs access to the stream state
     ISET_T* iset_p = dynamic_cast<ISET_T*> ((*iterator)->writer ());
     if (unlikely (!iset_p))
+    {
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: head module \"%s\" does not inherit Common_ISetP_T<StateType> --> check implementation, continuing\n"),
+                  ACE_TEXT (name_.c_str ()),
+                  (*iterator)->name ()));
       goto continue_;
+    } // end IF
     iset_p->setP (&state_);
   } // end lock scope
 
@@ -557,7 +563,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::finalize ()
+              SessionMessageType>::finalize (bool initializeHeadTailModules_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::finalize"));
 
@@ -568,8 +574,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // *NOTE*: unwinds the stream, pop()ing all push()ed modules
   //         --> pop()ing a module will close() it
-  //         --> close()ing a module will module_closed() and flush()/wait() and
-  //             delete its' tasks
+  //         --> close()ing a module will module_closed() and flush()/wait() (and
+  //             reset its' tasks)
   //         --> flush()ing a task will close() its queue
   //         --> close()ing a queue will deactivate() and flush() it
   // *IMPORTANT NOTE*: passing anything but M_DELETE_NONE will 'delete' the
@@ -583,10 +589,10 @@ Stream_Base_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  IMODULE_T* imodule_p = NULL;
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
     // *NOTE*: ACE_Stream::close() resets the task handles of all modules
     //         --> reset them manually so they can be deleted below
+    IMODULE_T* imodule_p = NULL;
     for (LAYOUT_ITERATOR_T iterator = layout_.begin ();
          iterator != layout_.end ();
          iterator++)
@@ -594,7 +600,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       imodule_p = dynamic_cast<IMODULE_T*> (*iterator);
       if (unlikely (!imodule_p))
       {
-        ACE_DEBUG ((LM_DEBUG,
+        ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModule_T> failed, continuing\n"),
                     ACE_TEXT (name_.c_str ()),
                     (*iterator)->name ()));
@@ -617,16 +623,18 @@ Stream_Base_T<ACE_SYNCH_USE,
            ++iterator)
         delete *iterator;
     } // end IF
+
     layout_.clear ();
   } // end lock scope
 
-  if (unlikely (!initializeHeadTail ()))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Base_T::initializeHeadTail(), aborting\n"),
-                ACE_TEXT (name_.c_str ())));
-    return false;
-  } // end IF
+  if (initializeHeadTailModules_in)
+    if (unlikely (!initializeHeadTail ()))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_Base_T::initializeHeadTail(), aborting\n"),
+                  ACE_TEXT (name_.c_str ())));
+      return false;
+    } // end IF
 
   return true;
 }
@@ -690,7 +698,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
   ACE_NEW_NORETURN (module_p,
                     MODULE_T (ACE_TEXT (STREAM_MODULE_HEAD_NAME),
-                              head_writer_p, head_reader_p,
+                              head_writer_p,
+                              head_reader_p,
                               NULL,
                               ACE_Module_Base::M_DELETE));
   if (unlikely (!module_p))
@@ -719,7 +728,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
   ACE_NEW_NORETURN (module_2,
                     MODULE_T (ACE_TEXT (STREAM_MODULE_TAIL_NAME),
-                              tail_writer_p, tail_reader_p,
+                              tail_writer_p,
+                              tail_reader_p,
                               NULL,
                               ACE_Module_Base::M_DELETE));
   if (unlikely (!module_2))
@@ -3203,7 +3213,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       state_.module = NULL;
     } // end lock scope
 
-    if (unlikely (!finalize ()))
+    if (unlikely (!finalize (true))) // re-initialize head/tail modules
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Base_T::finalize(), aborting\n"),
@@ -4344,7 +4354,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   //         --> do this manually !
   //         this invokes close() on each module (and waits for any worker
   //         thread(s) to return)
-  if (unlikely (!finalize ()))
+  if (unlikely (!finalize (false))) // do not re-initialize head/tail modules
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::finalize(): \"%m\", continuing\n"),
                 ACE_TEXT (name_.c_str ())));
@@ -4458,49 +4468,49 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          const char* StreamName,
-          typename ControlType,
-          typename NotificationType,
-          typename StatusType,
-          typename StateType,
-          typename ConfigurationType,
-          typename StatisticContainerType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-void
-Stream_Base_T<ACE_SYNCH_USE,
-              TimePolicyType,
-              StreamName,
-              ControlType,
-              NotificationType,
-              StatusType,
-              StateType,
-              ConfigurationType,
-              StatisticContainerType,
-              HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
-              ControlMessageType,
-              DataMessageType,
-              SessionMessageType>::unlinkModules ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlinkModules"));
-
-  MODULE_T* head_p = inherited::head ();
-  MODULE_T* next_p = NULL;
-  for (MODULE_T* module_p = head_p;
-       module_p;
-       )
-  {
-    next_p = module_p->next ();
-    module_p->next (NULL);
-    module_p = next_p;
-  } // end FOR
-  head_p->next (inherited::tail ());
-}
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          const char* StreamName,
+//          typename ControlType,
+//          typename NotificationType,
+//          typename StatusType,
+//          typename StateType,
+//          typename ConfigurationType,
+//          typename StatisticContainerType,
+//          typename HandlerConfigurationType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType>
+//void
+//Stream_Base_T<ACE_SYNCH_USE,
+//              TimePolicyType,
+//              StreamName,
+//              ControlType,
+//              NotificationType,
+//              StatusType,
+//              StateType,
+//              ConfigurationType,
+//              StatisticContainerType,
+//              HandlerConfigurationType,
+//              SessionDataType,
+//              SessionDataContainerType,
+//              ControlMessageType,
+//              DataMessageType,
+//              SessionMessageType>::unlinkModules ()
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlinkModules"));
+//
+//  MODULE_T* head_p = inherited::head ();
+//  MODULE_T* next_p = NULL;
+//  for (MODULE_T* module_p = head_p;
+//       module_p;
+//       )
+//  {
+//    next_p = module_p->next ();
+//    module_p->next (NULL);
+//    module_p = next_p;
+//  } // end FOR
+//  head_p->next (inherited::tail ());
+//}
