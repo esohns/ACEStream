@@ -135,10 +135,10 @@ stream_xml_parser_sax_default_error_cb (void* userData_in,
   va_start (arguments_a, message_in);
   int length = ACE_OS::vsnprintf (buffer_a,
                                   sizeof (ACE_TCHAR[BUFSIZ]),
-//                                  sizeof (buffer) / sizeof (buffer[0]),
+//                                  sizeof (buffer_a) / sizeof (buffer_a[0]),
                                   message_in, arguments_a);
-  ACE_UNUSED_ARG (length);
   va_end (arguments_a);
+  ACE_UNUSED_ARG (length);
 
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("stream_html_parser_sax_default_error_cb: %s"),

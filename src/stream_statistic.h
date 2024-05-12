@@ -27,20 +27,14 @@ struct Stream_StatisticBase
 {
   Stream_StatisticBase ()
    : bytes (0)
-   , dataMessages (0)
-   , sessionMessages (0)
-   , bytesPerSecond (0.0F)
-   , messagesPerSecond (0.0F)
+   , bytesPerSecond (0.0f)
    , timeStamp (ACE_Time_Value::zero)
   {}
 
   struct Stream_StatisticBase operator~ ()
   {
     bytes = 0;
-    dataMessages = 0;
-    sessionMessages = 0;
-    bytesPerSecond = 0.0F;
-    messagesPerSecond = 0.0F;
+    bytesPerSecond = 0.0f;
     timeStamp = ACE_Time_Value::zero;
 
     return *this;
@@ -48,31 +42,28 @@ struct Stream_StatisticBase
   struct Stream_StatisticBase operator+= (const struct Stream_StatisticBase& rhs_in)
   {
     bytes += rhs_in.bytes;
-    dataMessages += rhs_in.dataMessages;
-    sessionMessages += rhs_in.sessionMessages;
-
-    bytesPerSecond += rhs_in.bytesPerSecond;
-    messagesPerSecond += rhs_in.messagesPerSecond;
+    //bytesPerSecond += rhs_in.bytesPerSecond;
 
     return *this;
   }
 
-  ACE_UINT64     bytes;           // amount of processed data
-  ACE_UINT32     dataMessages;    // data messages
-  ACE_UINT32     sessionMessages; // session messages
+  ACE_UINT64     bytes; // amount of processed data
 
   // (current) runtime performance
   float          bytesPerSecond;
-  float          messagesPerSecond;
 
   ACE_Time_Value timeStamp;
 };
 
 struct Stream_Statistic
- : Stream_StatisticBase
+ : virtual Stream_StatisticBase
 {
   Stream_Statistic ()
    : Stream_StatisticBase ()
+   , dataMessages (0)
+   , sessionMessages (0)
+   , messagesPerSecond (0.0f)
+   ////////////////////////////////////////
    , capturedFrames (0)
    , droppedFrames (0)
    , totalFrames (0)
@@ -80,8 +71,13 @@ struct Stream_Statistic
 
   struct Stream_Statistic operator~ ()
   {
+    dataMessages = 0;
+    sessionMessages = 0;
+    messagesPerSecond = 0.0f;
+
     capturedFrames = 0;
     droppedFrames = 0;
+    totalFrames = 0;
 
     Stream_StatisticBase::operator~ ();
 
@@ -89,6 +85,10 @@ struct Stream_Statistic
   }
   struct Stream_Statistic operator+= (const struct Stream_Statistic& rhs_in)
   {
+    dataMessages += rhs_in.dataMessages;
+    sessionMessages += rhs_in.sessionMessages;
+    // messagesPerSecond += rhs_in.messagesPerSecond;
+
     capturedFrames += rhs_in.capturedFrames;
     droppedFrames += rhs_in.droppedFrames;
 
@@ -99,10 +99,15 @@ struct Stream_Statistic
     return *this;
   }
 
-  unsigned int capturedFrames; // captured/generated frames
-  unsigned int droppedFrames;  // dropped frames (i.e. driver congestion, buffer overflow, etc)
+  ACE_UINT32 dataMessages;      // data messages
+  ACE_UINT32 sessionMessages;   // session messages
+  float      messagesPerSecond;
+  ////////////////////////////////////////
+  ACE_UINT32 capturedFrames;    // captured/generated frames
+  ACE_UINT32 droppedFrames;     // dropped frames (i.e. driver congestion, buffer
+                                // overflow, etc)
 
-  unsigned int totalFrames;  // total # frames (progress)
+  ACE_UINT32 totalFrames;       // total # frames (progress)
 };
 
 #endif
