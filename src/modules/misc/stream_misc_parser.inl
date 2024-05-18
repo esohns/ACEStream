@@ -1073,6 +1073,29 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
           } // end IF
           else
             headFragment_ = message_p;
+
+          // free 0-length fragments from the head
+          ACE_Message_Block* message_block_2 = headFragment_;
+          while (message_block_2 &&
+                 !message_block_2->length ())
+            message_block_2 = message_block_2->cont ();
+          if (!message_block_2)
+          { // there is no data at all
+            headFragment_->release (); headFragment_ = NULL;
+            continue; // wait for more data
+          } // end IF
+          ACE_ASSERT (message_block_2 && message_block_2->length ());
+          if (message_block_2 != headFragment_)
+          {
+            ACE_Message_Block* message_block_3 = headFragment_;
+            while (message_block_3->cont () != message_block_2)
+              message_block_3 = message_block_3->cont ();
+            ACE_ASSERT (message_block_3 && (message_block_3->cont () == message_block_2));
+            message_block_3->cont (NULL);
+            headFragment_->release (); headFragment_ = NULL;
+            headFragment_ = static_cast<DataMessageType*> (message_block_2);
+          } // end IF
+          ACE_ASSERT (headFragment_ && headFragment_->length ());
         //} // end lock scope
 continue_:
         // parse next data fragment(s)
