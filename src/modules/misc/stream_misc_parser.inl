@@ -1093,9 +1093,14 @@ continue_:
                       inherited::mod_->name ()));
           goto error;
         } // end IF
-        //if (inherited2::finished_)
-        //  break;
-        if (headFragment_)
+        // *NOTE*: handle cases where all available data has been parsed
+        if (inherited2::finished_)
+        {
+          inherited2::finished_ = false;
+          break;
+        } // end IF
+        if (headFragment_ &&
+            headFragment_->length ())
           goto continue_;
 
         break;

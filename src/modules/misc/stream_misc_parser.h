@@ -235,6 +235,7 @@ class Stream_Module_Parser_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType> STREAM_TASK_BASE_T;
+  typedef ParserDriverType PARSER_DRIVER_T;
   typedef Stream_MessageQueueBase_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t> MESSAGE_QUEUE_T;
 
