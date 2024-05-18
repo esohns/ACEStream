@@ -242,6 +242,9 @@ class Stream_Module_Parser_T
   MESSAGE_QUEUE_T  parserQueue_;
   bool             resetQueue_;
 
+  // *NOTE*: this enqueues the STOP message at the tail end...
+  void stop ();
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T (const Stream_Module_Parser_T&))
@@ -249,9 +252,6 @@ class Stream_Module_Parser_T
 
   // override some ACE_Task_T methods
   virtual int svc (void);
-
-  // *NOTE*: this enqueues the STOP message at the tail end...
-  void stop ();
 };
 
 //////////////////////////////////////////
