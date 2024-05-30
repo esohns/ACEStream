@@ -440,6 +440,7 @@ Test_U_CameraFilter_OpenGL_GLUT::svc (void)
     else if (result == -1)
     {
       int error = ACE_OS::last_error ();
+      ACE_UNUSED_ARG (error);
       //if (error != EWOULDBLOCK) // Win32: 10035
       //{
       //  ACE_DEBUG ((LM_ERROR,

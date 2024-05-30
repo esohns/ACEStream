@@ -635,7 +635,7 @@ continue_3:
         else
         { ACE_ASSERT (session_data_r.connection == connection_p);
           ACE_DEBUG ((LM_WARNING,
-                      ACE_TEXT ("%s: session data already contains connection handle (was: 0x%@, is: 0x%@), continuing\n"),
+                      ACE_TEXT ("%s: session data already contains connection handle (was: %@, is: %@), continuing\n"),
                       inherited::mod_->name (),
                       session_data_r.connection,
                       connection_p));

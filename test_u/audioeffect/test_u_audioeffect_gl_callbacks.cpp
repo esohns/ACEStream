@@ -715,7 +715,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
 
   processInstructions (ui_cb_data_base_p);
 
-continue_:
+// continue_:
   //rot_x += 0.3f;
   //rot_y += 0.20f;
   //rot_z += 0.4f;

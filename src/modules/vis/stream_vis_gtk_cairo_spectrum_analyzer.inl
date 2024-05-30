@@ -1159,10 +1159,19 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (cbdata_p->window);
   ACE_ASSERT (mode2D_ != NULL);
 
-#if GTK_CHECK_VERSION (3,10,0)
+  cairo_t* context_p = NULL;
+#if GTK_CHECK_VERSION (3,22,0)
+  cairo_region_t* cairo_region_p = cairo_region_create ();
+  ACE_ASSERT (cairo_region_p);
+  GdkDrawingContext* drawing_context_p =
+    gdk_window_begin_draw_frame (cbdata_p->window, cairo_region_p);
+  ACE_ASSERT (drawing_context_p);
+  context_p =
+    gdk_drawing_context_get_cairo_context (drawing_context_p);
+#elif GTK_CHECK_VERSION (3,10,0)
   cairo_surface_t* surface_p = NULL;
-#endif // GTK_CHECK_VERSION (3,10,0)
-
+  context_p = cbdata_p->context;
+#else
 #define CAIRO_ERROR_WORKAROUND(X)                                \
   if (cairo_status (X) != CAIRO_STATUS_SUCCESS) {                \
     cairo_destroy (cbdata_p->context); cbdata_p->context = NULL; \
@@ -1171,12 +1180,16 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     cairo_set_line_width (cbdata_p->context, 1.0);               \
   } // end IF
 
+  context_p = cbdata_p->context;
+#endif // GTK_CHECK_VERSION (3,22,0)
+  ACE_ASSERT (context_p);
+
   // step1: clear the window(s)
   if (*mode2D_ < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX)
   {
-    cairo_set_source_rgb (cbdata_p->context, 0.0, 0.0, 0.0);
-    cairo_rectangle (cbdata_p->context, 0.0, 0.0, width_, height_);
-    cairo_fill (cbdata_p->context);
+    cairo_set_source_rgb (context_p, 0.0, 0.0, 0.0);
+    cairo_rectangle (context_p, 0.0, 0.0, width_, height_);
+    cairo_fill (context_p);
   } // end IF
 
   // step2a: draw signal graphics
@@ -1187,13 +1200,13 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE:
       {
         // step2aa: draw a thin, green polyline
-        cairo_set_source_rgb (cbdata_p->context, 0.0, 1.0, 0.0);
-        cairo_move_to (cbdata_p->context,
+        cairo_set_source_rgb (context_p, 0.0, 1.0, 0.0);
+        cairo_move_to (context_p,
                        static_cast<double> (i) * channelFactor_,
                        (sampleIterator_.isSignedSampleFormat_ ? static_cast<double> (halfHeight_)
                                                               : static_cast<double> (height_)));
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
-          cairo_line_to (cbdata_p->context,
+          cairo_line_to (context_p,
                          (static_cast<double> (i) * channelFactor_) + (static_cast<double> (j) * scaleFactorX_),
                          (sampleIterator_.isSignedSampleFormat_ ? static_cast<double> (halfHeight_) - (inherited2::buffer_[i][j] * scaleFactorY_)
                                                                 : static_cast<double> (height_) - (inherited2::buffer_[i][j] * scaleFactorY_)));
@@ -1203,7 +1216,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       {
         double x;
         // step2aa: draw thin, white columns
-        cairo_set_source_rgb (cbdata_p->context, 1.0, 1.0, 1.0);
+        cairo_set_source_rgb (context_p, 1.0, 1.0, 1.0);
         // *IMPORTANT NOTE*: - the first ('DC'-)slot does not contain frequency
         //                     information --> j = 1
         //                   - the slots N/2 - N are mirrored and do not contain
@@ -1213,12 +1226,12 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         {
           x =
             (static_cast<double> (i) * channelFactor_) + (static_cast<double> (j) * scaleFactorX_2);
-          cairo_move_to (cbdata_p->context,
+          cairo_move_to (context_p,
                          x,
                          static_cast<double> (height_));
           // *NOTE*: it is 2x the scale factor for signed (!) values, because the
           //         magnitudes are absolute values
-          cairo_line_to (cbdata_p->context,
+          cairo_line_to (context_p,
                          x,
                          static_cast<double> (height_) - (sampleIterator_.isSignedSampleFormat_ ? (inherited2::Magnitude (j, i, true) * scaleFactorY_2)
                                                                                                 : (inherited2::Magnitude (j, i, true) * scaleFactorY_)));
@@ -1236,33 +1249,38 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         goto error;
       }
     } // end SWITCH
-    cairo_stroke (cbdata_p->context);
+    cairo_stroke (context_p);
 
     // step2ab: draw a thin red line between channels
     if (i > 0)
     {
-      cairo_set_source_rgb (cbdata_p->context, 1.0, 0.0, 0.0);
-      cairo_move_to (cbdata_p->context,
+      cairo_set_source_rgb (context_p, 1.0, 0.0, 0.0);
+      cairo_move_to (context_p,
                      i * channelFactor_,
                      0);
-      cairo_line_to (cbdata_p->context,
+      cairo_line_to (context_p,
                      i * channelFactor_,
                      height_);
-      cairo_stroke (cbdata_p->context);
+      cairo_stroke (context_p);
     } // end IF
   } // end FOR
-#if GTK_CHECK_VERSION (3,10,0)
-  surface_p = cairo_get_target (cbdata_p->context);
+
+#if GTK_CHECK_VERSION (3,22,0)
+  gdk_window_end_draw_frame (cbdata_p->window, drawing_context_p);
+  cairo_region_destroy (cairo_region_p);
+#elif GTK_CHECK_VERSION (3,10,0)
+  surface_p = cairo_get_target (context_p);
   ACE_ASSERT (surface_p);
   cairo_surface_mark_dirty (surface_p);
   //ACE_ASSERT (cairo_surface_status (surface_p) == CAIRO_STATUS_SUCCESS);
   cairo_surface_flush (surface_p);
   //ACE_ASSERT (cairo_surface_status (surface_p) == CAIRO_STATUS_SUCCESS);
-#endif // GTK_CHECK_VERSION (3,10,0)
+#else
   // *IMPORTANT NOTE*: this assert fails intermittently on Gtk2 Win32;
   //                   the result is CAIRO_STATUS_NO_MEMORY
   //ACE_ASSERT (cairo_status (cairoContext_) == CAIRO_STATUS_SUCCESS);
   CAIRO_ERROR_WORKAROUND (cbdata_p->context);
+#endif // GTK_CHECK_VERSION (3,22,0)
 
 error:
   ;

@@ -164,8 +164,8 @@ Test_U_ImageMagick_Target_T<ACE_SYNCH_USE,
   // initialize return value(s)
   passMessageDownstream_out = false;
 
-  DataMessageType* message_p = NULL;
-  ACE_Message_Block* message_block_p = NULL;
+//  DataMessageType* message_p = NULL;
+//  ACE_Message_Block* message_block_p = NULL;
   const typename DataMessageType::DATA_T& message_data_r =
       message_inout->getR ();
 

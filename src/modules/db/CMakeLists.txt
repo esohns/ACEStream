@@ -5,10 +5,12 @@ include (SOCI)
 add_library (${PROJECT_NAME}_Database STATIC "")
 
 if (MYSQL_SUPPORT)
+# message (STATUS "MYSQL_INCLUDE_DIRS: \"${MYSQL_INCLUDE_DIRS}\"")
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
-                             $<BUILD_INTERFACE:${MYSQL_INCLUDE_DIRS}>)
+                             "$<BUILD_INTERFACE:${MYSQL_INCLUDE_DIRS}>")
 endif (MYSQL_SUPPORT)
 if (SOCI_SUPPORT)
+# message (STATUS "SOCI_INCLUDE_DIRS: \"${SOCI_INCLUDE_DIRS}\"")
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              $<BUILD_INTERFACE:${SOCI_INCLUDE_DIRS}>)
 endif (SOCI_SUPPORT)
@@ -28,11 +30,14 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Database PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>
+                            $<INSTALL_INTERFACE:include/ACEStream>)
 target_include_directories (${PROJECT_NAME}_Database PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>
+                            $<INSTALL_INTERFACE:include/ACEStream/lib>)
 target_include_directories (${PROJECT_NAME}_Database PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../stat>)
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../stat>
+                            $<INSTALL_INTERFACE:include/ACEStream/stat>)
 
 ############## next target ################
 set (source_files
@@ -52,7 +57,7 @@ if (MYSQL_SUPPORT)
 endif (MYSQL_SUPPORT)
 
 # Include dir for installed targets
-set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+#set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
 unset (absolute_source_files)
 foreach (source_file ${source_files})
