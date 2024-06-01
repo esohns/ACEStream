@@ -84,7 +84,7 @@ jobs:
      shell: cmd
 
    - name: Checkout (Common)
-     uses: actions/checkout@v3
+     uses: actions/checkout@v4
      with:
       repository: esohns/Common
       path: modules/Common
