@@ -1,8 +1,3 @@
- src/modules/CMakeLists.txt |  2 +-
- test_i/CMakeLists.txt      | 20 ++++++++++----------
- test_u/CMakeLists.txt      |  4 ++--
- 3 files changed, 13 insertions(+), 13 deletions(-)
-
 diff --git a/src/modules/CMakeLists.txt b/src/modules/CMakeLists.txt
 index 64c6b1c6..7616f470 100644
 --- a/src/modules/CMakeLists.txt
