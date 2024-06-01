@@ -10,5 +10,6 @@ add_subdirectory (ml)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
 add_subdirectory (net)
+# *IMPORTANT NOTE* /END
 add_subdirectory (stat)
 add_subdirectory (vis)
