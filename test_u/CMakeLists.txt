@@ -326,6 +326,7 @@ add_dependencies (test_u animated_gif audioeffect branch camera_filter camerascr
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
 add_dependencies (test_u HTTP_GET)
+# *IMPORTANT NOTE* /END
 
 cmake_policy (SET CMP0012 NEW)
 if (NOT BUILD_TEST_U)
