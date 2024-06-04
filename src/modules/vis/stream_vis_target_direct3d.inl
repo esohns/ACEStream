@@ -338,6 +338,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_SCREENSHOT_DEFAULT_FORMAT;
   filename_string +=
     Stream_MediaFramework_DirectDraw_Tools::toFilenameExtension (format_e);
+#if defined (DIRECTXSDK_SUPPORT)
   if (unlikely (!Common_Image_Tools::save (filename_string,
                                            format_e,
                                            d3d_surface_p)))
@@ -349,6 +350,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: saved screenshot \"%s\"\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (filename_string.c_str ())));
+#endif // DIRECTXSDK_SUPPORT
   snapShotNextFrame_ = false;
 
 continue_:

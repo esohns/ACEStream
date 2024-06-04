@@ -138,6 +138,8 @@ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../include>)
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../${BUILD_PATH_SUFFIX}>)
+target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
 
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
