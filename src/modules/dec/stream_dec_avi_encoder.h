@@ -21,9 +21,10 @@
 #ifndef STREAM_DEC_AVI_ENCODER_H
 #define STREAM_DEC_AVI_ENCODER_H
 
-#include <string>
+#include <utility>
 #include <vector>
 
+#include "ace/Basic_Types.h"
 #include "ace/Global_Macros.h"
 #include "ace/Stream_Modules.h"
 
@@ -37,6 +38,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
+struct AVCodecContext;
 struct AVFormatContext;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64

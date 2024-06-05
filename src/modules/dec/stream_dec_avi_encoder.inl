@@ -18,7 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "ace/Basic_Types.h"
 #include <fstream>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -39,9 +38,11 @@
 extern "C"
 {
 #endif // __cplusplus
+#include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 #include "libavformat/avio.h"
 #include "libavutil/channel_layout.h"
+#include "libavutil/imgutils.h"
 #include "libavutil/opt.h"
 #include "libavutil/pixfmt.h"
 #include "libavutil/rational.h"
