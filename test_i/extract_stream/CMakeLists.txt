@@ -208,7 +208,8 @@ elseif (WIN32)
                  ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxmsw316d_xrc_vc_x64_custom.dll
            DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
  endif (DEFINED $ENV{LIB_ROOT})
- install (FILES ${ui_definition_file} ${CMAKE_CURRENT_SOURCE_DIR}/etc/${EXECUTABLE}.fbp
+ install (FILES ${ui_definition_file}
+#                ${CMAKE_CURRENT_SOURCE_DIR}/etc/${EXECUTABLE}.fbp
           DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()
