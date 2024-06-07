@@ -56,7 +56,7 @@ struct Stream_StatisticBase
 };
 
 struct Stream_Statistic
- : virtual Stream_StatisticBase
+ : Stream_StatisticBase
 {
   Stream_Statistic ()
    : Stream_StatisticBase ()
