@@ -103,7 +103,7 @@ class Stream_Dev_Mic_Source_WaveIn_T
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  Stream_Dev_Mic_Source_WaveIn_T (ISTREAM_T*); // stream handle
+  Stream_Dev_Mic_Source_WaveIn_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Dev_Mic_Source_WaveIn_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed

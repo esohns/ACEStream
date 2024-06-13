@@ -34,7 +34,7 @@ Stream_Module_Asynch_T<ACE_SYNCH_USE,
                        ControlMessageType,
                        DataMessageType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                       SessionMessageType>::Stream_Module_Asynch_T (ISTREAM_T* stream_in)
+                       SessionMessageType>::Stream_Module_Asynch_T (typename inherited::ISTREAM_T* stream_in)
 #else
                        SessionMessageType>::Stream_Module_Asynch_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64

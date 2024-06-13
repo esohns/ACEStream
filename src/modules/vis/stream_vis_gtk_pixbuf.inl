@@ -39,11 +39,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                DataMessageType,
                                SessionMessageType,
                                SessionDataContainerType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                               MediaType>::Stream_Module_Vis_GTK_Pixbuf_T (ISTREAM_T* stream_in)
-#else
                                MediaType>::Stream_Module_Vis_GTK_Pixbuf_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
 #if GTK_CHECK_VERSION (3,0,0)

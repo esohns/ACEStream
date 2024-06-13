@@ -49,11 +49,7 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
                                    DataMessageType,
                                    SessionMessageType,
                                    SessionDataContainerType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                   MediaType>::Stream_Decoder_DeepSpeechDecoder_T (ISTREAM_T* stream_in)
-#else
                                    MediaType>::Stream_Decoder_DeepSpeechDecoder_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , bufferedMs_ (0)
  , context_ (NULL)

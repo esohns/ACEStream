@@ -231,11 +231,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       ConfigurationType,
                                       ControlMessageType,
                                       DataMessageType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                      SessionMessageType>::Stream_Module_Aggregator_WriterTask_T (ISTREAM_T* stream_in)
-#else
                                       SessionMessageType>::Stream_Module_Aggregator_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , readerLinks_ ()
  , writerLinks_ ()
@@ -940,11 +936,7 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
                                       ConfigurationType,
                                       ControlMessageType,
                                       DataMessageType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                      SessionMessageType>::Stream_Module_Aggregator_WriterTask_2 (ISTREAM_T* stream_in)
-#else
                                       SessionMessageType>::Stream_Module_Aggregator_WriterTask_2 (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , readerLinks_ ()
  , writerLinks_ ()

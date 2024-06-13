@@ -35,11 +35,7 @@ Stream_Module_Injector_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                         UserDataType>::Stream_Module_Injector_T (ISTREAM_T* stream_in)
-#else
                          UserDataType>::Stream_Module_Injector_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Injector_T::Stream_Module_Injector_T"));

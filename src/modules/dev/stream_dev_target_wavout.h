@@ -86,7 +86,7 @@ class Stream_Dev_Target_WavOut_T
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  Stream_Dev_Target_WavOut_T (ISTREAM_T*); // stream handle
+  Stream_Dev_Target_WavOut_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Dev_Target_WavOut_T ();
 
   // override (part of) Stream_IModuleHandler_T

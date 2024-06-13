@@ -63,8 +63,8 @@ class Stream_Visualization_ImageMagickResize_T
                                                MediaType> inherited;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  typedef Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType> ISTREAM_T;
   Stream_Visualization_ImageMagickResize_T (ISTREAM_T*); // stream handle
 #else
   Stream_Visualization_ImageMagickResize_T (typename inherited::ISTREAM_T*); // stream handle
@@ -115,8 +115,8 @@ class Stream_Visualization_ImageMagickResize1_T
                                               MediaType> inherited;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  typedef Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType> ISTREAM_T;
   Stream_Visualization_ImageMagickResize1_T (ISTREAM_T*); // stream handle
 #else
   Stream_Visualization_ImageMagickResize1_T (typename inherited::ISTREAM_T*); // stream handle

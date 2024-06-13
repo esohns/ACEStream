@@ -40,11 +40,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                DataMessageType,
                                SessionMessageType,
                                SessionDataType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                               UserDataType>::Stream_Module_MessageHandler_T (ISTREAM_T* stream_in)
-#else
                                UserDataType>::Stream_Module_MessageHandler_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , lock_ ()
  , subscribers_ ()
@@ -429,11 +425,7 @@ Stream_Module_MessageHandler_2<ACE_SYNCH_USE,
                                DataMessageType,
                                SessionMessageType,
                                SessionDataType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                               UserDataType>::Stream_Module_MessageHandler_2 (ISTREAM_T* stream_in)
-#else
                                UserDataType>::Stream_Module_MessageHandler_2 (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , delete_ (false)
  , lock_ (NULL)

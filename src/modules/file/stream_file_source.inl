@@ -54,11 +54,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             StatisticContainerType,
                             TimerManagerType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            UserDataType>::Stream_Module_FileReaderH_T (ISTREAM_T* stream_in)
-#else
                             UserDataType>::Stream_Module_FileReaderH_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , directory_ ()
  , isOpen_ (false)
@@ -527,11 +523,7 @@ template <ACE_SYNCH_DECL,
 Stream_Module_FileReader_Reader_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ControlMessageType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                  UserDataType>::Stream_Module_FileReader_Reader_T (ISTREAM_T* stream_in)
-#else
                                   UserDataType>::Stream_Module_FileReader_Reader_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Reader_T::Stream_Module_FileReader_Reader_T"));
@@ -586,11 +578,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
                                   DataMessageType,
                                   SessionMessageType,
                                   SessionDataType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                  UserDataType>::Stream_Module_FileReader_Writer_T (ISTREAM_T* stream_in)
-#else
                                   UserDataType>::Stream_Module_FileReader_Writer_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , aborted_ (NULL)
  , fileName_ ()

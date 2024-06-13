@@ -95,7 +95,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                       struct Stream_UserData> inherited;
 
  public:
-  Stream_Dev_Mic_Source_DirectShow_T (ISTREAM_T*); // stream handle
+  Stream_Dev_Mic_Source_DirectShow_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Dev_Mic_Source_DirectShow_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed

@@ -58,11 +58,7 @@ template <ACE_SYNCH_DECL,
                             StatisticContainerType,
                             TimerManagerType,
                             UserDataType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            MediaType>::Stream_Decoder_MP3Decoder_T (ISTREAM_T* stream_in)
-#else
                             MediaType>::Stream_Decoder_MP3Decoder_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , bufferSize_ (0)
  , handle_ (NULL)

@@ -233,7 +233,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   MessageType,
                                   SessionMessageType,
                                   ConnectionManagerType,
-                                  ConnectorType>::initialize (const CONFIGURATION_T& configuration_in)
+                                  ConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_T::initialize"));
 
@@ -941,7 +941,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        MessageType,
                                        SessionMessageType,
                                        ConnectionManagerType,
-                                       ConnectorType>::initialize (const CONFIGURATION_T& configuration_in)
+                                       ConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_T::initialize"));
 

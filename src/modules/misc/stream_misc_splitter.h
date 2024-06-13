@@ -79,12 +79,7 @@ class Stream_Module_Splitter1_T
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Module_Splitter1_T (ISTREAM_T*);                     // stream handle
-#else
   Stream_Module_Splitter1_T (typename inherited::ISTREAM_T*); // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_Splitter1_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -147,12 +142,7 @@ class Stream_Module_Splitter_T
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Module_Splitter_T (ISTREAM_T*);                     // stream handle
-#else
   Stream_Module_Splitter_T (typename inherited::ISTREAM_T*); // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_Splitter_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -231,12 +221,7 @@ class Stream_Module_SplitterH_T
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Module_SplitterH_T (ISTREAM_T*,                      // stream handle
-#else
   Stream_Module_SplitterH_T (typename inherited::ISTREAM_T*,                                           // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
                              ACE_SYNCH_MUTEX_T* = NULL,                                                // lock handle (state machine)
                              bool = false,                                                             // auto-start ?
                              enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode

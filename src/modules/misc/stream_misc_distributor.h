@@ -161,13 +161,7 @@ class Stream_Miscellaneous_Distributor_WriterTask_T
                                                         SessionMessageType,
                                                         SessionDataType> READER_TASK_T;
 
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  typedef typename inherited::ISTREAM_T ISTREAM_T;
-  Stream_Miscellaneous_Distributor_WriterTask_T (ISTREAM_T*); // stream handle
-#else
   Stream_Miscellaneous_Distributor_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Miscellaneous_Distributor_WriterTask_T () {}
 
   // implement (part of) Stream_ITaskBase_T

@@ -58,11 +58,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                             DataMessageType,
                                             SessionMessageType,
                                             SessionDataType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                            DocumentType>::Stream_Module_LibreOffice_Document_Writer_T (ISTREAM_T* stream_in)
-#else
                                             DocumentType>::Stream_Module_LibreOffice_Document_Writer_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , component_ (NULL)
  , componentContext_ (NULL)

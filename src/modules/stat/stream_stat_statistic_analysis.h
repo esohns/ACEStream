@@ -77,12 +77,7 @@ class Stream_Statistic_StatisticAnalysis_T
   typedef Common_Math_Sample_T<ValueType> inherited3;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Statistic_StatisticAnalysis_T (ISTREAM_T*);                     // stream handle
-#else
   Stream_Statistic_StatisticAnalysis_T (typename inherited::ISTREAM_T*); // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Statistic_StatisticAnalysis_T () {}
 
   // override (part of) Stream_IModuleHandler_T

@@ -46,7 +46,7 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
                                           DataMessageType,
                                           SessionMessageType,
                                           SessionDataType,
-                                          MediaType>::Stream_MediaFramework_DirectShow_Source_T (ISTREAM_T* stream_in)
+                                          MediaType>::Stream_MediaFramework_DirectShow_Source_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
  , IGraphBuilder_ (NULL)

@@ -39,11 +39,7 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            SessionDataContainerType>::Stream_Decoder_ZIPDecoder_T (ISTREAM_T* stream_in)
-#else
                             SessionDataContainerType>::Stream_Decoder_ZIPDecoder_T (typename inherited::ISTREAM_T* stream_in)
-#endif
  : inherited (stream_in)
  , buffer_ (NULL)
  //, crunchMessages_ (STREAM_DEC_DEFAULT_CRUNCH_MESSAGES)

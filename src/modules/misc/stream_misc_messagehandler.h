@@ -90,13 +90,7 @@ class Stream_Module_MessageHandler_T
   typedef Common_ISubscribe_T<INOTIFY_T> ISUBSCRIBE_T;
   typedef std::list<INOTIFY_T*> SUBSCRIBERS_T;
 
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  typedef typename inherited::ISTREAM_T ISTREAM_T;
-  Stream_Module_MessageHandler_T (ISTREAM_T*);                     // stream handle
-#else
   Stream_Module_MessageHandler_T (typename inherited::ISTREAM_T*); // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Module_MessageHandler_T () {}
 
   // override (part of) Stream_IModuleHandler_T
@@ -214,13 +208,7 @@ class Stream_Module_MessageHandler_2
   typedef Common_ISubscribe_T<INOTIFY_T> ISUBSCRIBE_T;
   typedef std::list<INOTIFY_T*> SUBSCRIBERS_T;
 
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  typedef typename inherited::ISTREAM_T ISTREAM_T;
-  Stream_Module_MessageHandler_2 (ISTREAM_T*);                     // stream handle
-#else
   Stream_Module_MessageHandler_2 (typename inherited::ISTREAM_T*); // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_MessageHandler_2 ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -339,9 +327,9 @@ class Stream_Module_MessageHandlerA_T
                                                 DataMessageType,
                                                 SessionMessageType> READER_T;
 
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Module_MessageHandlerA_T (ISTREAM_T*);                     // stream handle
+  typedef Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType> ISTREAM_T;
+  Stream_Module_MessageHandlerA_T (ISTREAM_T*); // stream handle
 #else
   Stream_Module_MessageHandlerA_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64

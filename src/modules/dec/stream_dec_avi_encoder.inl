@@ -209,7 +209,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
   //         [- insert version 2 (super-)index]        (6)
 
   ACE_UINT32 value_i = 0;
-  std::ios::streamoff read_offset = 0, write_offset = 0;
+  std::streamoff read_offset = 0, write_offset = 0;
   typename WRITER_TASK_T::RIFF_OFFSETS_AND_SIZES_ITERATOR_T iterator;
   char buffer_a[BUFSIZ];
   ACE_OS::memset (buffer_a, 0, sizeof (char[BUFSIZ]));
@@ -218,8 +218,8 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
   struct _avimainheader* AVI_header_avih_p = NULL;
   struct _avistreamheader* AVI_header_strh_p = NULL;
 
-  std::ios::streamoff list_movi_offset = STREAM_DEC_AVI_JUNK_CHUNK_ALIGN - 12;
-  std::ios::streamoff list_dmlh_offset = 326;
+  std::streamoff list_movi_offset = STREAM_DEC_AVI_JUNK_CHUNK_ALIGN - 12;
+  std::streamoff list_dmlh_offset = 326;
   // std::ios::streamoff chunk_idx1_offset = 0;
   // *NOTE*: "...A joint file position is maintained for both the input sequence
   //         and the output sequence. ...", i.e. std::fstream::read()/write()
@@ -486,11 +486,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionDataContainerType,
                                        SessionDataType,
                                        MediaType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                       UserDataType>::Stream_Decoder_AVIEncoder_WriterTask_T (ISTREAM_T* stream_in)
-#else
                                        UserDataType>::Stream_Decoder_AVIEncoder_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , isFirst_ (true)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

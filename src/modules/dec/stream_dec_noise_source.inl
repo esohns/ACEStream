@@ -76,11 +76,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                           SessionDataContainerType,
                           StatisticContainerType,
                           TimerManagerType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                          MediaType>::Stream_Dec_Noise_Source_T (ISTREAM_T* stream_in)
-#else
                           MediaType>::Stream_Dec_Noise_Source_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in) // stream handle
  , inherited2 ()
  , phase_ (0.0)

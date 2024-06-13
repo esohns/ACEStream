@@ -48,11 +48,7 @@ Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
                                   ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                  SessionMessageType>::Stream_Module_Net_Source_Reader_T (ISTREAM_T* stream_in)
-#else
                                   SessionMessageType>::Stream_Module_Net_Source_Reader_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Reader_T::Stream_Module_Net_Source_Reader_T"));
@@ -111,11 +107,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                  ConnectorType>::Stream_Module_Net_Source_Writer_T (ISTREAM_T* stream_in)
-#else
                                   ConnectorType>::Stream_Module_Net_Source_Writer_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , connector_ (true)
  , connection_ (NULL)
@@ -679,11 +671,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             StatisticContainerType,
                             TimerManagerType,
                             ConnectorType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            UserDataType>::Stream_Module_Net_SourceH_T (ISTREAM_T* stream_in)
-#else
                             UserDataType>::Stream_Module_Net_SourceH_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , connector_ (true)
  , connection_ (NULL)

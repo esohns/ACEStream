@@ -49,11 +49,7 @@ Stream_Module_Splitter1_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                         MediaType>::Stream_Module_Splitter1_T (ISTREAM_T* stream_in)
-#else
                          MediaType>::Stream_Module_Splitter1_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
  , buffer_ (NULL)
@@ -275,11 +271,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          DataMessageType,
                          SessionMessageType,
                          SessionDataType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                         MediaType>::Stream_Module_Splitter_T (ISTREAM_T* stream_in)
-#else
                          MediaType>::Stream_Module_Splitter_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
  , buffer_ (NULL)
@@ -520,11 +512,7 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           SessionDataContainerType,
                           StatisticContainerType,
                           StatisticHandlerType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                          MediaType>::Stream_Module_SplitterH_T (ISTREAM_T* stream_in,
-#else
                           MediaType>::Stream_Module_SplitterH_T (typename inherited::ISTREAM_T* stream_in,
-#endif // ACE_WIN32 || ACE_WIN64
                                                                  ACE_SYNCH_MUTEX_T* lock_in,
                                                                  bool autoStart_in,
                                                                  enum Stream_HeadModuleConcurrency concurrency_in,

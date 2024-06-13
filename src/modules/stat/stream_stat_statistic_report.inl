@@ -48,11 +48,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               StatisticContainerType,
                                               TimerManagerType,
                                               SessionDataType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                              SessionDataContainerType>::Stream_Statistic_StatisticReport_WriterTask_T (ISTREAM_T* stream_in)
-#else
                                               SessionDataContainerType>::Stream_Statistic_StatisticReport_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inboundBytes_ (0)
  , outboundBytes_ (0)

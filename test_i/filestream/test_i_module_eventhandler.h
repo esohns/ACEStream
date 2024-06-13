@@ -66,8 +66,8 @@ class Test_I_Stream_Module_EventHandler_T
                                          UserDataType> inherited;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  typedef Stream_IStream_T<ACE_MT_SYNCH, Common_TimePolicy_t> ISTREAM_T;
   Test_I_Stream_Module_EventHandler_T (ISTREAM_T*); // stream handle
 #else
   Test_I_Stream_Module_EventHandler_T (typename inherited::ISTREAM_T*); // stream handle

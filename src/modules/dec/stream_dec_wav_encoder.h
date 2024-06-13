@@ -76,9 +76,9 @@ class Stream_Decoder_WAVEncoder_T
                                                  UserDataType> inherited;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Decoder_WAVEncoder_T (ISTREAM_T*);                     // stream handle
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+  typedef Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType> ISTREAM_T;
+  Stream_Decoder_WAVEncoder_T (ISTREAM_T*); // stream handle
 #else
   Stream_Decoder_WAVEncoder_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64

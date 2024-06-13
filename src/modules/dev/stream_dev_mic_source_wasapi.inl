@@ -60,7 +60,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                                SessionDataContainerType,
                                StatisticContainerType,
                                TimerManagerType,
-                               MediaType>::Stream_Dev_Mic_Source_WASAPI_T (ISTREAM_T* stream_in)
+                               MediaType>::Stream_Dev_Mic_Source_WASAPI_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in) // stream handle
  , inherited2 ()
  , audioClient_ (NULL)

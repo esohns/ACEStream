@@ -73,11 +73,7 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
                       SessionDataContainerType,
                       StatisticContainerType,
                       TimerManagerType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                      UserDataType>::Stream_LibAV_Source_T (ISTREAM_T* stream_in)
-#else
                       UserDataType>::Stream_LibAV_Source_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , context_ (NULL)
 {

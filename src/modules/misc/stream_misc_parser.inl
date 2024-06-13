@@ -50,11 +50,7 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
                           ParserConfigurationType,
                           ParserInterfaceType,
                           ParserArgumentType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                          UserDataType>::Stream_Module_CppParser_T (ISTREAM_T* stream_in)
-#else
                           UserDataType>::Stream_Module_CppParser_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , configuration_ (NULL)
  , fragment_ (NULL)
@@ -721,11 +717,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        DataMessageType,
                        SessionMessageType,
                        ParserDriverType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                       UserDataType>::Stream_Module_Parser_T (ISTREAM_T* stream_in)
-#else
                        UserDataType>::Stream_Module_Parser_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
  , headFragment_ (NULL)
@@ -1235,11 +1227,7 @@ Stream_Module_ParserH_T<ACE_SYNCH_USE,
                         StatisticContainerType,
                         TimerManagerType,
                         UserDataType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                        ParserDriverType>::Stream_Module_ParserH_T (ISTREAM_T* stream_in)
-#else
                         ParserDriverType>::Stream_Module_ParserH_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in,                               // stream handle
               false,                                   // auto-start ? (active mode only)
               STREAM_HEADMODULECONCURRENCY_CONCURRENT, // concurrency mode

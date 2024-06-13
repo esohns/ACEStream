@@ -46,11 +46,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            SessionMessageType,
                            SessionDataContainerType,
                            SessionDataType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                           ParserContextType>::Stream_Module_HTMLParser_T (ISTREAM_T* stream_in)
-#else
                            ParserContextType>::Stream_Module_HTMLParser_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , headFragment_ (NULL)
  , parserContext_ ()

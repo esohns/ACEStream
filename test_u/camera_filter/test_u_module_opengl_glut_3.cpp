@@ -227,18 +227,18 @@ Test_U_CameraFilter_OpenGL_GLUT_3::handleSessionMessage (Test_U_SessionMessage_t
       // CBData_.columns = CBData_.resolution.cx / CBData_.scaleFactor;
       // CBData_.rows = CBData_.resolution.cy / CBData_.scaleFactor;
 
-      if (!Common_GL_Tools::loadAndCompileShader (ACE_TEXT_ALWAYS_CHAR (TEST_U_VERTEX_SHADER_3_FILENAME),
-                                                  GL_VERTEX_SHADER,
-                                                  vertex_shader_id))
+      if (!Common_GL_Tools::loadAndCompileShaderFile (ACE_TEXT_ALWAYS_CHAR (TEST_U_VERTEX_SHADER_3_FILENAME),
+                                                      GL_VERTEX_SHADER,
+                                                      vertex_shader_id))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to load GL shader, aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      if (!Common_GL_Tools::loadAndCompileShader (ACE_TEXT_ALWAYS_CHAR (TEST_U_FRAGMENT_SHADER_3_FILENAME),
-                                                  GL_FRAGMENT_SHADER,
-                                                  fragment_shader_id))
+      if (!Common_GL_Tools::loadAndCompileShaderFile (ACE_TEXT_ALWAYS_CHAR (TEST_U_FRAGMENT_SHADER_3_FILENAME),
+                                                      GL_FRAGMENT_SHADER,
+                                                      fragment_shader_id))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to load GL shader, aborting\n"),

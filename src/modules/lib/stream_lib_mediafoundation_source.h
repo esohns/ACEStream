@@ -83,7 +83,7 @@ class Stream_MediaFramework_MediaFoundation_Source_T
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  Stream_MediaFramework_MediaFoundation_Source_T (ISTREAM_T*); // stream handle
+  Stream_MediaFramework_MediaFoundation_Source_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_MediaFramework_MediaFoundation_Source_T ();
 
   virtual bool initialize (const ConfigurationType&,

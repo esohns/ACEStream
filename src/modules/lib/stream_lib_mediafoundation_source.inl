@@ -49,7 +49,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                                SessionDataContainerType,
                                                SessionDataType,
                                                MediaType,
-                                               UserDataType>::Stream_MediaFramework_MediaFoundation_Source_T (ISTREAM_T* stream_in)
+                                               UserDataType>::Stream_MediaFramework_MediaFoundation_Source_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
  , condition_ (inherited::lock_)

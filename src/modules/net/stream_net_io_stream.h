@@ -128,11 +128,7 @@ class Stream_Module_Net_IO_Stream_T
   virtual ~Stream_Module_Net_IO_Stream_T ();
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  virtual bool initialize (const CONFIGURATION_T&,
-#else
   virtual bool initialize (const typename inherited::CONFIGURATION_T&,
-#endif // ACE_WIN32 || ACE_WIN64
                            ACE_HANDLE);                                // socket handle
 
   // override (part of) Stream_IStream_T
@@ -243,12 +239,7 @@ class Stream_Module_Net_IO_Stream_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IO_Stream_T& operator= (const Stream_Module_Net_IO_Stream_T&))
 
   // override Common_IInitialize_T
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  virtual bool initialize (const CONFIGURATION_T&);
-#else
   virtual bool initialize (const typename inherited::CONFIGURATION_T&);
-#endif // ACE_WIN32 || ACE_WIN64
 
   // override (part of) Stream_ILinkCB
   virtual void onLink ();

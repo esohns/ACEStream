@@ -52,11 +52,7 @@ Stream_Decoder_FliteDecoder_T<ACE_SYNCH_USE,
                               DataMessageType,
                               SessionMessageType,
                               SessionDataContainerType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              MediaType>::Stream_Decoder_FliteDecoder_T (ISTREAM_T* stream_in)
-#else
                               MediaType>::Stream_Decoder_FliteDecoder_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , CBData_ ()
  , features_ (NULL)

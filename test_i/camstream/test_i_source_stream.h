@@ -106,7 +106,7 @@ class Test_I_Source_DirectShow_Stream_T
                      bool&);          // return value: delete modules ?
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-  virtual bool initialize (const CONFIGURATION_T&);
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&);
 
  private:
   typedef Test_I_Source_DirectShow_Stream_T<StreamStateType,
@@ -207,7 +207,7 @@ class Test_I_Source_MediaFoundation_Stream_T
                      bool&);          // return value: delete modules ?
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-  virtual bool initialize (const CONFIGURATION_T&);
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&);
 
  private:
   typedef Test_I_Source_MediaFoundation_Stream_T<StreamStateType,

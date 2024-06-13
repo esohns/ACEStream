@@ -50,11 +50,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      SessionDataType,
                                      SessionDataContainerType,
                                      MediaType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                     ValueType>::Stream_Statistic_StatisticAnalysis_T (ISTREAM_T* stream_in)
-#else
                                      ValueType>::Stream_Statistic_StatisticAnalysis_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
  , inherited3 ()

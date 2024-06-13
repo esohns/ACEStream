@@ -60,7 +60,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType,
-                                   TimerManagerType>::Stream_Dev_Mic_Source_DirectShow_T (ISTREAM_T* stream_in)
+                                   TimerManagerType>::Stream_Dev_Mic_Source_DirectShow_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in) // stream handle
  , isFirst_ (true)
  , IAMDroppedFrames_ (NULL)

@@ -75,12 +75,7 @@ class Stream_Module_Delay_T
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Module_Delay_T (ISTREAM_T*); // stream handle
-#else
   Stream_Module_Delay_T (typename inherited::ISTREAM_T*); // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Module_Delay_T () {}
 
   // override (part of) Stream_IModuleHandler_T
@@ -146,12 +141,7 @@ class Stream_Module_Delay_2
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-         // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Module_Delay_2 (ISTREAM_T*); // stream handle
-#else
   Stream_Module_Delay_2 (typename inherited::ISTREAM_T*); // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Module_Delay_2 () {}
 
      // override (part of) Stream_IModuleHandler_T

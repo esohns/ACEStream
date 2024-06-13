@@ -48,7 +48,7 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                            DataMessageType,
                            SessionMessageType,
                            SessionDataType,
-                           MediaType>::Stream_Dev_Target_WavOut_T (ISTREAM_T* stream_in)
+                           MediaType>::Stream_Dev_Target_WavOut_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , CBData_ ()
  , handle_ (NULL)

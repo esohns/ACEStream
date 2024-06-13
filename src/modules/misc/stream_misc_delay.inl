@@ -60,11 +60,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                       DataMessageType,
                       SessionMessageType,
                       MediaType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                      UserDataType>::Stream_Module_Delay_T (ISTREAM_T* stream_in)
-#else
                       UserDataType>::Stream_Module_Delay_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , availableTokens_ (0)
  , condition_ (inherited::lock_)
@@ -461,11 +457,7 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
                       DataMessageType,
                       SessionMessageType,
                       MediaType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                      UserDataType>::Stream_Module_Delay_2 (ISTREAM_T* stream_in)
-#else
                       UserDataType>::Stream_Module_Delay_2 (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , availableTokens_ (0)
  , condition_ (inherited::lock_)

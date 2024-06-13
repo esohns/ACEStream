@@ -66,11 +66,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
                                                   MediaType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                  ValueType>::Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (ISTREAM_T* stream_in)
-#else
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//                                                  ValueType>::Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (ISTREAM_T* stream_in)
+//#else
                                                   ValueType>::Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
+//#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_CHANNELS,
                STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE,

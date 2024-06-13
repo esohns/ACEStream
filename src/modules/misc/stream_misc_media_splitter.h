@@ -58,12 +58,7 @@ class Stream_Miscellaneous_MediaSplitter_T
                                                         SessionDataType> inherited;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Miscellaneous_MediaSplitter_T (ISTREAM_T*);                     // stream handle
-#else
   Stream_Miscellaneous_MediaSplitter_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
   inline virtual ~Stream_Miscellaneous_MediaSplitter_T () {}
 
   inline virtual void handleDataMessage (MessageType*& message_inout, bool&) { forward (message_inout); }

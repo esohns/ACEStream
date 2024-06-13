@@ -68,12 +68,7 @@ class Stream_Decoder_ImageMagick_Decoder_T
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Decoder_ImageMagick_Decoder_T (ISTREAM_T*); // stream handle
-#else
   Stream_Decoder_ImageMagick_Decoder_T (typename inherited::ISTREAM_T*); // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Decoder_ImageMagick_Decoder_T ();
 
   // override (part of) Stream_IModuleHandler_T

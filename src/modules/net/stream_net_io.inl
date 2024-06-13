@@ -60,11 +60,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                              TimerManagerType,
                              AddressType,
                              ConnectionManagerType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                             UserDataType>::Stream_Module_Net_IOReader_T (ISTREAM_T* stream_in)
-#else
                              UserDataType>::Stream_Module_Net_IOReader_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::Stream_Module_Net_IOReader_T"));
@@ -253,11 +249,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              TimerManagerType,
                              AddressType,
                              ConnectionManagerType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                             UserDataType>::Stream_Module_Net_IOWriter_T (ISTREAM_T* stream_in)
-#else
                              UserDataType>::Stream_Module_Net_IOWriter_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in) // stream handle
  , inbound_ (true)
  , manageSessionData_ (true)

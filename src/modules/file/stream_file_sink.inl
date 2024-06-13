@@ -46,11 +46,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                            ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                           SessionMessageType>::Stream_Module_FileWriter_T (ISTREAM_T* stream_in)
-#else
                            SessionMessageType>::Stream_Module_FileWriter_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , isOpen_ (false)
  , path_ ()
@@ -505,11 +501,7 @@ Stream_Module_FileWriter_2<TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                           SessionMessageType>::Stream_Module_FileWriter_2 (ISTREAM_T* stream_in)
-#else
                            SessionMessageType>::Stream_Module_FileWriter_2 (typename inherited::ISTREAM_T* stream_in)
-#endif
  : inherited (stream_in)
  , isOpen_ (false)
  , path_ ()
@@ -979,11 +971,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            StatisticHandlerType>::Stream_Module_FileWriterH_T (ISTREAM_T* stream_in,
-#else
                             StatisticHandlerType>::Stream_Module_FileWriterH_T (typename inherited::ISTREAM_T* stream_in,
-#endif
                                                                                 bool autoStart_in,
                                                                                 bool generateSessionMessages_in)
  : inherited (stream_in,
