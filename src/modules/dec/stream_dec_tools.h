@@ -83,7 +83,7 @@ class Stream_Module_Decoder_Tools
   // *NOTE*: 'packed' formats only
   static bool isPackedIntegerPCM (enum AVSampleFormat); // sample format
   static bool isPackedRealPCM (enum AVSampleFormat); // sample format
-  static uint64_t channelsToLayout (unsigned int); // #channels
+  static uint64_t channelsToMask (unsigned int); // #channels
 
   inline static bool isCompressedVideo (enum AVPixelFormat format_in) { return (!Stream_Module_Decoder_Tools::isRGB (format_in) && !Stream_Module_Decoder_Tools::isChromaLuminance (format_in)); }
 

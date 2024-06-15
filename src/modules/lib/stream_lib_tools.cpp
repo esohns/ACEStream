@@ -1505,8 +1505,8 @@ Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (enum AVPixelFormat pix
     case AV_PIX_FMT_BAYER_GRBG16BE:
       return GUID_NULL;
 
-    case AV_PIX_FMT_XVMC:
-      return GUID_NULL;
+    //case AV_PIX_FMT_XVMC:
+    //  return GUID_NULL;
 
     case AV_PIX_FMT_YUV440P10LE:
     case AV_PIX_FMT_YUV440P10BE:
@@ -3541,9 +3541,9 @@ Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_
     case AV_PIX_FMT_YUVJ444P:
       ACE_ASSERT (false); // *TODO*
       break;
-    case AV_PIX_FMT_XVMC:
-      ACE_ASSERT (false); // *TODO*
-      break;
+    //case AV_PIX_FMT_XVMC:
+    //  ACE_ASSERT (false); // *TODO*
+    //  break;
     case AV_PIX_FMT_UYVY422:
       ACE_ASSERT (false); // *TODO*
       break;

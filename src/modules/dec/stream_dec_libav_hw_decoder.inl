@@ -111,24 +111,12 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   int result = -1;
 
   if (frame_)
-  {
-    av_frame_unref (frame_); av_frame_free (&frame_);
-  } // end IF
+    av_frame_free (&frame_);
   if (hwFrame_)
-  {
-    av_frame_unref (hwFrame_); av_frame_free (&hwFrame_);
-  } // end IF
+    av_frame_free (&hwFrame_);
 
   if (context_)
-  {
-    result = avcodec_close (context_);
-    if (unlikely (result == -1))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
     avcodec_free_context (&context_);
-  } // end IF
 
   if (parserContext_)
     av_parser_close (parserContext_);
@@ -164,28 +152,16 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   {
     codecId_ = AV_CODEC_ID_NONE;
     if (context_)
-    {
-      result = avcodec_close (context_);
-      if (unlikely (result == -1))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
       avcodec_free_context (&context_);
-    } // end IF
     format_ = AV_PIX_FMT_NONE;
     intermediateFormat_ = AV_PIX_FMT_NONE;
     formatsIndex_ = 0;
     formatHeight_ = 0;
     formatWidth_ = 0;
     if (frame_)
-    {
-      av_frame_unref (frame_); av_frame_free (&frame_);
-    } // end IF
+      av_frame_free (&frame_);
     if (hwFrame_)
-    {
-      av_frame_unref (hwFrame_); av_frame_free (&hwFrame_);
-    } // end IF
+      av_frame_free (&hwFrame_);
     frameSize_ = 0;
     outputFormat_ = STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT;
     outputFrameSize_ = 0;

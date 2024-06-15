@@ -222,7 +222,7 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
     {
       message_media_type_s = STREAM_MEDIATYPE_AUDIO;
       media_type_s.audio.channels =
-        context_->streams[inherited::configuration_->streamIndex]->codecpar->channels;
+        context_->streams[inherited::configuration_->streamIndex]->codecpar->ch_layout.nb_channels;
       media_type_s.audio.format =
         static_cast<enum AVSampleFormat> (context_->streams[inherited::configuration_->streamIndex]->codecpar->format);
       media_type_s.audio.sampleRate =

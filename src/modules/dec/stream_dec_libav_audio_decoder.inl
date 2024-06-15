@@ -96,21 +96,10 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
   int result = -1;
 
   if (frame_)
-  {
-    av_frame_unref (frame_);
     av_frame_free (&frame_);
-  } // end IF
 
   if (context_)
-  {
-    result = avcodec_close (context_);
-    if (unlikely (result == -1))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
     avcodec_free_context (&context_);
-  } // end IF
 
   if (parserContext_)
     av_parser_close (parserContext_);
@@ -146,23 +135,11 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
   {
     codecId_ = AV_CODEC_ID_NONE;
     if (context_)
-    {
-      result = avcodec_close (context_);
-      if (unlikely (result == -1))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
       avcodec_free_context (&context_);
-    } // end IF
     format_ = AV_SAMPLE_FMT_NONE;
     sampleRate_ = 0;
     if (frame_)
-    {
-      av_frame_unref (frame_);
       av_frame_free (&frame_);
-      ACE_ASSERT (!frame_);
-    } // end IF
     frameSize_ = 0;
     outputFormat_ = STREAM_DEC_DEFAULT_LIBAV_OUTPUT_SAMPLE_FORMAT;
     outputFrameSize_ = 0;
@@ -594,20 +571,44 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                     ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (context_->sample_fmt).c_str ()),
                     ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (outputFormat_).c_str ())));
 
-        transformContext_ =
-            swr_alloc_set_opts (NULL,
-                                Stream_Module_Decoder_Tools::channelsToLayout (outputChannels_), // out_ch_layout
-                                outputFormat_,            // out_sample_fmt
-                                outputSampleRate_,        // out_sample_rate
-                                Stream_Module_Decoder_Tools::channelsToLayout (outputChannels_), // in_ch_layout
-                                context_->sample_fmt,     // in_sample_fmt
-                                outputSampleRate_,    // in_sample_rate
-                                0,                        // log_offset
-                                NULL);                    // log_ctx
-        if (unlikely (!transformContext_))
+        AVChannelLayout channel_layout_out_s = {0};
+        result =
+          av_channel_layout_from_mask (&channel_layout_out_s,
+                                       Stream_Module_Decoder_Tools::channelsToMask (outputChannels_));
+        if (unlikely (result))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to swr_alloc_set_opts(): \"%m\", aborting\n")));
+                      ACE_TEXT ("failed to av_channel_layout_from_mask(): \"%s\", aborting\n"),
+                      ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+          goto error;
+        } // end IF
+        AVChannelLayout channel_layout_in_s = {0};
+        result =
+          av_channel_layout_from_mask (&channel_layout_in_s,
+                                       Stream_Module_Decoder_Tools::channelsToMask (outputChannels_)); // *TODO* should be input-
+        if (unlikely (result))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to av_channel_layout_from_mask(): \"%s\", aborting\n"),
+                      ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+          goto error;
+        } // end IF
+
+        result =
+          swr_alloc_set_opts2 (&transformContext_,
+                               &channel_layout_out_s, // out_ch_layout
+                               outputFormat_,         // out_sample_fmt
+                               outputSampleRate_,     // out_sample_rate
+                               &channel_layout_in_s,  // in_ch_layout
+                               context_->sample_fmt,  // in_sample_fmt
+                               outputSampleRate_,     // in_sample_rate
+                               0,                     // log_offset
+                               NULL);                 // log_ctx
+        if (unlikely (result || !transformContext_))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to swr_alloc_set_opts2(): \"%s\", aborting\n"),
+                      ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
           goto error;
         } // end IF
         result = swr_init (transformContext_);
@@ -735,22 +736,32 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (outputFormat_).c_str ()),
                 outputSampleRate_));
 
-    //int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-    //  SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
-    transformContext_ =
-      swr_alloc_set_opts (NULL,
-                          Stream_Module_Decoder_Tools::channelsToLayout (outputChannels_), // out_ch_layout
-                          outputFormat_,            // out_sample_fmt
-                          outputSampleRate_,        // out_sample_rate
-                          context_->channel_layout, // in_ch_layout
-                          context_->sample_fmt,     // in_sample_fmt
-                          context_->sample_rate,    // in_sample_rate
-                          0,                        // log_offset
-                          NULL);                    // log_ctx
-    if (unlikely (!transformContext_))
+    AVChannelLayout channel_layout_out_s = {0};
+    result =
+      av_channel_layout_from_mask (&channel_layout_out_s,
+                                    Stream_Module_Decoder_Tools::channelsToMask (outputChannels_)); // *TODO* should be input-
+    if (unlikely (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to swr_alloc_set_opts(): \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to av_channel_layout_from_mask(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+      return false;
+    } // end IF
+    result =
+      swr_alloc_set_opts2 (&transformContext_,
+                           &channel_layout_out_s, // out_ch_layout
+                           outputFormat_,         // out_sample_fmt
+                           outputSampleRate_,     // out_sample_rate
+                           &context_->ch_layout,  // in_ch_layout
+                           context_->sample_fmt,  // in_sample_fmt
+                           context_->sample_rate, // in_sample_rate
+                           0,                     // log_offset
+                           NULL);                 // log_ctx
+    if (unlikely (result || !transformContext_))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to swr_alloc_set_opts2(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
       return false;
     } // end IF
     result = swr_init (transformContext_);
@@ -765,7 +776,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
     format_ = context_->sample_fmt;
     sampleRate_ = context_->sample_rate;
     frameSize_ =
-      av_get_bytes_per_sample (context_->sample_fmt) * context_->channels;
+      av_get_bytes_per_sample (context_->sample_fmt) * context_->ch_layout.nb_channels;
   } // end IF
 
   result = avcodec_receive_frame (context_,

@@ -433,40 +433,21 @@ audio:
 
       inherited::audioFrameSize_ =
         (audio_media_type_s.channels * av_get_bytes_per_sample (audio_media_type_s.format));
-      inherited::audioCodecContext_->channels = audio_media_type_s.channels;
+      av_channel_layout_default (&inherited::audioCodecContext_->ch_layout,
+                                 audio_media_type_s.channels);
       inherited::audioCodecContext_->sample_fmt = audio_media_type_s.format;
       inherited::audioCodecContext_->bit_rate =
         inherited::audioFrameSize_ * audio_media_type_s.sampleRate * 8;
       inherited::audioCodecContext_->sample_rate =
         audio_media_type_s.sampleRate;
-      switch (audio_media_type_s.channels)
-      {
-        case 1:
-          inherited::audioCodecContext_->channel_layout = AV_CH_LAYOUT_MONO;
-          break;
-        case 2:
-          inherited::audioCodecContext_->channel_layout = AV_CH_LAYOUT_STEREO;
-          break;
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: invalid/unknown #channels (was: %d), aborting\n"),
-                      inherited::mod_->name (),
-                      audio_media_type_s.channels));
-          goto error;
-        }
-      } // end SWITCH
-
       inherited::audioCodecContext_->time_base.num = 1;
       inherited::audioCodecContext_->time_base.den = 
         inherited::audioCodecContext_->sample_rate;
 
-      inherited::audioFrame_->channels =
-        inherited::audioCodecContext_->channels;
+      inherited::audioFrame_->ch_layout =
+        inherited::audioCodecContext_->ch_layout;
       inherited::audioFrame_->format =
         inherited::audioCodecContext_->sample_fmt;
-      inherited::audioFrame_->channel_layout =
-        inherited::audioCodecContext_->channel_layout;
       inherited::audioFrame_->sample_rate =
         inherited::audioCodecContext_->sample_rate;
       inherited::audioFrame_->time_base = inherited::audioCodecContext_->time_base;

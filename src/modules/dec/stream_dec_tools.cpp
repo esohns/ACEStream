@@ -260,9 +260,9 @@ Stream_Module_Decoder_Tools::isPackedRealPCM (enum AVSampleFormat format_in)
 }
 
 uint64_t
-Stream_Module_Decoder_Tools::channelsToLayout (unsigned int channels_in)
+Stream_Module_Decoder_Tools::channelsToMask (unsigned int channels_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::channelsToLayout"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::channelsToMask"));
 
   switch (channels_in)
   {

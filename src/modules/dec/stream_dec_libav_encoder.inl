@@ -532,36 +532,27 @@ audio:
 
       audioFrameSize_ =
         (audio_media_type_s.channels * av_get_bytes_per_sample (audio_media_type_s.format));
-      audioCodecContext_->channels = audio_media_type_s.channels;
+      result =
+        av_channel_layout_from_mask (&audioCodecContext_->ch_layout,
+                                     Stream_Module_Decoder_Tools::channelsToMask (audio_media_type_s.channels));
+      if (unlikely (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to av_channel_layout_from_mask(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+        goto error;
+      } // end IF
       audioCodecContext_->sample_fmt = audio_media_type_s.format;
       audioCodecContext_->bit_rate =
         audioFrameSize_ * audio_media_type_s.sampleRate * 8;
       audioCodecContext_->sample_rate = audio_media_type_s.sampleRate;
-      switch (audio_media_type_s.channels)
-      {
-        case 1:
-          audioCodecContext_->channel_layout = AV_CH_LAYOUT_MONO;
-          break;
-        case 2:
-          audioCodecContext_->channel_layout = AV_CH_LAYOUT_STEREO;
-          break;
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: invalid/unknown #channels (was: %d), aborting\n"),
-                      inherited::mod_->name (),
-                      audio_media_type_s.channels));
-          goto error;
-        }
-      } // end SWITCH
       //audioStream_->time_base.num = 1;
       //audioStream_->time_base.den = audioCodecContext_->sample_rate;
       audioCodecContext_->time_base.num = 1;
       audioCodecContext_->time_base.den = audioCodecContext_->sample_rate;
 
-      audioFrame_->channels = audioCodecContext_->channels;
+      audioFrame_->ch_layout = audioCodecContext_->ch_layout;
       audioFrame_->format = audioCodecContext_->sample_fmt;
-      audioFrame_->channel_layout = audioCodecContext_->channel_layout;
       audioFrame_->sample_rate = audioCodecContext_->sample_rate;
       //audioFrame_->time_base = audioCodecContext_->time_base;
 

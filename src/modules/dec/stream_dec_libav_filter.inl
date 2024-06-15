@@ -332,12 +332,12 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
         av_get_bytes_per_sample (media_type_s.format) * media_type_s.channels;
 
       /* buffer audio source: the decoded frames from the decoder will be inserted here. */
-      ::snprintf (args_a, sizeof (char[BUFSIZ]),
-                  ACE_TEXT_ALWAYS_CHAR ("time_base=%d/%d:sample_rate=%d:sample_fmt=%s:channel_layout=0x%llx"),
-                  1, media_type_s.sampleRate,
-                  media_type_s.sampleRate,
-                  av_get_sample_fmt_name (media_type_s.format),
-                  av_get_default_channel_layout (media_type_s.channels));
+      ACE_OS::snprintf (args_a, sizeof (char[BUFSIZ]),
+                        ACE_TEXT_ALWAYS_CHAR ("time_base=%d/%d:sample_rate=%d:sample_fmt=%s:channel_layout=0x%llx"),
+                        1, media_type_s.sampleRate,
+                        media_type_s.sampleRate,
+                        av_get_sample_fmt_name (media_type_s.format),
+                        Stream_Module_Decoder_Tools::channelsToMask (media_type_s.channels));
       int result = avfilter_graph_create_filter (&bufferSourceContext_,
                                                  filter_p,
                                                  ACE_TEXT_ALWAYS_CHAR ("in"),
@@ -424,7 +424,16 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
       /* Print summary of the sink buffer
        * Note: args buffer is reused to store channel layout string */
       outlink_p = bufferSinkContext_->inputs[0];
-      av_get_channel_layout_string (args_a, sizeof (char[BUFSIZ]), -1, outlink_p->channel_layout);
+      result = av_channel_layout_describe (&outlink_p->ch_layout,
+                                           args_a, sizeof (char[BUFSIZ]));
+      if (unlikely (result < 0))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to av_channel_layout_describe(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+        goto error;
+      } // end IF
       av_log (NULL,
               AV_LOG_INFO,
               "Output: srate:%dHz fmt:%s chlayout:%s\n",
@@ -440,9 +449,9 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
                     ACE_TEXT ("failed to av_frame_alloc(): \"%m\", aborting\n")));
         goto error;
       } // end IF
-      frame_->channels = media_type_s.channels;
-      frame_->channel_layout =
-        av_get_default_channel_layout (media_type_s.channels);
+
+      av_channel_layout_default (&frame_->ch_layout,
+                                 media_type_s.channels);
       frame_->sample_rate = media_type_s.sampleRate;
       frame_->format = media_type_s.format;
       frame_2 = av_frame_alloc ();
