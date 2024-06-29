@@ -1360,6 +1360,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   Stream_CamSave_DirectShow_EventHandler_t directshow_ui_event_handler;
 #endif // GUI_SUPPORT
   struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
+  struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2;
   struct Stream_CamSave_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
 #if defined (GUI_SUPPORT)
   Stream_CamSave_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in
@@ -1408,12 +1409,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
-  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2; // resize
-  //Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_3; // renderer
-  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_4; // converter_2
-  Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-  Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
   switch (capturer_in)
   {
     case STREAM_DEVICE_CAPTURER_VFW:
@@ -1595,18 +1590,11 @@ error:
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
                                                                  directshow_stream_configuration);
-      directshow_stream_iterator =
-        directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.streamConfiguration.end ());
-
 #if defined (FFMPEG_SUPPORT)
       directshow_modulehandler_configuration_2 = directshow_modulehandler_configuration;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_2)));
-      directshow_stream_iterator_2 =
-        directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
-      ACE_ASSERT (directshow_stream_iterator_2 != directShowConfiguration_in.streamConfiguration.end ());
 #endif // FFMPEG_SUPPORT
 
       directshow_modulehandler_configuration_3 = directshow_modulehandler_configuration;
@@ -1647,9 +1635,6 @@ error:
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_4)));
-      directshow_stream_iterator_4 =
-        directShowConfiguration_in.streamConfiguration.find (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")));
-      ACE_ASSERT (directshow_stream_iterator_4 != directShowConfiguration_in.streamConfiguration.end ());
 #endif // FFMPEG_SUPPORT
       break;
     }
@@ -1670,17 +1655,11 @@ error:
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
                                                                       mediafoundation_stream_configuration);
-      mediafoundation_stream_iterator =
-        mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
 
+      mediafoundation_modulehandler_configuration_2 = mediafoundation_modulehandler_configuration;
       mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING),
                                                                                   std::make_pair (&module_configuration,
-                                                                                                  &mediafoundation_modulehandler_configuration)));
-
-      mediafoundation_stream_iterator_2 =
-        mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
-      ACE_ASSERT (mediafoundation_stream_iterator_2 != mediaFoundationConfiguration_in.streamConfiguration.end ());
+                                                                                                  &mediafoundation_modulehandler_configuration_2)));
       break;
     }
     default:
@@ -1756,12 +1735,12 @@ error:
       struct _AMMediaType* media_type_p = NULL;
       struct _AMMediaType& media_type_r =
 #if defined (FFMPEG_SUPPORT)
-        (*directshow_stream_iterator_4).second.second->outputFormat;
+        directshow_modulehandler_configuration_4.outputFormat;
 #else
-        (*directshow_stream_iterator).second.second->outputFormat;
+        directshow_modulehandler_configuration.outputFormat;
 #endif // FFMPEG_SUPPORT
       struct _AMMediaType& media_type_2 =
-        (*directshow_stream_iterator).second.second->outputFormat;
+        directshow_modulehandler_configuration.outputFormat;
       if (!do_initialize_directshow (deviceIdentifier_in,
                                      capturer_in,
                                      directshow_stream_configuration.renderer,
@@ -1781,12 +1760,18 @@ error:
         directShowCBData_in.streamConfiguration = stream_config_p;
       } // end IF
       media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator).second.second->outputFormat);
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
 #if defined (FFMPEG_SUPPORT)
-      (*directshow_stream_iterator_2).second.second->outputFormat = *media_type_p;
+      directshow_modulehandler_configuration_2.outputFormat = *media_type_p;
 #endif // FFMPEG_SUPPORT
       delete media_type_p; media_type_p = NULL;
+
+      // *NOTE*: need to set this for RGB-capture formats ONLY !
+      // *TODO*: MJPG is transformed inside the DirectShow pipeline to RGB32, so requires flípping as well... :-(
+      directshow_modulehandler_configuration.flipImage =
+        Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
+
       break;
     }
     case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
@@ -1794,18 +1779,18 @@ error:
       if (!do_initialize_mediafoundation (deviceIdentifier_in,
                                           window_handle,
                                           mediafoundation_stream_configuration.format
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                                          ,(*mediafoundation_stream_iterator).second.second->session
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
+                                          ,mediafoundation_modulehandler_configuration.session
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                                          ))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_mediafoundation(), returning\n")));
         return;
       } // end IF
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      ACE_ASSERT ((*mediafoundation_stream_iterator).second.second->session);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
+      ACE_ASSERT (mediafoundation_modulehandler_configuration.session);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       break;
     }
     default:

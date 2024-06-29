@@ -541,7 +541,7 @@ continue_:
 
 #if defined (_DEBUG)
       log_file_name =
-        Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
+        Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
                                            0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
       log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
@@ -600,7 +600,8 @@ continue_:
 
       builder_p->Release (); builder_p = NULL;
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       break;
 
@@ -645,7 +646,8 @@ error:
       if (release_media_type)
         Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -653,13 +655,35 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      bool COM_initialized = Common_Tools::initializeCOM ();
+
+#if defined (_DEBUG)
+      IGraphBuilder* builder_p = NULL;
+      if (inherited::configuration_->builder)
+      {
+        inherited::configuration_->builder->AddRef ();
+        builder_p = inherited::configuration_->builder;
+      } // end IF
+      else
+      { ACE_ASSERT (ICaptureGraphBuilder2_);
+        HRESULT result_2 = ICaptureGraphBuilder2_->GetFiltergraph (&builder_p);
+        ACE_ASSERT (SUCCEEDED (result_2) && builder_p);
+      } // end ELSE
+      ACE_ASSERT (builder_p);
+
+      Stream_MediaFramework_DirectShow_Tools::debug (builder_p,
+                                                     ACE_TEXT_ALWAYS_CHAR (""));
+
+      builder_p->Release (); builder_p = NULL;
+#endif // _DEBUG
+
       inherited::sessionEndProcessed_ = true;
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       {
         Common_ITask* itask_p = this; // *TODO*: is the no other way ?
         itask_p->stop (false,         // wait for completion ?
                        false);        // high priority ?
-      }                               // end IF
+      } // end IF
 
 abort:
       if (inherited::timerId_ != -1)
@@ -674,8 +698,6 @@ abort:
                       inherited::timerId_));
         inherited::timerId_ = -1;
       } // end IF
-
-      bool COM_initialized = Common_Tools::initializeCOM ();
 
       // deregister graph from the ROT ?
       if (ROTID_)
@@ -747,7 +769,8 @@ abort:
         IAMDroppedFrames_->Release (); IAMDroppedFrames_ = NULL;
       } // end IF
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       break;
     }

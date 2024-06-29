@@ -318,11 +318,12 @@ add_subdirectory (imagescreen)
 add_subdirectory (parser)
 add_subdirectory (qr_decode)
 add_subdirectory (riff_decoder)
+add_subdirectory (tree)
 
 # phonies
 add_custom_target (test_u ALL
                    COMMENT "building test_u...")
-add_dependencies (test_u animated_gif audioeffect branch camera_filter camerascreen camsave capturewindow document filecopy imagescreen parser QR_decode RIFF_decoder)
+add_dependencies (test_u animated_gif audioeffect branch camera_filter camerascreen camsave capturewindow document filecopy imagescreen parser QR_decode RIFF_decoder tree)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
 add_dependencies (test_u HTTP_GET)

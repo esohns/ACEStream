@@ -496,7 +496,7 @@ continue_2:
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (session_data_r.formats.front (), true).c_str ())));
 #if defined (_DEBUG)
       log_file_name =
-        Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
+        Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
                                            0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
       log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
@@ -534,7 +534,8 @@ continue_2:
       is_active = inherited::TASK_BASE_T::isRunning ();
       ACE_ASSERT (is_active);
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       break;
 
@@ -584,6 +585,14 @@ error:
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
+      bool COM_initialized = Common_Tools::initializeCOM ();
+
+#if defined (_DEBUG)
+      if (IGraphBuilder_)
+        Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder_,
+                                                       ACE_TEXT_ALWAYS_CHAR (""));
+#endif // _DEBUG
+
       if (likely (inherited::timerId_ != -1))
       {
         const void* act_p = NULL;
@@ -596,8 +605,6 @@ error:
                       inherited::timerId_));
         inherited::timerId_ = -1;
       } // end IF
-
-      bool COM_initialized = Common_Tools::initializeCOM ();
 
       // deregister graph from the ROT (GraphEdit.exe) ?
       if (likely (ROTID_))
@@ -698,7 +705,8 @@ continue_4:
         ICaptureGraphBuilder2_->Release (); ICaptureGraphBuilder2_ = NULL;
       } // end IF
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       // *NOTE*: there already is a MB_STOP message left in the queue
       //if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))

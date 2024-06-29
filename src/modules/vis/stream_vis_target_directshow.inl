@@ -955,6 +955,10 @@ error_2:
 
       if (inherited::IGraphBuilder_)
       {
+#if defined (_DEBUG)
+        Stream_MediaFramework_DirectShow_Tools::debug (inherited::IGraphBuilder_,
+                                                       ACE_TEXT_ALWAYS_CHAR (""));
+#endif // _DEBUG
         inherited::IGraphBuilder_->Release (); inherited::IGraphBuilder_ = NULL;
       } // end IF
 

@@ -1624,6 +1624,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                 ACE_TEXT (Common_OS_Tools::GUIDToString (media_type_s.formattype).c_str ())));
     goto error;
   } // end ELSE
+
   if (InlineIsEqualGUID (media_type_2.formattype, FORMAT_WaveFormatEx))
     wave_format_ex_p =
       reinterpret_cast<struct tWAVEFORMATEX*> (media_type_2.pbFormat);

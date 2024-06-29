@@ -922,7 +922,10 @@ do_work (
       directshow_modulehandler_configuration.outputFormat = *media_type_p;
       delete media_type_p; media_type_p = NULL;
 
-      directshow_modulehandler_configuration_2.flipImage = true;
+      // *NOTE*: need to set this for RGB-capture formats ONLY !
+      directshow_modulehandler_configuration_2.flipImage =
+        Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
+
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format);
       ACE_ASSERT (media_type_p);

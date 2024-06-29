@@ -312,12 +312,21 @@ Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder* builder_in,
 
   if (!fileName_in.empty ())
   {
+    if (Stream_MediaFramework_DirectShow_Tools::logFileHandle != ACE_INVALID_HANDLE)
+    {
+      if (!CloseHandle (Stream_MediaFramework_DirectShow_Tools::logFileHandle))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to CloseHandle(): \"%s\", continuing\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
+      Stream_MediaFramework_DirectShow_Tools::logFileHandle = ACE_INVALID_HANDLE;
+    } // end IF
+
     Stream_MediaFramework_DirectShow_Tools::logFileHandle =
-      ACE_TEXT_CreateFile (ACE_TEXT (fileName_in.c_str ()),
+      ACE_TEXT_CreateFile (ACE_TEXT_CHAR_TO_TCHAR (fileName_in.c_str ()),
                            GENERIC_WRITE,
-                           FILE_SHARE_READ,
+                           FILE_SHARE_READ, // allow opening more than once (for reading !)
                            NULL,
-                           CREATE_ALWAYS, // TRUNCATE_EXISTING :-)
+                           CREATE_ALWAYS, // *TODO*: TRUNCATE_EXISTING ?
                            FILE_ATTRIBUTE_NORMAL,
                            NULL);
     if (Stream_MediaFramework_DirectShow_Tools::logFileHandle == ACE_INVALID_HANDLE)
@@ -325,7 +334,7 @@ Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder* builder_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CreateFile(\"%s\"): \"%s\", returning\n"),
                   ACE_TEXT (fileName_in.c_str ()),
-                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
       return;
     } // end IF
   } // end IF
@@ -349,10 +358,13 @@ Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder* builder_in,
 
   if (fileName_in.empty () &&
       (Stream_MediaFramework_DirectShow_Tools::logFileHandle != ACE_INVALID_HANDLE))
+  {
     if (!CloseHandle (Stream_MediaFramework_DirectShow_Tools::logFileHandle))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CloseHandle(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
+    Stream_MediaFramework_DirectShow_Tools::logFileHandle = ACE_INVALID_HANDLE;
+  } // end IF
 }
 
 void

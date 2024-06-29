@@ -268,18 +268,18 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
       MediaType media_type_2;
       ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
 
-//#if defined (_DEBUG)
-      //      std::string log_file_name =
-      //        Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
-      //                                           0);
-      //      log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-      //      log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
-      //      Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder_,
-      //                                                     log_file_name);
-      //      ACE_DEBUG ((LM_DEBUG,
-      //                  ACE_TEXT ("set DirectShow logfile: \"%s\"\n"),
-      //                  ACE_TEXT (log_file_name.c_str ())));
-//#endif // _DEBUG
+#if defined (_DEBUG)
+      std::string log_file_name =
+        Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                            0);
+      log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
+      log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
+      Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder_,
+                                                     log_file_name);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("set DirectShow logfile: \"%s\"\n"),
+                  ACE_TEXT (log_file_name.c_str ())));
+#endif // _DEBUG
 
       // retrieve sample grabber filter
       IBaseFilter* filter_p = NULL;
@@ -345,6 +345,10 @@ error:
 
       if (IGraphBuilder_)
       {
+#if defined (_DEBUG)
+        Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder_,
+                                                       ACE_TEXT_ALWAYS_CHAR (""));
+#endif // _DEBUG
         IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
       } // end IF
 

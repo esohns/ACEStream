@@ -580,9 +580,8 @@ error:
       if (likely (IGraphBuilder_))
       {
 #if defined (_DEBUG)
-        std::string log_file_name;
         Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder_,
-                                                       log_file_name);
+                                                       ACE_TEXT_ALWAYS_CHAR (""));
 #endif // _DEBUG
         IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
       } // end IF
