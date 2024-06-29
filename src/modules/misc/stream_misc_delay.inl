@@ -290,7 +290,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
       if (inherited::configuration_->delayConfiguration->mode != STREAM_MISCELLANEOUS_DELAY_MODE_INVALID)
         goto continue_;
 
-      // *TODO*: move this to a template specialization
+      // *TODO*: move this block to a template specialization
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),

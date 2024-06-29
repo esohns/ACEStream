@@ -534,7 +534,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   SessionMessageType,
                   StreamControlType,
                   SessionEventType,
-                  UserDataType>::allocateMessage (unsigned int requestedSize_in)
+                  UserDataType>::allocateMessage (size_t requestedSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::allocateMessage"));
 
@@ -561,7 +561,7 @@ retry:
                               static_cast<DataMessageType*> (allocator_->malloc (requestedSize_in)));
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+                  ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%Q), continuing\n"),
                   inherited::mod_->name (),
                   requestedSize_in));
       message_p = NULL;

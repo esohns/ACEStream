@@ -133,7 +133,7 @@ class Stream_TaskBase_T
                      MESSAGE_QUEUE_T* = NULL); // queue handle
 
   // helper methods
-  DataMessageType* allocateMessage (unsigned int); // (requested) size
+  DataMessageType* allocateMessage (size_t); // (requested) size
 
   // implement Stream_ITask
   virtual void handleMessage (ACE_Message_Block*, // message handle
