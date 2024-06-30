@@ -163,6 +163,17 @@ do_work (int argc_in,
   {
     case TEST_U_MODE_DEFAULT:
     {
+      tree_t bush_tree;
+      tree_t::pre_order_iterator iterator = bush_tree.set_head (ACE_TEXT_ALWAYS_CHAR ("animals"));
+      iterator = bush_tree.insert_after (iterator, ACE_TEXT_ALWAYS_CHAR ("fungi"));
+      iterator = bush_tree.insert_after (iterator, ACE_TEXT_ALWAYS_CHAR ("plants"));
+      iterator = bush_tree.begin ();
+      while (bush_tree.is_valid (iterator))
+      {
+        std::cout << *iterator << std::endl;
+        ++iterator;
+      } // end WHILE
+
       break;
     }
     case TEST_U_MODE_FIXED_DEPTH_ITERATOR:

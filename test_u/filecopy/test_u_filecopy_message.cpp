@@ -26,7 +26,7 @@
 #include "stream_macros.h"
 
 Stream_Filecopy_Message::Stream_Filecopy_Message (Stream_SessionId_t sessionId_in,
-                                                  unsigned int size_in)
+                                                  size_t size_in)
  : inherited (sessionId_in,
               size_in)
 {

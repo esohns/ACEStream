@@ -2766,14 +2766,12 @@ idle_initialize_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      is_fullscreen_b = false;
-        //(*directshow_stream_iterator_2).second.second->fullScreen;
+      is_fullscreen_b = (*directshow_stream_iterator_2).second.second->fullScreen;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      is_fullscreen_b = false;
-        //(*mediafoundation_stream_iterator_2).second.second->fullScreen;
+      is_fullscreen_b = (*mediafoundation_stream_iterator_2).second.second->fullScreen;
       break;
     }
     default:
@@ -4639,7 +4637,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->streamConfiguration.end ());
 
-      //(*directshow_stream_iterator).second.second->fullScreen = is_active_b;
+      (*directshow_stream_iterator_2).second.second->fullScreen = is_active_b;
       (*directshow_stream_iterator_2).second.second->window =
         (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
                      : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
@@ -4655,7 +4653,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
       mediafoundation_stream_iterator =
         mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->streamConfiguration.end ());
-      //(*mediafoundation_stream_iterator).second.second->fullScreen = is_active_b;
+      (*mediafoundation_stream_iterator).second.second->fullScreen = is_active_b;
       break;
     }
     default:
@@ -4678,27 +4676,28 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
 //  (*iterator_2).second.second->fullScreen = is_active_b;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_base_p);
-  if (!stream_base_p->isRunning ())
-    return;
 
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
   GtkWindow* window_p =
     GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_WINDOW_FULLSCREEN)));
   ACE_ASSERT (window_p);
-
   if (is_active_b)
   {
     gtk_widget_show (GTK_WIDGET (window_p));
-//  gtk_window_fullscreen (window_p);
+    // gtk_window_fullscreen (window_p);
+    // gtk_window_deiconify (window_p);
     gtk_window_maximize (window_p);
   } // end IF
   else
   {
-//  gtk_window_unfullscreen (window_p);
+    // gtk_window_unfullscreen (window_p);
     gtk_window_unmaximize (window_p);
     gtk_widget_hide (GTK_WIDGET (window_p));
   } // end ELSE
+
+  if (!stream_base_p->isRunning ())
+    return;
 
   ACE_ASSERT (stream_p);
   const Stream_Module_t* module_p = NULL;
@@ -4727,7 +4726,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
       stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
   (*iterator_2).second.second->window =
     (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
-                   : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
+                 : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
   ACE_ASSERT ((*iterator_2).second.second->window);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!module_p)
@@ -7058,7 +7057,7 @@ key_cb (GtkWidget* widget_in,
 
   switch (eventKey_in->keyval)
   {
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
     case GDK_KEY_Escape:
     case GDK_KEY_f:
     case GDK_KEY_F:
@@ -7066,7 +7065,7 @@ key_cb (GtkWidget* widget_in,
     case GDK_Escape:
     case GDK_f:
     case GDK_F:
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
     {
       bool is_active_b = false;
       GtkToggleButton* toggle_button_p =
@@ -7076,11 +7075,11 @@ key_cb (GtkWidget* widget_in,
       is_active_b = gtk_toggle_button_get_active (toggle_button_p);
 
       // sanity check(s)
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
       if ((eventKey_in->keyval == GDK_KEY_Escape) &&
 #else
       if ((eventKey_in->keyval == GDK_Escape) &&
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
           !is_active_b)
         break; // <-- not in fullscreen mode, nothing to do
 

@@ -75,7 +75,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
   // step2: set up 'main' branch
   // *IMPORTANT NOTE*: ACE_Stream modules must be push()ed back-to-front
   //                   --> extract 'main' branch first
-  for (typename inherited::fixed_depth_iterator iterator = inherited::begin_fixed (inherited::begin (), 0);
+  for (typename inherited::fixed_depth_iterator iterator = inherited::begin_fixed (inherited::begin (), 0, false);
 //       iterator != inherited::end_fixed (inherited::begin (), 0);
        inherited::is_valid (iterator);
        ++iterator)
@@ -253,7 +253,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
   Stream_ModuleList_t return_value;
 
   MODULE_T* prev_p = NULL;
-  for (typename inherited::fixed_depth_iterator iterator = inherited::begin_fixed (inherited::begin (), 0);
+  for (typename inherited::fixed_depth_iterator iterator = inherited::begin_fixed (inherited::begin (), 0, false);
        inherited::is_valid (iterator);
 //       iterator != inherited::end_fixed (inherited::begin (), 0);
        ++iterator)
@@ -496,7 +496,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
   if (unlikely (mainBranchOnly_in))
   {
-    for (typename inherited::fixed_depth_iterator iterator = inherited::begin_fixed (inherited::begin (), 0);
+    for (typename inherited::fixed_depth_iterator iterator = inherited::begin_fixed (inherited::begin (), 0, false);
          inherited::is_valid (iterator);
 //         iterator != inherited::end_fixed (inherited::begin (), 0);
          ++iterator)
@@ -538,7 +538,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
   for (int i = 0;
        i <= max_depth_i;
        ++i)
-    for (typename inherited::fixed_depth_iterator iterator = inherited::begin_fixed (inherited::begin (), i);
+    for (typename inherited::fixed_depth_iterator iterator = inherited::begin_fixed (inherited::begin (), i, false);
          inherited::is_valid (iterator);
 //         iterator != inherited::end_fixed (inherited::begin (), i);
          ++iterator, ++count_i)

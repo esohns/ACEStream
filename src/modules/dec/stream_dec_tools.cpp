@@ -3797,7 +3797,7 @@ clean:
     ACE_ASSERT (SUCCEEDED (result));
 
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%q: added decoder for \"%s\": \"%s\"...\n"),
+                ACE_TEXT ("%Q: added decoder for \"%s\": \"%s\"...\n"),
                 node_id,
                 ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ()),
                 ACE_TEXT (module_string.c_str ())));
@@ -3999,7 +3999,7 @@ retry:
   ACE_ASSERT (SUCCEEDED (result));
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%q: added effect: \"%s\"...\n"),
+              ACE_TEXT ("%Q: added effect: \"%s\"...\n"),
               node_id,
               ACE_TEXT (module_string.c_str ())));
 
@@ -4055,7 +4055,7 @@ continue_2:
   ACE_ASSERT (SUCCEEDED (result));
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%q: added tee node...\n"),
+              ACE_TEXT ("%Q: added tee node...\n"),
               node_id));
 
 continue_3:
@@ -4499,7 +4499,7 @@ clean:
     result = topology_node_p->GetTopoNodeID (&node_id);
     ACE_ASSERT (SUCCEEDED (result));
     //ACE_DEBUG ((LM_DEBUG,
-    //            ACE_TEXT ("added transform node (id: %q)...\n"),
+    //            ACE_TEXT ("added transform node (id: %Q)...\n"),
     //            node_id));
     result = source_node_p->ConnectOutput (0,
                                            topology_node_p,
@@ -4546,7 +4546,7 @@ clean:
 
     // debug info
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%q: added decoder for \"%s\": \"%s\"...\n"),
+                ACE_TEXT ("%Q: added decoder for \"%s\": \"%s\"...\n"),
                 node_id,
                 ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ()),
                 ACE_TEXT (module_string.c_str ())));
@@ -4680,7 +4680,7 @@ clean_2:
   result = topology_node_p->GetTopoNodeID (&node_id);
   ACE_ASSERT (SUCCEEDED (result));
   //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added transform node (id: %q)...\n"),
+  //            ACE_TEXT ("added transform node (id: %Q)...\n"),
   //            node_id));
   result = source_node_p->ConnectOutput (0,
                                          topology_node_p,
@@ -4773,7 +4773,7 @@ continue_near:
 
   // debug info
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%q: added processor for \"%s\": \"%s\"...\n"),
+              ACE_TEXT ("%Q: added processor for \"%s\": \"%s\"...\n"),
               node_id,
               ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (mft_register_type_info.guidSubtype, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ()),
               ACE_TEXT (module_string.c_str ())));
@@ -4808,7 +4808,7 @@ continue_:
   result = topology_node_p->GetTopoNodeID (&node_id);
   ACE_ASSERT (SUCCEEDED (result));
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added tee node (id: %q)...\n"),
+              ACE_TEXT ("added tee node (id: %Q)...\n"),
               node_id));
   result = source_node_p->ConnectOutput (0,
                                          topology_node_p,
@@ -4898,7 +4898,7 @@ continue_2:
   result = topology_node_p->GetTopoNodeID (&sampleGrabberSinkNodeId_out);
   ACE_ASSERT (SUCCEEDED (result));
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%q: added sample grabber sink node...\n"),
+              ACE_TEXT ("%Q: added sample grabber sink node...\n"),
               sampleGrabberSinkNodeId_out));
   result = source_node_p->ConnectOutput (0,
                                          topology_node_p,
@@ -4988,7 +4988,7 @@ continue_3:
   result = topology_node_p->GetTopoNodeID (&rendererNodeId_out);
   ACE_ASSERT (SUCCEEDED (result));
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added renderer node (id: %q)...\n"),
+              ACE_TEXT ("added renderer node (id: %Q)...\n"),
               rendererNodeId_out));
   result =
     source_node_p->ConnectOutput ((sampleGrabberSinkCallback_in ? 1 : 0),
@@ -5259,7 +5259,7 @@ clean:
     result = topology_node_p->GetTopoNodeID (&node_id);
     ACE_ASSERT (SUCCEEDED (result));
     //ACE_DEBUG ((LM_DEBUG,
-    //            ACE_TEXT ("added transform node (id: %q)...\n"),
+    //            ACE_TEXT ("added transform node (id: %Q)...\n"),
     //            node_id));
     result = source_node_p->ConnectOutput (0,
                                            topology_node_p,
@@ -5310,7 +5310,7 @@ clean:
     ACE_ASSERT (SUCCEEDED (result));
     // debug info
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%q: added decoder \"%s\": \"%s\" --> \"%s\"...\n"),
+                ACE_TEXT ("%Q: added decoder \"%s\": \"%s\" --> \"%s\"...\n"),
                 node_id,
                 ACE_TEXT (module_string.c_str ()),
                 ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type_2, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ()),
@@ -5433,7 +5433,7 @@ clean_2:
   result = topology_node_p->GetTopoNodeID (&node_id);
   ACE_ASSERT (SUCCEEDED (result));
   //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added transform node (id: %q)...\n"),
+  //            ACE_TEXT ("added transform node (id: %Q)...\n"),
   //            node_id));
   result = source_node_p->ConnectOutput (0,
                                          topology_node_p,
@@ -5517,7 +5517,7 @@ clean_2:
   ACE_ASSERT (SUCCEEDED (result));
   // debug info
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%q: added processor \"%s\": \"%s\" --> \"%s\"...\n"),
+              ACE_TEXT ("%Q: added processor \"%s\": \"%s\" --> \"%s\"...\n"),
               node_id,
               ACE_TEXT (module_string.c_str ()),
               ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (mft_register_type_info.guidSubtype, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ()),
@@ -5608,7 +5608,7 @@ continue_:
   result = topology_node_p->GetTopoNodeID (&rendererNodeId_out);
   ACE_ASSERT (SUCCEEDED (result));
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%q: added renderer \"%s\": \"%s\" -->...\n"),
+              ACE_TEXT ("%Q: added renderer \"%s\": \"%s\" -->...\n"),
               rendererNodeId_out,
               ACE_TEXT (module_string.c_str ()),
               ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));

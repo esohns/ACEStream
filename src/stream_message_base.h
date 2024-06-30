@@ -104,7 +104,7 @@ class Stream_MessageBase_T
                         MessageType);       // message type
   // ctor(s) for MB_STREAM_DATA
   explicit Stream_MessageBase_T (Stream_SessionId_t, // session id
-                                 unsigned int);      // size
+                                 size_t);            // size
   // copy ctor, to be used by derivates
   Stream_MessageBase_T (const OWN_TYPE_T&);
 

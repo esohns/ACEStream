@@ -73,7 +73,7 @@ template <typename DataType,
 Stream_MessageBase_T<DataType,
                      MessageType,
                      CommandType>::Stream_MessageBase_T (Stream_SessionId_t sessionId_in,
-                                                         unsigned int requestedSize_in)
+                                                         size_t requestedSize_in)
  : inherited (requestedSize_in,
               ACE_Message_Block::MB_DATA,
               NULL,

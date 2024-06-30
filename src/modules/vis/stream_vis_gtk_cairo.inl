@@ -634,7 +634,7 @@ error:
 #else
       GDK_THREADS_LEAVE ();
 #endif // GTK_CHECK_VERSION (3,6,0)
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: resized surface to %ux%u\n"),
                   inherited::mod_->name (),

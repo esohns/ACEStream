@@ -79,7 +79,7 @@ class Stream_MediaFramework_DirectShow_MessageBase_T
 
  protected:
   Stream_MediaFramework_DirectShow_MessageBase_T (Stream_SessionId_t, // session id
-                                                  unsigned int);      // size
+                                                  size_t);            // size
   // copy ctor, to be used by derivates
   Stream_MediaFramework_DirectShow_MessageBase_T (const Stream_MediaFramework_DirectShow_MessageBase_T<MessageType,
                                                                                                        CommandType>&);

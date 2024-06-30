@@ -5,6 +5,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 
+#include_directories ($ENV{LIB_ROOT}/tree.hh/src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/tree)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 

@@ -58,6 +58,10 @@
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
 
+#if defined (GTK_SUPPORT)
+#include "common_ui_gtk_tools.h"
+#endif // GTK_SUPPORT
+
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
@@ -178,6 +182,12 @@ do_print_usage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+#if defined (GTK_SUPPORT)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-k          : use Gtk [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
+#endif // GTK_SUPPORT
   std::string path = Common_File_Tools::getTempDirectory ();
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
@@ -282,6 +292,9 @@ do_process_arguments (int argc_in,
 #else
   options_string += ACE_TEXT_ALWAYS_CHAR ("1");
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_SUPPORT)
+  options_string += ACE_TEXT_ALWAYS_CHAR ("k");
+#endif // GTK_SUPPORT
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
                               ACE_TEXT (options_string.c_str ()),
@@ -344,6 +357,13 @@ do_process_arguments (int argc_in,
         renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT;
         break;
       }
+#if defined (GTK_SUPPORT)
+      case 'k':
+      {
+        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW;
+        break;
+      }
+#endif // GTK_SUPPORT
       case 'l':
       {
         logToFile_out = true;
@@ -754,12 +774,12 @@ error:
     media_source_p->Release ();
   if (topology_p)
     topology_p->Release ();
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (IMFMediaSession_out)
   {
     IMFMediaSession_out->Release (); IMFMediaSession_out = NULL;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   result = MFShutdown ();
   if (FAILED (result))
@@ -964,7 +984,9 @@ do_initializeSignals (ACE_Sig_Set& signals_out)
 }
 
 void
-do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
+do_work (int argc_in,
+         ACE_TCHAR* argv_in[],
+         struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1278,6 +1300,11 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration_2.outputFormat = *media_type_p;
       delete media_type_p; media_type_p = NULL;
+
+      // *NOTE*: need to set this for RGB-capture formats ONLY !
+      directshow_modulehandler_configuration_2.flipImage =
+        Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
+
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
@@ -1526,6 +1553,41 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       break;
     }
 #endif // GLUT_SUPPORT
+#if defined (GTK_SUPPORT)
+    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
+    {
+      Common_UI_GTK_Tools::initialize (argc_in, argv_in);
+
+      switch (mediaFramework_in)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
+                                                             directshow_modulehandler_configuration_2.outputFormat);
+          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+                                                                                 std::make_pair (&module_configuration,
+                                                                                                 &directshow_modulehandler_configuration_2)));
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+                                                                                      std::make_pair (&module_configuration,
+                                                                                                      &mediafoundation_modulehandler_configuration_2)));
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      mediaFramework_in));
+          return;
+        }
+      } // end SWITCH
+
+      break;
+    }
+#endif // GTK_SUPPORT
     default:
       break;
   } // end SWITCH
@@ -1990,7 +2052,8 @@ ACE_TMAIN (int argc_in,
   ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work
-  do_work (device_identifier,
+  do_work (argc_in, argv_in,
+           device_identifier,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
