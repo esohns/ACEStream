@@ -435,8 +435,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #if GTK_CHECK_VERSION (3,10,0)
   cairo_surface_mark_dirty (surface_);
 #else
-  // *TODO*: do this somewhere else (original flip happens in DirectShow
-  //         somewhere; fix it there)
+  // *TODO*: do this somewhere else (original flip happens during capture)
+  //         --> fix it there)
 //  GdkPixbuf* pixbuf_p = gdk_pixbuf_flip (surface_, FALSE);
 //  ACE_ASSERT (pixbuf_p);
 //  g_object_unref (surface_);
@@ -532,7 +532,7 @@ error:
 #else
       GDK_THREADS_ENTER ();
 #endif // GTK_CHECK_VERSION (3,6,0)
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
       if (context_)
       {
         cairo_destroy (context_); context_ = NULL;
