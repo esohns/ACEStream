@@ -92,7 +92,7 @@ class Stream_Module_Vis_GTK_Pixbuf_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Pixbuf_T (const Stream_Module_Vis_GTK_Pixbuf_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Pixbuf_T& operator= (const Stream_Module_Vis_GTK_Pixbuf_T&))
 
-#if GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION (3,0,0)
   cairo_t*                  context_;
 #endif // GTK_CHECK_VERSION (3,0,0)
   Common_Image_Resolution_t sourceResolution_;

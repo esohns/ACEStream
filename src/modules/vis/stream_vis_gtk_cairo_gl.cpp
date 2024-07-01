@@ -41,11 +41,11 @@ Stream_Visualization_GTK_Cairo_OpenGL::Stream_Visualization_GTK_Cairo_OpenGL ()
  , backgroundColor_ ()
  , foregroundColor_ ()
  , mode3D_ (NULL)
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
  , randomDistribution_ (0, 255)
 #else
  , randomDistribution_ (0, 65535)
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
  , randomEngine_ ()
  , randomGenerator_ ()
 {
@@ -84,7 +84,7 @@ Stream_Visualization_GTK_Cairo_OpenGL::dispatch (const enum Stream_Statistic_Ana
   {
     case STREAM_STATISTIC_ANALYSIS_EVENT_ACTIVITY:
     {
-//#if GTK_CHECK_VERSION(3,0,0)
+//#if GTK_CHECK_VERSION (3,0,0)
 //      foregroundColor_.red   = randomGenerator_ () / 255.0;
 //      foregroundColor_.green = randomGenerator_ () / 255.0;
 //      foregroundColor_.blue  = randomGenerator_ () / 255.0;
@@ -94,27 +94,27 @@ Stream_Visualization_GTK_Cairo_OpenGL::dispatch (const enum Stream_Statistic_Ana
 //      foregroundColor_.green = randomGenerator_ ();
 //      foregroundColor_.blue  = randomGenerator_ ();
 //      //foregroundColor_.alpha = ;
-//#endif // GTK_CHECK_VERSION(3,0,0)
+//#endif // GTK_CHECK_VERSION (3,0,0)
 //      opengl_instruction.color = foregroundColor_;
 //      opengl_instruction.type =
 //        STREAM_VISUALIZATION_INSTRUCTION_SET_COLOR_FG;
       visualization_instruction_s.type =
-        STREAM_VISUALIZATION_INSTRUCTION_CHANGE_ROTATION;
+        STREAM_VISUALIZATION_INSTRUCTION_ROTATE;
       break;
     }
     case STREAM_STATISTIC_ANALYSIS_EVENT_PEAK:
     {
-#if GTK_CHECK_VERSION(3,0,0)
-      backgroundColor_.red   = (double)randomGenerator_ () / 255.0;
-      backgroundColor_.green = (double)randomGenerator_ () / 255.0;
-      backgroundColor_.blue  = (double)randomGenerator_ () / 255.0;
+#if GTK_CHECK_VERSION (3,0,0)
+      backgroundColor_.red   = randomGenerator_ () / 255.0;
+      backgroundColor_.green = randomGenerator_ () / 255.0;
+      backgroundColor_.blue  = randomGenerator_ () / 255.0;
       //backgroundColor_.alpha = ;
 #else
       backgroundColor_.red   = randomGenerator_ ();
       backgroundColor_.green = randomGenerator_ ();
       backgroundColor_.blue  = randomGenerator_ ();
       //backgroundColor_.alpha = ;
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
       visualization_instruction_s.color = backgroundColor_;
       visualization_instruction_s.type =
         STREAM_VISUALIZATION_INSTRUCTION_SET_COLOR_BG;

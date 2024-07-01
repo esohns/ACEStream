@@ -54,6 +54,9 @@ extern "C"
 
 #if defined (GUI_SUPPORT)
 #if defined (GTKGL_SUPPORT)
+#if defined (GLEW_SUPPORT)
+#include "GL/glew.h"
+#endif // GLEW_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "gl/GL.h"
 #else
@@ -95,6 +98,8 @@ extern "C"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "common_error_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
+
+#include "common_gl_shader.h"
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
@@ -365,6 +370,10 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
 #if defined (GTKGL_SUPPORT)
    , OpenGLTextureId (0)
+   , VAO (0)
+   , VBO (0)
+   , EBO (0)
+   , shader ()
    , spectrumAnalyzer3DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_3DMODE)
 #endif // GTKGL_SUPPORT
 #if defined (GTK_SUPPORT)
@@ -388,6 +397,10 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   unsigned int                                              spectrumAnalyzerResolution;
 #if defined (GTKGL_SUPPORT)
   GLuint                                                    OpenGLTextureId;
+  GLuint                                                    VAO;
+  GLuint                                                    VBO;
+  GLuint                                                    EBO;
+  Common_GL_Shader                                          shader;
   enum Stream_Visualization_SpectrumAnalyzer_3DMode         spectrumAnalyzer3DMode;
 #endif /* GTKGL_SUPPORT */
 #if defined (GTK_SUPPORT)
@@ -790,6 +803,7 @@ struct Test_U_AudioEffect_UI_CBDataBase
 #endif // GTKGL_SUPPORT
    , isFirst (true)
 #if defined (GTKGL_SUPPORT)
+   , objectRotation (0.0f)
    , objectRotationStep (1.0f)
 #endif // GTKGL_SUPPORT
    , progressData ()
@@ -806,6 +820,7 @@ struct Test_U_AudioEffect_UI_CBDataBase
 #endif // GTKGL_SUPPORT
   bool                                            isFirst; // first activation ?
 #if defined (GTKGL_SUPPORT)
+  GLfloat                                         objectRotation;
   GLfloat                                         objectRotationStep;
 #endif // GTKGL_SUPPORT
   struct Test_U_AudioEffect_ProgressData          progressData;

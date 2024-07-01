@@ -37,7 +37,7 @@
 // forward declarations
 class ACE_Allocator;
 
-template <typename DataType = Stream_DataBase_T<Stream_CommandType_t>,
+template <typename DataType = Stream_DataBase_T<Stream_CommandType_t>, // *TODO*: move this into a Stream_DataMessageBase_T
           typename MessageType = enum Stream_MessageType,
           typename CommandType = Stream_CommandType_t>
 class Stream_MessageBase_T
@@ -139,7 +139,7 @@ class Stream_MessageBase_T
 
 //#include "common_iget.h"
 
-template <typename DataType, // = Stream_CommandType_t
+template <typename DataType, // = Stream_CommandType_t // *TODO*: move this into a Stream_DataMessageBase_2
           typename MessageType, // = enum Stream_MessageType
           ////////////////////////////////
           typename HeaderType,
@@ -171,7 +171,7 @@ class Stream_MessageBase_2
   Stream_MessageBase_2 (Stream_SessionId_t, // session id
                         MessageType);       // message type
   explicit Stream_MessageBase_2 (Stream_SessionId_t, // session id
-                                 unsigned int);      // size
+                                 size_t);            // size
 
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")

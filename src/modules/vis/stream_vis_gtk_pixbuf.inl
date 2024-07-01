@@ -209,8 +209,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   //                       refresh, which takes care of that
 #if GTK_CHECK_VERSION (3,0,0)
   ACE_ASSERT (context_);
-  gdk_cairo_set_source_pixbuf (context_, pixbuf_p,
-                               0, 0);
+  gdk_cairo_set_source_pixbuf (context_, pixbuf_p, 0.0, 0.0);
   cairo_paint (context_);
 #else
   gdk_draw_pixbuf (GDK_DRAWABLE (inherited::configuration_->window),

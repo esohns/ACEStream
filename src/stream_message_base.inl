@@ -513,7 +513,7 @@ Stream_MessageBase_2<DataType,
                      MessageType,
                      HeaderType,
                      CommandType>::Stream_MessageBase_2 (Stream_SessionId_t sessionId_in,
-                                                         unsigned int requestedSize_in)
+                                                         size_t requestedSize_in)
  : inherited (sessionId_in,
               requestedSize_in)
 {

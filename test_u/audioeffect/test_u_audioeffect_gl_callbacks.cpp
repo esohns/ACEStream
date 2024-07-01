@@ -21,6 +21,9 @@
 
 #include "test_u_audioeffect_gl_callbacks.h"
 
+#if defined (GLEW_SUPPORT)
+#include "GL/glew.h"
+#endif // GLEW_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "gl/GL.h"
 #include "gl/GLU.h"
@@ -61,7 +64,12 @@ processInstructions (struct Test_U_AudioEffect_UI_CBDataBase* CBDataBase_in)
       {
         case STREAM_VISUALIZATION_INSTRUCTION_CHANGE_ROTATION:
         {
-          CBDataBase_in->objectRotationStep *= -1;
+          CBDataBase_in->objectRotationStep *= -1.0f;
+          break;
+        }
+        case STREAM_VISUALIZATION_INSTRUCTION_ROTATE:
+        {
+          CBDataBase_in->objectRotation += 0.01f;
           break;
         }
         case STREAM_VISUALIZATION_INSTRUCTION_SET_COLOR_BG:
@@ -127,7 +135,13 @@ glarea_realize_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   GLuint* texture_id_p = NULL;
+  GLuint* VAO_p = NULL;
+  GLuint* VBO_p = NULL;
+  GLuint* EBO_p = NULL;
+  Common_GL_Shader* shader_p = NULL;
   GtkAllocation allocation;
+  std::string path_root, vertex_shader_file_path, fragment_shader_file_path;
+
   //// set up light colors (ambient, diffuse, specular)
   //GLfloat light_ambient[] = {1.0F, 1.0F, 1.0F, 1.0F};
   //GLfloat light_diffuse[] = {0.3F, 0.3F, 0.3F, 1.0F};
@@ -161,6 +175,14 @@ glarea_realize_cb (GtkWidget* widget_in,
 
       texture_id_p =
         &(*directshow_modulehandler_configuration_iterator).second.second->OpenGLTextureId;
+      VAO_p =
+        &(*directshow_modulehandler_configuration_iterator).second.second->VAO;
+      VBO_p =
+        &(*directshow_modulehandler_configuration_iterator).second.second->VBO;
+      EBO_p =
+        &(*directshow_modulehandler_configuration_iterator).second.second->EBO;
+      shader_p =
+        &(*directshow_modulehandler_configuration_iterator).second.second->shader;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -228,7 +250,7 @@ glarea_realize_cb (GtkWidget* widget_in,
 #endif // GTKGLAREA_SUPPORT
 #endif // GTK_CHECK_VERSION (3,0,0)
 #endif // ACE_WIN32 || ACE_WIN64
-  ACE_ASSERT (texture_id_p);
+  ACE_ASSERT (texture_id_p && VAO_p && VBO_p && EBO_p && shader_p);
 
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
@@ -253,6 +275,7 @@ glarea_realize_cb (GtkWidget* widget_in,
 #else
 #if defined (GTKGLAREA_SUPPORT)
   if (!ggla_area_make_current (GGLA_AREA (widget_in)))
+    return;
 #endif // GTKGLAREA_SUPPORT
 #endif // GTK_CHECK_VERSION (3,16,0)
 #else
@@ -272,7 +295,6 @@ glarea_realize_cb (GtkWidget* widget_in,
                                               context_p);
   if (!result)
 #endif // GTKGLAREA_SUPPORT
-    return;
 #endif // GTK_CHECK_VERSION (3,0,0)
 
 #if GTK_CHECK_VERSION (3,0,0)
@@ -286,35 +308,45 @@ glarea_realize_cb (GtkWidget* widget_in,
 #endif // GTKGLAREA_SUPPORT
 #endif // GTK_CHECK_VERSION (3,0,0)
 
-  // load texture
-  if (*texture_id_p > 0)
+#if defined (GLEW_SUPPORT)
+  GLenum err = glewInit ();
+  if (GLEW_OK != err)
   {
-    glDeleteTextures (1, texture_id_p);
-    COMMON_GL_ASSERT;
-    *texture_id_p = 0;
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to glewInit(): \"%s\", returning\n"),
+                ACE_TEXT (glewGetErrorString (err))));
+    return;
   } // end IF
-  // static GLubyte* image_p = NULL;
-  // if (!image_p)
-  // {
-  //   std::string filename =
-  //     Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-  //                                                       ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
-  //                                                       false); // data
-  //   filename += ACE_DIRECTORY_SEPARATOR_CHAR;
-  //   filename +=
-  //     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_OPENGL_DEFAULT_TEXTURE_FILE);
-  //   *texture_id_p = Common_GL_Tools::loadTexture (filename);
-  //   if (!*texture_id_p)
-  //   {
-  //     ACE_DEBUG ((LM_ERROR,
-  //                 ACE_TEXT ("failed to Common_GL_Tools::loadTexture(\"%s\"), returning\n"),
-  //                 ACE_TEXT (filename.c_str ())));
-  //     goto error;
-  //   } // end IF
-  //   ACE_DEBUG ((LM_DEBUG,
-  //               ACE_TEXT ("OpenGL texture id: %u\n"),
-  //               *texture_id_p));
-  // } // end IF
+#endif // GLEW_SUPPORT
+
+  // load texture
+  //if (*texture_id_p > 0)
+  //{
+  //  glDeleteTextures (1, texture_id_p);
+  //  COMMON_GL_ASSERT;
+  //  *texture_id_p = 0;
+  //} // end IF
+  if (!*texture_id_p)
+  {
+    std::string filename =
+      Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                        false); // data
+    filename += ACE_DIRECTORY_SEPARATOR_CHAR;
+    filename +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_OPENGL_DEFAULT_TEXTURE_FILE);
+    *texture_id_p = Common_GL_Tools::loadTexture (filename);
+    if (!*texture_id_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Common_GL_Tools::loadTexture(\"%s\"), returning\n"),
+                  ACE_TEXT (filename.c_str ())));
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("OpenGL texture id: %u\n"),
+                *texture_id_p));
+  } // end IF
 
   // initialize perspective
   gtk_widget_get_allocation (widget_in,
@@ -384,16 +416,128 @@ glarea_realize_cb (GtkWidget* widget_in,
   //glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
   //COMMON_GL_ASSERT;
 
-  // glEnable (GL_BLEND);                                // Enable Semi-Transparency
-  // COMMON_GL_ASSERT;
-  // glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  // COMMON_GL_ASSERT;
-  //glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
-  //COMMON_GL_ASSERT;
+  glEnable (GL_BLEND);                                // Enable Semi-Transparency
+  COMMON_GL_ASSERT;
+  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  COMMON_GL_ASSERT;
+  glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
+  COMMON_GL_ASSERT;
   //glDepthFunc (GL_LESS);                              // The Type Of Depth Testing To Do
   //COMMON_GL_ASSERT;
   //glDepthMask (GL_TRUE);
   //COMMON_GL_ASSERT;
+
+  path_root = Common_File_Tools::getWorkingDirectory ();
+  vertex_shader_file_path = path_root;
+  vertex_shader_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  vertex_shader_file_path += COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY;
+  vertex_shader_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  vertex_shader_file_path +=
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_OPENGL_DEFAULT_VS_FILE);
+  fragment_shader_file_path = path_root;
+  fragment_shader_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  fragment_shader_file_path += COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY;
+  fragment_shader_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  fragment_shader_file_path +=
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_OPENGL_DEFAULT_FS_FILE);
+  if (!shader_p->loadFromFile (vertex_shader_file_path,
+                               fragment_shader_file_path))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_GL_Shader::loadFromFile(\"%s\",\"%s\"), returning\n"),
+                ACE_TEXT (vertex_shader_file_path.c_str ()),
+                ACE_TEXT (fragment_shader_file_path.c_str ())));
+    return;
+  } // end IF
+  shader_p->use ();
+
+  glGenVertexArrays (1, VAO_p);
+  COMMON_GL_ASSERT;
+  ACE_ASSERT (*VAO_p);
+  glGenBuffers (1, VBO_p);
+  COMMON_GL_ASSERT;
+  ACE_ASSERT (*VBO_p);
+  glGenBuffers (1, EBO_p);
+  COMMON_GL_ASSERT;
+  ACE_ASSERT (*EBO_p);
+
+  glBindVertexArray (*VAO_p);
+  COMMON_GL_ASSERT;
+
+  glBindBuffer (GL_ARRAY_BUFFER, *VBO_p);
+  COMMON_GL_ASSERT;
+  static GLfloat cube_strip_color_texcoords[] = {
+   // x       y      z         r    g     b     a         u    v
+    -0.5f, -0.5f,  0.5f,     1.0f, 0.0f, 0.0f, 0.5f,    0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,     0.0f, 1.0f, 0.0f, 0.5f,    0.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 0.5f,    1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,     1.0f, 1.0f, 1.0f, 0.5f,    1.0f, 1.0f,
+
+     0.5f, -0.5f,  0.5f,     1.0f, 0.0f, 0.0f, 0.5f,    0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,     0.0f, 1.0f, 0.0f, 0.5f,    0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 0.5f,    1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 1.0f, 0.5f,    1.0f, 1.0f,
+
+     0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 0.5f,    0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,     0.0f, 1.0f, 0.0f, 0.5f,    0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,     0.0f, 0.0f, 1.0f, 0.5f,    1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 1.0f, 0.5f,    1.0f, 1.0f,
+
+    -0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 0.5f,    0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,     0.0f, 1.0f, 0.0f, 0.5f,    0.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,     0.0f, 0.0f, 1.0f, 0.5f,    1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,     1.0f, 1.0f, 1.0f, 0.5f,    1.0f, 1.0f,
+
+    -0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 0.5f,    0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,     0.0f, 1.0f, 0.0f, 0.5f,    0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 0.5f,    1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,     1.0f, 1.0f, 1.0f, 0.5f,    1.0f, 1.0f,
+
+    -0.5f,  0.5f,  0.5f,     1.0f, 0.0f, 0.0f, 0.5f,    0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,     0.0f, 1.0f, 0.0f, 0.5f,    0.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,     0.0f, 0.0f, 1.0f, 0.5f,    1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 1.0f, 0.5f,    1.0f, 1.0f
+  };
+  glBufferData (GL_ARRAY_BUFFER, sizeof (cube_strip_color_texcoords), cube_strip_color_texcoords, GL_STATIC_DRAW);
+  COMMON_GL_ASSERT;
+
+  // position attribute
+  glEnableVertexAttribArray (0);
+  COMMON_GL_ASSERT;
+  glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof (GLfloat), (void*)0);
+  COMMON_GL_ASSERT;
+
+  // color attribute
+  glEnableVertexAttribArray (1);
+  COMMON_GL_ASSERT;
+  glVertexAttribPointer (1, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (void*)(3 * sizeof (GLfloat)));
+  COMMON_GL_ASSERT;
+
+  // texture coord attribute
+  glEnableVertexAttribArray (2);
+  COMMON_GL_ASSERT;
+  glVertexAttribPointer (2, 2, GL_FLOAT, GL_FALSE, 9 * sizeof (GLfloat), (void*)(7 * sizeof (GLfloat)));
+  COMMON_GL_ASSERT;
+
+  glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, *EBO_p);
+  COMMON_GL_ASSERT;
+  static GLubyte cube_indices[34] = {
+    0,  1,  2,  3,  3,      // Face 0 - triangle strip ( v0,  v1,  v2,  v3)
+    4,  4,  5,  6,  7,  7,  // Face 1 - triangle strip ( v4,  v5,  v6,  v7)
+    8,  8,  9,  10, 11, 11, // Face 2 - triangle strip ( v8,  v9, v10, v11)
+    12, 12, 13, 14, 15, 15, // Face 3 - triangle strip (v12, v13, v14, v15)
+    16, 16, 17, 18, 19, 19, // Face 4 - triangle strip (v16, v17, v18, v19)
+    20, 20, 21, 22, 23      // Face 5 - triangle strip (v20, v21, v22, v23)
+  };
+  glBufferData (GL_ELEMENT_ARRAY_BUFFER, sizeof (cube_indices), cube_indices, GL_STATIC_DRAW);
+  COMMON_GL_ASSERT;
+
+  glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
+  COMMON_GL_ASSERT;
+  glBindBuffer (GL_ARRAY_BUFFER, 0);
+  COMMON_GL_ASSERT;
+  glBindVertexArray (0);
+  COMMON_GL_ASSERT;
 
 #if GTK_CHECK_VERSION (3,0,0)
 #else
@@ -912,6 +1056,9 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   ACE_ASSERT (ui_cb_data_base_p);
 
   GLuint* texture_id_p = NULL;
+  GLuint* VAO_p = NULL;
+  GLuint* EBO_p = NULL;
+  Common_GL_Shader* shader_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -935,6 +1082,12 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 
       texture_id_p =
         &(*directshow_modulehandler_configuration_iterator).second.second->OpenGLTextureId;
+      VAO_p =
+        &(*directshow_modulehandler_configuration_iterator).second.second->VAO;
+      EBO_p =
+        &(*directshow_modulehandler_configuration_iterator).second.second->EBO;
+      shader_p =
+        &(*directshow_modulehandler_configuration_iterator).second.second->shader;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -976,17 +1129,26 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   texture_id_p =
     &(*modulehandler_configuration_iterator).second.second->OpenGLTextureId;
 #endif // ACE_WIN32 || ACE_WIN64
-  ACE_ASSERT (texture_id_p);
+  ACE_ASSERT (texture_id_p && VAO_p && EBO_p && shader_p);
 
   if (!ggla_area_make_current (GGLA_AREA (widget_in)))
     return FALSE;
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   ACE_ASSERT (glGetError () == GL_NO_ERROR);
-  glLoadIdentity (); // Reset the transformation matrix.
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
-  glTranslatef (0.0F, 0.0F, -5.0F); // Move back into the screen 5 units
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+
+  //glLoadIdentity (); // Reset the transformation matrix.
+  //ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  //glTranslatef (0.0f, 0.0f, -3.0f); // Move back into the screen 3 units
+  //ACE_ASSERT (glGetError () == GL_NO_ERROR);
+
+  //// set the camera
+  //gluLookAt (0.0, 0.0, 700.0,
+  //           0.0, 0.0, 0.0,
+  //           0.0, 1.0, 0.0);
+
+  glBindVertexArray (*VAO_p);
+  COMMON_GL_ASSERT;
 
   glBindTexture (GL_TEXTURE_2D, *texture_id_p);
   ACE_ASSERT (glGetError () == GL_NO_ERROR);
@@ -997,47 +1159,92 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 //  glRotatef (rot_x, 1.0f, 0.0f, 0.0f); // Rotate On The X Axis
 //  glRotatef (rot_y, 0.0f, 1.0f, 0.0f); // Rotate On The Y Axis
 //  glRotatef (rot_z, 0.0f, 0.0f, 1.0f); // Rotate On The Z Axis
-  static GLfloat rotation_f = 0.0F;
-  glRotatef (rotation_f,
-             1.0F, 1.0F, 1.0F); // Rotate On The X,Y,Z Axis
+  //glRotatef (ui_cb_data_base_p->objectRotation,
+  //           1.0f, 1.0f, 1.0f); // Rotate On The X,Y,Z Axis
+  //ACE_ASSERT (glGetError () == GL_NO_ERROR);
+
+  GtkAllocation allocation;
+  gtk_widget_get_allocation (widget_in,
+                             &allocation);
+#if defined (GLM_SUPPORT)
+  glm::mat4 model_matrix = glm::mat4 (1.0f); // make sure to initialize matrix to identity matrix first
+  model_matrix = glm::translate (model_matrix,
+                                 glm::vec3 (0.0f, 0.0f, -3.0f));
+  model_matrix = glm::rotate (model_matrix,
+                              glm::radians (ui_cb_data_base_p->objectRotation),
+                              glm::vec3 (1.0f, 1.0f, 1.0f));
+  glm::mat4 view_matrix = glm::lookAt (glm::vec3 (0.0f, 0.0f, 0.0f),
+                                       glm::vec3 (0.0f, 0.0f, -1.0f),
+                                       glm::vec3 (0.0f, 1.0f, 0.0f));
+  glm::mat4 projection_matrix =
+    glm::perspective (glm::radians (45.0f),
+                      allocation.width / static_cast<float> (allocation.height),
+                      0.1f, 100.0f);
+#endif // GLM_SUPPORT
+
+  //glBegin (GL_QUADS);
+  //glTexCoord2i (0, 0); glVertex3f (  0.0f,   0.0f, 0.0f);
+  //glTexCoord2i (0, 1); glVertex3f (  0.0f, 100.0f, 0.0f);
+  //glTexCoord2i (1, 1); glVertex3f (100.0f, 100.0f, 0.0f);
+  //glTexCoord2i (1, 0); glVertex3f (100.0f,   0.0f, 0.0f);
+  //glEnd ();
+
+  //static GLfloat vertices[] = {
+  //  -0.5f, 0.0f, 0.5f,   0.5f, 0.0f, 0.5f,   0.5f, 1.0f, 0.5f,  -0.5f, 1.0f, 0.5f,
+  //  -0.5f, 1.0f, -0.5f,  0.5f, 1.0f, -0.5f,  0.5f, 0.0f, -0.5f, -0.5f, 0.0f, -0.5f,
+  //  0.5f, 0.0f, 0.5f,   0.5f, 0.0f, -0.5f,  0.5f, 1.0f, -0.5f,  0.5f, 1.0f, 0.5f,
+  //  -0.5f, 0.0f, -0.5f,  -0.5f, 0.0f, 0.5f,  -0.5f, 1.0f, 0.5f, -0.5f, 1.0f, -0.5f};
+  //static GLfloat texture_coordinates[] = {
+  //  0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0,
+  //  0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0,
+  //  0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0,
+  //  0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0 };
+  //static GLubyte cube_indices[24] = {
+  //  0,1,2,3, 4,5,6,7, 3,2,5,4, 7,6,1,0,
+  //  8,9,10,11, 12,13,14,15 };
+
+  //glTexCoordPointer (2, GL_FLOAT, 0, texture_coordinates);
+  //ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  //glVertexPointer (3, GL_FLOAT, 0, vertices);
+  //ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  //glDrawElements (GL_QUADS, 24, GL_UNSIGNED_BYTE, cube_indices);
+  //ACE_ASSERT (glGetError () == GL_NO_ERROR);
+
+  shader_p->use ();
+#if defined (GLM_SUPPORT)
+  shader_p->setMat4 (ACE_TEXT_ALWAYS_CHAR ("model"), model_matrix);
+  shader_p->setMat4 (ACE_TEXT_ALWAYS_CHAR ("view"), view_matrix);
+  shader_p->setMat4 (ACE_TEXT_ALWAYS_CHAR ("projection"), projection_matrix);
+#endif // GLM_SUPPORT
+  shader_p->setInt (ACE_TEXT_ALWAYS_CHAR ("texture1"), 0); // *IMPORTANT NOTE*: <-- texture unit (!) not -id
+
+  glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, *EBO_p);
+  COMMON_GL_ASSERT;
+
+  glDisable (GL_DEPTH_TEST);
+  COMMON_GL_ASSERT;
+  glDrawElements (GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_BYTE, (void*)0); // see: cube_indices
+  COMMON_GL_ASSERT;
+  glEnable (GL_DEPTH_TEST);
+  COMMON_GL_ASSERT;
+
+  glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
+  COMMON_GL_ASSERT;
+
+  glBindTexture (GL_TEXTURE_2D, 0);
   ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
-//  glBegin (GL_QUADS);
+  glBindVertexArray (0);
+  COMMON_GL_ASSERT;
 
-//  glTexCoord2i (0, 0); glVertex3f (  0.0f,   0.0f, 0.0f);
-//  glTexCoord2i (0, 1); glVertex3f (  0.0f, 100.0f, 0.0f);
-//  glTexCoord2i (1, 1); glVertex3f (100.0f, 100.0f, 0.0f);
-//  glTexCoord2i (1, 0); glVertex3f (100.0f,   0.0f, 0.0f);
-
-  static GLfloat vertices[] = {
-    -0.5f, 0.0f, 0.5f,   0.5f, 0.0f, 0.5f,   0.5f, 1.0f, 0.5f,  -0.5f, 1.0f, 0.5f,
-    -0.5f, 1.0f, -0.5f,  0.5f, 1.0f, -0.5f,  0.5f, 0.0f, -0.5f, -0.5f, 0.0f, -0.5f,
-    0.5f, 0.0f, 0.5f,   0.5f, 0.0f, -0.5f,  0.5f, 1.0f, -0.5f,  0.5f, 1.0f, 0.5f,
-    -0.5f, 0.0f, -0.5f,  -0.5f, 0.0f, 0.5f,  -0.5f, 1.0f, 0.5f, -0.5f, 1.0f, -0.5f};
-  static GLfloat texture_coordinates[] = {
-    0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0,
-    0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0,
-    0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0,
-    0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0 };
-  static GLubyte cube_indices[24] = {
-    0,1,2,3, 4,5,6,7, 3,2,5,4, 7,6,1,0,
-    8,9,10,11, 12,13,14,15};
-
-  glTexCoordPointer (2, GL_FLOAT, 0, texture_coordinates);
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
-  glVertexPointer (3, GL_FLOAT, 0, vertices);
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
-  glDrawElements (GL_QUADS, 24, GL_UNSIGNED_BYTE, cube_indices);
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
-
-//  rot_x += 0.3f;
-//  rot_y += 0.20f;
-//  rot_z += 0.4f;
-  rotation_f += ui_cb_data_base_p->objectRotationStep; // Decrease The Rotation Variable For The Cube
+  //ui_cb_data_base_p->objectRotation += ui_cb_data_base_p->objectRotationStep;
 
   processInstructions (ui_cb_data_base_p);
 
   ggla_area_swap_buffers (GGLA_AREA (widget_in));
+
+  glUseProgram (0);
+  COMMON_GL_ASSERT;
 
   return TRUE;
 }
