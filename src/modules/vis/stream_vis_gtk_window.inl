@@ -128,22 +128,24 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (window_);
-  ACE_ASSERT (pixbuf_);
+  if (unlikely (!pixbuf_))
+    return;
 #if GTK_CHECK_VERSION (3,0,0)
-  ACE_ASSERT (context_);
+  if (unlikely (!context_))
+    return;
 #endif // GTK_CHECK_VERSION (3,0,0)
 
-  // *NOTE*: 'crunching' the message data simplifies the data transformation
-  //         algorithms, at the cost of (several) memory copies. This is a
-  //         tradeoff that may warrant further optimization efforts
-  try {
-    message_inout->defragment ();
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_IDataMessage_T::defragment(), returning\n"),
-                inherited::mod_->name ()));
-    return;
-  }
+  //// *NOTE*: 'crunching' the message data simplifies the data transformation
+  ////         algorithms, at the cost of (several) memory copies. This is a
+  ////         tradeoff that may warrant further optimization efforts
+  //try {
+  //  message_inout->defragment ();
+  //} catch (...) {
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to Stream_IDataMessage_T::defragment(), returning\n"),
+  //              inherited::mod_->name ()));
+  //  return;
+  //}
 
 #if GTK_CHECK_VERSION (3,6,0)
 #else
@@ -236,55 +238,6 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       ACE_ASSERT (window_);
-
-      gtk_widget_show_all (GTK_WIDGET (window_));
-
-      ACE_ASSERT (!pixbuf_);
-      gint width_i, height_i;
-      GtkAllocation allocation_s;
-      gtk_widget_get_allocation (GTK_WIDGET (window_),
-                                 &allocation_s);
-      width_i = allocation_s.width;
-      height_i = allocation_s.height;
-
-      pixbuf_ =
-#if GTK_CHECK_VERSION (3,0,0)
-        gdk_pixbuf_get_from_window (gtk_widget_get_window (GTK_WIDGET (window_)),
-                                    0, 0,
-                                    width_i, height_i);
-#else
-        gdk_pixbuf_get_from_drawable (NULL,
-                                      GDK_DRAWABLE (gtk_widget_get_window (GTK_WIDGET (window_))),
-                                      NULL,
-                                      0, 0,
-                                      0, 0, width_i, height_i);
-#endif // GTK_CHECK_VERSION (3,0,0)
-      if (unlikely (!pixbuf_))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(), aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
-      ACE_ASSERT (gdk_pixbuf_get_colorspace (pixbuf_) == GDK_COLORSPACE_RGB);
-      ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (pixbuf_) == 8);
-      ACE_ASSERT (gdk_pixbuf_get_n_channels (pixbuf_) == 3);
-
-#if GTK_CHECK_VERSION (3,0,0)
-      ACE_ASSERT (!context_);
-      context_ = gdk_cairo_create (gtk_widget_get_window (GTK_WIDGET (window_)));
-      if (unlikely (!context_))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to gdk_cairo_create(), aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
-      gdk_cairo_set_source_pixbuf (context_, pixbuf_, 0.0, 0.0);
-#endif // GTK_CHECK_VERSION (3,0,0)
-
-      // *TODO*: subscribe to signals (realize, configure, expose, ...)
-
 #if GTK_CHECK_VERSION (3,6,0)
 #else
       GDK_THREADS_LEAVE ();
@@ -331,7 +284,10 @@ error:
 //                  g_main_loop_is_running (mainLoop_)))
 //        g_main_loop_quit (mainLoop_);
       if (inherited::thr_count_ > 0)
+      {
         gtk_main_quit ();
+        inherited::wait (false); // do not wait for the message queue to idle
+      } // end IF
 
 //      if (likely (mainLoop_))
 //      {
@@ -340,8 +296,8 @@ error:
 
 #if GTK_CHECK_VERSION (3,0,0)
       if (context_)
-      {
-        cairo_destroy (context_); context_ = NULL;
+      { // *TODO*: crash here
+        //cairo_destroy (context_); context_ = NULL;
       } // end IF
 #endif // GTK_CHECK_VERSION (3,0,0)
       if (pixbuf_)
@@ -500,6 +456,24 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   gtk_window_resize (window_,
                      width_i, height_i);
 
+  // *TODO*: subscribe to more signals (realize, configure, expose, ...)
+  g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("destroy"),      G_CALLBACK (acestream_gtk_window_destroy_cb), NULL);
+  ACE_ASSERT (inherited::mod_);
+  IGET_T* iget_p = dynamic_cast<IGET_T*> (inherited::mod_);
+  if (unlikely (!iget_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Common_IGetR_T<ACE_Stream>>(0x%@) failed --> check implementation !, aborting\n"),
+                inherited::mod_->name (),
+                inherited::mod_));
+    return false;
+  } // end IF
+  STREAM_T& stream_r = const_cast<STREAM_T&> (iget_p->getR ());
+  Stream_IStreamControlBase* istream_control_base_p =
+    dynamic_cast<Stream_IStreamControlBase*> (&stream_r);
+  ACE_ASSERT (istream_control_base_p);
+  g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("delete-event"), G_CALLBACK (acestream_gtk_window_delete_event_cb), (gpointer)istream_control_base_p);
+
   return true;
 }
 
@@ -523,11 +497,58 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
   // sanity check(s)
 //  ACE_ASSERT (mainLoop_);
+  ACE_ASSERT (window_);
 
 #if GTK_CHECK_VERSION (3,6,0)
 #else
   GDK_THREADS_ENTER ();
 #endif // GTK_CHECK_VERSION (3,6,0)
+
+  // *WARNING*: on win32 systems, the window must be created on the thread that
+  //            processes the window messages (otherwise the window is
+  //            unresponsive)...
+  gtk_widget_show_all (GTK_WIDGET (window_));
+
+  ACE_ASSERT (!pixbuf_);
+  GtkAllocation allocation_s;
+  gtk_widget_get_allocation (GTK_WIDGET (window_),
+                             &allocation_s);
+  pixbuf_ =
+#if GTK_CHECK_VERSION (3,0,0)
+    gdk_pixbuf_get_from_window (gtk_widget_get_window (GTK_WIDGET (window_)),
+                                0, 0,
+                                allocation_s.width, allocation_s.height);
+#else
+    gdk_pixbuf_get_from_drawable (NULL,
+                                  GDK_DRAWABLE (gtk_widget_get_window (GTK_WIDGET (window_))),
+                                  NULL,
+                                  0, 0,
+                                  0, 0, allocation_s.width, allocation_s.height);
+#endif // GTK_CHECK_VERSION (3,0,0)
+  if (unlikely (!pixbuf_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(), aborting\n"),
+                inherited::mod_->name ()));
+    return -1;
+  } // end IF
+  ACE_ASSERT (gdk_pixbuf_get_colorspace (pixbuf_) == GDK_COLORSPACE_RGB);
+  ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (pixbuf_) == 8);
+  ACE_ASSERT (gdk_pixbuf_get_n_channels (pixbuf_) == 3);
+
+#if GTK_CHECK_VERSION (3,0,0)
+  ACE_ASSERT (!context_);
+  context_ = gdk_cairo_create (gtk_widget_get_window (GTK_WIDGET (window_)));
+  if (unlikely (!context_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to gdk_cairo_create(), aborting\n"),
+                inherited::mod_->name ()));
+    g_object_unref (pixbuf_); pixbuf_ = NULL;
+    return -1;
+  } // end IF
+  //gdk_cairo_set_source_pixbuf (context_, pixbuf_, 0.0, 0.0);
+#endif // GTK_CHECK_VERSION (3,0,0)
 
 //  g_main_loop_run (mainLoop_);
   gtk_main ();

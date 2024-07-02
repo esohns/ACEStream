@@ -30,6 +30,7 @@ extern "C"
 {
 #endif /* __cplusplus */
   G_MODULE_EXPORT void glarea_realize_cb (GtkWidget*, gpointer);
+  G_MODULE_EXPORT void glarea_unrealize_cb (GtkWidget*, gpointer);
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   G_MODULE_EXPORT GdkGLContext* glarea_create_context_cb (GtkGLArea*, gpointer);

@@ -25,3 +25,34 @@
 
 const char libacestream_default_vis_gtk_window_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING);
+
+void
+acestream_gtk_window_destroy_cb (GtkWidget* widget_in,
+                                 gpointer userData_in)
+{
+  ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (userData_in);
+
+  // *NOTE*: called in handleSessionMessage ()
+  //gtk_main_quit ();
+}
+
+gboolean
+acestream_gtk_window_delete_event_cb (GtkWidget* widget_in,
+                                      GdkEvent* event_in,
+                                      gpointer userData_in)
+{
+  // sanity check(s)
+  ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (event_in);
+  Stream_IStreamControlBase* istream_control_base_p =
+    static_cast<Stream_IStreamControlBase*> (userData_in);
+  ACE_ASSERT (istream_control_base_p);
+
+  // *TODO*: don't stop the stream; notify ABORT from this module instead
+  istream_control_base_p->stop (false,  // wait for completion ?
+                                true,   // recurse upstream ?
+                                false); // high priority ?
+
+  return TRUE; // do NOT propagate event
+}

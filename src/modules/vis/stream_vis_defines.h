@@ -82,7 +82,7 @@
 
 #define STREAM_VIS_DEFAULT_WINDOW_HEIGHT                                  240
 #define STREAM_VIS_DEFAULT_WINDOW_WIDTH                                   320
-#define STREAM_VIS_DEFAULT_WINDOW_TITLE                                   "ACEStream window"
+#define STREAM_VIS_DEFAULT_WINDOW_TITLE                                   "ACEStream Gtk window"
 
 // spectrum analyzer
 // *IMPORTANT NOTE*: must be a power of 2 (FFT-specific)

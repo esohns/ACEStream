@@ -1034,8 +1034,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::notify"));
 
   Stream_SessionId_t session_id = 0;
-
-  // sanity check(s)
   if (likely (sessionData_))
   {
     const typename SessionMessageType::DATA_T::DATA_T& session_data_r =

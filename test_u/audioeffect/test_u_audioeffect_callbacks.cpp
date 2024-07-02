@@ -5311,7 +5311,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //  (*opengl_contexts_iterator).first;
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   gtk_widget_set_events (GTK_WIDGET (gl_area_p),
                          GDK_EXPOSURE_MASK |
@@ -5331,7 +5331,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif // GTKGLAREA_SUPPORT
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   // *NOTE*: (try to) enable legacy mode on Win32
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -5376,7 +5376,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                       TRUE, // expand
                       TRUE, // fill
                       0);   // padding
-#if GTK_CHECK_VERSION(3,8,0)
+#if GTK_CHECK_VERSION (3,8,0)
 //  gtk_builder_expose_object ((*iterator).second.second,
 //                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME),
 //                             G_OBJECT ((*opengl_contexts_iterator).first));
@@ -5413,6 +5413,12 @@ idle_initialize_UI_cb (gpointer userData_in)
     g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
                       ACE_TEXT_ALWAYS_CHAR ("realize"),
                       G_CALLBACK (glarea_realize_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
+  result_2 =
+    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
+                      ACE_TEXT_ALWAYS_CHAR ("unrealize"),
+                      G_CALLBACK (glarea_unrealize_cb),
                       userData_in);
   ACE_ASSERT (result_2);
 #if GTK_CHECK_VERSION (3,0,0)
@@ -9174,6 +9180,10 @@ button_quit_clicked_cb (GtkButton* button_in,
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
+  ACE_ASSERT (ui_cb_data_base_p->UIState);
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
   Stream_IStreamControlBase* stream_p = NULL;
   enum Stream_StateMachine_ControlState status_e = STREAM_STATE_INVALID;
@@ -9281,10 +9291,19 @@ button_quit_clicked_cb (GtkButton* button_in,
     ui_cb_data_base_p->UIState->eventSourceIds.clear ();
   } // end lock scope
 
-  // step2: initiate shutdown sequence
+  // step2: destroy the dialog --> unrealize GTKGLArea --> free GL resources !
+  GtkDialog* dialog_p =
+    GTK_DIALOG (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DIALOG_MAIN_NAME)));
+  ACE_ASSERT (dialog_p);
+  gtk_widget_destroy (GTK_WIDGET (dialog_p));
+
+  // step3: initiate shutdown sequence (see idle_finalize_UI_cb() above)
+  //        *NOTE*: the final gtk_main_quit() is called there
   COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
                                                       true); // high priority ?
 
+  // step4: invoke signal handler
   int result = ACE_OS::raise (SIGINT);
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,

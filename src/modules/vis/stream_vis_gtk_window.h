@@ -38,6 +38,11 @@ extern const char libacestream_default_vis_gtk_window_module_name_string[];
 
 //////////////////////////////////////////
 
+void acestream_gtk_window_destroy_cb (GtkWidget*, gpointer);
+gboolean acestream_gtk_window_delete_event_cb (GtkWidget*, GdkEvent*, gpointer);
+
+//////////////////////////////////////////
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
