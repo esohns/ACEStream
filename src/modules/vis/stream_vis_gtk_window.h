@@ -26,6 +26,8 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_inotify.h"
+
 #include "common_ui_ifullscreen.h"
 
 #include "stream_task_base_synch.h"
@@ -65,6 +67,7 @@ class Stream_Module_Vis_GTK_Window_T
                                  struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_UI_IFullscreen
+ , public Common_INotify
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -112,6 +115,9 @@ class Stream_Module_Vis_GTK_Window_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Window_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Window_T (const Stream_Module_Vis_GTK_Window_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Window_T& operator= (const Stream_Module_Vis_GTK_Window_T&))
+
+  // implement Common_INotify
+  inline virtual void notify () { inherited::notify (STREAM_SESSION_MESSAGE_ABORT); }
 
   // helper methods
   inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); }

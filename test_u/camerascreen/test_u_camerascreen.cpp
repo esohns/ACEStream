@@ -2103,14 +2103,10 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   ACE_Profile_Timer::Rusage elapsed_rusage;
-  ACE_OS::memset (&elapsed_rusage, 0, sizeof (elapsed_rusage));
+  ACE_OS::memset (&elapsed_rusage, 0, sizeof (ACE_Profile_Timer::Rusage));
   process_profile.elapsed_rusage (elapsed_rusage);
   ACE_Time_Value user_time (elapsed_rusage.ru_utime);
   ACE_Time_Value system_time (elapsed_rusage.ru_stime);
-  std::string user_time_string;
-  std::string system_time_string;
-  user_time_string = Common_Timer_Tools::periodToString (user_time);
-  system_time_string = Common_Timer_Tools::periodToString (system_time);
 
   // debug info
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2119,16 +2115,16 @@ ACE_TMAIN (int argc_in,
               elapsed_time.real_time,
               elapsed_time.user_time,
               elapsed_time.system_time,
-              ACE_TEXT (user_time_string.c_str ()),
-              ACE_TEXT (system_time_string.c_str ())));
+              ACE_TEXT (Common_Timer_Tools::periodToString (user_time).c_str ()),
+              ACE_TEXT (Common_Timer_Tools::periodToString (system_time).c_str ())));
 #else
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\nmaximum resident set size = %d\nintegral shared memory size = %d\nintegral unshared data size = %d\nintegral unshared stack size = %d\npage reclaims = %d\npage faults = %d\nswaps = %d\nblock input operations = %d\nblock output operations = %d\nmessages sent = %d\nmessages received = %d\nsignals received = %d\nvoluntary context switches = %d\ninvoluntary context switches = %d\n"),
               elapsed_time.real_time,
               elapsed_time.user_time,
               elapsed_time.system_time,
-              ACE_TEXT (user_time_string.c_str ()),
-              ACE_TEXT (system_time_string.c_str ()),
+              ACE_TEXT (Common_Timer_Tools::periodToString (user_time).c_str ()),
+              ACE_TEXT (Common_Timer_Tools::periodToString (system_time).c_str ()),
               elapsed_rusage.ru_maxrss,
               elapsed_rusage.ru_ixrss,
               elapsed_rusage.ru_idrss,

@@ -202,6 +202,54 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+      GDK_THREADS_ENTER ();
+#endif // GTK_CHECK_VERSION (3,6,0)
+
+      if (likely (window_))
+      {
+#if GTK_CHECK_VERSION (3,10,0)
+        gtk_window_close (window_); window_ = NULL;
+#else
+        gtk_widget_destroy (GTK_WIDGET (window_)); window_ = NULL;
+#endif // GTK_CHECK_VERSION (3,10,0)
+      } // end IF
+
+//      if (likely (mainLoop_ &&
+//                  g_main_loop_is_running (mainLoop_)))
+//        g_main_loop_quit (mainLoop_);
+      if (inherited::thr_count_ > 0)
+      {
+        gtk_main_quit ();
+        inherited::wait (false); // do not wait for the message queue to idle
+      } // end IF
+
+//      if (likely (mainLoop_))
+//      {
+//        g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
+//      } // end IF
+
+#if GTK_CHECK_VERSION (3,0,0)
+      if (context_)
+      { // *TODO*: crash here
+        //cairo_destroy (context_); context_ = NULL;
+      } // end IF
+#endif // GTK_CHECK_VERSION (3,0,0)
+      if (pixbuf_)
+      {
+        g_object_unref (pixbuf_); pixbuf_ = NULL;
+      }
+
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+      GDK_THREADS_LEAVE ();
+#endif // GTK_CHECK_VERSION (3,6,0)
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -260,7 +308,7 @@ error:
       } // end IF
 #endif // GTK_CHECK_VERSION (3,6,0)
 
-      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+      TASK_BASE_T::notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
@@ -458,21 +506,22 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
   // *TODO*: subscribe to more signals (realize, configure, expose, ...)
   g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("destroy"),      G_CALLBACK (acestream_gtk_window_destroy_cb), NULL);
-  ACE_ASSERT (inherited::mod_);
-  IGET_T* iget_p = dynamic_cast<IGET_T*> (inherited::mod_);
-  if (unlikely (!iget_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Common_IGetR_T<ACE_Stream>>(0x%@) failed --> check implementation !, aborting\n"),
-                inherited::mod_->name (),
-                inherited::mod_));
-    return false;
-  } // end IF
-  STREAM_T& stream_r = const_cast<STREAM_T&> (iget_p->getR ());
-  Stream_IStreamControlBase* istream_control_base_p =
-    dynamic_cast<Stream_IStreamControlBase*> (&stream_r);
-  ACE_ASSERT (istream_control_base_p);
-  g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("delete-event"), G_CALLBACK (acestream_gtk_window_delete_event_cb), (gpointer)istream_control_base_p);
+  //ACE_ASSERT (inherited::mod_);
+  //IGET_T* iget_p = dynamic_cast<IGET_T*> (inherited::mod_);
+  //if (unlikely (!iget_p))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: dynamic_cast<Common_IGetR_T<ACE_Stream>>(0x%@) failed --> check implementation !, aborting\n"),
+  //              inherited::mod_->name (),
+  //              inherited::mod_));
+  //  return false;
+  //} // end IF
+  //STREAM_T& stream_r = const_cast<STREAM_T&> (iget_p->getR ());
+  //Stream_IStreamControlBase* istream_control_base_p =
+  //  dynamic_cast<Stream_IStreamControlBase*> (&stream_r);
+  //ACE_ASSERT (istream_control_base_p);
+  Common_INotify* inotify_p = this;
+  g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("delete-event"), G_CALLBACK (acestream_gtk_window_delete_event_cb), (gpointer)inotify_p);
 
   return true;
 }
@@ -504,9 +553,9 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   GDK_THREADS_ENTER ();
 #endif // GTK_CHECK_VERSION (3,6,0)
 
-  // *WARNING*: on win32 systems, the window must be created on the thread that
-  //            processes the window messages (otherwise the window is
-  //            unresponsive)...
+  // *WARNING*: (on win32 systems,) the window must be created on the thread
+  //            that processes the window messages (otherwise the window is
+  //            unresponsive; still works though)...
   gtk_widget_show_all (GTK_WIDGET (window_));
 
   ACE_ASSERT (!pixbuf_);

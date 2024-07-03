@@ -21,6 +21,8 @@
 
 #include "stream_vis_gtk_window.h"
 
+#include "ace/config-macros.h"
+
 #include "stream_vis_defines.h"
 
 const char libacestream_default_vis_gtk_window_module_name_string[] =
@@ -45,14 +47,16 @@ acestream_gtk_window_delete_event_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (event_in);
-  Stream_IStreamControlBase* istream_control_base_p =
-    static_cast<Stream_IStreamControlBase*> (userData_in);
-  ACE_ASSERT (istream_control_base_p);
+  //Stream_IStreamControlBase* istream_control_base_p =
+  //  static_cast<Stream_IStreamControlBase*> (userData_in);
+  //ACE_ASSERT (istream_control_base_p);
+  Common_INotify* inotify_p = static_cast<Common_INotify*> (userData_in);
+  ACE_ASSERT (inotify_p);
 
-  // *TODO*: don't stop the stream; notify ABORT from this module instead
-  istream_control_base_p->stop (false,  // wait for completion ?
-                                true,   // recurse upstream ?
-                                false); // high priority ?
+  //istream_control_base_p->stop (false,  // wait for completion ?
+  //                              true,   // recurse upstream ?
+  //                              false); // high priority ?
+  inotify_p->notify ();
 
   return TRUE; // do NOT propagate event
 }
