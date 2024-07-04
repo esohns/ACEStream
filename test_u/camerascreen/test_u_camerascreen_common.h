@@ -93,6 +93,9 @@ extern "C"
 
 #include "test_u_common.h"
 
+#include "test_u_camerascreen_message.h"
+#include "test_u_camerascreen_session_message.h"
+
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct ISampleGrabber;
@@ -102,12 +105,6 @@ template <typename NotificationType,
           typename DataMessageType,
           typename SessionMessageType>
 class Stream_CameraScreen_EventHandler_T;
-template <typename DataType,
-          typename SessionDataType>
-class Stream_CameraScreen_Message_T;
-template <typename DataMessageType,
-          typename SessionDataType>
-class Stream_CameraScreen_SessionMessage_T;
 
 enum Stream_CameraScreen_ProgramMode
 {
@@ -618,10 +615,12 @@ struct Stream_CameraScreen_StreamConfiguration
   Stream_CameraScreen_StreamConfiguration ()
    : Stream_Configuration ()
    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_INVALID)
+   , useVideoWall (false)
   {
     printFinalReport = true;
   }
   enum Stream_Visualization_VideoRenderer renderer;
+  bool                                    useVideoWall;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_CameraScreen_DirectShow_StreamConfiguration

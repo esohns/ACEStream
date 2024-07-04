@@ -55,6 +55,8 @@ Stream_CameraScreen_DirectShow_Stream::Stream_CameraScreen_DirectShow_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+ , videoWall_ (this,
+               ACE_TEXT_ALWAYS_CHAR ("VideoWall"))
 #if defined (CURSES_SUPPORT)
  , CursesDisplay_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CURSES_WINDOW_DEFAULT_NAME_STRING))
@@ -109,23 +111,39 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
     {
       layout_in->append (&convert_, NULL, 0);
       layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+      if (inherited::configuration_->configuration_->useVideoWall)
+        layout_in->append (&videoWall_, NULL, 0);
       layout_in->append (&GTKDisplay_, NULL, 0);
       break;
     }
 #endif // GTK_SUPPORT
     case STREAM_VISUALIZATION_VIDEORENDERER_GDI:
     {
+      if (inherited::configuration_->configuration_->useVideoWall)
+      {
+        layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+        layout_in->append (&videoWall_, NULL, 0);
+      } // end IF
       layout_in->append (&GDIDisplay_, NULL, 0);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
     {
-      //layout_in->append (&convert_, NULL, 0);
+      if (inherited::configuration_->configuration_->useVideoWall)
+      {
+        layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+        layout_in->append (&videoWall_, NULL, 0);
+      } // end IF
       layout_in->append (&Direct2DDisplay_, NULL, 0);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
     {
+      if (inherited::configuration_->configuration_->useVideoWall)
+      {
+        layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+        layout_in->append (&videoWall_, NULL, 0);
+      } // end IF
       layout_in->append (&Direct3DDisplay_, NULL, 0);
       break;
     }
@@ -133,6 +151,8 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
     {
       layout_in->append (&convert_, NULL, 0);
       layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+      if (inherited::configuration_->configuration_->useVideoWall)
+        layout_in->append (&videoWall_, NULL, 0);
       layout_in->append (&DirectShowDisplay_, NULL, 0);
       break;
     }
@@ -141,6 +161,8 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
     {
       layout_in->append (&convert_, NULL, 0);
       layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+      if (inherited::configuration_->configuration_->useVideoWall)
+        layout_in->append (&videoWall_, NULL, 0);
       layout_in->append (&OpenGLDisplay_, NULL, 0);
       break;
     }
@@ -1229,6 +1251,8 @@ Stream_CameraScreen_Stream::Stream_CameraScreen_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+ , videoWall_ (this,
+               ACE_TEXT_ALWAYS_CHAR ("VideoWall"))
 #if defined (CURSES_SUPPORT)
  , CursesDisplay_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CURSES_WINDOW_DEFAULT_NAME_STRING))
@@ -1270,24 +1294,42 @@ Stream_CameraScreen_Stream::load (Stream_ILayout* layout_in,
   {
 #if defined (CURSES_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
+    {
       layout_in->append (&CursesDisplay_, NULL, 0);
       break;
+    }
 #endif // CURSES_SUPPORT
 #if defined (GTK_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
+    {
+      if (inherited::configuration_->configuration_->useVideoWall)
+        layout_in->append (&videoWall_, NULL, 0);
       layout_in->append (&GTKDisplay_, NULL, 0);
       break;
+    }
 #endif // GTK_SUPPORT
-//    case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
-//      layout_in->append (&WaylandDisplay_, NULL, 0);
-//      break;
+    case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
+    {
+      if (inherited::configuration_->configuration_->useVideoWall)
+        layout_in->append (&videoWall_, NULL, 0);
+      layout_in->append (&WaylandDisplay_, NULL, 0);
+      break;
+    }
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
+    {
+      if (inherited::configuration_->configuration_->useVideoWall)
+        layout_in->append (&videoWall_, NULL, 0);
       layout_in->append (&X11Display_, NULL, 0);
       break;
+    }
 #if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
+    {
+      if (inherited::configuration_->configuration_->useVideoWall)
+        layout_in->append (&videoWall_, NULL, 0);
       layout_in->append (&OpenGLDisplay_, NULL, 0);
       break;
+    }
 #endif // GLUT_SUPPORT
     default:
     {

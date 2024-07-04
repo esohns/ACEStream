@@ -22,11 +22,11 @@
 #define TEST_U_CAMERASCREEN_STREAM_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
 #include "minwindef.h"
 #else
 #include "windef.h"
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
 #include "winnt.h"
 #include "guiddef.h"
 #undef GetObject
@@ -49,6 +49,7 @@
 #endif // CURSES_SUPPORT
 #include "test_u_camerascreen_message.h"
 #include "test_u_camerascreen_session_message.h"
+#include "test_u_camerascreen_module_video_wall.h"
 
 // forward declarations
 class Stream_IAllocator;
@@ -109,6 +110,7 @@ class Stream_CameraScreen_DirectShow_Stream
   Stream_CameraScreen_DirectShow_StatisticReport_Module  statisticReport_;
   Stream_CameraScreen_DirectShow_LibAVConvert_Module     convert_; // RGB
   Stream_CameraScreen_DirectShow_LibAVResize_Module      resize_; // --> window size/fullscreen
+  Test_U_CameraScreen_VideoWall_Module                   videoWall_;
 #if defined (CURSES_SUPPORT)
   Test_U_CameraScreen_Curses_Window_Module               CursesDisplay_;
 #endif // CURSES_SUPPORT
@@ -261,6 +263,7 @@ class Stream_CameraScreen_Stream
   Stream_CameraScreen_StatisticReport_Module statisticReport_;
   Stream_CameraScreen_LibAVConvert_Module    convert_; // --> BGRA (Xlib)
   Stream_CameraScreen_LibAVResize_Module     resize_; // --> window size/fullscreen
+  Test_U_CameraScreen_VideoWall_Module       videoWall_;
 #if defined (CURSES_SUPPORT)
   Test_U_CameraScreen_Curses_Window_Module   CursesDisplay_;
 #endif // CURSES_SUPPORT

@@ -213,9 +213,16 @@ do_print_usage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : test device for method support and exit [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+#endif // ACE_WIN32 || ACE_WIN64
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-z          : use video wall filter [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 }
 
@@ -230,7 +237,8 @@ do_process_arguments (int argc_in,
                       struct Common_UI_DisplayDevice& displayDevice_out,
                       enum Stream_Visualization_VideoRenderer& renderer_out,
                       bool& traceInformation_out,
-                      enum Stream_CameraScreen_ProgramMode& mode_out)
+                      enum Stream_CameraScreen_ProgramMode& mode_out,
+                      bool& useVideoWall_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_process_arguments"));
 
@@ -283,14 +291,14 @@ do_process_arguments (int argc_in,
   traceInformation_out = false;
   mode_out = STREAM_CAMERASCREEN_PROGRAMMODE_NORMAL;
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:glo:tvx");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:glo:tvz");
 #if defined (CURSES_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("c");
 #endif // CURSES_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("123m");
 #else
-  options_string += ACE_TEXT_ALWAYS_CHAR ("1");
+  options_string += ACE_TEXT_ALWAYS_CHAR ("1x");
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("k");
@@ -400,6 +408,11 @@ do_process_arguments (int argc_in,
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
+      case 'z':
+      {
+        useVideoWall_out = true;
+        break;
+      }
       // error handling
       case ':':
       {
@@ -994,11 +1007,11 @@ do_work (int argc_in,
          enum Stream_Visualization_VideoRenderer renderer_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Stream_CameraScreen_DirectShow_Configuration& directShowConfiguration_in,
-         struct Stream_CameraScreen_MediaFoundation_Configuration& mediaFoundationConfiguration_in
+         struct Stream_CameraScreen_MediaFoundation_Configuration& mediaFoundationConfiguration_in,
 #else
-         struct Stream_CameraScreen_Configuration& configuration_in
+         struct Stream_CameraScreen_Configuration& configuration_in,
 #endif // ACE_WIN32 || ACE_WIN64
-         )
+         bool useVideoWall_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
@@ -1065,6 +1078,7 @@ do_work (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
   struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // converter
+  struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2b; // resize
   struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // display
   struct Stream_CameraScreen_DirectShow_StreamConfiguration directshow_stream_configuration;
   Stream_CameraScreen_DirectShow_EventHandler_t directshow_ui_event_handler;
@@ -1075,14 +1089,11 @@ do_work (int argc_in,
 #else
   struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
+  struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration_2b; // resize
   Stream_CameraScreen_EventHandler_t ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Stream_CameraScreen_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
-  //Stream_CameraScreen_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
-  //Stream_CameraScreen_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-  //Stream_CameraScreen_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1186,6 +1197,7 @@ do_work (int argc_in,
       directshow_stream_configuration.module =
         &directshow_message_handler;
       directshow_stream_configuration.renderer = renderer_in;
+      directshow_stream_configuration.useVideoWall = useVideoWall_in;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
@@ -1215,8 +1227,8 @@ do_work (int argc_in,
           &mediafoundation_message_allocator;
       mediafoundation_stream_configuration.module =
           &mediafoundation_message_handler;
-      //mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
-      //  renderer_in;
+      mediafoundation_stream_configuration.renderer = renderer_in;
+      mediafoundation_stream_configuration.useVideoWall = useVideoWall_in;
 
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
@@ -1250,6 +1262,7 @@ do_work (int argc_in,
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module = &message_handler;
   stream_configuration.renderer = renderer_in;
+  stream_configuration.useVideoWall = useVideoWall_in;
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
                                                    stream_configuration);
@@ -1305,6 +1318,21 @@ do_work (int argc_in,
       directshow_modulehandler_configuration_2.flipImage =
         Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
 
+      if (useVideoWall_in)
+      {
+        media_type_p =
+          Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
+        ACE_ASSERT (media_type_p);
+        Common_Image_Resolution_t resolution_s =
+          Stream_MediaFramework_DirectShow_Tools::toResolution (directshow_stream_configuration.format);
+        resolution_s.cx /= ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X;
+        resolution_s.cy /= ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
+        Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                               *media_type_p);
+        directshow_modulehandler_configuration_2b.outputFormat = *media_type_p;
+        delete media_type_p; media_type_p = NULL;
+      } // end IF
+
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
@@ -1319,18 +1347,18 @@ do_work (int argc_in,
     {
       if (!do_initialize_mediafoundation (deviceIdentifier_in,
                                           window_handle,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                                           mediafoundation_modulehandler_configuration.session,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                                           load_device)) // load device ?
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_mediafoundation(), returning\n")));
         return;
       } // end IF
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT (mediafoundation_modulehandler_configuration.session);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       stream_p = &mediafoundation_stream;
       break;
     }
@@ -1382,6 +1410,18 @@ do_work (int argc_in,
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
+
+  if (useVideoWall_in)
+  {
+    modulehandler_configuration_2b = modulehandler_configuration;
+    modulehandler_configuration_2b.outputFormat.width /=
+      ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X;
+    modulehandler_configuration_2b.outputFormat.height /=
+      ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
+    configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                 std::make_pair (&module_configuration,
+                                                                                 &modulehandler_configuration_2b)));
+  } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 
@@ -1402,6 +1442,9 @@ do_work (int argc_in,
           directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                                  std::make_pair (&module_configuration,
                                                                                                  &directshow_modulehandler_configuration_2)));
+          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                                 std::make_pair (&module_configuration,
+                                                                                                 &directshow_modulehandler_configuration_2b)));
           break;
         }
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1567,6 +1610,9 @@ do_work (int argc_in,
           directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                                  std::make_pair (&module_configuration,
                                                                                                  &directshow_modulehandler_configuration_2)));
+          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                                 std::make_pair (&module_configuration,
+                                                                                                 &directshow_modulehandler_configuration_2b)));
           break;
         }
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1906,7 +1952,7 @@ ACE_TMAIN (int argc_in,
   bool trace_information = false;
   enum Stream_CameraScreen_ProgramMode program_mode_e =
       STREAM_CAMERASCREEN_PROGRAMMODE_NORMAL;
-  //bool run_stress_test = false;
+  bool use_video_wall_b = false;
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
@@ -1919,7 +1965,8 @@ ACE_TMAIN (int argc_in,
                              display_device_s,
                              video_renderer_e,
                              trace_information,
-                             program_mode_e))
+                             program_mode_e,
+                             use_video_wall_b))
   {
     do_print_usage (ACE::basename (argv_in[0]));
     Common_Tools::finalize ();
@@ -2061,11 +2108,11 @@ ACE_TMAIN (int argc_in,
            video_renderer_e,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_configuration,
-           mediafoundation_configuration
+           mediafoundation_configuration,
 #else
-           configuration
+           configuration,
 #endif // ACE_WIN32 || ACE_WIN64
-          );
+           use_video_wall_b);
   timer.stop ();
 
   // debug info

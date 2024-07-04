@@ -95,6 +95,8 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_camerascreen_message.cpp
      test_u_camerascreen_message.h
      test_u_camerascreen_message.inl
+     test_u_camerascreen_module_video_wall.cpp
+     test_u_camerascreen_module_video_wall.h
      test_u_camerascreen_session_message.cpp
      test_u_camerascreen_session_message.h
      test_u_camerascreen_session_message.inl
