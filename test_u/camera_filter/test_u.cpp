@@ -1092,18 +1092,18 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
-                                                                                  &heap_allocator,     // heap allocator handle
-                                                                                  true);               // block ?
+                                                                     &heap_allocator,     // heap allocator handle
+                                                                     true);               // block ?
   Test_U_DirectShow_Stream directshow_stream;
   Test_U_DirectShow_MessageHandler_Module directshow_message_handler (&directshow_stream,
-                                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   Test_U_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
-                                                                                            &heap_allocator,     // heap allocator handle
-                                                                                            true);               // block ?
+                                                                               &heap_allocator,     // heap allocator handle
+                                                                               true);               // block ?
   Test_U_MediaFoundation_Stream mediafoundation_stream;
   Test_U_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (&mediafoundation_stream,
-                                                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1170,11 +1170,11 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   } // end SWITCH
 #else
   Test_U_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
-                                                            &heap_allocator,     // heap allocator handle
-                                                            true);               // block ?
+                                               &heap_allocator,     // heap allocator handle
+                                               true);               // block ?
   Test_U_Stream stream;
   Test_U_MessageHandler_Module message_handler (&stream,
-                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   configuration_in.signalHandlerConfiguration.stream = &stream;
 
@@ -1227,11 +1227,21 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration_2.outputFormat = *media_type_p;
       delete media_type_p; media_type_p = NULL;
+
+      // *NOTE*: need to set this for RGB-capture formats ONLY !
+      directshow_modulehandler_configuration_2.flipImage =
+        Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
+      if (directshow_modulehandler_configuration_2.flipImage)
+        directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+                                                                               std::make_pair (&module_configuration,
+                                                                                               &directshow_modulehandler_configuration_2)));
+
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration_3.outputFormat = *media_type_p;
       delete media_type_p; media_type_p = NULL;
+
       directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
         directshow_modulehandler_configuration_3.window;
       stream_p = &directshow_stream;

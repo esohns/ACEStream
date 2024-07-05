@@ -33,7 +33,7 @@ template <typename DataType,
           typename SessionDataType>
 Test_U_Message_T<DataType,
                  SessionDataType>::Test_U_Message_T (Stream_SessionId_t sessionId_in,
-                                                     unsigned int size_in)
+                                                     size_t size_in)
  : inherited (sessionId_in,
               size_in)
 {

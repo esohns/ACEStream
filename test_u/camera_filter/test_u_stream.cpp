@@ -103,6 +103,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (inherited::configuration_);
 
   layout_in->append (&source_, NULL, 0);
+  layout_in->append (&convert_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
 
   switch (inherited::configuration_->configuration_->renderer)
@@ -110,7 +111,6 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (GTK_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
     {
-      layout_in->append (&convert_, NULL, 0);
       layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
       layout_in->append (&GTKDisplay_, NULL, 0);
       break;
@@ -123,13 +123,12 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
     {
-      //layout_in->append (&convert_, NULL, 0);
       layout_in->append (&Direct2DDisplay_, NULL, 0);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
     {
-      //layout_in->append (&sobelFilter_, NULL, 0);
+      // layout_in->append (&sobelFilter_, NULL, 0);
       //layout_in->append (&Direct3DDisplay_, NULL, 0);
       //layout_in->append (&marchingSquaresFilter_, NULL, 0);
       layout_in->append (&weightedVoronoiStippleFilter_, NULL, 0);
@@ -137,7 +136,6 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
     {
-      layout_in->append (&convert_, NULL, 0);
       layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
       layout_in->append (&DirectShowDisplay_, NULL, 0);
       break;
@@ -145,7 +143,6 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
     {
-      //layout_in->append (&convert_, NULL, 0);
       //layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
       //layout_in->append (&OpenGLDisplay_, NULL, 0);
       //layout_in->append (&GLUTDisplay_2, NULL, 0);
