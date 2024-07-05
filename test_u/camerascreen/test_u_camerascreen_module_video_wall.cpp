@@ -25,6 +25,7 @@
 
 #include "stream_macros.h"
 
+#include "test_u_camerascreen_defines.h"
 #include "test_u_camerascreen_message.h"
 #include "test_u_camerascreen_session_message.h"
 
@@ -60,8 +61,8 @@ Test_U_CameraScreen_VideoWall::handleDataMessage (Stream_CameraScreen_Message_t*
   passMessageDownstream_out = false;
 
   static int numb_thumbnails_i =
-    ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X *
-    ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
+    TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X *
+    TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
   std::deque<ACE_Message_Block*>::iterator iterator;
   if (messages_.size () == numb_thumbnails_i)
   {
@@ -97,10 +98,10 @@ Test_U_CameraScreen_VideoWall::handleDataMessage (Stream_CameraScreen_Message_t*
 #else
     index_y = y / thumbnailResolution_.height;
 #endif // ACE_WIN32 || ACE_WIN64
-    for (index_x = 0; index_x < ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X;
+    for (index_x = 0; index_x < TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X;
          index_x++)
     {
-      index_i = (index_y * ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X) + index_x;
+      index_i = (index_y * TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X) + index_x;
       if (index_i >= messages_.size ())
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -179,7 +180,7 @@ Test_U_CameraScreen_VideoWall::handleSessionMessage (Stream_CameraScreen_Session
       thumbnailResolution_ =
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_2);
       numTrailingBlackPixelsPerRow_ =
-        resolution_.cx - ((resolution_.cx / ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X) * ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X);
+        resolution_.cx - ((resolution_.cx / TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X) * TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X);
 
       struct _AMMediaType media_type_3;
       ACE_OS::memset (&media_type_3, 0, sizeof (struct _AMMediaType));
@@ -196,7 +197,7 @@ Test_U_CameraScreen_VideoWall::handleSessionMessage (Stream_CameraScreen_Session
       thumbnailResolution_.width = media_type_2.format.width;
       thumbnailResolution_.height = media_type_2.format.height;
       numTrailingBlackPixelsPerRow_ =
-        resolution_.width - ((resolution_.width / ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X) * ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X);
+        resolution_.width - ((resolution_.width / TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X) * TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X);
 
       struct Stream_MediaFramework_V4L_MediaType media_type_3 = media_type_r;
 #endif // ACE_WIN32 || ACE_WIN64

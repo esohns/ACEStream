@@ -23,7 +23,6 @@
 
 #include <deque>
 
-#include "ace/Basic_Types.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
@@ -35,13 +34,6 @@
 #include "stream_lib_mediatype_converter.h"
 
 #include "test_u_camerascreen_common.h"
-
-//////////////////////////////////////////
-
-#define ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X 6
-#define ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y 5
-
-//////////////////////////////////////////
 
 extern const char libacestream_default_video_wall_module_name_string[];
 
