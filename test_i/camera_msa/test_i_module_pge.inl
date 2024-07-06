@@ -20,6 +20,10 @@
 
 #include "ace/Log_Msg.h"
 
+#if defined (GTK_USE)
+#include "common_ui_gtk_manager_common.h"
+#endif // GTK_USE
+
 #include "stream_macros.h"
 #include "stream_tools.h"
 
@@ -94,6 +98,13 @@ Test_I_Module_PGE_T<TaskType,
     const_cast<typename inherited::SESSION_MESSAGE_T::DATA_T::DATA_T&> (session_data_container_r.getR ());
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      delete [] previousImage_; previousImage_ = NULL;
+      delete [] currentImage_; currentImage_ = NULL;
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       Common_Image_Resolution_t resolution_s;
@@ -208,11 +219,11 @@ Test_I_Module_PGE_T<TaskType,
   static int height_i = olc::PixelGameEngine::ScreenHeight ();
 
   // process next message
-  if (processNextMessage ())
+  if (!processNextMessage ())
     return false; // done
 
   for (int i = 0; i < solver_.numCells_; i++)
-    fluidImage_[i] = olc::PixelF (solver_.r_[i], solver_.g_[i], solver_.b_[i]);
+    fluidImage_[i] = olc::PixelF (solver_.r_[i], solver_.g_[i], solver_.b_[i], 1.0f);
   // project fluid image to screen
   static float ratio_x = solver_.getWidth () / static_cast<float> (width_i);
   static float ratio_y = solver_.getHeight () / static_cast<float> (height_i);
@@ -238,7 +249,6 @@ Test_I_Module_PGE_T<TaskType,
   for (typename std::vector<flow_zone>::iterator iterator = flow_zones_a.begin ();
        iterator != flow_zones_a.end ();
        ++iterator)
-  {
     if ((*iterator).productAboveLimit (solver_.UVCutoff_))
     {
       addForce ((*iterator).x_ / static_cast<float> (width_i), (*iterator).y_ / static_cast<float> (height_i),
@@ -246,7 +256,6 @@ Test_I_Module_PGE_T<TaskType,
                 frame_count_i);
       //(*iterator).draw (this);
     } // end IF
-  } // end FOR
 
   solver_.update ();
 
@@ -384,6 +393,14 @@ Test_I_Module_PGE_T<TaskType,
                     inherited::mod_->name ()));
         return -1;
       } // end IF
+      stop_processing = true;
+
+      inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+
+#if defined (GTK_USE)
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
+                                                          false); // N/A
+#endif // GTK_USE
     } // end IF
 
     message_block_p = NULL;
@@ -414,12 +431,12 @@ Test_I_Module_PGE_T<TaskType,
     int error = ACE_OS::last_error ();
     if (likely ((error == 0)          || // *TODO*: why does this happen ?
                 (error == EWOULDBLOCK)))
-      return false; // continue PGE
+      return true; // continue PGE
     if (unlikely (error != ESHUTDOWN))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: worker thread %t failed to ACE_Task::getq(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
-    return true; // stop PGE
+    return false; // stop PGE
   } // end IF
   ACE_ASSERT (message_block_p);
 
@@ -433,7 +450,7 @@ Test_I_Module_PGE_T<TaskType,
                   inherited::mod_->name ()));
       message_block_p->release ();
     } // end IF
-    return true; // stop PGE
+    return false; // stop PGE
   } // end IF
 
   // process manually
@@ -444,10 +461,10 @@ Test_I_Module_PGE_T<TaskType,
   {
     inherited::stop (false, // wait ?
                      true); // high priority ?
-    return true; // stop PGE
+    return false; // stop PGE
   } // end IF
 
-  return false; // continue PGE
+  return true; // continue PGE
 }
 
 template <typename TaskType,
@@ -461,14 +478,17 @@ Test_I_Module_PGE_T<TaskType,
   std::vector<flow_zone> zones;
 
   int winStep = solver_.step_ * 2 + 1;
-
+  int address_i;
+  int luminance_i, luminance_2;
+  int gradX, gradY, gradT;
   int A2, A1B2, B1, C1, C2;
+  uint8_t red_i, red_2, green_i, green_2, blue_i, blue_2;
   float u, v /*, uu, vv*/;
   //uu = vv = 0.0f;
   int wMax = width - solver_.step_ - 1;
   int hMax = height - solver_.step_ - 1;
   int globalY, globalX, localY, localX;
-
+  int delta_i;
   for (globalY = solver_.step_ + 1; globalY < hMax; globalY += winStep)
     for (globalX = solver_.step_ + 1; globalX < wMax; globalX += winStep)
     {
@@ -477,48 +497,46 @@ Test_I_Module_PGE_T<TaskType,
       for (localY = -solver_.step_; localY <= solver_.step_; localY++)
         for (localX = -solver_.step_; localX <= solver_.step_; localX++)
         {
-          int address = (globalY + localY) * width + globalX + localX;
+          address_i = (globalY + localY) * width + globalX + localX;
 
-          uint8_t red_i, red_2, green_i, green_2, blue_i, blue_2;
-          blue_i  = static_cast<uint8_t> (newImage[(address - 1) * 3]);
-          green_i = static_cast<uint8_t> (newImage[(address - 1) * 3 + 1]);
-          red_i   = static_cast<uint8_t> (newImage[(address - 1) * 3 + 2]);
-          blue_2  = static_cast<uint8_t> (newImage[(address + 1) * 3]);
-          green_2 = static_cast<uint8_t> (newImage[(address + 1) * 3 + 1]);
-          red_2   = static_cast<uint8_t> (newImage[(address + 1) * 3 + 2]);
-          int luminance_i, luminance_2;
+          blue_i  = static_cast<uint8_t> (newImage[(address_i - 1) * 3]);
+          green_i = static_cast<uint8_t> (newImage[(address_i - 1) * 3 + 1]);
+          red_i   = static_cast<uint8_t> (newImage[(address_i - 1) * 3 + 2]);
+          blue_2  = static_cast<uint8_t> (newImage[(address_i + 1) * 3]);
+          green_2 = static_cast<uint8_t> (newImage[(address_i + 1) * 3 + 1]);
+          red_2   = static_cast<uint8_t> (newImage[(address_i + 1) * 3 + 2]);
           luminance_i =
             static_cast<int> (0.2990f * red_i + 0.5870f * green_i + 0.1140f * blue_i);
           luminance_2 =
             static_cast<int> (0.2990f * red_2 + 0.5870f * green_2 + 0.1140f * blue_2);
-          int gradX = luminance_i - luminance_2;
-            //(newImage[(address - 1) * 3]) - (newImage[(address + 1) * 3]);
+          gradX = luminance_i - luminance_2;
+            //(newImage[(address_i - 1) * 3]) - (newImage[(address_i + 1) * 3]);
 
-          blue_i  = static_cast<uint8_t> (newImage[(address - width) * 3]);
-          green_i = static_cast<uint8_t> (newImage[(address - width) * 3 + 1]);
-          red_i   = static_cast<uint8_t> (newImage[(address - width) * 3 + 2]);
-          blue_2  = static_cast<uint8_t> (newImage[(address + width) * 3]);
-          green_2 = static_cast<uint8_t> (newImage[(address + width) * 3 + 1]);
-          red_2   = static_cast<uint8_t> (newImage[(address + width) * 3 + 2]);
+          blue_i  = static_cast<uint8_t> (newImage[(address_i - width) * 3]);
+          green_i = static_cast<uint8_t> (newImage[(address_i - width) * 3 + 1]);
+          red_i   = static_cast<uint8_t> (newImage[(address_i - width) * 3 + 2]);
+          blue_2  = static_cast<uint8_t> (newImage[(address_i + width) * 3]);
+          green_2 = static_cast<uint8_t> (newImage[(address_i + width) * 3 + 1]);
+          red_2   = static_cast<uint8_t> (newImage[(address_i + width) * 3 + 2]);
           luminance_i =
             static_cast<int> (0.2990f * red_i + 0.5870f * green_i + 0.1140f * blue_i);
           luminance_2 =
             static_cast<int> (0.2990f * red_2 + 0.5870f * green_2 + 0.1140f * blue_2);
-          int gradY = luminance_i - luminance_2;
-            //(newImage[(address - width) * 3]) - (newImage[(address + width) * 3]);
+          gradY = luminance_i - luminance_2;
+            //(newImage[(address_i - width) * 3]) - (newImage[(address_i + width) * 3]);
 
-          blue_i  = static_cast<uint8_t> (oldImage[address * 3]);
-          green_i = static_cast<uint8_t> (oldImage[address * 3 + 1]);
-          red_i   = static_cast<uint8_t> (oldImage[address * 3 + 2]);
-          blue_2  = static_cast<uint8_t> (newImage[address * 3]);
-          green_2 = static_cast<uint8_t> (newImage[address * 3 + 1]);
-          red_2   = static_cast<uint8_t> (newImage[address * 3 + 2]);
+          blue_i  = static_cast<uint8_t> (oldImage[address_i * 3]);
+          green_i = static_cast<uint8_t> (oldImage[address_i * 3 + 1]);
+          red_i   = static_cast<uint8_t> (oldImage[address_i * 3 + 2]);
+          blue_2  = static_cast<uint8_t> (newImage[address_i * 3]);
+          green_2 = static_cast<uint8_t> (newImage[address_i * 3 + 1]);
+          red_2   = static_cast<uint8_t> (newImage[address_i * 3 + 2]);
           luminance_i =
             static_cast<int> (0.2990f * red_i + 0.5870f * green_i + 0.1140f * blue_i);
           luminance_2 =
             static_cast<int> (0.2990f * red_2 + 0.5870f * green_2 + 0.1140f * blue_2);
-          int gradT = luminance_i - luminance_2;
-            //(oldImage[address * 3]) - (newImage[address * 3]);
+          gradT = luminance_i - luminance_2;
+            //(oldImage[address_i * 3]) - (newImage[address_i * 3]);
 
           A2 += gradX * gradX;
           A1B2 += gradX * gradY;
@@ -527,12 +545,11 @@ Test_I_Module_PGE_T<TaskType,
           C1 += gradY * gradT;
         } // end FOR
 
-      int delta = (A1B2 * A1B2 - A2 * B1);
-
-      if (delta != 0)
+      delta_i = (A1B2 * A1B2 - A2 * B1);
+      if (delta_i != 0)
       {
         /* system is not singular - solving by Kramer method */
-        float Idelta = solver_.step_ / static_cast<float> (delta);
+        float Idelta = solver_.step_ / static_cast<float> (delta_i);
         int deltaX = -(C1 * A1B2 - C2 * B1);
         int deltaY = -(A1B2 * C2 - A2 * C1);
         u = deltaX * Idelta;

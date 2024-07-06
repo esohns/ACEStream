@@ -62,8 +62,7 @@ Test_U_CameraScreen_VideoWall::handleDataMessage (Stream_CameraScreen_Message_t*
   passMessageDownstream_out = false;
 
   static int numb_thumbnails_i =
-    TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X *
-    TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
+    TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X * TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
   std::deque<ACE_Message_Block*>::iterator iterator;
   if (messages_.size () == numb_thumbnails_i)
   {
@@ -129,8 +128,8 @@ Test_U_CameraScreen_VideoWall::handleDataMessage (Stream_CameraScreen_Message_t*
     } // end FOR
 
     if (numTrailingBlackPixelsPerRow_)
-    {
-      ACE_OS::memset (message_p->wr_ptr (), 0, numTrailingBlackPixelsPerRow_ * bytesPerPixel_);
+    { // *NOTE*: no need to memset; it's already black (see above)
+      //ACE_OS::memset (message_p->wr_ptr (), 0, numTrailingBlackPixelsPerRow_ * bytesPerPixel_);
       message_p->wr_ptr (numTrailingBlackPixelsPerRow_ * bytesPerPixel_);
     } // end IF
   } // end FOR

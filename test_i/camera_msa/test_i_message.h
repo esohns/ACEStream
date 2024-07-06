@@ -68,7 +68,7 @@ class Test_I_Message_T
 
  public:
   Test_I_Message_T (Stream_SessionId_t, // session id
-                    unsigned int);      // size
+                    size_t);            // size
   virtual ~Test_I_Message_T ();
 
   // overrides from ACE_Message_Block

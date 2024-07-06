@@ -104,12 +104,11 @@ class Test_I_Module_PGE_T
       return ((std::abs (u_) + std::abs (v_)) / 2.0f) > UVCutoff_in;
     }
 
-    // void draw (olc::PixelGameEngine* engine_in)
-    //{
-    //   engine_in->DrawLine (x_, y_, x_ + static_cast<int32_t> (u_ * 3.0f), y_
-    //   + static_cast<int32_t> (v_ * 3.0f),
-    //                        olc::WHITE, 0xFFFFFFFF);
-    // }
+    void draw (olc::PixelGameEngine* engine_in)
+    {
+      engine_in->DrawLine (x_, y_, x_ + static_cast<int32_t> (u_ * 3.0f), y_ + static_cast<int32_t> (v_ * 3.0f),
+                           olc::WHITE, 0xFFFFFFFF);
+    }
 
     int x_;
     int y_;

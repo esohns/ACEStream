@@ -440,6 +440,14 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
               ACE_TEXT ("\"%s\": default capture format: %s\n"),
               ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (deviceIdentifier_in.identifier._string).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (captureFormat_inout, true).c_str ())));
+#if defined (_DEBUG)
+  Common_Image_Resolution_t resolution_s;
+  resolution_s.cx = 320;
+  resolution_s.cy = 240;
+  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                         captureFormat_inout);
+#endif // _DEBUG
+
   media_type_p =
     Stream_MediaFramework_DirectShow_Tools::copy (captureFormat_inout);
   if (!media_type_p)
@@ -518,37 +526,6 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
 
   IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
   IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
-
-  //if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
-  //                                                          captureFormat_inout,
-  //                                                          outputFormat_inout,
-  //                                                          windowHandle_out,
-  //                                                          IGraphBuilder_out,
-  //                                                          graph_configuration))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Decoder_Tools::loadVideoRendererGraph(), aborting\n")));
-  //  goto error;
-  //} // end IF
-  //ACE_ASSERT (IGraphBuilder_out);
-  //result = IGraphBuilder_out->QueryInterface (IID_PPV_ARGS (&media_filter_p));
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-  //  goto error;
-  //} // end IF
-  //ACE_ASSERT (media_filter_p);
-  //result = media_filter_p->SetSyncSource (NULL);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-  //  goto error;
-  //} // end IF
-  //media_filter_p->Release (); media_filter_p = NULL;
 
   return true;
 
@@ -1161,11 +1138,15 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
-      //directshow_modulehandler_configuration_2.flipImage = true;
       directshow_modulehandler_configuration_2.outputFormat = *media_type_p;
       Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
                                                          directshow_modulehandler_configuration_2.outputFormat);
       delete media_type_p; media_type_p = NULL;
+
+      // *NOTE*: need to set this for RGB-capture formats ONLY !
+      directshow_modulehandler_configuration_2.flipImage =
+        Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
+
       //media_type_p =
       //  Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       //ACE_ASSERT (media_type_p);
