@@ -1,8 +1,8 @@
 
 uniform sampler2D tex0;
-uniform vec2 texelSize;
-uniform vec2 canvasSize;
-uniform vec2 mouse;
+//uniform vec2 texelSize;
+//uniform vec2 canvasSize;
+//uniform vec2 mouse;
 uniform float time;
 
 const float Bayer2x2[4] = float[](0., 2., 3., 1.);

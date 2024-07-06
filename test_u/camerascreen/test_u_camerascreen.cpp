@@ -1318,20 +1318,20 @@ do_work (int argc_in,
       directshow_modulehandler_configuration_2.flipImage =
         Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
 
+      media_type_p =
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
+      ACE_ASSERT (media_type_p);
       if (useVideoWall_in)
       {
-        media_type_p =
-          Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
-        ACE_ASSERT (media_type_p);
         Common_Image_Resolution_t resolution_s =
           Stream_MediaFramework_DirectShow_Tools::toResolution (directshow_stream_configuration.format);
         resolution_s.cx /= TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X;
         resolution_s.cy /= TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
         Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                                *media_type_p);
-        directshow_modulehandler_configuration_2b.outputFormat = *media_type_p;
-        delete media_type_p; media_type_p = NULL;
       } // end IF
+      directshow_modulehandler_configuration_2b.outputFormat = *media_type_p;
+      delete media_type_p; media_type_p = NULL;
 
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);

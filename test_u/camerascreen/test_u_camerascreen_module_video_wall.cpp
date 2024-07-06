@@ -39,6 +39,7 @@ Test_U_CameraScreen_VideoWall::Test_U_CameraScreen_VideoWall (typename inherited
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
+ , bytesPerPixel_ (3)
  , messages_ ()
  , resolution_ ()
  , thumbnailResolution_ ()
@@ -76,9 +77,9 @@ Test_U_CameraScreen_VideoWall::handleDataMessage (Stream_CameraScreen_Message_t*
 
   size_t message_size_i =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    resolution_.cx * resolution_.cy * 3;
+    resolution_.cx * resolution_.cy * bytesPerPixel_;
 #else
-    resolution_.width * resolution_.height * 3;
+    resolution_.width * resolution_.height * bytesPerPixel_;
 #endif // ACE_WIN32 || ACE_WIN64
   Stream_CameraScreen_DirectShow_Message_t* message_p =
     inherited::allocateMessage (message_size_i);
@@ -105,9 +106,9 @@ Test_U_CameraScreen_VideoWall::handleDataMessage (Stream_CameraScreen_Message_t*
       if (index_i >= messages_.size ())
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        message_p->wr_ptr (thumbnailResolution_.cx * 3);
+        message_p->wr_ptr (thumbnailResolution_.cx * bytesPerPixel_);
 #else
-        message_p->wr_ptr (thumbnailResolution_.width * 3);
+        message_p->wr_ptr (thumbnailResolution_.width * bytesPerPixel_);
 #endif // ACE_WIN32 || ACE_WIN64
         continue;
       } // end IF
@@ -116,21 +117,21 @@ Test_U_CameraScreen_VideoWall::handleDataMessage (Stream_CameraScreen_Message_t*
 
       data_src_p = reinterpret_cast<char*> ((*iterator)->rd_ptr ());      
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      data_src_p += ((y % thumbnailResolution_.cy) * (thumbnailResolution_.cx * 3));
+      data_src_p += ((y % thumbnailResolution_.cy) * (thumbnailResolution_.cx * bytesPerPixel_));
       result = message_p->copy (data_src_p,
-                                static_cast<size_t> (thumbnailResolution_.cx * 3));
+                                static_cast<size_t> (thumbnailResolution_.cx * bytesPerPixel_));
 #else
-      data_src_p += ((y % thumbnailResolution_.height) * (thumbnailResolution_.width * 3));
+      data_src_p += ((y % thumbnailResolution_.height) * (thumbnailResolution_.width * bytesPerPixel_));
       result = message_p->copy (data_src_p,
-                                static_cast<size_t> (thumbnailResolution_.width * 3));
+                                static_cast<size_t> (thumbnailResolution_.width * bytesPerPixel_));
 #endif // ACE_WIN32 || ACE_WIN64
       ACE_ASSERT (result == 0);
     } // end FOR
 
     if (numTrailingBlackPixelsPerRow_)
     {
-      ACE_OS::memset (message_p->wr_ptr (), 0, numTrailingBlackPixelsPerRow_ * 3);
-      message_p->wr_ptr (numTrailingBlackPixelsPerRow_ * 3);
+      ACE_OS::memset (message_p->wr_ptr (), 0, numTrailingBlackPixelsPerRow_ * bytesPerPixel_);
+      message_p->wr_ptr (numTrailingBlackPixelsPerRow_ * bytesPerPixel_);
     } // end IF
   } // end FOR
 
@@ -175,6 +176,9 @@ Test_U_CameraScreen_VideoWall::handleSessionMessage (Stream_CameraScreen_Session
       const struct _AMMediaType& media_type_r = session_data_r.formats.front ();
       const struct _AMMediaType& media_type_2 = session_data_r.formats.back ();
       ACE_ASSERT (Stream_MediaFramework_Tools::isRGB (media_type_2.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW));
+
+      bytesPerPixel_ =
+        Stream_MediaFramework_DirectShow_Tools::toFrameBits (media_type_2) / 8;
       resolution_ =
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_r);
       thumbnailResolution_ =
@@ -192,6 +196,9 @@ Test_U_CameraScreen_VideoWall::handleSessionMessage (Stream_CameraScreen_Session
       const struct Stream_MediaFramework_V4L_MediaType& media_type_2 =
         session_data_r.formats.back ();
       ACE_ASSERT (Stream_MediaFramework_Tools::isRGB (media_type_2.format.pixelformat));
+
+      bytesPerPixel_ =
+        Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_2.format.pixelformat) / 8;
       resolution_.width = media_type_r.format.width;
       resolution_.height = media_type_r.format.height;
       thumbnailResolution_.width = media_type_2.format.width;

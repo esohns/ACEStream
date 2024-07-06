@@ -6,6 +6,7 @@ include (ffmpeg)
 include (ImageMagick)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/gl/scripts")
+include (glew)
 include (glm)
 include (glut)
 

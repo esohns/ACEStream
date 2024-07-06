@@ -173,7 +173,7 @@ libacestream_glut_draw (void)
   COMMON_GL_ASSERT;
 
   static GLfloat cube_rotation = 0.0f;
-  glRotatef (cube_rotation, 1.0f, 1.0f, 1.0f);		// Rotate The Cube On X, Y, and Z
+  glRotatef (cube_rotation, 1.0f, 1.0f, 1.0f); // Rotate The Cube On X, Y, and Z
   COMMON_GL_ASSERT;
 
   glBindTexture (GL_TEXTURE_2D, cb_data_p->textureId);

@@ -150,7 +150,7 @@ Test_U_CameraFilter_OpenGL_GLUT_3::handleSessionMessage (Test_U_SessionMessage_t
       glutInitWindowSize (CBData_.resolution.width, CBData_.resolution.height);
 #endif // ACE_WIN32 || ACE_WIN64
 
-      window_ = glutCreateWindow ("OpenGL GLUT 2");
+      window_ = glutCreateWindow ("OpenGL GLUT 3");
       glutSetWindow (window_);
       glutSetWindowData (&CBData_);
 

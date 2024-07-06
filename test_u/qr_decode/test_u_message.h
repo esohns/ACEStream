@@ -83,7 +83,7 @@ class Test_U_Message
 
  public:
   Test_U_Message (Stream_SessionId_t, // session id
-                  unsigned int);      // size
+                  size_t);            // size
   // *NOTE*: to be used by message allocators
   // *TODO*: --> make this private
   Test_U_Message (Stream_SessionId_t, // session id

@@ -165,6 +165,17 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
       glutSetWindow (window_);
       glutSetWindowData (&CBData_);
 
+#if defined (GLEW_SUPPORT)
+      GLenum err = glewInit ();
+      if (GLEW_OK != err)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to glewInit(): \"%s\", aborting\n"),
+                    ACE_TEXT (glewGetErrorString (err))));
+        goto error;
+      } // end IF
+#endif // GLEW_SUPPORT
+
       //glClearColor (0.0F, 0.0F, 0.0F, 1.0F); // Black Background
       glClearColor (0.0F, 0.0F, 0.0F, 0.0F); // Black Background
       COMMON_GL_ASSERT;
@@ -229,10 +240,10 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
 
       break;
 
-//error:
-//      this->notify (STREAM_SESSION_MESSAGE_ABORT)
+error:
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
-//      break;
+      break;
     }
 //    case STREAM_SESSION_MESSAGE_RESIZE:
 //    {

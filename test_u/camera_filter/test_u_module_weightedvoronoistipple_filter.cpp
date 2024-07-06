@@ -205,6 +205,12 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::handleSessionMessage (Test_U_
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      free (points_); points_ = NULL;
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -297,7 +303,7 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::OnUserUpdate (float fElapsedT
   //  p[i].a = (p[i].a > ACESTREAM_MC_FILTER_DEFAULT_ALPHA_DECAY ? p[i].a - ACESTREAM_MC_FILTER_DEFAULT_ALPHA_DECAY : 0);
 
   // process next message
-  if (processNextMessage ())
+  if (!processNextMessage ())
     return false; // done
 
   return !inherited3::GetKey (olc::Key::ESCAPE).bPressed;
@@ -428,6 +434,8 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::svc (void)
                     inherited::mod_->name ()));
         return -1;
       } // end IF
+      stop_processing = true;
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
     } // end IF
 
     message_block_p = NULL;
@@ -473,7 +481,7 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::processNextMessage ()
                   inherited::mod_->name ()));
       message_block_p->release ();
     } // end IF
-    return true; // stop PGE
+    return false; // stop PGE
   } // end IF
 
   // process manually
@@ -487,7 +495,7 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::processNextMessage ()
     return true; // stop PGE
   } // end IF
 
-  return false; // continue PGE
+  return true; // continue PGE
 }
 
 int

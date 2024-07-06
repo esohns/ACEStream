@@ -113,6 +113,7 @@ class Test_U_CameraScreen_VideoWall
   ACE_UNIMPLEMENTED_FUNC (Test_U_CameraScreen_VideoWall (const Test_U_CameraScreen_VideoWall&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_CameraScreen_VideoWall& operator= (const Test_U_CameraScreen_VideoWall&))
 
+  uint8_t                        bytesPerPixel_;
   std::deque<ACE_Message_Block*> messages_;
   Common_Image_Resolution_t      resolution_;
   Common_Image_Resolution_t      thumbnailResolution_;

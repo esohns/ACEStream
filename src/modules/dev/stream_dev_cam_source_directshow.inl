@@ -298,7 +298,11 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
-      goto abort;
+    {
+      inherited::change (STREAM_STATE_SESSION_STOPPING);
+      break;
+      //goto abort;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -655,6 +659,7 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+//abort:
       bool COM_initialized = Common_Tools::initializeCOM ();
 
 #if defined (_DEBUG)
@@ -685,7 +690,6 @@ error:
                        false);        // high priority ?
       } // end IF
 
-abort:
       if (inherited::timerId_ != -1)
       {
         const void* act_p = NULL;
