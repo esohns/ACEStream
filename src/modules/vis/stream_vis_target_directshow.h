@@ -38,6 +38,8 @@
 #include "common_ui_ifullscreen.h"
 #include "common_ui_windowtype_converter.h"
 
+#include "stream_task_base_asynch.h"
+
 #include "stream_lib_directshow_target.h"
 #include "stream_lib_mediatype_converter.h"
 
@@ -67,13 +69,15 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename MediaType>
 class Stream_Vis_Target_DirectShow_T
- : public Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
-                                                    TimePolicyType,
-                                                    ConfigurationType,
-                                                    ControlMessageType,
-                                                    DataMessageType,
-                                                    SessionMessageType,
-                                                    SessionDataType,
+ : public Stream_MediaFramework_DirectShow_Target_T<Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                                                            TimePolicyType,
+                                                                            ConfigurationType,
+                                                                            ControlMessageType,
+                                                                            DataMessageType,
+                                                                            SessionMessageType,
+                                                                            enum Stream_ControlType,
+                                                                            enum Stream_SessionMessageType,
+                                                                            struct Stream_UserData>,
                                                     FilterConfigurationType,
                                                     PinConfigurationType,
                                                     MediaType,
@@ -82,13 +86,15 @@ class Stream_Vis_Target_DirectShow_T
  //, public Common_UI_WindowTypeConverter_T<HWND>
  , public Common_UI_IFullscreen
 {
-  typedef Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
-                                                    TimePolicyType,
-                                                    ConfigurationType,
-                                                    ControlMessageType,
-                                                    DataMessageType,
-                                                    SessionMessageType,
-                                                    SessionDataType,
+  typedef Stream_MediaFramework_DirectShow_Target_T<Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                                                            TimePolicyType,
+                                                                            ConfigurationType,
+                                                                            ControlMessageType,
+                                                                            DataMessageType,
+                                                                            SessionMessageType,
+                                                                            enum Stream_ControlType,
+                                                                            enum Stream_SessionMessageType,
+                                                                            struct Stream_UserData>,
                                                     FilterConfigurationType,
                                                     PinConfigurationType,
                                                     MediaType,
@@ -127,6 +133,9 @@ class Stream_Vis_Target_DirectShow_T
                               struct tagRECT&,            // in/out (target) window area
                               IVideoWindow*&,             // return value: window control handle
                               IMFVideoDisplayControl*&);  // return value: window control handle (EVR)
+
+  // override (part of) ACE_Task_Base
+  virtual int svc (void);
 
   bool                    closeWindow_;
   IMFVideoDisplayControl* IMFVideoDisplayControl_;

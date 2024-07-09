@@ -49,44 +49,19 @@ class Stream_IAllocator;
 
 extern const char libacestream_default_lib_directshow_target_module_name_string[];
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          ////////////////////////////////
-          typename ConfigurationType,
-          ////////////////////////////////
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          ////////////////////////////////
-          typename SessionDataType,
+template <typename TaskType,                // Stream_TaskBaseSynch_T || Stream_TaskBaseAsynch_T
           ////////////////////////////////
           typename FilterConfigurationType, // DirectShow-
           typename PinConfigurationType,    // DirectShow-
           typename MediaType,
           typename FilterType>              // DirectShow-
 class Stream_MediaFramework_DirectShow_Target_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData>
+ : public TaskType
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_UI_WindowTypeConverter_T<HWND>
  //, public FilterType
 {
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
+  typedef TaskType inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
   typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;
   //typedef FilterType inherited4;
@@ -97,17 +72,18 @@ class Stream_MediaFramework_DirectShow_Target_T
   virtual ~Stream_MediaFramework_DirectShow_Target_T ();
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&,
+  virtual bool initialize (const typename TaskType::CONFIGURATION_T&,
                            Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                  bool&);            // return value: pass message downstream ?
-  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                     bool&);               // return value: pass message downstream ?
+  virtual void handleDataMessage (typename TaskType::DATA_MESSAGE_T*&, // data message handle
+                                  bool&);                              // return value: pass message downstream ?
+  virtual void handleSessionMessage (typename TaskType::SESSION_MESSAGE_T*&, // session message handle
+                                     bool&);                                 // return value: pass message downstream ?
 
  protected:
   // convenient types
+  typedef TaskType TASK_T;
   typedef FilterType FILTER_T;
 
   // helper methods
@@ -119,6 +95,8 @@ class Stream_MediaFramework_DirectShow_Target_T
   // enqueue MB_STOP --> stop worker thread(s)
   virtual void stop (bool = true,   // wait for completion ?
                      bool = false); // high priority ? (i.e. do not wait for queued messages)
+
+  typename inherited::MESSAGE_QUEUE_T queue_;
 
   IGraphBuilder*                      IGraphBuilder_;
 
@@ -133,8 +111,6 @@ class Stream_MediaFramework_DirectShow_Target_T
 
   // convenient types
   typedef Common_IInitialize_T<FilterConfigurationType> IINITIALIZE_FILTER_T;
-
-  typename inherited::MESSAGE_QUEUE_T queue_;
 };
 
 // include template definition

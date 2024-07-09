@@ -667,7 +667,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                     inherited::ROTID_));
       } // end IF
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       break;
 
@@ -704,7 +705,8 @@ error:
         window_ = NULL;
       } // end IF
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -862,7 +864,7 @@ error_2:
       bool COM_initialized = Common_Tools::initializeCOM ();
 
       // step1: dispatch all data to DirectShow
-      inherited::idle ();
+      inherited::queue_.waitForIdleState (true); // wait forever ?
       // step2: *TODO*: wait for DirectShow
 
       // *IMPORTANT NOTE*: "Reset the owner to NULL before releasing the Filter
@@ -974,7 +976,8 @@ error_2:
         closeWindow_ = false;
       } // end IF
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       break;
     }
@@ -1062,7 +1065,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   inherited::getWindowType (configuration_in.window,
                             window_);
 
-  if (COM_initialized) Common_Tools::finalizeCOM ();
+  if (COM_initialized)
+    Common_Tools::finalizeCOM ();
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -1357,7 +1361,7 @@ continue_:
   else if (InlineIsEqualGUID (CLSID_VideoMixingRenderer, GUID_s) ||
            InlineIsEqualGUID (CLSID_VideoRendererDefault, GUID_s))
   { // set up windowless mode ?
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
     IVMRFilterConfig* ivmr_filter_config_p = NULL;
     result =
       ibase_filter_p->QueryInterface (IID_PPV_ARGS (&ivmr_filter_config_p));
@@ -1585,4 +1589,122 @@ error:
   } // end IF
 
   return false;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType,
+          typename FilterConfigurationType,
+          typename PinConfigurationType,
+          typename FilterType,
+          typename MediaType>
+int
+Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataContainerType,
+                               SessionDataType,
+                               FilterConfigurationType,
+                               PinConfigurationType,
+                               FilterType,
+                               MediaType>::svc (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::svc"));
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
+  Common_Error_Tools::setThreadName (inherited::threadName_,
+                                     NULL);
+#else
+  Common_Error_Tools::setThreadName (inherited::threadName_,
+                                     0);
+#endif // _WIN32_WINNT_WIN10
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: (%s): worker thread (id: %t, group: %d) starting\n"),
+              inherited::mod_->name (),
+              ACE_TEXT (inherited::threadName_.c_str ()),
+              inherited::grp_id_));
+
+  ACE_Message_Block* message_block_p = NULL;
+  int result = -1;
+  int error = -1;
+  bool stop_processing = false;
+
+  do
+  {
+    result = inherited::getq (message_block_p, NULL);
+    if (unlikely (result == -1))
+    {
+      error = ACE_OS::last_error ();
+      if (unlikely (error != ESHUTDOWN))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: worker thread %t failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+        return -1;
+      } // end IF
+      result = 0; // OK, queue has been deactivate()d
+      break;
+    } // end IF
+
+    ACE_ASSERT (message_block_p);
+    if (unlikely (message_block_p->msg_type () == ACE_Message_Block::MB_STOP))
+    {
+      if (unlikely (inherited::thr_count_ > 1))
+      {
+        result = inherited::putq (message_block_p, NULL);
+        if (unlikely (result == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
+                      inherited::mod_->name ()));
+          return -1;
+        } // end IF
+        message_block_p = NULL;
+      } // end IF
+      // clean up ?
+      if (message_block_p)
+      {
+        message_block_p->release (); message_block_p = NULL;
+      } // end IF
+      break; // done
+    } // end IF
+
+    // process manually
+    this->handleMessage (message_block_p,
+                         stop_processing);
+    if (unlikely (stop_processing))
+      inherited::TASK_T::stop (false, // wait ?
+                               true); // high priority ?
+
+    message_block_p = NULL;
+
+    // process window messages ?
+    if (window_)
+    {
+      struct tagMSG message_s;
+      while (PeekMessage (&message_s, window_, 0, 0, PM_REMOVE))
+      {
+        TranslateMessage (&message_s);
+        DispatchMessage (&message_s);
+      } // end WHILE
+   } // end IF
+  } while (true);
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: (%s): worker thread (id: %t, group: %d) leaving\n"),
+              inherited::mod_->name (),
+              ACE_TEXT (inherited::threadName_.c_str ()),
+              inherited::grp_id_));
+
+  return result;
 }

@@ -28,6 +28,7 @@
 
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
+#include "stream_task_base_synch.h"
 
 #include "stream_dec_mp3_decoder.h"
 #include "stream_dec_noise_source.h"
@@ -803,13 +804,15 @@ typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Test_U_AudioEffect_Dire
 typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Test_U_AudioEffect_DirectShow_Message,
                                                                 struct Test_U_AudioEffect_DirectShow_FilterConfiguration,
                                                                 struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Test_U_AudioEffect_AsynchDirectShowFilter_t;
-typedef Stream_MediaFramework_DirectShow_Target_T<ACE_MT_SYNCH,
-                                                  Common_TimePolicy_t,
-                                                  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
-                                                  Stream_ControlMessage_t,
-                                                  Test_U_AudioEffect_DirectShow_Message,
-                                                  Test_U_AudioEffect_DirectShow_SessionMessage,
-                                                  Test_U_AudioEffect_DirectShow_SessionData,
+typedef Stream_MediaFramework_DirectShow_Target_T<Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                                                                         Common_TimePolicy_t,
+                                                                         struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                                                         Stream_ControlMessage_t,
+                                                                         Test_U_AudioEffect_DirectShow_Message,
+                                                                         Test_U_AudioEffect_DirectShow_SessionMessage,
+                                                                         enum Stream_ControlType,
+                                                                         enum Stream_SessionMessageType,
+                                                                         struct Stream_UserData>,
                                                   struct Test_U_AudioEffect_DirectShow_FilterConfiguration,
                                                   struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
                                                   struct _AMMediaType,

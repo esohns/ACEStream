@@ -33,24 +33,12 @@
 #include "stream_lib_defines.h"
 #include "stream_lib_directshow_tools.h"
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
+template <typename TaskType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType,
           typename FilterType>
-Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          SessionDataType,
+Stream_MediaFramework_DirectShow_Target_T<TaskType,
                                           FilterConfigurationType,
                                           PinConfigurationType,
                                           MediaType,
@@ -59,38 +47,25 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
  , inherited2 ()
  , inherited3 ()
  //, inherited4 ()
+ , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
+           NULL)                   // notification handle
  , IGraphBuilder_ (NULL)
 //, IMemAllocator_ (NULL)
 //, IMemInputPin_ (NULL)
  , IMediaControl_ (NULL)
  , IMediaEventEx_ (NULL)
  , ROTID_ (0)
- , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
-           NULL)                   // notification handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Target_T::Stream_MediaFramework_DirectShow_Target_T"));
 
-  inherited::msg_queue (&queue_);
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
+template <typename TaskType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType,
           typename FilterType>
-Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          SessionDataType,
+Stream_MediaFramework_DirectShow_Target_T<TaskType,
                                           FilterConfigurationType,
                                           PinConfigurationType,
                                           MediaType,
@@ -139,29 +114,17 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     IGraphBuilder_->Release ();
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
+template <typename TaskType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType,
           typename FilterType>
 bool
-Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          SessionDataType,
+Stream_MediaFramework_DirectShow_Target_T<TaskType,
                                           FilterConfigurationType,
                                           PinConfigurationType,
                                           MediaType,
-                                          FilterType>::initialize (const ConfigurationType& configuration_in,
+                                          FilterType>::initialize (const typename TaskType::CONFIGURATION_T& configuration_in,
                                                                    Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Target_T::initialize"));
@@ -180,7 +143,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   int result_2 = -1;
   if (inherited::isInitialized_)
   {
-    inherited::idle ();
+    queue_.flush ();
 
     if (ROTID_)
     {
@@ -209,8 +172,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
-  ACE_ASSERT (inherited::msg_queue_);
-  result_2 = inherited::msg_queue_->activate ();
+  result_2 = queue_.activate ();
   if (unlikely (result_2 == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -232,18 +194,17 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     configuration_in.filterConfiguration->module = inherited::mod_;
     ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration);
     //ACE_ASSERT (!configuration_in.filterConfiguration->pinConfiguration->queue);
-    configuration_in.filterConfiguration->pinConfiguration->queue =
-      inherited::msg_queue_;
+    configuration_in.filterConfiguration->pinConfiguration->queue = &queue_;
   } // end IF
 
-  if (COM_initialized) Common_Tools::finalizeCOM ();
+  if (COM_initialized)
+    Common_Tools::finalizeCOM ();
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
 
 error:
-  ACE_ASSERT (inherited::msg_queue_);
-  result_2 = inherited::msg_queue_->deactivate ();
+  result_2 = queue_.deactivate ();
   if (result_2 == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate() \"%m\", continuing\n"),
@@ -252,43 +213,29 @@ error:
   {
     IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
   } // end IF
-  if (COM_initialized) Common_Tools::finalizeCOM ();
+  if (COM_initialized)
+    Common_Tools::finalizeCOM ();
 
   return false;
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
+template <typename TaskType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType,
           typename FilterType>
 void
-Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          SessionDataType,
+Stream_MediaFramework_DirectShow_Target_T<TaskType,
                                           FilterConfigurationType,
                                           PinConfigurationType,
                                           MediaType,
-                                          FilterType>::handleDataMessage (DataMessageType*& message_inout,
+                                          FilterType>::handleDataMessage (typename TaskType::DATA_MESSAGE_T*& message_inout,
                                                                           bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Target_T::handleDataMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::msg_queue_);
 
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
@@ -302,7 +249,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  result = inherited::msg_queue_->enqueue_tail (message_block_p, NULL);
+  result = queue_.enqueue_tail (message_block_p, NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -313,29 +260,17 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   } // end IF
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
+template <typename TaskType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType,
           typename FilterType>
 void
-Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          SessionDataType,
+Stream_MediaFramework_DirectShow_Target_T<TaskType,
                                           FilterConfigurationType,
                                           PinConfigurationType,
                                           MediaType,
-                                          FilterType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                          FilterType>::handleSessionMessage (typename TaskType::SESSION_MESSAGE_T*& message_inout,
                                                                              bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Target_T::handleSessionMessage"));
@@ -355,8 +290,8 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
-      SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T& session_data_r =
+        const_cast<typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       ACE_ASSERT (!session_data_r.formats.empty ());
 
       bool COM_initialized = Common_Tools::initializeCOM ();
@@ -571,7 +506,7 @@ error:
         IMediaControl_->Release (); IMediaControl_ = NULL;
       } // end IF
 
-      result = inherited::msg_queue_->flush ();
+      result = queue_.flush ();
       if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Mesage_Queue::flush(): \"%m\", continuing\n"),
@@ -596,25 +531,13 @@ error:
   } // end SWITCH
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
+template <typename TaskType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType,
           typename FilterType>
 bool
-Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          SessionDataType,
+Stream_MediaFramework_DirectShow_Target_T<TaskType,
                                           FilterConfigurationType,
                                           PinConfigurationType,
                                           MediaType,
@@ -837,25 +760,13 @@ error:
   return false;
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
+template <typename TaskType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType,
           typename FilterType>
 void
-Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          SessionDataType,
+Stream_MediaFramework_DirectShow_Target_T<TaskType,
                                           FilterConfigurationType,
                                           PinConfigurationType,
                                           MediaType,

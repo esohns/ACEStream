@@ -28,6 +28,7 @@
 
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
+#include "stream_task_base_synch.h"
 
 #include "stream_misc_defines.h"
 #include "stream_misc_messagehandler.h"
@@ -269,13 +270,15 @@ typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Test_I_DirectShow_Messa
 typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Test_I_DirectShow_Message,
                                                                 struct Stream_MediaFramework_DirectShow_FilterConfiguration,
                                                                 struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Test_I_AsynchDirectShowFilter_t;
-typedef Stream_MediaFramework_DirectShow_Target_T<ACE_MT_SYNCH,
-                                                  Common_TimePolicy_t,
-                                                  struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration,
-                                                  Stream_ControlMessage_t,
-                                                  Test_I_DirectShow_Message,
-                                                  Test_I_DirectShow_SessionMessage_t,
-                                                  Test_I_CommandSpeech_DirectShow_SessionData,
+typedef Stream_MediaFramework_DirectShow_Target_T<Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                                                                        Common_TimePolicy_t,
+                                                                        struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration,
+                                                                        Stream_ControlMessage_t,
+                                                                        Test_I_DirectShow_Message,
+                                                                        Test_I_DirectShow_SessionMessage_t,
+                                                                        enum Stream_ControlType,
+                                                                        enum Stream_SessionMessageType,
+                                                                        struct Stream_UserData>,
                                                   struct Stream_MediaFramework_DirectShow_FilterConfiguration,
                                                   struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
                                                   struct _AMMediaType,

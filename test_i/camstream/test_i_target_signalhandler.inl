@@ -194,9 +194,10 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
     //connection_manager_p->stop ();
     //connection_manager_p->abort ();
 //    connection_manager_p->wait ();
-    inherited::configuration_->connectionManager->stop (false, true);
+    inherited::configuration_->connectionManager->stop (false,
+                                                        true);
     inherited::configuration_->connectionManager->abort ();
-    inherited::configuration_->connectionManager->wait ();
+    //inherited::configuration_->connectionManager->wait ();
 
     // step5: stop reactor (&& proactor, if applicable)
     Common_Event_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,

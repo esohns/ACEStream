@@ -68,7 +68,7 @@ class Stream_CameraML_Message_T
 
  public:
   Stream_CameraML_Message_T (Stream_SessionId_t, // session id
-                             unsigned int);      // size
+                             size_t);            // size
   virtual ~Stream_CameraML_Message_T ();
 
   // overrides from ACE_Message_Block
