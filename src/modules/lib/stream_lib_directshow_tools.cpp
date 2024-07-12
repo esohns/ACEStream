@@ -62,6 +62,7 @@
 #include "fourcc.h"
 #include "mtype.h"
 #endif // DIRECTSHOW_BASECLASSES_SUPPORT
+#include "dshow.h"
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
@@ -1955,6 +1956,18 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
   } // end IF
   ACE_ASSERT (enumerator_p);
 
+  struct _FilterInfo filter_info;
+  ACE_OS::memset (&filter_info, 0, sizeof (struct _FilterInfo));
+  result = filter_in->QueryFilterInfo (&filter_info);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    enumerator_p->Release ();
+    return false;
+  } // end IF
+
   while (S_OK == enumerator_p->Next (1, &pin_p, NULL))
   { ACE_ASSERT (pin_p);
     pin_2 = NULL;
@@ -1966,7 +1979,10 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
     } // end IF
     ACE_ASSERT (pin_2);
 
-    result = pin_2->Disconnect ();
+    if (filter_info.pGraph)
+      result = filter_info.pGraph->Disconnect (pin_2);
+    else
+      result = pin_2->Disconnect ();
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1975,11 +1991,26 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
       pin_2->Release (); pin_2 = NULL;
       pin_p->Release (); pin_p = NULL;
       enumerator_p->Release (); enumerator_p = NULL;
+      if (filter_info.pGraph)
+        filter_info.pGraph->Release ();  
       return false;
     } // end IF
     pin_2->Release (); pin_2 = NULL;
 
-    result = pin_p->Disconnect ();
+    if (filter_info.pGraph)
+    { // *IMPORTANT NOTE*: throws in ~CMediaSample() (*TODO*: why ?)
+      try {
+        result = filter_info.pGraph->Disconnect (pin_p);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("caught exception in CFilterGraph::Disconnect(%@) (filter pin was: \"%s\"), continuing\n"),
+                    pin_p,
+                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
+        result = S_OK;
+      }
+    } // end IF
+    else
+      result = pin_p->Disconnect ();
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1987,6 +2018,8 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       pin_p->Release (); pin_p = NULL;
       enumerator_p->Release (); enumerator_p = NULL;
+      if (filter_info.pGraph)
+        filter_info.pGraph->Release ();
       return false;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
@@ -1995,7 +2028,9 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
     pin_p->Release (); pin_p = NULL;
   } // end WHILE
   enumerator_p->Release (); enumerator_p = NULL;
-
+  if (filter_info.pGraph)
+    filter_info.pGraph->Release ();
+  
   return true;
 }
 
@@ -2050,6 +2085,7 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IGraphBuilder* builder_in)
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
+
   IBaseFilter* filter_p = NULL;
   while (S_OK == enumerator_p->Next (1, &filter_p, NULL))
   { ACE_ASSERT (filter_p);
@@ -2344,6 +2380,39 @@ continue_2:
   return true;
 }
 
+void
+Stream_MediaFramework_DirectShow_Tools::waitForStreamEnd (IMediaEvent* mediaEvent_in,
+                                                          long timeoutMs_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::waitForStreamEnd"));
+
+  long evCode;
+  LONG_PTR param1, param2;
+  HRESULT hr;
+  bool done_b = false;
+  while (!done_b)
+  {
+    hr = mediaEvent_in->GetEvent (&evCode, &param1, &param2, timeoutMs_in);
+    if (SUCCEEDED (hr))
+    {
+      switch (evCode)
+      {
+        case EC_COMPLETE:
+        case EC_ERRORABORT:
+        case EC_USERABORT:
+          done_b = true;
+          break;
+        default:
+          break;
+      } // end SWITCH
+      hr = mediaEvent_in->FreeEventParams (evCode, param1, param2);
+      ACE_ASSERT (SUCCEEDED (hr));
+    } // end IF
+    else if (hr == E_ABORT)
+      break; // timed out !
+  } // end WHILE
+}
+
 bool
 Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation (IGraphBuilder* builder_in,
                                                               const std::wstring& filterName_in,
@@ -2355,8 +2424,7 @@ Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation (IGraphBuilder* bui
   ACE_ASSERT (builder_in);
   if (IAMBufferNegotiation_out)
   {
-    IAMBufferNegotiation_out->Release ();
-    IAMBufferNegotiation_out = NULL;
+    IAMBufferNegotiation_out->Release (); IAMBufferNegotiation_out = NULL;
   } // end IF
 
   IBaseFilter* filter_p = NULL;
@@ -2374,7 +2442,7 @@ Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation (IGraphBuilder* bui
   ACE_ASSERT (filter_p);
 
   IPin* pin_p = Stream_MediaFramework_DirectShow_Tools::pin (filter_p,
-                                                            PINDIR_OUTPUT);
+                                                             PINDIR_OUTPUT);
   if (!pin_p)
   {
     ACE_DEBUG ((LM_ERROR,

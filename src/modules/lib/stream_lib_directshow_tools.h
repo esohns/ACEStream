@@ -51,6 +51,7 @@
 #endif // FFMPEG_SUPPORT
 
 // forward declarations
+struct IMediaEvent;
 struct IMFVideoDisplayControl;
 
 class Stream_MediaFramework_DirectShow_Tools
@@ -174,6 +175,12 @@ class Stream_MediaFramework_DirectShow_Tools
   // *NOTE*: disconnects the graph and removes all (but a specific source-) filters
   static bool reset (IGraphBuilder*, // filter graph handle
                      REFGUID);       // retain (device) category source (GUID_NULL: retain first filter w/o input pins)
+
+  // -------------------------------------
+
+  // *NOTE*: waits for first of EC_COMPLETE,EC_ERRORABORT,EC_USERABORT events
+  static void waitForStreamEnd (IMediaEvent*,     // media event handle
+                                long = INFINITE); // timeout (ms)
 
   // -------------------------------------
 

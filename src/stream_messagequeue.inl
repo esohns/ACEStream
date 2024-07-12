@@ -74,11 +74,19 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
           if (message_block_p == inherited::head_)
             inherited::head_ = message_block_p->next ();
           else
+          {
             message_block_p->prev ()->next (message_block_p->next ());
+            if (message_block_p->prev ()->next ())
+              message_block_p->prev ()->next ()->prev (message_block_p->prev ());
+          } // end ELSE
           if (unlikely (message_block_p == inherited::tail_))
-            inherited::tail_ =
-              ((inherited::cur_count_ == 1) ? NULL
-                                            : message_block_p->prev ());
+          { // *TODO*: just use message_block_p->prev () ?
+            temp_p = inherited::head_ ? inherited::head_ : NULL;
+            if (temp_p)
+              while (temp_p->next ())
+                temp_p = temp_p->next ();
+            inherited::tail_ = temp_p;
+          } // end IF
 
           // clean up
           bytes = 0; length = 0;

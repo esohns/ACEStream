@@ -63,7 +63,7 @@ class Test_I_Source_DirectShow_Stream_Message
 
  public:
   Test_I_Source_DirectShow_Stream_Message (Stream_SessionId_t, // session id
-                                           unsigned int);      // size
+                                           size_t);            // size
   inline virtual ~Test_I_Source_DirectShow_Stream_Message () {}
 
   // overrides from ACE_Message_Block

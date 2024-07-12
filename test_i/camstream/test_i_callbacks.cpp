@@ -1730,6 +1730,8 @@ stream_processing_function (void* arg_in)
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = std::numeric_limits<unsigned long>::max ();
+
+  bool COM_initialized = Common_Tools::initializeCOM ();
 #else
   result = arg_in;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1785,6 +1787,10 @@ stream_processing_function (void* arg_in)
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
+      //if ((*directshow_modulehandler_iterator).second.second->builder)
+      //{
+      //  (*directshow_modulehandler_iterator).second.second->builder->Release (); (*directshow_modulehandler_iterator).second.second->builder = NULL;
+      //} // end IF
 
       break;
     }
@@ -2026,7 +2032,9 @@ stream_processing_function (void* arg_in)
   //                  ACE_TEXT ("failed to start stream, aborting\n")));
   //      return;
   //    } // end IF
-  stream_p->wait (true, false, false);
+  stream_p->wait (true,   // wait for thread(s)
+                  false,  // wait for upstream ?
+                  false); // wait for downstream ?
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = 0;
@@ -2058,6 +2066,9 @@ done:
       }
     } // end SWITCH
   } // end lock scope
+
+  if (COM_initialized)
+    Common_Tools::finalizeCOM ();
 #else
     V4L_thread_data_p->CBData->progressData.completedActions.insert (thread_data_p->eventSourceId);
   } // end lock scope
@@ -4733,8 +4744,9 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     //gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
 
     // step1: stop stream
-    stream_p->stop (false, // wait ?
-                    true); // locked access ?
+    stream_p->stop (false,  // wait ?
+                    true,   // recurse upstream ?
+                    false); // high priority ?
 
     return;
   } // end IF
@@ -4923,9 +4935,21 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    { // *WARNING*: the allocated bytes needs to be what the sample grabber
+      //            outputs (which is RGB32 in this case), rather than whatever
+      //            the capture format is
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator).second.configuration_->format,
+                                                    media_type_s);
+      Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB32,
+                                                         media_type_s);
       (*directshow_stream_iterator).second.configuration_->allocatorConfiguration->defaultBufferSize =
-        static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
+        Stream_MediaFramework_DirectShow_Tools::toFramesize (media_type_s);
+        //static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
       break;
+    }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       (*mediafoundation_stream_iterator).second.configuration_->allocatorConfiguration->defaultBufferSize =
@@ -4970,8 +4994,8 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
       {
         result_2 =
           (*mediafoundation_modulehandler_iterator).second.second->session->GetFullTopology (flags,
-                                                                                            0,
-                                                                                            &topology_p);
+                                                                                             0,
+                                                                                             &topology_p);
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,

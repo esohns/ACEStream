@@ -94,8 +94,8 @@ struct Test_I_DirectShow_MessageData
   {}
   virtual ~Test_I_DirectShow_MessageData ()
   {
-    if (sample)
-      sample->Release ();
+    //if (sample)
+    //  sample->Release ();
   }
 
   // audio/video
@@ -114,8 +114,8 @@ struct Test_I_MediaFoundation_MessageData
   {}
   virtual ~Test_I_MediaFoundation_MessageData ()
   {
-    if (sample)
-      sample->Release ();
+    //if (sample)
+    //  sample->Release ();
   }
 
   // audio/video

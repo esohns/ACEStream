@@ -249,7 +249,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   Stream_Module_t* module_p = NULL;
   struct _AllocatorProperties allocator_properties;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
-  bool COM_initialized = false;
+  //bool COM_initialized = false;
   HRESULT result_2 = E_FAIL;
   ULONG reference_count = 0;
   IAMStreamConfig* stream_config_p = NULL;
@@ -277,24 +277,22 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 
   // ---------------------------------------------------------------------------
   // step1: set up directshow filter graph
-  result_2 = CoInitializeEx (NULL,
-                             (COINIT_MULTITHREADED     |
-                              COINIT_DISABLE_OLE1DDE   |
-                              COINIT_SPEED_OVER_MEMORY));
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    return false;
-  } // end IF
-  COM_initialized = true;
+  //result_2 = CoInitializeEx (NULL,
+  //                           (COINIT_MULTITHREADED     |
+  //                            COINIT_DISABLE_OLE1DDE   |
+  //                            COINIT_SPEED_OVER_MEMORY));
+  //if (FAILED (result_2))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
+  //              ACE_TEXT (stream_name_string_),
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+  //  return false;
+  //} // end IF
+  //COM_initialized = true;
 
   if ((*iterator).second.second->builder)
   {
-    // *NOTE*: Stream_Device_Tools::loadRendererGraph() resets the graph
-    //         (see below)
     if (!Stream_MediaFramework_DirectShow_Tools::reset ((*iterator).second.second->builder,
                                                         CLSID_VideoInputDeviceCategory))
     {
@@ -409,38 +407,38 @@ continue_:
   ACE_ASSERT (isample_grabber_p);
   filter_p->Release (); filter_p = NULL;
 
-  result_2 = isample_grabber_p->SetBufferSamples (false);
+  result_2 = isample_grabber_p->SetBufferSamples (FALSE);
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ISampleGrabber::SetBufferSamples(false): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to ISampleGrabber::SetBufferSamples(0): \"%s\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
-  result_2 = isample_grabber_p->SetCallback (source_impl_p, 0);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    goto error;
-  } // end IF
+  //result_2 = isample_grabber_p->SetCallback (source_impl_p, 0);
+  //if (FAILED (result_2))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
+  //              ACE_TEXT (stream_name_string_),
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+  //  goto error;
+  //} // end IF
   isample_grabber_p->Release (); isample_grabber_p = NULL;
 
   ACE_ASSERT (buffer_negotiation_p);
-  ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
+  ACE_OS::memset (&allocator_properties, 0, sizeof (struct _AllocatorProperties));
   // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
   //         if this is -1/0 (why ?)
   allocator_properties.cbAlign = 1;
   allocator_properties.cbBuffer =
     configuration_in.configuration_->allocatorConfiguration->defaultBufferSize;
-  allocator_properties.cbPrefix = -1; // <-- use default
+  allocator_properties.cbPrefix = 0;
   allocator_properties.cBuffers =
     STREAM_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
-  result_2 =
-      buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
+  //result_2 =
+  //    buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
   if (FAILED (result_2)) // E_UNEXPECTED: 0x8000FFFF --> graph already connected
   {
     ACE_DEBUG ((LM_ERROR,
@@ -659,8 +657,8 @@ error:
   if (media_filter_p)
     media_filter_p->Release ();
 
-  if (COM_initialized)
-    CoUninitialize ();
+  //if (COM_initialized)
+  //  CoUninitialize ();
 
   return false;
 }

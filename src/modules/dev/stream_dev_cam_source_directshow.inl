@@ -717,6 +717,9 @@ error:
 //continue_2:
       if (IMediaEventEx_)
       {
+        //Stream_MediaFramework_DirectShow_Tools::waitForStreamEnd (IMediaEventEx_,
+        //                                                          10000); // 10 seconds max
+
         result_2 = IMediaEventEx_->SetNotifyWindow (NULL,
                                                     0,
                                                     NULL);
@@ -733,7 +736,6 @@ error:
         // stop previewing video data
         // *NOTE*: there may be still be data messages to be delivered at this
         //         point
-        // *TODO*: flush the queue ?
         //result_2 = IMediaControl_->StopWhenReady ();
         result_2 = IMediaControl_->Stop ();
         if (FAILED (result_2))
@@ -772,6 +774,8 @@ error:
       {
         IAMDroppedFrames_->Release (); IAMDroppedFrames_ = NULL;
       } // end IF
+
+      inherited::queue_.flush (false); // flush any data (!) messages
 
       if (COM_initialized)
         Common_Tools::finalizeCOM ();
@@ -998,7 +1002,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::SampleCB"));
 
-  ULONG reference_count = sample_in->AddRef ();
+  //ULONG reference_count = sample_in->AddRef ();
 
   int result = -1;
   DataMessageType* message_p = NULL;
@@ -1050,11 +1054,18 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
       return result_2;
     } // end IF
     ACE_ASSERT (buffer_p);
-    unsigned int size = static_cast<unsigned int> (sample_in->GetSize ());
+    size_t size_i = static_cast<size_t> (sample_in->GetSize ());
+    //ACE_ASSERT (size_i <= inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+
+    //result = message_p->copy (reinterpret_cast<char*> (buffer_p),
+    //                          size_i);
+    //ACE_ASSERT (result == 0);
     message_p->base (reinterpret_cast<char*> (buffer_p),
-                     size,
+                     size_i,
                      ACE_Message_Block::DONT_DELETE);
-    message_p->wr_ptr (size);
+    message_p->wr_ptr (size_i);
+
+    //sample_in->Release ();
   } // end ELSE
   ACE_ASSERT (message_p);
 

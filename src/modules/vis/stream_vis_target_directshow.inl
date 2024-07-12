@@ -142,7 +142,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     IMFVideoDisplayControl_->Release ();
 
   if (window_ && closeWindow_)
-    ShowWindow (window_, FALSE);
+    DestroyWindow (window_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -972,9 +972,9 @@ error_2:
                       inherited::mod_->name (),
                       window_,
                       ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-        window_ = NULL;
-        closeWindow_ = false;
       } // end IF
+      closeWindow_ = false;
+      window_ = NULL;
 
       if (COM_initialized)
         Common_Tools::finalizeCOM ();
@@ -1053,7 +1053,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 
     if (window_ && closeWindow_)
     {
-      ShowWindow (window_, FALSE);
+      DestroyWindow (window_);
       closeWindow_ = false;
     } // end IF
     window_ = NULL;
