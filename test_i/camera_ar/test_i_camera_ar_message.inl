@@ -148,15 +148,32 @@ Stream_CameraAR_Message_T<DataType,
 
   // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
 
-//  // *NOTE*: duplicates may reuse the device buffer memory, but only the
-//  //         original message will requeue it (see release() below)
-//  DataType& data_r = const_cast<DataType&> (message_p->getR ());
-//  data_r.device = -1;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  DataType& data_r = const_cast<DataType&> (message_p->getR ());
+  if (data_r.sample)
+    data_r.sample->AddRef ();
+#endif // ACE_WIN32 || ACE_WIN64
 
   return message_p;
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+template <typename DataType,
+          typename SessionDataType>
+ACE_Message_Block*
+Stream_CameraAR_Message_T<DataType,
+                          SessionDataType>::release (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraAR_Message_T::release"));
+
+  ULONG reference_count = 0;
+  if (inherited::data_.sample)
+    reference_count = inherited::data_.sample->Release ();
+  if (reference_count == 0)
+    inherited::data_.sample = NULL;
+
+  return inherited::release ();
+}
 #else
 template <typename DataType,
           typename SessionDataType>

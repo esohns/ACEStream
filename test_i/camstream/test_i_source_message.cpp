@@ -265,6 +265,7 @@ Test_I_Source_MediaFoundation_Stream_Message::duplicate (void) const
 
   return message_p;
 }
+
 ACE_Message_Block*
 Test_I_Source_MediaFoundation_Stream_Message::release (void)
 {

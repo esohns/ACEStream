@@ -206,7 +206,7 @@ Stream_MediaFramework_MediaFoundation_Tools::toResolution (const IMFMediaType* m
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::toResolution"));
 
-  Common_Image_Resolution_t result;
+  Common_Image_Resolution_t result = {0, 0};
 
   // sanity check(s)
   ACE_ASSERT (mediaType_in);

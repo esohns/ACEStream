@@ -1002,8 +1002,6 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::SampleCB"));
 
-  //ULONG reference_count = sample_in->AddRef ();
-
   int result = -1;
   DataMessageType* message_p = NULL;
   if (unlikely (MediaSampleIsDataMessage))

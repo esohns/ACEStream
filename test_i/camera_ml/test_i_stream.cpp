@@ -57,8 +57,8 @@ Stream_CameraML_DirectShow_Stream::Stream_CameraML_DirectShow_Stream ()
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
 #endif // FFMPEG_SUPPORT
- //, flip_ (this,
- //         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
+ , flip_ (this,
+          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
 #if defined (TENSORFLOW_CC_SUPPORT)
  , tensorflow_ (this,
                 ACE_TEXT_ALWAYS_CHAR (MODULE_ML_TENSORFLOW_DEFAULT_NAME_STRING))
@@ -102,7 +102,7 @@ Stream_CameraML_DirectShow_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&convert_, NULL, 0);
   layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 #endif // FFMPEG_SUPPORT
-  //layout_in->append (&flip_, NULL, 0);
+  layout_in->append (&flip_, NULL, 0);
 #if defined (TENSORFLOW_CC_SUPPORT)
   layout_in->append (&tensorflow_, NULL, 0);
 #endif // TENSORFLOW_CC_SUPPORT

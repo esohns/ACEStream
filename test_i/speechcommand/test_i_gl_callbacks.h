@@ -21,6 +21,17 @@
 #ifndef TEST_I_GL_CALLBACKS_H
 #define TEST_I_GL_CALLBACKS_H
 
+#if defined (GLEW_SUPPORT)
+#include "GL/glew.h"
+#endif // GLEW_SUPPORT
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "gl/GL.h"
+#include "gl/GLU.h"
+#else
+#include "GL/gl.h"
+#include "GL/glu.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "gtk/gtk.h"
 
 void processInstructions (struct Test_I_SpeechCommand_UI_CBData*);

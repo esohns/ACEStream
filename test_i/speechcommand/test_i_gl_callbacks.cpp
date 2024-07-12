@@ -21,14 +21,6 @@
 
 #include "test_i_gl_callbacks.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "gl/GL.h"
-#include "gl/GLU.h"
-#else
-#include "GL/gl.h"
-#include "GL/glu.h"
-#endif // ACE_WIN32 || ACE_WIN64
-
 #include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"

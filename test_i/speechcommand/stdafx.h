@@ -30,6 +30,10 @@
 #endif // VALGRIND_USE
 
 // System Library Header Files
+#if defined (GLEW_SUPPORT)
+#include "GL/glew.h"
+#endif // GLEW_SUPPORT
+
 #include "ace/config-lite.h"
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"

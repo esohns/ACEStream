@@ -1,6 +1,9 @@
 include (OpenGL)
+
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/gl/scripts")
 include (assimp)
+include (glew)
+
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/image/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image/scripts")
 include (png)
 
@@ -18,17 +21,10 @@ include (deepspeech)
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
-#find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${Common_DIR})
-# message (FATAL_ERROR "could not find package \"Common\", aborting")
-#endif ()
-#add_definitions (-DCOMMON_HAS_DLL)
 
+if (GLEW_SUPPORT)
+ include_directories (${GLEW_INCLUDE_DIRS})
+endif (GLEW_SUPPORT)
 if (UNIX)
  include_directories (${PKG_ALSA_INCLUDE_DIRS})
  include_directories (${SOX_INCLUDE_DIRS})
@@ -180,7 +176,9 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
-
+if (GLEW_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${GLEW_LIBRARIES})
+endif (GLEW_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_ALSA_LIBRARIES})
  target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
@@ -230,14 +228,6 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Visualization)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_I)
-
-#if (UNIX)
-# if (GUI_SUPPORT)
-#  if (WXWIDGETS_USE)
-#   target_link_libraries (${EXECUTABLE} PUBLIC ${wxWidgets_LIBRARIES})
-#  endif (WXWIDGETS_USE)
-# endif (GUI_SUPPORT)
-#endif (UNIX)
 
 # add PCH
 target_precompile_headers (${EXECUTABLE}
@@ -367,18 +357,23 @@ elseif (WIN32)
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${GLEW_LIB_DIR}" GLEW_PATH)
  file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
  file (TO_CMAKE_PATH "${DEEPSPEECH_LIB_DIR}" DEEPSPEECH_LIBRARY_PATH)
+# *NOTE*: ffmpeg was built with (vcpkg-)"libpng" support, so now there is a new dependency to zlib1.dll, liblzma.dll, iconv-2.dll :-(
+ file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${ACE_LIBRARY_PATH}
+                           ${GLEW_PATH}
                            ${ASSIMP_PATH}
                            ${LIBPNG_PATH}
                            ${DEEPSPEECH_LIBRARY_PATH}
+                           ${VCPKG_PATH}
                            ${FFMPEG_PATH}
-                           ${IMAGEMAGICK_PATH})
+                           ${IMAGEMAGICK_PATH}
+                           ${ACE_LIBRARY_PATH})
  if (SOX_SUPPORT)
   file (TO_CMAKE_PATH "${SOX_LIB_DIR}" SOX_PATH)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}

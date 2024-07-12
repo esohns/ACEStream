@@ -1722,7 +1722,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   AVI_header_avih.cb =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
-  // *NOTE*: tagVIDEOINFOHEADER.AvgTimePerFrame gives 100ns units
+  // *NOTE*: tagVIDEOINFOHEADER.AvgTimePerFrame uses 100ns units
+  //         --> divide by 10 to get microseconds / frame
   value_i = 
     (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame / 10)
                                                                    : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame / 10));
@@ -1823,7 +1824,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   //AVI_header_strh.wLanguage = 0;
   //AVI_header_strh.dwInitialFrames = 0;
   // *NOTE*: dwRate / dwScale == fps
-  value_i = 10000; // 100th nanoseconds --> milliseconds
+  value_i = 10000000; // 100th nanoseconds --> seconds
   AVI_header_strh.dwScale =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);

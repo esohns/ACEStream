@@ -395,7 +395,7 @@ continue_:
     goto error;
   } // end IF
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = mediaSession_->Start (&GUID_s,      // time format
                                  &property_s); // start position
   if (FAILED (result))
@@ -406,7 +406,7 @@ continue_:
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   PropVariantClear (&property_s);
 
@@ -698,7 +698,7 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
   std::string effect_options; // *TODO*
   Stream_Module_t* module_p = NULL;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   // *TODO*: reusing media sessions is harder than it seems...
   //         --> use a fresh one every time
   if (mediaSession_)
@@ -763,7 +763,7 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
                                             MFAudioFormat_Float);
           ACE_ASSERT (SUCCEEDED (result_2));
           UINT32 channel_mask_i = (SPEAKER_FRONT_LEFT |
-                                  SPEAKER_FRONT_RIGHT);
+                                   SPEAKER_FRONT_RIGHT);
           result_2 = media_type_p->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
                                               channel_mask_i);
           ACE_ASSERT (SUCCEEDED (result_2));
@@ -847,7 +847,7 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
   ACE_ASSERT (media_type_2 && topology_p);
   graph_loaded = true;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                  mediaSession_,
                                                                  false,  // is partial ?
@@ -882,7 +882,7 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
   } // end IF
   reference_count = mediaSession_->AddRef ();
   session_data_r.session = mediaSession_;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   ACE_ASSERT (topology_p);
   topology_p->Release (); topology_p = NULL;
 

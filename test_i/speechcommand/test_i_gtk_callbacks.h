@@ -21,6 +21,17 @@
 #ifndef TEST_I_GTK_CALLBACKS_H
 #define TEST_I_GTK_CALLBACKS_H
 
+#if defined (GLEW_SUPPORT)
+#include "GL/glew.h"
+#endif // GLEW_SUPPORT
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "gl/GL.h"
+#include "gl/GLU.h"
+#else
+#include "GL/gl.h"
+#include "GL/glu.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "gtk/gtk.h"
 
 //------------------------------------------------------------------------------
@@ -48,7 +59,7 @@ G_MODULE_EXPORT void combobox_source_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gboolean drawingarea_query_tooltip_cb (GtkWidget*, gint, gint, gboolean, GtkTooltip*, gpointer);
 G_MODULE_EXPORT void drawingarea_realize_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
 G_MODULE_EXPORT gboolean drawingarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
 G_MODULE_EXPORT gboolean drawingarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
 #else

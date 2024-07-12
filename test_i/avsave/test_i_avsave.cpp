@@ -1123,10 +1123,10 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_video_stream_iterator;
-  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_video_stream_iterator_2;
-  Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-  Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
+  //Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_video_stream_iterator;
+  //Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_video_stream_iterator_2;
+  //Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
+  //Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1268,9 +1268,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         directshow_video_modulehandler_configuration;
       // *NOTE*: "flipped_raw_rgb" is set in the encoder (i.e. it stores
       //         positive heights, indicating the image scanlines are bottom-up
-      //         in memory, while ours are in fact top-down)
-      //         --> it is a complete mess :-(
-      directshow_video_modulehandler_configuration_5.flipImage = true;
+      //         in memory)
+      //directshow_video_modulehandler_configuration_5.flipImage = false;
       directshow_video_modulehandler_configuration_5.handleResize = false; // write input data as-is
 
       // capture
@@ -1329,12 +1328,12 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       directShowConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &directshow_video_modulehandler_configuration_5)));
-      directshow_video_stream_iterator =
-        directShowConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_video_stream_iterator != directShowConfiguration_in.videoStreamConfiguration.end ());
-      directshow_video_stream_iterator_2 =
-        directShowConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING));
-      ACE_ASSERT (directshow_video_stream_iterator_2 != directShowConfiguration_in.videoStreamConfiguration.end ());
+      //directshow_video_stream_iterator =
+      //  directShowConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      //ACE_ASSERT (directshow_video_stream_iterator != directShowConfiguration_in.videoStreamConfiguration.end ());
+      //directshow_video_stream_iterator_2 =
+      //  directShowConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING));
+      //ACE_ASSERT (directshow_video_stream_iterator_2 != directShowConfiguration_in.videoStreamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1351,17 +1350,17 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       mediaFoundationConfiguration_in.videoStreamConfiguration.initialize (module_configuration,
                                                                            mediafoundation_modulehandler_configuration,
                                                                            mediafoundation_stream_configuration);
-      mediafoundation_stream_iterator =
-        mediaFoundationConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.videoStreamConfiguration.end ());
+      //mediafoundation_stream_iterator =
+      //  mediaFoundationConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      //ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.videoStreamConfiguration.end ());
 
       mediaFoundationConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING),
                                                                                        std::make_pair (&module_configuration,
                                                                                                        &mediafoundation_modulehandler_configuration)));
 
-      mediafoundation_stream_iterator_2 =
-        mediaFoundationConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
-      ACE_ASSERT (mediafoundation_stream_iterator_2 != mediaFoundationConfiguration_in.videoStreamConfiguration.end ());
+      //mediafoundation_stream_iterator_2 =
+      //  mediaFoundationConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
+      //ACE_ASSERT (mediafoundation_stream_iterator_2 != mediaFoundationConfiguration_in.videoStreamConfiguration.end ());
       break;
     }
     default:
@@ -1425,7 +1424,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       struct _AMMediaType* media_type_p = NULL;
       if (!do_initialize_directshow (deviceIdentifier_in,
                                      !UIDefinitionFilename_in.empty (), // has UI ?
-                                     (*directshow_video_stream_iterator).second.second->builder,
+                                     directshow_video_modulehandler_configuration.builder,
                                      stream_config_p,
                                      directshow_video_stream_configuration.format.audio,
                                      directshow_video_stream_configuration.format.video,
@@ -1456,6 +1455,11 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
                                                          directshow_video_modulehandler_configuration_2.outputFormat);
       delete media_type_p; media_type_p = NULL;
+
+      // *NOTE*: need to set this for RGB-capture formats ONLY !
+      directshow_video_modulehandler_configuration_2.flipImage =
+        Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_video_stream_configuration.format.video);
+
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_video_modulehandler_configuration_2.outputFormat);
       directshow_video_modulehandler_configuration_3.outputFormat =
@@ -1479,20 +1483,20 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       if (!do_initialize_mediafoundation (deviceIdentifier_in,
                                           window_handle,
                                           mediafoundation_stream_configuration.format.video
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                                          ,(*mediafoundation_stream_iterator).second.second->session
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
+                                          ,mediafoundation_modulehandler_configuration.session
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                                          ))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_mediafoundation(), returning\n")));
         return;
       } // end IF
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      ACE_ASSERT ((*mediafoundation_stream_iterator).second.second->session);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
+      ACE_ASSERT (mediafoundation_modulehandler_configuration.session);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
-#if defined(GUI_SUPPORT)
+#if defined (GUI_SUPPORT)
       UINT32 bits_per_sample_i = 0;
       HRESULT result =
         mediafoundation_stream_configuration.format.audio->GetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,

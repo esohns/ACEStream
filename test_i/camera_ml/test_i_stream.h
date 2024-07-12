@@ -108,7 +108,7 @@ class Stream_CameraML_DirectShow_Stream
   Stream_CameraML_DirectShow_LibAVConvert_Module       convert_; // RGB
   Stream_CameraML_DirectShow_LibAVResize_Module        resize_; // --> window size/fullscreen
 #endif // FFMPEG_SUPPORT
-  //Stream_CameraML_DirectShow_HFlip_Module            flip_;
+  Stream_CameraML_DirectShow_HFlip_Module              flip_;
 #if defined (TENSORFLOW_CC_SUPPORT)
   Stream_CameraML_DirectShow_Tensorflow_Module         tensorflow_;
 #endif // TENSORFLOW_CC_SUPPORT

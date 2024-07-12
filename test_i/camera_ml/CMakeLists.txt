@@ -1,8 +1,8 @@
 include (ffmpeg)
 include (ImageMagick)
 
-set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
-include (opencv)
+#set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
+#include (opencv)
 
 include (tensorflow)
 
@@ -29,9 +29,9 @@ endif ()
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
-if (OPENCV_SUPPORT)
- include_directories (${OPENCV_INCLUDE_DIRS})
-endif (OPENCV_SUPPORT)
+#if (OPENCV_SUPPORT)
+# include_directories (${OPENCV_INCLUDE_DIRS})
+#endif (OPENCV_SUPPORT)
 if (TENSORFLOW_SUPPORT)
  if (TENSORFLOW_CC_SUPPORT)
   include_directories (${tensorflow_cc_INCLUDE_DIRS})
@@ -138,9 +138,9 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 if (FFMPEG_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)
-if (OPENCV_SUPPORT)
- target_link_libraries (${EXECUTABLE} PUBLIC ${OPENCV_LIBRARIES})
-endif (OPENCV_SUPPORT)
+#if (OPENCV_SUPPORT)
+# target_link_libraries (${EXECUTABLE} PUBLIC ${OPENCV_LIBRARIES})
+#endif (OPENCV_SUPPORT)
 if (TENSORFLOW_SUPPORT)
  if (TENSORFLOW_CC_SUPPORT)
   target_link_libraries (${EXECUTABLE} PUBLIC ${tensorflow_cc_LIBRARIES})
@@ -215,11 +215,13 @@ elseif (WIN32)
  set (ARGS "${ARGS} -f ${MODEL_PATH}")
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
+ # *NOTE*: ffmpeg was built with (vcpkg-)"libpng" support, so now there is a new dependency to zlib1.dll, liblzma.dll, iconv-2.dll :-(
+ file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
- if (OPENCV_SUPPORT)
-  file (TO_CMAKE_PATH "${OPENCV_LIB_DIR}" OPENCV_PATH)
- endif (OPENCV_SUPPORT)
+# if (OPENCV_SUPPORT)
+#  file (TO_CMAKE_PATH "${OPENCV_LIB_DIR}" OPENCV_PATH)
+# endif (OPENCV_SUPPORT)
  if (TENSORFLOW_SUPPORT)
   if (TENSORFLOW_CC_SUPPORT)
    file (TO_CMAKE_PATH "${tensorflow_cc_LIB_DIR}" TENSORFLOW_PATH)
@@ -235,9 +237,10 @@ elseif (WIN32)
  endif (WXWIDGETS_SUPPORT)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                           ${VCPKG_PATH}
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
-                           ${OPENCV_PATH}
+ #                          ${OPENCV_PATH}
                            ${TENSORFLOW_PATH}
                            ${ACE_LIBRARY_PATH})
  if (GTK_SUPPORT)

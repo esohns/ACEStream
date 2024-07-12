@@ -329,13 +329,13 @@ template <typename DataMessageType,
 class Stream_CameraAR_SessionMessage_T;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_CameraAR_Message_T<struct Stream_CameraAR_DirectShow_MessageData,
-                                      Stream_CameraAR_DirectShow_SessionData_t> Stream_CameraAR_DirectShow_Message_t;
+                                  Stream_CameraAR_DirectShow_SessionData_t> Stream_CameraAR_DirectShow_Message_t;
 typedef Stream_CameraAR_SessionMessage_T<Stream_CameraAR_DirectShow_Message_t,
-                                             Stream_CameraAR_DirectShow_SessionData_t> Stream_CameraAR_DirectShow_SessionMessage_t;
+                                         Stream_CameraAR_DirectShow_SessionData_t> Stream_CameraAR_DirectShow_SessionMessage_t;
 typedef Stream_CameraAR_Message_T<struct Stream_CameraAR_MediaFoundation_MessageData,
-                                      Stream_CameraAR_MediaFoundation_SessionData_t> Stream_CameraAR_MediaFoundation_Message_t;
+                                  Stream_CameraAR_MediaFoundation_SessionData_t> Stream_CameraAR_MediaFoundation_Message_t;
 typedef Stream_CameraAR_SessionMessage_T<Stream_CameraAR_MediaFoundation_Message_t,
-                                             Stream_CameraAR_MediaFoundation_SessionData_t> Stream_CameraAR_MediaFoundation_SessionMessage_t;
+                                         Stream_CameraAR_MediaFoundation_SessionData_t> Stream_CameraAR_MediaFoundation_SessionMessage_t;
 
 typedef Stream_ISessionDataNotify_T<Stream_CameraAR_DirectShow_SessionData,
                                     enum Stream_SessionMessageType,
