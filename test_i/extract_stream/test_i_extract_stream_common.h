@@ -172,6 +172,9 @@ struct Test_I_ExtractStream_ModuleHandlerConfiguration
    , streamIndex (-1)
    , subscriber (NULL)
    , targetFileName ()
+#if defined (GTK_USE)
+   , window (NULL)
+#endif // GTK_USE
   {}
 
 #if defined (FFMPEG_SUPPORT)
@@ -185,6 +188,9 @@ struct Test_I_ExtractStream_ModuleHandlerConfiguration
   int                                           streamIndex;
   Test_I_ISessionNotify_t*                      subscriber;
   std::string                                   targetFileName;
+#if defined (GTK_USE)
+  GdkWindow*                                    window;
+#endif // GTK_USE
 };
 
 //extern const char stream_name_string_[];

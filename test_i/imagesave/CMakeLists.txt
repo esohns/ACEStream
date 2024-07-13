@@ -265,11 +265,15 @@ endif ()
 
 set (ARGS "-l")
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
- set (ARGS "${ARGS} -t")
+ set (ARGS "${ARGS} -d -t")
 endif (CMAKE_BUILD_TYPE STREQUAL Debug)
-file (TO_CMAKE_PATH "G:/video/other/file_example_mp4_1920_18mg.mp4" SOURCE_FILE_PATH)
-file (TO_NATIVE_PATH "${SOURCE_FILE_PATH}" SOURCE_FILE_PATH)
-string (REPLACE "\\" "\\\\" SOURCE_FILE_PATH "${SOURCE_FILE_PATH}")
+if (UNIX)
+ file (TO_CMAKE_PATH "/run/media/eriks/ARCHIVE_2/video/other/file_example_mp4_1920_18mg.mp4" SOURCE_FILE_PATH)
+elseif (WIN32)
+ file (TO_CMAKE_PATH "G:/video/other/file_example_mp4_1920_18mg.mp4" SOURCE_FILE_PATH)
+ file (TO_NATIVE_PATH "${SOURCE_FILE_PATH}" SOURCE_FILE_PATH)
+ string (REPLACE "\\" "\\\\" SOURCE_FILE_PATH "${SOURCE_FILE_PATH}")
+endif ()
 set (ARGS "-f${SOURCE_FILE_PATH} ${ARGS}")
 if (UNIX)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
@@ -313,11 +317,14 @@ elseif (WIN32)
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
+# *NOTE*: ffmpeg was built with (vcpkg-)"libpng" support, so now there is a new dependency to zlib1.dll, liblzma.dll, iconv-2.dll :-(
+ file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${LIBPNG_PATH}
+                           ${VCPKG_PATH}
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
                            ${ACE_PATH})

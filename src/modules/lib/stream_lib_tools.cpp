@@ -3493,6 +3493,130 @@ Stream_MediaFramework_Tools::isAcceleratedFormat (enum AVPixelFormat format_in)
   return false;
 }
 
+bool
+Stream_MediaFramework_Tools::isAudioCodecId (enum AVCodecID codecId_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::isAudioCodecId"));
+
+  return (avcodec_get_type (codecId_in) == AVMEDIA_TYPE_AUDIO);
+
+  switch (codecId_in)
+  {
+    case AV_CODEC_ID_MP2:
+    case AV_CODEC_ID_MP3:
+    case AV_CODEC_ID_AAC:
+    case AV_CODEC_ID_AC3:
+    case AV_CODEC_ID_DTS:
+    case AV_CODEC_ID_VORBIS:
+    case AV_CODEC_ID_DVAUDIO:
+    case AV_CODEC_ID_WMAV1:
+    case AV_CODEC_ID_WMAV2:
+    case AV_CODEC_ID_MACE3:
+    case AV_CODEC_ID_MACE6:
+    case AV_CODEC_ID_VMDAUDIO:
+    case AV_CODEC_ID_FLAC:
+    case AV_CODEC_ID_MP3ADU:
+    case AV_CODEC_ID_MP3ON4:
+    case AV_CODEC_ID_SHORTEN:
+    case AV_CODEC_ID_ALAC:
+    case AV_CODEC_ID_WESTWOOD_SND1:
+    case AV_CODEC_ID_GSM:
+    case AV_CODEC_ID_QDM2:
+    case AV_CODEC_ID_COOK:
+    case AV_CODEC_ID_TRUESPEECH:
+    case AV_CODEC_ID_TTA:
+    case AV_CODEC_ID_SMACKAUDIO:
+    case AV_CODEC_ID_QCELP:
+    case AV_CODEC_ID_WAVPACK:
+    case AV_CODEC_ID_DSICINAUDIO:
+    case AV_CODEC_ID_IMC:
+    case AV_CODEC_ID_MUSEPACK7:
+    case AV_CODEC_ID_MLP:
+    case AV_CODEC_ID_GSM_MS:
+    case AV_CODEC_ID_ATRAC3:
+    case AV_CODEC_ID_APE:
+    case AV_CODEC_ID_NELLYMOSER:
+    case AV_CODEC_ID_MUSEPACK8:
+    case AV_CODEC_ID_SPEEX:
+    case AV_CODEC_ID_WMAVOICE:
+    case AV_CODEC_ID_WMAPRO:
+    case AV_CODEC_ID_WMALOSSLESS:
+    case AV_CODEC_ID_ATRAC3P:
+    case AV_CODEC_ID_EAC3:
+    case AV_CODEC_ID_SIPR:
+    case AV_CODEC_ID_MP1:
+    case AV_CODEC_ID_TWINVQ:
+    case AV_CODEC_ID_TRUEHD:
+    case AV_CODEC_ID_MP4ALS:
+    case AV_CODEC_ID_ATRAC1:
+    case AV_CODEC_ID_BINKAUDIO_RDFT:
+    case AV_CODEC_ID_BINKAUDIO_DCT:
+    case AV_CODEC_ID_AAC_LATM:
+    case AV_CODEC_ID_QDMC:
+    case AV_CODEC_ID_CELT:
+    case AV_CODEC_ID_G723_1:
+    case AV_CODEC_ID_G729:
+    case AV_CODEC_ID_8SVX_EXP:
+    case AV_CODEC_ID_8SVX_FIB:
+    case AV_CODEC_ID_BMV_AUDIO:
+    case AV_CODEC_ID_RALF:
+    case AV_CODEC_ID_IAC:
+    case AV_CODEC_ID_ILBC:
+    case AV_CODEC_ID_OPUS:
+    case AV_CODEC_ID_COMFORT_NOISE:
+    case AV_CODEC_ID_TAK:
+    case AV_CODEC_ID_METASOUND:
+    case AV_CODEC_ID_PAF_AUDIO:
+    case AV_CODEC_ID_ON2AVC:
+    case AV_CODEC_ID_DSS_SP:
+    case AV_CODEC_ID_CODEC2:
+    case AV_CODEC_ID_FFWAVESYNTH:
+    case AV_CODEC_ID_SONIC:
+    case AV_CODEC_ID_SONIC_LS:
+    case AV_CODEC_ID_EVRC:
+    case AV_CODEC_ID_SMV:
+    case AV_CODEC_ID_DSD_LSBF:
+    case AV_CODEC_ID_DSD_MSBF:
+    case AV_CODEC_ID_DSD_LSBF_PLANAR:
+    case AV_CODEC_ID_DSD_MSBF_PLANAR:
+    case AV_CODEC_ID_4GV:
+    case AV_CODEC_ID_INTERPLAY_ACM:
+    case AV_CODEC_ID_XMA1:
+    case AV_CODEC_ID_XMA2:
+    case AV_CODEC_ID_DST:
+    case AV_CODEC_ID_ATRAC3AL:
+    case AV_CODEC_ID_ATRAC3PAL:
+    case AV_CODEC_ID_DOLBY_E:
+    case AV_CODEC_ID_APTX:
+    case AV_CODEC_ID_APTX_HD:
+    case AV_CODEC_ID_SBC:
+    case AV_CODEC_ID_ATRAC9:
+    case AV_CODEC_ID_HCOM:
+    case AV_CODEC_ID_ACELP_KELVIN:
+    case AV_CODEC_ID_MPEGH_3D_AUDIO:
+    case AV_CODEC_ID_SIREN:
+    case AV_CODEC_ID_HCA:
+    case AV_CODEC_ID_FASTAUDIO:
+    case AV_CODEC_ID_MSNSIREN:
+    case AV_CODEC_ID_DFPWM:
+    case AV_CODEC_ID_BONK:
+    case AV_CODEC_ID_MISC4:
+    case AV_CODEC_ID_APAC:
+    case AV_CODEC_ID_FTR:
+    case AV_CODEC_ID_WAVARC:
+    case AV_CODEC_ID_RKA:
+    case AV_CODEC_ID_AC4:
+    case AV_CODEC_ID_OSQ:
+    // case AV_CODEC_ID_QOA:
+    // case AV_CODEC_ID_LC3:
+      return true;
+    default:
+      break;
+  } // end SWITCH
+
+  return false;
+}
+
 int
 Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_in, bool raw_in)
 {

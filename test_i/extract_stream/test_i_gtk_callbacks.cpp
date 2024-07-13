@@ -55,6 +55,8 @@ extern "C"
 
 #include "stream_macros.h"
 
+#include "stream_lib_tools.h"
+
 #include "test_i_stream.h"
 
 #include "test_i_extract_stream_common.h"
@@ -698,11 +700,17 @@ idle_initialize_UI_cb (gpointer userData_in)
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
 
+  GtkDrawingArea* drawing_area_p =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_VIDEO_NAME)));
+  ACE_ASSERT (drawing_area_p);
+  (*stream_iterator).second.second->window = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+
   // step10: retrieve canvas coordinates, window handle and pixel buffer
-  //GtkAllocation allocation;
-  //ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
-  //gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
-  //                           &allocation);
+  GtkAllocation allocation;
+  ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
+  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
+                             &allocation);
   //GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
   //ACE_ASSERT (window_p);
   //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
@@ -713,11 +721,15 @@ idle_initialize_UI_cb (gpointer userData_in)
   //cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
   //  gdk_win32_window_get_impl_hwnd (window_p);
 
-  //Common_Image_Resolution_t resolution_s;
-  //resolution_s.cx = allocation.width;
-  //resolution_s.cy = allocation.height;
-  //Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-  //                                                        (*stream_iterator).second.second->outputFormat);
+  Common_Image_Resolution_t resolution_s;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  resolution_s.cx = allocation.width;
+  resolution_s.cy = allocation.height;
+#else
+  resolution_s.width = allocation.width;
+  resolution_s.height = allocation.height;
+#endif // ACE_WIN32 || ACE_WIN64
+  (*stream_iterator).second.second->outputFormat.video.resolution = resolution_s;
 
   //(*stream_iterator).second.second->area.bottom =
   //  allocation.y + allocation.height;
@@ -734,131 +746,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   //            ACE_TEXT ("drawing area window handle: 0x%@; size: %dx%d\n"),
   //            (*stream_iterator).second.second->window,
   //            allocation.width, allocation.height));
-
-//#if GTK_CHECK_VERSION (2,30,0)
-//  GValue value = G_VALUE_INIT;
-//#else
-//  GValue value;
-//  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-//#endif // GTK_CHECK_VERSION (2,30,0)
-//  g_value_init (&value, G_TYPE_STRING);
-//
-//  // step11: select default capture source (if any)
-//  //         --> populate the options comboboxes
-//  list_store_p =
-//    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-//                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VIDEO_SOURCE_NAME)));
-//  ACE_ASSERT (list_store_p);
-//  gint n_rows =
-//    gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
-//  if (n_rows)
-//  {
-////    GtkFrame* frame_p =
-////      GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-////                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SOURCE_NAME)));
-////    ACE_ASSERT (frame_p);
-////    gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
-//
-//    combo_box_p =
-//      GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-//                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_VIDEO_SOURCE_NAME)));
-//    ACE_ASSERT (combo_box_p);
-//    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
-//
-//    ACE_ASSERT ((*stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
-//    g_value_set_string (&value,
-//                        (*stream_iterator).second.second->deviceIdentifier.identifier._string);
-//    Common_UI_GTK_Tools::selectValue (combo_box_p,
-//                                      value,
-//                                      1);
-//  } // end IF
-
-//  // select default capture format
-//  std::ostringstream converter;
-//  combo_box_p =
-//    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-//                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_VIDEO_FORMAT_NAME)));
-//  ACE_ASSERT (combo_box_p);
-//  list_store_p =
-//    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-//                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VIDEO_FORMAT_NAME)));
-//  ACE_ASSERT (list_store_p);
-//  g_value_unset (&value);
-//  g_value_init (&value, G_TYPE_STRING);
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  g_value_set_string (&value,
-//                      Common_Tools::GUIDToString (format_s).c_str ());
-//#else
-//  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-//  converter << cb_data_p->configuration->streamConfiguration.configuration_->format.video.format.pixelformat;
-//  g_value_set_string (&value,
-//                      converter.str ().c_str ());
-//#endif // ACE_WIN32 || ACE_WIN64
-//  Common_UI_GTK_Tools::selectValue (combo_box_p,
-//                                    value,
-//                                    1);
-//
-//  combo_box_p =
-//    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-//                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_VIDEO_RESOLUTION_NAME)));
-//  ACE_ASSERT (combo_box_p);
-//  list_store_p =
-//    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-//                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VIDEO_RESOLUTION_NAME)));
-//  ACE_ASSERT (list_store_p);
-//  g_value_unset (&value);
-//  g_value_init (&value, G_TYPE_STRING);
-//  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-//  converter.clear ();
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  converter << resolution_s.cx;
-//#else
-//  converter << resolution_s.width;
-//#endif // ACE_WIN32 || ACE_WIN64
-//  converter << ACE_TEXT_ALWAYS_CHAR (" x ");
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  converter << resolution_s.cy;
-//#else
-//  converter << resolution_s.height;
-//#endif // ACE_WIN32 || ACE_WIN64
-//  g_value_set_string (&value,
-//                      converter.str ().c_str ());
-//  Common_UI_GTK_Tools::selectValue (combo_box_p,
-//                                    value,
-//                                    0);
-//
-//  combo_box_p =
-//    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-//                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_VIDEO_FRAMERATE_NAME)));
-//  ACE_ASSERT (combo_box_p);
-//  list_store_p =
-//    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-//                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VIDEO_FRAMERATE_NAME)));
-//  ACE_ASSERT (list_store_p);
-//  g_value_unset (&value);
-//  g_value_init (&value, G_TYPE_STRING);
-//  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-//  converter.clear ();
-//  converter << (double)framerate_i / (double)1.0;
-//  std::string framerate_string = converter.str ();
-//  g_value_set_string (&value,
-//                      framerate_string.c_str ());
-//  Common_UI_GTK_Tools::selectValue (combo_box_p,
-//                                    value,
-//                                    0);
-//  g_value_unset (&value);
-//
-//  combo_box_p =
-//    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-//                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME)));
-//  ACE_ASSERT (combo_box_p);
-//  g_value_unset (&value);
-//  g_value_init (&value, G_TYPE_STRING);
-  //g_value_set_string (&value,
-  //                    (*stream_iterator).second.second->display.device.c_str ());
-  //Common_UI_GTK_Tools::selectValue (combo_box_p,
-  //                                  value,
-  //                                  1);
 
   return G_SOURCE_REMOVE;
 }
@@ -1444,6 +1331,7 @@ togglebutton_play_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_hthread_t thread_handle = ACE_INVALID_HANDLE;
   const char* thread_name_2 = NULL;
   ACE_Thread_Manager* thread_manager_p = NULL;
+  guint event_source_id_i;
 
   // step0: modify widgets
   gtk_button_set_label (GTK_BUTTON (toggleButton_in),
@@ -1490,8 +1378,14 @@ togglebutton_play_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SOURCE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-  filename_string =
+  gchar* filename_p = 
     gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (file_chooser_button_p));
+  if (filename_p)
+  {
+    filename_string = filename_p;
+    //filename_string = Common_UI_GTK_Tools::UTF8ToLocale (filename_string);
+    g_free (filename_p); filename_p = NULL;
+  } // end IF
   ACE_ASSERT (Common_File_Tools::isReadable (filename_string));
   (*stream_iterator).second.second->fileIdentifier.identifier = filename_string;
 
@@ -1619,11 +1513,12 @@ continue_:
     cb_data_p->UIState->eventSourceIds.insert (cb_data_p->progressData.eventSourceId);
   } // end lock scope
   // step4: start display updates
-  //cb_data_p->eventSourceId =
-  //  g_timeout_add (COMMON_UI_REFRESH_DEFAULT_VIDEO_MS, // ms
-  //                 idle_update_display_cb,
-  //                 userData_in);
-  //ACE_ASSERT (cb_data_p->eventSourceId);
+  event_source_id_i =
+    g_timeout_add (COMMON_UI_REFRESH_DEFAULT_VIDEO_MS, // ms
+                   idle_update_display_cb,
+                   userData_in);
+  ACE_ASSERT (event_source_id_i);
+  cb_data_p->UIState->eventSourceIds.insert (event_source_id_i);
 
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
@@ -1957,29 +1852,28 @@ button_quit_clicked_cb (GtkButton* button_in,
   struct Test_I_ExtractStream_UI_CBData* cb_data_p =
     static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
   ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->UIState);
+  ACE_ASSERT (cb_data_p->stream);
 
-  enum Stream_StateMachine_ControlState status_e = STREAM_STATE_INVALID;
-  Stream_IStreamControlBase* stream_p = NULL;
-  status_e = cb_data_p->stream->status ();
-  stream_p = cb_data_p->stream;
-  ACE_ASSERT (stream_p);
+  // step1: remove event sources
+  { ACE_Guard<ACE_Thread_Mutex> aGuard (cb_data_p->UIState->lock);
+    for (Common_UI_GTK_EventSourceIdsIterator_t iterator = cb_data_p->UIState->eventSourceIds.begin ();
+        iterator != cb_data_p->UIState->eventSourceIds.end ();
+        iterator++)
+     if (!g_source_remove (*iterator))
+       ACE_DEBUG ((LM_ERROR,
+                   ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+                   *iterator));
+   cb_data_p->UIState->eventSourceIds.clear ();
+  } // end lock scope
 
-  //// step1: remove event sources
-  //{ ACE_Guard<ACE_Thread_Mutex> aGuard (data_p->lock);
-  //  for (Common_UI_GTKEventSourceIdsIterator_t iterator = data_p->eventSourceIds.begin ();
-  //       iterator != data_p->eventSourceIds.end ();
-  //       iterator++)
-  //    if (!g_source_remove (*iterator))
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-  //                  *iterator));
-  //  data_p->eventSourceIds.clear ();
-  //} // end lock scope
-
-  // stop stream ?
+  // step2: stop stream ?
+  enum Stream_StateMachine_ControlState status_e = cb_data_p->stream->status ();
   if ((status_e == STREAM_STATE_RUNNING) ||
       (status_e == STREAM_STATE_PAUSED))
-    stream_p->stop (false, true, true);
+    cb_data_p->stream->stop (false,  // wait for completion ?
+                             true,   // recurse upstream ?
+                             false); // high priority ?
 
   // step2: initiate shutdown sequence
   int result = ACE_OS::raise (SIGINT);
@@ -2042,6 +1936,19 @@ combobox_stream_changed_cb (GtkWidget* widget_in,
   (*stream_iterator).second.second->codecId =
     static_cast<enum AVCodecID> (g_value_get_uint (&value_2));
   g_value_unset (&value_2);
+  cb_data_p->configuration->streamConfiguration.configuration_->mode = 
+    (Stream_MediaFramework_Tools::isAudioCodecId ((*stream_iterator).second.second->codecId) ? TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY
+                                                                                             : TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_VIDEO_ONLY);
+
+  (*stream_iterator).second.second->targetFileName =
+    (cb_data_p->configuration->streamConfiguration.configuration_->mode == TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY ? ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_AUDIO_FILE)
+                                                                                                                               : ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_AUDIO_VIDEO_FILE));
+  GtkEntry* entry_p =
+    GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_SAVE_NAME)));
+  ACE_ASSERT (entry_p);
+  gtk_entry_set_text (entry_p,
+                      (*stream_iterator).second.second->targetFileName.c_str ());
 } // combobox_stream_changed_cb
 
 void
@@ -2741,8 +2648,8 @@ filechooserbutton_source_file_set_cb (GtkFileChooserButton* fileChooserButton_in
     return;
   } // end IF
   g_object_unref (G_OBJECT (file_p)); file_p = NULL;
-  std::string filename_string =
-    Common_UI_GTK_Tools::UTF8ToLocale (string_p, -1);
+  std::string filename_string = string_p;
+    //Common_UI_GTK_Tools::UTF8ToLocale (string_p, -1);
   if (filename_string.empty ())
   {
     ACE_DEBUG ((LM_ERROR,

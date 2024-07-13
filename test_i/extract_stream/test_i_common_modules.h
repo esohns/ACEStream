@@ -56,6 +56,9 @@
 #if defined (FFMPEG_SUPPORT)
 #include "stream_vis_libav_resize.h"
 #endif // FFMPEG_SUPPORT
+#if defined (GTK_SUPPORT)
+#include "stream_vis_gtk_cairo.h"
+#endif // GTK_SUPPORT
 
 #include "test_i_message.h"
 #include "test_i_session_message.h"
@@ -175,28 +178,17 @@ typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
                                                       Test_I_SessionMessage_t,
                                                       Test_I_ExtractStream_SessionData> Test_I_Distributor_Writer_t;
 
-//typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-//                                                      Common_TimePolicy_t,
-//                                                      struct Test_I_ExtractStream_ModuleHandlerConfiguration,
-//                                                      Stream_ControlMessage_t,
-//                                                      Test_I_ExtractStream_Message_t,
-//                                                      Test_I_ExtractStream_SessionMessage_t,
-//                                                      Stream_CommandType_t,
-//                                                      struct Stream_AVSave_StatisticData,
-//                                                      Common_Timer_Manager_t,
-//                                                      Test_I_ExtractStream_SessionData,
-//                                                      Test_I_ExtractStream_SessionData_t> Test_I_ExtractStream_Statistic_ReaderTask_t;
-//typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-//                                                      Common_TimePolicy_t,
-//                                                      struct Test_I_ExtractStream_ModuleHandlerConfiguration,
-//                                                      Stream_ControlMessage_t,
-//                                                      Test_I_ExtractStream_Message_t,
-//                                                      Test_I_ExtractStream_SessionMessage_t,
-//                                                      Stream_CommandType_t,
-//                                                      struct Stream_AVSave_StatisticData,
-//                                                      Common_Timer_Manager_t,
-//                                                      Test_I_ExtractStream_SessionData,
-//                                                      Test_I_ExtractStream_SessionData_t> Test_I_ExtractStream_Statistic_WriterTask_t;
+#if defined (GTK_SUPPORT)
+typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_I_ExtractStream_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_I_Message_t,
+                                      Test_I_SessionMessage_t,
+                                      Test_I_ExtractStream_SessionData,
+                                      Test_I_ExtractStream_SessionData_t,
+                                      struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_Vis_GTK_Cairo;
+#endif // GTK_SUPPORT
 
 typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
@@ -287,15 +279,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                 
                               Test_I_AACDecoder);                                 // writer type
 #endif // FAAD_SUPPORT
 
-//DATASTREAM_MODULE_DUPLEX (Test_I_ExtractStream_SessionData,                // session data type
-//                          enum Stream_SessionMessageType,                   // session event type
-//                          struct Test_I_ExtractStream_ModuleHandlerConfiguration, // module handler configuration type
-//                          libacestream_default_stat_report_module_name_string,
-//                          Stream_INotify_t,                                 // stream notification interface type
-//                          Test_I_ExtractStream_Statistic_ReaderTask_t, // reader type
-//                          Test_I_ExtractStream_Statistic_WriterTask_t, // writer type
-//                          Test_I_ExtractStream_StatisticReport);       // name
-
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Test_I_ExtractStream_ModuleHandlerConfiguration, // module handler configuration type
@@ -324,6 +307,15 @@ DATASTREAM_MODULE_DUPLEX (Test_I_ExtractStream_SessionData,                     
                           Test_I_Distributor_Writer_t::READER_TASK_T,               // reader type
                           Test_I_Distributor_Writer_t,                              // writer type
                           Test_I_Distributor);                                      // module name prefix
+
+#if defined (GTK_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                        // session data type
+                              enum Stream_SessionMessageType,                          // session event type
+                              struct Test_I_ExtractStream_ModuleHandlerConfiguration,  // module handler configuration type
+                              libacestream_default_vis_gtk_cairo_module_name_string,
+                              Stream_INotify_t,                                        // stream notification interface type
+                              Test_I_Vis_GTK_Cairo);                                      // writer type
+#endif // GTK_SUPPORT
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                        // session data type
                               enum Stream_SessionMessageType,                          // session event type

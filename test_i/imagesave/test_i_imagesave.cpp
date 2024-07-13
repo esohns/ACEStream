@@ -146,6 +146,10 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d          : debug [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::string path = Common_File_Tools::getTempDirectory ();
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : source file [")
             << path
@@ -190,6 +194,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      bool& showConsole_out,
 #endif // ACE_WIN32 || ACE_WIN64
+                     bool& debug_out,
                      std::string& sourceFileName_out,
 #if defined (GUI_SUPPORT)
                      std::string& UIFile_out,
@@ -208,6 +213,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   showConsole_out = false;
 #endif // ACE_WIN32 || ACE_WIN64
+  debug_out = false;
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
@@ -261,6 +267,11 @@ do_processArguments (int argc_in,
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
+      case 'd':
+      {
+        debug_out = true;
+        break;
+      }
       case 'f':
       { ACE_ASSERT (argumentParser.opt_arg ());
         sourceFileName_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
@@ -398,6 +409,7 @@ do_work (
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
 #endif // ACE_WIN32 || ACE_WIN64
+         bool debug_in,
          const std::string& sourceFilename_in,
          const std::string& targetFilename_in,
          struct Test_I_ImageSave_Configuration& configuration_in,
@@ -460,6 +472,7 @@ do_work (
 //#endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.allocatorConfiguration =
     &allocator_configuration;
+  modulehandler_configuration.debug = debug_in;
   modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
 #if defined (FFMPEG_SUPPORT)
   modulehandler_configuration.codecId = AV_CODEC_ID_H264;
@@ -539,7 +552,7 @@ do_work (
     STREAM_DEV_CAM_DEFAULT_CAPTURE_FRAME_RATE;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_BGR24;
+  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_RGB24;
 #else
   modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_RGB32;
 #endif // GTK_USE
@@ -798,6 +811,7 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool show_console = false;
 #endif // ACE_WIN32 || ACE_WIN64
+  bool debug_b = false;
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
@@ -830,6 +844,7 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             show_console,
 #endif // ACE_WIN32 || ACE_WIN64
+                            debug_b,
                             source_filename,
 #if defined (GUI_SUPPORT)
                             UI_definition_filename,
@@ -1118,6 +1133,7 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            show_console,
 #endif // ACE_WIN32 || ACE_WIN64
+           debug_b,
            source_filename,
            target_filename,
            configuration,

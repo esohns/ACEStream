@@ -1414,10 +1414,10 @@ do_work (int argc_in,
   if (useVideoWall_in)
   {
     modulehandler_configuration_2b = modulehandler_configuration;
-    modulehandler_configuration_2b.outputFormat.width /=
-      ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X;
-    modulehandler_configuration_2b.outputFormat.height /=
-      ACESTREAM_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
+    modulehandler_configuration_2b.outputFormat.format.width /=
+      TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X;
+    modulehandler_configuration_2b.outputFormat.format.height /=
+      TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
     configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
                                                                  std::make_pair (&module_configuration,
                                                                                  &modulehandler_configuration_2b)));
@@ -1604,6 +1604,7 @@ do_work (int argc_in,
     {
       Common_UI_GTK_Tools::initialize (argc_in, argv_in);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       switch (mediaFramework_in)
       {
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1633,7 +1634,15 @@ do_work (int argc_in,
           return;
         }
       } // end SWITCH
-
+#else
+      modulehandler_configuration_2.outputFormat.format.pixelformat = V4L2_PIX_FMT_RGB24;
+      configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+                                                                   std::make_pair (&module_configuration,
+                                                                                   &modulehandler_configuration_2)));
+      configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                   std::make_pair (&module_configuration,
+                                                                                   &modulehandler_configuration_2b)));
+#endif // ACE_WIN32 || ACE_WIN64
       break;
     }
 #endif // GTK_SUPPORT

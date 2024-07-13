@@ -242,7 +242,14 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
 
   stream.read (buffer_a, sizeof (struct _rifflist));
   if (stream.eof () || stream.fail ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to read RIFF header (file was: \"%s\"), aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (targetFilename_in.c_str ())));
+    stream.clear ();
     goto error;
+  } // end IF
   read_offset = sizeof (struct _rifflist);
   RIFF_list_p = reinterpret_cast<struct _rifflist*> (buffer_a);
   ACE_ASSERT (RIFF_list_p->fcc == FCC ('RIFF'));
@@ -1063,6 +1070,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       const struct AVCodec* codec_p = NULL;
       struct AVStream* stream_p = NULL;
       int result = -1;
+      int sample_rate_i = 0;
 
       result =
         avformat_alloc_output_context2 (&formatContext_, // return value: format context handle
@@ -1140,7 +1148,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       if (unlikely (!codec_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avcodec_find_encoder(%d) (codec: \"%s\") failed: \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: avcodec_find_encoder(%d) (codec: \"%s\") failed, aborting\n"),
                     inherited::mod_->name (),
                     codec_id, ACE_TEXT (Common_Image_Tools::codecIdToString (codec_id).c_str ())));
         goto error;
@@ -1309,11 +1317,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       codec_id =
         av_get_pcm_codec (media_type_2.format,
                           ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? 0 : 1));
+      if (codec_id == AV_CODEC_ID_NONE)
+        codec_id = (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? AV_CODEC_ID_PCM_S16LE : AV_CODEC_ID_PCM_S16BE;
       codec_p = avcodec_find_encoder (codec_id);
       if (unlikely (!codec_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avcodec_find_encoder(%d) (codec: \"%s\") failed: \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: avcodec_find_encoder(%d) (codec: \"%s\") failed, aborting\n"),
                     inherited::mod_->name (),
                     codec_id, ACE_TEXT (Common_Image_Tools::codecIdToString (codec_id).c_str ())));
         goto error;
@@ -1328,10 +1338,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
 
+      sample_rate_i = media_type_2.sampleRate ? media_type_2.sampleRate : 48000;
       audioCodecContext_->codec_id = codec_id;
-      //      codec_context_p->codec_tag = MKTAG ('B', 'G', 'R', '8');
-      audioCodecContext_->bit_rate =
-        audioFrameSize_ * media_type_2.sampleRate * 8;
+      audioCodecContext_->bit_rate = audioFrameSize_ * sample_rate_i * 8;
       //      codec_context_p->bit_rate_tolerance = 5000000;
       //      codec_context_p->global_quality = 0;
       //      codec_context_p->compression_level = FF_COMPRESSION_DEFAULT;
@@ -1339,8 +1348,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       //      codec_context_p->flags2 = 0;
       // *TODO*: use something like: av_inv_q(av_d2q(frameRate, 1000));
       audioCodecContext_->time_base.num = 1;
-      audioCodecContext_->time_base.den =
-        (media_type_2.sampleRate ? media_type_2.sampleRate : 48000);
+      audioCodecContext_->time_base.den = sample_rate_i;
       //      codec_context_p->ticks_per_frame = 1;
 //      audioCodecContext_->width = media_type_s.resolution.width;
 //      audioCodecContext_->height = media_type_s.resolution.height;
@@ -1438,9 +1446,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       //      codec_context_p->dump_separator = NULL;
       audioCodecContext_->channels =
         (media_type_2.channels ? media_type_2.channels : 2);
-      audioCodecContext_->sample_fmt = media_type_2.format;
-      audioCodecContext_->sample_rate =
-        (media_type_2.sampleRate ? media_type_2.sampleRate : 48000);
+      audioCodecContext_->sample_fmt =
+        media_type_2.format == AV_SAMPLE_FMT_NONE ? AV_SAMPLE_FMT_S16 : media_type_2.format;
+      audioCodecContext_->sample_rate = sample_rate_i;
       switch (media_type_2.channels)
       {
         case 1:
@@ -1579,6 +1587,17 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (messageBlock_inout);
   ACE_ASSERT (inherited::sessionData_);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  if (!formatContext_)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: missing format context, aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+  ACE_ASSERT (!formatContext_->pb);
+#endif // ACE_WIN32 || ACE_WIN64
 
   int result = -1;
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();
@@ -2142,7 +2161,6 @@ error:
 continue_2:
 #else
 #if defined (FFMPEG_SUPPORT)
-  ACE_ASSERT (!formatContext_->pb);
   result = avio_open (&formatContext_->pb,
                       session_data_r.targetFileName.c_str (),
                       AVIO_FLAG_WRITE);

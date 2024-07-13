@@ -609,7 +609,7 @@ error:
         } // end IF
       } // end IF
 
-      TASK_BASE_T::notify (STREAM_SESSION_MESSAGE_ABORT);
+      inherited::TASK_BASE_T::notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }

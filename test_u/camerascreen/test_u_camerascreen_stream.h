@@ -270,7 +270,7 @@ class Stream_CameraScreen_Stream
 #if defined (GTK_SUPPORT)
   Stream_CameraScreen_GTK_Display_Module     GTKDisplay_;
 #endif // GTK_SUPPORT
-//  Stream_CameraScreen_Wayland_Display_Module WaylandDisplay_;
+  Stream_CameraScreen_Wayland_Display_Module WaylandDisplay_;
   Stream_CameraScreen_X11_Display_Module     X11Display_;
 #if defined (GLUT_SUPPORT)
   Stream_CameraScreen_OpenGL_Display_Module  OpenGLDisplay_;

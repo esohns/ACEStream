@@ -320,7 +320,8 @@ Test_I_EventHandler_T<NotificationType,
     std::string filename_string = Common_File_Tools::getTempDirectory ();
     filename_string += ACE_DIRECTORY_SEPARATOR_STR_A;
     filename_string += ACE_TEXT_ALWAYS_CHAR ("output.bmp");
-    uint8_t* buffers_a[1];
+    uint8_t* buffers_a[AV_NUM_DATA_POINTERS];
+    ACE_OS::memset (&buffers_a[0], 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
     buffers_a[0] = reinterpret_cast<uint8_t*> (message_in.rd_ptr ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     Common_Image_Tools::saveBMP (sessionData_->formats.front ().video.resolution,

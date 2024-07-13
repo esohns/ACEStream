@@ -129,8 +129,6 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVAudioDecoder_T::initialize"));
 
-  int result = -1;
-
   if (inherited::isInitialized_)
   {
     codecId_ = AV_CODEC_ID_NONE;
@@ -571,7 +569,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                     ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (context_->sample_fmt).c_str ()),
                     ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (outputFormat_).c_str ())));
 
-        AVChannelLayout channel_layout_out_s = {0};
+        AVChannelLayout channel_layout_out_s;
         result =
           av_channel_layout_from_mask (&channel_layout_out_s,
                                        Stream_Module_Decoder_Tools::channelsToMask (outputChannels_));
@@ -582,7 +580,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                       ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
           goto error;
         } // end IF
-        AVChannelLayout channel_layout_in_s = {0};
+        AVChannelLayout channel_layout_in_s;
         result =
           av_channel_layout_from_mask (&channel_layout_in_s,
                                        Stream_Module_Decoder_Tools::channelsToMask (outputChannels_)); // *TODO* should be input-
@@ -691,14 +689,14 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 bool
 Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              SessionDataContainerType,
-                              MediaType>::decodePacket (struct AVPacket& packet_in,
-                                                        DataMessageType*& message_inout)
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataContainerType,
+                                   MediaType>::decodePacket (struct AVPacket& packet_in,
+                                                             DataMessageType*& message_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVAudioDecoder_T::decodePacket"));
 
@@ -736,7 +734,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (outputFormat_).c_str ()),
                 outputSampleRate_));
 
-    AVChannelLayout channel_layout_out_s = {0};
+    AVChannelLayout channel_layout_out_s;
     result =
       av_channel_layout_from_mask (&channel_layout_out_s,
                                     Stream_Module_Decoder_Tools::channelsToMask (outputChannels_)); // *TODO* should be input-

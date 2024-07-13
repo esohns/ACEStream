@@ -74,15 +74,15 @@ class Test_U_CameraScreen_VideoWall
                                 struct Stream_UserData> inherited;
  typedef Stream_MediaFramework_MediaTypeConverter_T<struct _AMMediaType> inherited2;
 #else
- typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
-                                 Common_TimePolicy_t,
-                                 struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
-                                 Stream_ControlMessage_t,
-                                 Stream_CameraScreen_Message_t,
-                                 Stream_CameraScreen_SessionMessage_t,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
+ typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t,
+                                struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
+                                Stream_ControlMessage_t,
+                                Stream_CameraScreen_Message_t,
+                                Stream_CameraScreen_SessionMessage_t,
+                                enum Stream_ControlType,
+                                enum Stream_SessionMessageType,
+                                struct Stream_UserData> inherited;
  typedef Stream_MediaFramework_MediaTypeConverter_T<struct Stream_MediaFramework_V4L_MediaType> inherited2;
 #endif // ACE_WIN32 || ACE_WIN64
 

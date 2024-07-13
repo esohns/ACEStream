@@ -269,7 +269,7 @@ glarea_realize_cb (GtkWidget* widget_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gtk_gl_area_get_context(%@), returning\n"),
                 gl_area_p));
-    goto error;
+    return;
   } // end IF
 
   // load the texture
@@ -343,7 +343,7 @@ glarea_realize_cb (GtkWidget* widget_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Common_GL_Tools::loadTexture(\"%s\"), returning\n"),
                   ACE_TEXT (filename.c_str ())));
-      goto error;
+      return;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("OpenGL texture id: %u\n"),
@@ -518,11 +518,6 @@ glarea_realize_cb (GtkWidget* widget_in,
   gdk_gl_drawable_gl_end (drawable_p);
 #endif // GTKGLAREA_SUPPORT
 #endif // GTK_CHECK_VERSION (3,0,0)
-
-  return;
-
-error:
-  return;
 } // glarea_realize_cb
 
 void
@@ -673,7 +668,7 @@ glarea_unrealize_cb (GtkWidget* widget_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gtk_gl_area_get_context(%@), returning\n"),
                 gl_area_p));
-    goto error;
+    return;
   } // end IF
 
   // load the texture
@@ -699,7 +694,7 @@ glarea_unrealize_cb (GtkWidget* widget_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gtk_gl_area_get_context(%@), returning\n"),
                 gl_area_p));
-    goto error;
+    return;
   } // end IF
 
   bool result = gdk_gl_drawable_make_current (drawable_p,

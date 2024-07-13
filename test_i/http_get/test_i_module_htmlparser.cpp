@@ -124,6 +124,7 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
         if (result)
         {
           xmlParserErrors parse_errors = static_cast<xmlParserErrors> (result);
+          ACE_UNUSED_ARG (parse_errors);
           ACE_DEBUG ((Stream_HTML_Tools::errorLevelToLogPriority (error_p ? error_p->level : XML_ERR_ERROR),
                       ACE_TEXT ("%s: failed to htmlParseChunk() (result was: %d): \"%s\", continuing\n"),
                       inherited::mod_->name (),

@@ -366,6 +366,7 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_ExtractStream_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_I_ExtractStream_ModuleHandlerConfiguration modulehandler_configuration_2; // wav encoder
+  struct Test_I_ExtractStream_ModuleHandlerConfiguration modulehandler_configuration_3; // libav converter
   struct Test_I_ExtractStream_StreamConfiguration stream_configuration;
 
 #if defined (GUI_SUPPORT)
@@ -401,6 +402,8 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   modulehandler_configuration_2.manageSoX = false;
   CBData_in.progressData.audioFrameSize =
     av_get_bytes_per_sample (modulehandler_configuration.outputFormat.audio.format);
+  modulehandler_configuration_3 = modulehandler_configuration;
+  modulehandler_configuration_3.outputFormat.video.format = AV_PIX_FMT_RGB24;
 
   Test_I_MessageHandler_Module message_handler (NULL,
                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
@@ -426,6 +429,9 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_3)));
 
 //  stream_iterator =
 //    configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));

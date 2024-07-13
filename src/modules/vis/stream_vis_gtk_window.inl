@@ -308,7 +308,7 @@ error:
       } // end IF
 #endif // GTK_CHECK_VERSION (3,6,0)
 
-      TASK_BASE_T::notify (STREAM_SESSION_MESSAGE_ABORT);
+      inherited::TASK_BASE_T::notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }

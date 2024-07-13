@@ -80,7 +80,11 @@ Test_U_CameraScreen_VideoWall::handleDataMessage (Stream_CameraScreen_Message_t*
 #else
     resolution_.width * resolution_.height * bytesPerPixel_;
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_CameraScreen_DirectShow_Message_t* message_p =
+#else
+  Stream_CameraScreen_Message_t* message_p =
+#endif // ACE_WIN32 || ACE_WIN64
     inherited::allocateMessage (message_size_i);
   ACE_ASSERT (message_p);
   ACE_OS::memset (reinterpret_cast<void*> (message_p->wr_ptr ()), 0, message_size_i); // initialize to black

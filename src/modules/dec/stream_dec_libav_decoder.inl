@@ -464,10 +464,10 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                     ACE_TEXT (avcodec_get_name (codecId_)), codecId_));
       } // end IF
       else
-      {
+      { // *TODO*: pass in these flag(s)
         //parserContext_->flags |= PARSER_FLAG_COMPLETE_FRAMES;
-        parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
-        parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
+        //parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
+        //parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
       } // end ELSE
 
       context_ = avcodec_alloc_context3 (codec_p);
@@ -617,14 +617,14 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                       inherited::mod_->name ()));
           goto error;
         } // end IF
+        ACE_OS::memset (context_->extradata, 0, session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE);
         ACE_OS::memcpy (context_->extradata,
                         session_data_r.codecConfigurationData,
                         session_data_r.codecConfigurationDataSize);
         context_->extradata_size = session_data_r.codecConfigurationDataSize;
       } // end IF
       ACE_ASSERT (media_type_s.frameRate.num);
-      ACE_ASSERT (media_type_s.frameRate.den == 1);
-      context_->time_base = {1, media_type_s.frameRate.num};
+      context_->time_base = {media_type_s.frameRate.den, media_type_s.frameRate.num};
       context_->ticks_per_frame =
         (((codecId_ == AV_CODEC_ID_H264) ||
           (codecId_ == AV_CODEC_ID_MPEG2VIDEO)) ? 2 : 1);
@@ -843,6 +843,12 @@ continue_:
       {
         if (likely (frame_))
           drainBuffers (message_inout->sessionId ());
+
+        if (context_->extradata)
+        {
+          av_free (context_->extradata); context_->extradata = NULL;
+          context_->extradata_size = 0;
+        } // end IF
         avcodec_free_context (&context_); context_ = NULL;
       } // end IF
 

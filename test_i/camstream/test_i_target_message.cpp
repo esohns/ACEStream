@@ -27,7 +27,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 Test_I_Target_DirectShow_Stream_Message::Test_I_Target_DirectShow_Stream_Message (Stream_SessionId_t sessionId_in,
-                                                                                  unsigned int size_in)
+                                                                                  size_t size_in)
  : inherited (sessionId_in,
               size_in)
 {
@@ -144,7 +144,7 @@ Test_I_Target_DirectShow_Stream_Message::CommandTypeToString (Test_I_CommandType
 }
 
 Test_I_Target_MediaFoundation_Stream_Message::Test_I_Target_MediaFoundation_Stream_Message (Stream_SessionId_t sessionId_in,
-                                                                                            unsigned int size_in)
+                                                                                            size_t size_in)
  : inherited (sessionId_in,
               size_in)
 {
@@ -261,7 +261,7 @@ Test_I_Target_MediaFoundation_Stream_Message::CommandTypeToString (Test_I_Comman
 }
 #else
 Test_I_Target_Stream_Message::Test_I_Target_Stream_Message (Stream_SessionId_t sessionId_in,
-                                                            unsigned int size_in)
+                                                            size_t size_in)
  : inherited (sessionId_in,
               size_in)
 {

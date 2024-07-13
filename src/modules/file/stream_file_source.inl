@@ -292,8 +292,7 @@ next:
                                            : inherited::configuration_->allocatorConfiguration->defaultBufferSize) +
     inherited::configuration_->allocatorConfiguration->paddingBytes;
   if (!Common_File_Tools::open (file_path_string,
-                                (O_RDONLY |
-                                 O_BINARY), // flags --> open,
+                                (O_RDONLY | O_BINARY), // flags --> open,
                                 stream_))
   {
     ACE_DEBUG ((LM_ERROR,

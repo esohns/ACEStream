@@ -95,7 +95,9 @@ Stream_SessionDataMediaBase_T<BaseType,
   STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::~Stream_SessionDataMediaBase_T"));
 
   if (codecConfigurationData)
-    delete [] codecConfigurationData;
+  {
+    delete [] codecConfigurationData; codecConfigurationData = NULL;
+  } // end IF
 }
 
 template <typename BaseType,
@@ -165,7 +167,7 @@ Stream_SessionDataMediaBase_T<BaseType,
 
   // *TODO*: this is problematic on windows
   formats = rhs_in.formats;
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework = rhs_in.mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
   state = (state ? state : rhs_in.state);
