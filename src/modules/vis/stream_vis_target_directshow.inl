@@ -248,7 +248,7 @@ get_mode:
     { ACE_ASSERT (IMFVideoDisplayControl_);
       struct tagRECT area_s;
       BOOL result = GetClientRect (window_, &area_s);
-      ACE_ASSERT (result);
+      ACE_ASSERT (result == TRUE);
       UINT uFlags = (SWP_ASYNCWINDOWPOS |
                      SWP_NOACTIVATE     |
                      SWP_NOMOVE         |
@@ -308,7 +308,7 @@ get_mode:
     { ACE_ASSERT (IMFVideoDisplayControl_);
       struct tagRECT area_s;
       BOOL result = GetClientRect (window_, &area_s);
-      ACE_ASSERT (result);
+      ACE_ASSERT (result == TRUE);
       UINT uFlags = (SWP_ASYNCWINDOWPOS |
                      SWP_NOACTIVATE     |
                      SWP_NOMOVE         |
@@ -448,7 +448,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       if (window_)
       {
         BOOL result = GetClientRect (window_, &area_s);
-        ACE_ASSERT (result);
+        ACE_ASSERT (result == TRUE);
         resolution_s.cy = area_s.bottom - area_s.top;
         resolution_s.cx = area_s.right - area_s.left;
       } // end IF
@@ -1205,7 +1205,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
               windowHandle_inout));
 
   result_2 = GetClientRect (windowHandle_inout, &windowArea_inout);
-  if (unlikely (!result_2))
+  if (unlikely (result_2 != TRUE))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to GetClientRect(0x%@): \"%s\", aborting\n"),

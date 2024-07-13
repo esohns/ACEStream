@@ -300,8 +300,11 @@ do_initialize_directshow (HWND windowHandle_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
-  struct tagRECT window_rectangle_s;
-  BOOL result_2 = GetClientRect (windowHandle_in, &window_rectangle_s);
+  // sanity check(s)
+  ACE_ASSERT (!GetParent (windowHandle_in));
+
+  struct tagRECT window_size_s;
+  BOOL result_2 = GetClientRect (windowHandle_in, &window_size_s);
   ACE_ASSERT (result_2);
 
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
@@ -328,9 +331,9 @@ do_initialize_directshow (HWND windowHandle_in,
   ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
   video_info_header_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
   video_info_header_p->bmiHeader.biWidth =
-    window_rectangle_s.right - window_rectangle_s.left;
+    window_size_s.right - window_size_s.left;
   video_info_header_p->bmiHeader.biHeight =
-    window_rectangle_s.bottom - window_rectangle_s.top;
+    window_size_s.bottom - window_size_s.top;
   video_info_header_p->bmiHeader.biPlanes = 1;
   video_info_header_p->bmiHeader.biBitCount = 24;
   video_info_header_p->bmiHeader.biCompression = BI_RGB;
@@ -822,8 +825,7 @@ do_work (
       directshow_stream_configuration.module =
         &directshow_message_handler;
       //directshow_stream_configuration.renderer = STREAM_VISUALIZATION_VIDEORENDERER_GDI;
-      directshow_stream_configuration.renderer =
-        STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D;
+      directshow_stream_configuration.renderer = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
@@ -1190,6 +1192,7 @@ ACE_TMAIN (int argc_in,
   enum Test_U_CaptureWindow_ProgramMode program_mode_e =
     TEST_U_PROGRAMMODE_NORMAL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::vector<HWND> window_handles_a;
   HWND window_handle_h = NULL;
 #else
   Window window_handle_h = 0;
@@ -1266,7 +1269,13 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  window_handles_a = Common_Process_Tools::window (process_id);
+  ACE_ASSERT (!window_handles_a.empty ());
+  window_handle_h = window_handles_a[1]; // *TODO*: how to choose the right one ?
+#else
   window_handle_h = Common_Process_Tools::window (process_id);
+#endif
   if (unlikely (!window_handle_h))
   {
     ACE_DEBUG ((LM_ERROR,

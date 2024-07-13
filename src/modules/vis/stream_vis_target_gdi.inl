@@ -232,7 +232,8 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
                     context_));
       } // end ELSE
       ACE_ASSERT (inherited::window_);
-      GetWindowRect (inherited::window_, &resolution_2);
+      BOOL result_3 = GetClientRect (inherited::window_, &resolution_2);
+      ACE_ASSERT (result_3 == TRUE);
 
       break;
 

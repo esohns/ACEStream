@@ -170,7 +170,7 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
 
   renderTarget_->DrawBitmap (bitmap_,
                              rectangle_s,                           // destination rectangle
-                             1.0F,                                  // opacity
+                             1.0f,                                  // opacity
                              D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
                              rectangle_s);                          // source rectangle
 

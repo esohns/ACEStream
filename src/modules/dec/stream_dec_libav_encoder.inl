@@ -338,7 +338,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       packet_s.stream_index = stream_p->index;
 
       /* Write the frame to the media file. */
-//      result = av_write_frame (formatContext_, &packet_s);
+//      result = av_write_frame (formatContext_,
       result = av_interleaved_write_frame (formatContext_,
                                            &packet_s);
       if (unlikely (result < 0))

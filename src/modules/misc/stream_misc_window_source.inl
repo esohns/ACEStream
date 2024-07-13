@@ -40,7 +40,9 @@ extern "C"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_tools.h"
+#endif // GTK_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #include "common_timer_manager_common.h"
 
@@ -74,14 +76,19 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
                               TimerManagerType,
                               MediaType>::Stream_Module_Window_Source_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in) // stream handle
- , handler_ (this,
-             false)
+ , handler_ (this,  // callee
+             false) // one-shot ?
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , captureContext_ (NULL)
  , captureBitmap_ (NULL)
  , sourceContext_ (NULL)
  , resolution_ ()
+ , bitmapInfo_ ()
 #else
+#if defined (GTK_SUPPORT)
+ , frameSize_ (0)
+ , window_ (NULL)
+#endif // GTK_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Window_Source_T::Stream_Module_Window_Source_T"));
@@ -125,8 +132,10 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
   if (inherited::configuration_ && sourceContext_)
     ReleaseDC (inherited::configuration_->window, sourceContext_);
 #else
+#if defined (GTK_SUPPORT)
   if (window_)
     g_object_unref (window_);
+#endif // GTK_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -187,7 +196,9 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
     DeleteObject (captureBitmap_); captureBitmap_ = NULL;
     ReleaseDC (inherited::configuration_->window, sourceContext_); sourceContext_ = NULL;
 #else
+#if defined (GTK_SUPPORT)
     g_object_unref (window_); window_ = NULL;
+#endif // GTK_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 
@@ -201,6 +212,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (GTK_SUPPORT)
   window_ = Common_UI_GTK_Tools::get (configuration_in.window);
   if (!window_)
   {
@@ -210,6 +222,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
                 configuration_in.window));
     return false;
   } // end IF
+#endif // GTK_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
   return inherited::initialize (configuration_in,
@@ -332,6 +345,10 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::configuration_->allocatorConfiguration->defaultBufferSize >= video_info_header_p->bmiHeader.biSizeImage);
 
       ACE_ASSERT (inherited::configuration_->window);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: window handle: 0x%@\n"),
+                  inherited::mod_->name (),
+                  inherited::configuration_->window));
       sourceContext_ = GetDC (inherited::configuration_->window);
       ACE_ASSERT (sourceContext_);
       captureContext_ = CreateCompatibleDC (sourceContext_);
@@ -552,6 +569,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
   } // end IF
   message_block_p->wr_ptr (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
 #else
+#if defined (GTK_SUPPORT)
   pixel_buffer_p = Common_UI_GTK_Tools::get (window_);
   if (unlikely (!pixel_buffer_p))
   {
@@ -577,6 +595,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
   g_object_unref (pixel_buffer_p); pixel_buffer_p = NULL;
+#endif // GTK_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step3: push data downstream

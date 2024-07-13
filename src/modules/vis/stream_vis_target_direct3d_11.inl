@@ -764,7 +764,8 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
   ACE_ASSERT (texture_);
 
   struct tagRECT rect_s;
-  GetClientRect (window_in, &rect_s);
+  BOOL result_3 = GetClientRect (window_in, &rect_s);
+  ACE_ASSERT (result_3 == TRUE);
   struct D3D11_VIEWPORT viewport_s;
   ACE_OS::memset (&viewport_s, 0, sizeof (struct D3D11_VIEWPORT));
   //viewport_s.TopLeftX = 0.0f;
