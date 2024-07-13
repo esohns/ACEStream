@@ -878,6 +878,7 @@ continue_:
                       ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
         ACE_FILE_Info file_information;
+        ACE_OS::memset (&file_information, 0, sizeof (ACE_FILE_Info));
         result = stream_.get_info (file_information);
         if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
@@ -1416,7 +1417,7 @@ error:
                       ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
         ACE_FILE_Info file_info;
-        ACE_OS::memset (&file_info, 0, sizeof (file_info));
+        ACE_OS::memset (&file_info, 0, sizeof (ACE_FILE_Info));
         result = stream_.get_info (file_info);
         if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,

@@ -697,7 +697,14 @@ do_work (
   } // end IF
 
   // ********************** module configuration data **************************
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
+  //allocator_configuration.defaultBufferSize = 524288;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
+  codec_configuration.codecId = AV_CODEC_ID_H264;
+#else
   struct Stream_AllocatorConfiguration allocator_configuration;
+#endif // FFMPEG_SUPPORT
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
@@ -719,21 +726,17 @@ do_work (
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Test_U_CaptureWindow_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
-  //Test_U_CaptureWindow_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
-  //Test_U_CaptureWindow_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-  //Test_U_CaptureWindow_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_modulehandler_configuration.allocatorConfiguration =
-        &allocator_configuration;
+      directshow_modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
-      directshow_modulehandler_configuration.codecId = AV_CODEC_ID_H264;
-      directshow_modulehandler_configuration.fileFormat =
-        ACE_TEXT_ALWAYS_CHAR ("mp4");
+#if defined (FFMPEG_SUPPORT)
+      directshow_modulehandler_configuration.codecConfiguration = &codec_configuration;
+#endif // FFMPEG_SUPPORT
+      directshow_modulehandler_configuration.fileFormat = ACE_TEXT_ALWAYS_CHAR ("mp4");
       directshow_modulehandler_configuration.window = windowHandle_in;
 
       //if (statisticReportingInterval_in)

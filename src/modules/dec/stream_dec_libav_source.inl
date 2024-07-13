@@ -213,7 +213,7 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
               inherited::configuration_->streamIndex,
               context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id,
               ACE_TEXT (avcodec_get_name (context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id))));
-  inherited::configuration_->codecId =
+  inherited::configuration_->codecConfiguration->codecId =
     context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
   
   switch (context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_type)

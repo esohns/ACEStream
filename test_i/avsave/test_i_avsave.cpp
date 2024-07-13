@@ -1055,8 +1055,16 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // GUI_SUPPORT
 
   // ********************** module configuration data **************************
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
+  struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration_2;
+  //allocator_configuration.defaultBufferSize = 524288;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
+  codec_configuration.codecId = AV_CODEC_ID_RAWVIDEO;
+#else
   struct Stream_AllocatorConfiguration allocator_configuration; // video
   struct Stream_AllocatorConfiguration allocator_configuration_2; // audio
+#endif // FFMPEG_SUPPORT
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_AllocatorConfiguration> heap_allocator;
@@ -1123,18 +1131,16 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_video_stream_iterator;
-  //Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_video_stream_iterator_2;
-  //Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-  //Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_video_modulehandler_configuration.allocatorConfiguration =
         &allocator_configuration;
-      directshow_video_modulehandler_configuration.codecId =
-        AV_CODEC_ID_RAWVIDEO;
+#if defined (FFMPEG_SUPPORT)
+      directshow_video_modulehandler_configuration.codecConfiguration =
+        &codec_configuration;
+#endif // FFMPEG_SUPPORT
       directshow_video_modulehandler_configuration.deviceIdentifier =
         deviceIdentifier_in;
       directshow_video_modulehandler_configuration.display = displayDevice_in;

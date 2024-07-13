@@ -43,15 +43,15 @@
 
 #include "X11/X.h"
 #undef CursorShape
-#if defined (FFMPEG_SUPPORT)
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavcodec/avcodec.h"
-#include "libavutil/pixfmt.h"
-}
-#endif // __cplusplus
-#endif // FFMPEG_SUPPORT
+//#if defined (FFMPEG_SUPPORT)
+//#ifdef __cplusplus
+//extern "C"
+//{
+//#include "libavcodec/avcodec.h"
+//#include "libavutil/pixfmt.h"
+//}
+//#endif // __cplusplus
+//#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
@@ -104,12 +104,11 @@ extern "C"
 #include "stream_lib_directshow_tools.h"
 #else
 #include "stream_lib_alsa_defines.h"
-
 #include "stream_lib_v4l_defines.h"
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
 #endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dev_common.h"
 #include "stream_dev_defines.h"
@@ -414,7 +413,7 @@ struct Stream_AVSave_ModuleHandlerConfiguration
   Stream_AVSave_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
 #if defined (FFMPEG_SUPPORT)
-   , codecId (AV_CODEC_ID_NONE)
+   , codecConfiguration (NULL)
 #endif // FFMPEG_SUPPORT
    , deviceIdentifier ()
    , display ()
@@ -434,7 +433,7 @@ struct Stream_AVSave_ModuleHandlerConfiguration
   }
 
 #if defined (FFMPEG_SUPPORT)
-  enum AVCodecID                                    codecId;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
 #endif // FFMPEG_SUPPORT
   struct Stream_Device_Identifier                   deviceIdentifier; // source module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

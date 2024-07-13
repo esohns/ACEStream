@@ -21,24 +21,14 @@
 #ifndef TEST_I_STREAM_COMMON_H
 #define TEST_I_STREAM_COMMON_H
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "strmif.h"
-#endif // ACE_WIN32 || ACE_WIN64
-
-#if defined (FFMPEG_SUPPORT)
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavcodec/avcodec.h"
-}
-#endif // __cplusplus
-#endif // FFMPEG_SUPPORT
-
 #include <list>
 #include <map>
 #include <string>
 
-#include "ace/config-macros.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "strmif.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
@@ -60,6 +50,9 @@ extern "C"
 #else
 #include "stream_lib_alsa_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (FFMPEG_SUPPORT)
+#include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
 
 #include "stream_dev_common.h"
 
@@ -152,7 +145,9 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
 #else
    , ALSAConfiguration (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
-   , codecId (AV_CODEC_ID_NONE)
+#if defined (FFMPEG_SUPPORT)
+   , codecConfiguration (NULL)
+#endif // FFMPEG_SUPPORT
    , deviceIdentifier ()
    , outputFormat ()
    , pushStatisticMessages (true)
@@ -167,7 +162,7 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
   struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (FFMPEG_SUPPORT)
-  enum AVCodecID                                   codecId;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
 #endif // FFMPEG_SUPPORT
   struct Stream_Device_Identifier                  deviceIdentifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -199,7 +194,11 @@ struct Test_I_MP3Player_StreamState
 
 //typedef Stream_IModuleHandler_T<Test_I_Stream_ModuleHandlerConfiguration> Test_I_IModuleHandler_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Common_AllocatorConfiguration,
+#if defined (FFMPEG_SUPPORT)
+                                          struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration,
+#else
+                                          struct Stream_AllocatorConfiguration,
+#endif // FFMPEG_SUPPORT
                                           Stream_ControlMessage_t,
                                           Test_I_Stream_Message,
                                           Test_I_Stream_SessionMessage> Test_I_MessageAllocator_t;

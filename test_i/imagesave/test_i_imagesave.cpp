@@ -112,7 +112,7 @@
 #include "test_i_imagesave_signalhandler.h"
 #include "test_i_imagesave_stream.h"
 
-const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CamSaveStream");
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("ImageSaveStream");
 #if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_USE)
 const char toplevel_widget_classname_string_[] =
@@ -442,8 +442,15 @@ do_work (
 #endif // GUI_SUPPORT
 
   // ********************** module configuration data **************************
+#if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
-  allocator_configuration.defaultBufferSize = 524288;
+  //allocator_configuration.defaultBufferSize = 524288;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
+  codec_configuration.codecId = AV_CODEC_ID_H264;
+  //codec_configuration.useParser = false;
+#else
+  struct Stream_AllocatorConfiguration allocator_configuration;
+#endif // FFMPEG_SUPPORT
 
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_ImageSave_ModuleHandlerConfiguration modulehandler_configuration;
@@ -466,24 +473,20 @@ do_work (
   Test_I_EventHandler_t ui_event_handler;
 #endif // GUI_SUPPORT
 
-//  Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator_2;
-//#endif // ACE_WIN32 || ACE_WIN64
-  modulehandler_configuration.allocatorConfiguration =
-    &allocator_configuration;
+  modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
+#if defined (_DEBUG)
   modulehandler_configuration.debug = debug_in;
+#endif // _DEBUG
   modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
 #if defined (FFMPEG_SUPPORT)
-  modulehandler_configuration.codecId = AV_CODEC_ID_H264;
+  modulehandler_configuration.codecConfiguration = &codec_configuration;
 #endif // FFMPEG_SUPPORT
 //#if defined (_DEBUG)
 //  modulehandler_configuration.debug = true;
 //#endif // _DEBUG
   modulehandler_configuration.defragmentMode = STREAM_DEFRAGMENT_CLONE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  modulehandler_configuration.direct3DConfiguration =
-    &configuration_in.direct3DConfiguration;
+  modulehandler_configuration.direct3DConfiguration = &configuration_in.direct3DConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.fileIdentifier.identifier = sourceFilename_in;
 #if defined (GUI_SUPPORT)
@@ -491,7 +494,6 @@ do_work (
   modulehandler_configuration.lock = &state_r.subscribersLock;
 #endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
-//  modulehandler_configuration.streamType = 2;
   modulehandler_configuration.subscriber = &ui_event_handler;
   modulehandler_configuration.subscribers = &CBData_in.subscribers;
   modulehandler_configuration.targetFileName = targetFilename_in;

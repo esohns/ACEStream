@@ -98,7 +98,7 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   {
     case TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY:
     {
-      if ((*iterator).second.second->codecId == AV_CODEC_ID_AAC)
+      if ((*iterator).second.second->codecConfiguration->codecId == AV_CODEC_ID_AAC)
         ACE_NEW_RETURN (module_p,
                         Test_I_AACDecoder_Module (this,
                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FAAD_DEFAULT_NAME_STRING)),

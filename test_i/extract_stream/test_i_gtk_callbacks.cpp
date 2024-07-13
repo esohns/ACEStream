@@ -1386,7 +1386,7 @@ togglebutton_play_toggled_cb (GtkToggleButton* toggleButton_in,
     //filename_string = Common_UI_GTK_Tools::UTF8ToLocale (filename_string);
     g_free (filename_p); filename_p = NULL;
   } // end IF
-  ACE_ASSERT (Common_File_Tools::isReadable (filename_string));
+  //ACE_ASSERT (Common_File_Tools::isReadable (filename_string));
   (*stream_iterator).second.second->fileIdentifier.identifier = filename_string;
 
   toggle_button_p =
@@ -1933,12 +1933,12 @@ combobox_stream_changed_cb (GtkWidget* widget_in,
                             &iterator_4,
                             2, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
-  (*stream_iterator).second.second->codecId =
+  (*stream_iterator).second.second->codecConfiguration->codecId =
     static_cast<enum AVCodecID> (g_value_get_uint (&value_2));
   g_value_unset (&value_2);
   cb_data_p->configuration->streamConfiguration.configuration_->mode = 
-    (Stream_MediaFramework_Tools::isAudioCodecId ((*stream_iterator).second.second->codecId) ? TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY
-                                                                                             : TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_VIDEO_ONLY);
+    (Stream_MediaFramework_Tools::isAudioCodecId ((*stream_iterator).second.second->codecConfiguration->codecId) ? TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY
+                                                                                                                 : TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_VIDEO_ONLY);
 
   (*stream_iterator).second.second->targetFileName =
     (cb_data_p->configuration->streamConfiguration.configuration_->mode == TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY ? ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_AUDIO_FILE)

@@ -44,11 +44,10 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directdraw_common.h"
-#else
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
 #endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
@@ -321,6 +320,9 @@ struct Test_U_CaptureWindow_ModuleHandlerConfiguration
 {
   Test_U_CaptureWindow_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
+#if defined (FFMPEG_SUPPORT)
+   , codecConfiguration (NULL)
+#endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , window (NULL)
 #else
@@ -330,6 +332,9 @@ struct Test_U_CaptureWindow_ModuleHandlerConfiguration
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
 
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
+#endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                            window;
 #else

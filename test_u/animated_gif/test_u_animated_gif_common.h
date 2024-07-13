@@ -25,14 +25,14 @@
 #include <map>
 #include <string>
 
-#include "ace/Singleton.h"
-#include "ace/Synch_Traits.h"
-
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined(GUI_SUPPORT)
+#if defined(GTK_USE)
 #include "gtk/gtk.h"
 #endif // GTK_USE
 #endif // GTK_SUPPORT
+
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_isubscribe.h"
 
@@ -42,6 +42,10 @@
 #include "stream_isessionnotify.h"
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
+
+#if defined (FFMPEG_SUPPORT)
+#include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
 
 #include "test_u_common.h"
 
@@ -82,18 +86,22 @@ struct Test_U_AnimatedGIF_ModuleHandlerConfiguration
 {
   Test_U_AnimatedGIF_ModuleHandlerConfiguration ()
    : Stream_DirectShow_ModuleHandlerConfiguration ()
+#if defined (FFMPEG_SUPPORT)
+   , codecConfiguration (NULL)
+#endif // FFMPEG_SUPPORT
    , fileIdentifier ()
    , printProgressDot (false)
    , subscriber (NULL)
    , subscribers (NULL)
-   //, targetFileName ()
   {}
 
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
+#endif // FFMPEG_SUPPORT
   struct Common_File_Identifier fileIdentifier; // source-/target-
   bool                          printProgressDot;
   Test_U_ISessionNotify_t*      subscriber; // (initial) subscriber
   Test_U_Subscribers_t*         subscribers;
-  //std::string              targetFileName;
 };
 #else
 struct Test_U_AnimatedGIF_ModuleHandlerConfiguration
@@ -101,18 +109,22 @@ struct Test_U_AnimatedGIF_ModuleHandlerConfiguration
 {
   Test_U_AnimatedGIF_ModuleHandlerConfiguration ()
    : Stream_V4L_ModuleHandlerConfiguration ()
+#if defined (FFMPEG_SUPPORT)
+   , codecConfiguration (NULL)
+#endif // FFMPEG_SUPPORT
    , fileIdentifier ()
    , printProgressDot (false)
    , subscriber (NULL)
    , subscribers (NULL)
-  //, targetFileName ()
   {}
 
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
+#endif // FFMPEG_SUPPORT
   struct Common_File_Identifier fileIdentifier; // source-/target-
   bool                          printProgressDot;
   Test_U_ISessionNotify_t*      subscriber; // (initial) subscriber
   Test_U_Subscribers_t*         subscribers;
-  // std::string              targetFileName;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

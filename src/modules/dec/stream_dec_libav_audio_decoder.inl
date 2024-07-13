@@ -55,7 +55,6 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                                    MediaType>::Stream_Decoder_LibAVAudioDecoder_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
- , codecId_ (AV_CODEC_ID_NONE)
  , context_ (NULL)
  , format_ (AV_SAMPLE_FMT_NONE)
  , sampleRate_ (0)
@@ -67,7 +66,6 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
  , outputChannels_ (0)
  , parserContext_ (NULL)
  , parserPosition_ (0)
- , profile_ (FF_PROFILE_UNKNOWN)
  , transformContext_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVAudioDecoder_T::Stream_Decoder_LibAVAudioDecoder_T"));
@@ -93,10 +91,11 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVAudioDecoder_T::~Stream_Decoder_LibAVAudioDecoder_T"));
 
-  int result = -1;
-
   if (frame_)
+  {
+    av_frame_unref (frame_);
     av_frame_free (&frame_);
+  } // end IF
 
   if (context_)
     avcodec_free_context (&context_);
@@ -131,13 +130,15 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    codecId_ = AV_CODEC_ID_NONE;
     if (context_)
       avcodec_free_context (&context_);
     format_ = AV_SAMPLE_FMT_NONE;
     sampleRate_ = 0;
     if (frame_)
-      av_frame_free (&frame_);
+    {
+      av_frame_unref (frame_);
+      av_frame_free (&frame_); ACE_ASSERT (!frame_);
+    } // end IF
     frameSize_ = 0;
     outputFormat_ = STREAM_DEC_DEFAULT_LIBAV_OUTPUT_SAMPLE_FORMAT;
     outputFrameSize_ = 0;
@@ -148,7 +149,6 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       av_parser_close (parserContext_); parserContext_ = NULL;
     } // end IF
     parserPosition_ = 0;
-    profile_ = FF_PROFILE_UNKNOWN;
     if (transformContext_)
     {
       swr_free (&transformContext_); transformContext_ = NULL;
@@ -167,14 +167,12 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
 //  avcodec_register_all ();
 
   // *TODO*: remove type inferences
-  codecId_ = configuration_in.codecId;
-//  if (unlikely (codecId_ == AV_CODEC_ID_NONE))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: invalid codec, aborting\n"),
-//                inherited::mod_->name ()));
-//    return false;
-//  } // end IF
+  ACE_ASSERT (configuration_in.codecConfiguration);
+
+  if (unlikely (configuration_in.codecConfiguration->codecId == AV_CODEC_ID_NONE))
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: no codec selected, continuing\n"),
+                inherited::mod_->name ()));
 
   struct Stream_MediaFramework_FFMPEG_AudioMediaType media_type_s;
   inherited2::getMediaType (configuration_in.outputFormat,
@@ -369,7 +367,9 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
-    { ACE_ASSERT (inherited::sessionData_);
+    { ACE_ASSERT (inherited::configuration_);
+      ACE_ASSERT (inherited::configuration_->codecConfiguration);
+      ACE_ASSERT (inherited::sessionData_);
       typename SessionDataContainerType::DATA_T& session_data_r =
         const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
 
@@ -386,17 +386,16 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                                 STREAM_MEDIATYPE_AUDIO,
                                 media_type_2);
 
-      if (codecId_ == AV_CODEC_ID_NONE)
+      if (inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_NONE)
       {
         if (media_type_s.codec == AV_CODEC_ID_NONE)
           break;
-        codecId_ = media_type_s.codec;
+        inherited::configuration_->codecConfiguration->codecId = media_type_s.codec;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: using codec \"%s\" (id: %d)\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (avcodec_get_name (codecId_)), codecId_));
-      //profile_ = configuration_in.codecProfile;
+                  ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)), inherited::configuration_->codecConfiguration->codecId));
 
       int result = -1;
       const struct AVCodec* codec_p = NULL;
@@ -407,27 +406,29 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       //              FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
       int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_BUGS;
 
-      codec_p = avcodec_find_decoder (codecId_);
+      codec_p =
+        avcodec_find_decoder (inherited::configuration_->codecConfiguration->codecId);
       if (unlikely (!codec_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_find_decoder(%d) failed: \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    codecId_));
+                    inherited::configuration_->codecConfiguration->codecId));
         goto error;
       } // end IF
 
       ACE_ASSERT (!parserContext_);
-      parserContext_ = av_parser_init (codecId_);
+      parserContext_ =
+        av_parser_init (inherited::configuration_->codecConfiguration->codecId);
       if (!parserContext_)
       {
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: av_parser_init(\"%s\"[%d]) failed: \"%m\", continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (avcodec_get_name (codecId_)), codecId_));
+                    ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)), inherited::configuration_->codecConfiguration->codecId));
       } // end IF
       else
-      {
+      { // *TODO*: use flags passed in !!!
         parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
         parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
       } // end ELSE
@@ -549,7 +550,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_open2(%d) failed: \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    codecId_,
+                    inherited::configuration_->codecConfiguration->codecId,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         av_dict_free (&dictionary_p); dictionary_p = NULL;
         goto error;
@@ -558,7 +559,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: initialized codec %s; decoded sample format: %s\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (avcodec_get_name (codecId_)),
+                  ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)),
                   ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (context_->sample_fmt).c_str ())));
 
       if (context_->sample_fmt != outputFormat_)
@@ -818,7 +819,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
     result =
       swr_convert (transformContext_,
                    data_a, result,
-                   const_cast<const uint8_t**>(static_cast<uint8_t**> (frame_->data)), frame_->nb_samples);
+                   const_cast<const uint8_t**> (static_cast<uint8_t**> (frame_->data)), frame_->nb_samples);
     if (unlikely (result < 0))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -937,7 +938,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       } // end IF
 
       uint8_t* data_a[AV_NUM_DATA_POINTERS];
-      ACE_OS::memset (&data_a, 0, sizeof (uint8_t* [AV_NUM_DATA_POINTERS]));
+      ACE_OS::memset (&data_a[0], 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
       data_a[0] = reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ());
 
       result =
@@ -977,7 +978,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
     message_p = static_cast<DataMessageType*> (message_block_p);
 
     // clean up
-    ACE_OS::memset (frame_->data, 0, sizeof (uint8_t * [8]));
+    ACE_OS::memset (frame_->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
     av_frame_unref (frame_);
 
     // forward the decoded frame
@@ -1012,7 +1013,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
     } // end IF
 
     uint8_t* data_a[AV_NUM_DATA_POINTERS];
-    ACE_OS::memset (&data_a, 0, sizeof (uint8_t* [AV_NUM_DATA_POINTERS]));
+    ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
     data_a[0] = reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ());
 
     result = swr_convert (transformContext_,

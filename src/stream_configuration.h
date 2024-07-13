@@ -32,16 +32,16 @@
 #include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (FFMPEG_SUPPORT)
-#ifdef __cplusplus
-extern "C"
-{
-#endif // __cplusplus
-#include "libavcodec/codec_id.h"
-#ifdef __cplusplus
-}
-#endif // __cplusplus
-#endif // FFMPEG_SUPPORT
+//#if defined (FFMPEG_SUPPORT)
+//#ifdef __cplusplus
+//extern "C"
+//{
+//#endif // __cplusplus
+//#include "libavcodec/codec_id.h"
+//#ifdef __cplusplus
+//}
+//#endif // __cplusplus
+//#endif // FFMPEG_SUPPORT
 
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
@@ -107,9 +107,6 @@ struct Stream_ModuleHandlerConfiguration
   Stream_ModuleHandlerConfiguration ()
    : allocatorConfiguration (NULL)
    , autoStart (false)
-#if defined (FFMPEG_SUPPORT)
-   , codecId (AV_CODEC_ID_NONE)
-#endif // FFMPEG_SUPPORT
    , computeThroughput (false)
    , concurrency (STREAM_HEADMODULECONCURRENCY_PASSIVE)
    , connectionConfigurationName ()
@@ -147,9 +144,6 @@ struct Stream_ModuleHandlerConfiguration
 
   struct Common_AllocatorConfiguration*       allocatorConfiguration;
   bool                                        autoStart;                            // head module(s)
-#if defined (FFMPEG_SUPPORT)
-  enum AVCodecID                              codecId;                              // ffmpeg encoder
-#endif // FFMPEG_SUPPORT
   bool                                        computeThroughput;                    // statistic/... module(s)
   // *NOTE*: valid operating modes (see also: put()):
   //         active    : dedicated worker thread(s) running svc()

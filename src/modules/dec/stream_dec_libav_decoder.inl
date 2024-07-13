@@ -65,7 +65,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               MediaType>::Stream_Decoder_LibAVDecoder_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
- , codecId_ (AV_CODEC_ID_NONE)
  , context_ (NULL)
  , format_ (AV_PIX_FMT_NONE)
  , formatsIndex_ (0)
@@ -77,7 +76,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
  , outputFrameSize_ (0)
  , parserContext_ (NULL)
  , parserPosition_ (0)
- , profile_ (FF_PROFILE_UNKNOWN)
  , transformContext_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_T::Stream_Decoder_LibAVDecoder_T"));
@@ -146,7 +144,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    codecId_ = AV_CODEC_ID_NONE;
     if (context_)
       avcodec_free_context (&context_);
     format_ = AV_PIX_FMT_NONE;
@@ -155,6 +152,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     formatWidth_ = 0;
     if (frame_)
     {
+      av_frame_unref (frame_);
       av_frame_free (&frame_); ACE_ASSERT (!frame_);
     } // end IF
     frameSize_ = 0;
@@ -165,7 +163,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       av_parser_close (parserContext_); parserContext_ = NULL;
     } // end IF
     parserPosition_ = 0;
-    profile_ = FF_PROFILE_UNKNOWN;
     if (transformContext_)
     {
       sws_freeContext (transformContext_); transformContext_ = NULL;
@@ -183,15 +180,11 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 //  av_register_all ();
 //  avcodec_register_all ();
 
-  // *TODO*: remove type inferences
-  codecId_ = configuration_in.codecId;
-//  if (unlikely (codecId_ == AV_CODEC_ID_NONE))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: invalid codec, aborting\n"),
-//                inherited::mod_->name ()));
-//    return false;
-//  } // end IF
+  ACE_ASSERT (configuration_in.codecConfiguration);
+  if (unlikely (configuration_in.codecConfiguration->codecId == AV_CODEC_ID_NONE))
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: no codec defined, continuing\n"),
+                inherited::mod_->name ()));
 
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   inherited2::getMediaType (configuration_in.outputFormat,
@@ -311,8 +304,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       if (!decodePacket (packet_s,
                          message_p))
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_Decoder_LibAVDecoder_T::decodePacket(), aborting\n"),
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: failed to decodePacket(), continuing\n"),
                     inherited::mod_->name ()));
         abort_session_on_error = false; // do not abort the whole session; retry
         goto error;
@@ -385,12 +378,13 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
-    { ACE_ASSERT (inherited::sessionData_);
+    { ACE_ASSERT (inherited::configuration_);
+      ACE_ASSERT (inherited::configuration_->codecConfiguration);
+      ACE_ASSERT (inherited::sessionData_);
+
       typename SessionDataContainerType::DATA_T& session_data_r =
         const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
-      //int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM |
-      //              FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
-      int debug_i = FF_DEBUG_PICT_INFO;
+      int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM | FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
 
       // sanity check(s)
       // *TODO*: remove type inference
@@ -418,58 +412,60 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                                   static_cast<int> (formatHeight_),
                                   1); // *TODO*: linesize alignment
 
-      if (codecId_ == AV_CODEC_ID_NONE)
+      if (inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_NONE)
       {
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: codec id not set, best-guessing based on the input pixel format (was: %s)\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_s.format).c_str ())));
         if (Stream_Module_Decoder_Tools::isCompressedVideo (media_type_s.format))
-          codecId_ =
+          inherited::configuration_->codecConfiguration->codecId =
             Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (media_type_s.format);
-//        else
-//          codecId_ = AV_CODEC_ID_RAWVIDEO;
       } // end IF
-      if (codecId_ == AV_CODEC_ID_NONE)
+      if (inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_NONE)
         break;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: using codec \"%s\" (id: %d)\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (avcodec_get_name (codecId_)), codecId_));
-      //profile_ = configuration_in.codecProfile;
+                  ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)), inherited::configuration_->codecConfiguration->codecId));
 
       int result = -1;
       const struct AVCodec* codec_p = NULL;
       struct AVDictionary* dictionary_p = NULL;
       int flags, flags2;
-//      unsigned int buffer_size = 0;
 
-      codec_p = avcodec_find_decoder (codecId_);
+      codec_p =
+        avcodec_find_decoder (inherited::configuration_->codecConfiguration->codecId);
       if (unlikely (!codec_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avcodec_find_decoder(%d) failed: \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: avcodec_find_decoder(\"%s\" [%d]) failed: \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    codecId_));
+                    ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)), inherited::configuration_->codecConfiguration->codecId));
         goto error;
       } // end IF
 
       ACE_ASSERT (!parserContext_);
-      parserContext_ = av_parser_init (codecId_);
+      if (unlikely (!inherited::configuration_->codecConfiguration->useParser))
+        goto continue_;
+      parserContext_ = av_parser_init (inherited::configuration_->codecConfiguration->codecId);
       if (!parserContext_)
       {
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: av_parser_init(\"%s\"[%d]) failed: \"%m\", continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (avcodec_get_name (codecId_)), codecId_));
+                    ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)), inherited::configuration_->codecConfiguration->codecId));
       } // end IF
       else
-      { // *TODO*: pass in these flag(s)
+      {
+        parserContext_->flags = inherited::configuration_->codecConfiguration->parserFlags;
         //parserContext_->flags |= PARSER_FLAG_COMPLETE_FRAMES;
-        //parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
-        //parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
+        parserContext_->flags |= PARSER_FLAG_ONCE;
+        parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
+        parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
       } // end ELSE
 
+continue_:
       context_ = avcodec_alloc_context3 (codec_p);
       if (unlikely (!context_))
       {
@@ -491,7 +487,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       codec_parameters_p->codec_type = AVMEDIA_TYPE_VIDEO;
-      codec_parameters_p->codec_id = codecId_;
+      codec_parameters_p->codec_id = inherited::configuration_->codecConfiguration->codecId;
       //codec_parameters_p->codec_tag = ;
       //codec_parameters_p->extradata = NULL;
       //codec_parameters_p->extradata_size = 0;
@@ -603,8 +599,10 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       format_ = outputFormat_; // try
       context_->opaque = &format_;
       //context_->bit_rate = bit_rate;
-      context_->flags = flags;
-      context_->flags2 = flags2;
+      context_->flags = inherited::configuration_->codecConfiguration->flags;
+      context_->flags |= flags;
+      context_->flags2 = inherited::configuration_->codecConfiguration->flags2;
+      context_->flags2 |= flags2;
       if (session_data_r.codecConfigurationDataSize)
       { ACE_ASSERT (session_data_r.codecConfigurationData);
         ACE_ASSERT (!context_->extradata);
@@ -626,8 +624,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       ACE_ASSERT (media_type_s.frameRate.num);
       context_->time_base = {media_type_s.frameRate.den, media_type_s.frameRate.num};
       context_->ticks_per_frame =
-        (((codecId_ == AV_CODEC_ID_H264) ||
-          (codecId_ == AV_CODEC_ID_MPEG2VIDEO)) ? 2 : 1);
+        (((inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_H264) ||
+          (inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_MPEG2VIDEO)) ? 2 : 1);
       context_->width = formatWidth_;
       context_->height = formatHeight_;
       //context_->coded_width = width;
@@ -691,7 +689,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       } // end IF
       avcodec_parameters_free (&codec_parameters_p); codec_parameters_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
-//      ACE_ASSERT (context_->pix_fmt == AV_PIX_FMT_NONE);
 
 //      result = av_dict_set (&dictionary_p,
 //                            NULL, NULL,
@@ -709,17 +706,16 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_open2(%d) failed: \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    codecId_,
+                    inherited::configuration_->codecConfiguration->codecId,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         av_dict_free (&dictionary_p); dictionary_p = NULL;
         goto error;
       } // end IF
-//      ACE_ASSERT (context_->pix_fmt != AV_PIX_FMT_NONE);
       av_dict_free (&dictionary_p); dictionary_p = NULL;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: initialized codec %s; decoded pixel format: %s\n"),
+                  ACE_TEXT ("%s: initialized codec \"%s\"; decoded pixel format: \"%s\"\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (avcodec_get_name (codecId_)),
+                  ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)),
                   ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (context_->pix_fmt).c_str ())));
 
       frameSize_ =
@@ -732,7 +728,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       if (context_->pix_fmt != outputFormat_)
       {
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: converting decoded pixel format %s to %s\n"),
+                    ACE_TEXT ("%s: converting decoded pixel format \"%s\" to \"%s\"\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (context_->pix_fmt).c_str ()),
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (outputFormat_).c_str ())));
@@ -779,7 +775,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       formatsIndex_ =
         static_cast<unsigned int> (session_data_r.formats.size () - 1);
 
-      goto continue_;
+      goto continue_2;
 
 error:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -791,7 +787,7 @@ error:
 
       break;
 
-continue_:
+continue_2:
       break;
     }
     case STREAM_SESSION_MESSAGE_RESIZE:

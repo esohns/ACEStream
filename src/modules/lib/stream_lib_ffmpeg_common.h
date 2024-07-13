@@ -48,6 +48,29 @@ struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration
 
 //////////////////////////////////////////
 
+struct Stream_MediaFramework_FFMPEG_CodecConfiguration
+{
+  Stream_MediaFramework_FFMPEG_CodecConfiguration ()
+   : codecId (AV_CODEC_ID_NONE)
+   , flags (0)
+   , flags2 (0)
+   , format (AV_PIX_FMT_NONE)
+   , parserFlags (0)
+   , profile (FF_PROFILE_UNKNOWN)
+   , useParser (true)
+  {}
+
+  enum AVCodecID     codecId;     // encoder-/decoder-
+  int                flags;       // codec-
+  int                flags2;      // codec-
+  enum AVPixelFormat format;      // preferred output-
+  int                parserFlags; // parser-
+  int                profile;     // codec-
+  bool               useParser;   // use av_parser_parse2() to frame chunks, decode packet headers, etc ?
+};
+
+//////////////////////////////////////////
+
 struct Stream_MediaFramework_FFMPEG_VideoMediaType
 {
   Stream_MediaFramework_FFMPEG_VideoMediaType ()

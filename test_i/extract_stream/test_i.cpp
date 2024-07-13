@@ -17,7 +17,6 @@
 *   Free Software Foundation, Inc.,                                       *
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
-#include "libavutil/pixfmt.h"
 #include "stdafx.h"
 
 #include <iostream>
@@ -59,7 +58,7 @@
 #if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
 #include "common_ui_tools.h"
-#if defined(GTK_USE)
+#if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
 #endif // GTK_USE
@@ -350,9 +349,16 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   // ********************** module configuration data **************************
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
+  allocator_configuration.defaultBufferSize = 131072; // 128 kB
+  struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration_2;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
+#else
   struct Stream_AllocatorConfiguration allocator_configuration; // video
   allocator_configuration.defaultBufferSize = 131072; // 128 kB
   struct Stream_AllocatorConfiguration allocator_configuration_2; // audio
+#endif // FFMPEG_SUPPORT
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_AllocatorConfiguration> heap_allocator;
@@ -380,16 +386,17 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   Test_I_EventHandler_t ui_event_handler;
 #endif // GUI_SUPPORT
 
-//  Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T stream_iterator;
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
+#if defined (FFMPEG_SUPPORT)
+  modulehandler_configuration.codecConfiguration = &codec_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.deviceType = AV_HWDEVICE_TYPE_DXVA2;
 #else
   modulehandler_configuration.deviceType = AV_HWDEVICE_TYPE_VAAPI;
 #endif // ACE_WIN32 || ACE_WIN64
-  //modulehandler_configuration.display = displayDevice_in;
+#endif // FFMPEG_SUPPORT
   modulehandler_configuration.subscriber = &ui_event_handler;
-  //modulehandler_configuration.subscribers = &CBData_in.subscribers;
+#if defined (FFMPEG_SUPPORT)
   modulehandler_configuration.outputFormat.audio.channels = 2;
   modulehandler_configuration.outputFormat.audio.format = AV_SAMPLE_FMT_S16;
   modulehandler_configuration.outputFormat.audio.sampleRate = 48000;
@@ -397,13 +404,18 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   //modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_YUV420P;
   modulehandler_configuration.outputFormat.video.frameRate.num = 30;
   modulehandler_configuration.outputFormat.video.resolution = {640, 480};
+#endif // FFMPEG_SUPPORT
   modulehandler_configuration.targetFileName = targetFilename_in;
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.manageSoX = false;
+#if defined (FFMPEG_SUPPORT)
   CBData_in.progressData.audioFrameSize =
     av_get_bytes_per_sample (modulehandler_configuration.outputFormat.audio.format);
+#endif // FFMPEG_SUPPORT
   modulehandler_configuration_3 = modulehandler_configuration;
+#if defined (FFMPEG_SUPPORT)
   modulehandler_configuration_3.outputFormat.video.format = AV_PIX_FMT_RGB24;
+#endif // FFMPEG_SUPPORT
 
   Test_I_MessageHandler_Module message_handler (NULL,
                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));

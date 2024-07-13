@@ -40,15 +40,15 @@
 #include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (FFMPEG_SUPPORT)
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavcodec/avcodec.h"
-#include "libavutil/pixfmt.h"
-}
-#endif // __cplusplus
-#endif // FFMPEG_SUPPORT
+//#if defined (FFMPEG_SUPPORT)
+//#ifdef __cplusplus
+//extern "C"
+//{
+//#include "libavcodec/avcodec.h"
+//#include "libavutil/pixfmt.h"
+//}
+//#endif // __cplusplus
+//#endif // FFMPEG_SUPPORT
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -56,7 +56,7 @@ extern "C"
 #elif defined (WXWIDGETS_USE)
 #include "wx/apptrait.h"
 #include "wx/window.h"
-#endif
+#endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
 #include "ace/Singleton.h"
@@ -234,7 +234,7 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
   Test_I_ImageSave_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
 #if defined (FFMPEG_SUPPORT)
-   , codecId (AV_CODEC_ID_NONE)
+   , codecConfiguration (NULL)
 #endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DConfiguration (NULL)
@@ -261,7 +261,7 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
   }
 
 #if defined (FFMPEG_SUPPORT)
-  enum AVCodecID                                     codecId;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
 #endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;

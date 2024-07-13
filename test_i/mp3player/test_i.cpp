@@ -310,11 +310,24 @@ do_work (unsigned int bufferSize_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   struct Test_I_MP3Player_Configuration configuration;
+
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
+  //allocator_configuration.defaultBufferSize = 524288;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
+  codec_configuration.codecId = AV_CODEC_ID_AAC;
+#else
   struct Stream_AllocatorConfiguration allocator_configuration;
+#endif // FFMPEG_SUPPORT
   //allocator_configuration.defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
   Test_I_Stream stream;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Common_AllocatorConfiguration> heap_allocator;
+#if defined (FFMPEG_SUPPORT)
+                         struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration
+#else
+                         struct Stream_AllocatorConfiguration
+#endif
+                        > heap_allocator;
   if (!heap_allocator.initialize (allocator_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -330,7 +343,7 @@ do_work (unsigned int bufferSize_in,
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_MP3Player_ModuleHandlerConfiguration modulehandler_configuration;
 #if defined (FFMPEG_SUPPORT)
-  modulehandler_configuration.codecId = AV_CODEC_ID_AAC;
+  modulehandler_configuration.codecConfiguration = &codec_configuration;
 #endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.deviceIdentifier.identifierDiscriminator =

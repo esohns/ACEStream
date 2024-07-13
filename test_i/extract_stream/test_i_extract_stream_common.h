@@ -25,15 +25,15 @@
 #include <map>
 #include <string>
 
-#if defined (FFMPEG_SUPPORT)
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavcodec/avcodec.h"
-#include "libavutil/pixfmt.h"
-}
-#endif // __cplusplus
-#endif // FFMPEG_SUPPORT
+//#if defined (FFMPEG_SUPPORT)
+//#ifdef __cplusplus
+//extern "C"
+//{
+//#include "libavcodec/avcodec.h"
+//#include "libavutil/pixfmt.h"
+//}
+//#endif // __cplusplus
+//#endif // FFMPEG_SUPPORT
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
@@ -80,7 +80,9 @@ extern "C"
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_session_data.h"
 
+#if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
 
 #include "test_i_common.h"
 #include "test_i_configuration.h"
@@ -162,14 +164,16 @@ struct Test_I_ExtractStream_ModuleHandlerConfiguration
   Test_I_ExtractStream_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
 #if defined (FFMPEG_SUPPORT)
-   , codecId (AV_CODEC_ID_NONE)
-#endif // FFMPEG_SUPPORT
+   , codecConfiguration (NULL)
    , deviceType (AV_HWDEVICE_TYPE_NONE)
+#endif // FFMPEG_SUPPORT
    , effect (ACE_TEXT_ALWAYS_CHAR ("tempo")) // preserve pitch
    , effectOptions ()
    , manageSoX (true)
+#if defined (FFMPEG_SUPPORT)
    , outputFormat ()
    , streamIndex (-1)
+#endif // FFMPEG_SUPPORT
    , subscriber (NULL)
    , targetFileName ()
 #if defined (GTK_USE)
@@ -178,18 +182,20 @@ struct Test_I_ExtractStream_ModuleHandlerConfiguration
   {}
 
 #if defined (FFMPEG_SUPPORT)
-  enum AVCodecID                                codecId;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
+  enum AVHWDeviceType                                     deviceType;
 #endif // FFMPEG_SUPPORT
-  enum AVHWDeviceType                           deviceType;
-  std::string                                   effect;
-  std::vector<std::string>                      effectOptions;
-  bool                                          manageSoX;
-  struct Stream_MediaFramework_FFMPEG_MediaType outputFormat;
-  int                                           streamIndex;
-  Test_I_ISessionNotify_t*                      subscriber;
-  std::string                                   targetFileName;
+  std::string effect;
+  std::vector<std::string>                                effectOptions;
+  bool                                                    manageSoX;
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_MediaType           outputFormat;
+  int                                                     streamIndex;
+#endif // FFMPEG_SUPPORT
+  Test_I_ISessionNotify_t*                                subscriber;
+  std::string                                             targetFileName;
 #if defined (GTK_USE)
-  GdkWindow*                                    window;
+  GdkWindow*                                              window;
 #endif // GTK_USE
 };
 

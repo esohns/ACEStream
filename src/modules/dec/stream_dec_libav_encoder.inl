@@ -394,6 +394,8 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+      ACE_ASSERT (inherited::configuration_->codecConfiguration);
       ACE_ASSERT (inherited::sessionData_);
       typename SessionDataContainerType::DATA_T& session_data_r =
         const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
@@ -405,10 +407,10 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       struct Stream_MediaFramework_FFMPEG_AudioMediaType audio_media_type_s;
       struct Stream_MediaFramework_FFMPEG_VideoMediaType video_media_type_s;
       const struct AVOutputFormat* output_format_p = NULL;
-      enum AVCodecID video_coded_id = inherited::configuration_->codecId;
+      enum AVCodecID video_codec_id = inherited::configuration_->codecConfiguration->codecId;
       // *NOTE*: derive this from the specified input format (see below)
       // *TODO*: make this configurable as well
-      enum AVCodecID audio_coded_id = AV_CODEC_ID_NONE;
+      enum AVCodecID audio_codec_id = AV_CODEC_ID_NONE;
 
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_AUDIO,
@@ -449,8 +451,8 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       // *IMPORTANT NOTE*: the workaround to set these directly (see also:
       // https://stackoverflow.com/questions/67882397/change-the-default-audio-and-video-codec-loaded-by-avformat-alloc-output-context)
       //                   does not work (crashes on Windows)
-      //output_format_p->audio_codec = audio_coded_id;
-      //output_format_p->video_codec = video_coded_id;
+      //output_format_p->audio_codec = audio_codec_id;
+      //output_format_p->video_codec = video_codec_id;
 
       result =
         avio_open (&formatContext_->pb,
@@ -496,18 +498,18 @@ continue_:
       } // end SWITCH
 
 audio:
-      audio_coded_id =
+      audio_codec_id =
         Stream_MediaFramework_Tools::ffmpegFormatToffmpegCodecId (audio_media_type_s.format);
-      formatContext_->audio_codec = avcodec_find_encoder (audio_coded_id);
+      formatContext_->audio_codec = avcodec_find_encoder (audio_codec_id);
       if (unlikely (!formatContext_->audio_codec))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_find_encoder(%d) failed: \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    audio_coded_id));
+                    audio_codec_id));
         goto error;
       } // end IF
-      formatContext_->audio_codec_id = audio_coded_id;
+      formatContext_->audio_codec_id = audio_codec_id;
 
       audioStream_ = avformat_new_stream (formatContext_, formatContext_->audio_codec);
       if (!audioStream_)
@@ -582,16 +584,16 @@ audio:
       goto continue_2;
 
 video:
-      formatContext_->video_codec = avcodec_find_encoder (video_coded_id);
+      formatContext_->video_codec = avcodec_find_encoder (video_codec_id);
       if (unlikely (!formatContext_->video_codec))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_find_encoder(%d) failed: \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    video_coded_id));
+                    video_codec_id));
         goto error;
       } // end IF
-      formatContext_->video_codec_id = video_coded_id;
+      formatContext_->video_codec_id = video_codec_id;
 
       videoStream_ = avformat_new_stream (formatContext_,
                                           formatContext_->video_codec);
@@ -615,7 +617,7 @@ video:
       } // end IF
       ACE_ASSERT (videoCodecContext_);
 
-      videoCodecContext_->codec_id = video_coded_id;
+      videoCodecContext_->codec_id = video_codec_id;
 
       videoCodecContext_->pix_fmt =
           static_cast<AVPixelFormat> (videoFrame_->format);

@@ -111,17 +111,11 @@ class Stream_Decoder_LibAV_ImageDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAV_ImageDecoder_T (const Stream_Decoder_LibAV_ImageDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAV_ImageDecoder_T& operator= (const Stream_Decoder_LibAV_ImageDecoder_T&))
 
-  enum AVCodecID                                codecId_;
-//  struct AVCodecContext*                        context_;
+  //struct AVCodecContext*                             context_;
   struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat_;
-//  int                                           profile_; // codec-
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  static char                                   paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
-#else
-  static char                                   paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
-//  static char            paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];
-#endif // ACE_WIN32 || ACE_WIN64
+  static char                                        paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
+  //static char                                        paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];
 };
 
 // include template definition

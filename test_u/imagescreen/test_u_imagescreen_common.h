@@ -21,15 +21,15 @@
 #ifndef TEST_U_IMAGESCREEN_COMMON_H
 #define TEST_U_IMAGESCREEN_COMMON_H
 
-#if defined (FFMPEG_SUPPORT)
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavcodec/avcodec.h"
-#include "libavutil/pixfmt.h"
-}
-#endif // __cplusplus
-#endif // FFMPEG_SUPPORT
+//#if defined (FFMPEG_SUPPORT)
+//#ifdef __cplusplus
+//extern "C"
+//{
+//#include "libavcodec/avcodec.h"
+//#include "libavutil/pixfmt.h"
+//}
+//#endif // __cplusplus
+//#endif // FFMPEG_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -63,11 +63,10 @@ extern "C"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directdraw_common.h"
-#else
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
 #endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_misc_common.h"
 
@@ -128,14 +127,8 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
   Stream_ImageScreen_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
 #if defined (FFMPEG_SUPPORT)
-   , codecId (AV_CODEC_ID_NONE)
+   , codecConfiguration (NULL)
 #endif // FFMPEG_SUPPORT
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#if defined (FFMPEG_SUPPORT)
-   , codecFormat (AV_PIX_FMT_NONE)
-#endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
    , delayConfiguration (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DConfiguration (NULL)
@@ -160,14 +153,8 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
   }
 
 #if defined (FFMPEG_SUPPORT)
-  enum AVCodecID                                codecId;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
 #endif // FFMPEG_SUPPORT
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#if defined (FFMPEG_SUPPORT)
-  enum AVPixelFormat                            codecFormat; // preferred output-
-#endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
   struct Stream_Miscellaneous_DelayConfiguration* delayConfiguration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;

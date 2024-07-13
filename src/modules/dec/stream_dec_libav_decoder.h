@@ -113,7 +113,6 @@ class Stream_Decoder_LibAVDecoder_T
                      DataMessageType*&); // return value: decoded frame
   void drainBuffers (Stream_SessionId_t); // session id
 
-  enum AVCodecID               codecId_;
   struct AVCodecContext*       context_;
   enum AVPixelFormat           format_; // codec output-
   unsigned int                 formatsIndex_;
@@ -125,7 +124,6 @@ class Stream_Decoder_LibAVDecoder_T
   unsigned int                 outputFrameSize_; // output-
   struct AVCodecParserContext* parserContext_;
   int64_t                      parserPosition_;
-  int                          profile_; // codec-
   struct SwsContext*           transformContext_;
 };
 
