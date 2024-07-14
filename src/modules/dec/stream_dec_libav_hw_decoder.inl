@@ -1193,9 +1193,10 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
     ACE_ASSERT (result >= 0);
     if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
                                                          context_->width, context_->height, intermediateFormat_,
-                                                         static_cast<uint8_t**> (frame_p->data),
+                                                         frame_p->data,
                                                          context_->width, context_->height, outputFormat_,
-                                                         data_a)))
+                                                         data_a,
+                                                         false)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), aborting\n"),

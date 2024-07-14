@@ -894,7 +894,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   } // end IF
 
   // pixel format/resolution may have changed
-  if (unlikely ((context_->pix_fmt != format_)      ||
+  if (unlikely ((context_->pix_fmt != format_)                         ||
                 (context_->width != static_cast<int> (formatWidth_))   ||
                 (context_->height != static_cast<int> (formatHeight_))))
   {
@@ -910,7 +910,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (outputFormat_).c_str ()),
                 context_->width, context_->height));
 
-    int flags = (SWS_FAST_BILINEAR); // interpolation
+    int flags = ( // SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
+      SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
     transformContext_ =
       sws_getCachedContext (NULL,
                             context_->width, context_->height, context_->pix_fmt,
@@ -1004,7 +1005,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     int line_sizes_a[AV_NUM_DATA_POINTERS];
     ACE_OS::memset (&line_sizes_a, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
     uint8_t* data_a[AV_NUM_DATA_POINTERS];
-    ACE_OS::memset (&data_a, 0, sizeof (uint8_t* [AV_NUM_DATA_POINTERS]));
+    ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
 
     message_block_p = inherited::allocateMessage (outputFrameSize_);
     if (unlikely (!message_block_p))
@@ -1031,7 +1032,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     ACE_ASSERT (result >= 0);
     if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
                                                          context_->width, context_->height, context_->pix_fmt,
-                                                         static_cast<uint8_t**> (frame_->data),
+                                                         frame_->data,
                                                          context_->width, context_->height, outputFormat_,
                                                          data_a)))
     {
