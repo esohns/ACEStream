@@ -115,6 +115,10 @@ do_print_usage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"])")
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-i          : window handle (hex) [")
+            << 0
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
 #else
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-i          : (X11) window id [")
             << 0
@@ -149,6 +153,7 @@ bool
 do_process_arguments (int argc_in,
                       ACE_TCHAR** argv_in, // cannot be const...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+                      HWND& windowHandle_out,
 #else
                       Window& windowId_out,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -168,6 +173,7 @@ do_process_arguments (int argc_in,
 
   // initialize results
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  windowHandle_out = NULL;
 #else
   windowId_out = 0;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -180,11 +186,9 @@ do_process_arguments (int argc_in,
   traceInformation_out = false;
   mode_out = TEST_U_PROGRAMMODE_NORMAL;
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("f:lp:tv");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("f:i:lp:tv");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("m");
-#else
-  options_string += ACE_TEXT_ALWAYS_CHAR ("i:");
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_Get_Opt argumentParser (argc_in,
@@ -207,26 +211,36 @@ do_process_arguments (int argc_in,
           ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         break;
       }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
       case 'i':
       {
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter.clear ();
 
         converter.str (ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+        ACE_UINT64 handle_i = 0;
+        converter >> handle_i;
+        windowHandle_out = reinterpret_cast<HWND> (handle_i);
+        if (!windowHandle_out)
+#else
         converter >> windowId_out;
         if (!windowId_out)
+#endif    // ACE_WIN32 || ACE_WIN64
         { // try hexadecimal
           converter.str (ACE_TEXT_ALWAYS_CHAR (""));
           converter.clear ();
           converter << std::hex << ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+          handle_i = 0;
+          converter >> handle_i;
+          windowHandle_out = reinterpret_cast<HWND> (handle_i);
+#else
           converter >> windowId_out;
+#endif // ACE_WIN32 || ACE_WIN64
           converter << std::dec;
         } // end IF
         break;
       }
-#endif // ACE_WIN32 || ACE_WIN64
       case 'l':
       {
         logToFile_out = true;
@@ -1201,10 +1215,7 @@ ACE_TMAIN (int argc_in,
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
                              argv_in,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
                              window_handle_h,
-#endif // ACE_WIN32 || ACE_WIN64
                              process_id,
                              executable_name_string,
                              log_to_file,
@@ -1272,10 +1283,10 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   window_handles_a = Common_Process_Tools::window (process_id);
   ACE_ASSERT (!window_handles_a.empty ());
-  window_handle_h = window_handles_a[1]; // *TODO*: how to choose the right one ?
+  window_handle_h = window_handles_a[0]; // *TODO*: how to choose the right one ?
 #else
   window_handle_h = Common_Process_Tools::window (process_id);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!window_handle_h))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1292,7 +1303,7 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 continue_:
-  if (false)
+  if (!window_handle_h)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -1314,8 +1325,8 @@ continue_:
   if (log_to_file)
     log_file_name =
         Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                          ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]),                   // program name
+                                          ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR_A)));
+  if (!Common_Log_Tools::initializeLogging (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR_A)), // program name
                                             log_file_name,                                // log file name
                                             false,                                        // log to syslog ?
                                             false,                                        // trace messages ?
@@ -1341,7 +1352,7 @@ continue_:
   {
     case TEST_U_PROGRAMMODE_PRINT_VERSION:
     {
-      do_print_version (ACE::basename (argv_in[0]));
+      do_print_version (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR_A)));
 
       Common_Log_Tools::finalizeLogging ();
       Common_Tools::finalize ();

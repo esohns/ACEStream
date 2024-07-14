@@ -227,14 +227,14 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
         static_cast<enum AVSampleFormat> (context_->streams[inherited::configuration_->streamIndex]->codecpar->format);
       media_type_s.audio.sampleRate =
         context_->streams[inherited::configuration_->streamIndex]->codecpar->sample_rate;
-      media_type_s.audio.codec =
+      media_type_s.audio.codecId =
         context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
       break;
     }
     case AVMEDIA_TYPE_VIDEO:
     {
       message_media_type_s = STREAM_MEDIATYPE_VIDEO;
-      media_type_s.video.codec =
+      media_type_s.video.codecId =
         context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
       if (context_->streams[inherited::configuration_->streamIndex]->codecpar->extradata_size)
       { ACE_ASSERT (!session_data_r.codecConfigurationDataSize);

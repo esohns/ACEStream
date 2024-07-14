@@ -25,6 +25,7 @@
 
 extern "C" {
 #include "libavcodec/avcodec.h"
+#include "libavutil/hwcontext.h"
 #include "libavutil/pixfmt.h"
 #include "libavutil/rational.h"
 #include "libavutil/samplefmt.h"
@@ -48,10 +49,22 @@ struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration
 
 //////////////////////////////////////////
 
+struct Stream_MediaFramework_FFMPEG_FormatNegotiationCBData
+{
+  Stream_MediaFramework_FFMPEG_FormatNegotiationCBData ()
+   : preferredFormat (NULL)
+   , negotiatedFormat (NULL)
+  {}
+
+  enum AVPixelFormat* preferredFormat;
+  enum AVPixelFormat* negotiatedFormat;
+};
+
 struct Stream_MediaFramework_FFMPEG_CodecConfiguration
 {
   Stream_MediaFramework_FFMPEG_CodecConfiguration ()
    : codecId (AV_CODEC_ID_NONE)
+   , deviceType (AV_HWDEVICE_TYPE_NONE)
    , flags (0)
    , flags2 (0)
    , format (AV_PIX_FMT_NONE)
@@ -60,13 +73,14 @@ struct Stream_MediaFramework_FFMPEG_CodecConfiguration
    , useParser (true)
   {}
 
-  enum AVCodecID     codecId;     // encoder-/decoder-
-  int                flags;       // codec-
-  int                flags2;      // codec-
-  enum AVPixelFormat format;      // preferred output-
-  int                parserFlags; // parser-
-  int                profile;     // codec-
-  bool               useParser;   // use av_parser_parse2() to frame chunks, decode packet headers, etc ?
+  enum AVCodecID      codecId;     // encoder-/decoder-
+  enum AVHWDeviceType deviceType;  // encoder-/decoder-
+  int                 flags;       // codec-
+  int                 flags2;      // codec-
+  enum AVPixelFormat  format;      // preferred output-
+  int                 parserFlags; // parser-
+  int                 profile;     // codec-
+  bool                useParser;   // use av_parser_parse2() to frame chunks, decode packet headers, etc ?
 };
 
 //////////////////////////////////////////
@@ -74,16 +88,16 @@ struct Stream_MediaFramework_FFMPEG_CodecConfiguration
 struct Stream_MediaFramework_FFMPEG_VideoMediaType
 {
   Stream_MediaFramework_FFMPEG_VideoMediaType ()
-   : codec (AV_CODEC_ID_NONE)
+   : codecId (AV_CODEC_ID_NONE)
    , format (AV_PIX_FMT_NONE)
    , frameRate ()
    , resolution ()
   {
     frameRate.den = 1;
-//    frameRate.num = 0;
+    frameRate.num = 0;
   }
 
-  enum AVCodecID            codec;
+  enum AVCodecID            codecId;
   enum AVPixelFormat        format;
   struct AVRational         frameRate;
   Common_Image_Resolution_t resolution;
@@ -94,13 +108,13 @@ typedef Stream_MediaFramework_FFMPEG_VideoFormats_t::iterator Stream_MediaFramew
 struct Stream_MediaFramework_FFMPEG_AudioMediaType
 {
   Stream_MediaFramework_FFMPEG_AudioMediaType ()
-   : codec (AV_CODEC_ID_NONE)
+   : codecId (AV_CODEC_ID_NONE)
    , format (AV_SAMPLE_FMT_NONE)
    , channels (0)
    , sampleRate (0)
   {}
 
-  enum AVCodecID      codec;
+  enum AVCodecID      codecId;
   enum AVSampleFormat format;
   unsigned int        channels;
   unsigned int        sampleRate;

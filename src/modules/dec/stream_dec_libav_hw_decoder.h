@@ -33,6 +33,7 @@ extern "C"
 
 #include "stream_task_base_synch.h"
 
+#include "stream_lib_ffmpeg_common.h"
 #include "stream_lib_mediatype_converter.h"
 
 // forward declaration(s)
@@ -113,20 +114,21 @@ class Stream_LibAV_HW_Decoder_T
                      DataMessageType*&); // return value: decoded frame
   void drainBuffers (Stream_SessionId_t); // session id
 
-  struct AVCodecContext*       context_;
-  enum AVPixelFormat           format_; // codec (hw) output-
-  enum AVPixelFormat           intermediateFormat_; // input to sws-
-  unsigned int                 formatsIndex_;
-  unsigned int                 formatHeight_; // codec output-
-  unsigned int                 formatWidth_; // codec output-
-  struct AVFrame*              frame_;
-  struct AVFrame*              hwFrame_;
-  unsigned int                 frameSize_; // codec output-
-  enum AVPixelFormat           outputFormat_; // output-
-  unsigned int                 outputFrameSize_; // output-
-  struct AVCodecParserContext* parserContext_;
-  int64_t                      parserPosition_;
-  struct SwsContext*           transformContext_;
+  struct AVCodecContext*                                context_;
+  enum AVPixelFormat                                    intermediateFormat_; // codec output- (and input to sws-)
+  unsigned int                                          formatsIndex_;
+  unsigned int                                          formatHeight_; // codec output-
+  unsigned int                                          formatWidth_; // codec output-
+  struct AVFrame*                                       frame_;
+  struct AVFrame*                                       hwFrame_;
+
+  unsigned int                                          frameSize_; // codec output-
+  struct Stream_MediaFramework_FFMPEG_FormatNegotiationCBData formatNegotiationCBData_;
+  enum AVPixelFormat                                    outputFormat_; // output-
+  unsigned int                                          outputFrameSize_; // output-
+  struct AVCodecParserContext*                          parserContext_;
+  int64_t                                               parserPosition_;
+  struct SwsContext*                                    transformContext_;
 };
 
 // include template definition

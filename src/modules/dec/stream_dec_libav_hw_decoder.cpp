@@ -21,6 +21,8 @@
 
 #include "stream_dec_libav_hw_decoder.h"
 
+#include "stream_lib_tools.h"
+
 #include "stream_dec_defines.h"
 
 const char libacestream_default_dec_libav_hw_decoder_module_name_string[] =
@@ -36,33 +38,59 @@ stream_decoder_libav_hw_getformat_cb (struct AVCodecContext* context_in,
   ACE_ASSERT (context_in);
   ACE_ASSERT (formats_in);
   ACE_ASSERT (context_in->opaque);
+  struct Stream_MediaFramework_FFMPEG_FormatNegotiationCBData* cb_data_p = 
+    reinterpret_cast<struct Stream_MediaFramework_FFMPEG_FormatNegotiationCBData*> (context_in->opaque);
+  ACE_ASSERT (cb_data_p && cb_data_p->preferredFormat);
 
-  enum AVPixelFormat* preferred_format_p =
-    reinterpret_cast<enum AVPixelFormat*> (context_in->opaque);
+#if defined (_DEBUG)
+  for (const enum AVPixelFormat* iterator = formats_in;
+       *iterator != -1;
+       ++iterator)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: supported output format \"%s\"\n"),
+                ACE_TEXT (avcodec_get_name (context_in->codec_id)),
+                ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*iterator).c_str ())));
+#endif // _DEBUG
 
   // try to find the preferred format first
   for (const enum AVPixelFormat* iterator = formats_in;
        *iterator != -1;
        ++iterator)
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: supported format \"%s\"\n"),
-                ACE_TEXT (avcodec_get_name (context_in->codec_id)),
-                ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*iterator).c_str ())));
-    if (*iterator == *preferred_format_p)
+    if (*iterator == *(cb_data_p->preferredFormat))
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: choosing preferred output format \"%s\"\n"),
+                  ACE_TEXT (avcodec_get_name (context_in->codec_id)),
+                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*iterator).c_str ())));
+      if (cb_data_p->negotiatedFormat)
+        *(cb_data_p->negotiatedFormat) = *iterator;
       return *iterator;
-  } // end FOR
+    } // end IF
   ACE_DEBUG ((LM_WARNING,
-              ACE_TEXT ("%s: preferred format (was: \"%s\") not supported, falling back\n"),
+              ACE_TEXT ("%s: preferred output format (was: \"%s\") not supported, falling back\n"),
               ACE_TEXT (avcodec_get_name (context_in->codec_id)),
-              ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*preferred_format_p).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*cb_data_p->preferredFormat).c_str ())));
 
   // choose the first unaccelerated format
   for (const enum AVPixelFormat* iterator = formats_in;
        *iterator != -1;
        ++iterator)
     if (!Stream_MediaFramework_Tools::isAcceleratedFormat (*iterator))
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: choosing output format \"%s\"\n"),
+                  ACE_TEXT (avcodec_get_name (context_in->codec_id)),
+                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*iterator).c_str ())));
+      if (cb_data_p->negotiatedFormat)
+        *(cb_data_p->negotiatedFormat) = *iterator;
       return *iterator;
+    } // end IF
+
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("%s: no suitable output format found, aborting\n"),
+              ACE_TEXT (avcodec_get_name (context_in->codec_id))));
+  if (cb_data_p->negotiatedFormat)
+    *(cb_data_p->negotiatedFormat) = AV_PIX_FMT_NONE;
 
   return AV_PIX_FMT_NONE;
 }

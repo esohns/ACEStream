@@ -69,7 +69,6 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , inherited2 ()
  , context_ (NULL)
- , format_ (AV_PIX_FMT_NONE)
  , intermediateFormat_ (AV_PIX_FMT_NONE)
  , formatsIndex_ (0)
  , formatHeight_ (0)
@@ -77,6 +76,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
  , frame_ (NULL)
  , hwFrame_ (NULL)
  , frameSize_ (0)
+ , formatNegotiationCBData_ ()
  , outputFormat_ (AV_PIX_FMT_NONE)
  , outputFrameSize_ (0)
  , parserContext_ (NULL)
@@ -154,7 +154,6 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   {
     if (context_)
       avcodec_free_context (&context_);
-    format_ = AV_PIX_FMT_NONE;
     intermediateFormat_ = AV_PIX_FMT_NONE;
     formatsIndex_ = 0;
     formatHeight_ = 0;
@@ -507,11 +506,11 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       //codec_parameters_p->codec_tag = ;
       //codec_parameters_p->extradata = NULL;
       //codec_parameters_p->extradata_size = 0;
-      codec_parameters_p->format = outputFormat_;
+      //codec_parameters_p->format = outputFormat_;
       //codec_parameters_p->bit_rate = 200000;
       //codec_parameters_p->bits_per_coded_sample = 0;
       //codec_parameters_p->bits_per_raw_sample = 0;
-      //codec_parameters_p->profile = FF_PROFILE_H264_HIGH;
+      codec_parameters_p->profile = inherited::configuration_->codecConfiguration->profile;
       //codec_parameters_p->level = ;
       codec_parameters_p->width = formatWidth_;
       codec_parameters_p->height = formatHeight_;
@@ -610,9 +609,10 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                AV_CODEC_FLAG2_EXPORT_MVS    |
                AV_CODEC_FLAG2_SKIP_MANUAL;
 #endif // ACE_WIN32 || ACE_WIN64
-      format_ =
-        Stream_MediaFramework_Tools::AVHWDeviceTypeToPixelFormat (inherited::configuration_->deviceType);
-      context_->opaque = &format_;
+      inherited::configuration_->codecConfiguration->format = outputFormat_;
+      formatNegotiationCBData_.preferredFormat = &inherited::configuration_->codecConfiguration->format;
+      formatNegotiationCBData_.negotiatedFormat = &intermediateFormat_;
+      context_->opaque = &formatNegotiationCBData_;
       //context_->bit_rate = bit_rate;
       context_->flags = flags;
       context_->flags2 = flags2;
@@ -712,34 +712,34 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       ACE_ASSERT (dictionary_p);
 
       result =
-        av_hwdevice_ctx_create (&hw_device_ctx_p,                      // return value: device context
-                                inherited::configuration_->deviceType, // device type
-                                NULL,                                  // device name
-                                NULL,                                  // device parameters
-                                0);                                    // device flags
+        av_hwdevice_ctx_create (&hw_device_ctx_p,                                          // return value: device context
+                                inherited::configuration_->codecConfiguration->deviceType, // device type
+                                NULL,                                                      // device name
+                                NULL,                                                      // device parameters
+                                0);                                                        // device flags
       if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: av_hwdevice_ctx_create(%d) failed: \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    inherited::configuration_->deviceType,
+                    inherited::configuration_->codecConfiguration->deviceType,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         av_dict_free (&dictionary_p); dictionary_p = NULL;
         goto error;
       } // end IF
       ACE_ASSERT (hw_device_ctx_p);
       context_->hw_device_ctx = hw_device_ctx_p;
-      context_->pix_fmt =
-        Stream_MediaFramework_Tools::AVHWDeviceTypeToPixelFormat (inherited::configuration_->deviceType);
+      //context_->pix_fmt =
+      //  Stream_MediaFramework_Tools::AVHWDeviceTypeToPixelFormat (inherited::configuration_->codecConfiguration->deviceType);
 
       hw_frames_constraints_p =
         av_hwdevice_get_hwframe_constraints (hw_device_ctx_p, NULL);
       if (!hw_frames_constraints_p)
       {
         intermediateFormat_ =
-          Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (inherited::configuration_->deviceType);
+          Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (inherited::configuration_->codecConfiguration->deviceType);
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: failed to av_hwdevice_get_hwframe_constraints; trying intermediate format: \"%s\"\n"),
+                    ACE_TEXT ("%s: failed to av_hwdevice_get_hwframe_constraints(); trying intermediate format: \"%s\"\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (intermediateFormat_).c_str ())));
       } // end IF
@@ -749,8 +749,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
              *format_p != AV_PIX_FMT_NONE;
              ++format_p)
         {
-          if ((*format_p == outputFormat_) ||
-              sws_isSupportedInput (*format_p))
+          if ((*format_p == outputFormat_) || sws_isSupportedInput (*format_p))
           {
             intermediateFormat_ = *format_p;
             ACE_DEBUG ((LM_DEBUG,
@@ -762,6 +761,16 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
         } // end FOR
         av_hwframe_constraints_free (&hw_frames_constraints_p);
       } // end ELSE
+      if (unlikely (intermediateFormat_ == AV_PIX_FMT_NONE))
+      {
+        intermediateFormat_ =
+          Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (inherited::configuration_->codecConfiguration->deviceType);
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: failed to retrieve suitable intermediate format; trying: \"%s\"\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (intermediateFormat_).c_str ())));
+      } // end IF
+      //context_->pix_fmt = intermediateFormat_;
 
       //av_opt_set_int (context_,
       //                ACE_TEXT_ALWAYS_CHAR ("refcounted_frames"),
@@ -792,7 +801,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: initialized codec %s; decoded pixel format: %s\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)),
-                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (context_->pix_fmt).c_str ())));
+                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (intermediateFormat_).c_str ())));
 
       frameSize_ =
         av_image_get_buffer_size (context_->pix_fmt,
@@ -825,7 +834,6 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
           goto error;
         } // end IF
       } // end IF
-      format_ = context_->pix_fmt;
 
       ACE_ASSERT (!frame_);
       frame_ = av_frame_alloc ();
@@ -1023,19 +1031,11 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   } // end IF
 
   // pixel format/resolution may have changed
-  if (unlikely ((context_->pix_fmt != format_)      ||
+  if (unlikely ((context_->pix_fmt != intermediateFormat_)             ||
                 (context_->width != static_cast<int> (formatWidth_))   ||
                 (context_->height != static_cast<int> (formatHeight_))))
   {
-    if (transformContext_)
-    {
-      sws_freeContext (transformContext_); transformContext_ = NULL;
-    } // end IF
-
-    if (!Stream_MediaFramework_Tools::isAcceleratedFormat (context_->pix_fmt))
-    {
-      intermediateFormat_ = context_->pix_fmt;
-    } // end IF
+    intermediateFormat_ = context_->pix_fmt;
 
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: reinit occurred; converting decoded pixel format %s to %s (@ %ux%u)\n"),
@@ -1043,6 +1043,11 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (intermediateFormat_).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (outputFormat_).c_str ()),
                 context_->width, context_->height));
+
+    if (transformContext_)
+    {
+      sws_freeContext (transformContext_); transformContext_ = NULL;
+    } // end IF
 
     int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
       SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
@@ -1062,11 +1067,10 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
 
     bool send_resize_b = ((context_->width != static_cast<int> (formatWidth_)) ||
                           (context_->height != static_cast<int> (formatHeight_)));
-    format_ = context_->pix_fmt;
     formatWidth_ = context_->width;
     formatHeight_ = context_->height;
     frameSize_ =
-      av_image_get_buffer_size (context_->pix_fmt,
+      av_image_get_buffer_size (intermediateFormat_,
                                 context_->width,
                                 context_->height,
                                 1); // *TODO*: linesize alignment
@@ -1149,7 +1153,6 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   } // end IF
   else
   {
-    intermediateFormat_ = static_cast<enum AVPixelFormat> (hwFrame_->format);
     frame_p = hwFrame_;
   } // end ELSE
 
@@ -1337,7 +1340,6 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
     } // end IF
     else
     {
-      intermediateFormat_ = static_cast<enum AVPixelFormat> (hwFrame_->format);
       frame_p = hwFrame_;
     } // end ELSE
 

@@ -388,9 +388,14 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
 
       if (inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_NONE)
       {
-        if (media_type_s.codec == AV_CODEC_ID_NONE)
-          break;
-        inherited::configuration_->codecConfiguration->codecId = media_type_s.codec;
+        if (media_type_s.codecId == AV_CODEC_ID_NONE)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: no codec specified in either configuration or inbound media type, aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+        inherited::configuration_->codecConfiguration->codecId = media_type_s.codecId;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: using codec \"%s\" (id: %d)\n"),

@@ -439,8 +439,8 @@ error:
 #endif // ACE_WIN32 || ACE_WIN64
 
       // initialize conversion context
-      flags_i = (SWS_FAST_BILINEAR); // interpolation
-           //SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
+      // *TODO*: use passed-in flags here
+      flags_i = SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT; // interpolation
       inherited::context_ =
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

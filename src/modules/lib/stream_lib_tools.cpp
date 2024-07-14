@@ -3480,11 +3480,13 @@ Stream_MediaFramework_Tools::isAcceleratedFormat (enum AVPixelFormat format_in)
     case AV_PIX_FMT_VAAPI:
     case AV_PIX_FMT_DXVA2_VLD:
     case AV_PIX_FMT_QSV:
+    case AV_PIX_FMT_D3D11VA_VLD:
     case AV_PIX_FMT_VIDEOTOOLBOX:
     case AV_PIX_FMT_D3D11:
     case AV_PIX_FMT_OPENCL:
     case AV_PIX_FMT_MEDIACODEC:
     case AV_PIX_FMT_VULKAN:
+    case AV_PIX_FMT_D3D12:
       return true;
     default:
       break;
@@ -4120,7 +4122,7 @@ Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (enum AVHWD
   switch (type_in)
   {
     case AV_HWDEVICE_TYPE_DXVA2:
-      return AV_PIX_FMT_NV12;
+      return AV_PIX_FMT_YUV420P; // supported by H264 decoder
     default:
     {
       ACE_DEBUG ((LM_ERROR,

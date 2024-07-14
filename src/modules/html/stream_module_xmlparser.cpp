@@ -133,12 +133,12 @@ stream_xml_parser_sax_default_error_cb (void* userData_in,
   va_list arguments_a;
 
   va_start (arguments_a, message_in);
-  int length = ACE_OS::vsnprintf (buffer_a,
-                                  sizeof (ACE_TCHAR[BUFSIZ]),
-//                                  sizeof (buffer_a) / sizeof (buffer_a[0]),
-                                  message_in, arguments_a);
+  int length_i = ACE_OS::vsnprintf (buffer_a,
+                                   sizeof (ACE_TCHAR[BUFSIZ]),
+                                   message_in,
+                                   arguments_a);
   va_end (arguments_a);
-  ACE_UNUSED_ARG (length);
+  ACE_UNUSED_ARG (length_i);
 
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("stream_html_parser_sax_default_error_cb: %s"),
@@ -147,7 +147,7 @@ stream_xml_parser_sax_default_error_cb (void* userData_in,
 
 void
 stream_xml_parser_sax_default_structured_error_cb (void* userData_in,
-                                                   const xmlError* error_in)
+                                                   xmlError* error_in)
 {
   STREAM_TRACE (ACE_TEXT ("::stream_xml_parser_sax_default_structured_error_cb"));
 
