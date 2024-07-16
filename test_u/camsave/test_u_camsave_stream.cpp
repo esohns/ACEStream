@@ -1604,7 +1604,7 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&source_, NULL, 0);
 //  layout_inout.append (&statisticReport_, NULL, 0);
 
-  if ((*iterator).second.second->codecId != AV_CODEC_ID_NONE)
+  if ((*iterator).second.second->codecConfiguration->codecId != AV_CODEC_ID_NONE)
     layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
 
   if (display_b && save_to_file_b)

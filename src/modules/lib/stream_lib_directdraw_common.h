@@ -42,22 +42,22 @@ struct Stream_MediaFramework_Direct3D_Configuration
    , handle (NULL)
    , lock ()
    , presentationParameters ()
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
    , fullScreenDisplayMode ()
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
    //, usage (0)
    , threadId (0)
   {
     behaviorFlags = //D3DCREATE_ADAPTERGROUP_DEVICE          |
                     //D3DCREATE_DISABLE_DRIVER_MANAGEMENT    |
                     //D3DCREATE_DISABLE_DRIVER_MANAGEMENT_EX |
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                     //D3DCREATE_DISABLE_PRINTSCREEN          |
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                     //D3DCREATE_DISABLE_PSGP_THREADING       |
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
 #if defined (_DEBUG)
                     D3DCREATE_ENABLE_PRESENTSTATS |
 #endif // _DEBUG
@@ -69,9 +69,9 @@ struct Stream_MediaFramework_Direct3D_Configuration
                     D3DCREATE_MULTITHREADED//                  |
       //D3DCREATE_NOWINDOWCHANGES                            |
       //D3DCREATE_PUREDEVICE                                 |
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                     | D3DCREATE_SCREENSAVER
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                     ;
 
     ACE_OS::memset (&presentationParameters, 0, sizeof (struct _D3DPRESENT_PARAMETERS_));

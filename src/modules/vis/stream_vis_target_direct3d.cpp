@@ -21,9 +21,9 @@
 
 #include "stream_vis_target_direct3d.h"
 
-#include <dshow.h>
-#include <guiddef.h>
-#include <mfapi.h>
+#include "d3d9types.h"
+#include "mfapi.h"
+#include "minwindef.h"
 
 #include "common_error_tools.h"
 
@@ -109,7 +109,7 @@ __forceinline void libacestream_vis_transform_image_RGB32 (BYTE*       pDest,
   if (unlikely (FAILED (result)))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCopyImage(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
 #else
   ACE_ASSERT (::abs (lSrcStride) <= ::abs (lDestStride));
   if (likely (lSrcStride == lDestStride))

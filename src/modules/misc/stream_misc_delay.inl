@@ -280,17 +280,20 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       ACE_UINT64 average_bytes_per_second_i = 0;
+      ACE_Time_Value interval =
+        inherited::configuration_->delayConfiguration->interval;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       struct tWAVEFORMATEX* waveformatex_p = NULL;
 #else
       struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+      struct Stream_MediaFramework_V4L_MediaType media_type_2;
 #endif // ACE_WIN32 || ACE_WIN64
 
       if (inherited::configuration_->delayConfiguration->mode != STREAM_MISCELLANEOUS_DELAY_MODE_INVALID)
         goto continue_;
 
-      // *TODO*: move this block to a template specialization
+      // *TODO*: this assumes audio input; move this block to a template specialization
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
@@ -315,8 +318,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
         static_cast<ACE_UINT64> (static_cast<float> (average_bytes_per_second_i) * static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US) / 1000000.0F);
       inherited::configuration_->delayConfiguration->averageTokensPerInterval =
         availableTokens_;
-      inherited::configuration_->delayConfiguration->interval =
-        ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
+      interval = ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
       inherited::configuration_->delayConfiguration->mode =
         STREAM_MISCELLANEOUS_DELAY_MODE_BYTES;
 
@@ -336,6 +338,34 @@ continue_:
         { ACE_ASSERT (inherited::configuration_->delayConfiguration->averageTokensPerInterval);
           availableTokens_ =
             inherited::configuration_->delayConfiguration->averageTokensPerInterval;
+
+          if (unlikely (interval == ACE_Time_Value::zero))
+          {
+            float frame_rate_f;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+            ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+            inherited2::getMediaType (session_data_r.formats.back (),
+                                      STREAM_MEDIATYPE_VIDEO,
+                                      media_type_s);
+            frame_rate_f =
+              static_cast<float> (Stream_MediaFramework_DirectShow_Tools::toFramerate (media_type_s));
+            Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#else
+            inherited2::getMediaType (session_data_r.formats.back (),
+                                      STREAM_MEDIATYPE_VIDEO,
+                                      media_type_2);
+            frame_rate_f = media_type_2.frameRate.num / static_cast<float> (media_type_2.frameRate.den);
+#endif // ACE_WIN32 || ACE_WIN64
+            ACE_ASSERT (frame_rate_f > 0.0f);
+
+            ACE_DEBUG ((LM_WARNING,
+                        ACE_TEXT ("%s: deducing scheduler interval from (video) frame rate (was: %.2f)...\n"),
+                        inherited::mod_->name (),
+                        frame_rate_f));
+
+            interval = ACE_Time_Value (0, static_cast<suseconds_t> ((1.0f / frame_rate_f) * 1000000.0f));
+          } // end IF
+
           break;
         }
         default:
@@ -350,22 +380,22 @@ continue_:
 
       // schedule the delay interval timer
       resetTimeoutHandlerId_ =
-        itimer_p->schedule_timer (&resetTimeoutHandler_,                                    // event handler handle
-                                  NULL,                                                     // asynchronous completion token
-                                  inherited::configuration_->delayConfiguration->interval,  // delay
-                                  inherited::configuration_->delayConfiguration->interval); // interval
+        itimer_p->schedule_timer (&resetTimeoutHandler_, // event handler handle
+                                  NULL,                  // asynchronous completion token
+                                  interval,              // delay
+                                  interval);             // interval
       if (unlikely (resetTimeoutHandlerId_ == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Common_ITimerCBBase::schedule_timer(%#T): \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    &inherited::configuration_->delayConfiguration->interval));
+                    &interval));
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: scheduled interval timer (%#T, id: %d)\n"),
                   inherited::mod_->name (),
-                  &inherited::configuration_->delayConfiguration->interval,
+                  &interval,
                   resetTimeoutHandlerId_));
 
       break;

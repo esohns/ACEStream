@@ -838,10 +838,7 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
     goto clean;
   } // end IF
   // *NOTE*: ffmpeg returns fewer than the expected number of rows in some cases
-  // *TODO*: find out when and why (support off-by-one rounding)
-  else if (unlikely (result_2 != static_cast<int> (targetHeight_in))      &&
-                     (result_2 != static_cast<int> (targetHeight_in + 1)) &&
-                     (result_2 != static_cast<int> (targetHeight_in - 1)))
+  else if (unlikely (result_2 != static_cast<int> (targetHeight_in)))
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("sws_scale() returned: %d (expected: %u), continuing\n"),
                 result_2, targetHeight_in));

@@ -19,31 +19,19 @@
 ***************************************************************************/
 #include "stdafx.h"
 
+#include <iostream>
+#include <string>
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "amvideo.h"
-#undef NANOSECONDS
-#include "reftime.h"
+#define INITGUID // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
+// *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
 #include "uuids.h"
 #endif // UUIDS_H
-#else
-#include "X11/Xlib.h"
-
-#if defined (FFMPEG_SUPPORT)
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavutil/imgutils.h"
-#include "libavutil/pixfmt.h"
-}
-#endif // __cplusplus
-#endif // FFMPEG_SUPPORT
+#include "mfapi.h"
 #endif // ACE_WIN32 || ACE_WIN64
-
-#include <iostream>
-#include <string>
 
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -59,9 +47,7 @@ extern "C"
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
-#include "common_file_tools.h"
 #include "common_os_tools.h"
-#include "common_process_tools.h"
 
 #include "common_log_tools.h"
 
@@ -70,6 +56,10 @@ extern "C"
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
 
+#if defined (GTK_SUPPORT)
+#include "common_ui_gtk_tools.h"
+#endif // GTK_SUPPORT
+
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
@@ -77,7 +67,12 @@ extern "C"
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"
 
-#include "stream_lib_defines.h"
+#include "stream_dev_defines.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_dev_mediafoundation_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
+#include "stream_dev_tools.h"
+
 #include "stream_lib_tools.h"
 
 #include "stream_misc_defines.h"
@@ -86,12 +81,12 @@ extern "C"
 
 #include "test_u_defines.h"
 
-#include "test_u_capturewindow_defines.h"
 #include "test_u_eventhandler.h"
+#include "test_u_mp4_player_defines.h"
 #include "test_u_signalhandler.h"
 #include "test_u_stream.h"
 
-const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CaptureWindowStream");
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("MP4PlayerStream");
 
 void
 do_print_usage (const std::string& programName_in)
@@ -111,20 +106,49 @@ do_print_usage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f          : executable name [\"")
-            << ACE_TEXT_ALWAYS_CHAR ("\"])")
+//#if defined (CURSES_SUPPORT)
+//  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c          : use curses [")
+//            << false
+//            << ACE_TEXT_ALWAYS_CHAR ("])")
+//            << std::endl;
+//#endif // CURSES_SUPPORT
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d          : debug [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-i          : window handle (hex) [")
-            << 0
-            << ACE_TEXT_ALWAYS_CHAR ("]")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-1          : use GDI renderer [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-2          : use Direct2D renderer [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-3          : use Direct3D renderer [")
+            << true
+            << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #else
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-i          : (X11) window id [")
-            << 0
-            << ACE_TEXT_ALWAYS_CHAR ("]")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-1          : use X11 renderer [")
+            << true
+            << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : input file [\"")
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << std::endl;
+  //std::cout << ACE_TEXT_ALWAYS_CHAR ("-g          : OpenGL mode [")
+  //          << false
+  //          << ACE_TEXT_ALWAYS_CHAR ("]")
+  //          << std::endl;
+#if defined (GTK_SUPPORT)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-k          : use Gtk [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
+#endif // GTK_SUPPORT
+  std::string path = Common_File_Tools::getTempDirectory ();
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -135,9 +159,11 @@ do_print_usage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-p          : process id [")
-            << 0
-            << ACE_TEXT_ALWAYS_CHAR ("])")
+  struct Common_UI_DisplayDevice display_device_s =
+    Common_UI_Tools::getDefaultDisplay ();
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-o [STRING] : display device [\"")
+            << display_device_s.description
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
             << false
@@ -147,24 +173,33 @@ do_print_usage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : test device for method support and exit [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+#endif // ACE_WIN32 || ACE_WIN64
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-z          : use hardware decoder [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
 }
 
 bool
 do_process_arguments (int argc_in,
                       ACE_TCHAR** argv_in, // cannot be const...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                      HWND& windowHandle_out,
-#else
-                      Window& windowId_out,
-#endif // ACE_WIN32 || ACE_WIN64
-                      pid_t& processId_out,
-                      std::string& executableName_out,
+                      bool& debug_out,
+                      std::string& inputFile_out,
                       bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                      enum Stream_MediaFramework_Type mediaFramework_out,
+                      enum Stream_MediaFramework_Type& mediaFramework_out,
 #endif // ACE_WIN32 || ACE_WIN64
+                      struct Common_UI_DisplayDevice& displayDevice_out,
+                      enum Stream_Visualization_VideoRenderer& renderer_out,
                       bool& traceInformation_out,
-                      enum Test_U_CaptureWindow_ProgramMode& mode_out)
+                      enum Test_U_ProgramMode& mode_out,
+                      bool& useHardwareDecoder_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_process_arguments"));
 
@@ -172,25 +207,37 @@ do_process_arguments (int argc_in,
     Common_File_Tools::getWorkingDirectory ();
 
   // initialize results
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  windowHandle_out = NULL;
-#else
-  windowId_out = 0;
-#endif // ACE_WIN32 || ACE_WIN64
-  processId_out = 0;
-  executableName_out.clear ();
+  debug_out = false;
+  inputFile_out.clear ();
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
+  displayDevice_out = Common_UI_Tools::getDefaultDisplay ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D;
+#else
+  renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_X11;
+#endif // ACE_WIN32 || ACE_WIN64
   traceInformation_out = false;
   mode_out = TEST_U_PROGRAMMODE_NORMAL;
+  useHardwareDecoder_out = false;
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("f:i:lp:tv");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("df:lo:tvz");
+//#if defined (CURSES_SUPPORT)
+//  options_string += ACE_TEXT_ALWAYS_CHAR ("c");
+//#endif // CURSES_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  options_string += ACE_TEXT_ALWAYS_CHAR ("m");
+  options_string += ACE_TEXT_ALWAYS_CHAR ("123m");
+#else
+  options_string += ACE_TEXT_ALWAYS_CHAR ("1");
 #endif // ACE_WIN32 || ACE_WIN64
-
+//#if defined (GLUT_SUPPORT)
+//  options_string += ACE_TEXT_ALWAYS_CHAR ("g");
+//#endif // GLUT_SUPPORT
+#if defined (GTK_SUPPORT)
+  options_string += ACE_TEXT_ALWAYS_CHAR ("k");
+#endif // GTK_SUPPORT
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
                               ACE_TEXT (options_string.c_str ()),
@@ -205,42 +252,59 @@ do_process_arguments (int argc_in,
   {
     switch (option)
     {
+      case 'd':
+      {
+        debug_out = true;
+        break;
+      }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      case '1':
+      {
+        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_GDI;
+        break;
+      }
+      case '2':
+      {
+        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D;
+        break;
+      }
+      case '3':
+      {
+        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D;
+        break;
+      }
+#else
+      case '1':
+      {
+        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_X11;
+        break;
+      }
+#endif // ACE_WIN32 || ACE_WIN64
+//#if defined (CURSES_SUPPORT)
+//      case 'c':
+//      {
+//        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_CURSES;
+//        break;
+//      }
+//#endif // CURSES_SUPPORT
       case 'f':
       {
-        executableName_out =
+        inputFile_out =
           ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         break;
       }
-      case 'i':
+      //case 'g':
+      //{
+      //  renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT;
+      //  break;
+      //}
+#if defined (GTK_SUPPORT)
+      case 'k':
       {
-        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-        converter.clear ();
-
-        converter.str (ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()));
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-        ACE_UINT64 handle_i = 0;
-        converter >> handle_i;
-        windowHandle_out = reinterpret_cast<HWND> (handle_i);
-        if (!windowHandle_out)
-#else
-        converter >> windowId_out;
-        if (!windowId_out)
-#endif    // ACE_WIN32 || ACE_WIN64
-        { // try hexadecimal
-          converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-          converter.clear ();
-          converter << std::hex << ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-          handle_i = 0;
-          converter >> handle_i;
-          windowHandle_out = reinterpret_cast<HWND> (handle_i);
-#else
-          converter >> windowId_out;
-#endif // ACE_WIN32 || ACE_WIN64
-          converter << std::dec;
-        } // end IF
+        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW;
         break;
       }
+#endif // GTK_SUPPORT
       case 'l':
       {
         logToFile_out = true;
@@ -253,13 +317,10 @@ do_process_arguments (int argc_in,
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
-      case 'p':
+      case 'o':
       {
-        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-        converter.clear ();
-
-        converter.str (ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()));
-        converter >> processId_out;
+        displayDevice_out =
+          Common_UI_Tools::getDisplay (ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()));
         break;
       }
       case 't':
@@ -270,6 +331,11 @@ do_process_arguments (int argc_in,
       case 'v':
       {
         mode_out = TEST_U_PROGRAMMODE_PRINT_VERSION;
+        break;
+      }
+      case 'z':
+      {
+        useHardwareDecoder_out = true;
         break;
       }
       // error handling
@@ -308,46 +374,45 @@ do_process_arguments (int argc_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
-do_initialize_directshow (HWND windowHandle_in,
+do_initialize_directshow (bool hasUI_in,
+                          IGraphBuilder*& IGraphBuilder_out,
                           struct _AMMediaType& outputFormat_inout,
-                          struct Common_AllocatorConfiguration& allocatorConfiguration_inout)
+                          HWND& windowHandle_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
   // sanity check(s)
-  ACE_ASSERT (!GetParent (windowHandle_in));
+  ACE_ASSERT (!IGraphBuilder_out);
 
-  struct tagRECT window_size_s;
-  BOOL result_2 = GetClientRect (windowHandle_in, &window_size_s);
-  ACE_ASSERT (result_2);
+  // initialize return value(s)
+  windowHandle_out = NULL;
+  ACE_OS::memset (&outputFormat_inout, 0, sizeof (struct _AMMediaType));
 
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
 
-  ACE_OS::memset (&outputFormat_inout, 0, sizeof (struct _AMMediaType));
+  // generate default media type: RGB24 640x480 30fps
   outputFormat_inout.majortype = MEDIATYPE_Video;
   outputFormat_inout.subtype = MEDIASUBTYPE_RGB24;
+    //STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT;
   outputFormat_inout.bFixedSizeSamples = TRUE;
   outputFormat_inout.bTemporalCompression = FALSE;
   outputFormat_inout.formattype = FORMAT_VideoInfo;
   outputFormat_inout.cbFormat = sizeof (struct tagVIDEOINFOHEADER);
-  outputFormat_inout.pbFormat =
-    static_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tagVIDEOINFOHEADER)));
+  outputFormat_inout.pbFormat = (BYTE*)CoTaskMemAlloc (outputFormat_inout.cbFormat);
   ACE_ASSERT (outputFormat_inout.pbFormat);
   struct tagVIDEOINFOHEADER* video_info_header_p =
     reinterpret_cast<struct tagVIDEOINFOHEADER*> (outputFormat_inout.pbFormat);
-  ACE_OS::memset (outputFormat_inout.pbFormat, 0, sizeof (struct tagVIDEOINFOHEADER));
+  ACE_OS::memset (video_info_header_p, 0, sizeof (struct tagVIDEOINFOHEADER));
   // *NOTE*: empty --> use entire video
-  result_2 = SetRectEmpty (&video_info_header_p->rcSource);
-  ACE_ASSERT (result_2);
-  result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
+  HRESULT result = SetRectEmpty (&video_info_header_p->rcSource);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = SetRectEmpty (&video_info_header_p->rcTarget);
   // *NOTE*: empty --> fill entire buffer
-  ACE_ASSERT (result_2);
+  ACE_ASSERT (SUCCEEDED (result));
   ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
   video_info_header_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
-  video_info_header_p->bmiHeader.biWidth =
-    window_size_s.right - window_size_s.left;
-  video_info_header_p->bmiHeader.biHeight =
-    window_size_s.bottom - window_size_s.top;
+  video_info_header_p->bmiHeader.biWidth = 640;
+  video_info_header_p->bmiHeader.biHeight = 480;
   video_info_header_p->bmiHeader.biPlanes = 1;
   video_info_header_p->bmiHeader.biBitCount = 24;
   video_info_header_p->bmiHeader.biCompression = BI_RGB;
@@ -357,36 +422,35 @@ do_initialize_directshow (HWND windowHandle_in,
   ////video_info_header_p->bmiHeader.biYPelsPerMeter;
   ////video_info_header_p->bmiHeader.biClrUsed;
   ////video_info_header_p->bmiHeader.biClrImportant;
-  video_info_header_p->AvgTimePerFrame = UNITS / 30;
+  video_info_header_p->AvgTimePerFrame = 333333; // (1/30) * 10,000,000;
   video_info_header_p->dwBitRate =
     (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
     (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-
   outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
-
-  allocatorConfiguration_inout.defaultBufferSize =
-    video_info_header_p->bmiHeader.biSizeImage;
 
   return true;
 
 //error:
   Stream_MediaFramework_DirectShow_Tools::free (outputFormat_inout);
+  if (IGraphBuilder_out)
+  {
+    IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
+  } // end IF
 
   return false;
 }
 
 void
-do_finalize_directshow (struct _AMMediaType& outputFormat_inout)
+do_finalize_directshow ()
 {
   STREAM_TRACE (ACE_TEXT ("::do_finalize_directshow"));
 
-  Stream_MediaFramework_DirectShow_Tools::free (outputFormat_inout);
 }
 
 bool
 do_initialize_mediafoundation (HWND windowHandle_in
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
-                               , IMFMediaSession*& IMFMediaSession_out)
+                               ,IMFMediaSession*& IMFMediaSession_out)
 #else
                               )
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
@@ -418,7 +482,7 @@ do_initialize_mediafoundation (HWND windowHandle_in
 
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IMFAttributes* attributes_p = NULL;
   result = MFCreateAttributes (&attributes_p, 4);
   if (FAILED (result))
@@ -434,10 +498,10 @@ do_initialize_mediafoundation (HWND windowHandle_in
   ACE_ASSERT (SUCCEEDED (result));
   //result = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
   //ACE_ASSERT (SUCCEEDED (result));
-#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   result = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
   ACE_ASSERT (SUCCEEDED (result));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
   result = MFCreateMediaSession (attributes_p,
                                  &IMFMediaSession_out);
   if (FAILED (result))
@@ -449,7 +513,6 @@ do_initialize_mediafoundation (HWND windowHandle_in
     goto error;
   } // end IF
   attributes_p->Release (); attributes_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   ACE_ASSERT (topology_p);
   DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
@@ -464,12 +527,15 @@ do_initialize_mediafoundation (HWND windowHandle_in
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   topology_p->Release (); topology_p = NULL;
 
 //continue_3:
   return true;
 
 error:
+  if (media_source_p)
+    media_source_p->Release ();
   if (topology_p)
     topology_p->Release ();
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
@@ -510,71 +576,6 @@ do_finalize_mediafoundation (IMFMediaSession*& mediaSession_inout)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFShutdown(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-}
-#else
-bool
-do_initialize (Window windowHandle_in,
-               struct Stream_MediaFramework_FFMPEG_VideoMediaType& outputFormat_out,
-               struct Common_AllocatorConfiguration& allocatorConfiguration_inout)
-{
-  STREAM_TRACE (ACE_TEXT ("::do_initialize"));
-
-  // intialize return value(s)
-  ACE_OS::memset (&outputFormat_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
-
-  Display* display_p = XOpenDisplay (NULL);
-  ACE_ASSERT (display_p);
-  Window window;
-  int x, y;
-  unsigned int width, height, border_width, depth;
-  Status result = XGetGeometry (display_p,
-                                windowHandle_in,
-                                &window,
-                                &x, &y,
-                                &width, &height,
-                                &border_width,
-                                &depth);
-  if (unlikely (result == 0))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to XGetGeometry(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_UI_Tools::toString (*display_p, result).c_str ())));
-    result = XCloseDisplay (display_p); display_p = NULL;
-    ACE_ASSERT (result == Success);
-    return false;
-  } // end IF
-  result = XCloseDisplay (display_p); display_p = NULL;
-  ACE_ASSERT (result == Success);
-
-  // *NOTE*: Gtk 2 expects RGB24
-  // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
-  //         alpha in the upper 8 bits, then red, then green, then blue. The
-  //         32-bit quantities are stored native-endian. ..."
-  // *NOTE*: X11 expects RGB32
-  // *TODO*: auto-determine color depth of selected (default) screen (i.e.
-  //         'Display' ":0")
-  outputFormat_out.format = AV_PIX_FMT_RGB24;
-  outputFormat_out.resolution.width = width;
-  outputFormat_out.resolution.height = height;
-  outputFormat_out.codecId = AV_CODEC_ID_NONE;
-  outputFormat_out.frameRate.num = 30;
-  outputFormat_out.frameRate.den = 1;
-
-  allocatorConfiguration_inout.defaultBufferSize =
-    av_image_get_buffer_size (outputFormat_out.format,
-                              width, height,
-                              1);
-
-  return true;
-
-//error:
-  return false;
-}
-
-void
-do_finalize ()
-{
-  STREAM_TRACE (ACE_TEXT ("::do_finalize"));
 }
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -636,25 +637,24 @@ do_initializeSignals (ACE_Sig_Set& signals_out)
 }
 
 void
-do_work (
+do_work (int argc_in,
+         ACE_TCHAR* argv_in[],
+         bool debug_in,
+         const std::string& inputFilePath_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-         HWND windowHandle_in,
          enum Stream_MediaFramework_Type mediaFramework_in,
-         struct Test_U_DirectShow_Configuration& directShowConfiguration_in,
-         struct Test_U_MediaFoundation_Configuration& mediaFoundationConfiguration_in
-#else
-         int argc_in, ACE_TCHAR** argv_in,
-         Window windowHandle_in,
-         struct Test_U_CaptureWindow_Configuration& configuration_in
 #endif // ACE_WIN32 || ACE_WIN64
-         )
+         struct Common_UI_DisplayDevice& displayDevice_in,
+         enum Stream_Visualization_VideoRenderer renderer_in,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+         struct Test_U_DirectShow_Configuration& directShowConfiguration_in,
+         struct Test_U_MediaFoundation_Configuration& mediaFoundationConfiguration_in,
+#else
+         struct Test_U_MP4Player_Configuration& configuration_in,
+#endif // ACE_WIN32 || ACE_WIN64
+         bool useHardwareDecoder_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  Common_UI_GTK_Tools::initialize (argc_in, argv_in);
-#endif // ACE_WIN32 || ACE_WIN64
 
   ACE_Sig_Set handled_signals, ignored_signals, previous_mask;
   Common_SignalActions_t previous_actions_a;
@@ -702,16 +702,16 @@ do_work (
                 ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(): \"%m\", returning\n")));
     return;
   } // end IF
-  if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                        handled_signals,
-                                        ignored_signals,
-                                        &signal_handler,
-                                        previous_actions_a))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Signal_Tools::initialize(): \"%m\", returning\n")));
-    return;
-  } // end IF
+  //if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+  //                                      handled_signals,
+  //                                      ignored_signals,
+  //                                      &signal_handler,
+  //                                      previous_actions_a))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Common_Signal_Tools::initialize(): \"%m\", returning\n")));
+  //  return;
+  //} // end IF
 
   // ********************** module configuration data **************************
 #if defined (FFMPEG_SUPPORT)
@@ -719,26 +719,30 @@ do_work (
   //allocator_configuration.defaultBufferSize = 524288;
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
   codec_configuration.codecId = AV_CODEC_ID_H264;
+  codec_configuration.parserFlags = PARSER_FLAG_ONCE | PARSER_FLAG_USE_CODEC_TS;
+  //  PARSER_FLAG_COMPLETE_FRAMES | PARSER_FLAG_FETCHED_OFFSET;
+  codec_configuration.useParser = false;
 #else
   struct Stream_AllocatorConfiguration allocator_configuration;
 #endif // FFMPEG_SUPPORT
   struct Stream_ModuleConfiguration module_configuration;
+  struct Test_U_MP4Player_StreamConfiguration stream_configuration;
+  struct Stream_Miscellaneous_DelayConfiguration delay_configuration;
+  delay_configuration.averageTokensPerInterval = 1;
+  delay_configuration.mode = STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
-  struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // converter/resize --> encoder
-  struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // display
-  struct Test_U_CaptureWindow_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_4; // converter --> display
-  struct Test_U_CaptureWindow_DirectShow_StreamConfiguration directshow_stream_configuration;
+  struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
+  struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // converter
+  struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2b; // resize
+  struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // display
   Test_U_DirectShow_EventHandler_t directshow_ui_event_handler;
-  struct Test_U_CaptureWindow_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
-  struct Test_U_CaptureWindow_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // converter
-  struct Test_U_CaptureWindow_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
+  struct Test_U_MP4Player_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
+  struct Test_U_MP4Player_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // converter
   Test_U_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler;
 #else
-  struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration modulehandler_configuration;
-  struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
-  struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration modulehandler_configuration_3; // converter_2
-  struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration modulehandler_configuration_4; // display
+  struct Test_U_FFMPEG_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_U_FFMPEG_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
+  struct Test_U_FFMPEG_ModuleHandlerConfiguration modulehandler_configuration_2b; // resize
   Test_U_EventHandler_t ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -747,22 +751,20 @@ do_work (
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
+      directshow_modulehandler_configuration.allocatorConfiguration =
+        &allocator_configuration;
+#if defined (FFMPEG_SUPPORT)
+      directshow_modulehandler_configuration.codecConfiguration =
+        &codec_configuration;
+#endif // FFMPEG_SUPPORT
+      directshow_modulehandler_configuration.debug = debug_in;
+      directshow_modulehandler_configuration.delayConfiguration =
+        &delay_configuration;
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
-#if defined (FFMPEG_SUPPORT)
-      directshow_modulehandler_configuration.codecConfiguration = &codec_configuration;
-#endif // FFMPEG_SUPPORT
-      directshow_modulehandler_configuration.fileFormat = ACE_TEXT_ALWAYS_CHAR ("mp4");
-      directshow_modulehandler_configuration.window = windowHandle_in;
-
-      //if (statisticReportingInterval_in)
-      //{
-      //  directshow_modulehandler_configuration.statisticCollectionInterval.set (0,
-      //                                                                          STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
-      //  directshow_modulehandler_configuration.statisticReportingInterval =
-      //    statisticReportingInterval_in;
-      //} // end IF
+      directshow_modulehandler_configuration.fileIdentifier.identifier =
+        inputFilePath_in;
+      directshow_modulehandler_configuration.streamIndex = 0;
       directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
       break;
@@ -771,17 +773,18 @@ do_work (
     {
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         &allocator_configuration;
+#if defined (FFMPEG_SUPPORT)
+      mediafoundation_modulehandler_configuration.codecConfiguration =
+        &codec_configuration;
+#endif // FFMPEG_SUPPORT
+      mediafoundation_modulehandler_configuration.debug = debug_in;
+      mediafoundation_modulehandler_configuration.delayConfiguration =
+        &delay_configuration;
       mediafoundation_modulehandler_configuration.direct3DConfiguration =
         &mediaFoundationConfiguration_in.direct3DConfiguration;
-      //mediafoundation_modulehandler_configuration.lock = &state_r.subscribersLock;
-
-      //if (statisticReportingInterval_in)
-      //{
-      //  mediafoundation_modulehandler_configuration.statisticCollectionInterval.set (0,
-      //                                                                               STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
-      //  mediafoundation_modulehandler_configuration.statisticReportingInterval =
-      //    statisticReportingInterval_in;
-      //} // end IF
+      mediafoundation_modulehandler_configuration.fileIdentifier.identifier =
+        inputFilePath_in;
+      mediafoundation_modulehandler_configuration.streamIndex = 0;
       mediafoundation_modulehandler_configuration.subscriber =
         &mediafoundation_ui_event_handler;
       break;
@@ -799,11 +802,12 @@ do_work (
 #if defined (FFMPEG_SUPPORT)
   modulehandler_configuration.codecConfiguration = &codec_configuration;
 #endif // FFMPEG_SUPPORT
-  modulehandler_configuration.fileFormat = ACE_TEXT_ALWAYS_CHAR ("mp4");
+  modulehandler_configuration.debug = debug_in;
+  modulehandler_configuration.delayConfiguration = &delay_configuration;
+  //  modulehandler_configuration.display = displayDevice_in;
+  modulehandler_configuration.fileIdentifier.identifier = inputFilePath_in;
+  modulehandler_configuration.streamIndex = 0;
   modulehandler_configuration.subscriber = &ui_event_handler;
-  modulehandler_configuration.window = windowHandle_in;
-
-  struct Test_U_CaptureWindow_StreamConfiguration stream_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
@@ -814,7 +818,10 @@ do_work (
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
     return;
   } // end IF
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  stream_configuration.allocatorConfiguration = &allocator_configuration;
+  stream_configuration.renderer = renderer_in;
+  stream_configuration.useHardwareDecoder = useHardwareDecoder_in;
+#if defined (ACE_WIN32) || defined(ACE_WIN64)
   Test_U_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                      &heap_allocator,     // heap allocator handle
                                                                      true);               // block ?
@@ -832,36 +839,26 @@ do_work (
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directShowConfiguration_in.signalHandlerConfiguration.stream =
-        &directshow_stream;
-
-      directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
-      directshow_stream_configuration.messageAllocator =
-          &directshow_message_allocator;
-      directshow_stream_configuration.module =
-        &directshow_message_handler;
-      //directshow_stream_configuration.renderer = STREAM_VISUALIZATION_VIDEORENDERER_GDI;
-      directshow_stream_configuration.renderer = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D;
+      stream_configuration.messageAllocator = &directshow_message_allocator;
+      stream_configuration.module = &directshow_message_handler;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
-                                                                 directshow_stream_configuration);
-
-      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
-                                                                             std::make_pair (&module_configuration,
-                                                                                             &directshow_modulehandler_configuration_2)));
-      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
-                                                                             std::make_pair (&module_configuration,
-                                                                                             &directshow_modulehandler_configuration_2)));
-
+                                                                 stream_configuration);
       directshow_modulehandler_configuration_3 = directshow_modulehandler_configuration;
-      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (directshow_stream_configuration.renderer),
+      //directshow_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
+      //  Stream_Device_Identifier::STRING;
+      //ACE_OS::strcpy (directshow_modulehandler_configuration_3.deviceIdentifier.identifier._string,
+      //                displayDevice_in.device.c_str ());
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (renderer_in),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_3)));
-      directshow_modulehandler_configuration_4 = directshow_modulehandler_configuration;
-      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
-                                                                             std::make_pair (&module_configuration,
-                                                                                             &directshow_modulehandler_configuration_4)));
+      //directshow_stream_iterator =
+      //  directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      //ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.streamConfiguration.end ());
+      //directshow_stream_iterator_2 =
+      //  directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
+      //ACE_ASSERT (directshow_stream_iterator_2 != directShowConfiguration_in.streamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -869,16 +866,12 @@ do_work (
       //if (bufferSize_in)
       //  mediaFoundationCBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
       //      bufferSize_in;
-      mediafoundation_stream_configuration.messageAllocator =
-          &mediafoundation_message_allocator;
-      mediafoundation_stream_configuration.module =
-          &mediafoundation_message_handler;
-      //mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
-      //  renderer_in;
+      stream_configuration.messageAllocator = &mediafoundation_message_allocator;
+      stream_configuration.module = &mediafoundation_message_handler;
 
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
-                                                                      mediafoundation_stream_configuration);
+                                                                      stream_configuration);
       //mediafoundation_stream_iterator =
       //  mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       //ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
@@ -907,85 +900,65 @@ do_work (
 
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module = &message_handler;
-  stream_configuration.renderer = STREAM_VISUALIZATION_VIDEORENDERER_X11;
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
                                                    stream_configuration);
-
-  if (!heap_allocator.initialize (allocator_configuration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize heap allocator, returning\n")));
-    return;
-  } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
   struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
   Stream_IStreamControlBase* stream_p = NULL;
+//#if defined (CURSES_SUPPORT)
+//  Test_U_Curses_Manager_t* curses_manager_p = NULL;
+//  struct Common_UI_Curses_Configuration* curses_configuration_p = NULL;
+//#endif // CURSES_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HWND window_handle = NULL;
   IMFMediaSession* media_session_p = NULL;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      if (!do_initialize_directshow (windowHandle_in,
-                                     directshow_stream_configuration.format,
-                                     allocator_configuration))
+      struct _AMMediaType* media_type_p = NULL;
+      if (!do_initialize_directshow (false,                             // has UI ?
+                                     directshow_modulehandler_configuration.builder,
+                                     directshow_modulehandler_configuration.outputFormat,
+                                     directshow_modulehandler_configuration_3.window))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
         return;
       } // end IF
-      struct _AMMediaType* media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format);
-      ACE_ASSERT (media_type_p);
-      directshow_modulehandler_configuration.outputFormat = *media_type_p;
-      delete media_type_p; media_type_p = NULL;
-
-      // *NOTE*: need to set this for RGB-capture formats ONLY !
-      directshow_modulehandler_configuration_2.flipImage =
-        Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
-
+      //ACE_ASSERT (stream_config_p);
+      //ACE_ASSERT (directshow_modulehandler_configuration_3.window);
+      //directShowCBData_in.streamConfiguration = stream_config_p;
       media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format);
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration_2.outputFormat = *media_type_p;
       delete media_type_p; media_type_p = NULL;
-      directshow_modulehandler_configuration_2.outputFormat.subtype =
-        MEDIASUBTYPE_NV12; // *NOTE*: required by H264
-        //MEDIASUBTYPE_IMC1; // *NOTE*: maps to AV_PIX_FMT_YUV420P, required for H263
-      //Common_Image_Resolution_t resolution_s;
-      //resolution_s.cx = 704;
-      //resolution_s.cy = 576;
-      //Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-      //                                                       directshow_modulehandler_configuration_2.outputFormat);
 
       media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format);
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
+      ACE_ASSERT (media_type_p);
+      directshow_modulehandler_configuration_2b.outputFormat = *media_type_p;
+      delete media_type_p; media_type_p = NULL;
+
+      media_type_p =
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration_3.outputFormat = *media_type_p;
       delete media_type_p; media_type_p = NULL;
-      directshow_modulehandler_configuration_3.window = NULL;
-
-      directshow_modulehandler_configuration_4.flipImage = true;
-      media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format);
-      ACE_ASSERT (media_type_p);
-      directshow_modulehandler_configuration_4.outputFormat = *media_type_p;
-      delete media_type_p; media_type_p = NULL;
-      Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB32,
-                                                         directshow_modulehandler_configuration_4.outputFormat);
-
+      directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
+        directshow_modulehandler_configuration_3.window;
       stream_p = &directshow_stream;
-
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      if (!do_initialize_mediafoundation (windowHandle_in
+      if (!do_initialize_mediafoundation (window_handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
-                                          , mediafoundation_modulehandler_configuration.session))
+                                          ,mediafoundation_modulehandler_configuration.session))
 #else
                                          ))
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
@@ -997,9 +970,7 @@ do_work (
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT (mediafoundation_modulehandler_configuration.session);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
-
       stream_p = &mediafoundation_stream;
-
       break;
     }
     default:
@@ -1011,53 +982,275 @@ do_work (
     }
   } // end SWITCH
 #else
-  if (!do_initialize (windowHandle_in,
-                      stream_configuration.format,
-                      allocator_configuration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ::do_initialize(), returning\n")));
-    return;
-  } // end IF
   stream_p = &stream;
 
-  switch (stream_configuration.renderer)
+  switch (renderer_in)
   {
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
     {
-      modulehandler_configuration.outputFormat =
-        stream_configuration.format;
-
       // *IMPORTANT NOTE*: there does not seem to be a way to feed RGB24 data to
       //                   Xlib; XCreateImage() only 'likes' 32-bit data, regardless
       //                   of what 'depth' values are set (in fact, it requires BGRA
       //                   on little-endian platforms) --> convert
       modulehandler_configuration_2 = modulehandler_configuration;
-      modulehandler_configuration_2.outputFormat.format =
-        AV_PIX_FMT_BGRA;
-
-      modulehandler_configuration_3 = modulehandler_configuration;
-      modulehandler_configuration_3.outputFormat.format =
-        AV_PIX_FMT_NV12; // *NOTE*: required by H264
-
-      modulehandler_configuration_4 = modulehandler_configuration;
-      modulehandler_configuration_4.window = 0;
+      modulehandler_configuration_2.outputFormat.format.pixelformat =
+        V4L2_PIX_FMT_BGRA32;
       break;
     }
+//#if defined (GLUT_SUPPORT)
+//    case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
+//    {
+//      modulehandler_configuration_2 = modulehandler_configuration;
+//      modulehandler_configuration_2.outputFormat.format.pixelformat =
+//        V4L2_PIX_FMT_RGBA32;
+//      break;
+//    }
+//#endif // GLUT_SUPPORT
     default:
       break;
   } // end SWITCH
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
-  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
-                                                               std::make_pair (&module_configuration,
-                                                                               &modulehandler_configuration_3)));
-  configuration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (stream_configuration.renderer),
-                                                               std::make_pair (&module_configuration,
-                                                                               &modulehandler_configuration_4)));
+
+  if (useVideoWall_in)
+  {
+    modulehandler_configuration_2b = modulehandler_configuration;
+    modulehandler_configuration_2b.outputFormat.format.width /=
+      TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X;
+    modulehandler_configuration_2b.outputFormat.format.height /=
+      TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
+    configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                 std::make_pair (&module_configuration,
+                                                                                 &modulehandler_configuration_2b)));
+  } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
+
+  switch (renderer_in)
+  {
+//#if defined (CURSES_SUPPORT)
+//    case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
+//    {
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//      DestroyWindow (directshow_modulehandler_configuration_3.window);
+//      directshow_modulehandler_configuration_3.window = NULL;
+//
+//      switch (mediaFramework_in)
+//      {
+//        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+//        {
+//          curses_configuration_p = &directShowConfiguration_in.cursesConfiguration;
+//          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+//                                                                                 std::make_pair (&module_configuration,
+//                                                                                                 &directshow_modulehandler_configuration_2)));
+//          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+//                                                                                 std::make_pair (&module_configuration,
+//                                                                                                 &directshow_modulehandler_configuration_2b)));
+//          break;
+//        }
+//        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+//        {
+//          curses_configuration_p = &mediaFoundationConfiguration_in.cursesConfiguration;
+//          mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+//                                                                                      std::make_pair (&module_configuration,
+//                                                                                                      &mediafoundation_modulehandler_configuration_2)));
+//          break;
+//        }
+//        default:
+//        {
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+//                      mediaFramework_in));
+//          return;
+//        }
+//      } // end SWITCH
+//#else
+//      curses_configuration_p = &configuration_in.cursesConfiguration;
+//#endif // ACE_WIN32 || ACE_WIN64
+//      ACE_ASSERT (curses_configuration_p);
+//
+//      curses_configuration_p->hooks.initHook = curses_init;
+//      curses_configuration_p->hooks.finiHook = curses_fini;
+//      curses_configuration_p->hooks.inputHook = curses_input;
+//      curses_configuration_p->hooks.mainHook = curses_main;
+//
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//      struct _COORD coord_s;
+//      ACE_OS::memset (&coord_s, 0, sizeof (struct _COORD));
+//      coord_s.X = TEST_U_CURSES_CONSOLE_FONT_SIZE;
+//      coord_s.Y = TEST_U_CURSES_CONSOLE_FONT_SIZE;
+//      Common_UI_Tools::setConsoleFontSize (coord_s);
+//      coord_s.X = TEST_U_CURSES_CONSOLE_WIDTH;
+//      coord_s.Y = TEST_U_CURSES_CONSOLE_HEIGHT;
+//      Common_UI_Tools::setConsoleSize (coord_s);
+//
+//      curses_configuration_p->height = TEST_U_CURSES_CONSOLE_HEIGHT; // lines
+//      curses_configuration_p->width = TEST_U_CURSES_CONSOLE_WIDTH;   // columns
+//#else
+//      Common_UI_Tools::setConsoleFontSize (TEST_U_CURSES_CONSOLE_FONT_FACTOR);
+//      Common_UI_Tools::setConsoleSize (TEST_U_CURSES_CONSOLE_WIDTH,
+//                                       TEST_U_CURSES_CONSOLE_HEIGHT);
+//
+//      curses_configuration_p->height = TEST_U_CURSES_CONSOLE_HEIGHT; // lines
+//      curses_configuration_p->width = TEST_U_CURSES_CONSOLE_WIDTH;   // columns
+////      curses_configuration_p->height = 120; // lines
+////      curses_configuration_p->width = 45; // columns
+//#endif // ACE_WIN32 || ACE_WIN64
+//
+//      curses_manager_p = TEST_U_CURSES_MANAGER_SINGLETON::instance ();
+//      ACE_ASSERT (curses_manager_p);
+//      struct Test_U_CursesState& state_r =
+//        const_cast<struct Test_U_CursesState&> (curses_manager_p->getR ());
+//      state_r.stream = stream_p;
+//
+//      if (!curses_manager_p->initialize (*curses_configuration_p))
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to Common_UI_Curses_Manager_T::initialize(), returning\n")));
+//        goto clean;
+//      } // end IF
+//      if (!curses_manager_p->start (NULL))
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to Common_UI_Curses_Manager_T::start(), returning\n")));
+//        goto clean;
+//      } // end IF
+//      ACE_OS::sleep (1);
+//
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//      Common_Image_Resolution_t resolution_s;
+//      switch (mediaFramework_in)
+//      {
+//        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+//        {
+//          directshow_modulehandler_configuration_3.window_2 = state_r.std_window;
+//          ACE_ASSERT (directshow_modulehandler_configuration_3.window_2);
+//          resolution_s.cx = getmaxx (state_r.std_window);
+//          resolution_s.cy = getmaxy (state_r.std_window);
+//          Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+//                                                                 directshow_modulehandler_configuration.outputFormat);
+//
+//          Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
+//                                                             directshow_modulehandler_configuration_2.outputFormat);
+//          break;
+//        }
+//        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+//        {
+//          mediafoundation_modulehandler_configuration.window_2 = state_r.std_window;
+//          ACE_ASSERT (mediafoundation_modulehandler_configuration.window_2);
+//          Stream_MediaFramework_MediaFoundation_Tools::setResolution (resolution_s,
+//                                                                      mediafoundation_modulehandler_configuration.outputFormat);
+//
+//          Stream_MediaFramework_MediaFoundation_Tools::setFormat (MEDIASUBTYPE_RGB24,
+//                                                                  mediafoundation_modulehandler_configuration_2.outputFormat);
+//          break;
+//        }
+//        default:
+//        {
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+//                      mediaFramework_in));
+//          return;
+//        }
+//      } // end SWITCH
+//#else
+//      modulehandler_configuration.window_2 = state_r.std_window;
+//      ACE_ASSERT (modulehandler_configuration.window_2);
+//      modulehandler_configuration.outputFormat.format.width =
+//        getmaxx (state_r.std_window);
+//      modulehandler_configuration.outputFormat.format.height =
+//        getmaxy (state_r.std_window);
+//      
+//      modulehandler_configuration_2.outputFormat.format.pixelformat =
+//        V4L2_PIX_FMT_RGB24;
+//#endif // ACE_WIN32 || ACE_WIN64
+//
+//      break;
+//    }
+//#endif // CURSES_SUPPORT
+//#if defined (GLUT_SUPPORT)
+//    case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
+//    {
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//      DestroyWindow (directshow_modulehandler_configuration_3.window);
+//      directshow_modulehandler_configuration_3.window = NULL;
+//
+//      switch (mediaFramework_in)
+//      {
+//        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+//        { // *TODO*: there is no way to specify BGRA with _AMMediaType !
+//          //Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_ARGB32,
+//          //                                                   directshow_modulehandler_configuration_2.outputFormat);
+//          break;
+//        }
+//        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+//        {
+//          break;
+//        }
+//        default:
+//        {
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+//                      mediaFramework_in));
+//          return;
+//        }
+//      } // end SWITCH
+//#endif // ACE_WIN32 || ACE_WIN64
+//
+//      break;
+//    }
+//#endif // GLUT_SUPPORT
+#if defined (GTK_SUPPORT)
+    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
+    {
+      Common_UI_GTK_Tools::initialize (argc_in, argv_in);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      switch (mediaFramework_in)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
+                                                             directshow_modulehandler_configuration_2.outputFormat);
+          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+                                                                                 std::make_pair (&module_configuration,
+                                                                                                 &directshow_modulehandler_configuration_2)));
+          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                                 std::make_pair (&module_configuration,
+                                                                                                 &directshow_modulehandler_configuration_2b)));
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+                                                                                      std::make_pair (&module_configuration,
+                                                                                                      &mediafoundation_modulehandler_configuration_2)));
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      mediaFramework_in));
+          return;
+        }
+      } // end SWITCH
+#else
+      modulehandler_configuration_2.outputFormat.format.pixelformat = V4L2_PIX_FMT_RGB24;
+      configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+                                                                   std::make_pair (&module_configuration,
+                                                                                   &modulehandler_configuration_2)));
+      configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                   std::make_pair (&module_configuration,
+                                                                                   &modulehandler_configuration_2b)));
+#endif // ACE_WIN32 || ACE_WIN64
+      break;
+    }
+#endif // GTK_SUPPORT
+    default:
+      break;
+  } // end SWITCH
 
   // intialize timers
   timer_manager_p = COMMON_TIMERMANAGER_SINGLETON::instance ();
@@ -1124,7 +1317,7 @@ clean:
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      do_finalize_directshow (directshow_stream_configuration.format);
+      do_finalize_directshow ();
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1141,8 +1334,6 @@ clean:
     }
   } // end SWITCH
 #else
-  do_finalize ();
-
   stream.remove (&message_handler,
                  true,
                  true);
@@ -1197,35 +1388,42 @@ ACE_TMAIN (int argc_in,
 
   // step1a set defaults
   std::string configuration_path = Common_File_Tools::getWorkingDirectory ();
-  pid_t process_id = 0;
-  std::string executable_name_string;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool show_console = false;
+#endif // ACE_WIN32 || ACE_WIN64
+  bool debug_b = false;
+  std::string input_file_path;
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
     STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
-  bool trace_information = false;
-  enum Test_U_CaptureWindow_ProgramMode program_mode_e =
-    TEST_U_PROGRAMMODE_NORMAL;
+  enum Stream_Visualization_VideoRenderer video_renderer_e;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  std::vector<HWND> window_handles_a;
-  HWND window_handle_h = NULL;
+  video_renderer_e = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D;
 #else
-  Window window_handle_h = 0;
+  video_renderer_e = STREAM_VISUALIZATION_VIDEORENDERER_X11;
 #endif // ACE_WIN32 || ACE_WIN64
+  struct Common_UI_DisplayDevice display_device_s =
+    Common_UI_Tools::getDefaultDisplay ();
+  bool trace_information = false;
+  enum Test_U_ProgramMode program_mode_e = TEST_U_PROGRAMMODE_NORMAL;
+  bool use_hardware_decoder_b = false;
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
                              argv_in,
-                             window_handle_h,
-                             process_id,
-                             executable_name_string,
+                             debug_b,
+                             input_file_path,
                              log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                              media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
+                             display_device_s,
+                             video_renderer_e,
                              trace_information,
-                             program_mode_e))
+                             program_mode_e,
+                             use_hardware_decoder_b))
   {
     do_print_usage (ACE::basename (argv_in[0]));
     Common_Tools::finalize ();
@@ -1247,65 +1445,7 @@ ACE_TMAIN (int argc_in,
   if (TEST_U_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to a deadlock --> ensure the streaming elements are sufficiently efficient in this regard\n")));
-  if (window_handle_h)
-    goto continue_;
-  if (!executable_name_string.empty ())
-  {
-    process_id = Common_Process_Tools::id (executable_name_string);
-    if (!process_id)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_Process_Tools::id(\"%s\"), aborting\n"),
-                  ACE_TEXT (executable_name_string.c_str ())));
-      Common_Tools::finalize ();
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      // *PORTABILITY*: on Windows, finalize ACE...
-      result = ACE::fini ();
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
-      return EXIT_FAILURE;
-    } // end IF
-  } // end IF
-  if (unlikely (!process_id))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid process id, aborting\n")));
-    Common_Tools::finalize ();
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    // *PORTABILITY*: on Windows, finalize ACE...
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
-    return EXIT_FAILURE;
-  } // end IF
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  window_handles_a = Common_Process_Tools::window (process_id);
-  ACE_ASSERT (!window_handles_a.empty ());
-  window_handle_h = window_handles_a[0]; // *TODO*: how to choose the right one ?
-#else
-  window_handle_h = Common_Process_Tools::window (process_id);
-#endif // ACE_WIN32 || ACE_WIN64
-  if (unlikely (!window_handle_h))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Process_Tools::window(\"%d\"), aborting\n"),
-                process_id));
-    Common_Tools::finalize ();
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    // *PORTABILITY*: on Windows, finalize ACE...
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
-    return EXIT_FAILURE;
-  } // end IF
-continue_:
-  if (!window_handle_h)
+  if (!Common_File_Tools::isReadable (input_file_path))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -1327,8 +1467,8 @@ continue_:
   if (log_to_file)
     log_file_name =
         Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                          ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR_A)));
-  if (!Common_Log_Tools::initializeLogging (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR_A)), // program name
+                                          ACE::basename (argv_in[0]));
+  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]),                   // program name
                                             log_file_name,                                // log file name
                                             false,                                        // log to syslog ?
                                             false,                                        // trace messages ?
@@ -1354,7 +1494,7 @@ continue_:
   {
     case TEST_U_PROGRAMMODE_PRINT_VERSION:
     {
-      do_print_version (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR_A)));
+      do_print_version (ACE::basename (argv_in[0]));
 
       Common_Log_Tools::finalizeLogging ();
       Common_Tools::finalize ();
@@ -1393,24 +1533,32 @@ continue_:
   struct Test_U_DirectShow_Configuration directshow_configuration;
   struct Test_U_MediaFoundation_Configuration mediafoundation_configuration;
 #else
-  struct Test_U_CaptureWindow_Configuration configuration;
+  struct Test_U_Configuration configuration;
 #endif // ACE_WIN32 || ACE_WIN64
+
+//#if defined (GTK_USE)
+//  if (video_renderer_e == STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
+//    Common_UI_GTK_Tools::initialize (argc_in, argv_in);
+//#endif // GTK_USE
 
   ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work
-  do_work (
+  do_work (argc_in, argv_in,
+           debug_b,
+           input_file_path,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-           window_handle_h,
            media_framework_e,
-           directshow_configuration,
-           mediafoundation_configuration
-#else
-           argc_in, argv_in,
-           window_handle_h,
-           configuration
 #endif // ACE_WIN32 || ACE_WIN64
-          );
+           display_device_s,
+           video_renderer_e,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+           directshow_configuration,
+           mediafoundation_configuration,
+#else
+           configuration,
+#endif // ACE_WIN32 || ACE_WIN64
+           use_hardware_decoder_b);
   timer.stop ();
 
   // debug info
@@ -1448,14 +1596,10 @@ continue_:
     return EXIT_FAILURE;
   } // end IF
   ACE_Profile_Timer::Rusage elapsed_rusage;
-  ACE_OS::memset (&elapsed_rusage, 0, sizeof (elapsed_rusage));
+  ACE_OS::memset (&elapsed_rusage, 0, sizeof (ACE_Profile_Timer::Rusage));
   process_profile.elapsed_rusage (elapsed_rusage);
   ACE_Time_Value user_time (elapsed_rusage.ru_utime);
   ACE_Time_Value system_time (elapsed_rusage.ru_stime);
-  std::string user_time_string;
-  std::string system_time_string;
-  user_time_string = Common_Timer_Tools::periodToString (user_time);
-  system_time_string = Common_Timer_Tools::periodToString (system_time);
 
   // debug info
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1464,16 +1608,16 @@ continue_:
               elapsed_time.real_time,
               elapsed_time.user_time,
               elapsed_time.system_time,
-              ACE_TEXT (user_time_string.c_str ()),
-              ACE_TEXT (system_time_string.c_str ())));
+              ACE_TEXT (Common_Timer_Tools::periodToString (user_time).c_str ()),
+              ACE_TEXT (Common_Timer_Tools::periodToString (system_time).c_str ())));
 #else
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\nmaximum resident set size = %d\nintegral shared memory size = %d\nintegral unshared data size = %d\nintegral unshared stack size = %d\npage reclaims = %d\npage faults = %d\nswaps = %d\nblock input operations = %d\nblock output operations = %d\nmessages sent = %d\nmessages received = %d\nsignals received = %d\nvoluntary context switches = %d\ninvoluntary context switches = %d\n"),
               elapsed_time.real_time,
               elapsed_time.user_time,
               elapsed_time.system_time,
-              ACE_TEXT (user_time_string.c_str ()),
-              ACE_TEXT (system_time_string.c_str ()),
+              ACE_TEXT (Common_Timer_Tools::periodToString (user_time).c_str ()),
+              ACE_TEXT (Common_Timer_Tools::periodToString (system_time).c_str ()),
               elapsed_rusage.ru_maxrss,
               elapsed_rusage.ru_ixrss,
               elapsed_rusage.ru_idrss,

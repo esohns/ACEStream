@@ -71,14 +71,29 @@ stream_decoder_libav_hw_getformat_cb (struct AVCodecContext* context_in,
               ACE_TEXT (avcodec_get_name (context_in->codec_id)),
               ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*cb_data_p->preferredFormat).c_str ())));
 
-  // choose the first unaccelerated format
+  // choose the first accelerated format
+  for (const enum AVPixelFormat* iterator = formats_in;
+       *iterator != -1;
+       ++iterator)
+    if (Stream_MediaFramework_Tools::isAcceleratedFormat (*iterator))
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: choosing accelerated output format \"%s\"\n"),
+                  ACE_TEXT (avcodec_get_name (context_in->codec_id)),
+                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*iterator).c_str ())));
+      if (cb_data_p->negotiatedFormat)
+        *(cb_data_p->negotiatedFormat) = *iterator;
+      return *iterator;
+    } // end IF
+
+  // choose the first non-accelerated format
   for (const enum AVPixelFormat* iterator = formats_in;
        *iterator != -1;
        ++iterator)
     if (!Stream_MediaFramework_Tools::isAcceleratedFormat (*iterator))
     {
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: choosing output format \"%s\"\n"),
+                  ACE_TEXT ("%s: choosing non-accelerated output format \"%s\"\n"),
                   ACE_TEXT (avcodec_get_name (context_in->codec_id)),
                   ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*iterator).c_str ())));
       if (cb_data_p->negotiatedFormat)

@@ -116,7 +116,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   void getMediaType (const struct Stream_MediaFramework_FFMPEG_MediaType&, enum Stream_MediaType_Type, struct _AMMediaType&);
   void getMediaType (const struct Stream_MediaFramework_FFMPEG_AudioMediaType&, enum Stream_MediaType_Type, struct _AMMediaType&);
   void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, enum Stream_MediaType_Type, struct _AMMediaType&);
-//  void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, enum Stream_MediaType_Type, IMFMediaType*&);
+  void getMediaType (const struct Stream_MediaFramework_FFMPEG_MediaType&, enum Stream_MediaType_Type, IMFMediaType*&);
 #endif // FFMPEG_SUPPORT
 
   inline Common_Image_Resolution_t getResolution (const struct _AMMediaType& mediaType_in) { return Stream_MediaFramework_DirectShow_Tools::toResolution (mediaType_in); }

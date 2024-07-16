@@ -52,8 +52,7 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           ////////////////////////////////
           typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload
-                                             // (reference counted)
+          typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
           typename StatisticContainerType,
           typename TimerManagerType, // implements Common_ITimer
@@ -92,7 +91,7 @@ class Stream_LibAV_Source_T
 
  public:
   Stream_LibAV_Source_T (typename inherited::ISTREAM_T*); // stream handle
-  inline virtual ~Stream_LibAV_Source_T () {}
+  virtual ~Stream_LibAV_Source_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -101,18 +100,18 @@ class Stream_LibAV_Source_T
  private:
   // convenient types
   typedef Stream_LibAV_Source_T<ACE_SYNCH_USE,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           ConfigurationType,
-                           StreamControlType,
-                           StreamNotificationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType,
-                           TimerManagerType,
-                           UserDataType> OWN_TYPE_T;
+                                ControlMessageType,
+                                DataMessageType,
+                                SessionMessageType,
+                                ConfigurationType,
+                                StreamControlType,
+                                StreamNotificationType,
+                                StreamStateType,
+                                SessionDataType,
+                                SessionDataContainerType,
+                                StatisticContainerType,
+                                TimerManagerType,
+                                UserDataType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_LibAV_Source_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_LibAV_Source_T (const Stream_LibAV_Source_T&))

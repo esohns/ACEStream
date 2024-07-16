@@ -609,8 +609,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                AV_CODEC_FLAG2_EXPORT_MVS    |
                AV_CODEC_FLAG2_SKIP_MANUAL;
 #endif // ACE_WIN32 || ACE_WIN64
-      inherited::configuration_->codecConfiguration->format = outputFormat_;
-      formatNegotiationCBData_.preferredFormat = &inherited::configuration_->codecConfiguration->format;
+      formatNegotiationCBData_.preferredFormat =
+        &inherited::configuration_->codecConfiguration->format;
       formatNegotiationCBData_.negotiatedFormat = &intermediateFormat_;
       context_->opaque = &formatNegotiationCBData_;
       //context_->bit_rate = bit_rate;
@@ -720,12 +720,11 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: av_hwdevice_ctx_create(%d) failed: \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: av_hwdevice_ctx_create(%d) failed: \"%s\", continuing\n"),
                     inherited::mod_->name (),
                     inherited::configuration_->codecConfiguration->deviceType,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-        av_dict_free (&dictionary_p); dictionary_p = NULL;
-        goto error;
+        goto continue_;
       } // end IF
       ACE_ASSERT (hw_device_ctx_p);
       context_->hw_device_ctx = hw_device_ctx_p;
@@ -770,8 +769,9 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (intermediateFormat_).c_str ())));
       } // end IF
-      //context_->pix_fmt = intermediateFormat_;
+      context_->pix_fmt = intermediateFormat_;
 
+continue_:
       //av_opt_set_int (context_,
       //                ACE_TEXT_ALWAYS_CHAR ("refcounted_frames"),
       //                1,
@@ -780,7 +780,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                   ACE_TEXT_ALWAYS_CHAR ("profile"),
                   ACE_TEXT_ALWAYS_CHAR ("baseline"),
                   0);
-      context_->profile = FF_PROFILE_H264_BASELINE;
+      context_->profile = inherited::configuration_->codecConfiguration->profile;
 
       result = avcodec_open2 (context_,
                               context_->codec,
@@ -819,7 +819,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (outputFormat_).c_str ())));
 
         flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-                 SWS_BILINEAR | SWS_ACCURATE_RND | SWS_BITEXACT);
+                 SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
         transformContext_ =
             sws_getCachedContext (NULL,
                                   formatWidth_, formatHeight_, intermediateFormat_,
@@ -865,7 +865,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       else
         inherited2::free_ (media_type_2);
 
-      goto continue_;
+      goto continue_2;
 
 error:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -877,7 +877,7 @@ error:
 
       break;
 
-continue_:
+continue_2:
       break;
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
@@ -1162,11 +1162,11 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
 
   // convert pixel format of the decoded frame ?
   if (transformContext_)
-  { ACE_ASSERT (outputFormat_ != AV_PIX_FMT_NONE);
+  {
     int line_sizes_a[AV_NUM_DATA_POINTERS];
     ACE_OS::memset (&line_sizes_a, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
     uint8_t* data_a[AV_NUM_DATA_POINTERS];
-    ACE_OS::memset (&data_a, 0, sizeof (uint8_t* [AV_NUM_DATA_POINTERS]));
+    ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
 
     message_block_p = inherited::allocateMessage (outputFrameSize_);
     if (unlikely (!message_block_p))

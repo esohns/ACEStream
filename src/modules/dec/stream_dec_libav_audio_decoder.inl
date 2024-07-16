@@ -386,6 +386,15 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                                 STREAM_MEDIATYPE_AUDIO,
                                 media_type_2);
 
+      int result = -1;
+      const struct AVCodec* codec_p = NULL;
+      struct AVCodecParameters* codec_parameters_p = NULL;
+      struct AVDictionary* dictionary_p = NULL;
+      //int flags, flags2;
+      //int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM |
+      //              FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
+      int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_BUGS;
+
       if (inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_NONE)
       {
         if (media_type_s.codecId == AV_CODEC_ID_NONE)
@@ -401,15 +410,6 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: using codec \"%s\" (id: %d)\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)), inherited::configuration_->codecConfiguration->codecId));
-
-      int result = -1;
-      const struct AVCodec* codec_p = NULL;
-      struct AVCodecParameters* codec_parameters_p = NULL;
-      struct AVDictionary* dictionary_p = NULL;
-      //int flags, flags2;
-      //int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM |
-      //              FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
-      int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_BUGS;
 
       codec_p =
         avcodec_find_decoder (inherited::configuration_->codecConfiguration->codecId);
@@ -654,7 +654,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       else
         inherited2::free_ (media_type_2);
 
-      goto continue_;
+      break;
 
 error:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -664,9 +664,6 @@ error:
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
-      break;
-
-continue_:
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
@@ -819,7 +816,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
     } // end IF
 
     uint8_t* data_a[AV_NUM_DATA_POINTERS];
-    ACE_OS::memset (&data_a, 0, sizeof (uint8_t* [AV_NUM_DATA_POINTERS]));
+    ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
     data_a[0] = reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ());
     result =
       swr_convert (transformContext_,

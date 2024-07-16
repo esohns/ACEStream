@@ -575,7 +575,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
               message_data_r.format.resolution.width, message_data_r.format.resolution.height,
               media_type_s.format.width, media_type_s.format.height));
 
-  ACE_ASSERT (message_data_r.format.codec == AV_CODEC_ID_NONE);
+  ACE_ASSERT (message_data_r.format.codecId == AV_CODEC_ID_NONE);
   ACE_ASSERT (Stream_Module_Decoder_Tools::isRGB32 (message_data_r.format.format));
 #endif // ACE_WIN32 || ACE_WIN64
 

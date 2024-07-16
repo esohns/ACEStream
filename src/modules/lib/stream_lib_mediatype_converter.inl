@@ -623,6 +623,27 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 
 template <typename MediaType>
 void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     IMFMediaType*& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  getMediaType (mediaType_in,
+                type_in,
+                media_type_s);
+
+  getMediaType (media_type_s,
+                type_in,
+                mediaType_out);
+
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+}
+
+template <typename MediaType>
+void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::setFramerate (const struct AVRational& rate_in,
                                                                      struct _AMMediaType& mediaType_out)
 {

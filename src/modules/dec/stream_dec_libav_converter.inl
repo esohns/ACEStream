@@ -68,7 +68,10 @@ Stream_Decoder_LibAVConverter_T<TaskType,
     sws_freeContext (context_);
 
   if (unlikely (frame_))
+  {
+    av_frame_unref (frame_);
     av_frame_free (&frame_);
+  } // end IF
 }
 
 template <typename TaskType,
@@ -94,7 +97,8 @@ Stream_Decoder_LibAVConverter_T<TaskType,
 
     if (frame_)
     {
-      av_frame_free (&frame_); frame_ = NULL;
+      av_frame_unref (frame_);
+      av_frame_free (&frame_); ACE_ASSERT (frame_ == NULL);
     } // end IF
 
     frameSize_ = 0;
@@ -102,9 +106,12 @@ Stream_Decoder_LibAVConverter_T<TaskType,
   } // end IF
 
 #if defined (_DEBUG)
-//  av_log_set_callback (Stream_Decoder_LibAVDecoder_LoggingCB);
-  // *NOTE*: this level logs all messages
-//  av_log_set_level (std::numeric_limits<int>::max ());
+  if (configuration_in.debug)
+  {
+    av_log_set_callback (stream_decoder_libav_log_cb);
+    // *NOTE*: this level logs all messages
+    av_log_set_level (std::numeric_limits<int>::max ());
+  } // end IF
 #endif // _DEBUG
 
 //continue_:
@@ -124,7 +131,7 @@ Stream_Decoder_LibAVConverter_T<TaskType,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
 
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (unlikely (!context_ || !frame_))
     return; // *TODO*: discard early messages (e.g. DirectShow cam source)
 #else
@@ -244,21 +251,29 @@ Stream_Decoder_LibAVConverter_T<TaskType,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      // sanity check(s)
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+      MediaType media_type_2;
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_3;
+      int flags = 0;
+      int result = -1;
+
+      // sanity check(s)
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
-      ACE_ASSERT (!Stream_Module_Decoder_Tools::isCompressedVideo (media_type_s.format));
-      MediaType media_type_2;
+      if (unlikely (Stream_Module_Decoder_Tools::isCompressedVideo (media_type_s.format)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: input format is compressed (was: \"%s\"), aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_s.format).c_str ())));
+        goto error;
+      } // end IF
       ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_2);
-      int flags = 0;
-      int result = -1;
       inputFormat_ = media_type_s.format;
-      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_3;
       inherited2::getMediaType (inherited::configuration_->outputFormat,
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_3);
@@ -266,15 +281,16 @@ Stream_Decoder_LibAVConverter_T<TaskType,
                     !inherited::configuration_->flipImage))
       {
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: output format is input format, nothing to do\n"),
-                    inherited::mod_->name ()));
+                    ACE_TEXT ("%s: output format (was: \"%s\") is input format, nothing to do\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_3.format).c_str ())));
         goto continue_2; // nothing to do
       } // end iF
 
       // initialize conversion context
       ACE_ASSERT (!context_);
       flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-               SWS_FAST_BILINEAR);
+        SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
       context_ =
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -290,7 +306,8 @@ Stream_Decoder_LibAVConverter_T<TaskType,
       if (unlikely (!context_))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to sws_getCachedContext(): \"%m\", aborting\n")));
+                    ACE_TEXT ("%s: failed to sws_getCachedContext(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
 

@@ -460,9 +460,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       {
         parserContext_->flags = inherited::configuration_->codecConfiguration->parserFlags;
         //parserContext_->flags |= PARSER_FLAG_COMPLETE_FRAMES;
-        parserContext_->flags |= PARSER_FLAG_ONCE;
-        parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
-        parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
+        //parserContext_->flags |= PARSER_FLAG_ONCE;
+        //parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
+        //parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
       } // end ELSE
 
 continue_:
@@ -487,7 +487,8 @@ continue_:
         goto error;
       } // end IF
       codec_parameters_p->codec_type = AVMEDIA_TYPE_VIDEO;
-      codec_parameters_p->codec_id = inherited::configuration_->codecConfiguration->codecId;
+      codec_parameters_p->codec_id =
+        inherited::configuration_->codecConfiguration->codecId;
       //codec_parameters_p->codec_tag = ;
       //codec_parameters_p->extradata = NULL;
       //codec_parameters_p->extradata_size = 0;
@@ -495,7 +496,8 @@ continue_:
       //codec_parameters_p->bit_rate = 200000;
       //codec_parameters_p->bits_per_coded_sample = 0;
       //codec_parameters_p->bits_per_raw_sample = 0;
-      //codec_parameters_p->profile = FF_PROFILE_H264_HIGH;
+      codec_parameters_p->profile =
+        inherited::configuration_->codecConfiguration->profile;
       //codec_parameters_p->level = ;
       codec_parameters_p->width = formatWidth_;
       codec_parameters_p->height = formatHeight_;

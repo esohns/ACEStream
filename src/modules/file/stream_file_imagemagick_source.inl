@@ -420,7 +420,7 @@ next:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
-    media_type_2.codec = AV_CODEC_ID_NONE;
+    media_type_2.codecId = AV_CODEC_ID_NONE;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
     message_data_s.format = media_type_2;

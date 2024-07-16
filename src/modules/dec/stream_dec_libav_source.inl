@@ -94,6 +94,39 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType,
           typename UserDataType>
+Stream_LibAV_Source_T<ACE_SYNCH_USE,
+                      ControlMessageType,
+                      DataMessageType,
+                      SessionMessageType,
+                      ConfigurationType,
+                      StreamControlType,
+                      StreamNotificationType,
+                      StreamStateType,
+                      SessionDataType,
+                      SessionDataContainerType,
+                      StatisticContainerType,
+                      TimerManagerType,
+                      UserDataType>::~Stream_LibAV_Source_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_LibAV_Source_T::~Stream_LibAV_Source_T"));
+
+  if (context_)
+    avformat_free_context (context_);
+}
+
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename UserDataType>
 bool
 Stream_LibAV_Source_T<ACE_SYNCH_USE,
                       ControlMessageType,
@@ -114,7 +147,10 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    avformat_free_context (context_); context_ = NULL;
+    if (context_)
+    {
+      avformat_free_context (context_); context_ = NULL;
+    } // end IF
   } // end IF
 
   context_ = avformat_alloc_context ();

@@ -5721,7 +5721,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       Stream_MediaFramework_DirectShow_Tools::setFormat (GUID_s,
                                                          directshow_cb_data_p->configuration->streamConfiguration.configuration_->format);
       // *NOTE*: need to set this for RGB-capture formats ONLY !
-      // *TODO*: MJPG is transformed inside the DirectShow pipeline to RGB32, so requires flípping as well... :-(
+      // *TODO*: MJPG is transformed inside the DirectShow pipeline to RGB32, so requires flÃ­pping as well... :-(
       (*directshow_stream_iterator).second.second->flipImage =
         Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format);
       break;
@@ -5772,7 +5772,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
       ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
     ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
-    (*iterator_2).second.second->codecId =
+    (*iterator_2).second.second->codecConfiguration->codecId =
         Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (Stream_MediaFramework_Tools::v4lFormatToffmpegFormat (format_i));
   } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64

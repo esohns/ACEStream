@@ -62,7 +62,7 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream::load"));
 
   // initialize return value(s)
-  delete_out = false;
+  delete_out = true;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -87,7 +87,7 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
 
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_Module (this,
-                                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING)),
+                                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_SOURCE_DEFAULT_NAME_STRING)),
                   false);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;

@@ -180,14 +180,14 @@ Stream_MediaFramework_DirectDraw_Tools::getDevice (struct Stream_MediaFramework_
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectDraw_Tools::getDevice"));
 
   HRESULT result = E_FAIL;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   IDirect3D9Ex* interface_p = NULL;
 #else
   IDirect3D9* interface_p = NULL;
-#endif
+#endif // _WIN32_WINNT_VISTA
 
   // initialize return value(s)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
 #else
   if (configuration_inout.handle)
   {

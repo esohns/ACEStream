@@ -40,6 +40,16 @@ stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
   enum AVPixelFormat* preferred_format_p =
     reinterpret_cast<enum AVPixelFormat*> (context_in->opaque);
 
+ #if defined (_DEBUG)
+  for (const enum AVPixelFormat* iterator = formats_in;
+       *iterator != -1;
+       ++iterator)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: supported decode format: \"%s\"\n"),
+                ACE_TEXT (avcodec_get_name (context_in->codec_id)),
+                ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*iterator).c_str ())));
+#endif // _DEBUG
+
   // try to find the preferred format first
   for (const enum AVPixelFormat* iterator = formats_in;
        *iterator != -1;

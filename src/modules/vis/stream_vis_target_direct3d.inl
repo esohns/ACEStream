@@ -523,10 +523,11 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
-      direct3DConfiguration_->presentationParameters.BackBufferFormat =
-        //D3DFMT_X8R8G8B8;
-        Stream_MediaFramework_DirectDraw_Tools::toFormat (media_type_s.subtype,
-                                                          STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
+      // *NOTE*: always set this to a 32bit format, otherwise Stream_MediaFramework_DirectDraw_Tools::getDevice() fails;
+      //         input data will be transformed to the 32bit format (see setTransformation above)
+      direct3DConfiguration_->presentationParameters.BackBufferFormat = D3DFMT_X8R8G8B8;
+        //Stream_MediaFramework_DirectDraw_Tools::toFormat (media_type_s.subtype,
+        //                                                  STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
 
       if (likely (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo)))
       { ACE_ASSERT (media_type_s.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
@@ -559,7 +560,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       { ACE_ASSERT (false); // *TODO*
       } // end ELSE
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       break;
 
@@ -611,7 +613,8 @@ error:
       if (inherited::thr_count_)
         inherited::wait ();
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       break;
     }
@@ -2196,10 +2199,11 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
-      direct3DConfiguration_->presentationParameters.BackBufferFormat =
-        //D3DFMT_X8R8G8B8;
-        Stream_MediaFramework_DirectDraw_Tools::toFormat (media_type_2.subtype,
-                                                          STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
+      // *NOTE*: always set this to a 32bit format, otherwise Stream_MediaFramework_DirectDraw_Tools::getDevice() fails;
+      //         input data will be transformed to the 32bit format (see setTransformation above)
+      direct3DConfiguration_->presentationParameters.BackBufferFormat = D3DFMT_X8R8G8B8;
+        //Stream_MediaFramework_DirectDraw_Tools::toFormat (media_type_2.subtype,
+        //                                                  STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
 
       if (likely (InlineIsEqualGUID (media_type_2.formattype, FORMAT_VideoInfo)))
       { ACE_ASSERT (media_type_2.cbFormat == sizeof (struct tagVIDEOINFOHEADER));

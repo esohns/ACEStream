@@ -354,6 +354,9 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   allocator_configuration.defaultBufferSize = 131072; // 128 kB
   struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration_2;
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
+  //codec_configuration.parserFlags =
+    //PARSER_FLAG_COMPLETE_FRAMES /* | PARSER_FLAG_FETCHED_OFFSET*/;
+  codec_configuration.useParser = false;
 #else
   struct Stream_AllocatorConfiguration allocator_configuration; // video
   allocator_configuration.defaultBufferSize = 131072; // 128 kB

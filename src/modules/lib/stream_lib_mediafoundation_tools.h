@@ -258,12 +258,12 @@ class Stream_MediaFramework_MediaFoundation_Tools
                     UINT32,                        // flags
                     const MFT_REGISTER_TYPE_INFO*, // input media type {NULL: all}
                     const MFT_REGISTER_TYPE_INFO*, // output media type {NULL: all}
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
                     IMFActivate**&,                // return value: module handles
 #else
                     IMFAttributes*,                // attributes
                     CLSID*&,                       // return value: module handles
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
                     UINT32&);                      // return value: number of handles
 
  private:

@@ -4734,9 +4734,9 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
   ////video_info_header_p->bmiHeader.biYPelsPerMeter;
   ////video_info_header_p->bmiHeader.biClrUsed;
   ////video_info_header_p->bmiHeader.biClrImportant;
-  ACE_ASSERT (mediaType_in.frameRate.den);
+  ACE_ASSERT (mediaType_in.frameRate.num);
   video_info_header_p->AvgTimePerFrame =
-    ((mediaType_in.frameRate.num * 100000000000) / mediaType_in.frameRate.den) / NANOSECONDS;
+    static_cast<REFERENCE_TIME> (mediaType_in.frameRate.den / static_cast<float> (mediaType_in.frameRate.num) * 100000000000000.0f) / NANOSECONDS;
   video_info_header_p->dwBitRate =
     (video_info_header_p->AvgTimePerFrame ? (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
                                             (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)) // fps

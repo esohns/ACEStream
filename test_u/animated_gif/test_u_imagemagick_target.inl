@@ -182,10 +182,11 @@ Test_U_ImageMagick_Target_T<ACE_SYNCH_USE,
     Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
 #else
 #if defined (FFMPEG_SUPPORT)
-  ACE_ASSERT (media_type_s.codec == AV_CODEC_ID_NONE);
+  ACE_ASSERT (media_type_s.codecId == AV_CODEC_ID_NONE);
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-  MagickBooleanType result = MagickSetFormat (context_, ACE_TEXT_ALWAYS_CHAR ("RGBA"));
+  MagickBooleanType result =
+    MagickSetFormat (context_, ACE_TEXT_ALWAYS_CHAR ("RGBA"));
   ACE_ASSERT (result == MagickTrue);
   result = MagickSetSize (context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

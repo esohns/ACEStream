@@ -504,6 +504,9 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 {
   Stream_CamSave_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
+#if defined (FFMPEG_SUPPORT)
+   , codecConfiguration (NULL)
+#endif // FFMPEG_SUPPORT
    , deviceIdentifier ()
    , display ()
    , fullScreen (false)
@@ -518,6 +521,9 @@ struct Stream_CamSave_ModuleHandlerConfiguration
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
 
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
+#endif // FFMPEG_SUPPORT
   struct Stream_Device_Identifier deviceIdentifier; // source/renderer module
   struct Common_UI_DisplayDevice  display;
   bool                            fullScreen;
@@ -669,10 +675,6 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
    , area ()
 #endif // GUI_SUPPORT
    , buffers (STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS)
-#if defined (FFMPEG_SUPPORT)
-   , codecFormat (AV_PIX_FMT_NONE)
-   , codecId (AV_CODEC_ID_NONE)
-#endif // FFMPEG_SUPPORT
    , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , outputFormat ()
    , subscriber (NULL)
@@ -696,10 +698,6 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
   struct v4l2_rect                           area;
 #endif // GUI_SUPPORT
   __u32                                      buffers; // v4l device buffers
-#if defined (FFMPEG_SUPPORT)
-  enum AVPixelFormat                         codecFormat; // preferred output-
-  enum AVCodecID                             codecId;
-#endif // FFMPEG_SUPPORT
   enum v4l2_memory                           method; // v4l camera source
   struct Stream_MediaFramework_V4L_MediaType outputFormat;
   Stream_CamSave_V4L_ISessionNotify_t*       subscriber;

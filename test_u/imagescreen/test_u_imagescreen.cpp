@@ -31,6 +31,7 @@
 #include "ace/Profile_Timer.h"
 //#include "ace/Synch.h"
 #include "ace/Time_Value.h"
+#include "stream_lib_ffmpeg_common.h"
 
 #if defined (HAVE_CONFIG_H)
 #include "Common_config.h"
@@ -374,6 +375,11 @@ do_work (int argc_in,
 
   // initialize stream
   struct Stream_AllocatorConfiguration allocator_configuration;
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
+  codec_configuration.codecId = AV_CODEC_ID_MJPEG;
+#endif // FFMPEG_SUPPORT
+
   struct Stream_ModuleConfiguration module_configuration;
   struct Stream_ImageScreen_ModuleHandlerConfiguration modulehandler_configuration;
   struct Stream_ImageScreen_StreamConfiguration stream_configuration;
@@ -384,7 +390,7 @@ do_work (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
-  modulehandler_configuration.codecId = AV_CODEC_ID_MJPEG;
+  modulehandler_configuration.codecConfiguration = &codec_configuration;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.delayConfiguration =
