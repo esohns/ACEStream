@@ -490,6 +490,17 @@ continue_:
       codec_parameters_p->codec_id =
         inherited::configuration_->codecConfiguration->codecId;
       //codec_parameters_p->codec_tag = ;
+      if (session_data_r.codecConfigurationData)
+      { ACE_ASSERT (session_data_r.codecConfigurationDataSize);
+        codec_parameters_p->extradata =
+          static_cast<uint8_t*> (av_malloc (session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE));
+        ACE_ASSERT (codec_parameters_p->extradata);
+        ACE_OS::memset (codec_parameters_p->extradata, 0, session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE);
+        ACE_OS::memcpy (codec_parameters_p->extradata,
+                        session_data_r.codecConfigurationData,
+                        session_data_r.codecConfigurationDataSize);
+        codec_parameters_p->extradata_size = session_data_r.codecConfigurationDataSize;
+      } // end IF
       //codec_parameters_p->extradata = NULL;
       //codec_parameters_p->extradata_size = 0;
       codec_parameters_p->format = outputFormat_;

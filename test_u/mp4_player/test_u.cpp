@@ -392,7 +392,7 @@ do_initialize_directshow (bool hasUI_in,
 
   // generate default media type: RGB24 640x480 30fps
   outputFormat_inout.majortype = MEDIATYPE_Video;
-  outputFormat_inout.subtype = MEDIASUBTYPE_RGB24;
+  outputFormat_inout.subtype = MEDIASUBTYPE_RGB32;
     //STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT;
   outputFormat_inout.bFixedSizeSamples = TRUE;
   outputFormat_inout.bTemporalCompression = FALSE;
@@ -414,7 +414,7 @@ do_initialize_directshow (bool hasUI_in,
   video_info_header_p->bmiHeader.biWidth = 640;
   video_info_header_p->bmiHeader.biHeight = 480;
   video_info_header_p->bmiHeader.biPlanes = 1;
-  video_info_header_p->bmiHeader.biBitCount = 24;
+  video_info_header_p->bmiHeader.biBitCount = 32;
   video_info_header_p->bmiHeader.biCompression = BI_RGB;
   video_info_header_p->bmiHeader.biSizeImage =
     DIBSIZE (video_info_header_p->bmiHeader);
@@ -719,7 +719,7 @@ do_work (int argc_in,
   //allocator_configuration.defaultBufferSize = 524288;
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
   codec_configuration.codecId = AV_CODEC_ID_H264;
-  codec_configuration.parserFlags = PARSER_FLAG_ONCE | PARSER_FLAG_USE_CODEC_TS;
+  //codec_configuration.parserFlags = PARSER_FLAG_ONCE | PARSER_FLAG_USE_CODEC_TS;
   //  PARSER_FLAG_COMPLETE_FRAMES | PARSER_FLAG_FETCHED_OFFSET;
   codec_configuration.useParser = false;
 #else

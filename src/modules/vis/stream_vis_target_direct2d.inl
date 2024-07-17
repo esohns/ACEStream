@@ -272,23 +272,20 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      HWND window_h = inherited::window_;
       if (inherited::window_)
       {
         inherited::notify_ = false;
-        if (unlikely (!CloseWindow (inherited::window_)))
+
+        if (unlikely (!PostMessage (inherited::window_, WM_QUIT, 0, 0)))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to PostMessage(%@): \"%s\", continuing\n"),
                       inherited::mod_->name (),
+                      inherited::window_,
                       ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-        inherited::window_ = NULL;
       } // end IF
 
       if (inherited::thr_count_)
-      {
-        PostMessage (window_h, WM_QUIT, 0, NULL);
         inherited::wait ();
-      } // end IF
 
       break;
     }
@@ -541,13 +538,18 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
   {
     if (unlikely (result == -1))
     {
-      // handle the error and possibly exit
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to GetMessage(%@): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  inherited::window_,
+                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
       break;
-    }
+    } // end IF
 
     TranslateMessage (&message_s);
     DispatchMessage (&message_s);
   } // end WHILE
+  DestroyWindow (inherited::window_); inherited::window_ = NULL;
 
   if (unlikely (inherited::notify_))
     inherited::notify (STREAM_SESSION_MESSAGE_ABORT);

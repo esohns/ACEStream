@@ -276,8 +276,8 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
       { ACE_ASSERT (!session_data_r.codecConfigurationDataSize);
         session_data_r.codecConfigurationDataSize =
           context_->streams[inherited::configuration_->streamIndex]->codecpar->extradata_size;
-        session_data_r.codecConfigurationData =
-          reinterpret_cast<ACE_UINT8*> (av_malloc (session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE));
+        ACE_NEW_NORETURN (session_data_r.codecConfigurationData,
+                          ACE_UINT8[session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE]);
         ACE_ASSERT (session_data_r.codecConfigurationData);
         ACE_OS::memset (session_data_r.codecConfigurationData,
                         0,

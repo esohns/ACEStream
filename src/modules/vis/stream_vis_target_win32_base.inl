@@ -72,10 +72,11 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Win32_Base_T::~Stream_Vis_Target_Win32_Base_T"));
 
   if (unlikely (window_))
-    if (unlikely (!CloseWindow (window_)))
+    if (unlikely (!PostMessage (window_, WM_QUIT, 0, 0)))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
+                  ACE_TEXT ("%s: failed to PostMessage(%@): \"%s\", continuing\n"),
                   inherited::mod_->name (),
+                  window_,
                   ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
 
   if (unlikely (inherited::thr_count_))
@@ -149,12 +150,12 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
   {
     if (window_)
     {
-      if (unlikely (!CloseWindow (window_)))
+      if (unlikely (!PostMessage (window_, WM_QUIT, 0, 0)))
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
+                    ACE_TEXT ("%s: failed to PostMessage(%@): \"%s\", continuing\n"),
                     inherited::mod_->name (),
+                    window_,
                     ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-      window_ = NULL;
     } // end IF
     if (inherited::thr_count_)
       inherited::wait ();
@@ -203,7 +204,7 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
   if (unlikely (!window_))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to createWindow(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
     return -1;

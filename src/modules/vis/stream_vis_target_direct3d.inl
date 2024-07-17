@@ -602,12 +602,13 @@ error:
       if (inherited::window_)
       {
         inherited::notify_ = false;
-        if (unlikely (!CloseWindow (inherited::window_)))
+
+        if (unlikely (!PostMessage (inherited::window_, WM_QUIT, 0, 0)))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to PostMessage(%@,WM_QUIT): \"%s\", continuing\n"),
                       inherited::mod_->name (),
+                      inherited::window_,
                       ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-        inherited::window_ = NULL;
       } // end IF
 
       if (inherited::thr_count_)
@@ -1402,18 +1403,30 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize_Direct3D(), aborting\n"),
                 inherited::mod_->name ()));
-    CloseWindow (inherited::window_); inherited::window_ = NULL;
+    DestroyWindow (inherited::window_); inherited::window_ = NULL;
     return -1;
   } // end IF
   ACE_ASSERT (direct3DConfiguration_->handle);
   releaseDeviceHandle_ = true;
 
   struct tagMSG message_s;
-  while (GetMessage (&message_s, window_, 0, 0) != -1)
+  BOOL bRet;
+  while (bRet = GetMessage (&message_s, inherited::window_, 0, 0) != 0)
   {
+    if (bRet == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to GetMessage(%@): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  inherited::window_,
+                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+      break;
+    } // end IF
+
     TranslateMessage (&message_s);
     DispatchMessage (&message_s);
-  } // end WHILE
+  }   // end WHILE
+  DestroyWindow (inherited::window_); inherited::window_ = NULL;
 
   if (unlikely (inherited::notify_))
     inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
@@ -2272,12 +2285,12 @@ error:
       if (inherited::window_)
       {
         inherited::notify_ = false;
-        if (unlikely (!CloseWindow (inherited::window_)))
+        if (unlikely (!PostMessage (inherited::window_, WM_QUIT, 0, 0)))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to PostMessage(%@): \"%s\", continuing\n"),
                       inherited::mod_->name (),
+                      inherited::window_,
                       ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-        inherited::window_ = NULL;
       } // end IF
 
       if (inherited::thr_count_)
