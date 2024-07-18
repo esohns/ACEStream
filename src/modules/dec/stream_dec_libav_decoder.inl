@@ -1062,7 +1062,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 //    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
 //    if (!Common_File_Tools::store (filename_string,
 //                                   data_a[0],
-//                                   frameSize_))
+//                                   outputFrameSize_))
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), aborting\n"),

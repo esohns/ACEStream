@@ -1231,14 +1231,16 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
 //#if defined (_DEBUG)
 //    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
 //    if (!Common_File_Tools::store (filename_string,
-//                                   data[0],
-//                                   frameSize_))
+//                                   data_a[0],
+//                                   outputFrameSize_))
 //    {
 //      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
+//                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), aborting\n"),
 //                  ACE_TEXT (filename_string.c_str ())));
-//      goto error;
-//    } // end IF
+//      av_frame_unref (frame_p);
+//      message_block_p->release ();
+//      return false;
+//    }  // end IF
 //#endif // _DEBUG
   } // end IF
   else
