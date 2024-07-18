@@ -4124,7 +4124,7 @@ Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (enum AVHWD
   switch (type_in)
   {
     case AV_HWDEVICE_TYPE_DXVA2:
-      return AV_PIX_FMT_YUV420P; // supported by H264 decoder
+      return AV_PIX_FMT_NV12; // supported by H264 decoder
     default:
     {
       ACE_DEBUG ((LM_ERROR,

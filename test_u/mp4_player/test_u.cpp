@@ -719,9 +719,20 @@ do_work (int argc_in,
   //allocator_configuration.defaultBufferSize = 524288;
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
   codec_configuration.codecId = AV_CODEC_ID_H264;
-  //codec_configuration.parserFlags = PARSER_FLAG_ONCE | PARSER_FLAG_USE_CODEC_TS;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  codec_configuration.deviceType = AV_HWDEVICE_TYPE_DXVA2;
+  //video_codec_configuration.deviceType = AV_HWDEVICE_TYPE_D3D11VA;
+  //video_codec_configuration.deviceType = AV_HWDEVICE_TYPE_D3D12VA;
+  codec_configuration.format = AV_PIX_FMT_DXVA2_VLD;
+#else
+  codec_configuration.deviceType = AV_HWDEVICE_TYPE_VAAPI;
+  codec_configuration.format = AV_PIX_FMT_VAAPI;
+  // video_codec_configuration.deviceType = AV_HWDEVICE_TYPE_VDPAU;
+  // video_codec_configuration.format = AV_PIX_FMT_VDPAU;
+#endif // ACE_WIN32 || ACE_WIN64
+  codec_configuration.parserFlags = PARSER_FLAG_ONCE | PARSER_FLAG_USE_CODEC_TS;
   //  PARSER_FLAG_COMPLETE_FRAMES | PARSER_FLAG_FETCHED_OFFSET;
-  codec_configuration.useParser = false;
+  //codec_configuration.useParser = false;
 #else
   struct Stream_AllocatorConfiguration allocator_configuration;
 #endif // FFMPEG_SUPPORT

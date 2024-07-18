@@ -487,8 +487,7 @@ continue_:
         goto error;
       } // end IF
       codec_parameters_p->codec_type = AVMEDIA_TYPE_VIDEO;
-      codec_parameters_p->codec_id =
-        inherited::configuration_->codecConfiguration->codecId;
+      codec_parameters_p->codec_id = inherited::configuration_->codecConfiguration->codecId;
       //codec_parameters_p->codec_tag = ;
       if (session_data_r.codecConfigurationData)
       { ACE_ASSERT (session_data_r.codecConfigurationDataSize);
@@ -507,8 +506,7 @@ continue_:
       //codec_parameters_p->bit_rate = 200000;
       //codec_parameters_p->bits_per_coded_sample = 0;
       //codec_parameters_p->bits_per_raw_sample = 0;
-      codec_parameters_p->profile =
-        inherited::configuration_->codecConfiguration->profile;
+      codec_parameters_p->profile = inherited::configuration_->codecConfiguration->profile;
       //codec_parameters_p->level = ;
       codec_parameters_p->width = formatWidth_;
       codec_parameters_p->height = formatHeight_;
@@ -548,7 +546,7 @@ continue_:
       //         AV_CODEC_FLAG2_NO_OUTPUT           |
       //         AV_CODEC_FLAG2_LOCAL_HEADER        |
       //         AV_CODEC_FLAG2_DROP_FRAME_TIMECODE |
-               AV_CODEC_FLAG2_CHUNKS        |
+               //AV_CODEC_FLAG2_CHUNKS        |
                AV_CODEC_FLAG2_IGNORE_CROP   |
                AV_CODEC_FLAG2_SHOW_ALL      |
                AV_CODEC_FLAG2_EXPORT_MVS    |
@@ -837,6 +835,8 @@ continue_2:
                              media_type_s);
       inherited2::setResolution (resolution_s,
                                  media_type_s);
+      inherited2::setFramerate (media_type_2.frameRate,
+                                media_type_s);
       ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         session_data_r.formats.push_back (media_type_s);

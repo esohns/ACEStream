@@ -341,7 +341,21 @@ continue_:
       break;
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
+    {
+      // update session data
+      if (likely (freeSessionData_ && sessionData_))
+        sessionData_->decrease ();
+      sessionData_ = &const_cast<typename SessionMessageType::DATA_T&> (message_inout->getR ());
+      sessionData_->increase ();
+      freeSessionData_ = true;
+
+      const typename SessionMessageType::DATA_T::DATA_T* session_data_p =
+        &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->getR ());
+      // *NOTE*: retain a handle to the original lock
+      sessionDataLock_ = session_data_p->lock;
+
       break;
+    }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
       // sanity check(s)

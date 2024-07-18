@@ -52,7 +52,7 @@ stream_decoder_libav_hw_getformat_cb (struct AVCodecContext* context_in,
                 ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*iterator).c_str ())));
 #endif // _DEBUG
 
-  // try to find the preferred format first
+  // (try to) find the preferred format first
   for (const enum AVPixelFormat* iterator = formats_in;
        *iterator != -1;
        ++iterator)
@@ -62,7 +62,7 @@ stream_decoder_libav_hw_getformat_cb (struct AVCodecContext* context_in,
                   ACE_TEXT ("%s: choosing preferred output format \"%s\"\n"),
                   ACE_TEXT (avcodec_get_name (context_in->codec_id)),
                   ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*iterator).c_str ())));
-      if (cb_data_p->negotiatedFormat)
+      if (cb_data_p->negotiatedFormat && (*(cb_data_p->negotiatedFormat) == AV_PIX_FMT_NONE))
         *(cb_data_p->negotiatedFormat) = *iterator;
       return *iterator;
     } // end IF
@@ -81,7 +81,7 @@ stream_decoder_libav_hw_getformat_cb (struct AVCodecContext* context_in,
                   ACE_TEXT ("%s: choosing accelerated output format \"%s\"\n"),
                   ACE_TEXT (avcodec_get_name (context_in->codec_id)),
                   ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*iterator).c_str ())));
-      if (cb_data_p->negotiatedFormat)
+      if (cb_data_p->negotiatedFormat && (*(cb_data_p->negotiatedFormat) == AV_PIX_FMT_NONE))
         *(cb_data_p->negotiatedFormat) = *iterator;
       return *iterator;
     } // end IF
@@ -96,7 +96,7 @@ stream_decoder_libav_hw_getformat_cb (struct AVCodecContext* context_in,
                   ACE_TEXT ("%s: choosing non-accelerated output format \"%s\"\n"),
                   ACE_TEXT (avcodec_get_name (context_in->codec_id)),
                   ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*iterator).c_str ())));
-      if (cb_data_p->negotiatedFormat)
+      if (cb_data_p->negotiatedFormat && (*(cb_data_p->negotiatedFormat) == AV_PIX_FMT_NONE))
         *(cb_data_p->negotiatedFormat) = *iterator;
       return *iterator;
     } // end IF

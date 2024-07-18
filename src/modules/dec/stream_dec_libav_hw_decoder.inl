@@ -477,9 +477,12 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                     ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)), inherited::configuration_->codecConfiguration->codecId));
       } // end IF
       else
-      { // *TODO*: use the flags passed in !!!
-        parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
-        parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
+      {
+        parserContext_->flags = inherited::configuration_->codecConfiguration->parserFlags;
+        // parserContext_->flags |= PARSER_FLAG_COMPLETE_FRAMES;
+        // parserContext_->flags |= PARSER_FLAG_ONCE;
+        // parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
+        // parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
       } // end ELSE
 
       context_ = avcodec_alloc_context3 (codec_p);
@@ -504,6 +507,17 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       codec_parameters_p->codec_type = AVMEDIA_TYPE_VIDEO;
       codec_parameters_p->codec_id = inherited::configuration_->codecConfiguration->codecId;
       //codec_parameters_p->codec_tag = ;
+      if (session_data_r.codecConfigurationData)
+      { ACE_ASSERT (session_data_r.codecConfigurationDataSize);
+        codec_parameters_p->extradata =
+          static_cast<uint8_t*> (av_malloc (session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE));
+        ACE_ASSERT (codec_parameters_p->extradata);
+        ACE_OS::memset (codec_parameters_p->extradata, 0, session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE);
+        ACE_OS::memcpy (codec_parameters_p->extradata,
+                        session_data_r.codecConfigurationData,
+                        session_data_r.codecConfigurationDataSize);
+        codec_parameters_p->extradata_size = session_data_r.codecConfigurationDataSize;
+      } // end IF
       //codec_parameters_p->extradata = NULL;
       //codec_parameters_p->extradata_size = 0;
       //codec_parameters_p->format = outputFormat_;
@@ -532,7 +546,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
               //AV_CODEC_FLAG_DROPCHANGED          |
               //AV_CODEC_FLAG_PASS1          |
               //AV_CODEC_FLAG_PASS2          |
-              //AV_CODEC_FLAG_LOOP_FILTER    |
+              AV_CODEC_FLAG_LOOP_FILTER    |
               //AV_CODEC_FLAG_GRAY           |
               //AV_CODEC_FLAG_PSNR           |
               //AV_CODEC_FLAG_TRUNCATED      |
@@ -548,11 +562,11 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       //         AV_CODEC_FLAG2_NO_OUTPUT           |
       //         AV_CODEC_FLAG2_LOCAL_HEADER        |
       //         AV_CODEC_FLAG2_DROP_FRAME_TIMECODE |
-               AV_CODEC_FLAG2_CHUNKS        |
-               //AV_CODEC_FLAG2_IGNORE_CROP   |
+               //AV_CODEC_FLAG2_CHUNKS        |
+               AV_CODEC_FLAG2_IGNORE_CROP   |
                AV_CODEC_FLAG2_SHOW_ALL;//      |
-               //AV_CODEC_FLAG2_EXPORT_MVS    |
-               //AV_CODEC_FLAG2_SKIP_MANUAL;
+               AV_CODEC_FLAG2_EXPORT_MVS    |
+               AV_CODEC_FLAG2_SKIP_MANUAL;
       // AV_CODEC_FLAG2_RO_FLUSH_NOOP
 #else
 //      flags = CODEC_FLAG_UNALIGNED      |
@@ -614,8 +628,10 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       formatNegotiationCBData_.negotiatedFormat = &intermediateFormat_;
       context_->opaque = &formatNegotiationCBData_;
       //context_->bit_rate = bit_rate;
-      context_->flags = flags;
-      context_->flags2 = flags2;
+      context_->flags = inherited::configuration_->codecConfiguration->flags;
+      context_->flags |= flags;
+      context_->flags2 = inherited::configuration_->codecConfiguration->flags2;
+      context_->flags2 |= flags2;
       if (session_data_r.codecConfigurationDataSize)
       { ACE_ASSERT (session_data_r.codecConfigurationData);
         ACE_ASSERT (!context_->extradata);
@@ -628,21 +644,23 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                       inherited::mod_->name ()));
           goto error;
         } // end IF
+        ACE_OS::memset (context_->extradata, 0, session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE);
         ACE_OS::memcpy (context_->extradata,
                         session_data_r.codecConfigurationData,
                         session_data_r.codecConfigurationDataSize);
         context_->extradata_size = session_data_r.codecConfigurationDataSize;
       } // end IF
-      //context_->time_base = { 1, 30 };
-      //context_->ticks_per_frame =
-      //  (((codecId_ == AV_CODEC_ID_H264) ||
-      //    (codecId_ == AV_CODEC_ID_MPEG2VIDEO)) ? 2 : 1);
+      ACE_ASSERT (media_type_s.frameRate.num);
+      context_->time_base = {media_type_s.frameRate.den, media_type_s.frameRate.num};
+      context_->ticks_per_frame =
+        (((inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_H264) ||
+          (inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_MPEG2VIDEO)) ? 2 : 1);
       context_->width = formatWidth_;
       context_->height = formatHeight_;
       //context_->coded_width = width;
       //context_->coded_height = height;
 //      context_->pix_fmt = AV_PIX_FMT_NONE;
-      //context_->pix_fmt = outputFormat_;
+      context_->pix_fmt = outputFormat_;
       //context_->draw_horiz_band = NULL;
       context_->get_format = stream_decoder_libav_hw_getformat_cb;
 //      context_->slice_count = 0;
@@ -724,6 +742,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                     inherited::mod_->name (),
                     inherited::configuration_->codecConfiguration->deviceType,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+        intermediateFormat_ = outputFormat_;
         goto continue_;
       } // end IF
       ACE_ASSERT (hw_device_ctx_p);
@@ -964,6 +983,8 @@ continue_2:
                              media_type_s);
       inherited2::setResolution (resolution_s,
                                  media_type_s);
+      inherited2::setFramerate (media_type_2.frameRate,
+                                media_type_s);
       ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         session_data_r.formats.push_back (media_type_s);
@@ -1031,11 +1052,11 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   } // end IF
 
   // pixel format/resolution may have changed
-  if (unlikely ((context_->pix_fmt != intermediateFormat_)             ||
+  if (unlikely (//(context_->pix_fmt != intermediateFormat_)             ||
                 (context_->width != static_cast<int> (formatWidth_))   ||
                 (context_->height != static_cast<int> (formatHeight_))))
   {
-    intermediateFormat_ = context_->pix_fmt;
+    //intermediateFormat_ = context_->pix_fmt;
 
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: reinit occurred; converting decoded pixel format %s to %s (@ %ux%u)\n"),

@@ -401,7 +401,6 @@ error:
                                STREAM_MEDIATYPE_VIDEO,
                                media_type_3);
 
-      //inherited::inputFormat_ = media_type_2.format;
       sourceResolution_ = media_type_2.resolution;
       if (inherited::context_)
       {
@@ -467,7 +466,6 @@ error:
         inherited::buffer_->release (); inherited::buffer_ = NULL;
       } // end IF
       ACE_ASSERT (inherited::frame_);
-      //  frame_->format = session_data_r.format;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       inherited::frame_->height = media_type_3.resolution.cy;
       inherited::frame_->width = media_type_3.resolution.cx;
