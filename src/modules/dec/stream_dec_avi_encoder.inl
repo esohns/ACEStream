@@ -1844,13 +1844,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   //AVI_header_strh.dwInitialFrames = 0;
   // *NOTE*: dwRate / dwScale == fps
   value_i = 10000000; // 100th nanoseconds --> seconds
-  AVI_header_strh.dwScale =
+  AVI_header_strh.dwRate =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   value_i =
     (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
                                                                    : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame));
-  AVI_header_strh.dwRate =
+  AVI_header_strh.dwScale =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   //AVI_header_strh.dwStart = 0;
