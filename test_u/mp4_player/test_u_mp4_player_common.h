@@ -40,6 +40,8 @@
 #include "stream_session_data.h"
 #include "stream_statistic.h"
 
+#include "stream_dev_common.h"
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directdraw_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -260,6 +262,7 @@ struct Test_U_MP4Player_ModuleHandlerConfiguration
    , codecConfiguration (NULL)
 #endif // FFMPEG_SUPPORT
    , delayConfiguration (NULL)
+   , deviceIdentifier ()
    , display ()
    , fullScreen (false)
 #if defined (FFMPEG_SUPPORT)
@@ -277,10 +280,11 @@ struct Test_U_MP4Player_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
   }
 
-#if defined(FFMPEG_SUPPORT)
+#if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
 #endif // FFMPEG_SUPPORT
   struct Stream_Miscellaneous_DelayConfiguration*         delayConfiguration;
+  struct Stream_Device_Identifier                         deviceIdentifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Common_UI_DisplayDevice                          display; // display module
 #else

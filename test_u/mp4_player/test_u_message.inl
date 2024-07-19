@@ -100,7 +100,7 @@ Test_U_Message_T<DataType,
     // *NOTE*: the argument to alloc() does not really matter, as this creates
     //         a shallow copy of the existing data block
     ACE_NEW_MALLOC_NORETURN (message_p,
-                             static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
+                             static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (sizeof (OWN_TYPE_T),
                                                                                                     '\0')),
                              OWN_TYPE_T (*this));
   } // end ELSE

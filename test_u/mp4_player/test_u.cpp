@@ -374,9 +374,9 @@ do_process_arguments (int argc_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
-do_initialize_directshow (bool hasUI_in,
-                          IGraphBuilder*& IGraphBuilder_out,
-                          struct _AMMediaType& outputFormat_inout,
+do_initialize_directshow (IGraphBuilder*& IGraphBuilder_out,
+                          struct _AMMediaType& audioOutputFormat_inout,
+                          struct _AMMediaType& videoOutputFormat_inout,
                           HWND& windowHandle_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
@@ -385,23 +385,44 @@ do_initialize_directshow (bool hasUI_in,
   ACE_ASSERT (!IGraphBuilder_out);
 
   // initialize return value(s)
+  ACE_OS::memset (&audioOutputFormat_inout, 0, sizeof (struct _AMMediaType));
+  ACE_OS::memset (&videoOutputFormat_inout, 0, sizeof (struct _AMMediaType));
   windowHandle_out = NULL;
-  ACE_OS::memset (&outputFormat_inout, 0, sizeof (struct _AMMediaType));
 
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
 
+  // generate default media type: PCM 32bit float @ 48000Hz
+  struct tWAVEFORMATEX waveformatex_s;
+  ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
+  waveformatex_s.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
+  waveformatex_s.nChannels = 2;
+  waveformatex_s.nSamplesPerSec = 48000;
+  waveformatex_s.wBitsPerSample = 32;
+  waveformatex_s.nBlockAlign =
+    (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
+  waveformatex_s.nAvgBytesPerSec =
+    (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
+  // waveformatex_s.cbSize = 0;
+  if (!Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (waveformatex_s,
+                                                                 audioOutputFormat_inout))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx(), aborting\n")));
+    goto error;
+  } // end IF
+
   // generate default media type: RGB24 640x480 30fps
-  outputFormat_inout.majortype = MEDIATYPE_Video;
-  outputFormat_inout.subtype = MEDIASUBTYPE_RGB32;
+  videoOutputFormat_inout.majortype = MEDIATYPE_Video;
+  videoOutputFormat_inout.subtype = MEDIASUBTYPE_RGB32;
     //STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT;
-  outputFormat_inout.bFixedSizeSamples = TRUE;
-  outputFormat_inout.bTemporalCompression = FALSE;
-  outputFormat_inout.formattype = FORMAT_VideoInfo;
-  outputFormat_inout.cbFormat = sizeof (struct tagVIDEOINFOHEADER);
-  outputFormat_inout.pbFormat = (BYTE*)CoTaskMemAlloc (outputFormat_inout.cbFormat);
-  ACE_ASSERT (outputFormat_inout.pbFormat);
+  videoOutputFormat_inout.bFixedSizeSamples = TRUE;
+  videoOutputFormat_inout.bTemporalCompression = FALSE;
+  videoOutputFormat_inout.formattype = FORMAT_VideoInfo;
+  videoOutputFormat_inout.cbFormat = sizeof (struct tagVIDEOINFOHEADER);
+  videoOutputFormat_inout.pbFormat = (BYTE*)CoTaskMemAlloc (videoOutputFormat_inout.cbFormat);
+  ACE_ASSERT (videoOutputFormat_inout.pbFormat);
   struct tagVIDEOINFOHEADER* video_info_header_p =
-    reinterpret_cast<struct tagVIDEOINFOHEADER*> (outputFormat_inout.pbFormat);
+    reinterpret_cast<struct tagVIDEOINFOHEADER*> (videoOutputFormat_inout.pbFormat);
   ACE_OS::memset (video_info_header_p, 0, sizeof (struct tagVIDEOINFOHEADER));
   // *NOTE*: empty --> use entire video
   HRESULT result = SetRectEmpty (&video_info_header_p->rcSource);
@@ -426,12 +447,13 @@ do_initialize_directshow (bool hasUI_in,
   video_info_header_p->dwBitRate =
     (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
     (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-  outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
+  videoOutputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
 
   return true;
 
-//error:
-  Stream_MediaFramework_DirectShow_Tools::free (outputFormat_inout);
+error:
+  Stream_MediaFramework_DirectShow_Tools::free (audioOutputFormat_inout);
+  Stream_MediaFramework_DirectShow_Tools::free (videoOutputFormat_inout);
   if (IGraphBuilder_out)
   {
     IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
@@ -663,6 +685,9 @@ do_work (int argc_in,
   Test_U_SignalHandler signal_handler;
   bool result = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // step0a: initialize configuration and stream
+  Stream_MediaFramework_DirectSound_Tools::initialize ();
+
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -719,6 +744,8 @@ do_work (int argc_in,
   //allocator_configuration.defaultBufferSize = 524288;
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
   codec_configuration.codecId = AV_CODEC_ID_H264;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration_2; // audio
+  codec_configuration_2.codecId = AV_CODEC_ID_AAC;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   codec_configuration.deviceType = AV_HWDEVICE_TYPE_DXVA2;
   //video_codec_configuration.deviceType = AV_HWDEVICE_TYPE_D3D11VA;
@@ -736,6 +763,7 @@ do_work (int argc_in,
 #else
   struct Stream_AllocatorConfiguration allocator_configuration;
 #endif // FFMPEG_SUPPORT
+
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_U_MP4Player_StreamConfiguration stream_configuration;
   struct Stream_Miscellaneous_DelayConfiguration delay_configuration;
@@ -746,6 +774,8 @@ do_work (int argc_in,
   struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // converter
   struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2b; // resize
   struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // display
+  struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_audio; // decoder
+
   Test_U_DirectShow_EventHandler_t directshow_ui_event_handler;
   struct Test_U_MP4Player_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
   struct Test_U_MP4Player_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // converter
@@ -771,13 +801,27 @@ do_work (int argc_in,
       directshow_modulehandler_configuration.debug = debug_in;
       directshow_modulehandler_configuration.delayConfiguration =
         &delay_configuration;
+      directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::ID;
+      directshow_modulehandler_configuration.deviceIdentifier.identifier._id = 0;
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
       directshow_modulehandler_configuration.fileIdentifier.identifier =
         inputFilePath_in;
-      directshow_modulehandler_configuration.streamIndex = 0;
+      directshow_modulehandler_configuration.streamIndex = -1;
       directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
+
+      directshow_modulehandler_configuration_3 =
+        directshow_modulehandler_configuration;
+
+      directshow_modulehandler_configuration_audio =
+        directshow_modulehandler_configuration;
+#if defined (FFMPEG_SUPPORT)
+      directshow_modulehandler_configuration_audio.codecConfiguration =
+        &codec_configuration_2;
+#endif // FFMPEG_SUPPORT
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -795,7 +839,7 @@ do_work (int argc_in,
         &mediaFoundationConfiguration_in.direct3DConfiguration;
       mediafoundation_modulehandler_configuration.fileIdentifier.identifier =
         inputFilePath_in;
-      mediafoundation_modulehandler_configuration.streamIndex = 0;
+      mediafoundation_modulehandler_configuration.streamIndex = -1;
       mediafoundation_modulehandler_configuration.subscriber =
         &mediafoundation_ui_event_handler;
       break;
@@ -817,7 +861,7 @@ do_work (int argc_in,
   modulehandler_configuration.delayConfiguration = &delay_configuration;
   //  modulehandler_configuration.display = displayDevice_in;
   modulehandler_configuration.fileIdentifier.identifier = inputFilePath_in;
-  modulehandler_configuration.streamIndex = 0;
+  modulehandler_configuration.streamIndex = -1;
   modulehandler_configuration.subscriber = &ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -856,20 +900,12 @@ do_work (int argc_in,
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
                                                                  stream_configuration);
-      directshow_modulehandler_configuration_3 = directshow_modulehandler_configuration;
-      //directshow_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
-      //  Stream_Device_Identifier::STRING;
-      //ACE_OS::strcpy (directshow_modulehandler_configuration_3.deviceIdentifier.identifier._string,
-      //                displayDevice_in.device.c_str ());
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING),
+                                                                              std::make_pair (&module_configuration,
+                                                                                              &directshow_modulehandler_configuration_audio)));
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (renderer_in),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_3)));
-      //directshow_stream_iterator =
-      //  directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      //ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.streamConfiguration.end ());
-      //directshow_stream_iterator_2 =
-      //  directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
-      //ACE_ASSERT (directshow_stream_iterator_2 != directShowConfiguration_in.streamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -883,12 +919,6 @@ do_work (int argc_in,
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
                                                                       stream_configuration);
-      //mediafoundation_stream_iterator =
-      //  mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      //ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
-      //mediafoundation_stream_iterator_2 =
-      //  mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
-      //ACE_ASSERT (mediafoundation_stream_iterator_2 != mediaFoundationConfiguration_in.streamConfiguration.end ());
       break;
     }
     default:
@@ -930,9 +960,8 @@ do_work (int argc_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      struct _AMMediaType* media_type_p = NULL;
-      if (!do_initialize_directshow (false,                             // has UI ?
-                                     directshow_modulehandler_configuration.builder,
+      if (!do_initialize_directshow (directshow_modulehandler_configuration.builder,
+                                     directshow_modulehandler_configuration_audio.outputFormat,
                                      directshow_modulehandler_configuration.outputFormat,
                                      directshow_modulehandler_configuration_3.window))
       {
@@ -940,10 +969,7 @@ do_work (int argc_in,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
         return;
       } // end IF
-      //ACE_ASSERT (stream_config_p);
-      //ACE_ASSERT (directshow_modulehandler_configuration_3.window);
-      //directShowCBData_in.streamConfiguration = stream_config_p;
-      media_type_p =
+      struct _AMMediaType* media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration_2.outputFormat = *media_type_p;

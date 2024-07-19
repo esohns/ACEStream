@@ -352,7 +352,7 @@ do_work (unsigned int bufferSize_in,
   struct tWAVEFORMATEX waveformatex_s;
   ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
   waveformatex_s.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
-  waveformatex_s.nChannels = 1;
+  waveformatex_s.nChannels = 2;
   waveformatex_s.nSamplesPerSec = 48000;
   waveformatex_s.wBitsPerSample = 32;
   waveformatex_s.nBlockAlign =

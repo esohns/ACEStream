@@ -102,14 +102,16 @@ class Test_U_DirectShow_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_U_DirectShow_Stream& operator= (const Test_U_DirectShow_Stream&))
 
   // modules
-  //Test_U_DirectShow_Source_Module           source_;
   Test_U_DirectShow_LibAVSource_Module      source_;
   Test_U_DirectShow_StatisticReport_Module  statisticReport_;
+  Test_U_Splitter_Module                    splitter_;
+  Test_U_DirectShow_LibAVAudioDecode_Module audioDecode_;
   Test_U_DirectShow_LibAVDecode_Module      decode_;
   Test_U_DirectShow_LibAVHWDecode_Module    HWDecode_;
   Test_U_DirectShow_LibAVConvert_Module     convert_; // --> RGB
   Test_U_DirectShow_LibAVResize_Module      resize_; // --> window size/fullscreen
   Test_U_DirectShow_Delay_Module            delay_;
+  Test_U_WASAPI_Module                      WASAPISound_;
 #if defined (GTK_SUPPORT)
   Test_U_DirectShow_GTK_Display_Module      GTKDisplay_;
 #endif // GTK_SUPPORT
@@ -185,7 +187,7 @@ class Test_U_MediaFoundation_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_U_MediaFoundation_Stream& operator= (const Test_U_MediaFoundation_Stream&))
 
   // modules
-  Test_U_MediaFoundation_Source_Module          source_;
+  Test_U_MediaFoundation_LibAVSource_Module     source_;
   //Test_U_MediaFoundation_StatisticReport_Module statisticReport_;
   //Test_U_MediaFoundation_Direct3DDisplay_Module direct3DDisplay_;
   Test_U_MediaFoundation_Display_Module         display_;

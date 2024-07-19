@@ -32,6 +32,8 @@
 #include "stream_dec_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "stream_dev_defines.h"
+
 #include "stream_misc_defines.h"
 
 #include "stream_stat_defines.h"
@@ -51,6 +53,10 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_SOURCE_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+ , splitter_ (this,
+              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MEDIASPLITTER_DEFAULT_NAME_STRING))
+ , audioDecode_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING))
  , decode_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
  , HWDecode_ (this,
@@ -61,6 +67,8 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
  , delay_ (this,
            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING))
+ , WASAPISound_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING))
 #if defined (GTK_SUPPORT)
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
@@ -90,63 +98,83 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
 
+  Stream_Branches_t branches_a;
+  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
+  unsigned int index_i = 0; // 0: audio branch
+
   layout_in->append (&source_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
+  layout_in->append (&splitter_, NULL, 0);
+
+  branch_p = &splitter_;
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+  Stream_IDistributorModule* idistributor_p =
+    dynamic_cast<Stream_IDistributorModule*> (splitter_.writer ());
+  ACE_ASSERT (idistributor_p);
+  idistributor_p->initialize (branches_a);
+
+  layout_in->append (&audioDecode_, branch_p, index_i);
+
+  layout_in->append (&WASAPISound_, branch_p, index_i);
+
+  ++index_i; // 1: video branch
+
   if (inherited::configuration_->configuration_->useHardwareDecoder)
-    layout_in->append (&HWDecode_, NULL, 0);
+    layout_in->append (&HWDecode_, branch_p, index_i);
   else
-    layout_in->append (&decode_, NULL, 0);
-  //layout_in->append (&convert_, NULL, 0);
-  layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-  layout_in->append (&delay_, NULL, 0);
+    layout_in->append (&decode_, branch_p, index_i);
+  //layout_in->append (&convert_, branch_p, index_i);
+  layout_in->append (&resize_, branch_p, index_i); // output is window size/fullscreen
+  layout_in->append (&delay_, branch_p, index_i);
 
   switch (inherited::configuration_->configuration_->renderer)
   {
 //#if defined (CURSES_SUPPORT)
 //    case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
 //    {
-//      layout_in->append (&convert_, NULL, 0);
-//      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-//      layout_in->append (&CursesDisplay_, NULL, 0);
+//      layout_in->append (&convert_, branch_p, index_i);
+//      layout_in->append (&resize_, branch_p, index_i); // output is window size/fullscreen
+//      layout_in->append (&CursesDisplay_, branch_p, index_i);
 //      break;
 //    }
 //#endif // CURSES_SUPPORT
 #if defined (GTK_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
     {
-      layout_in->append (&GTKDisplay_, NULL, 0);
+      layout_in->append (&GTKDisplay_, branch_p, index_i);
       break;
     }
 #endif // GTK_SUPPORT
     case STREAM_VISUALIZATION_VIDEORENDERER_GDI:
     {
-      layout_in->append (&GDIDisplay_, NULL, 0);
+      layout_in->append (&GDIDisplay_, branch_p, index_i);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
     {
-      layout_in->append (&Direct2DDisplay_, NULL, 0);
+      layout_in->append (&Direct2DDisplay_, branch_p, index_i);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
     {
-      layout_in->append (&Direct3DDisplay_, NULL, 0);
+      layout_in->append (&Direct3DDisplay_, branch_p, index_i);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
     {
-      layout_in->append (&convert_, NULL, 0);
-      layout_in->append (&DirectShowDisplay_, NULL, 0);
+      layout_in->append (&convert_, branch_p, index_i);
+      layout_in->append (&DirectShowDisplay_, branch_p, index_i);
       break;
     }
 //#if defined (GLUT_SUPPORT)
 //    case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
 //    {
-//      layout_in->append (&convert_, NULL, 0);
-//      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+//      layout_in->append (&convert_, branch_p, index_i);
+//      layout_in->append (&resize_, branch_p, index_i); // output is window size/fullscreen
 //      if (inherited::configuration_->configuration_->useVideoWall)
-//        layout_in->append (&videoWall_, NULL, 0);
-//      layout_in->append (&OpenGLDisplay_, NULL, 0);
+//        layout_in->append (&videoWall_, branch_p, index_i);
+//      layout_in->append (&OpenGLDisplay_, branch_p, index_i);
 //      break;
 //    }
 //#endif // GLUT_SUPPORT
@@ -954,7 +982,7 @@ Test_U_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& con
   bool reset_setup_pipeline = false;
   Test_U_MP4Player_MediaFoundation_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  Test_U_MediaFoundation_Source* source_impl_p = NULL;
+  Test_U_MediaFoundation_LibAVSource* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -988,11 +1016,11 @@ Test_U_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& con
 
   // ******************* Camera Source ************************
   source_impl_p =
-    dynamic_cast<Test_U_MediaFoundation_Source*> (source_.writer ());
+    dynamic_cast<Test_U_MediaFoundation_LibAVSource*> (source_.writer ());
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Test_U_MediaFoundation_Source*> failed, aborting\n"),
+                ACE_TEXT ("%s: dynamic_cast<Test_U_MediaFoundation_LibAVSource*> failed, aborting\n"),
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF

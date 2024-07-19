@@ -21,6 +21,8 @@
 #ifndef STREAM_LIBAV_SOURCE_T_H
 #define STREAM_LIBAV_SOURCE_T_H
 
+#include <map>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -120,7 +122,8 @@ class Stream_LibAV_Source_T
   // helper methods
   virtual int svc (void);
 
-  struct AVFormatContext* context_;
+  struct AVFormatContext*                   context_;
+  std::map<int, enum Stream_MediaType_Type> streamIndexToMessageMediaType_;
 };
 
 // include template definition

@@ -29,11 +29,18 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_dev_target_wasapi.h"
+#else
+#include "stream_dev_target_alsa.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "stream_file_defines.h"
 #include "stream_file_source.h"
 
 #include "stream_dec_defines.h"
 #if defined (FFMPEG_SUPPORT)
+#include "stream_dec_libav_audio_decoder.h"
 #include "stream_dec_libav_converter.h"
 #include "stream_dec_libav_decoder.h"
 #include "stream_dec_libav_hw_decoder.h"
@@ -47,6 +54,7 @@
 
 #include "stream_misc_defines.h"
 #include "stream_misc_delay.h"
+#include "stream_misc_media_splitter.h"
 #include "stream_misc_messagehandler.h"
 
 #include "stream_stat_statistic_report.h"
@@ -93,20 +101,6 @@ typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                 enum Stream_SessionMessageType,
                                 struct Stream_UserData> Test_U_DirectShow_TaskBaseAsynch_t;
 
-//typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
-//                                    Stream_ControlMessage_t,
-//                                    Test_U_DirectShow_Message_t,
-//                                    Test_U_DirectShow_SessionMessage_t,
-//                                    struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,
-//                                    enum Stream_ControlType,
-//                                    enum Stream_SessionMessageType,
-//                                    struct Test_U_DirectShow_StreamState,
-//                                    Test_U_MP4Player_DirectShow_SessionData,
-//                                    Test_U_MP4Player_DirectShow_SessionData_t,
-//                                    struct Stream_Statistic,
-//                                    Common_Timer_Manager_t,
-//                                    struct Stream_UserData> Test_U_DirectShow_Source;
-
 typedef Stream_LibAV_Source_T<ACE_MT_SYNCH,
                               Stream_ControlMessage_t,
                               Test_U_DirectShow_Message_t,
@@ -121,21 +115,37 @@ typedef Stream_LibAV_Source_T<ACE_MT_SYNCH,
                               Common_Timer_Manager_t,
                               struct Stream_UserData> Test_U_DirectShow_LibAVSource;
 
-typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
-                                    Stream_ControlMessage_t,
-                                    Test_U_MediaFoundation_Message_t,
-                                    Test_U_MediaFoundation_SessionMessage_t,
-                                    struct Test_U_MP4Player_MediaFoundation_ModuleHandlerConfiguration,
-                                    enum Stream_ControlType,
-                                    enum Stream_SessionMessageType,
-                                    struct Test_U_MediaFoundation_StreamState,
-                                    Test_U_MP4Player_MediaFoundation_SessionData,
-                                    Test_U_MP4Player_MediaFoundation_SessionData_t,
-                                    struct Stream_Statistic,
-                                    Common_Timer_Manager_t,
-                                    struct Stream_UserData> Test_U_MediaFoundation_Source;
+typedef Stream_LibAV_Source_T<ACE_MT_SYNCH,
+                              Stream_ControlMessage_t,
+                              Test_U_MediaFoundation_Message_t,
+                              Test_U_MediaFoundation_SessionMessage_t,
+                              struct Test_U_MP4Player_MediaFoundation_ModuleHandlerConfiguration,
+                              enum Stream_ControlType,
+                              enum Stream_SessionMessageType,
+                              struct Test_U_MediaFoundation_StreamState,
+                              Test_U_MP4Player_MediaFoundation_SessionData,
+                              Test_U_MP4Player_MediaFoundation_SessionData_t,
+                              struct Stream_Statistic,
+                              Common_Timer_Manager_t,
+                              struct Stream_UserData> Test_U_MediaFoundation_LibAVSource;
+
+typedef Stream_Miscellaneous_MediaSplitter_T<ACE_MT_SYNCH,
+                                             struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,
+                                             Stream_ControlMessage_t,
+                                             Test_U_DirectShow_Message_t,
+                                             Test_U_DirectShow_SessionMessage_t,
+                                             Test_U_MP4Player_DirectShow_SessionData_t> Test_U_Splitter_Writer_t;
 
 #if defined (FFMPEG_SUPPORT)
+typedef Stream_Decoder_LibAVAudioDecoder_T<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t,
+                                           struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,
+                                           Stream_ControlMessage_t,
+                                           Test_U_DirectShow_Message_t,
+                                           Test_U_DirectShow_SessionMessage_t,
+                                           Test_U_MP4Player_DirectShow_SessionData_t,
+                                           struct Stream_MediaFramework_FFMPEG_MediaType> Test_U_DirectShow_LibAVAudioDecode;
+
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,
@@ -282,7 +292,30 @@ typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
                               Test_U_DirectShow_SessionMessage_t,
                               struct Stream_MediaFramework_FFMPEG_MediaType,
                               struct Stream_UserData> Test_U_DirectShow_Delay;
+#endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Dev_Target_WASAPI_T<ACE_MT_SYNCH,
+                                   Common_TimePolicy_t,
+                                   struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,
+                                   Stream_ControlMessage_t,
+                                   Test_U_DirectShow_Message_t,
+                                   Test_U_DirectShow_SessionMessage_t,
+                                   enum Stream_ControlType,
+                                   enum Stream_SessionMessageType,
+                                   struct Stream_UserData,
+                                   struct Stream_MediaFramework_FFMPEG_MediaType> Test_U_WASAPI;
+#else
+typedef Stream_Dev_Target_ALSA_T<ACE_MT_SYNCH,
+                                 Common_TimePolicy_t,
+                                 struct Test_U_MP4Player_FFMPEG_ModuleHandlerConfiguration,
+                                 Stream_ControlMessage_t,
+                                 Test_U_Message_t,
+                                 Test_U_SessionMessage_t,
+                                 Test_U_MP4Player_SessionData> Test_I_ALSA;
+#endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Vis_Target_Direct2D_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,
@@ -452,12 +485,6 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
 //////////////////////////////////////////
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,             // session data type
-//                              enum Stream_SessionMessageType,                      // session event type
-//                              struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_file_source_module_name_string,
-//                              Stream_INotify_t,                                    // stream notification interface type
-//                              Test_U_DirectShow_Source);                           // writer type
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                // session event type
                               struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
@@ -466,25 +493,41 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,          
                               Test_U_DirectShow_LibAVSource);                                // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_MediaFoundation_SessionData,                       // session data type
-                              enum Stream_SessionMessageType,                           // session event type
+                              enum Stream_SessionMessageType,                                     // session event type
                               struct Test_U_MP4Player_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_file_source_module_name_string,
-                              Stream_INotify_t,                                         // stream notification interface type
-                              Test_U_MediaFoundation_Source);                           // writer type
+                              libacestream_default_dec_libav_source_module_name_string,
+                              Stream_INotify_t,                                                   // stream notification interface type
+                              Test_U_MediaFoundation_LibAVSource);                                // writer type
+
+DATASTREAM_MODULE_DUPLEX (Test_U_MP4Player_DirectShow_SessionData,                       // session data type
+                          enum Stream_SessionMessageType,                                // session event type
+                          struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_misc_media_splitter_module_name_string,
+                          Stream_INotify_t,                                              // stream notification interface type
+                          Test_U_Splitter_Writer_t::READER_TASK_T,                       // reader type
+                          Test_U_Splitter_Writer_t,                                      // writer type
+                          Test_U_Splitter);                                              // module name prefix
 
 #if defined (FFMPEG_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,                     // session data type
-                              enum Stream_SessionMessageType,                              // session event type
-                              struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,         // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,                         // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,   // module handler configuration type
+                              libacestream_default_dec_libav_audio_decoder_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_DirectShow_LibAVAudioDecode);                             // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                // session event type
+                              struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_libav_decoder_module_name_string,
-                              Stream_INotify_t,                                            // stream notification interface type
-                              Test_U_DirectShow_LibAVDecode);                              // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,                     // session data type
-                              enum Stream_SessionMessageType,                              // session event type
-                              struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,         // module handler configuration type
+                              Stream_INotify_t,                                              // stream notification interface type
+                              Test_U_DirectShow_LibAVDecode);                                // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                // session event type
+                              struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_libav_hw_decoder_module_name_string,
-                              Stream_INotify_t,                                            // stream notification interface type
-                              Test_U_DirectShow_LibAVHWDecode);                            // writer type
+                              Stream_INotify_t,                                              // stream notification interface type
+                              Test_U_DirectShow_LibAVHWDecode);                              // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,                     // session data type
                               enum Stream_SessionMessageType,                              // session event type
@@ -556,11 +599,18 @@ DATASTREAM_MODULE_DUPLEX (Test_U_MP4Player_SessionData,                // sessio
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,                       // session data type
-                              enum Stream_SessionMessageType,                                   // session event type
+                              enum Stream_SessionMessageType,                                // session event type
                               struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_misc_delay_module_name_string,
                               Stream_INotify_t,                                              // stream notification interface type
                               Test_U_DirectShow_Delay);                                      // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                // session event type
+                              struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_target_wasapi_module_name_string,
+                              Stream_INotify_t,                                              // stream notification interface type
+                              Test_U_WASAPI);                                                // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                   // session event type

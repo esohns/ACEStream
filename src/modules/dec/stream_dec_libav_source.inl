@@ -76,6 +76,7 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
                       UserDataType>::Stream_LibAV_Source_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , context_ (NULL)
+ , streamIndexToMessageMediaType_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_LibAV_Source_T::Stream_LibAV_Source_T"));
 
@@ -151,6 +152,7 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
     {
       avformat_free_context (context_); context_ = NULL;
     } // end IF
+    streamIndexToMessageMediaType_.clear ();
   } // end IF
 
   context_ = avformat_alloc_context ();
@@ -200,7 +202,6 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::configuration_->fileIdentifier.identifierDiscriminator == Common_File_Identifier::FILE);
-  ACE_ASSERT (inherited::configuration_->streamIndex > -1);
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (context_);
 
@@ -215,7 +216,6 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (inherited::sessionData_->getR ());
   struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
-  enum Stream_MediaType_Type message_media_type_s = STREAM_MEDIATYPE_INVALID;
 
   // read file
   result =
@@ -243,73 +243,82 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
     return -1;
   } // end IF
 
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: processing stream %d: codec %d \"%s\", continuing\n"),
-              inherited::mod_->name (),
-              inherited::configuration_->streamIndex,
-              context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id,
-              ACE_TEXT (avcodec_get_name (context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id))));
-  inherited::configuration_->codecConfiguration->codecId =
-    context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
-  
-  switch (context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_type)
+  for (int i = 0; i < context_->nb_streams; i++)
   {
-    case AVMEDIA_TYPE_AUDIO:
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: pre-processing stream %d: codec %d \"%s\" media type...\n"),
+                inherited::mod_->name (),
+                i,
+                context_->streams[i]->codecpar->codec_id,
+                ACE_TEXT (avcodec_get_name (context_->streams[i]->codecpar->codec_id))));
+
+    //inherited::configuration_->codecConfiguration->codecId =
+    //  context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
+  
+    switch (context_->streams[i]->codecpar->codec_type)
     {
-      message_media_type_s = STREAM_MEDIATYPE_AUDIO;
-      media_type_s.audio.channels =
-        context_->streams[inherited::configuration_->streamIndex]->codecpar->ch_layout.nb_channels;
-      media_type_s.audio.format =
-        static_cast<enum AVSampleFormat> (context_->streams[inherited::configuration_->streamIndex]->codecpar->format);
-      media_type_s.audio.sampleRate =
-        context_->streams[inherited::configuration_->streamIndex]->codecpar->sample_rate;
-      media_type_s.audio.codecId =
-        context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
-      break;
-    }
-    case AVMEDIA_TYPE_VIDEO:
-    {
-      message_media_type_s = STREAM_MEDIATYPE_VIDEO;
-      media_type_s.video.codecId =
-        context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
-      if (context_->streams[inherited::configuration_->streamIndex]->codecpar->extradata_size)
-      { ACE_ASSERT (!session_data_r.codecConfigurationDataSize);
-        session_data_r.codecConfigurationDataSize =
-          context_->streams[inherited::configuration_->streamIndex]->codecpar->extradata_size;
-        ACE_NEW_NORETURN (session_data_r.codecConfigurationData,
-                          ACE_UINT8[session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE]);
-        ACE_ASSERT (session_data_r.codecConfigurationData);
-        ACE_OS::memset (session_data_r.codecConfigurationData,
-                        0,
-                        session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE);
-        ACE_OS::memcpy (session_data_r.codecConfigurationData,
-                        context_->streams[inherited::configuration_->streamIndex]->codecpar->extradata,
-                        session_data_r.codecConfigurationDataSize);
-      } // end IF
-      media_type_s.video.format =
-        static_cast<enum AVPixelFormat> (context_->streams[inherited::configuration_->streamIndex]->codecpar->format);
+      case AVMEDIA_TYPE_AUDIO:
+      {
+        streamIndexToMessageMediaType_[i] = STREAM_MEDIATYPE_AUDIO;
+
+        media_type_s.audio.codecId = context_->streams[i]->codecpar->codec_id;
+        //if (context_->streams[i]->codecpar->extradata_size)
+        //{ ACE_ASSERT (false); // *TODO*
+        //  ACE_ASSERT (!session_data_r.codecConfigurationDataSize);
+        //  session_data_r.codecConfigurationDataSize =
+        //    context_->streams[i]->codecpar->extradata_size;
+        //  ACE_NEW_NORETURN (session_data_r.codecConfigurationData,
+        //                    ACE_UINT8[session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE]);
+        //  ACE_ASSERT (session_data_r.codecConfigurationData);
+        //  ACE_OS::memset (session_data_r.codecConfigurationData, 0, session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE);
+        //  ACE_OS::memcpy (session_data_r.codecConfigurationData,
+        //                  context_->streams[i]->codecpar->extradata,
+        //                  session_data_r.codecConfigurationDataSize);
+        //} // end IF
+        media_type_s.audio.format = static_cast<enum AVSampleFormat> (context_->streams[i]->codecpar->format);
+        media_type_s.audio.channels = context_->streams[i]->codecpar->ch_layout.nb_channels;
+        media_type_s.audio.sampleRate = context_->streams[i]->codecpar->sample_rate;
+        break;
+      }
+      case AVMEDIA_TYPE_VIDEO:
+      {
+        streamIndexToMessageMediaType_[i] = STREAM_MEDIATYPE_VIDEO;
+        media_type_s.video.codecId = context_->streams[i]->codecpar->codec_id;
+        if (context_->streams[i]->codecpar->extradata_size)
+        { ACE_ASSERT (!session_data_r.codecConfigurationDataSize);
+          session_data_r.codecConfigurationDataSize =
+            context_->streams[i]->codecpar->extradata_size;
+          ACE_NEW_NORETURN (session_data_r.codecConfigurationData,
+                            ACE_UINT8[session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE]);
+          ACE_ASSERT (session_data_r.codecConfigurationData);
+          ACE_OS::memset (session_data_r.codecConfigurationData, 0, session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE);
+          ACE_OS::memcpy (session_data_r.codecConfigurationData,
+                          context_->streams[i]->codecpar->extradata,
+                          session_data_r.codecConfigurationDataSize);
+        } // end IF
+        media_type_s.video.format = static_cast<enum AVPixelFormat> (context_->streams[i]->codecpar->format);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      media_type_s.video.resolution =
-        { context_->streams[inherited::configuration_->streamIndex]->codecpar->width,
-          context_->streams[inherited::configuration_->streamIndex]->codecpar->height };
+        media_type_s.video.resolution =
+          { context_->streams[i]->codecpar->width,
+            context_->streams[i]->codecpar->height };
 #else
-      media_type_s.video.resolution =
-        { static_cast<unsigned int> (context_->streams[inherited::configuration_->streamIndex]->codecpar->width),
-          static_cast<unsigned int> (context_->streams[inherited::configuration_->streamIndex]->codecpar->height) };
+        media_type_s.video.resolution =
+          { static_cast<unsigned int> (context_->streams[i]->codecpar->width),
+            static_cast<unsigned int> (context_->streams[i]->codecpar->height) };
 #endif // ACE_WIN32 || ACE_WIN64
-      media_type_s.video.frameRate =
-        context_->streams[inherited::configuration_->streamIndex]->avg_frame_rate;
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown codec type (was: %d), aborting\n"),
-                  inherited::mod_->name (),
-                  context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_type));
-      return -1;
-    }
-  } // end SWITCH
+        media_type_s.video.frameRate = context_->streams[i]->avg_frame_rate;
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown codec type (was: %d), aborting\n"),
+                    inherited::mod_->name (),
+                    context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_type));
+        return -1;
+      }
+    } // end SWITCH
+  } // end FOR
   session_data_r.formats.push_back (media_type_s);
 
   do
@@ -431,11 +440,13 @@ skip:
       inherited::stop (false, false, false);
       continue;
     } // end IF
-    if (packet_s.stream_index != inherited::configuration_->streamIndex)
+    if (inherited::configuration_->streamIndex >= 0 &&
+        packet_s.stream_index != inherited::configuration_->streamIndex)
       goto skip;
     
     ACE_ASSERT (packet_s.size);
-    message_p = inherited::allocateMessage (packet_s.size + inherited::configuration_->allocatorConfiguration->paddingBytes);
+    message_p =
+      inherited::allocateMessage (packet_s.size + inherited::configuration_->allocatorConfiguration->paddingBytes);
     if (unlikely (!message_p))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -460,7 +471,7 @@ skip:
       continue;
     } // end IF
     //message_p->wr_ptr (packet_s.size);
-    message_p->setMediaType (message_media_type_s);
+    message_p->setMediaType (streamIndexToMessageMediaType_[packet_s.stream_index]);
     av_packet_unref (&packet_s);
 
     result = inherited::put_next (message_p, NULL);
