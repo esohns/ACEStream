@@ -123,8 +123,8 @@ Test_U_SignalHandler::handle (const struct Common_Signal& signal_in)
     // [- UI dispatch]
 
     ACE_ASSERT (inherited::configuration_->stream);
-    inherited::configuration_->stream->stop (false,  // wait for completion ?
-                                             false,  // recurse upstream ?
-                                             false); // high priority ?
+    inherited::configuration_->stream->stop (false, // wait for completion ?
+                                             false, // recurse upstream ?
+                                             true); // high priority ?
   } // end IF
 }

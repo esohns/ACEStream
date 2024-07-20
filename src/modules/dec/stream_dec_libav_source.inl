@@ -384,10 +384,10 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
             finished_b = true;
         } // end lock scope
         if (!finished_b)
-        {
-          inherited::stop (false, false, false);
-          continue;
-        } // end IF
+          inherited::stop (false,
+                           false,
+                           false);
+        continue;
       } // end IF
     } // end IF
     else if (result == -1)

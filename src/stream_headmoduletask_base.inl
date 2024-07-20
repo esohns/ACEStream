@@ -1168,6 +1168,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      isHighPriorityStop_ = true;
+      inherited2::change (STREAM_STATE_SESSION_STOPPING);
+      break;
+    }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
       if (endSeen_ && // <-- there was (!) an upstream

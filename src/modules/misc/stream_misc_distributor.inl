@@ -311,6 +311,41 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      // flush queued data (!) messages for all branches
+      QUEUE_TO_MODULE_CONST_ITERATOR_T iterator_2;
+      BRANCH_TO_HEAD_CONST_ITERATOR_T iterator_3;
+      Stream_IMessageQueue* iqueue_p = NULL;
+      unsigned int flushed_messages_i = 0;
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+        for (THREAD_TO_QUEUE_CONST_ITERATOR_T iterator = queues_.begin ();
+             iterator != queues_.end ();
+             ++iterator)
+        { // retrieve branch name
+          iterator_2 = modules_.find ((*iterator).second);
+          ACE_ASSERT (iterator_2 != modules_.end ());
+          iterator_3 =
+            std::find_if (heads_.begin (), heads_.end (),
+                          std::bind (BRANCH_TO_HEAD_MAP_FIND_S (),
+                                     std::placeholders::_1,
+                                     (*iterator_2).second));
+          ACE_ASSERT (iterator_3 != heads_.end ());
+
+          // flush data messages
+          ACE_ASSERT ((*iterator).second);
+          iqueue_p = dynamic_cast<Stream_IMessageQueue*> ((*iterator).second);
+          ACE_ASSERT (iqueue_p);
+          flushed_messages_i = iqueue_p->flush (false); // flush session messages ?
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s/%s: aborting: flushed %u data messages\n"),
+                      inherited::mod_->name (), ACE_TEXT ((*iterator_3).first.c_str ()),
+                      flushed_messages_i));
+        } // end FOR
+      } // end lock scope
+
+      goto end;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       ACE_ASSERT (inherited::sessionData_);
@@ -367,6 +402,7 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       forward (message_inout,
                false,         // dispose original ?
                false);        // high priority ?

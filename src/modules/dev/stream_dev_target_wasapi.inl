@@ -298,6 +298,23 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      unsigned int result = queue_.flush (false); // flush all data messages
+      if (unlikely (result == static_cast<unsigned int> (-1)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        return;
+      } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
+                  inherited::mod_->name (),
+                  result));
+
+      goto end;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -535,6 +552,7 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       if (likely (inherited::thr_count_ > 0))
       {
         Common_ITask* itask_p = this;

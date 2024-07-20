@@ -1411,6 +1411,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 
   struct tagMSG message_s;
   BOOL bRet;
+  bool closed_window_b = false;
   while (bRet = GetMessage (&message_s, inherited::window_, 0, 0) != 0)
   {
     if (bRet == -1)
@@ -1423,9 +1424,20 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       break;
     } // end IF
 
+    switch (message_s.message)
+    {
+      case WM_CLOSE:
+        closed_window_b = true;
+        break;
+      default:
+        break;
+    } // end SWITCH
+    if (unlikely (closed_window_b))
+      break;
+
     TranslateMessage (&message_s);
     DispatchMessage (&message_s);
-  }   // end WHILE
+  } // end WHILE
   DestroyWindow (inherited::window_); inherited::window_ = NULL;
 
   if (unlikely (inherited::notify_))

@@ -727,16 +727,16 @@ do_work (int argc_in,
                 ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(): \"%m\", returning\n")));
     return;
   } // end IF
-  //if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
-  //                                      handled_signals,
-  //                                      ignored_signals,
-  //                                      &signal_handler,
-  //                                      previous_actions_a))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Common_Signal_Tools::initialize(): \"%m\", returning\n")));
-  //  return;
-  //} // end IF
+  if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+                                        handled_signals,
+                                        ignored_signals,
+                                        &signal_handler,
+                                        previous_actions_a))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Signal_Tools::initialize(): \"%m\", returning\n")));
+    return;
+  } // end IF
 
   // ********************** module configuration data **************************
 #if defined (FFMPEG_SUPPORT)
@@ -911,6 +911,9 @@ do_work (int argc_in,
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (renderer_in),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_3)));
+
+      directShowConfiguration_in.signalHandlerConfiguration.stream =
+        &directshow_stream;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -924,6 +927,10 @@ do_work (int argc_in,
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
                                                                       stream_configuration);
+
+      mediaFoundationConfiguration_in.signalHandlerConfiguration.stream =
+        &mediafoundation_stream;
+
       break;
     }
     default:
@@ -942,13 +949,13 @@ do_work (int argc_in,
   Test_U_MessageHandler_Module message_handler (&stream,
                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
-  configuration_in.signalHandlerConfiguration.stream = &stream;
-
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module = &message_handler;
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
                                                    stream_configuration);
+
+  configuration_in.signalHandlerConfiguration.stream = &stream;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;

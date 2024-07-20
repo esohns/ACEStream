@@ -257,9 +257,9 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
   WNDCLASSEX window_class_ex_s;
   window_class_ex_s.cbSize = sizeof (WNDCLASSEX);
   window_class_ex_s.style = CS_HREDRAW | CS_VREDRAW;
-  window_class_ex_s.lpfnWndProc = DefWindowProc;
-  //window_class_ex_s.lpfnWndProc =
-  //  libacestream_vis_target_win32_base_window_proc_cb;
+  //window_class_ex_s.lpfnWndProc = DefWindowProc;
+  window_class_ex_s.lpfnWndProc =
+    libacestream_vis_target_win32_base_window_proc_cb;
   window_class_ex_s.cbClsExtra = 0;
   window_class_ex_s.cbWndExtra = 0;
   window_class_ex_s.hInstance = (HINSTANCE)GetModuleHandle (NULL);
