@@ -407,7 +407,7 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
       configuration_.defObjectType = LC;
       configuration_.defSampleRate = sample_rate;
       configuration_.outputFormat = faad_format;
-      configuration_.downMatrix = 1;
+      configuration_.downMatrix = 0;
       configuration_.useOldADTSFormat = 0;
       configuration_.dontUpSampleImplicitSBR = 0;
 

@@ -24,6 +24,7 @@
 #include <deque>
 #include <string>
 
+#include "ace/Basic_Types.h"
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
@@ -35,6 +36,10 @@
 #include "common_referencecounter.h"
 
 #include "stream_common.h"
+
+#if defined (FFMPEG_SUPPORT)
+#include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
 
 template <typename BaseType, // inherits Stream_SessionData
           typename MediaFormatType,
@@ -67,17 +72,18 @@ class Stream_SessionDataMediaBase_T
   //         --> this ought (!) to be overriden by derived classes
   OWN_TYPE_T& operator+= (const OWN_TYPE_T&);
 
-  ACE_UINT8*                      codecConfigurationData;
-  ACE_UINT32                      codecConfigurationDataSize;
-  MEDIAFORMATS_T                  formats;
+#if defined (FFMPEG_SUPPORT)
+  Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMap_t codecConfiguration;
+#endif // FFMPEG_SUPPORT
+  MEDIAFORMATS_T                                                   formats;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  enum Stream_MediaFramework_Type mediaFramework;
+  enum Stream_MediaFramework_Type                                  mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
-  StreamStateType*                state;
-  StatisticType                   statistic;
-  std::string                     targetFileName;
+  StreamStateType*                                                 state;
+  StatisticType                                                    statistic;
+  std::string                                                      targetFileName;
 
-  UserDataType*                   userData;
+  UserDataType*                                                    userData;
 };
 
 //////////////////////////////////////////

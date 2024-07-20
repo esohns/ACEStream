@@ -39,6 +39,12 @@
 #include "stream_file_source.h"
 
 #include "stream_dec_defines.h"
+#if defined (FAAD_SUPPORT)
+#include "stream_dec_faad_decoder.h"
+#endif // FAAD_SUPPORT
+#if defined (SOX_SUPPORT)
+#include "stream_dec_sox_resampler.h"
+#endif // SOX_SUPPORT
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_audio_decoder.h"
 #include "stream_dec_libav_converter.h"
@@ -136,6 +142,27 @@ typedef Stream_Miscellaneous_MediaSplitter_T<ACE_MT_SYNCH,
                                              Test_U_DirectShow_SessionMessage_t,
                                              Test_U_MP4Player_DirectShow_SessionData_t> Test_U_Splitter_Writer_t;
 
+#if defined (FAAD_SUPPORT)
+typedef Stream_Decoder_FAAD_T<ACE_MT_SYNCH,
+                              Common_TimePolicy_t,
+                              struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,
+                              Stream_ControlMessage_t,
+                              Test_U_DirectShow_Message_t,
+                              Test_U_DirectShow_SessionMessage_t,
+                              Test_U_MP4Player_DirectShow_SessionData_t,
+                              struct Stream_MediaFramework_FFMPEG_MediaType> Test_U_DirectShow_FAADDecode;
+#endif // FAAD_SUPPORT
+#if defined (SOX_SUPPORT)
+typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_U_DirectShow_Message_t,
+                                      Test_U_DirectShow_SessionMessage_t,
+                                      Test_U_MP4Player_DirectShow_SessionData_t,
+                                      Test_U_MP4Player_DirectShow_SessionData,
+                                      struct Stream_MediaFramework_FFMPEG_MediaType> Test_U_DirectShow_SOXResampler;
+#endif // SOX_SUPPORT
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVAudioDecoder_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
@@ -508,6 +535,22 @@ DATASTREAM_MODULE_DUPLEX (Test_U_MP4Player_DirectShow_SessionData,              
                           Test_U_Splitter_Writer_t,                                      // writer type
                           Test_U_Splitter);                                              // module name prefix
 
+#if defined (FAAD_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,                         // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,   // module handler configuration type
+                              libacestream_default_dec_faad_decoder_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_DirectShow_FAADDecode);                                   // writer type
+#endif // FAAD_SUPPORT
+#if defined (SOX_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,                         // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,   // module handler configuration type
+                              libacestream_default_dec_sox_resampler_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_DirectShow_SOXResampler);                                 // writer type
+#endif // SOX_SUPPORT
 #if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,                         // session data type
                               enum Stream_SessionMessageType,                                  // session event type

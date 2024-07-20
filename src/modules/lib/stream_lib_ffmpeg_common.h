@@ -22,18 +22,33 @@
 #define STREAM_LIB_FFMPEG_COMMON_H
 
 #include <deque>
+#include <map>
 
-extern "C" {
+#ifdef __cplusplus
+extern "C"
+{
 #include "libavcodec/avcodec.h"
 #include "libavutil/hwcontext.h"
 #include "libavutil/pixfmt.h"
 #include "libavutil/rational.h"
 #include "libavutil/samplefmt.h"
 } // extern "C"
+#endif /* __cplusplus */
+
+#include "ace/Basic_Types.h"
 
 #include "common_image_common.h"
 
 #include "stream_configuration.h"
+
+// *NOTE*: codec 'extra data' information
+struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration
+{
+  ACE_UINT8* data;
+  ACE_UINT32 size;
+};
+typedef std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration> Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMap_t;
+typedef Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMap_t::const_iterator Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMapIterator_t;
 
 //////////////////////////////////////////
 

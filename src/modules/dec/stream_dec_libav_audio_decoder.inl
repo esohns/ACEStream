@@ -390,10 +390,11 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       const struct AVCodec* codec_p = NULL;
       struct AVCodecParameters* codec_parameters_p = NULL;
       struct AVDictionary* dictionary_p = NULL;
-      //int flags, flags2;
+      int flags, flags2;
       //int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM |
       //              FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
       int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_BUGS;
+      Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMapIterator_t iterator;
 
       if (inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_NONE)
       {
@@ -433,9 +434,12 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                     ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)), inherited::configuration_->codecConfiguration->codecId));
       } // end IF
       else
-      { // *TODO*: use flags passed in !!!
-        parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
-        parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
+      {
+        parserContext_->flags = inherited::configuration_->codecConfiguration->parserFlags;
+        // parserContext_->flags |= PARSER_FLAG_COMPLETE_FRAMES;
+        // parserContext_->flags |= PARSER_FLAG_ONCE;
+        // parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
+        // parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
       } // end ELSE
 
       context_ = avcodec_alloc_context3 (codec_p);
@@ -492,36 +496,35 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       //codec_parameters_p->trailing_padding = 0;
       //codec_parameters_p->seek_preroll = 0;
 
-      //flags = AV_CODEC_FLAG_UNALIGNED      |
-      //        //AV_CODEC_FLAG_QSCALE         |
-      ////        AV_CODEC_FLAG_4MV            |
-      //        AV_CODEC_FLAG_OUTPUT_CORRUPT |
-      //        //AV_CODEC_FLAG_QPEL           |
-      //        //AV_CODEC_FLAG_DROPCHANGED          |
-      //        //AV_CODEC_FLAG_PASS1          |
-      //        //AV_CODEC_FLAG_PASS2          |
-      //        AV_CODEC_FLAG_LOOP_FILTER    |
-      //        //AV_CODEC_FLAG_GRAY           |
-      //        //AV_CODEC_FLAG_PSNR           |
-      //        AV_CODEC_FLAG_TRUNCATED      |
-      //        //AV_CODEC_FLAG_INTERLACED_DCT |
-      //        AV_CODEC_FLAG_LOW_DELAY      |
-      //        //AV_CODEC_FLAG_GLOBAL_HEADER  |
-      //        AV_CODEC_FLAG_BITEXACT;//       |
-      //        //AV_CODEC_FLAG_AC_PRED        |
-      ////AV_CODEC_FLAG_INTERLACED_ME  |
-      ////AV_CODEC_FLAG_CLOSED_GOP;
+      flags = AV_CODEC_FLAG_UNALIGNED      |
+              //AV_CODEC_FLAG_QSCALE         |
+      //        AV_CODEC_FLAG_4MV            |
+              AV_CODEC_FLAG_OUTPUT_CORRUPT |
+              //AV_CODEC_FLAG_QPEL           |
+              //AV_CODEC_FLAG_DROPCHANGED          |
+              //AV_CODEC_FLAG_PASS1          |
+              //AV_CODEC_FLAG_PASS2          |
+              AV_CODEC_FLAG_LOOP_FILTER    |
+              //AV_CODEC_FLAG_GRAY           |
+              //AV_CODEC_FLAG_PSNR           |
+              //AV_CODEC_FLAG_INTERLACED_DCT |
+              AV_CODEC_FLAG_LOW_DELAY      |
+              //AV_CODEC_FLAG_GLOBAL_HEADER  |
+              AV_CODEC_FLAG_BITEXACT;//       |
+              //AV_CODEC_FLAG_AC_PRED        |
+      //AV_CODEC_FLAG_INTERLACED_ME  |
+      //AV_CODEC_FLAG_CLOSED_GOP;
 
-      //flags2 = AV_CODEC_FLAG2_FAST          |
-      ////         AV_CODEC_FLAG2_NO_OUTPUT           |
-      ////         AV_CODEC_FLAG2_LOCAL_HEADER        |
-      ////         AV_CODEC_FLAG2_DROP_FRAME_TIMECODE |
-      //         AV_CODEC_FLAG2_CHUNKS        |
-      //         //AV_CODEC_FLAG2_IGNORE_CROP   |
-      //         AV_CODEC_FLAG2_SHOW_ALL      |
-      //         //AV_CODEC_FLAG2_EXPORT_MVS    |
-      //         AV_CODEC_FLAG2_SKIP_MANUAL;
-      //// AV_CODEC_FLAG2_RO_FLUSH_NOOP
+      flags2 = AV_CODEC_FLAG2_FAST          |
+      //         AV_CODEC_FLAG2_NO_OUTPUT           |
+      //         AV_CODEC_FLAG2_LOCAL_HEADER        |
+      //         AV_CODEC_FLAG2_DROP_FRAME_TIMECODE |
+               //AV_CODEC_FLAG2_CHUNKS        |
+               AV_CODEC_FLAG2_IGNORE_CROP   |
+               AV_CODEC_FLAG2_SHOW_ALL      |
+               AV_CODEC_FLAG2_EXPORT_MVS    |
+               AV_CODEC_FLAG2_SKIP_MANUAL;
+      // AV_CODEC_FLAG2_RO_FLUSH_NOOP
 
       //result = avcodec_parameters_to_context (context_,
       //                                        codec_parameters_p);
@@ -538,7 +541,30 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       context_->debug = (inherited::configuration_->debug ? debug_i : 0);
 #endif // _DEBUG
       context_->err_recognition = 0;
-
+      context_->flags = inherited::configuration_->codecConfiguration->flags;
+      context_->flags |= flags;
+      context_->flags2 = inherited::configuration_->codecConfiguration->flags2;
+      context_->flags2 |= flags2;
+      iterator =
+        session_data_r.codecConfiguration.find (inherited::configuration_->codecConfiguration->codecId);
+      if (iterator != session_data_r.codecConfiguration.end ())
+      { ACE_ASSERT ((*iterator).second.size);
+        ACE_ASSERT (!context_->extradata);
+        context_->extradata =
+          static_cast<uint8_t*> (av_malloc ((*iterator).second.size + AV_INPUT_BUFFER_PADDING_SIZE));
+        if (!context_->extradata)
+        {
+          ACE_DEBUG ((LM_CRITICAL,
+                      ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+        ACE_OS::memset (context_->extradata, 0, (*iterator).second.size + AV_INPUT_BUFFER_PADDING_SIZE);
+        ACE_OS::memcpy (context_->extradata,
+                        (*iterator).second.data,
+                        (*iterator).second.size);
+        context_->extradata_size = (*iterator).second.size;
+      } // end IF
 //      result = av_dict_set (&dictionary_p,
 //                            NULL, NULL,
 //                            0);

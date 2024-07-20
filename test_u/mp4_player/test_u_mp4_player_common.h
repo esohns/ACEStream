@@ -265,6 +265,9 @@ struct Test_U_MP4Player_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , display ()
    , fullScreen (false)
+#if defined (SOX_SUPPORT)
+   , manageSoX (true)
+#endif // SOX_SUPPORT
 #if defined (FFMPEG_SUPPORT)
    , streamIndex (-1)
 #endif // FFMPEG_SUPPORT
@@ -291,6 +294,9 @@ struct Test_U_MP4Player_ModuleHandlerConfiguration
   struct Common_UI_Display                                display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
   bool                                                    fullScreen;
+#if defined (SOX_SUPPORT)
+  bool                                                    manageSoX;
+#endif // SOX_SUPPORT
 #if defined (FFMPEG_SUPPORT)
   int                                                     streamIndex;
 #endif // FFMPEG_SUPPORT
@@ -327,6 +333,8 @@ struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration
 
   struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration operator= (const struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration& rhs_in)
   {
+    Test_U_MP4Player_ModuleHandlerConfiguration::operator= (rhs_in);
+
     if (builder)
     {
       builder->Release (); builder = NULL;

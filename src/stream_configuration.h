@@ -59,8 +59,6 @@
 #include "stream_defines.h"
 #include "stream_inotify.h"
 #include "stream_isessionnotify.h"
-#include "stream_session_data.h"
-#include "stream_session_message_base.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_common.h"

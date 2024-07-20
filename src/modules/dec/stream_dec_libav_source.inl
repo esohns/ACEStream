@@ -216,6 +216,7 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (inherited::sessionData_->getR ());
   struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+  struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration codec_configuration_s;
 
   // read file
   result =
@@ -243,10 +244,10 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
     return -1;
   } // end IF
 
-  for (int i = 0; i < context_->nb_streams; i++)
+  for (unsigned int i = 0; i < context_->nb_streams; i++)
   {
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: pre-processing stream %d: codec %d \"%s\" media type...\n"),
+                ACE_TEXT ("%s: pre-processing stream %u: codec %d \"%s\" media type...\n"),
                 inherited::mod_->name (),
                 i,
                 context_->streams[i]->codecpar->codec_id,
@@ -262,19 +263,20 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
         streamIndexToMessageMediaType_[i] = STREAM_MEDIATYPE_AUDIO;
 
         media_type_s.audio.codecId = context_->streams[i]->codecpar->codec_id;
-        //if (context_->streams[i]->codecpar->extradata_size)
-        //{ ACE_ASSERT (false); // *TODO*
-        //  ACE_ASSERT (!session_data_r.codecConfigurationDataSize);
-        //  session_data_r.codecConfigurationDataSize =
-        //    context_->streams[i]->codecpar->extradata_size;
-        //  ACE_NEW_NORETURN (session_data_r.codecConfigurationData,
-        //                    ACE_UINT8[session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE]);
-        //  ACE_ASSERT (session_data_r.codecConfigurationData);
-        //  ACE_OS::memset (session_data_r.codecConfigurationData, 0, session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE);
-        //  ACE_OS::memcpy (session_data_r.codecConfigurationData,
-        //                  context_->streams[i]->codecpar->extradata,
-        //                  session_data_r.codecConfigurationDataSize);
-        //} // end IF
+        if (context_->streams[i]->codecpar->extradata_size)
+        { 
+          codec_configuration_s.size =
+            context_->streams[i]->codecpar->extradata_size;
+          ACE_NEW_NORETURN (codec_configuration_s.data,
+                            ACE_UINT8[context_->streams[i]->codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE]);
+          ACE_ASSERT (codec_configuration_s.data);
+          ACE_OS::memset (codec_configuration_s.data, 0, context_->streams[i]->codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
+          ACE_OS::memcpy (codec_configuration_s.data,
+                          context_->streams[i]->codecpar->extradata,
+                          context_->streams[i]->codecpar->extradata_size);
+          session_data_r.codecConfiguration.insert (std::make_pair (context_->streams[i]->codecpar->codec_id,
+                                                                    codec_configuration_s));
+        } // end IF
         media_type_s.audio.format = static_cast<enum AVSampleFormat> (context_->streams[i]->codecpar->format);
         media_type_s.audio.channels = context_->streams[i]->codecpar->ch_layout.nb_channels;
         media_type_s.audio.sampleRate = context_->streams[i]->codecpar->sample_rate;
@@ -285,16 +287,18 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
         streamIndexToMessageMediaType_[i] = STREAM_MEDIATYPE_VIDEO;
         media_type_s.video.codecId = context_->streams[i]->codecpar->codec_id;
         if (context_->streams[i]->codecpar->extradata_size)
-        { ACE_ASSERT (!session_data_r.codecConfigurationDataSize);
-          session_data_r.codecConfigurationDataSize =
+        {
+          codec_configuration_s.size =
             context_->streams[i]->codecpar->extradata_size;
-          ACE_NEW_NORETURN (session_data_r.codecConfigurationData,
-                            ACE_UINT8[session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE]);
-          ACE_ASSERT (session_data_r.codecConfigurationData);
-          ACE_OS::memset (session_data_r.codecConfigurationData, 0, session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE);
-          ACE_OS::memcpy (session_data_r.codecConfigurationData,
+          ACE_NEW_NORETURN (codec_configuration_s.data,
+                            ACE_UINT8[context_->streams[i]->codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE]);
+          ACE_ASSERT (codec_configuration_s.data);
+          ACE_OS::memset (codec_configuration_s.data, 0, context_->streams[i]->codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
+          ACE_OS::memcpy (codec_configuration_s.data,
                           context_->streams[i]->codecpar->extradata,
-                          session_data_r.codecConfigurationDataSize);
+                          context_->streams[i]->codecpar->extradata_size);
+          session_data_r.codecConfiguration.insert (std::make_pair (context_->streams[i]->codecpar->codec_id,
+                                                                    codec_configuration_s));
         } // end IF
         media_type_s.video.format = static_cast<enum AVPixelFormat> (context_->streams[i]->codecpar->format);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

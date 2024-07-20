@@ -156,6 +156,42 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   mediaType_out.resolution =
       Stream_MediaFramework_DirectShow_Tools::toResolution (mediaType_in);
 }
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct _AMMediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
+
+  switch (type_in)
+  {
+    case STREAM_MEDIATYPE_AUDIO:
+    {
+      getMediaType (mediaType_in,
+                    type_in,
+                    mediaType_out.audio);
+      break;
+    }
+    case STREAM_MEDIATYPE_VIDEO:
+    {
+      getMediaType (mediaType_in,
+                    type_in,
+                    mediaType_out.video);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media type type (was: %d), returning\n"),
+                  type_in));
+      return;
+    }
+  } // end SWITCH
+}
 #endif // FFMPEG_SUPPORT
 
 template <typename MediaType>

@@ -55,6 +55,15 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , splitter_ (this,
               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MEDIASPLITTER_DEFAULT_NAME_STRING))
+#if defined (FAAD_SUPPORT)
+ , faadAudioDecode_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FAAD_DEFAULT_NAME_STRING))
+#endif // FAAD_SUPPORT
+#if defined (SOX_SUPPORT)
+ , SOXResample_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING))
+#endif // SOX_SUPPORT
+#if defined (FFMPEG_SUPPORT)
  , audioDecode_ (this,
                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING))
  , decode_ (this,
@@ -65,6 +74,7 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+#endif // FFMPEG_SUPPORT
  , delay_ (this,
            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING))
  , WASAPISound_ (this,
@@ -114,8 +124,13 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (idistributor_p);
   idistributor_p->initialize (branches_a);
 
-  layout_in->append (&audioDecode_, branch_p, index_i);
-
+  //layout_in->append (&audioDecode_, branch_p, index_i);
+#if defined (FAAD_SUPPORT)
+  layout_in->append (&faadAudioDecode_, branch_p, index_i);
+#endif // FAAD_SUPPORT
+#if defined (SOX_SUPPORT)
+  layout_in->append (&SOXResample_, branch_p, index_i);
+#endif // SOX_SUPPORT
   layout_in->append (&WASAPISound_, branch_p, index_i);
 
   ++index_i; // 1: video branch

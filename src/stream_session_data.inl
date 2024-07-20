@@ -41,8 +41,9 @@ Stream_SessionDataMediaBase_T<BaseType,
                               StatisticType,
                               UserDataType>::Stream_SessionDataMediaBase_T ()
  : inherited ()
- , codecConfigurationData (NULL)
- , codecConfigurationDataSize (0)
+#if defined (FFMPEG_SUPPORT)
+ , codecConfiguration ()
+#endif // FFMPEG_SUPPORT
  , formats ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
@@ -66,8 +67,9 @@ Stream_SessionDataMediaBase_T<BaseType,
                               StatisticType,
                               UserDataType>::Stream_SessionDataMediaBase_T (const OWN_TYPE_T& data_in)
  : inherited (data_in)
- , codecConfigurationData (NULL)
- , codecConfigurationDataSize (0)
+#if defined (FFMPEG_SUPPORT)
+ , codecConfiguration ()
+#endif // FFMPEG_SUPPORT
  , formats (data_in.formats)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , mediaFramework (data_in.mediaFramework)
@@ -94,10 +96,14 @@ Stream_SessionDataMediaBase_T<BaseType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::~Stream_SessionDataMediaBase_T"));
 
-  if (codecConfigurationData)
+#if defined (FFMPEG_SUPPORT)
+  for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::const_iterator iterator = codecConfiguration.begin ();
+       iterator != codecConfiguration.end ();
+       ++iterator)
   {
-    delete [] codecConfigurationData; codecConfigurationData = NULL;
+    delete [] (*iterator).second.data;
   } // end IF
+#endif // FFMPEG_SUPPORT
 }
 
 template <typename BaseType,
@@ -124,6 +130,32 @@ Stream_SessionDataMediaBase_T<BaseType,
 
   // *NOTE*: the idea is to 'merge' the data
   inherited::operator+= (rhs_in);
+
+#if defined (FFMPEG_SUPPORT)
+  // *TODO*: the idea is to 'merge' the data
+  for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::const_iterator iterator = codecConfiguration.begin ();
+       iterator != codecConfiguration.end ();
+       ++iterator)
+  {
+    delete[] (*iterator).second.data;
+  } // end FOR
+  codecConfiguration.clear ();
+  codecConfiguration = rhs_in.codecConfiguration;
+  for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::iterator iterator = codecConfiguration.begin ();
+       iterator != codecConfiguration.end ();
+       ++iterator)
+  {
+    ACE_UINT8* data_orig_p = (*iterator).second.data;
+    (*iterator).second.data = NULL;
+    ACE_NEW_NORETURN ((*iterator).second.data,
+                      ACE_UINT8[(*iterator).second.size + AV_INPUT_BUFFER_PADDING_SIZE]);
+    ACE_ASSERT ((*iterator).second.data);
+    ACE_OS::memset ((*iterator).second.data, 0, (*iterator).second.size + AV_INPUT_BUFFER_PADDING_SIZE);
+    ACE_OS::memcpy ((*iterator).second.data,
+                    data_orig_p,
+                    (*iterator).second.size);
+  } // end FOR
+#endif // FFMPEG_SUPPORT
 
   // *NOTE*: the idea is to 'merge' the data
   // *TODO*: this is problematic on windows
@@ -164,6 +196,31 @@ Stream_SessionDataMediaBase_T<BaseType,
   STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::operator="));
 
   inherited::operator= (rhs_in);
+
+#if defined (FFMPEG_SUPPORT)
+  for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::const_iterator iterator = codecConfiguration.begin ();
+       iterator != codecConfiguration.end ();
+       ++iterator)
+  {
+    delete[] (*iterator).second.data;
+  } // end FOR
+  codecConfiguration.clear ();
+  codecConfiguration = rhs_in.codecConfiguration;
+  for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::iterator iterator = codecConfiguration.begin ();
+       iterator != codecConfiguration.end ();
+       ++iterator)
+  {
+    ACE_UINT8* data_orig_p = (*iterator).second.data;
+    (*iterator).second.data = NULL;
+    ACE_NEW_NORETURN ((*iterator).second.data,
+                      ACE_UINT8[(*iterator).second.size + AV_INPUT_BUFFER_PADDING_SIZE]);
+    ACE_ASSERT ((*iterator).second.data);
+    ACE_OS::memset ((*iterator).second.data, 0, (*iterator).second.size + AV_INPUT_BUFFER_PADDING_SIZE);
+    ACE_OS::memcpy ((*iterator).second.data,
+                    data_orig_p,
+                    (*iterator).second.size);
+  } // end FOR
+#endif // FFMPEG_SUPPORT
 
   // *TODO*: this is problematic on windows
   formats = rhs_in.formats;

@@ -454,6 +454,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       struct AVBufferRef* hw_device_ctx_p = NULL;
       struct AVHWFramesConstraints* hw_frames_constraints_p = NULL;
       struct AVCodecParameters* codec_parameters_p = NULL;
+      Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMapIterator_t iterator;
 
       codec_p =
         avcodec_find_decoder (inherited::configuration_->codecConfiguration->codecId);
@@ -507,16 +508,18 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       codec_parameters_p->codec_type = AVMEDIA_TYPE_VIDEO;
       codec_parameters_p->codec_id = inherited::configuration_->codecConfiguration->codecId;
       //codec_parameters_p->codec_tag = ;
-      if (session_data_r.codecConfigurationData)
-      { ACE_ASSERT (session_data_r.codecConfigurationDataSize);
+      iterator =
+        session_data_r.codecConfiguration.find (inherited::configuration_->codecConfiguration->codecId);
+      if (iterator != session_data_r.codecConfiguration.end ())
+      { ACE_ASSERT ((*iterator).second.size);
         codec_parameters_p->extradata =
-          static_cast<uint8_t*> (av_malloc (session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE));
+          static_cast<uint8_t*> (av_malloc ((*iterator).second.size + AV_INPUT_BUFFER_PADDING_SIZE));
         ACE_ASSERT (codec_parameters_p->extradata);
-        ACE_OS::memset (codec_parameters_p->extradata, 0, session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE);
+        ACE_OS::memset (codec_parameters_p->extradata, 0, (*iterator).second.size + AV_INPUT_BUFFER_PADDING_SIZE);
         ACE_OS::memcpy (codec_parameters_p->extradata,
-                        session_data_r.codecConfigurationData,
-                        session_data_r.codecConfigurationDataSize);
-        codec_parameters_p->extradata_size = session_data_r.codecConfigurationDataSize;
+                        (*iterator).second.data,
+                        (*iterator).second.size);
+        codec_parameters_p->extradata_size = (*iterator).second.size;
       } // end IF
       //codec_parameters_p->extradata = NULL;
       //codec_parameters_p->extradata_size = 0;
@@ -632,11 +635,13 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       context_->flags |= flags;
       context_->flags2 = inherited::configuration_->codecConfiguration->flags2;
       context_->flags2 |= flags2;
-      if (session_data_r.codecConfigurationDataSize)
-      { ACE_ASSERT (session_data_r.codecConfigurationData);
+      iterator =
+        session_data_r.codecConfiguration.find (inherited::configuration_->codecConfiguration->codecId);
+      if (iterator != session_data_r.codecConfiguration.end ())
+      { ACE_ASSERT ((*iterator).second.size);
         ACE_ASSERT (!context_->extradata);
         context_->extradata =
-          static_cast<uint8_t*> (av_malloc (session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE));
+          static_cast<uint8_t*> (av_malloc ((*iterator).second.size + AV_INPUT_BUFFER_PADDING_SIZE));
         if (!context_->extradata)
         {
           ACE_DEBUG ((LM_CRITICAL,
@@ -644,11 +649,11 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                       inherited::mod_->name ()));
           goto error;
         } // end IF
-        ACE_OS::memset (context_->extradata, 0, session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE);
+        ACE_OS::memset (context_->extradata, 0, (*iterator).second.size + AV_INPUT_BUFFER_PADDING_SIZE);
         ACE_OS::memcpy (context_->extradata,
-                        session_data_r.codecConfigurationData,
-                        session_data_r.codecConfigurationDataSize);
-        context_->extradata_size = session_data_r.codecConfigurationDataSize;
+                        (*iterator).second.data,
+                        (*iterator).second.size);
+        context_->extradata_size = (*iterator).second.size;
       } // end IF
       ACE_ASSERT (media_type_s.frameRate.num);
       context_->time_base = {media_type_s.frameRate.den, media_type_s.frameRate.num};

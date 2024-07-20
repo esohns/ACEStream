@@ -741,7 +741,7 @@ do_work (int argc_in,
   // ********************** module configuration data **************************
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
-  //allocator_configuration.defaultBufferSize = 524288;
+  allocator_configuration.defaultBufferSize = 32768;
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
   codec_configuration.codecId = AV_CODEC_ID_H264;
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration_2; // audio
@@ -758,8 +758,7 @@ do_work (int argc_in,
   // video_codec_configuration.format = AV_PIX_FMT_VDPAU;
 #endif // ACE_WIN32 || ACE_WIN64
   codec_configuration.parserFlags = PARSER_FLAG_ONCE | PARSER_FLAG_USE_CODEC_TS;
-  //  PARSER_FLAG_COMPLETE_FRAMES | PARSER_FLAG_FETCHED_OFFSET;
-  //codec_configuration.useParser = false;
+  //codec_configuration_2.parserFlags = 0;
 #else
   struct Stream_AllocatorConfiguration allocator_configuration;
 #endif // FFMPEG_SUPPORT
@@ -901,6 +900,12 @@ do_work (int argc_in,
                                                                  directshow_modulehandler_configuration,
                                                                  stream_configuration);
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING),
+                                                                              std::make_pair (&module_configuration,
+                                                                                              &directshow_modulehandler_configuration_audio)));
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FAAD_DEFAULT_NAME_STRING),
+                                                                              std::make_pair (&module_configuration,
+                                                                                              &directshow_modulehandler_configuration_audio)));
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING),
                                                                               std::make_pair (&module_configuration,
                                                                                               &directshow_modulehandler_configuration_audio)));
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (renderer_in),

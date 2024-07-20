@@ -95,6 +95,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void getMediaType (const struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_in, enum Stream_MediaType_Type type_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out) { getMediaType (mediaType_in.video, type_in, mediaType_out); }
   inline void getMediaType (const struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat& mediaType_in, enum Stream_MediaType_Type type_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out) { getMediaType (mediaType_in.video, type_in, mediaType_out); }
   void getMediaType (const struct _AMMediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
+  void getMediaType (const struct _AMMediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_MediaType&);
 
   // helper methods
   void setFormat (enum AVSampleFormat, struct _AMMediaType&);

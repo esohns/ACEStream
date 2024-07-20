@@ -105,11 +105,19 @@ class Test_U_DirectShow_Stream
   Test_U_DirectShow_LibAVSource_Module      source_;
   Test_U_DirectShow_StatisticReport_Module  statisticReport_;
   Test_U_Splitter_Module                    splitter_;
+#if defined (FAAD_SUPPORT)
+  Test_U_DirectShow_FAADDecode_Module       faadAudioDecode_;
+#endif // FAAD_SUPPORT
+#if defined (FAAD_SUPPORT)
+  Test_U_DirectShow_SOXResampler_Module     SOXResample_;
+#endif // FAAD_SUPPORT
+#if defined (FFMPEG_SUPPORT)
   Test_U_DirectShow_LibAVAudioDecode_Module audioDecode_;
   Test_U_DirectShow_LibAVDecode_Module      decode_;
   Test_U_DirectShow_LibAVHWDecode_Module    HWDecode_;
   Test_U_DirectShow_LibAVConvert_Module     convert_; // --> RGB
   Test_U_DirectShow_LibAVResize_Module      resize_; // --> window size/fullscreen
+#endif // FFMPEG_SUPPORT
   Test_U_DirectShow_Delay_Module            delay_;
   Test_U_WASAPI_Module                      WASAPISound_;
 #if defined (GTK_SUPPORT)

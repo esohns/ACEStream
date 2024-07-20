@@ -2,6 +2,8 @@ if (WIN32)
  include (directxsdk)
 endif (WIN32)
 
+include (ffmpeg)
+
 if (WIN32)
  set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../lib/scripts")
  include (DirectXBaseClasses)
@@ -32,6 +34,10 @@ if (WIN32 AND DIRECTXSDK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${DIRECTXSDK_INCLUDE_DIR}>)
 endif (WIN32 AND DIRECTXSDK_SUPPORT)
+if (FFMPEG_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
+endif (FFMPEG_SUPPORT)
 if (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${DS_BASECLASSES_INCLUDE_DIRS}>)
