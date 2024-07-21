@@ -4,6 +4,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/modules
 include (Configuration)
 include (Macros)
 include (OS)
+include (compiler_init)
 
 cmake_minimum_required (VERSION 2.8...3.12)
 
