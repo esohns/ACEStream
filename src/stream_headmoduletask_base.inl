@@ -2108,7 +2108,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   //         information ('OwningThread')
   //         --> submit a bug report
   //ACE_thread_t thread_id = lock_r.get_thread_id ();
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_hthread_t thread_h = NULL;
   ACE_OS::thr_self (thread_h);
   ACE_ASSERT (thread_h);

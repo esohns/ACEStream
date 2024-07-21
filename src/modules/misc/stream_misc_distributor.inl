@@ -266,10 +266,11 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
           iqueue_p = dynamic_cast<Stream_IMessageQueue*> ((*iterator).second);
           ACE_ASSERT (iqueue_p);
           flushed_messages_i = iqueue_p->flush (false); // flush session messages ?
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s/%s: aborting: flushed %u data messages\n"),
-                      inherited::mod_->name (), ACE_TEXT ((*iterator_3).first.c_str ()),
-                      flushed_messages_i));
+          if (flushed_messages_i > 0)
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("%s/%s: aborting: flushed %u data messages\n"),
+                        inherited::mod_->name (), ACE_TEXT ((*iterator_3).first.c_str ()),
+                        flushed_messages_i));
         } // end FOR
       } // end lock scope
       is_high_priority_b = true;
@@ -337,10 +338,11 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
           iqueue_p = dynamic_cast<Stream_IMessageQueue*> ((*iterator).second);
           ACE_ASSERT (iqueue_p);
           flushed_messages_i = iqueue_p->flush (false); // flush session messages ?
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s/%s: aborting: flushed %u data messages\n"),
-                      inherited::mod_->name (), ACE_TEXT ((*iterator_3).first.c_str ()),
-                      flushed_messages_i));
+          if (flushed_messages_i > 0)
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("%s/%s: aborting: flushed %u data messages\n"),
+                        inherited::mod_->name (), ACE_TEXT ((*iterator_3).first.c_str ()),
+                        flushed_messages_i));
         } // end FOR
       } // end lock scope
 

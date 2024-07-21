@@ -78,11 +78,8 @@ class Stream_Module_Delay_T
   Stream_Module_Delay_T (typename inherited::ISTREAM_T*); // stream handle
   inline virtual ~Stream_Module_Delay_T () {}
 
-  // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator* = NULL); // report cache usage ?
-
   // implement (part of) Stream_ITaskBase_T
+  virtual void handleControlMessage (ControlMessageType&); // control message handle
   virtual void handleDataMessage (DataMessageType*&, // data message handle
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
@@ -96,10 +93,20 @@ class Stream_Module_Delay_T
   // implement Common_ICounter
   virtual void reset ();
 
-  ACE_UINT64                       availableTokens_;
-  ACE_SYNCH_CONDITION              condition_;
-  Common_Timer_ResetCounterHandler resetTimeoutHandler_;
-  long                             resetTimeoutHandlerId_;
+  // enqueue MB_STOP --> stop worker thread(s)
+  virtual void stop (bool = true,   // wait for completion ?
+                     bool = false); // high priority ? (i.e. do not wait for queued messages)
+
+  // override (part of) ACE_Task_Base
+  virtual int svc (void);
+
+  void dispatch (ACE_Message_Block*); // next message
+
+  ACE_UINT64                          availableTokens_;
+  ACE_SYNCH_CONDITION                 condition_;
+  typename inherited::MESSAGE_QUEUE_T queue_;
+  Common_Timer_ResetCounterHandler    resetTimeoutHandler_;
+  long                                resetTimeoutHandlerId_;
 };
 
 //////////////////////////////////////////
