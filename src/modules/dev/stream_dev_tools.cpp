@@ -910,7 +910,7 @@ Stream_Device_Tools::convert (const struct Stream_MediaFramework_V4L_MediaType& 
   struct Stream_MediaFramework_FFMPEG_VideoMediaType result;
 
   result.format =
-      Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (format_in.format.pixelformat);
+      Stream_MediaFramework_Tools::v4lFormatToffmpegFormat (format_in.format.pixelformat);
   result.frameRate.num = format_in.frameRate.numerator;
   result.frameRate.den = format_in.frameRate.denominator;
   result.resolution.width = format_in.format.width;
