@@ -26,6 +26,10 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "control.h"
 #include "evr.h"
+#else
+#include "X11/X.h"
+#undef CursorShape
+#include "wayland-client.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Synch_Traits.h"
@@ -44,6 +48,8 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directdraw_common.h"
+#else
+#include "stream_lib_alsa_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
@@ -241,7 +247,7 @@ typedef Stream_ISessionDataNotify_T<Test_U_MP4Player_MediaFoundation_SessionData
 typedef std::list<Test_U_MediaFoundation_ISessionNotify_t*> Test_U_MediaFoundation_Subscribers_t;
 typedef Test_U_MediaFoundation_Subscribers_t::iterator Test_U_MediaFoundation_SubscribersIterator_t;
 #else
-typedef Test_U_Message_T<struct Test_U_MessageData,
+typedef Test_U_Message_T<struct Test_U_V4L2_MessageData,
                          Test_U_MP4Player_SessionData_t> Test_U_Message_t;
 typedef Test_U_SessionMessage_T<Test_U_Message_t,
                                 Test_U_MP4Player_SessionData_t> Test_U_SessionMessage_t;
@@ -426,8 +432,9 @@ typedef Stream_Configuration_T<struct Test_U_MP4Player_StreamConfiguration,
 struct Test_U_FFMPEG_ModuleHandlerConfiguration
  : Test_U_MP4Player_ModuleHandlerConfiguration
 {
-  Test_U_V4L_ModuleHandlerConfiguration ()
+  Test_U_FFMPEG_ModuleHandlerConfiguration ()
    : Test_U_MP4Player_ModuleHandlerConfiguration ()
+   , ALSAConfiguration (NULL)
    , outputFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
@@ -437,11 +444,12 @@ struct Test_U_FFMPEG_ModuleHandlerConfiguration
     ACE_OS::memset (&outputFormat, 0, sizeof (struct Stream_MediaFramework_FFMPEG_MediaType));
   }
 
-  struct Stream_MediaFramework_FFMPEG_MediaType outputFormat;
-  Test_U_ISessionNotify_t*                      subscriber;
-  Test_U_Subscribers_t*                         subscribers;
-  struct wl_shell_surface*                      surface;
-  struct wl_display*                            waylandDisplay;
+  struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
+  struct Stream_MediaFramework_FFMPEG_MediaType    outputFormat;
+  Test_U_ISessionNotify_t*                         subscriber;
+  Test_U_Subscribers_t*                            subscribers;
+  struct wl_shell_surface*                         surface;
+  struct wl_display*                               waylandDisplay;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -108,9 +108,9 @@ class Test_U_DirectShow_Stream
 #if defined (FAAD_SUPPORT)
   Test_U_DirectShow_FAADDecode_Module       faadAudioDecode_;
 #endif // FAAD_SUPPORT
-#if defined (FAAD_SUPPORT)
+#if defined (SOX_SUPPORT)
   Test_U_DirectShow_SOXResampler_Module     SOXResample_;
-#endif // FAAD_SUPPORT
+#endif // SOX_SUPPORT
 #if defined (FFMPEG_SUPPORT)
   Test_U_DirectShow_LibAVAudioDecode_Module audioDecode_;
   Test_U_DirectShow_LibAVDecode_Module      decode_;
@@ -262,15 +262,29 @@ class Test_U_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_U_Stream& operator= (const Test_U_Stream&))
 
   // modules
-  Test_U_FFMPEG_Source_Module   source_;
-  Test_U_StatisticReport_Module statisticReport_;
-  Test_U_LibAVConvert_Module    convert_; // --> BGRA (Xlib)
-  Test_U_LibAVResize_Module     resize_; // --> window size/fullscreen
+  Test_U_LibAVSource_Module      source_;
+  Test_U_StatisticReport_Module  statisticReport_;
+  Test_U_Splitter_Module         splitter_;
+#if defined (FAAD_SUPPORT)
+  Test_U_FAADDecode_Module       faadAudioDecode_;
+#endif // FAAD_SUPPORT
+#if defined (SOX_SUPPORT)
+  Test_U_SOXResampler_Module     SOXResample_;
+#endif // SOX_SUPPORT
+#if defined (FFMPEG_SUPPORT)
+  Test_U_LibAVAudioDecode_Module audioDecode_;
+  Test_U_LibAVDecode_Module      decode_;
+  Test_U_LibAVHWDecode_Module    HWDecode_;
+  Test_U_LibAVConvert_Module     convert_; // --> BGRA (Xlib)
+  Test_U_LibAVResize_Module      resize_; // --> window size/fullscreen
+#endif // FFMPEG_SUPPORT
+  Test_U_Delay_Module            delay_;
+  Test_U_ALSA_Module             ALSASound_;
 #if defined (GTK_SUPPORT)
-  Test_U_GTK_Display_Module     GTKDisplay_;
+  Test_U_GTK_Display_Module      GTKDisplay_;
 #endif // GTK_SUPPORT
-  Test_U_Wayland_Display_Module WaylandDisplay_;
-  Test_U_X11_Display_Module     X11Display_;
+  Test_U_Wayland_Display_Module  WaylandDisplay_;
+  Test_U_X11_Display_Module      X11Display_;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

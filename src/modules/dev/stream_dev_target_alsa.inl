@@ -270,10 +270,11 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         return;
       } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
-                  inherited::mod_->name (),
-                  result));
+      else if (result > 0)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
+                    inherited::mod_->name (),
+                    result));
       break;
     }
     default:
@@ -341,6 +342,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::handleSessionMessage"));
 
   int result = -1;
+  bool high_priority_b = false;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -352,6 +354,25 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      unsigned int result = queue_.flush (false); // flush all data messages
+      if (unlikely (result == static_cast<unsigned int> (-1)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        return;
+      } // end IF
+      else if (result > 0)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
+                    inherited::mod_->name (),
+                    result));
+
+      high_priority_b = true;
+      goto end;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     { // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
@@ -575,13 +596,15 @@ error:
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
-    { ACE_ASSERT (inherited::configuration_);
+    {
+end:
+      ACE_ASSERT (inherited::configuration_);
       ACE_ASSERT (inherited::configuration_->ALSAConfiguration);
       if (inherited::configuration_->ALSAConfiguration->asynch)
         queue_.waitForIdleState ();
       else
-        stop (true,   // wait ?
-              false); // high priority ?
+        stop (true,             // wait ?
+              high_priority_b); // high priority ?
 
       if (likely (deviceHandle_))
       {

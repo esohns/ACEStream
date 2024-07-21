@@ -32,7 +32,7 @@
 
 #include "test_u_common.h"
 
-#include "test_u_mp4_player_common.h"
+// #include "test_u_mp4_player_common.h"
 
 template <ACE_SYNCH_DECL,
           typename AllocatorConfigurationType,

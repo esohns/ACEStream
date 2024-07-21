@@ -187,8 +187,6 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 //    {
 //      layout_in->append (&convert_, branch_p, index_i);
 //      layout_in->append (&resize_, branch_p, index_i); // output is window size/fullscreen
-//      if (inherited::configuration_->configuration_->useVideoWall)
-//        layout_in->append (&videoWall_, branch_p, index_i);
 //      layout_in->append (&OpenGLDisplay_, branch_p, index_i);
 //      break;
 //    }
@@ -1268,13 +1266,35 @@ error:
 Test_U_Stream::Test_U_Stream ()
  : inherited ()
  , source_ (this,
-            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING))
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_SOURCE_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+ , splitter_ (this,
+              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MEDIASPLITTER_DEFAULT_NAME_STRING))
+#if defined (FAAD_SUPPORT)
+ , faadAudioDecode_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FAAD_DEFAULT_NAME_STRING))
+#endif // FAAD_SUPPORT
+#if defined (SOX_SUPPORT)
+ , SOXResample_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING))
+#endif // SOX_SUPPORT
+#if defined (FFMPEG_SUPPORT)
+ , audioDecode_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING))
+ , decode_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
+ , HWDecode_ (this,
+              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_HW_DECODER_DEFAULT_NAME_STRING))
  , convert_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+#endif // FFMPEG_SUPPORT
+ , delay_ (this,
+           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING))
+ , ALSASound_ (this,
+               ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING))
 #if defined (GTK_SUPPORT)
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
@@ -1300,49 +1320,71 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
 
+  Stream_Branches_t branches_a;
+  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
+  unsigned int index_i = 0; // 0: audio branch
+
   layout_in->append (&source_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
-  layout_in->append (&convert_, NULL, 0);
-  layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+  layout_in->append (&splitter_, NULL, 0);
+
+  branch_p = &splitter_;
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+  Stream_IDistributorModule* idistributor_p =
+    dynamic_cast<Stream_IDistributorModule*> (splitter_.writer ());
+  ACE_ASSERT (idistributor_p);
+  idistributor_p->initialize (branches_a);
+
+  // layout_in->append (&audioDecode_, branch_p, index_i);
+#if defined (FAAD_SUPPORT)
+  layout_in->append (&faadAudioDecode_, branch_p, index_i);
+#endif // FAAD_SUPPORT
+#if defined (SOX_SUPPORT)
+  layout_in->append (&SOXResample_, branch_p, index_i);
+#endif // SOX_SUPPORT
+  layout_in->append (&ALSASound_, branch_p, index_i);
+
+  ++index_i; // 1: video branch
+
+  // layout_in->append (&convert_, branch_p, index_i);
+  if (inherited::configuration_->configuration_->useHardwareDecoder)
+    layout_in->append (&HWDecode_, branch_p, index_i);
+  else
+    layout_in->append (&decode_, branch_p, index_i);
+  layout_in->append (&resize_, branch_p, index_i); // output is window size/fullscreen
+  layout_in->append (&delay_, branch_p, index_i);
 
   switch (inherited::configuration_->configuration_->renderer)
   {
 //#if defined (CURSES_SUPPORT)
 //    case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
 //    {
-//      layout_in->append (&CursesDisplay_, NULL, 0);
+//      layout_in->append (&CursesDisplay_, branch_p, index_i);
 //      break;
 //    }
 //#endif // CURSES_SUPPORT
 #if defined (GTK_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
     {
-      if (inherited::configuration_->configuration_->useVideoWall)
-        layout_in->append (&videoWall_, NULL, 0);
-      layout_in->append (&GTKDisplay_, NULL, 0);
+      layout_in->append (&GTKDisplay_, branch_p, index_i);
       break;
     }
 #endif // GTK_SUPPORT
     case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
     {
-      if (inherited::configuration_->configuration_->useVideoWall)
-        layout_in->append (&videoWall_, NULL, 0);
-      layout_in->append (&WaylandDisplay_, NULL, 0);
+      layout_in->append (&WaylandDisplay_, branch_p, index_i);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
     {
-      if (inherited::configuration_->configuration_->useVideoWall)
-        layout_in->append (&videoWall_, NULL, 0);
-      layout_in->append (&X11Display_, NULL, 0);
+      layout_in->append (&X11Display_, branch_p, index_i);
       break;
     }
 //#if defined (GLUT_SUPPORT)
 //    case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
 //    {
-//      if (inherited::configuration_->configuration_->useVideoWall)
-//        layout_in->append (&videoWall_, NULL, 0);
-//      layout_in->append (&OpenGLDisplay_, NULL, 0);
+//      layout_in->append (&OpenGLDisplay_, branch_p, index_i);
 //      break;
 //    }
 //#endif // GLUT_SUPPORT
@@ -1370,7 +1412,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   ACE_ASSERT (configuration_in.configuration_);
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
-  Test_U_FFMPEG_SessionData* session_data_p = NULL;
+  Test_U_MP4Player_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
 //  Test_U_V4L_Source* source_impl_p = NULL;
 
@@ -1393,7 +1435,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   ACE_ASSERT (inherited::sessionData_);
 
   session_data_p =
-    &const_cast<Test_U_FFMPEG_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Test_U_MP4Player_SessionData&> (inherited::sessionData_->getR ());
   iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 
@@ -1401,7 +1443,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   ACE_ASSERT (iterator != configuration_in.end ());
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
-  session_data_p->formats.push_back (configuration_in.configuration_->format);
+  // session_data_p->formats.push_back (configuration_in.configuration_->format);
 
   // ---------------------------------------------------------------------------
 

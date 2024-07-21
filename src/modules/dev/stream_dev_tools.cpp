@@ -432,7 +432,7 @@ Stream_Device_Tools::convert (const struct Stream_MediaFramework_LibCamera_Media
   struct Stream_MediaFramework_FFMPEG_VideoMediaType result;
 
   result.format =
-      Stream_Device_Tools::libCameraFormatToffmpegFormat (format_in.format);
+      Stream_MediaFramework_Tools::libCameraFormatToffmpegFormat (format_in.format);
   result.frameRate.num = format_in.frameRateNumerator;
   result.frameRate.den = format_in.frameRateDenominator;
   result.resolution.width = format_in.resolution.width;

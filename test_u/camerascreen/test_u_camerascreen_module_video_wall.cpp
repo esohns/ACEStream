@@ -64,7 +64,7 @@ Test_U_CameraScreen_VideoWall::handleDataMessage (Stream_CameraScreen_Message_t*
   static int numb_thumbnails_i =
     TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X * TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
   std::deque<ACE_Message_Block*>::iterator iterator;
-  if (messages_.size () == numb_thumbnails_i)
+  if (messages_.size () == static_cast<size_t> (numb_thumbnails_i))
   {
     iterator = messages_.end ();
     --iterator;
@@ -72,7 +72,7 @@ Test_U_CameraScreen_VideoWall::handleDataMessage (Stream_CameraScreen_Message_t*
     messages_.erase (iterator);
   } // end ELSE
   messages_.push_front (message_inout);
-  ACE_ASSERT (messages_.size () <= numb_thumbnails_i);
+  ACE_ASSERT (static_cast<int> (messages_.size ()) <= numb_thumbnails_i);
 
   size_t message_size_i =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -94,7 +94,7 @@ Test_U_CameraScreen_VideoWall::handleDataMessage (Stream_CameraScreen_Message_t*
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   for (int y = 0; y < resolution_.cy; y++)
 #else
-  for (int y = 0; y < resolution_.height; y++)
+  for (int y = 0; y < static_cast<int> (resolution_.height); y++)
 #endif // ACE_WIN32 || ACE_WIN64
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -106,7 +106,7 @@ Test_U_CameraScreen_VideoWall::handleDataMessage (Stream_CameraScreen_Message_t*
          index_x++)
     {
       index_i = (index_y * TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X) + index_x;
-      if (index_i >= messages_.size ())
+      if (index_i >= static_cast<int> (messages_.size ()))
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         message_p->wr_ptr (thumbnailResolution_.cx * bytesPerPixel_);

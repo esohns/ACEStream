@@ -17,6 +17,7 @@
 *   Free Software Foundation, Inc.,                                       *
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
+#include "mp4_player/test_u_mp4_player_common.h"
 #include "stdafx.h"
 
 #include <iostream>
@@ -411,7 +412,7 @@ do_initialize_directshow (IGraphBuilder*& IGraphBuilder_out,
     goto error;
   } // end IF
 
-  // generate default media type: RGB24 640x480 30fps
+  // generate default media type: RGB32 640x480 30fps
   videoOutputFormat_inout.majortype = MEDIATYPE_Video;
   videoOutputFormat_inout.subtype = MEDIASUBTYPE_RGB32;
     //STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT;
@@ -756,6 +757,8 @@ do_work (int argc_in,
   codec_configuration.format = AV_PIX_FMT_VAAPI;
   // video_codec_configuration.deviceType = AV_HWDEVICE_TYPE_VDPAU;
   // video_codec_configuration.format = AV_PIX_FMT_VDPAU;
+
+  struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
   codec_configuration.parserFlags = PARSER_FLAG_ONCE | PARSER_FLAG_USE_CODEC_TS;
   //codec_configuration_2.parserFlags = 0;
@@ -783,6 +786,7 @@ do_work (int argc_in,
   struct Test_U_FFMPEG_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_U_FFMPEG_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
   struct Test_U_FFMPEG_ModuleHandlerConfiguration modulehandler_configuration_2b; // resize
+  struct Test_U_FFMPEG_ModuleHandlerConfiguration modulehandler_configuration_audio; // decoder
   Test_U_EventHandler_t ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -852,6 +856,7 @@ do_work (int argc_in,
     }
   } // end SWITCH
 #else
+  modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
 #if defined (FFMPEG_SUPPORT)
   modulehandler_configuration.codecConfiguration = &codec_configuration;
@@ -1033,6 +1038,12 @@ do_work (int argc_in,
 #else
   stream_p = &stream;
 
+  modulehandler_configuration.deviceIdentifier.identifier =
+    Stream_MediaFramework_ALSA_Tools::getDeviceName (SND_PCM_STREAM_PLAYBACK);
+  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_RGB24;
+  modulehandler_configuration.outputFormat.video.resolution.width = 640;
+  modulehandler_configuration.outputFormat.video.resolution.height = 480;
+  modulehandler_configuration.outputFormat.video.frameRate.num = 30;
   switch (renderer_in)
   {
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
@@ -1041,9 +1052,8 @@ do_work (int argc_in,
       //                   Xlib; XCreateImage() only 'likes' 32-bit data, regardless
       //                   of what 'depth' values are set (in fact, it requires BGRA
       //                   on little-endian platforms) --> convert
-      modulehandler_configuration_2 = modulehandler_configuration;
-      modulehandler_configuration_2.outputFormat.format.pixelformat =
-        V4L2_PIX_FMT_BGRA32;
+      // modulehandler_configuration_2 = modulehandler_configuration;
+      modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_BGRA;
       break;
     }
 //#if defined (GLUT_SUPPORT)
@@ -1058,21 +1068,26 @@ do_work (int argc_in,
     default:
       break;
   } // end SWITCH
+
+  modulehandler_configuration_audio = modulehandler_configuration;
+  modulehandler_configuration_audio.codecConfiguration = &codec_configuration_2;
+  modulehandler_configuration_audio.outputFormat.audio.channels = 2;
+  modulehandler_configuration_audio.outputFormat.audio.format =
+    AV_SAMPLE_FMT_FLT;
+  modulehandler_configuration_audio.outputFormat.audio.sampleRate = 48000;
+
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_audio)));
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FAAD_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_audio)));
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_audio)));
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
-
-  if (useVideoWall_in)
-  {
-    modulehandler_configuration_2b = modulehandler_configuration;
-    modulehandler_configuration_2b.outputFormat.format.width /=
-      TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X;
-    modulehandler_configuration_2b.outputFormat.format.height /=
-      TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
-    configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
-                                                                 std::make_pair (&module_configuration,
-                                                                                 &modulehandler_configuration_2b)));
-  } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 
@@ -1286,7 +1301,8 @@ do_work (int argc_in,
         }
       } // end SWITCH
 #else
-      modulehandler_configuration_2.outputFormat.format.pixelformat = V4L2_PIX_FMT_RGB24;
+      modulehandler_configuration_2.outputFormat.video.format =
+        AV_PIX_FMT_RGB24;
       configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                    std::make_pair (&module_configuration,
                                                                                    &modulehandler_configuration_2)));
@@ -1582,7 +1598,7 @@ ACE_TMAIN (int argc_in,
   struct Test_U_DirectShow_Configuration directshow_configuration;
   struct Test_U_MediaFoundation_Configuration mediafoundation_configuration;
 #else
-  struct Test_U_Configuration configuration;
+  struct Test_U_MP4Player_Configuration configuration;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //#if defined (GTK_USE)

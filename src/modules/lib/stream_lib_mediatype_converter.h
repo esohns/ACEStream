@@ -209,6 +209,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void setChannels (unsigned int channels_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.audio.channels = channels_in; }
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.video.resolution = resolution_in; }
   inline Common_Image_Resolution_t getResolution (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in) { Common_Image_Resolution_t result; result = mediaType_in.resolution; return result; }
+  inline Common_Image_Resolution_t getResolution (const struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_in) { Common_Image_Resolution_t result; result = mediaType_in.video.resolution; return result; }
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout.resolution = resolution_in; }
   inline void free_ (struct Stream_MediaFramework_ALSA_MediaType&) {}
   inline void free_ (struct Stream_MediaFramework_FFMPEG_AudioMediaType&) {}
