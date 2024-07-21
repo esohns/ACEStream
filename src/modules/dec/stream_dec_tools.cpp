@@ -173,7 +173,7 @@ stream_decoder_libav_log_cb (void* AVClassStruct_in,
 #endif // FFMPEG_SUPPORT
 
 ACE_Date_Time
-Stream_Module_Decoder_Tools::mpeg4ToDateTime (ACE_UINT64 secondsSince_MPEG4Epoch_in)
+Stream_Module_Decoder_Tools::mpeg4ToDateTime (ACE_UINT64 secondsSinceMPEG4Epoch_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::mpeg4ToDateTime"));
 
@@ -181,9 +181,10 @@ Stream_Module_Decoder_Tools::mpeg4ToDateTime (ACE_UINT64 secondsSince_MPEG4Epoch
   ACE_OS::memset (&tm_s, 0, sizeof (struct tm));
   tm_s.tm_mday = 1;
   tm_s.tm_year = 4;
-  time_t time_i = ACE_OS::mktime (&tm_s) + secondsSince_MPEG4Epoch_in;
+  time_t time_i = ACE_OS::mktime (&tm_s) + secondsSinceMPEG4Epoch_in;
   tm_p = ACE_OS::localtime_r (&time_i, &tm_s);
   ACE_ASSERT (tm_p);
+  ACE_UNUSED_ARG (tm_p);
 
   ACE_Date_Time result (tm_s.tm_mday,
                         tm_s.tm_mon + 1,

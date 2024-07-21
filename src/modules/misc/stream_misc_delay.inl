@@ -108,10 +108,11 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         return;
       } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
-                  inherited::mod_->name (),
-                  result));
+      else if (result > 0)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
+                    inherited::mod_->name (),
+                    result));
       break;
     }
     default:
@@ -196,7 +197,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
-      else
+      else if (result > 0)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
                     inherited::mod_->name (),

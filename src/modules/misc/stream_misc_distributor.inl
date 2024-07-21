@@ -160,14 +160,15 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
         }
       } // end SWITCH
 
-      if (is_abort_b && ((*iterator).second->state () == ACE_Message_Queue_Base::DEACTIVATED))
+      if (is_abort_b ||
+          ((*iterator).second->state () == ACE_Message_Queue_Base::DEACTIVATED)) // dispatching thread has already left svc() (see below)
       {
         // retrieve branch head module writer
         QUEUE_TO_MODULE_CONST_ITERATOR_T iterator_2 =
           modules_.find ((*iterator).second);
         ACE_ASSERT (iterator_2 != modules_.end ());
         ACE_ASSERT ((*iterator_2).second);
-        result = (*iterator_2).second->writer ()->put (message_block_p, NULL);
+        result = (*iterator_2).second->writer ()->put (message_block_p, NULL); // process inline
       } // end IF
       else
         result =
@@ -310,6 +311,8 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (message_inout);
 
+  bool high_priority_b = false;
+ 
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
@@ -346,6 +349,7 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
         } // end FOR
       } // end lock scope
 
+      high_priority_b = true;
       goto end;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -409,8 +413,8 @@ end:
                false,         // dispose original ?
                false);        // high priority ?
 
-      stop (true,   // wait ?
-            false); // high priority ?
+      stop (true,             // wait ?
+            high_priority_b); // high priority ?
 
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         for (HEAD_TO_SESSIONDATA_ITERATOR_T iterator = data_.begin ();
@@ -672,7 +676,7 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
   ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, false);
 
   Stream_BranchesIterator_t iterator =
-      std::find (branches_.begin (), branches_.end (), branchName_in);
+    std::find (branches_.begin (), branches_.end (), branchName_in);
   if (iterator != branches_.end ())
   {
     index_out =

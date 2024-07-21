@@ -196,10 +196,11 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         return;
       } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
-                  inherited::mod_->name (),
-                  result));
+      else if (result > 0)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
+                    inherited::mod_->name (),
+                    result));
       break;
     }
     default:
@@ -295,6 +296,7 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
   HRESULT result_2 = E_FAIL;
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
     const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+  bool high_priority_b = false;
 
   switch (message_inout->type ())
   {
@@ -308,11 +310,13 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         return;
       } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
-                  inherited::mod_->name (),
-                  result));
+      else if (result > 0)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
+                    inherited::mod_->name (),
+                    result));
 
+      high_priority_b = true;
       goto end;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -556,8 +560,8 @@ end:
       if (likely (inherited::thr_count_ > 0))
       {
         Common_ITask* itask_p = this;
-        itask_p->stop (true,   // wait ?
-                       false); // high priority ?
+        itask_p->stop (true,             // wait ?
+                       high_priority_b); // high priority ?
       } // end IF
 
       if (likely (audioClient_))

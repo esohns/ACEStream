@@ -150,7 +150,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   switch (controlMessage_in.type ())
   {
     case STREAM_CONTROL_MESSAGE_STEP_2:
-      snapShotNextFrame_ = true; break;
+      snapShotNextFrame_ = true;
+      break;
     default:
       break;
   } // end SWITCH

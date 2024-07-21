@@ -18,6 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <algorithm>
+#include <vector>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -217,6 +220,7 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
     const_cast<SessionDataType&> (inherited::sessionData_->getR ());
   struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
   struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration codec_configuration_s;
+  std::vector<int> stream_ids_to_skip_a;
 
   // read file
   result =
@@ -252,9 +256,6 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
                 i,
                 context_->streams[i]->codecpar->codec_id,
                 ACE_TEXT (avcodec_get_name (context_->streams[i]->codecpar->codec_id))));
-
-    //inherited::configuration_->codecConfiguration->codecId =
-    //  context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_id;
   
     switch (context_->streams[i]->codecpar->codec_type)
     {
@@ -262,6 +263,18 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
       {
         streamIndexToMessageMediaType_[i] = STREAM_MEDIATYPE_AUDIO;
 
+        if (media_type_s.audio.codecId != AV_CODEC_ID_NONE)
+        { // only decode one audio/video stream each...
+          // *TODO*: use av_find_best_stream() ?
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: skipping stream %u: codec %d \"%s\"...\n"),
+                      inherited::mod_->name (),
+                      i,
+                      context_->streams[i]->codecpar->codec_id,
+                      ACE_TEXT (avcodec_get_name (context_->streams[i]->codecpar->codec_id))));
+          stream_ids_to_skip_a.push_back (i);
+          break;
+        } // end IF
         media_type_s.audio.codecId = context_->streams[i]->codecpar->codec_id;
         if (context_->streams[i]->codecpar->extradata_size)
         { 
@@ -285,6 +298,19 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
       case AVMEDIA_TYPE_VIDEO:
       {
         streamIndexToMessageMediaType_[i] = STREAM_MEDIATYPE_VIDEO;
+
+        if (media_type_s.video.codecId != AV_CODEC_ID_NONE)
+        { // only decode one audio/video stream each...
+          // *TODO*: use av_find_best_stream() ?
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: skipping stream %u: codec %d \"%s\"...\n"),
+                      inherited::mod_->name (),
+                      i,
+                      context_->streams[i]->codecpar->codec_id,
+                      ACE_TEXT (avcodec_get_name (context_->streams[i]->codecpar->codec_id))));
+          stream_ids_to_skip_a.push_back (i);
+          break;
+        } // end IF
         media_type_s.video.codecId = context_->streams[i]->codecpar->codec_id;
         if (context_->streams[i]->codecpar->extradata_size)
         {
@@ -444,9 +470,12 @@ skip:
       inherited::stop (false, false, false);
       continue;
     } // end IF
-    if (inherited::configuration_->streamIndex >= 0 &&
-        packet_s.stream_index != inherited::configuration_->streamIndex)
+    if ((inherited::configuration_->streamIndex >= 0 && packet_s.stream_index != inherited::configuration_->streamIndex) ||
+        (std::find (stream_ids_to_skip_a.begin (), stream_ids_to_skip_a.end (), packet_s.stream_index) != stream_ids_to_skip_a.end ()))
+    {
+      av_packet_unref (&packet_s);
       goto skip;
+    } // end IF
     
     ACE_ASSERT (packet_s.size);
     message_p =
@@ -457,6 +486,7 @@ skip:
                   ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), aborting\n"),
                   inherited::mod_->name (),
                   inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+      av_packet_unref (&packet_s);
       inherited::stop (false, false, false);
       continue;
     } // end IF
@@ -470,6 +500,7 @@ skip:
                   ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%u): \"%m\", aborting\n"),
                   inherited::mod_->name (),
                   packet_s.size));
+      av_packet_unref (&packet_s);
       message_p->release (); message_p = NULL;
       inherited::stop (false, false, false);
       continue;
