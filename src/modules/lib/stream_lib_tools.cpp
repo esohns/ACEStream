@@ -3601,16 +3601,16 @@ Stream_MediaFramework_Tools::isAudioCodecId (enum AVCodecID codecId_in)
     case AV_CODEC_ID_SIREN:
     case AV_CODEC_ID_HCA:
     case AV_CODEC_ID_FASTAUDIO:
-    case AV_CODEC_ID_MSNSIREN:
-    case AV_CODEC_ID_DFPWM:
-    case AV_CODEC_ID_BONK:
-    case AV_CODEC_ID_MISC4:
-    case AV_CODEC_ID_APAC:
-    case AV_CODEC_ID_FTR:
-    case AV_CODEC_ID_WAVARC:
-    case AV_CODEC_ID_RKA:
-    case AV_CODEC_ID_AC4:
-    case AV_CODEC_ID_OSQ:
+    //case AV_CODEC_ID_MSNSIREN:
+    //case AV_CODEC_ID_DFPWM:
+    //case AV_CODEC_ID_BONK:
+    //case AV_CODEC_ID_MISC4:
+    //case AV_CODEC_ID_APAC:
+    //case AV_CODEC_ID_FTR:
+    //case AV_CODEC_ID_WAVARC:
+    //case AV_CODEC_ID_RKA:
+    //case AV_CODEC_ID_AC4:
+    //case AV_CODEC_ID_OSQ:
     // case AV_CODEC_ID_QOA:
     // case AV_CODEC_ID_LC3:
       return true;
