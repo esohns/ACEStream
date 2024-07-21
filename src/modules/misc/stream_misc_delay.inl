@@ -284,7 +284,8 @@ continue_:
             inherited2::getMediaType (session_data_r.formats.back (),
                                       STREAM_MEDIATYPE_VIDEO,
                                       media_type_2);
-            frame_rate_f = media_type_2.frameRate.numerator / static_cast<float> (media_type_2.frameRate.denominator);
+            frame_rate_f =
+              media_type_2.frameRate.numerator / static_cast<float> (media_type_2.frameRate.denominator);
 #endif // ACE_WIN32 || ACE_WIN64
             ACE_ASSERT (frame_rate_f > 0.0f);
 
@@ -293,7 +294,8 @@ continue_:
                         inherited::mod_->name (),
                         frame_rate_f));
 
-            interval = ACE_Time_Value (0, static_cast<suseconds_t> ((1.0f / frame_rate_f) * 1000000.0f));
+            interval =
+              ACE_Time_Value (0, static_cast<suseconds_t> ((1.0f / frame_rate_f) * 1000000.0f));
           } // end IF
 
           break;
