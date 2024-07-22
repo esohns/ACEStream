@@ -108,6 +108,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   void setSampleRate (unsigned int, struct _AMMediaType&);
   inline void setChannels (const unsigned int channels_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.audio.channels = channels_in; }
   void setChannels (unsigned int, struct _AMMediaType&);
+  inline void free_ (struct Stream_MediaFramework_FFMPEG_VideoMediaType&) {}
   inline void free_ (struct Stream_MediaFramework_FFMPEG_MediaType&) {}
   inline void free_ (struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::free (mediaType_inout); }
 
@@ -149,6 +150,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
 
   void setFramerate (const struct AVRational&, struct _AMMediaType&);
   inline void setFramerate (const struct AVRational& rate_in, struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_out) { setFramerate (rate_in, mediaType_out.video); }
+  inline void setFramerate (const struct AVRational& rate_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out) { mediaType_out.frameRate = rate_in; }
   inline void setFramerate (const struct AVRational& rate_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out) { mediaType_out.video.frameRate = rate_in; }
 #endif // FFMPEG_SUPPORT
 #else

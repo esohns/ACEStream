@@ -145,7 +145,7 @@ Stream_DataMessageBase_T<DataType,
 
   inherited::initialize (sessionId_in,
                          dataBlock_in);
-  inherited::type_ = STREAM_MESSAGE_OBJECT;
+  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
 }
 
 template <typename DataType,
