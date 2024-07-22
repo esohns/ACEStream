@@ -56,6 +56,7 @@ Test_U_CameraFilter_MarchingSquares_Filter::Test_U_CameraFilter_MarchingSquares_
  , areaWidth_ (0.0f)
  , initX_ (0.0f), initY_ (0.0f)
  , palette_ ()
+ , notify_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::Test_U_CameraFilter_MarchingSquares_Filter"));
 
@@ -281,9 +282,7 @@ error:
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
-    {
       break;
-    }
     default:
       break;
   } // end SWITCH
@@ -409,6 +408,8 @@ Test_U_CameraFilter_MarchingSquares_Filter::OnUserCreate ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::OnUserCreate"));
 
+  notify_ = true; // reset status
+
   return true;
 }
 
@@ -436,6 +437,12 @@ Test_U_CameraFilter_MarchingSquares_Filter::OnUserDestroy ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_PGE_T::OnUserDestroy"));
 
+  if (notify_)
+  { // --> user closed the window --> notify upstream
+    notify_ = false;
+    this->notify (STREAM_SESSION_MESSAGE_ABORT, true); // expedite !
+  } // end IF
+
   return true;
 }
 
@@ -445,7 +452,7 @@ Test_U_CameraFilter_MarchingSquares_Filter::svc (void)
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::svc"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
   Common_Error_Tools::setThreadName (inherited::threadName_,
                                      NULL);
 #else
@@ -587,6 +594,7 @@ Test_U_CameraFilter_MarchingSquares_Filter::processNextMessage ()
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: worker thread %t failed to ACE_Task::getq(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
+    notify_ = false;
     return true; // stop PGE
   } // end IF
   ACE_ASSERT (message_block_p);
@@ -601,6 +609,7 @@ Test_U_CameraFilter_MarchingSquares_Filter::processNextMessage ()
                   inherited::mod_->name ()));
       message_block_p->release ();
     } // end IF
+    notify_ = false;
     return true; // stop PGE
   } // end IF
 
@@ -612,6 +621,7 @@ Test_U_CameraFilter_MarchingSquares_Filter::processNextMessage ()
   {
     inherited::stop (false, // wait ?
                      true); // high priority ?
+    notify_ = false;
     return true; // stop PGE
   } // end IF
 

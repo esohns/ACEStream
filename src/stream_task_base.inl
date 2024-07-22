@@ -1043,7 +1043,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   SessionMessageType,
                   StreamControlType,
                   SessionEventType,
-                  UserDataType>::notify (SessionEventType sessionEvent_in)
+                  UserDataType>::notify (SessionEventType sessionEvent_in,
+                                         bool expedite_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::notify"));
 
@@ -1066,7 +1067,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   } // end IF
   try {
     inotify_p->notify (session_id,
-                       sessionEvent_in);
+                       sessionEvent_in,
+                       expedite_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_ISessionNotify_T::notify(%u,%d), continuing\n"),

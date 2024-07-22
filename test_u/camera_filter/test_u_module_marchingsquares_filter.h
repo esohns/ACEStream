@@ -173,7 +173,9 @@ class Test_U_CameraFilter_MarchingSquares_Filter
   float                          areaWidth_;
   float                          initX_, initY_;
   std::vector<Common_GL_Color_t> palette_;
-};
+
+  bool                           notify_;
+ };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_CameraFilter_DirectShow_SessionData,                       // session data type

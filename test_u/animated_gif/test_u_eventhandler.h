@@ -39,7 +39,8 @@ class Test_U_EventHandler
   virtual void start (Stream_SessionId_t,
                       const Test_U_AnimatedGIF_SessionData&);
   virtual void notify (Stream_SessionId_t,
-                       const enum Stream_SessionMessageType&);
+                       const enum Stream_SessionMessageType&,
+                       bool = false);
   virtual void end (Stream_SessionId_t);
   virtual void notify (Stream_SessionId_t,
                        const Test_U_Message&);

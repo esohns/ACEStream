@@ -163,12 +163,19 @@ Test_I_EventHandler_T<NotificationType,
 #endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
                       SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
-                                                   const enum Stream_SessionMessageType& sessionEvent_in)
+                                                   const enum Stream_SessionMessageType& sessionEvent_in,
+                                                   bool expedite_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_EventHandler_T::notify"));
 
   ACE_UNUSED_ARG (sessionId_in);
   ACE_UNUSED_ARG (sessionEvent_in);
+  ACE_UNUSED_ARG (expedite_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
 }
 
 template <typename NotificationType,
@@ -531,12 +538,19 @@ Test_I_InputHandler_T<NotificationType,
 #endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
                       SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
-                                                   const enum Stream_SessionMessageType& sessionEvent_in)
+                                                   const enum Stream_SessionMessageType& sessionEvent_in,
+                                                   bool expedite_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::notify"));
 
   ACE_UNUSED_ARG (sessionId_in);
   ACE_UNUSED_ARG (sessionEvent_in);
+  ACE_UNUSED_ARG (expedite_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
 }
 
 template <typename NotificationType,

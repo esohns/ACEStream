@@ -1259,8 +1259,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
   try {
     istreamcontrol_p->notify (notification_in,
-                              false,
-                              expedite_in);
+                              false,           // recurse upstream ?
+                              expedite_in);    // expedite ?
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::notify(%d), returning\n"),

@@ -98,12 +98,19 @@ HTTPGet_EventHandler::start (Stream_SessionId_t sessionId_in,
 
 void
 HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
-                              const enum Stream_SessionMessageType& messageType_in)
+                              const enum Stream_SessionMessageType& messageType_in,
+                              bool expedite_in)
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_EventHandler::notify"));
 
   ACE_UNUSED_ARG (sessionId_in);
   ACE_UNUSED_ARG (messageType_in);
+  ACE_UNUSED_ARG (expedite_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
 }
 
 void

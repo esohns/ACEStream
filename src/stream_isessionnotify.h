@@ -51,10 +51,11 @@ template <typename SessionDataType, // not (!) reference-counted
 class Stream_ISessionNotify_T
 {
  public:
-  virtual void start (Stream_SessionId_t,            // session id
-                      const SessionDataType&) = 0;   // session data
-  virtual void notify (Stream_SessionId_t,           // session id
-                       const SessionEventType&) = 0; // event (state/status change, ...)
+  virtual void start (Stream_SessionId_t,          // session id
+                      const SessionDataType&) = 0; // session data
+  virtual void notify (Stream_SessionId_t,      // session id
+                       const SessionEventType&, // event (state/status change, ...)
+                       bool = false) = 0;       // expedite ?
   virtual void end (Stream_SessionId_t) = 0;         // session id
 };
 

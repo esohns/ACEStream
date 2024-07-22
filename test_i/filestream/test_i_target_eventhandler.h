@@ -30,7 +30,6 @@
 #include "test_i_common.h"
 
 #include "test_i_session_message.h"
-//#include "test_i_target_common.h"
 
 // forward declarations
 struct Test_I_Target_UI_CBData;
@@ -46,7 +45,8 @@ class Test_I_Target_EventHandler
   virtual void start (Stream_SessionId_t,
                       const struct Test_I_Target_SessionData&);
   virtual void notify (Stream_SessionId_t,
-                       const enum Stream_SessionMessageType&);
+                       const enum Stream_SessionMessageType&,
+                       bool = false);
   virtual void end (Stream_SessionId_t);
   virtual void notify (Stream_SessionId_t,
                        const Test_I_Target_Message_t&);

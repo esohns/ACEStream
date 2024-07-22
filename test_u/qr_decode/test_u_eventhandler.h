@@ -47,8 +47,9 @@ class Test_U_EventHandler
   virtual void start (Stream_SessionId_t,           // session id
                       const QRDecode_SessionData&); // session data
 #endif // ACE_WIN32 || ACE_WIN64
-  virtual void notify (Stream_SessionId_t,                     // session id
-                       const enum Stream_SessionMessageType&); // event (state/status change, ...)
+  virtual void notify (Stream_SessionId_t,                    // session id
+                       const enum Stream_SessionMessageType&, // event (state/status change, ...)
+                       bool = false);                         // expedite ?
   virtual void notify (Stream_SessionId_t,     // session id
                        const Test_U_Message&); // data
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

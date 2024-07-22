@@ -152,7 +152,8 @@ class Stream_TaskBase_T
                           UserDataType*,                         // user data handle
                           bool);                                 // expedited ?
 
-  virtual void notify (SessionEventType); // session event
+  virtual void notify (SessionEventType, // session event
+                       bool = false);    // expedite ?
 
   // helper methods
   // *NOTE*: 'high priority' effectively means that the message is enqueued at

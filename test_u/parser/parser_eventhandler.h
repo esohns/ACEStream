@@ -48,8 +48,9 @@ class Parser_EventHandler
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,                 // session id
                       const struct Parser_SessionData&); // session data
-  virtual void notify (Stream_SessionId_t,                     // session id
-                       const enum Stream_SessionMessageType&); // event (state/status change, ...)
+  virtual void notify (Stream_SessionId_t,                    // session id
+                       const enum Stream_SessionMessageType&, // event (state/status change, ...)
+                       bool = false);                         // expedite ?
   virtual void notify (Stream_SessionId_t,     // session id
                        const Parser_Message&); // data
   virtual void notify (Stream_SessionId_t,            // session id

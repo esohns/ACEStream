@@ -128,7 +128,8 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::notify (Stream_SessionId_t sessionId_in,
-                                              const SessionEventType& sessionEvent_in)
+                                              const SessionEventType& sessionEvent_in,
+                                              bool expedite_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::notify"));
 
@@ -146,7 +147,8 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
   //         actually not be enforcable
   try {
     notify_->notify (sessionEvent_in,
-                     true); // forward upstream ?
+                     true,            // forward upstream ?
+                     expedite_in);    // expedite ?
   }
   catch (...) {
     // *TODO*: remove type inferences

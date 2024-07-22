@@ -80,8 +80,9 @@ class Stream_Module_Base_T
   // implement (part of) Stream_IModule_T
   // *IMPORTANT NOTE*: the default implementation simply forwards all module
   //                   events to the processing stream instance
-  virtual void notify (Stream_SessionId_t,       // session id
-                       const SessionEventType&); // event (state/status change, ...)
+  virtual void notify (Stream_SessionId_t,      // session id
+                       const SessionEventType&, // event (state/status change, ...)
+                       bool = false);           // expedite ?
   inline virtual const STREAM_T& getR () const { ACE_ASSERT (stream_); return *stream_; }
   virtual bool initialize (const ConfigurationType&);
   inline virtual const ConfigurationType& getR_2 () const { ACE_ASSERT (configuration_); return *configuration_; }

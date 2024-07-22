@@ -130,8 +130,8 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     {
       // layout_in->append (&sobelFilter_, NULL, 0);
       //layout_in->append (&Direct3DDisplay_, NULL, 0);
-      //layout_in->append (&marchingSquaresFilter_, NULL, 0);
-      layout_in->append (&weightedVoronoiStippleFilter_, NULL, 0);
+      layout_in->append (&marchingSquaresFilter_, NULL, 0);
+      //layout_in->append (&weightedVoronoiStippleFilter_, NULL, 0);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:

@@ -50,7 +50,8 @@ class Test_I_Source_EventHandler
   virtual void start (Stream_SessionId_t,
                       const Test_I_Source_SessionData&);
   virtual void notify (Stream_SessionId_t,
-                       const Stream_SessionMessageType&);
+                       const Stream_SessionMessageType&,
+                       bool = false);
   virtual void end (Stream_SessionId_t);
   virtual void notify (Stream_SessionId_t,
                        const Test_I_Source_Message_t&);

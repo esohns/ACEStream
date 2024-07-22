@@ -1630,7 +1630,7 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const struct Stream_Device_Iden
                            &GUID_s, sizeof (struct _GUID), &returned_size);
     if (FAILED (result))
     {
-      ACE_DEBUG ((LM_ERROR,
+      ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("failed to IKsPropertySet::Get(AMPROPERTY_PIN_CATEGORY): \"%s\", falling back to default pin\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true, false).c_str ())));
       goto default_; // *TODO*: suddenly retuns E_HANDLE ?

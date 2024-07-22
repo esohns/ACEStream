@@ -23,8 +23,6 @@
 
 #include "ace/Global_Macros.h"
 
-//#include "common_iinitialize.h"
-
 #include "stream_common.h"
 
 #include "branch_message.h"
@@ -48,8 +46,9 @@ class Branch_EventHandler
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,                 // session id
                       const struct Branch_SessionData&); // session data
-  virtual void notify (Stream_SessionId_t,                     // session id
-                       const enum Stream_SessionMessageType&); // event (state/status change, ...)
+  virtual void notify (Stream_SessionId_t,                    // session id
+                       const enum Stream_SessionMessageType&, // event (state/status change, ...)
+                       bool = false);                         // expedite ?
   virtual void notify (Stream_SessionId_t,     // session id
                        const Branch_Message&); // data
   virtual void notify (Stream_SessionId_t,            // session id
