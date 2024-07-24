@@ -155,7 +155,7 @@ class Stream_DataMessageBase_2
                             DataType*&);        // data handle
   Stream_DataMessageBase_2 (MessageType);       // message type
   explicit Stream_DataMessageBase_2 (Stream_SessionId_t, // session id
-                                     unsigned int);      // size
+                                     size_t);            // size
   // copy ctor, to be used by derived::duplicate()
   // *WARNING*: while the clone inherits a "shallow copy" of the referenced
   //            data block, it will NOT inherit the attached data
