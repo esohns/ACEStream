@@ -221,6 +221,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void setFramerate (const struct AVRational& rate_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out) { mediaType_out.video.frameRate = rate_in; }
   inline void setFramerate (const struct AVRational& rate_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_out) { mediaType_out.frameRate.numerator = rate_in.num; mediaType_out.frameRate.denominator = rate_in.den; }
   inline void setFramerate (const struct AVRational& rate_in, struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_out) { mediaType_out.video.frameRate.numerator = rate_in.num; mediaType_out.video.frameRate.denominator = rate_in.den; }
+  inline void free_ (struct Stream_MediaFramework_FFMPEG_VideoMediaType&) {}
 #endif // FFMPEG_SUPPORT
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_inout) { mediaType_inout.video.format.width = resolution_in.width; mediaType_inout.video.format.height = resolution_in.height; }
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.width = resolution_in.width; mediaType_inout.format.height = resolution_in.height; }

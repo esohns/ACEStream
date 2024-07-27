@@ -1143,11 +1143,12 @@ link:
 
 error:
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        Stream_Net_ConnectionStatesIterator_t iterator = session_data_r.connectionStates.find (handle_h);
-        ACE_ASSERT (iterator != session_data_r.connectionStates.end ());
-        session_data_r.connectionStates.erase (iterator);
+        Stream_Net_ConnectionStatesIterator_t iterator_2 = session_data_r.connectionStates.find (handle_h);
+        if (iterator_2 != session_data_r.connectionStates.end ())
+          session_data_r.connectionStates.erase (iterator_2);
       } // end lock scope
-      handles_.pop_back ();
+      if (handle_h != ACE_INVALID_HANDLE)
+        handles_.pop_back ();
 
       if (isOpen_ &&
           !isPassive_)
