@@ -21,6 +21,11 @@
 #ifndef STREAM_LIB_DIRECTDRAW_COMMON_H
 #define STREAM_LIB_DIRECTDRAW_COMMON_H
 
+#include "windef.h"
+//#pragma pack(push)
+//#pragma pack(4)
+#include "d3d9types.h"
+//#pragma pack(pop)
 #include "d3d9.h"
 
 #include "ace/OS.h"
@@ -29,8 +34,6 @@
 #include "ace/Thread_Mutex.h"
 
 #include "common_macros.h"
-
-#include "stream_lib_defines.h"
 
 struct Stream_MediaFramework_Direct3D_Configuration
 {
@@ -86,29 +89,30 @@ struct Stream_MediaFramework_Direct3D_Configuration
     presentationParameters.SwapEffect = D3DSWAPEFFECT_DISCARD;
     //presentationParameters.hDeviceWindow = NULL;
     presentationParameters.Windowed = TRUE;
-    presentationParameters.EnableAutoDepthStencil = FALSE;
+    //presentationParameters.EnableAutoDepthStencil = FALSE;
     presentationParameters.AutoDepthStencilFormat = D3DFMT_UNKNOWN;
-    presentationParameters.Flags =
+    presentationParameters.Flags = static_cast<DWORD>
       (D3DPRESENTFLAG_DEVICECLIP           | // "not valid with D3DSWAPEFFECT_FLIPEX"
        //D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL | // "illegal for all lockable formats"
        D3DPRESENTFLAG_LOCKABLE_BACKBUFFER  |
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
        //D3DPRESENTFLAG_NOAUTOROTATE         |
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
        D3DPRESENTFLAG_UNPRUNEDMODE         |
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
        D3DPRESENTFLAG_VIDEO);
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
        //D3DPRESENTFLAG_OVERLAY_LIMITEDRGB   |
        //D3DPRESENTFLAG_OVERLAY_YCbCr_BT709  |
        //D3DPRESENTFLAG_OVERLAY_YCbCr_xvYCC  |
        //D3DPRESENTFLAG_RESTRICTED_CONTENT   |
        //D3DPRESENTFLAG_RESTRICT_SHARED_RESOURCE_DRIVER);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
     //presentationParameters.FullScreen_RefreshRateInHz = 0;
     // *NOTE*: to prevent tearing: D3DPRESENT_INTERVAL_DEFAULT (i.e. 'vSync')
-    presentationParameters.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+    presentationParameters.PresentationInterval =
+      static_cast<UINT> (D3DPRESENT_INTERVAL_IMMEDIATE);
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
     ACE_OS::memset (&fullScreenDisplayMode, 0, sizeof (struct D3DDISPLAYMODEEX));
     fullScreenDisplayMode.Size = sizeof (struct D3DDISPLAYMODEEX);
     //fullScreenDisplayMode.Width = 0;
@@ -116,7 +120,7 @@ struct Stream_MediaFramework_Direct3D_Configuration
     //fullScreenDisplayMode.RefreshRate = 0;
     fullScreenDisplayMode.Format = D3DFMT_UNKNOWN;
     fullScreenDisplayMode.ScanLineOrdering = D3DSCANLINEORDERING_PROGRESSIVE;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
     //usage = (//D3DUSAGE_AUTOGENMIPMAP      |
     //         D3DUSAGE_DEPTHSTENCIL    |
@@ -142,16 +146,16 @@ struct Stream_MediaFramework_Direct3D_Configuration
   // *NOTE*: "...If running in full-screen, the focus must be a top level
   //         window. ..."
   HWND                           focusWindow;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   IDirect3DDevice9Ex*            handle;
 #else
   IDirect3DDevice9*              handle;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   ACE_SYNCH_MUTEX                lock; // device-
   struct _D3DPRESENT_PARAMETERS_ presentationParameters;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   struct D3DDISPLAYMODEEX        fullScreenDisplayMode;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   //DWORD                          usage; // see also: D3DUSAGE
   // *IMPORTANT NOTE*: set to the thread that allocates 'handle'
   ACE_thread_t                   threadId;

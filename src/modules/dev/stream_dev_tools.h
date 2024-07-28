@@ -23,10 +23,9 @@
 
 #include <string>
 
-#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "d3d9.h"
 #include "d3d9types.h"
+#include "d3d9.h"
 #include "dxva2api.h"
 #include "guiddef.h"
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
