@@ -247,8 +247,8 @@ get_mode:
     else
     { ACE_ASSERT (IMFVideoDisplayControl_);
       struct tagRECT area_s;
-      BOOL result = GetClientRect (window_, &area_s);
-      ACE_ASSERT (result == TRUE);
+      BOOL result_2 = GetClientRect (window_, &area_s);
+      ACE_ASSERT (result_2 == TRUE);
       UINT uFlags = (SWP_ASYNCWINDOWPOS |
                      SWP_NOACTIVATE     |
                      SWP_NOMOVE         |
@@ -307,8 +307,8 @@ get_mode:
     else
     { ACE_ASSERT (IMFVideoDisplayControl_);
       struct tagRECT area_s;
-      BOOL result = GetClientRect (window_, &area_s);
-      ACE_ASSERT (result == TRUE);
+      BOOL result_2 = GetClientRect (window_, &area_s);
+      ACE_ASSERT (result_2 == TRUE);
       UINT uFlags = (SWP_ASYNCWINDOWPOS |
                      SWP_NOACTIVATE     |
                      SWP_NOMOVE         |
@@ -1330,8 +1330,8 @@ continue_:
       goto error;
     } // end IF
     struct tagRECT destination_rectangle_s;
-    result = SetRectEmpty (&destination_rectangle_s);
-    ACE_ASSERT (SUCCEEDED (result));
+    BOOL result_2 = SetRectEmpty (&destination_rectangle_s);
+    ACE_ASSERT (result_2);
     destination_rectangle_s.right =
       (windowArea_inout.right - windowArea_inout.left);
     destination_rectangle_s.bottom =
@@ -1465,7 +1465,8 @@ continue_:
     //ACE_NOTREACHED (return false;);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0501/0x0600)
   } // end ELSE IF
-  else if (InlineIsEqualGUID (CLSID_VideoRenderer, GUID_s)) {}
+  else if (InlineIsEqualGUID (CLSID_VideoRenderer, GUID_s))
+  {}
   else
   {
     ACE_DEBUG ((LM_ERROR,

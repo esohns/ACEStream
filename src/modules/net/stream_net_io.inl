@@ -186,7 +186,9 @@ continue_:
           return;
         }
       } // end IF
-    } // *WARNING*: the control flow falls through here
+      // *WARNING*: the control flow falls through here
+      //[[fallthrough]];
+    }
     case STREAM_CONTROL_MESSAGE_ABORT:
     {
       if (likely (connection_p))

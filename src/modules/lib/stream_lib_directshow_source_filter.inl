@@ -207,6 +207,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
               CLSID_in,
               result_out)
  , configuration_ (NULL)
+ , outputPin_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_T::Stream_MediaFramework_DirectShow_Source_Filter_T"));
 
