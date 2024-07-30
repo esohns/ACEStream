@@ -135,18 +135,6 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
     return;
 #endif // GTK_CHECK_VERSION (3,0,0)
 
-  //// *NOTE*: 'crunching' the message data simplifies the data transformation
-  ////         algorithms, at the cost of (several) memory copies. This is a
-  ////         tradeoff that may warrant further optimization efforts
-  //try {
-  //  message_inout->defragment ();
-  //} catch (...) {
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to Stream_IDataMessage_T::defragment(), returning\n"),
-  //              inherited::mod_->name ()));
-  //  return;
-  //}
-
 #if GTK_CHECK_VERSION (3,6,0)
 #else
   bool leave_gdk = false;
@@ -159,8 +147,20 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
                   message_inout->length ());
 
 #if GTK_CHECK_VERSION (3,0,0)
-  gdk_cairo_set_source_pixbuf (context_, pixbuf_, 0.0, 0.0);
-  cairo_paint (context_);
+  cairo_t* context_p = context_;
+#if GTK_CHECK_VERSION (3,22,0)
+  cairo_region_t* cairo_region_p = cairo_region_create ();
+  ACE_ASSERT (cairo_region_p);
+  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (window_));
+  ACE_ASSERT (window_p);
+  GdkDrawingContext* drawing_context_p =
+    gdk_window_begin_draw_frame (window_p, cairo_region_p);
+  ACE_ASSERT (drawing_context_p);
+  context_p =
+    gdk_drawing_context_get_cairo_context (drawing_context_p);
+#endif // GTK_CHECK_VERSION (3,22,0)
+  gdk_cairo_set_source_pixbuf (context_p, pixbuf_, 0.0, 0.0);
+  cairo_paint (context_p);
 #else
   gdk_draw_pixbuf (GDK_DRAWABLE (window_),
                    NULL,
@@ -168,6 +168,10 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
                    0, 0, 0, 0, -1, -1,
                    GDK_RGB_DITHER_NONE, 0, 0);
 #endif // GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,22,0)
+  gdk_window_end_draw_frame (window_p, drawing_context_p);
+  cairo_region_destroy (cairo_region_p);
+#endif // GTK_CHECK_VERSION (3,22,0)
 
 #if GTK_CHECK_VERSION (3,6,0)
 #else
@@ -587,6 +591,8 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
 #if GTK_CHECK_VERSION (3,0,0)
   ACE_ASSERT (!context_);
+#if GTK_CHECK_VERSION (3,22,0)
+#else
   context_ = gdk_cairo_create (gtk_widget_get_window (GTK_WIDGET (window_)));
   if (unlikely (!context_))
   {
@@ -596,7 +602,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
     g_object_unref (pixbuf_); pixbuf_ = NULL;
     return -1;
   } // end IF
-  //gdk_cairo_set_source_pixbuf (context_, pixbuf_, 0.0, 0.0);
+#endif // GTK_CHECK_VERSION (3,22,0)
 #endif // GTK_CHECK_VERSION (3,0,0)
 
 //  g_main_loop_run (mainLoop_);

@@ -101,8 +101,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_T::~Stream_Decoder_LibAVDecoder_T"));
 
-  int result = -1;
-
   if (frame_)
   {
     av_frame_unref (frame_);
