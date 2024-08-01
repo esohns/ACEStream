@@ -557,9 +557,20 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 
         while (inherited::thr_count_ && !inherited::window_); // *TODO*: never do this
       } // end IF
-      else
-      { ACE_ASSERT (false); // *TODO*
-      } // end ELSE
+      else if (!direct3DConfiguration_->handle)
+      {
+        if (unlikely (!initialize_Direct3D (*direct3DConfiguration_,
+                                            direct3DConfiguration_->handle,
+                                            direct3DConfiguration_->presentationParameters)))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to initialize_Direct3D(), aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+        ACE_ASSERT (direct3DConfiguration_->handle);
+        releaseDeviceHandle_ = true;
+      } // end ELSE IF
 
       if (COM_initialized)
         Common_Tools::finalizeCOM ();
@@ -573,7 +584,8 @@ error:
       } // end IF
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       notify (STREAM_SESSION_MESSAGE_ABORT);
 

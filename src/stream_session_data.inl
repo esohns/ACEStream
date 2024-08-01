@@ -163,7 +163,7 @@ Stream_SessionDataMediaBase_T<BaseType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework = rhs_in.mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
-  state = (state ? state : rhs_in.state);
+  state = rhs_in.state;
   statistic =
       ((statistic.timeStamp >= rhs_in.statistic.timeStamp) ? statistic
                                                            : rhs_in.statistic);
@@ -227,7 +227,7 @@ Stream_SessionDataMediaBase_T<BaseType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework = rhs_in.mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
-  state = (state ? state : rhs_in.state);
+  state = rhs_in.state;
   statistic = rhs_in.statistic;
   targetFileName = rhs_in.targetFileName;
   userData = (userData ? userData : rhs_in.userData);

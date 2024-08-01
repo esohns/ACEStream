@@ -154,14 +154,14 @@ class Stream_Base_T
                                                         ControlMessageType,
                                                         DataMessageType,
                                                         SessionMessageType,
-                                                        SessionDataType> DISTRIBUTOR_READER_TASK_T;
+                                                        SessionDataContainerType> DISTRIBUTOR_READER_TASK_T;
   typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
                                                         TimePolicyType,
                                                         HandlerConfigurationType,
                                                         ControlMessageType,
                                                         DataMessageType,
                                                         SessionMessageType,
-                                                        SessionDataType> DISTRIBUTOR_WRITER_TASK_T;
+                                                        SessionDataContainerType> DISTRIBUTOR_WRITER_TASK_T;
   typedef Stream_StreamModule_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 SessionDataType,

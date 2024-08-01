@@ -1391,7 +1391,6 @@ Stream_Base_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_LINK:
     {
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
-        ACE_ASSERT (!state_.linked_ds_);
         state_.linked_ds_ = true;
       } // end lock scope
       //ACE_DEBUG ((LM_DEBUG,
@@ -1402,7 +1401,6 @@ Stream_Base_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
-        //ACE_ASSERT (state_.linked_ds_);
         state_.linked_ds_ = false;
       } // end lock scope
       //ACE_DEBUG ((LM_DEBUG,

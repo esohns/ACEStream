@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "amvideo.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
@@ -114,6 +115,47 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::setChannels (unsigned int
     waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8);
   waveformatex_p->nAvgBytesPerSec =
     waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign;
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::setFormat (enum AVPixelFormat format_in,
+                                                                  struct _AMMediaType& mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::setFormat"));
+
+  if (InlineIsEqualGUID (mediaType_inout.majortype, GUID_NULL))
+  {
+    mediaType_inout.majortype = MEDIATYPE_Video;
+    mediaType_inout.bFixedSizeSamples = TRUE;
+    mediaType_inout.bTemporalCompression = FALSE;
+
+    if (InlineIsEqualGUID (mediaType_inout.formattype, GUID_NULL))
+    {
+      mediaType_inout.formattype = FORMAT_VideoInfo;
+      mediaType_inout.cbFormat = sizeof (struct tagVIDEOINFOHEADER);
+      mediaType_inout.pbFormat =
+        reinterpret_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tagVIDEOINFOHEADER)));
+      if (unlikely (!mediaType_inout.pbFormat))
+      {
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+        return;
+      } // end IF
+      ACE_OS::memset (mediaType_inout.pbFormat, 0, sizeof (struct tagVIDEOINFOHEADER));
+      struct tagVIDEOINFOHEADER* video_info_header_p =
+        reinterpret_cast<struct tagVIDEOINFOHEADER*> (mediaType_inout.pbFormat);
+      video_info_header_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
+      video_info_header_p->bmiHeader.biCompression = BI_RGB;
+      video_info_header_p->bmiHeader.biPlanes = 1;
+      // set to sane 30 fps
+      video_info_header_p->AvgTimePerFrame =
+        static_cast<REFERENCE_TIME> (1 / static_cast<float> (30) * 100000000000000.0f) / NANOSECONDS;
+    } // end IF
+  } // end IF
+
+  Stream_MediaFramework_DirectShow_Tools::setFormat (Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (format_in),
+                                                     mediaType_inout);
 }
 
 template <typename MediaType>

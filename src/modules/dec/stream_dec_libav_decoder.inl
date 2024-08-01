@@ -392,6 +392,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
       MediaType media_type_2;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
+#endif // ACE_WIN32 || ACE_WIN64
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_2);
@@ -829,6 +832,8 @@ continue_2:
       } // end lock scope
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_OS::memset (&media_type_s, 0, sizeof (MediaType));
+
       Common_Image_Resolution_t resolution_s = { static_cast<LONG> (formatWidth_),
                                                  static_cast<LONG> (formatHeight_) };
 #else

@@ -999,12 +999,10 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       if (iterator == inherited::configuration_->connectionConfigurations->end ())
         iterator =
           inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-#if defined (_DEBUG)
       else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: applying connection configuration\n"),
                     inherited::mod_->name ()));
-#endif // _DEBUG
       ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
       configuration_p =
           static_cast<typename ConnectorType::CONFIGURATION_T*> ((*iterator).second);
