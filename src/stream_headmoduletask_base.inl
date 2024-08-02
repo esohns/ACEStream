@@ -173,7 +173,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
   } // end IF
 
-  //inherited::msg_queue (NULL);
+  inherited::msg_queue (NULL);
 }
 
 template <ACE_SYNCH_DECL,

@@ -123,17 +123,13 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
 
   session_data_p =
     &const_cast<SessionDataType&> (sibling_task_p->sessionData_->getR ());
-
-  // sanity check(s)
-  // *TODO*: remove type inferences
-  ACE_ASSERT (session_data_p->lock);
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);
+//  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);
     ACE_ASSERT (!session_data_p->connectionStates.empty ());
     ACE_ASSERT (session_data_p->connectionStates.size () == 1);
     ACE_ASSERT ((*session_data_p->connectionStates.begin ()).first != ACE_INVALID_HANDLE);
     connection_p =
       connection_manager_p->get ((*session_data_p->connectionStates.begin ()).first);
-  } // end lock scope
+  //} // end lock scope
   if (unlikely (!connection_p))
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -153,60 +149,51 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
 continue_:
   switch (controlMessage_in.type ())
   {
-    //case STREAM_CONTROL_MESSAGE_CONNECT:
-    //{ ACE_ASSERT (!session_data_p->connection);
-    //  session_data_p->connection = connection_p;
-    //  break;
-    //}
     case STREAM_CONTROL_MESSAGE_DISCONNECT:
-    {
-      if (likely (connection_p))
+    { ACE_ASSERT (connection_p);
+
+      // *WARNING*: regular disconnections must enforce that all enqueued
+      //            outbound data has been dispatched by the kernel. This
+      //            implementation works as long as there are no asynchronous
+      //            upstream module reader tasks
+      Stream_IMessageQueue* i_message_queue_p =
+        dynamic_cast<Stream_IMessageQueue*> (connection_p);
+      if (unlikely (!i_message_queue_p))
       {
-        // *WARNING*: regular disconnections must enforce that all enqueued
-        //            outbound data has been dispatched by the kernel. This
-        //            implementation works as long as there are no asynchronous
-        //            upstream module reader tasks
-        Stream_IMessageQueue* i_message_queue_p =
-          dynamic_cast<Stream_IMessageQueue*> (connection_p);
-        if (unlikely (!i_message_queue_p))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to dynamic_cast<Stream_IMessageQueue>(0x%@), returning\n"),
-                      inherited::mod_->name (),
-                      connection_p));
-          return;
-        } // end IF
-        try {
-          i_message_queue_p->waitForIdleState ();
-        } catch (...) {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Net_IStreamConnection_T::waitForIdleState() (id was: %u), continuing\n"),
-                      inherited::mod_->name (),
-                      connection_p->id ()));
-          return;
-        }
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to dynamic_cast<Stream_IMessageQueue>(0x%@), returning\n"),
+                    inherited::mod_->name (),
+                    connection_p));
+        return;
       } // end IF
+      try {
+        i_message_queue_p->waitForIdleState ();
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in Net_IStreamConnection_T::waitForIdleState() (id was: %u), continuing\n"),
+                    inherited::mod_->name (),
+                    connection_p->id ()));
+        return;
+      }
+
       // *WARNING*: the control flow falls through here
       //[[fallthrough]];
     }
     case STREAM_CONTROL_MESSAGE_ABORT:
-    {
-      if (likely (connection_p))
-      {
-        try {
-          connection_p->abort ();
-        } catch (...) {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Net_IConnection_T::abort() (id was: %u), continuing\n"),
-                      inherited::mod_->name (),
-                      connection_p->id ()));
-          return;
-        }
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: aborted connection (id was: %u)\n"),
+    { ACE_ASSERT (connection_p);
+      try {
+        connection_p->abort ();
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in Net_IConnection_T::abort() (id was: %u), continuing\n"),
                     inherited::mod_->name (),
                     connection_p->id ()));
-      } // end IF
+        return;
+      }
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: aborted connection (id was: %u)\n"),
+                  inherited::mod_->name (),
+                  connection_p->id ()));
 
       break;
     }
@@ -214,10 +201,7 @@ continue_:
       break;
   } // end SWITCH
 
-  if (likely (connection_p))
-  {
-    connection_p->decrease (); connection_p = NULL;
-  } // end IF
+  connection_p->decrease (); connection_p = NULL;
 }
 
 //////////////////////////////////////////

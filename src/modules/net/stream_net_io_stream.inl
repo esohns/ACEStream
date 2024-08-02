@@ -806,15 +806,11 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     typename ConnectionManagerType::ICONNECTION_T* connection_p =
       connection_manager_p->get (handle_);
     ACE_ASSERT (connection_p);
-    //const typename ConnectionManagerType::CONFIGURATION_T& configuration_r =
-      //connection_p->getR (); // *TODO*: cannot get configuration from
-                               //         Net_IConnection_T anymore ! :-(
-    // *WORKAROUND*: there may be a race condition here in some scenarios !
-    typename ConnectionManagerType::CONFIGURATION_T* configuration_p = NULL;
-    typename ConnectionManagerType::USERDATA_T* user_data_p = NULL;
-    connection_manager_p->get (configuration_p, user_data_p);
+    struct Net_ConnectionConfigurationBase& configuration_r =
+      const_cast<struct Net_ConnectionConfigurationBase&> (connection_p->getR ());
+    typename ConnectionManagerType::CONFIGURATION_T* configuration_p =
+      static_cast<typename ConnectionManagerType::CONFIGURATION_T*> (&configuration_r);
     ACE_ASSERT (configuration_p);
-    //if (unlikely (configuration_r.delayRead))
     if (unlikely (configuration_p->delayRead))
       if (!connection_p->initiate_read ())
       {

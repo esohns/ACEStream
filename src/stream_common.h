@@ -229,7 +229,7 @@ struct Stream_SessionData
     lastCollectionTimeStamp =
         ((lastCollectionTimeStamp >= rhs_in.lastCollectionTimeStamp) ? lastCollectionTimeStamp
                                                                      : rhs_in.lastCollectionTimeStamp);
-    lock = rhs_in.lock;
+    lock = lock ? lock : rhs_in.lock; // try to retain own lock (helps with consistency)
     sessionId = std::max (sessionId, rhs_in.sessionId);
     startOfSession =
         (startOfSession >= rhs_in.startOfSession ? startOfSession

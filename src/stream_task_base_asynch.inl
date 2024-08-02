@@ -101,12 +101,10 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
   else if (result)
-  {
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: flushed %d message(s)\n"),
+                ACE_TEXT ("%s: flushed %d message(s) in dtor\n"),
                 inherited::mod_->name (),
                 result));
-  } // end ELSE IF
   inherited::msg_queue (NULL);
 }
 
