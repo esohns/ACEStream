@@ -1208,7 +1208,6 @@ continue_:
 
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
           const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-//      typename inherited::ISTREAM_T* istream_p = NULL;
 
       if (inherited::timerId_ != -1)
       {

@@ -229,17 +229,16 @@ struct Stream_SessionData
     lastCollectionTimeStamp =
         ((lastCollectionTimeStamp >= rhs_in.lastCollectionTimeStamp) ? lastCollectionTimeStamp
                                                                      : rhs_in.lastCollectionTimeStamp);
-    //lock = (lock ? lock : rhs_in.lock);
-    // *IMPORTANT NOTE*: always retain the current session id, if any
-    sessionId = (sessionId ? sessionId : rhs_in.sessionId);
+    lock = rhs_in.lock;
+    sessionId = std::max (sessionId, rhs_in.sessionId);
     startOfSession =
         (startOfSession >= rhs_in.startOfSession ? startOfSession
                                                  : rhs_in.startOfSession);
 
-    state = (state ? state : rhs_in.state);
+    state = rhs_in.state;
     statistic += rhs_in.statistic;
 
-    userData = (userData ? userData : rhs_in.userData);
+    userData = rhs_in.userData;
 
     return *this;
   }

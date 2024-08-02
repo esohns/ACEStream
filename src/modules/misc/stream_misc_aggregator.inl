@@ -311,8 +311,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 
   // step2: forward message to downstream module
   try {
-    imessage_p =
-      dynamic_cast<Stream_IMessage*> (messageBlock_in);
+    imessage_p = dynamic_cast<Stream_IMessage*> (messageBlock_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in dynamic_cast<Stream_IMessage*> (0x%@), returning\n"),
@@ -353,7 +352,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
     } // end FOR
 
     if (!task_p)
-    { ACE_ASSERT (writerLinks_.empty ());
+    { //ACE_ASSERT (writerLinks_.empty ());
       iterator_2 = tails_.find (session_id);
       ACE_ASSERT (iterator_2 != tails_.end ());
 

@@ -159,7 +159,7 @@ Stream_SessionDataMediaBase_T<BaseType,
 
   // *NOTE*: the idea is to 'merge' the data
   // *TODO*: this is problematic on windows
-  formats = rhs_in.formats;
+  formats = (formats.empty () ? rhs_in.formats : formats);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework = rhs_in.mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64

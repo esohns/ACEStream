@@ -173,7 +173,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
   } // end IF
 
-  inherited::msg_queue (NULL);
+  //inherited::msg_queue (NULL);
 }
 
 template <ACE_SYNCH_DECL,
@@ -759,6 +759,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   int result_i = 0;
   SessionDataContainerType* session_data_container_p = inherited::sessionData_;
   const SessionDataType* session_data_p = &inherited::sessionData_->getR ();
+  Stream_SessionId_t prev_id = session_data_p->sessionId;
   bool stop_processing_b = false;
   bool done_b = false;
 
@@ -899,8 +900,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                      : NULL);
           if (session_data_p)
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: updated session data\n"),
-                        inherited::mod_->name ()));
+                        ACE_TEXT ("%s: updated session data (session id: %u --> %u)\n"),
+                        inherited::mod_->name (),
+                        prev_id, session_data_p->sessionId));
+          else
+            ACE_DEBUG ((LM_WARNING,
+                        ACE_TEXT ("%s: updated session data (id was: %u --> NULL)\n"),
+                        inherited::mod_->name (),
+                        prev_id));
         } // end IF
 
         if (unlikely (stop_processing_b)) // <-- SESSION_END has been processed || finished || serious error

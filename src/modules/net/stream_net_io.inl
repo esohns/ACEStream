@@ -589,7 +589,11 @@ continue_3:
       break;
     }
     case STREAM_SESSION_MESSAGE_CONNECT:
-    { ACE_ASSERT (inherited::sessionData_);
+    { 
+      if (!inbound_)
+        break; // don't bother
+
+      ACE_ASSERT (inherited::sessionData_);
       SessionDataType& session_data_r =
         const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       ConnectionManagerType* connection_manager_p =
@@ -641,7 +645,10 @@ continue_3:
       break;
     }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
-    { //ACE_ASSERT (inherited::sessionData_);
+    {
+      if (!inbound_)
+        break; // don't bother
+
       if (inherited::sessionData_)
       {
         SessionDataType& session_data_r =
