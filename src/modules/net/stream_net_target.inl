@@ -374,7 +374,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
           inherited::configuration_->connectionConfigurations->find (inherited::configuration_->connectionConfigurationName);
       else
        iterator_2 =
-        inherited::configuration_->connectionConfigurations->find (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ())));
+         inherited::configuration_->connectionConfigurations->find (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ())));
       if (iterator_2 == inherited::configuration_->connectionConfigurations->end ())
         iterator_2 =
           inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));

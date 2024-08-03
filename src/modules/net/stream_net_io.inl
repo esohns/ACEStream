@@ -373,6 +373,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   //                   the siblings' queue; it is forwarded to the
   //                   (sub-)streams' head and notify()d to the (network-) event
   //                   dispatch from there
+  // *TODO*: this works as long as there is only a net_target module; if there
+  //         is also a net_source module on the same stream, things get mixed up
   int result = -1;
 
   // sanity check(s)
