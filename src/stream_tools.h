@@ -35,6 +35,10 @@ class Stream_Tools
 {
  public:
   // --- message block ---
+  // *NOTE*: append the second argument (set to the last continuation)
+  static void append (ACE_Message_Block*,  // head
+                      ACE_Message_Block*); // (new) tail
+
   // *WARNING*: simply returns the second argument if its'
   //            total_length() <= the first argument
   // *NOTE*: ACE_Message_Block::duplicate(s) partial buffers

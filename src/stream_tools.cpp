@@ -37,6 +37,21 @@
 #include "stream_istreamcontrol.h"
 #include "stream_macros.h"
 
+void
+Stream_Tools::append (ACE_Message_Block* head_in,
+                      ACE_Message_Block* tail_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::append"));
+
+  // sanity check(s)
+  ACE_ASSERT (head_in);
+
+  ACE_Message_Block* tail_p = head_in;
+  while (tail_p->cont ())
+    tail_p = tail_p->cont ();
+  tail_p->cont (tail_in);
+}
+
 ACE_Message_Block*
 Stream_Tools::get (ACE_UINT64 bytes_in,
                    ACE_Message_Block* messageBlock_in,
@@ -46,10 +61,9 @@ Stream_Tools::get (ACE_UINT64 bytes_in,
 
   // sanity check(s)
   ACE_ASSERT (messageBlock_in);
-//  ACE_ASSERT (!messageBlock_out);
   ACE_UINT64 total_bytes_i = messageBlock_in->total_length ();
   if (bytes_in >= total_bytes_i)
-    return messageBlock_in;
+    return NULL;
 
   // bytes_in < total_bytes_i
 
@@ -391,18 +405,18 @@ Stream_Tools::generateUniqueName (const std::string& prefix_in)
   ACE_ASSERT (prefix_in.size () <= (BUFSIZ - 6 + 1));
 
   // *NOTE*: see also: man 3 mkstemp
-  ACE_TCHAR buffer[BUFSIZ];
+  ACE_TCHAR buffer_a[BUFSIZ];
   if (unlikely (!prefix_in.empty ()))
-    ACE_OS::strcpy (buffer, prefix_in.c_str ());
-  ACE_OS::strcpy (buffer + prefix_in.size (), ACE_TEXT ("XXXXXX"));
-  ACE_OS::mktemp (buffer);
-  if (unlikely (!ACE_OS::strlen (buffer)))
+    ACE_OS::strcpy (buffer_a, prefix_in.c_str ());
+  ACE_OS::strcpy (buffer_a + prefix_in.size (), ACE_TEXT ("XXXXXX"));
+  ACE_OS::mktemp (buffer_a);
+  if (unlikely (!ACE_OS::strlen (buffer_a)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_OS::mktemp(): \"%m\", aborting\n")));
-    return std::string ();
+    return ACE_TEXT_ALWAYS_CHAR ("");
   } // end IF
-  result = buffer;
+  result = ACE_TEXT_ALWAYS_CHAR (buffer_a);
 
   return result;
 }
