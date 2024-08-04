@@ -529,7 +529,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   int result = -1;
   int error = -1;
-  bool stop_processing = false;
+  // bool stop_processing = false;
   //static ACE_Time_Value no_wait = ACE_OS::gettimeofday ();
 
   do
