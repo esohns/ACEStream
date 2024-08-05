@@ -1480,15 +1480,15 @@ ACE_TMAIN (int argc_in,
     log_file_name =
         Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
                                           ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]),                   // program name
-                                            log_file_name,                                // log file name
-                                            false,                                        // log to syslog ?
-                                            false,                                        // trace messages ?
-                                            trace_information,                            // debug messages ?
-                                            NULL))                                        // (ui) logger ?
+  if (!Common_Log_Tools::initialize (ACE::basename (argv_in[0]),                   // program name
+                                     log_file_name,                                // log file name
+                                     false,                                        // log to syslog ?
+                                     false,                                        // trace messages ?
+                                     trace_information,                            // debug messages ?
+                                     NULL))                                        // (ui) logger ?
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Log_Tools::initializeLogging(), aborting\n")));
+                ACE_TEXT ("failed to Common_Log_Tools::initialize(), aborting\n")));
 
     Common_Tools::finalize ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1508,7 +1508,7 @@ ACE_TMAIN (int argc_in,
     {
       do_print_version (ACE::basename (argv_in[0]));
 
-      Common_Log_Tools::finalizeLogging ();
+      Common_Log_Tools::finalize ();
       Common_Tools::finalize ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       // *PORTABILITY*: on Windows, finalize ACE...
@@ -1594,7 +1594,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
-    Common_Log_Tools::finalizeLogging ();
+    Common_Log_Tools::finalize ();
     Common_Tools::finalize ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     // *PORTABILITY*: on Windows, finalize ACE...
@@ -1648,7 +1648,7 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nivcsw));
 #endif // ACE_WIN32 || ACE_WIN64
 
-  Common_Log_Tools::finalizeLogging ();
+  Common_Log_Tools::finalize ();
   Common_Tools::finalize ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

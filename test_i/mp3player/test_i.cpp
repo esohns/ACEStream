@@ -575,15 +575,15 @@ ACE_TMAIN (int argc_in,
     log_file_name =
       Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
                                         ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]),           // program name
-                                            log_file_name,                        // log file name
-                                            false,                                // log to syslog ?
-                                            false,                                // trace messages ?
-                                            trace_information,                    // debug messages ?
-                                            NULL))                                // logger ?
+  if (!Common_Log_Tools::initialize (ACE::basename (argv_in[0]),           // program name
+                                     log_file_name,                        // log file name
+                                     false,                                // log to syslog ?
+                                     false,                                // trace messages ?
+                                     trace_information,                    // debug messages ?
+                                     NULL))                                // logger ?
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Log_Tools::initializeLogging(), aborting\n")));
+                ACE_TEXT ("failed to Common_Log_Tools::initialize(), aborting\n")));
 
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -613,7 +613,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
 
-    Common_Log_Tools::finalizeLogging ();
+    Common_Log_Tools::finalize ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -633,7 +633,7 @@ ACE_TMAIN (int argc_in,
     Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Log_Tools::finalizeLogging ();
+    Common_Log_Tools::finalize ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -658,7 +658,7 @@ ACE_TMAIN (int argc_in,
 //                                   signal_set,
 //                                   previous_signal_actions,
 //                                   previous_signal_mask);
-//    Common_Log_Tools::finalizeLogging ();
+//    Common_Log_Tools::finalize ();
 //    // *PORTABILITY*: on Windows, finalize ACE...
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //    result = ACE::fini ();
@@ -707,7 +707,7 @@ ACE_TMAIN (int argc_in,
     Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Log_Tools::finalizeLogging ();
+    Common_Log_Tools::finalize ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -763,7 +763,7 @@ ACE_TMAIN (int argc_in,
   Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                  previous_signal_actions,
                                  previous_signal_mask);
-  Common_Log_Tools::finalizeLogging ();
+  Common_Log_Tools::finalize ();
   // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = ACE::fini ();

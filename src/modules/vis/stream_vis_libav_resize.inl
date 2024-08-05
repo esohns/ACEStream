@@ -384,7 +384,8 @@ error:
       ACE_ASSERT (session_data_r.lock);
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        if (session_data_r.formats.size () >= formatsIndex_)
+        if (formatsIndex_ &&
+            session_data_r.formats.size () >= formatsIndex_)
         {
           typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T::MEDIAFORMATS_ITERATOR_T
             iterator = session_data_r.formats.begin ();
@@ -465,7 +466,18 @@ error:
       {
         inherited::buffer_->release (); inherited::buffer_ = NULL;
       } // end IF
-      ACE_ASSERT (inherited::frame_);
+      // *WARNING*: this might be the first time frame_ is initialized !
+      if (unlikely (!inherited::frame_))
+      {
+        inherited::frame_ = av_frame_alloc ();
+        if (unlikely (!inherited::frame_))
+        {
+          ACE_DEBUG ((LM_CRITICAL,
+                      ACE_TEXT ("%s: av_frame_alloc() failed: \"%m\", aborting\n"),
+                      inherited::mod_->name ()));
+          goto error_2;
+        } // end IF
+      } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       inherited::frame_->height = media_type_3.resolution.cy;
       inherited::frame_->width = media_type_3.resolution.cx;

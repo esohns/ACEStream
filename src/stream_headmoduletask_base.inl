@@ -2197,11 +2197,22 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   // step1: wait for final state
   if (unlikely (!inherited2::wait (STREAM_STATE_FINISHED, &deadline)))
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Common_StateMachine_Base_T::wait(%d,%#T): \"%m\", continuing\n"),
+                ACE_TEXT ("%s: failed to Common_StateMachine_Base_T::wait(%s,%#T): \"%s\", continuing\n"),
                 inherited::mod_->name (),
-                STREAM_STATE_FINISHED,
+                ACE_TEXT (inherited2::stateToString (STREAM_STATE_FINISHED).c_str ()),
+                &timeout,
+                ACE_TEXT (Common_Error_Tools::errorToString (GetLastError (), false, false).c_str ())));
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Common_StateMachine_Base_T::wait(%s,%#T): \"%m\", continuing\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (inherited2::stateToString (STREAM_STATE_FINISHED).c_str ()),
                 &timeout));
+#endif
+  } // end IF
 
   // step2: wait for worker(s) to join ?
   if (unlikely (!waitForThreads_in))
@@ -2209,14 +2220,22 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
 
+  // sanity check(s)
+  if (unlikely (inherited::threadIds_.empty ()))
+    goto continue_; // --> stream not started ?
   // *NOTE*: pthread_join() returns EDEADLK when the calling thread IS the
-  //         thread to join
-  //         --> prevent this by comparing thread ids
-  // *TODO*: check the whole array
-  if (unlikely (inherited::threadIds_.empty () ||
-                ACE_OS::thr_equal (ACE_OS::thr_self (),
-                                   inherited::threadIds_[0].id ())))
-    goto continue_;
+  //         thread to join --> prevent this by comparing thread ids
+  for (typename inherited::THREAD_IDS_CONSTITERATOR_T iterator = inherited::threadIds_.begin ();
+       iterator != inherited::threadIds_.end ();
+       ++iterator)
+    if (ACE_OS::thr_equal (ACE_OS::thr_self (),
+                           (*iterator).id ()))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s/%t: prevented deadlock; stream dispatch thread cannot wait for itself, returning\n"),
+                  inherited::mod_->name ()));
+      goto continue_;
+    } // end IF
 
   switch (inherited::configuration_->concurrency)
   {
@@ -2230,7 +2249,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     case STREAM_HEADMODULECONCURRENCY_PASSIVE:
     {
       ACE_thread_t thread_id = inherited::threadIds_[0].id ();
-//      ACE_THR_FUNC_RETURN status;
+      ACE_THR_FUNC_RETURN status;
       // *TODO*: do not join() here; instead signal a condition upon leaving
       //         svc()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2238,19 +2257,19 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       if (likely (handle != ACE_INVALID_HANDLE))
       {
         { ACE_GUARD (ACE_Reverse_Lock<ACE_Thread_Mutex>, aGuard_2, reverse_lock);
-          result = 0; // ACE_Thread::join (handle, &status);
+          result = ACE_Thread::join (handle, &status);
         } // end lock scope
         if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_Thread::join(%u): \"%m\", continuing\n"),
+                      ACE_TEXT ("%s: failed to ACE_Thread::join(%u/0x%@): \"%m\", continuing\n"),
                       inherited::mod_->name (),
-                      thread_id));
+                      thread_id, handle));
       } // end IF
 #else
       if (likely (static_cast<int> (thread_id) != -1))
       {
         { ACE_GUARD (ACE_Reverse_Lock<ACE_Thread_Mutex>, aGuard_2, reverse_lock);
-          result = 0; // ACE_Thread::join (thread_id, NULL, &status);
+          result = ACE_Thread::join (thread_id, NULL, &status);
         } // end lock scope
       } // end IF
       if (unlikely (result == -1))

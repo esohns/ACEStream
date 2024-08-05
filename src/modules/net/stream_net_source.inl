@@ -833,11 +833,13 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
-      // sanity check(s)
-      ACE_ASSERT (inherited::sessionData_);
-
-      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+      Stream_SessionId_t session_id = -1;
+      if (likely (inherited::sessionData_))
+      {
+        typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+            const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+        session_id = session_data_r.sessionId;
+      } // end IF
 
       if (isOpen_ &&
           !isPassive_)
@@ -847,9 +849,11 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: session (id was: %u) aborted, aborted connection (id was: %u)\n"),
                     inherited::mod_->name (),
-                    session_data_r.sessionId, id));
+                    session_id, id));
       } // end IF
       isOpen_ = false;
+
+      goto end;
 
       break;
     }
@@ -1178,6 +1182,7 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       // *NOTE*: control reaches this point because either:
       //         - the connection has been closed and the processing stream is
       //           finished()-ing (see: ACE_Svc_Handler::handle_close()

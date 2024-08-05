@@ -1438,7 +1438,10 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
 session_end:
       // sanity check(s)
-      ACE_ASSERT (state_.sessionData);
+      enum Stream_StateMachine_ControlState state_e =
+        istatemachine_p->current ();
+      if (state_e > STREAM_STATE_SESSION_STOPPING)
+        break; // catch spurious abort(s); there should only be one (!) session-end notification
 
       try {
         istatemachine_p->change (STREAM_STATE_STOPPED);
@@ -1449,6 +1452,9 @@ session_end:
                     module_p->name ()));
         return;
       }
+
+      // sanity check(s)
+      ACE_ASSERT (state_.sessionData);
 
       try {
         onSessionEnd (state_.sessionData->sessionId);

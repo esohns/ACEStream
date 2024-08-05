@@ -484,6 +484,12 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      goto end; // --> shut down
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -593,6 +599,7 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       bool COM_initialized = Common_Tools::initializeCOM ();
 
       if (resetMode_)
