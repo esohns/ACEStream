@@ -499,8 +499,7 @@ continue_:
       //         - one when the connection stream is appended to the processing
       //           stream
 
-      if (inherited::configuration_->statisticReportingInterval !=
-          ACE_Time_Value::zero)
+      if (inherited::configuration_->statisticReportingInterval != ACE_Time_Value::zero)
       {
         typename TimerManagerType::INTERFACE_T* itimer_manager_p = NULL;
 

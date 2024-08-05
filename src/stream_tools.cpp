@@ -59,11 +59,16 @@ Stream_Tools::get (ACE_UINT64 bytes_in,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Tools::get"));
 
+  // initialize return value(s)
+  messageBlock_out = NULL;
+ 
   // sanity check(s)
   ACE_ASSERT (messageBlock_in);
   ACE_UINT64 total_bytes_i = messageBlock_in->total_length ();
-  if (bytes_in >= total_bytes_i)
+  if (bytes_in > total_bytes_i)
     return NULL;
+  else if (bytes_in == total_bytes_i)
+    return messageBlock_in;
 
   // bytes_in < total_bytes_i
 

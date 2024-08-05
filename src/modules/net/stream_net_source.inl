@@ -874,12 +874,10 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_LINK:
     {
-#if defined (_DEBUG)
       const typename inherited::TASK_BASE_T::ISTREAM_T* const istream_p =
           inherited::getP ();
       ACE_ASSERT (istream_p);
       istream_p->dump_state ();
-#endif // _DEBUG
       break;
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
@@ -893,12 +891,10 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         inherited::change (STREAM_STATE_SESSION_STOPPING);
       } // end IF
 
-#if defined(_DEBUG)
       const typename inherited::TASK_BASE_T::ISTREAM_T* const istream_p =
         inherited::getP ();
       ACE_ASSERT (istream_p);
       istream_p->dump_state ();
-#endif // _DEBUG
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
