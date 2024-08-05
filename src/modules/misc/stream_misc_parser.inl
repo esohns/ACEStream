@@ -925,6 +925,12 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      goto end;
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       result = inherited::activate ();
@@ -948,6 +954,7 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       if (likely (inherited::thr_count_))
       {
         stop ();
