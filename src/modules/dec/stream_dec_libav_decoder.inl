@@ -223,6 +223,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_T::handleDataMessage"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->codecConfiguration);
   ACE_ASSERT (context_);
 
   // initialize return value(s)
@@ -234,31 +236,37 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   uint8_t* data_p = NULL;
   size_t   data_size_i = 0;
-  bool abort_session_on_error = true;
 
   // *NOTE*: ffmpeg processes data in 'chunks' and supports/requires memory
   //         alignment, as well as 'padding' bytes.
   //         Note that as the data may arrive in fragmented pieces (e.g. over a
   //         network), the required preprocessing overhead may defeat the whole
-  //         benefit of these features.
-  // *IMPORTANT NOTE*: defragment()ing the incoming buffers may not be allowed,
+  //         benefit of these features
+  // *IMPORTANT NOTE*: crunch()ing the incoming buffers may not be allowed,
   //                   as that memory may (!) belong to previous frame(s) !
+  //                   --> check upstream carefully
   // *IMPORTANT NOTE*: padding the data beyond wr_ptr() may not be allowed, as
   //                   that memory may (!) belong to the next frame(s) !
+  //                   --> check upstream carefully
 
-  // step2: (re-)pad [see above] the buffer chain
-  // *IMPORTANT NOTE*: the message length does not change
-  for (message_block_p = message_inout;
-       message_block_p;
-       message_block_p = message_block_p->cont ())
-  { if (((message_block_p->capacity () - message_block_p->length ()) >= AV_INPUT_BUFFER_PADDING_SIZE))
-      ACE_OS::memset (message_block_p->wr_ptr (), 0, AV_INPUT_BUFFER_PADDING_SIZE);
-  } // end FOR
+  // step0: (re-)pad [see above] the buffer chain ?
+  if (likely (inherited::configuration_->codecConfiguration->padInputBuffers))
+  {
+    // *IMPORTANT NOTE*: the message length does not change
+    for (message_block_p = message_inout;
+         message_block_p;
+         message_block_p = message_block_p->cont ())
+      if (likely ((message_block_p->capacity () - message_block_p->length ()) >= AV_INPUT_BUFFER_PADDING_SIZE))
+        ACE_OS::memset (message_block_p->wr_ptr (), 0, AV_INPUT_BUFFER_PADDING_SIZE);
+      else
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: cannot pad input buffer, continuing\n"),
+                    inherited::mod_->name ()));
+  } // end IF
 
   message_block_p = message_inout;
   do
   {
-    /* use the parser to split the data into frames */
     data_p = reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ());
     data_size_i = message_block_p->length ();
     while (data_size_i > 0)
@@ -266,7 +274,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       av_init_packet (&packet_s);
 
       if (likely (parserContext_))
-      {
+      { /* use the parser to split the data into frames */
         result =
           av_parser_parse2 (parserContext_,
                             context_,
@@ -305,8 +313,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: failed to decodePacket(), continuing\n"),
                     inherited::mod_->name ()));
-        abort_session_on_error = false; // do not abort the whole session; retry
-        goto error;
+        ACE_ASSERT (!message_p);
+        continue;
       } // end IF
       if (!message_p)
         continue;
@@ -342,8 +350,7 @@ error:
   if (message_p)
     message_p->release ();
 
-  if (abort_session_on_error)
-    this->notify (STREAM_SESSION_MESSAGE_ABORT);
+  this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,
@@ -1116,7 +1123,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   message_inout = static_cast<DataMessageType*> (message_block_p);
 
   // clean up
-  ACE_OS::memset (frame_->data, 0, sizeof (uint8_t * [8]));
+  ACE_OS::memset (frame_->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
   av_frame_unref (frame_);
 
   return true;
