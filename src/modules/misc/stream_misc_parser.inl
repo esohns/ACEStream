@@ -958,7 +958,7 @@ end:
       if (likely (inherited::thr_count_))
       {
         stop ();
-        inherited::wait ();
+        inherited::wait (false); // wait for message queue ?
       } // end IF
       else
       {

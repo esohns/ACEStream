@@ -64,13 +64,13 @@ typedef Net_StreamConnectionConfiguration_T<Stream_POPReceive_StreamConfiguratio
 typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  Test_I_POPReceive_ConnectionConfiguration_t,
                                  struct POP_ConnectionState,
-                                 struct Net_StreamStatistic,
+                                 Net_StreamStatistic_t,
                                  struct Net_UserData> Test_I_POPReceive_IConnection_Manager_t;
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_POPReceive_ConnectionConfiguration_t,
                                  struct POP_ConnectionState,
-                                 struct Net_StreamStatistic,
+                                 Net_StreamStatistic_t,
                                  struct Net_UserData> Test_I_POPReceive_Connection_Manager_t;
 
 /////////////////////////////////////////
@@ -103,7 +103,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
 typedef Net_IStreamConnection_T<ACE_INET_Addr,
                                 Test_I_POPReceive_ConnectionConfiguration_t,
                                 struct POP_ConnectionState,
-                                struct Net_StreamStatistic,
+                                Net_StreamStatistic_t,
                                 Net_TCPSocketConfiguration_t,
                                 Test_I_POPReceive_ConnectionStream_t,
                                 enum Stream_StateMachine_ControlState> Test_I_POPReceive_IStreamConnection_t;
@@ -112,7 +112,7 @@ typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 Net_TCPSocketHandler_t,
                                 Test_I_POPReceive_ConnectionConfiguration_t,
                                 struct POP_ConnectionState,
-                                struct Net_StreamStatistic,
+                                Net_StreamStatistic_t,
                                 Test_I_POPReceive_ConnectionStream_t,
                                 struct Net_UserData> Test_I_POPReceive_Connection_t;
 #if defined (SSL_SUPPORT)
@@ -120,7 +120,7 @@ typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 Net_SSLSocketHandler_t,
                                 Test_I_POPReceive_ConnectionConfiguration_t,
                                 struct POP_ConnectionState,
-                                struct Net_StreamStatistic,
+                                Net_StreamStatistic_t,
                                 Test_I_POPReceive_ConnectionStream_t,
                                 struct Net_UserData> Test_I_POPReceive_SSLConnection_t;
 #endif // SSL_SUPPORT
@@ -128,7 +128,7 @@ typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       Test_I_POPReceive_ConnectionConfiguration_t,
                                       struct POP_ConnectionState,
-                                      struct Net_StreamStatistic,
+                                      Net_StreamStatistic_t,
                                       Test_I_POPReceive_ConnectionStream_t,
                                       struct Net_UserData> Test_I_POPReceive_AsynchConnection_t;
 
@@ -140,7 +140,7 @@ typedef Net_Client_Connector_T<ACE_MT_SYNCH,
                                ACE_INET_Addr,
                                Test_I_POPReceive_ConnectionConfiguration_t,
                                struct POP_ConnectionState,
-                               struct Net_StreamStatistic,
+                               Net_StreamStatistic_t,
                                Net_TCPSocketConfiguration_t,
                                Test_I_POPReceive_ConnectionStream_t,
                                struct Net_UserData> Test_I_POPReceive_Connector_t;
@@ -149,7 +149,7 @@ typedef Net_Client_SSL_Connector_T<Test_I_POPReceive_SSLConnection_t,
                                    ACE_SSL_SOCK_Connector,
                                    Test_I_POPReceive_ConnectionConfiguration_t,
                                    struct POP_ConnectionState,
-                                   struct Net_StreamStatistic,
+                                   Net_StreamStatistic_t,
                                    Test_I_POPReceive_ConnectionStream_t,
                                    struct Net_UserData> Test_I_POPReceive_SSLConnector_t;
 #endif // SSL_SUPPORT
@@ -158,7 +158,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_POPReceive_AsynchConnection_t,
                                      ACE_INET_Addr,
                                      Test_I_POPReceive_ConnectionConfiguration_t,
                                      struct POP_ConnectionState,
-                                     struct Net_StreamStatistic,
+                                     Net_StreamStatistic_t,
                                      Net_TCPSocketConfiguration_t,
                                      Test_I_POPReceive_ConnectionStream_t,
                                      struct Net_UserData> Test_I_POPReceive_AsynchConnector_t;
