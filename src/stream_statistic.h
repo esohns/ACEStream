@@ -71,6 +71,8 @@ struct Stream_Statistic
 
   struct Stream_Statistic operator~ ()
   {
+    Stream_StatisticBase::operator~ ();
+
     dataMessages = 0;
     sessionMessages = 0;
     messagesPerSecond = 0.0f;
@@ -79,12 +81,12 @@ struct Stream_Statistic
     droppedFrames = 0;
     totalFrames = 0;
 
-    Stream_StatisticBase::operator~ ();
-
     return *this;
   }
   struct Stream_Statistic operator+= (const struct Stream_Statistic& rhs_in)
   {
+    Stream_StatisticBase::operator+= (rhs_in);
+
     dataMessages += rhs_in.dataMessages;
     sessionMessages += rhs_in.sessionMessages;
     // messagesPerSecond += rhs_in.messagesPerSecond;
@@ -93,8 +95,6 @@ struct Stream_Statistic
     droppedFrames += rhs_in.droppedFrames;
 
     totalFrames += rhs_in.totalFrames;
-
-    Stream_StatisticBase::operator+= (rhs_in);
 
     return *this;
   }
