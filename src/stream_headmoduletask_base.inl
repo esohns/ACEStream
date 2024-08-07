@@ -579,7 +579,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       inherited::mod_->name (),
                       result_2));
 
-continue_:;
+continue_:
+        if (likely (inherited::sessionData_))
+        {
+          inherited::sessionData_->decrease (); inherited::sessionData_ = NULL;
+        } // end IF
       } // end IF
       else
       {
@@ -2431,22 +2435,27 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         sessionEndSent_ = false;
         sessionEndProcessed_ = false;
 
-        if (unlikely (!inherited::threadIds_.empty ()))
-        {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-          // *TODO*: close ALL handles !
-          ACE_hthread_t handle = inherited::threadIds_[0].handle ();
-          if (unlikely (inherited::closeHandles_ &&
-                        (handle != ACE_INVALID_HANDLE)))
-            if (!::CloseHandle (handle))
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: failed to CloseHandle(0x%@): \"%s\", continuing\n"),
-                          inherited::mod_->name (),
-                          handle,
-                          ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-#endif // ACE_WIN32 || ACE_WIN64
-          inherited::threadIds_.clear ();
+        if (inherited::closeHandles_)
+        {
+          ACE_hthread_t handle = ACE_INVALID_HANDLE;
+          for (THREAD_IDS_ITERATOR_T iterator = inherited::threadIds_.begin ();
+               iterator != inherited::threadIds_.end ();
+               ++iterator)
+          {
+            handle = (*iterator).handle ();
+            if (unlikely (handle != ACE_INVALID_HANDLE))
+              if (!::CloseHandle (handle))
+                ACE_DEBUG ((LM_ERROR,
+                            ACE_TEXT ("%s: failed to CloseHandle(0x%@): \"%s\", continuing\n"),
+                            inherited::mod_->name (),
+                            handle,
+                            ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+          } // end FOR
+          inherited::closeHandles_ = false;
         } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
+        inherited::threadIds_.clear ();
       } // end lock scope
 
       switch (inherited::configuration_->concurrency)
@@ -2454,6 +2463,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         case STREAM_HEADMODULECONCURRENCY_ACTIVE:
         {
           inherited::threadCount_ = STREAM_MODULE_DEFAULT_HEAD_THREADS;
+
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
@@ -2503,12 +2513,18 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           }
         } // end IF
 
-        ACE_ASSERT (inherited::sessionData_);
-        inherited::sessionData_->increase ();
-        SessionDataContainerType* session_data_container_p =
-          inherited::sessionData_;
-        // *NOTE*: "fire-and-forget" the second argument
+        SessionDataContainerType* session_data_container_p = NULL;
+        if (likely (inherited::sessionData_))
+        {
+          inherited::sessionData_->increase ();
+          session_data_container_p = inherited::sessionData_;
+        } // end IF
+        else
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s: no session data; cannot append to begin message, continuing\n"),
+                      inherited::mod_->name ()));
         ACE_ASSERT (streamState_);
+        // *NOTE*: "fire-and-forget" the second argument
         if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_BEGIN, // session message type
                                                      session_data_container_p,     // session data
                                                      streamState_->userData,       // user data handle
@@ -2543,6 +2559,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                         inherited::mod_->name ()));
             return false;
           } // end IF
+
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
@@ -2575,8 +2592,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                               process_handle,
                                               &handle,
                                               0,
-                                              FALSE,
-                                              DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS)))
+                                              TRUE,
+                                              DUPLICATE_SAME_ACCESS)))
             {
               ACE_DEBUG ((LM_ERROR,
                           ACE_TEXT ("%s: failed to DuplicateHandle(0x%@): \"%s\", aborting\n"),
@@ -2604,6 +2621,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                         inherited::mod_->name ()));
             return false;
           } // end IF
+
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
@@ -2665,6 +2683,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           return false;
         }
       } // end SWITCH
+
       break;
     }
     case STREAM_STATE_RUNNING:
@@ -2681,6 +2700,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             case STREAM_HEADMODULECONCURRENCY_ACTIVE:
             {
               inherited::resume ();
+
               break;
             } // end IF
             case STREAM_HEADMODULECONCURRENCY_PASSIVE:
@@ -2704,6 +2724,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             inherited::mod_->name ()));
                 return false;
               } // end IF
+
               break;
             }
             case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
@@ -2716,9 +2737,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
               return false;
             }
           } // end SWITCH
+
           break;
         } // end IF
       } // end lock scope
+
       break;
     }
     case STREAM_STATE_SESSION_STOPPING:
@@ -2734,6 +2757,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
               case STREAM_HEADMODULECONCURRENCY_ACTIVE:
               {
                 inherited::resume ();
+
                 break;
               } // end IF
               case STREAM_HEADMODULECONCURRENCY_PASSIVE:
@@ -2754,6 +2778,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                               inherited::mod_->name ()));
                   return false;
                 } // end IF
+
                 break;
               }
               case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
@@ -2766,6 +2791,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                 return false;
               }
             } // end SWITCH
+
             break;
           }
           default:
@@ -2889,9 +2915,15 @@ continue_2:
           }
         } // end IF
 
-        ACE_ASSERT (inherited::sessionData_);
-        inherited::sessionData_->increase ();
-        session_data_container_p = inherited::sessionData_;
+        if (likely (inherited::sessionData_))
+        {
+          inherited::sessionData_->increase ();
+          session_data_container_p = inherited::sessionData_;
+        } // end IF
+        else
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s: no session data; cannot append to unlink message, continuing\n"),
+                      inherited::mod_->name ()));
         ACE_ASSERT (streamState_);
         // *NOTE*: "fire-and-forget" the second argument
         if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_UNLINK, // session message type
@@ -2923,6 +2955,7 @@ continue_2:
         { Common_ITask* itask_p = this;
           itask_p->stop (false,                // wait ?
                          isHighPriorityStop_); // high priority ?
+
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
@@ -2938,6 +2971,7 @@ continue_2:
           return false;
         }
       } // end SWITCH
+
       break;
     }
     case STREAM_STATE_PAUSED:
@@ -2955,6 +2989,7 @@ continue_2:
                         inherited::mod_->name ()));
             return false;
           } // end IF
+
           break;
         } // end IF
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
@@ -2974,6 +3009,7 @@ continue_2:
                         inherited::mod_->name ()));
             return false;
           } // end IF
+
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
@@ -2986,6 +3022,7 @@ continue_2:
           return false;
         }
       } // end SWITCH
+
       break;
     }
     case STREAM_STATE_STOPPED:
@@ -2999,14 +3036,34 @@ continue_2:
       inherited2::signal ();
 
       inherited2::change (STREAM_STATE_FINISHED);
+
       break;
     }
     case STREAM_STATE_FINISHED:
     {
-      if (likely (inherited::sessionData_))
+      switch (inherited::configuration_->concurrency)
       {
-        inherited::sessionData_->decrease (); inherited::sessionData_ = NULL;
-      } // end IF
+        case STREAM_HEADMODULECONCURRENCY_ACTIVE:
+        case STREAM_HEADMODULECONCURRENCY_PASSIVE:
+        case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
+        {
+          // *NOTE*: concurrent thread(s) never reach close(0)
+          //         --> release session data here
+          if (likely (inherited::sessionData_))
+          {
+            inherited::sessionData_->decrease (); inherited::sessionData_ = NULL;
+          } // end IF
+
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown concurrency mode (was: %d), aborting\n"),
+                      inherited::configuration_->concurrency));
+          return false;
+        }
+      } // end SWITCH
 
       break;
     }
@@ -3060,11 +3117,20 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  enum Stream_StateMachine_ControlState state_e = inherited2::current ();
+  if (state_e != STREAM_STATE_SESSION_STOPPING)
+  { ACE_ASSERT (false);
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: should never send 'end' in current state (was: \"%s\"), continuing\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (inherited2::stateToString (state_e).c_str ())));
+  } // end IF
 
   // send final session message downstream ?
+  // --> this triggers the state transition STOPPING --> STOPPED
   // *IMPORTANT NOTE*: the transition STOPPED --> FINISHED is automatic
   //                   However, as the stream may be stop()/finished()-ed
-  //                   concurrently, so this transition could trigger several
+  //                   concurrently, this transition could trigger several
   //                   times --> ensure that only a single 'session end' message
   //                   is generated and processed per session
   bool send_end_message = true;
@@ -3076,6 +3142,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         send_end_message = false;
     } // end IF
   } // end lock scope
+
   if (likely (inherited::configuration_->generateSessionMessages))
   {
     if (likely (send_end_message))
@@ -3087,7 +3154,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         try {
           release_lock =
               streamLock_->lock (true,  // block ?
-                                  true); // forward upstream (if any) ?
+                                 true); // forward upstream (if any) ?
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true,true), returning\n"),
@@ -3116,7 +3183,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       { ACE_ASSERT (streamLock_);
         try {
           streamLock_->unlock (false, // unlock ?
-                                true); // forward upstream (if any) ?
+                               true); // forward upstream (if any) ?
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false,true), returning\n"),

@@ -986,7 +986,10 @@ end:
       } // end IF
 
       if (resetQueue_)
+      {
+        resetQueue_ = false;
         inherited::configuration_->parserConfiguration->messageQueue = NULL;
+      } // end IF
 
       break;
     }

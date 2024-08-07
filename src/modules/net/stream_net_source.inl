@@ -833,26 +833,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
-      Stream_SessionId_t session_id = -1;
-      if (likely (inherited::sessionData_))
-      {
-        typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-            const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-        session_id = session_data_r.sessionId;
-      } // end IF
-
-      if (isOpen_ &&
-          !isPassive_)
-      { ACE_ASSERT (connection_);
-        Net_ConnectionId_t id = connection_->id ();
-        connection_->abort ();
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: session (id was: %u) aborted, aborted connection (id was: %u)\n"),
-                    inherited::mod_->name (),
-                    session_id, id));
-      } // end IF
-      isOpen_ = false;
-
       goto end;
 
       break;
