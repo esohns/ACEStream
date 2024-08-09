@@ -264,16 +264,16 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
     {
-      if (isOpen_)
-      { ACE_ASSERT (connection_);
-        // *TODO*: the stream could control several connections, so this might
-        //         be wrong...
-        isOpen_ = false;
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: disconnected (id was: %u)\n"),
-                    inherited::mod_->name (),
-                    connection_->id ()));
-      } // end IF
+      //if (isOpen_)
+      //{ ACE_ASSERT (connection_);
+      //  // *TODO*: the stream could control several connections, so this might
+      //  //         be wrong...
+      //  isOpen_ = false;
+      //  ACE_DEBUG ((LM_DEBUG,
+      //              ACE_TEXT ("%s: disconnected (id was: %u)\n"),
+      //              inherited::mod_->name (),
+      //              connection_->id ()));
+      //} // end IF
 
       break;
     }
@@ -839,16 +839,16 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
     {
-      if (isOpen_)
-      { ACE_ASSERT (connection_);
-        // *TODO*: the stream can control several connections, so this may be
-        //         wrong...
-        isOpen_ = false;
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: disconnected (id was: %u)\n"),
-                    inherited::mod_->name (),
-                    connection_->id ()));
-      } // end IF
+      //if (isOpen_)
+      //{ ACE_ASSERT (connection_);
+      //  // *TODO*: the stream can control several connections, so this may be
+      //  //         wrong...
+      //  isOpen_ = false;
+      //  ACE_DEBUG ((LM_DEBUG,
+      //              ACE_TEXT ("%s: disconnected (id was: %u)\n"),
+      //              inherited::mod_->name (),
+      //              connection_->id ()));
+      //} // end IF
 
       break;
     }
