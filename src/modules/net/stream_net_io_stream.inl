@@ -829,6 +829,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
       } // end IF
     connection_p->decrease ();
 continue_:
+    ;
   } // end IF
 }
 
