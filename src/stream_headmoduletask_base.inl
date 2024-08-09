@@ -2482,20 +2482,20 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
     case STREAM_STATE_SESSION_STARTING:
     {
+      // *NOTE*: if the object is 'passive/concurrent', the session-begin
+      //         message may be processed earlier than 'this' returns, i.e.
+      //         the transition 'starting' --> 'running' would fail
+      //         --> set the state early
+      result = false; // <-- caller will not set the state
+      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited2::stateLock_, false);
+        inherited2::state_ = STREAM_STATE_SESSION_STARTING;
+      } // end lock scope
+      inherited2::signal ();
+
       // send initial session message downstream ?
       // *NOTE*: this is currently pushed (inline/queue) by the calling thread
       if (likely (inherited::configuration_->generateSessionMessages))
       {
-        // *NOTE*: if the object is 'passive/concurrent', the session-begin
-        //         message may be processed earlier than 'this' returns, i.e.
-        //         the transition 'starting' --> 'running' would fail
-        //         --> set the state early
-        result = false; // <-- caller will not set the state
-        { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited2::stateLock_, false);
-          inherited2::state_ = STREAM_STATE_SESSION_STARTING;
-        } // end lock scope
-        inherited2::signal ();
-
         // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
         //         condition when the connection is close()d asynchronously
         //         --> see below: line 2015
@@ -2650,14 +2650,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           // *TODO*: remove type inferences
           SessionDataType& session_data_r =
               const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-          bool finish_b = false;
+          bool aborted_b = false;
           { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock, false);
-            finish_b = session_data_r.aborted;
+            aborted_b = session_data_r.aborted;
           } // end lock scope
-          if (unlikely (finish_b))
-          { result = false; // <-- caller will not set the state
-            finished (false); // recurse upstream ?
-          } // end IF
           inherited::sessionData_->decrease ();
 
           if (release_lock)
@@ -2671,6 +2667,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                           inherited::mod_->name ()));
               return false;
             }
+          } // end IF
+
+          if (unlikely (aborted_b))
+          { result = false; // <-- caller will not set the state
+            inherited2::change (STREAM_STATE_SESSION_STOPPING);
           } // end IF
 
           break;

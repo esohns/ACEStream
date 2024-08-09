@@ -415,17 +415,17 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   ACE_ASSERT (window_);
 
   //  bool release_lock = false;
-    bool refresh_b = true;
-    Status result_2 = -1;
-    XImage* image_p = NULL;
+  bool refresh_b = true;
+  Status result_2 = -1;
+  XImage* image_p = NULL;
 
-  XWindowAttributes attributes_s = Common_UI_Tools::get (*display_,
-                                                         window_);
+  // XWindowAttributes attributes_s = Common_UI_Tools::get (*display_,
+  //                                                        window_);
 
   image_p =
       XCreateImage (display_,
                     visual_,
-                    attributes_s.depth,
+                    static_cast<unsigned int> (depth_),
                     ZPixmap,
                     0,
                     reinterpret_cast<char*> (message_inout->rd_ptr ()),

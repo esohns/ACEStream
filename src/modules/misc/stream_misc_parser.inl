@@ -955,30 +955,10 @@ continue_:
     case STREAM_SESSION_MESSAGE_END:
     {
 end:
-      if (likely (inherited::thr_count_))
-      {
-        stop ();
-        inherited::wait (false); // wait for message queue ?
-      } // end IF
-      else
-      {
-        result = parserQueue_.deactivate ();
-        if (unlikely (result == -1))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
-                      inherited::mod_->name ()));
-      } // end ELSE
+      stop ();
 
-      result = parserQueue_.flush ();
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
-                    inherited::mod_->name ()));
-      else if (result)
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: flushed %d messages\n"),
-                    inherited::mod_->name (),
-                    result));
+      if (likely (inherited::thr_count_))
+        inherited::wait (false); // wait for message queue ?
 
       if (headFragment_)
       {

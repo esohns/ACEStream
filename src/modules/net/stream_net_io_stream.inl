@@ -798,18 +798,26 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     } // end ELSE
 
     // initiate read ?
-    // sanity check(s)
-    ACE_ASSERT (handle_ != ACE_INVALID_HANDLE);
-    ConnectionManagerType* connection_manager_p =
-      ConnectionManagerType::SINGLETON_T::instance ();
+    ConnectionManagerType* connection_manager_p = NULL;
+    typename ConnectionManagerType::ICONNECTION_T* connection_p = NULL;
+    struct Net_ConnectionConfigurationBase* configuration_base_p = NULL;
+    typename ConnectionManagerType::CONFIGURATION_T* configuration_p = NULL;
+    if (unlikely (handle_ == ACE_INVALID_HANDLE))
+    {
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: invalid connection handle, cannot initiate read, continuing\n"),
+                  ACE_TEXT (inherited::name_.c_str ())));
+      goto continue_;
+    } // end IF
+
+    connection_manager_p = ConnectionManagerType::SINGLETON_T::instance ();
     ACE_ASSERT (connection_manager_p);
-    typename ConnectionManagerType::ICONNECTION_T* connection_p =
-      connection_manager_p->get (handle_);
+    connection_p = connection_manager_p->get (handle_);
     ACE_ASSERT (connection_p);
-    struct Net_ConnectionConfigurationBase& configuration_r =
-      const_cast<struct Net_ConnectionConfigurationBase&> (connection_p->getR ());
-    typename ConnectionManagerType::CONFIGURATION_T* configuration_p =
-      static_cast<typename ConnectionManagerType::CONFIGURATION_T*> (&configuration_r);
+    configuration_base_p =
+      &const_cast<struct Net_ConnectionConfigurationBase&> (connection_p->getR ());
+    configuration_p =
+      static_cast<typename ConnectionManagerType::CONFIGURATION_T*> (configuration_base_p);
     ACE_ASSERT (configuration_p);
     if (unlikely (configuration_p->delayRead))
       if (!connection_p->initiate_read ())
@@ -820,6 +828,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
         connection_p->abort ();
       } // end IF
     connection_p->decrease ();
+continue_:
   } // end IF
 }
 

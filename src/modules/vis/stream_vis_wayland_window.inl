@@ -121,11 +121,11 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   ACE_ASSERT (cbData_.surface);
 
   ACE_OS::memcpy (cbData_.shm_data, message_inout->rd_ptr (), message_inout->length ());
-//  wl_surface_commit (cbData_.surface);
-//  wl_surface_damage (cbData_.surface,
-//                     0, 0,
-//                     cbData_.resolution.width, cbData_.resolution.height);
-//  wl_display_flush (cbData_.display);
+  wl_surface_commit (cbData_.surface);
+  wl_surface_damage (cbData_.surface,
+                     0, 0,
+                     cbData_.resolution.width, cbData_.resolution.height);
+  wl_display_flush (cbData_.display);
 }
 
 template <ACE_SYNCH_DECL,
