@@ -114,11 +114,7 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   typedef Common_Math_FFT_T<ValueType> inherited2;
 
  public:
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (ISTREAM_T*);                     // stream handle
-//#else
   Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (typename inherited::ISTREAM_T*); // stream handle
-//#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T ();
 
   virtual bool initialize (const ConfigurationType&,

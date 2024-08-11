@@ -3546,7 +3546,7 @@ get_buffer_size (gpointer userData_in)
 
   unsigned int bps = (sample_rate * (bits_per_sample / 8) * channels);
   // *IMPORTANT NOTE*: lower buffer sizes result in lower latency
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *TODO*: the modifier is needed to prevent crackle on Win32... :-(
   return static_cast<unsigned int> ((STREAM_DEC_NOISE_BUFFER_LATENCY_MS * bps * 2.0f) / (float)MILLISECONDS);
 #else
@@ -6956,10 +6956,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       ui_cb_data_base_p->progressData.eventSourceId;
     ui_cb_data_base_p->progressData.pendingActions[ui_cb_data_base_p->progressData.eventSourceId] =
       ACE_Thread_ID (thread_id, thread_handle);
-    //    ACE_DEBUG ((LM_DEBUG,
-    //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
-    //                event_source_id));
-    state_r.eventSourceIds.insert (ui_cb_data_base_p->progressData.eventSourceId);
+    // *NOTE*: do not add it to the UI state, as those will be cleared on stop()
+    //state_r.eventSourceIds.insert (ui_cb_data_base_p->progressData.eventSourceId);
   } // end lock scope
 
   // step12: initialize updates
@@ -6974,7 +6972,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_idle_add(): \"%m\", continuing\n")));
 
-    event_source_id = g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS,
+    event_source_id = g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS / 2, // ~60fps
                                      idle_update_display_cb,
                                      userData_in);
     if (event_source_id > 0)

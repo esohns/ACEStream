@@ -925,7 +925,6 @@
                             <property name="can_focus">False</property>
                             <property name="has_tooltip">True</property>
                             <property name="tooltip_text" translatable="yes">signal</property>
-                            <property name="double_buffered">False</property>
                             <signal name="draw" handler="drawingarea_draw_cb" swapped="no"/>
                             <signal name="configure-event" handler="drawingarea_configure_event_cb" swapped="no"/>
                             <signal name="realize" handler="drawingarea_realize_cb" swapped="no"/>
@@ -941,7 +940,10 @@
                         <child>
                           <object class="GtkDrawingArea" id="drawingarea_3d">
                             <property name="visible">True</property>
+                            <property name="app_paintable">True</property>
                             <property name="can_focus">False</property>
+                            <property name="has_tooltip">True</property>
+                            <property name="double_buffered">False</property>
                           </object>
                           <packing>
                             <property name="expand">True</property>
@@ -1063,7 +1065,6 @@
       <action-widget response="0">button_quit</action-widget>
     </action-widgets>
   </object>
-  <object class="GtkFileFilter" id="filefilter_mp3"/>
   <object class="GtkFileChooserDialog" id="filechooserdialog_file">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">choose a sound file...</property>
@@ -1214,6 +1215,23 @@
       <action-widget response="-5">button_select_save</action-widget>
     </action-widgets>
   </object>
+  <object class="GtkFileFilter" id="filefilter_mp3"/>
+  <object class="GtkListStore" id="liststore_resolution">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name resolution -->
+      <column type="guint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_source">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="guint"/>
+    </columns>
+  </object>
   <object class="GtkListStore" id="liststore_channels">
     <columns>
       <!-- column-name text -->
@@ -1255,22 +1273,6 @@
       <!-- column-name text -->
       <column type="gchararray"/>
       <!-- column-name frequency -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_resolution">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name resolution -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_source">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name value -->
       <column type="guint"/>
     </columns>
   </object>

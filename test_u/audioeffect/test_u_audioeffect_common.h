@@ -26,7 +26,6 @@
 #include <map>
 #include <string>
 
-#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "devicetopology.h"
 #include "endpointvolume.h"
@@ -367,7 +366,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , mute (false)
 #if defined (GUI_SUPPORT)
    , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
-   , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
+   , spectrumAnalyzerResolution (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_ANALYZER_RESOLUTION)
 #if defined (GTKGL_SUPPORT)
    , OpenGLTextureId (0)
    , VAO (0)
