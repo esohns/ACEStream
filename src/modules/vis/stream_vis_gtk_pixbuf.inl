@@ -111,8 +111,11 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   ACE_ASSERT (configuration_in.window);
 
 #if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,22,0)
+#else
   context_ = gdk_cairo_create (configuration_in.window);
   ACE_ASSERT (context_);
+#endif // GTK_CHECK_VERSION (3,22,0)
 #endif // GTK_CHECK_VERSION (3,0,0)
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -152,22 +155,21 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  if (unlikely (!inherited::configuration_->window))
-    return; // done
+  ACE_ASSERT (inherited::configuration_->window);
   if (unlikely (inherited2::resizing_))
     return; // done
 
   // *NOTE*: 'crunching' the message data simplifies the data transformation
   //         algorithms, at the cost of (several) memory copies. This is a
   //         tradeoff that may warrant further optimization efforts
-  try {
-    message_inout->defragment ();
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_IDataMessage_T::defragment(), returning\n"),
-                inherited::mod_->name ()));
-    return;
-  }
+  // try {
+  //   message_inout->defragment ();
+  // } catch (...) {
+  //   ACE_DEBUG ((LM_ERROR,
+  //               ACE_TEXT ("%s: failed to Stream_IDataMessage_T::defragment(), returning\n"),
+  //               inherited::mod_->name ()));
+  //   return;
+  // }
 
 #if GTK_CHECK_VERSION (3,6,0)
 #else
@@ -175,6 +177,15 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   gdk_threads_enter ();
   leave_gdk = true;
 #endif // GTK_CHECK_VERSION (3,6,0)
+
+#if GTK_CHECK_VERSION (3,0,0)
+  cairo_t* context_p = context_;
+#if GTK_CHECK_VERSION (3,22,0)
+  cairo_region_t* cairo_region_p = NULL;
+  GdkWindow* window_p = NULL;
+  GdkDrawingContext* drawing_context_p = NULL;
+#endif // GTK_CHECK_VERSION (3,22,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
 
   GdkPixbuf* pixbuf_p =
     gdk_pixbuf_new_from_data (reinterpret_cast<guchar*> (message_inout->rd_ptr ()),
@@ -208,9 +219,19 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   //                   --> move this into the gtk context and simply schedule a
   //                       refresh, which takes care of that
 #if GTK_CHECK_VERSION (3,0,0)
-  ACE_ASSERT (context_);
-  gdk_cairo_set_source_pixbuf (context_, pixbuf_p, 0.0, 0.0);
-  cairo_paint (context_);
+#if GTK_CHECK_VERSION (3,22,0)
+  cairo_region_p = cairo_region_create ();
+  ACE_ASSERT (cairo_region_p);
+  window_p =
+    gtk_widget_get_window (GTK_WIDGET (inherited::configuration_->window));
+  ACE_ASSERT (window_p);
+  drawing_context_p = gdk_window_begin_draw_frame (window_p, cairo_region_p);
+  ACE_ASSERT (drawing_context_p);
+  context_p =
+    gdk_drawing_context_get_cairo_context (drawing_context_p);
+#endif // GTK_CHECK_VERSION (3,22,0)
+  gdk_cairo_set_source_pixbuf (context_p, pixbuf_p, 0.0, 0.0);
+  cairo_paint (context_p);
 #else
   gdk_draw_pixbuf (GDK_DRAWABLE (inherited::configuration_->window),
                    NULL,
@@ -218,6 +239,10 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                    0, 0, 0, 0, -1, -1,
                    GDK_RGB_DITHER_NONE, 0, 0);
 #endif // GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,22,0)
+  gdk_window_end_draw_frame (window_p, drawing_context_p);
+  cairo_region_destroy (cairo_region_p);
+#endif // GTK_CHECK_VERSION (3,22,0)
   g_object_unref (pixbuf_p); pixbuf_p = NULL;
 
 continue_:
@@ -337,8 +362,11 @@ continue_:
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,22,0)
+#else
       context_ = gdk_cairo_create (inherited::configuration_->window);
       ACE_ASSERT (context_);
+#endif // GTK_CHECK_VERSION (3,22,0)
 #endif // GTK_CHECK_VERSION (3,0,0)
 
 #if GTK_CHECK_VERSION (3,6,0)

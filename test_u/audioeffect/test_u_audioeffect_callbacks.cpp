@@ -592,9 +592,9 @@ continue_:
         continue;
       } // end IF
       device_name_string = string_2;
-      std::string::size_type position_i = device_name_string.find (':', 0);
-      if (position_i != std::string::npos)
-        device_name_string.erase (position_i, std::string::npos);
+      // std::string::size_type position_i = device_name_string.find (':', 0);
+      // if (position_i != std::string::npos)
+      //   device_name_string.erase (position_i, std::string::npos);
       free (string_2); string_2 = NULL;
       string_2 = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("DESC"));
       if (!string_2)
@@ -6480,7 +6480,7 @@ continue_2:
   Common_UI_GTK_GLContextsIterator_t iterator_2 = state_r.OpenGLContexts.begin ();
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
-  window_p = gtk_widget_get_window (GTK_WIDGET (&(*iterator_2).first));
+  window_p = gtk_widget_get_window (GTK_WIDGET ((*iterator_2).first));
 #else
   window_p = gtk_widget_get_window (GTK_WIDGET (&(*iterator_2).first->darea));
 #endif // GTK_CHECK_VERSION (3,16,0)
@@ -6492,7 +6492,7 @@ continue_2:
 
   gdk_window_invalidate_rect (window_p,
                               NULL,
-                              false);
+                              FALSE);
 continue_3:
 #endif /* GTKGL_SUPPORT */
   return G_SOURCE_CONTINUE;

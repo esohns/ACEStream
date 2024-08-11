@@ -96,6 +96,9 @@ extern "C"
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct ISampleGrabber;
+#else
+typedef unsigned long XID;
+typedef XID Window;
 #endif // ACE_WIN32 || ACE_WIN64
 class Stream_IAllocator;
 template <typename NotificationType,
@@ -329,7 +332,7 @@ struct Test_U_CameraFilter_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , window (NULL)
 #else
-   // , window (0)
+   , window (0)
 #endif // ACE_WIN32 || ACE_WIN64
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -348,7 +351,7 @@ struct Test_U_CameraFilter_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                            window;
 #else
-  // Window                          window;
+  Window                          window;
 #endif // ACE_WIN32 || ACE_WIN64
 };
 //extern const char stream_name_string_[];
@@ -480,10 +483,10 @@ struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration
   Test_U_CameraFilter_V4L_ModuleHandlerConfiguration ()
    : Test_U_CameraFilter_ModuleHandlerConfiguration ()
    , buffers (STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS)
-#if defined (FFMPEG_SUPPORT)
-   , codecFormat (AV_PIX_FMT_NONE)
-   , codecId (AV_CODEC_ID_NONE)
-#endif // FFMPEG_SUPPORT
+// #if defined (FFMPEG_SUPPORT)
+//    , codecFormat (AV_PIX_FMT_NONE)
+//    , codecId (AV_CODEC_ID_NONE)
+// #endif // FFMPEG_SUPPORT
    , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , outputFormat ()
    , subscriber (NULL)
@@ -499,14 +502,14 @@ struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration
   }
 
   __u32                                      buffers; // v4l device buffers
-#if defined (FFMPEG_SUPPORT)
-  enum AVPixelFormat                         codecFormat; // preferred output-
-  enum AVCodecID                             codecId;
-#endif // FFMPEG_SUPPORT
+// #if defined (FFMPEG_SUPPORT)
+//   enum AVPixelFormat                         codecFormat; // preferred output-
+//   enum AVCodecID                             codecId;
+// #endif // FFMPEG_SUPPORT
   enum v4l2_memory                           method; // v4l camera source
   struct Stream_MediaFramework_V4L_MediaType outputFormat;
-  Test_U_ISessionNotify_t*      subscriber;
-  Test_U_Subscribers_t*         subscribers;
+  Test_U_ISessionNotify_t*                   subscriber;
+  Test_U_Subscribers_t*                      subscribers;
   struct wl_shell_surface*                   surface;
   struct wl_display*                         waylandDisplay;
 };

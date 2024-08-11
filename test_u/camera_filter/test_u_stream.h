@@ -279,7 +279,7 @@ class Test_U_Stream
   Test_U_GTK_Display_Module                       GTKDisplay_;
 #endif // GTK_SUPPORT
   Test_U_Wayland_Display_Module                   WaylandDisplay_;
-  // Test_U_X11_Display_Module               X11Display_;
+  Test_U_X11_Display_Module                       X11Display_;
 #if defined (GLUT_SUPPORT)
   Test_U_OpenGL_Display_Module                    OpenGLDisplay_;
   Test_U_CameraFilter_OpenGL_GLUT_Module          GLUTDisplay_;

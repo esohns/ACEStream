@@ -373,8 +373,8 @@ do_work (unsigned int bufferSize_in,
   ALSA_configuration.rateResample = true;
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
   modulehandler_configuration.deviceIdentifier.identifier =
-    ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_DEVICE_NAME);
-//    ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_PLAYBACK_PREFIX);
+    Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                     SND_PCM_STREAM_PLAYBACK);
 #endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.allocatorConfiguration =
     &configuration.allocatorConfiguration;

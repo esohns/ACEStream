@@ -1039,7 +1039,8 @@ do_work (int argc_in,
   stream_p = &stream;
 
   modulehandler_configuration.deviceIdentifier.identifier =
-    Stream_MediaFramework_ALSA_Tools::getDeviceName (SND_PCM_STREAM_PLAYBACK);
+    Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                     SND_PCM_STREAM_PLAYBACK);
   modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_RGB24;
   modulehandler_configuration.outputFormat.video.resolution.width = 640;
   modulehandler_configuration.outputFormat.video.resolution.height = 480;

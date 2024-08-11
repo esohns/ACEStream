@@ -1209,7 +1209,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   audio_modulehandler_configuration.ALSAConfiguration =
     &configuration_in.ALSAConfiguration;
   audio_modulehandler_configuration.deviceIdentifier.identifier =
-    STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME;
+    Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                     SND_PCM_STREAM_CAPTURE);
   audio_modulehandler_configuration.messageAllocator = &message_allocator;
   audio_modulehandler_configuration.targetFileName = targetFilename_in;
 

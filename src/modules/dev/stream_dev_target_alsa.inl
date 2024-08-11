@@ -417,20 +417,29 @@ open:
         if (unlikely (result < 0))
         {
           if ((result == -EBUSY) &&
-              (device_identifier_string == inherited::configuration_->deviceIdentifier.identifier) &&
-              (device_identifier_string != ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_DEFAULT)))
+              (device_identifier_string == inherited::configuration_->deviceIdentifier.identifier))
           {
-            ACE_DEBUG ((LM_WARNING,
-                        ACE_TEXT ("%s: failed to snd_pcm_open(\"%s\",%d) for playback: \"%s\", falling back\n"),
-                        inherited::mod_->name (),
-                        ACE_TEXT (device_identifier_string.c_str ()),
-                        inherited::configuration_->ALSAConfiguration->mode,
-                        ACE_TEXT (snd_strerror (result))));
             device_identifier_string =
-              ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_DEFAULT);
-            // *NOTE*: the default device does not implement asynch...
-            inherited::configuration_->ALSAConfiguration->asynch = false;
-            goto open;
+              ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
+            if (device_identifier_string != inherited::configuration_->deviceIdentifier.identifier)
+            {
+              ACE_DEBUG ((LM_WARNING,
+                          ACE_TEXT ("%s: failed to snd_pcm_open(\"%s\",%d) for playback: \"%s\", falling back to \"%s\"\n"),
+                          inherited::mod_->name (),
+                          ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
+                          inherited::configuration_->ALSAConfiguration->mode,
+                          ACE_TEXT (snd_strerror (result)),
+                          ACE_TEXT (device_identifier_string.c_str ())));
+              // // *NOTE*: the default device does not implement asynch...
+              // if (inherited::configuration_->ALSAConfiguration->asynch)
+              // {
+              //   ACE_DEBUG ((LM_WARNING,
+              //               ACE_TEXT ("%s: switching off asynch mode for fallback...\n"),
+              //               inherited::mod_->name ()));
+              //   inherited::configuration_->ALSAConfiguration->asynch = false;
+              // } // end IF
+              goto open;
+            } // end IF
           } // end IF
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to snd_pcm_open(\"%s\",%d) for playback: \"%s\", aborting\n"),
@@ -601,7 +610,11 @@ end:
       ACE_ASSERT (inherited::configuration_);
       ACE_ASSERT (inherited::configuration_->ALSAConfiguration);
       if (inherited::configuration_->ALSAConfiguration->asynch)
+      {
+        if (unlikely (high_priority_b))
+          queue_.flush (false); // flush all data messages
         queue_.waitForIdleState ();
+      } // end IF
       else
         stop (true,             // wait ?
               high_priority_b); // high priority ?

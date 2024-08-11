@@ -23,14 +23,12 @@
 
 #include "common_macros.h"
 
-// device names
-//#define STREAM_LIB_ALSA_DEVICE_CAPTURE_PREFIX                     "hw"
-#define STREAM_LIB_ALSA_DEVICE_CAPTURE_PREFIX                     "sysdefault"
-// *NOTE*: 'sysdefault' references the hardware device --> no simultaneous playback
-#define STREAM_LIB_ALSA_DEVICE_PLAYBACK_PREFIX                    "sysdefault"
-#define STREAM_LIB_ALSA_DEVICE_SUFFIX                             0 // == card index, see: "arecord -l"
+// device names/indices
+#define STREAM_LIB_ALSA_DEVICE_DEFAULT                            0
+#define STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX                     "default"
+#define STREAM_LIB_ALSA_SYSDEFAULT_DEVICE_PREFIX                  "sysdefault"
+#define STREAM_LIB_ALSA_HW_DEVICE_PREFIX                          "hw"
 //#define STREAM_LIB_ALSA_DEVICE_DMIX                               "plug:dmix"
-#define STREAM_LIB_ALSA_DEVICE_DEFAULT                            "default"
 //#define STREAM_LIB_ALSA_DEVICE_PLUGHW                             "plug:hw"
 
 #define STREAM_LIB_ALSA_PCM_INTERFACE_NAME                        "pcm"

@@ -812,8 +812,11 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
               ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()), captureFormat_out.format.pixelformat,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
-  captureFormat_out.format.width = 320;
-  captureFormat_out.format.height = 240;
+  // // *NOTE*: use for voronoi-stipple filter
+  // captureFormat_out.format.width = 320;
+  // captureFormat_out.format.height = 240;
+  captureFormat_out.format.width = 640;
+  captureFormat_out.format.height = 480;
   Stream_Device_Tools::setFormat (deviceIdentifier_out.fileDescriptor,
                                   captureFormat_out.format);
 

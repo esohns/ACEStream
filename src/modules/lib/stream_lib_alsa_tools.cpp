@@ -34,6 +34,48 @@
 
 #include "stream_lib_defines.h"
 
+
+void
+acestream_lib_alsa_error_handler_cb (const char* file_in,
+                                     int line_in,
+                                     const char* function_in,
+                                     int error_in,
+                                     const char* format_in, ...)
+{
+  STREAM_TRACE (ACE_TEXT ("acestream_lib_alsa_error_handler_cb"));
+
+  va_list a_list;
+  va_start (a_list, format_in);
+
+  ACE_Log_Msg* log_msg_p = ACE_Log_Msg::instance ();
+  log_msg_p->conditional_set (file_in, line_in, 0, error_in);
+  log_msg_p->log (LM_ERROR,
+                  ACE_TEXT (format_in),
+                  a_list);
+
+  va_end (a_list);
+}
+
+//////////////////////////////////////////
+
+void
+Stream_MediaFramework_ALSA_Tools::initialize ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_ALSA_Tools::initialize"));
+
+  snd_lib_error_set_handler (acestream_lib_alsa_error_handler_cb);
+}
+
+void
+Stream_MediaFramework_ALSA_Tools::finalize ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_ALSA_Tools::finalize"));
+
+  snd_lib_error_set_handler (snd_lib_error);
+}
+
+//////////////////////////////////////////
+
 bool
 Stream_MediaFramework_ALSA_Tools::canRender (struct _snd_pcm* handle_in,
                                              const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in)
@@ -708,7 +750,7 @@ Stream_MediaFramework_ALSA_Tools::getCardNumber (const std::string& cardName_in)
   } // end IF
 
   int result = snd_card_get_index (device_id_string.c_str ());
-  if (result < 0)
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_card_get_index(\"%s\"): \"%s\", aborting\n"),
@@ -722,7 +764,8 @@ Stream_MediaFramework_ALSA_Tools::getCardNumber (const std::string& cardName_in)
 }
 
 std::string
-Stream_MediaFramework_ALSA_Tools::getDeviceName (enum _snd_pcm_stream direction_in)
+Stream_MediaFramework_ALSA_Tools::getDeviceName (int cardIndex_in,
+                                                 enum _snd_pcm_stream direction_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_ALSA_Tools::getDeviceName"));
 
@@ -734,13 +777,14 @@ Stream_MediaFramework_ALSA_Tools::getDeviceName (enum _snd_pcm_stream direction_
 
   void** hints_p = NULL;
   int result =
-      snd_device_name_hint (-1,
+      snd_device_name_hint (cardIndex_in,
                             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PCM_INTERFACE_NAME),
                             &hints_p);
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_device_name_hint(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to snd_device_name_hint(%d): \"%s\", aborting\n"),
+                cardIndex_in,
                 ACE_TEXT (snd_strerror (result))));
     return result_string;
   } // end IF
@@ -776,12 +820,11 @@ continue_:
 
     // filter hardware devices
     device_type = hint_string;
-    position_i = hint_string.find (':', 0);
+    position_i = device_type.find (':', 0);
     if (position_i != std::string::npos)
       device_type = device_type.substr (0, position_i);
     if (ACE_OS::strcmp (device_type.c_str (),
-                        (direction_in == SND_PCM_STREAM_PLAYBACK) ? ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_PLAYBACK_PREFIX)
-                                                                  : ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_CAPTURE_PREFIX)))
+                        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_SYSDEFAULT_DEVICE_PREFIX)))
       continue;
     result_string = hint_string;
 
@@ -1259,6 +1302,64 @@ error:
     snd_pcm_hw_params_free (format_p);
 }
 
+void
+Stream_MediaFramework_ALSA_Tools::listCards ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_ALSA_Tools::listCards"));
+
+  int error_i;
+  int card_number_i = -1; // '-1' --> get first card
+
+  for (;;)
+  {
+    if ((error_i = snd_card_next (&card_number_i)) < 0)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_card_next(): \"%s\", returning\n"),
+                  ACE_TEXT (snd_strerror (error_i))));
+      break;
+    } // end IF
+    if (card_number_i < 0)
+      break; // --> done
+
+    snd_ctl_t* handle_p = NULL;
+    { char device_string_a[BUFSIZ];
+      ACE_OS::sprintf (device_string_a, ACE_TEXT_ALWAYS_CHAR ("hw:%i"), card_number_i);
+      if ((error_i = snd_ctl_open (&handle_p, device_string_a, 0)) < 0)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to snd_ctl_open(%s): \"%s\", continuing\n"),
+                    ACE_TEXT (device_string_a),
+                    ACE_TEXT (snd_strerror (error_i))));
+        continue;
+      } // end IF
+    }
+    ACE_ASSERT (handle_p);
+
+    { snd_ctl_card_info_t* info_p = NULL;
+      snd_ctl_card_info_alloca (&info_p);
+      if ((error_i = snd_ctl_card_info (handle_p, info_p)) < 0)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to snd_ctl_card_info(0x%@): \"%s\", continuing\n"),
+                    handle_p,
+                    ACE_TEXT (snd_strerror (error_i))));
+        snd_ctl_close (handle_p);
+        continue;
+      } // end IF
+
+      ACE_DEBUG ((LM_INFO,
+                  ACE_TEXT ("sound card (#%d): \"%s\" / \"%s\"\n"),
+                  card_number_i,
+                  ACE_TEXT (snd_ctl_card_info_get_name (info_p)),
+                  ACE_TEXT (snd_ctl_card_info_get_longname (info_p))));
+    }
+    snd_ctl_close (handle_p);
+  } // end FOR
+
+  snd_config_update_free_global ();
+}
+
 bool
 Stream_MediaFramework_ALSA_Tools::getVolumeLevels (const std::string& cardName_in,
                                                    const std::string& simpleElementName_in,
@@ -1330,8 +1431,10 @@ Stream_MediaFramework_ALSA_Tools::getVolumeLevels (const std::string& cardName_i
   if (!simple_elem_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_mixer_find_selem(%@,\"%s\"): \"%m\", aborting\n"),
-                handle_p, ACE_TEXT (simpleElementName_in.c_str ())));
+                ACE_TEXT ("failed to snd_mixer_find_selem(%@,\"%s\"): \"%s\", aborting\n"),
+                handle_p,
+                ACE_TEXT (simpleElementName_in.c_str ()),
+                ACE_TEXT (snd_strerror (errno))));
     goto error;
   } // end IF
   result_2 =

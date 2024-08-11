@@ -23,7 +23,6 @@
 
 #include <string>
 
-#include "ace/config-lite.h"
 #include "ace/Time_Value.h"
 
 #include "common_configuration.h"
@@ -40,6 +39,8 @@
 #include "stream_lib_defines.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_mediafoundation_common.h"
+#else
+#include "stream_lib_alsa_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dev_common.h"
@@ -121,7 +122,8 @@ struct Test_I_ALSA_ModuleHandlerConfiguration
    , outputFormat ()
   {
     deviceIdentifier.identifier =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
+      Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                       SND_PCM_STREAM_PLAYBACK);
   }
 
   struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;

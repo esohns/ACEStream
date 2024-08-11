@@ -67,7 +67,7 @@
 #include "stream_vis_target_mediafoundation.h"
 #else
 #include "stream_vis_wayland_window.h"
-// #include "stream_vis_x11_window.h"
+#include "stream_vis_x11_window.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GLUT_SUPPORT)
 #include "stream_vis_opengl_glut.h"
@@ -400,14 +400,14 @@ typedef Stream_Module_Vis_Wayland_Window_T<ACE_MT_SYNCH,
                                            Test_U_SessionMessage_t,
                                            Test_U_CameraFilter_V4L_SessionData_t,
                                            struct Stream_MediaFramework_V4L_MediaType> Test_U_Wayland_Display;
-// typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
-//                                        Common_TimePolicy_t,
-//                                        struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration,
-//                                        Stream_ControlMessage_t,
-//                                        Test_U_Message_t,
-//                                        Test_U_SessionMessage_t,
-//                                        Test_U_CameraFilter_V4L_SessionData_t,
-//                                        struct Stream_MediaFramework_V4L_MediaType> Test_U_X11_Display;
+typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
+                                       struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration,
+                                       Stream_ControlMessage_t,
+                                       Test_U_Message_t,
+                                       Test_U_SessionMessage_t,
+                                       Test_U_CameraFilter_V4L_SessionData_t,
+                                       struct Stream_MediaFramework_V4L_MediaType> Test_U_X11_Display;
 #if defined (GLUT_SUPPORT)
 typedef Stream_Visualization_OpenGL_GLUT_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
@@ -626,18 +626,18 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_CameraFilter_V4L_SessionData,              
                               Stream_INotify_t,                                 // stream notification interface type
                               Test_U_GTK_Display);                        // writer type
 #endif // GTK_SUPPORT
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_CameraFilter_V4L_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_x11_window_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_U_X11_Display);                                       // writer type
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_CameraFilter_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_wayland_window_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Test_U_Wayland_Display);                          // writer type
-// DATASTREAM_MODULE_INPUT_ONLY (Test_U_CameraFilter_V4L_SessionData,                   // session data type
-//                               enum Stream_SessionMessageType,                   // session event type
-//                               struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration, // module handler configuration type
-//                               libacestream_default_vis_x11_window_module_name_string,
-//                               Stream_INotify_t,                                 // stream notification interface type
-//                               Test_U_X11_Display);                          // writer type
 #if defined (GLUT_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_CameraFilter_V4L_SessionData,       // session data type
                               enum Stream_SessionMessageType,                   // session event type

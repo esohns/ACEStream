@@ -29,8 +29,11 @@
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-#define TEST_U_STREAM_AUDIOEFFECT_GTK2_GLADE_FILE              "audioeffect.gtk2"
-#define TEST_U_STREAM_AUDIOEFFECT_GTK3_GLADE_FILE              "audioeffect.gtk3"
+#if defined (GTK2_USE)
+#define TEST_U_STREAM_AUDIOEFFECT_GLADE_FILE                   "audioeffect.gtk2"
+#elif defined (GTK3_USE)
+#define TEST_U_STREAM_AUDIOEFFECT_GLADE_FILE                   "audioeffect.gtk3"
+#endif // GTK2_USE || GTK3_USE
 #elif defined (WXWIDGETS_USE)
 #define TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE           "audioeffect.xrc"
 #endif

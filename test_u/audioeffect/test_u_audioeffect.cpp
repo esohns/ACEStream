@@ -135,7 +135,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #else
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : device [\"")
-            << ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME)
+            << Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT, SND_PCM_STREAM_CAPTURE)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-e[[STRING]]: effect [\"")
@@ -151,13 +151,8 @@ do_printUsage (const std::string& programName_in)
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
 #if defined (GTK_USE)
-#if GTK_CHECK_VERSION(3,0,0)
   UI_file +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK3_GLADE_FILE);
-#else
-  UI_file +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK2_GLADE_FILE);
-#endif // GTK_CHECK_VERSION (3,0,0)
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GLADE_FILE);
 #elif defined (WXWIDGETS_USE)
   UI_file +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE);
@@ -269,7 +264,8 @@ do_processArguments (int argc_in,
 //  deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
 //  deviceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   deviceIdentifier_out =
-      ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
+      Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                       SND_PCM_STREAM_CAPTURE);
   effect_out.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
   sourceFileName_out.clear ();
@@ -278,13 +274,9 @@ do_processArguments (int argc_in,
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out +=
 #if defined (GTK_USE)
-#if GTK_CHECK_VERSION (3,0,0)
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK3_GLADE_FILE);
-#else
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK2_GLADE_FILE);
-#endif
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GLADE_FILE);
 #elif defined (WXWIDGETS_USE)
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE);
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE);
 #endif // GTK_USE || WXWIDGETS_USE
 #if defined (GTK_SUPPORT)
   UICSSFile_out.clear ();
@@ -1577,8 +1569,10 @@ do_work (
 
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.ALSAConfiguration = &ALSA_configuration_2;
+  Stream_MediaFramework_ALSA_Tools::listCards ();
   modulehandler_configuration_2.deviceIdentifier.identifier =
-    ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_PLAYBACK_PREFIX);
+    Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                     SND_PCM_STREAM_PLAYBACK);
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
@@ -2066,10 +2060,8 @@ ACE_TMAIN (int argc_in,
   bool show_console = false;
 #else
   std::string device_identifier_string =
-//    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-//  device_identifier_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-//  device_identifier_string +=
-      ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
+    Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                     SND_PCM_STREAM_CAPTURE);
   std::string effect_name;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path;
@@ -2079,13 +2071,8 @@ ACE_TMAIN (int argc_in,
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
 #if defined (GTK_USE)
-#if GTK_CHECK_VERSION(3,0,0)
   UI_definition_file +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK3_GLADE_FILE);
-#else
-  UI_definition_file +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK2_GLADE_FILE);
-#endif // GTK_CHECK_VERSION(3,0,0)
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GLADE_FILE);
 #elif defined (WXWIDGETS_USE)
   UI_definition_file +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE);

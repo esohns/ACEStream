@@ -754,7 +754,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
           {
             has_finished = true;
             // enqueue(/process) STREAM_SESSION_END
-            inherited::finished (false); // recurse upstream ?
+            inherited::change (STREAM_STATE_SESSION_STOPPING);
           } // end IF
 
           continue;

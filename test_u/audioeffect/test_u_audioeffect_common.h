@@ -509,7 +509,8 @@ struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration
    , subscribers (NULL)
   {
     deviceIdentifier.identifier =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
+      Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                       SND_PCM_STREAM_CAPTURE);
   }
 
   struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;

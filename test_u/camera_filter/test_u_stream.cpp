@@ -1244,8 +1244,8 @@ Test_U_Stream::Test_U_Stream ()
 #endif // GTK_SUPPORT
  , WaylandDisplay_ (this,
                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING))
- // , X11Display_ (this,
- //                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
+ , X11Display_ (this,
+                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 #if defined (GLUT_SUPPORT)
  , OpenGLDisplay_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
@@ -1289,17 +1289,18 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
       break;
 #endif // GTK_SUPPORT
     case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
-      // layout_in->append (&WaylandDisplay_, NULL, 0);
-      // layout_in->append (&marchingSquaresFilter_, NULL, 0);
-      layout_in->append (&weightedVoronoiStippleFilter_, NULL, 0);
+      //layout_in->append (&sobelFilter_, NULL, 0);
+      layout_in->append (&marchingSquaresFilter_, NULL, 0);
+      //layout_in->append (&weightedVoronoiStippleFilter_, NULL, 0);
+      //layout_in->append (&WaylandDisplay_, NULL, 0);
       break;
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
       layout_in->append (&sobelFilter_, NULL, 0);
-      // layout_in->append (&X11Display_, NULL, 0);
+      layout_in->append (&X11Display_, NULL, 0);
       break;
 #if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
-//      layout_in->append (&OpenGLDisplay_, NULL, 0);
+      //layout_in->append (&OpenGLDisplay_, NULL, 0);
       //layout_in->append (&GLUTDisplay_, NULL, 0);
       //layout_in->append (&GLUTDisplay_2, NULL, 0);
       layout_in->append (&GLUTDisplay_3, NULL, 0);

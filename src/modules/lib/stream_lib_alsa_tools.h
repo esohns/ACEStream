@@ -41,9 +41,14 @@ extern "C"
 
 #include "stream_lib_alsa_common.h"
 
+void acestream_lib_alsa_error_handler_cb (const char*, int, const char*, int, const char*, ...);
+
 class Stream_MediaFramework_ALSA_Tools
 {
  public:
+  void initialize ();
+  void finalize ();
+
   static bool canRender (struct _snd_pcm*,                                    // device handle
                          const struct Stream_MediaFramework_ALSA_MediaType&); // media type
   static bool getDefaultFormat (const std::string&,                            // card name
@@ -56,12 +61,14 @@ class Stream_MediaFramework_ALSA_Tools
                          struct Stream_MediaFramework_ALSA_Configuration&); // return value: configuration
 
   static int getCardNumber (const std::string&); // card name
-  static std::string getDeviceName (enum _snd_pcm_stream); // direction
+  static std::string getDeviceName (int,                   // card number (index)
+                                    enum _snd_pcm_stream); // direction
   static std::string formatToString (const struct _snd_pcm*,            // device handle
                                      const struct _snd_pcm_hw_params*); // format
 
   static void dump (struct _snd_pcm*, // device handle
                     bool);            // current- ? : any
+  static void listCards ();
 
   static bool getVolumeLevels (const std::string&, // card name
                                const std::string&, // selem name
