@@ -4088,11 +4088,15 @@ error:
 #else
   ui_data_base_p = ui_cb_data_p;
 #endif // ACE_WIN32 || ACE_WIN64
-  event_source_id = g_idle_add (idle_session_end_cb,
-                                ui_data_base_p);
+  // *NOTE*: do not use g_idle_add, because that will never be called;
+  //         the system is never idle while in-session, because it's busy
+  //         updating the display...
+  event_source_id = g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS,
+                                   idle_session_end_cb,
+                                   ui_data_base_p);
   if (event_source_id == 0)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
+                ACE_TEXT ("failed to g_timeout_add(idle_session_end_cb): \"%m\", continuing\n")));
   else
   { ACE_ASSERT (state_p);
     state_p->eventSourceIds.insert (event_source_id);
@@ -4132,7 +4136,8 @@ continue_:
   delete thread_data_base_p; thread_data_base_p = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (COM_initialized) Common_Tools::finalizeCOM ();
+  if (COM_initialized)
+    Common_Tools::finalizeCOM ();
 #endif // ACE_WIN32 || ACE_WIN64
 
   return result;
@@ -5856,42 +5861,6 @@ continue_:
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (window_p);
 
-  // step12: initialize updates
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
-    // schedule asynchronous updates of the info view
-    guint event_source_id =
-        g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET_MS,
-                       idle_update_info_display_cb,
-                       userData_in);
-    if (event_source_id > 0)
-      state_r.eventSourceIds.insert (event_source_id);
-    else
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_timeout_add(): \"%m\", aborting\n")));
-      goto error;
-    } // end ELSE
-
-#if defined (GTKGL_SUPPORT)
-    event_source_id =
-      g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_OPENGL_MS,
-                     idle_update_display_cb,
-                     userData_in);
-    //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
-    //                 idle_update_display_cb,
-    //                 userData_in,
-    //                 NULL);
-    if (event_source_id > 0)
-      state_r.eventSourceIds.insert (event_source_id);
-    else
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_timeout_add(): \"%m\", aborting\n")));
-      goto error;
-    } // end ELSE
-#endif // GTKGL_SUPPORT
-  } // end lock scope
-
   return G_SOURCE_REMOVE;
 
 error:
@@ -6032,7 +6001,7 @@ idle_session_end_cb (gpointer userData_in)
   //                   mutually exclusive:
   //                   - user pressed stop
   //                   - audio file has ended playing
-  //                   - there was an asynchronous error on the stream
+  //                   - there was an error on the stream --> abort
 
   ui_data_base_p->spectrumAnalyzerCBData.dispatch = NULL;
 
@@ -6444,12 +6413,10 @@ idle_update_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_display_cb"));
 
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -6458,14 +6425,15 @@ idle_update_display_cb (gpointer userData_in)
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
-  GdkWindow* window_p = NULL;
 
-  // trigger refresh of the 2D area
+  // trigger refresh of the 2D area ?
+  if (!ui_cb_data_base_p->render2d)
+    goto continue_2;
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
-  window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
   if (unlikely (!window_p))
     goto continue_2; // <-- not realized yet
 
@@ -6475,7 +6443,10 @@ idle_update_display_cb (gpointer userData_in)
 
 continue_2:
 #if defined (GTKGL_SUPPORT)
-  // trigger refresh of the 3D OpenGL area
+  // trigger refresh of the 3D OpenGL area ?
+  if (!ui_cb_data_base_p->render3d)
+    return G_SOURCE_CONTINUE;
+
   ACE_ASSERT (!state_r.OpenGLContexts.empty ());
   Common_UI_GTK_GLContextsIterator_t iterator_2 = state_r.OpenGLContexts.begin ();
 #if GTK_CHECK_VERSION (3,0,0)
@@ -6635,6 +6606,18 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     stream_p->stop (false,             // wait for completion ?
                     false,             // recurse upstream ?
                     is_file_source_b); // high priority ?
+
+    // step1: remove event sources
+    { ACE_GUARD (ACE_Thread_Mutex, aGuard, ui_cb_data_base_p->UIState->lock);
+      for (Common_UI_GTK_EventSourceIdsIterator_t iterator = ui_cb_data_base_p->UIState->eventSourceIds.begin ();
+           iterator != ui_cb_data_base_p->UIState->eventSourceIds.end ();
+           iterator++)
+        if (!g_source_remove (*iterator))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+                      *iterator));
+      ui_cb_data_base_p->UIState->eventSourceIds.clear ();
+    } // end lock scope
 
     return;
   } // end IF
@@ -6954,15 +6937,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     // step3: start progress reporting
     //ACE_ASSERT (!data_p->progressEventSourceId);
     ui_cb_data_base_p->progressData.eventSourceId =
-      g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
-                       idle_update_progress_cb,
-                       &ui_cb_data_base_p->progressData,
-                       NULL);
-      //g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,            // _LOW doesn't work (on Win32)
-      //                    COMMON_UI_REFRESH_DEFAULT_PROGRESS, // ms (?)
-      //                    idle_update_progress_cb,
-      //                    &ui_cb_data_base_p->progressData,
-      //                    NULL);
+      g_idle_add (idle_update_progress_cb,
+                  &ui_cb_data_base_p->progressData);
     if (!ui_cb_data_base_p->progressData.eventSourceId)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -6984,6 +6960,28 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
     //                event_source_id));
     state_r.eventSourceIds.insert (ui_cb_data_base_p->progressData.eventSourceId);
+  } // end lock scope
+
+  // step12: initialize updates
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+    // schedule asynchronous updates of the info view
+    guint event_source_id =
+      g_idle_add (idle_update_info_display_cb,
+                  userData_in);
+    if (event_source_id > 0)
+      state_r.eventSourceIds.insert (event_source_id);
+    else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_idle_add(): \"%m\", continuing\n")));
+
+    event_source_id = g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS,
+                                     idle_update_display_cb,
+                                     userData_in);
+    if (event_source_id > 0)
+      state_r.eventSourceIds.insert (event_source_id);
+    else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_timeout_add(): \"%m\", continuing\n")));
   } // end lock scope
 } // togglebutton_record_toggled_cb
 
@@ -8894,10 +8892,10 @@ togglebutton_3d_toggled_cb (GtkToggleButton* toggleButton_in,
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
+
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
@@ -8910,16 +8908,11 @@ togglebutton_3d_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
-      directshow_ui_cb_data_p =
-        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
-      ACE_ASSERT (directshow_ui_cb_data_p);
 
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -8928,9 +8921,9 @@ togglebutton_3d_toggled_cb (GtkToggleButton* toggleButton_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
 
@@ -8948,10 +8941,9 @@ togglebutton_3d_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBData* data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
@@ -8998,6 +8990,8 @@ togglebutton_3d_toggled_cb (GtkToggleButton* toggleButton_in,
                  : STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_INVALID);
 #endif // GTKGL_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+
+  ui_cb_data_base_p->render3d = is_active;
 } // togglebutton_3d_toggled_cb
 
 // -----------------------------------------------------------------------------
@@ -9275,8 +9269,12 @@ button_quit_clicked_cb (GtkButton* button_in,
 
   // wait for processing thread(s)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock);
-    while (!ui_cb_data_base_p->progressData.pendingActions.empty ())
-      ui_cb_data_base_p->UIState->condition.wait (NULL);
+    if (!ui_cb_data_base_p->progressData.pendingActions.empty ())
+      return; // simply refuse to quit... :-)
+    // *NOTE*: cannot wait on condition here, because it's signalled in
+    //         idle_update_progress_cb(), which is never invoked while
+    //         this thread is blocked...
+      //ui_cb_data_base_p->UIState->condition.wait (NULL);
   } // end lock scope
 
   // step1: remove event sources
@@ -10625,6 +10623,8 @@ continue_:
   gtk_range_set_increments (GTK_RANGE (scale_2),
                             static_cast<gdouble> (stepping_f),
                             static_cast<gdouble> (stepping_f));
+
+  gtk_scale_clear_marks (GTK_SCALE (scale_2));
   converter.precision (2);
   converter << std::fixed; // for fixed point notation
   for (float i = min_level_f;

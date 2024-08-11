@@ -119,12 +119,16 @@ Test_U_AudioEffect_DirectShow_EventHandler::end (Stream_SessionId_t sessionId_in
   {
 #if defined (GTK_USE)
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-      event_source_id = g_idle_add (idle_session_end_cb,
-                                    CBData_);
+      // *NOTE*: do not use g_idle_add, because that will never be called;
+      //         the system is never idle while in-session, because it's busy
+      //         updating the display...
+      event_source_id = g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS,
+                                       idle_session_end_cb,
+                                       CBData_);
       if (event_source_id == 0)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
+                    ACE_TEXT ("failed to g_timeout_add(idle_session_end_cb): \"%m\", continuing\n")));
         goto continue_;
       } // end IF
       state_r.eventSourceIds.insert (event_source_id);

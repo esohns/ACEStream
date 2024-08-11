@@ -813,6 +813,10 @@ struct Test_U_AudioEffect_UI_CBDataBase
    , spectrumAnalyzerCBData ()
 #endif // GTK_SUPPORT
    , stream (NULL)
+   , render2d (true)
+#if defined (GTKGL_SUPPORT)
+   , render3d (true)
+#endif // GTKGL_SUPPORT
   {}
 
 #if defined (GTKGL_SUPPORT)
@@ -830,6 +834,11 @@ struct Test_U_AudioEffect_UI_CBDataBase
   struct acestream_visualization_gtk_cairo_cbdata spectrumAnalyzerCBData;
 #endif // GTK_SUPPORT
   Stream_IStreamControlBase*                      stream;
+
+  bool                                            render2d;
+#if defined (GTKGL_SUPPORT)
+  bool                                            render3d;
+#endif // GTKGL_SUPPORT
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_UI_CBData

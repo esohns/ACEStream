@@ -172,7 +172,6 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   int                                                height_;
   int                                                width_;
 
-  enum Stream_Visualization_SpectrumAnalyzer_2DMode* mode2D_;
   Common_Math_FFT_SampleIterator                     sampleIterator_;
 };
 

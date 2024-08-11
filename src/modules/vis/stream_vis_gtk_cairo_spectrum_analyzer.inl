@@ -66,11 +66,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
                                                   MediaType,
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//                                                  ValueType>::Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (ISTREAM_T* stream_in)
-//#else
                                                   ValueType>::Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (typename inherited::ISTREAM_T* stream_in)
-//#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_CHANNELS,
                STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE,
@@ -85,7 +81,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , halfHeight_ (0)
  , height_ (0)
  , width_ (0)
- , mode2D_ (NULL)
  //, queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
  //          NULL)                   // notification handle
  //, renderHandler_ (this)
@@ -174,13 +169,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     scaleFactorY_2 = 0.0;
     halfHeight_ = 0;
     height_ = width_ = 0;
-
-    mode2D_ = NULL;
   } // end IF
-
-  // *TODO*: remove type inferences
-  mode2D_ =
-    &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzer2DMode;
 
   // initialize cairo context
   // *TODO*: remove type inferences
@@ -258,12 +247,10 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     halfHeight_ = height_ / 2;
   } // end ELSE
 
-  if (unlikely (!mode2D_))
-  {
+  if (unlikely (!configuration_in.spectrumAnalyzer2DMode >= STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX ))
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: there will be no graphics output\n"),
+                ACE_TEXT ("%s: there will (currently) be no graphics output\n"),
                 inherited::mod_->name ()));
-  } // end IF
 
   //ACE_ASSERT (inherited::msg_queue_);
   //int result = inherited::msg_queue_->activate ();
@@ -308,6 +295,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+
   // step1: process inbound samples
   // *NOTE*: a 'data sample' consists of #channel 'sound sample's, which may
   //         arrive interleaved (i.e. (16 bit resolution) LLRRLLRRLLRR...), or
@@ -330,6 +320,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   unsigned int offset = 0;
   unsigned int tail_slot = 0;
   ACE_Message_Block* message_block_p = message_inout;
+  bool compute_fft_b = 
+    inherited::configuration_->spectrumAnalyzer2DMode == STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM;
 
 next:
   number_of_samples =
@@ -358,8 +350,8 @@ next:
       for (unsigned int j = 0; j < samples_to_write; ++j)
         inherited2::buffer_[i][tail_slot + j] = sampleIterator_.get (j, i);
 
-      // step1b: process sample data
-      if (*mode2D_ > STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE)
+      // step1b: process sample data ?
+      if (compute_fft_b)
       {
         // initialize the FFT working set buffer, transform to complex
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
@@ -388,6 +380,9 @@ next:
       } // end IF
     } // end IF
   } while (message_block_p);
+
+  if (compute_fft_b)
+    inherited2::ComputeMaxValue ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -444,6 +439,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       int sample_byte_order = ACE_BYTE_ORDER;
       bool is_signed_format = false;
       bool is_floating_point_format = false;
+      double max_value_d = 0.0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
@@ -518,49 +514,48 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         width_ / static_cast<double> (inherited2::channels_ * inherited2::slots_);
       scaleFactorX_2 =
         width_ / static_cast<double> (inherited2::channels_ * ((inherited2::slots_ / 2) - 1));
+      max_value_d = static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, is_signed_format));
       scaleFactorY_ =
         (is_floating_point_format ? static_cast<double> (height_)
-                                  : static_cast<double> (height_) / static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, false)));
+                                  : static_cast<double> (height_) / (sampleIterator_.isSignedSampleFormat_ ? max_value_d * 2.0
+                                                                                                           : max_value_d));
       scaleFactorY_2 = scaleFactorY_ * 2.0;
 
       // schedule the renderer
-      if (likely (mode2D_))
-      {
-        //ACE_ASSERT (renderHandlerTimerId_ == -1);
-        //itimer_manager_p =
-        //    (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
-        //                                             : TIMER_MANAGER_SINGLETON_T::instance ());
-        //ACE_ASSERT (itimer_manager_p);
-        //// schedule the second-granularity timer
-        ////ACE_Time_Value refresh_interval (0, 1000000 / inherited::configuration_->fps);
-        //ACE_Time_Value refresh_interval (0,
-        //                                 1000000 / STREAM_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE);
-        //renderHandlerTimerId_ =
-        //  itimer_manager_p->schedule_timer (&renderHandler_,                    // event handler handle
-        //                                    NULL,                               // asynchronous completion token
-        //                                    COMMON_TIME_NOW + refresh_interval, // first wakeup time
-        //                                    refresh_interval);                  // interval
-        //if (unlikely (renderHandlerTimerId_ == -1))
-        //{
-        //  ACE_DEBUG ((LM_ERROR,
-        //              ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", aborting\n"),
-        //              inherited::mod_->name (),
-        //              &refresh_interval));
-        //  goto error;
-        //} // end IF
-        //ACE_DEBUG ((LM_DEBUG,
-        //            ACE_TEXT ("%s: scheduled renderer dispatch (timer id: %d)\n"),
-        //            inherited::mod_->name (),
-        //            renderHandlerTimerId_));
+      //ACE_ASSERT (renderHandlerTimerId_ == -1);
+      //itimer_manager_p =
+      //    (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+      //                                             : TIMER_MANAGER_SINGLETON_T::instance ());
+      //ACE_ASSERT (itimer_manager_p);
+      //// schedule the second-granularity timer
+      ////ACE_Time_Value refresh_interval (0, 1000000 / inherited::configuration_->fps);
+      //ACE_Time_Value refresh_interval (0,
+      //                                 1000000 / STREAM_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE);
+      //renderHandlerTimerId_ =
+      //  itimer_manager_p->schedule_timer (&renderHandler_,                    // event handler handle
+      //                                    NULL,                               // asynchronous completion token
+      //                                    COMMON_TIME_NOW + refresh_interval, // first wakeup time
+      //                                    refresh_interval);                  // interval
+      //if (unlikely (renderHandlerTimerId_ == -1))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", aborting\n"),
+      //              inherited::mod_->name (),
+      //              &refresh_interval));
+      //  goto error;
+      //} // end IF
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: scheduled renderer dispatch (timer id: %d)\n"),
+      //            inherited::mod_->name (),
+      //            renderHandlerTimerId_));
 
-        inherited::threadCount_ =
-          //(inherited::window_ ? 2 : 1); // mainloop + renderer : renderer only
-          (inherited::window_ ? 1 : 0); // mainloop : N/A
-        if (inherited::threadCount_)
-          inherited::start (NULL);
-        inherited::threadCount_ = 0;
-        shutdown = true;
-      } // end IF
+      inherited::threadCount_ =
+        //(inherited::window_ ? 2 : 1); // mainloop + renderer : renderer only
+        (inherited::window_ ? 1 : 0); // mainloop : N/A
+      if (inherited::threadCount_)
+        inherited::start (NULL);
+      inherited::threadCount_ = 0;
+      shutdown = true;
 
       break;
 
@@ -1097,31 +1092,35 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
    width_ = gdk_surface_get_width (window_in);
    height_ = gdk_surface_get_height (window_in);
 #elif GTK_CHECK_VERSION (3,0,0)
-    gdk_window_get_geometry (window_in,
-                             NULL,
-                             NULL,
-                             &width_,
-                             &height_);
+   gdk_window_get_geometry (window_in,
+                            NULL,
+                            NULL,
+                            &width_,
+                            &height_);
 #elif GTK_CHECK_VERSION (2,0,0)
-    gdk_window_get_geometry (window_in,
-                             NULL,
-                             NULL,
-                             &width_,
-                             &height_,
-                             NULL);
+  gdk_window_get_geometry (window_in,
+                            NULL,
+                            NULL,
+                            &width_,
+                            &height_,
+                            NULL);
 #endif /* GTK_CHECK_VERSION (x,0,0) */
-    ACE_ASSERT (height_); ACE_ASSERT (width_);
-    halfHeight_ = height_ / 2;
+  ACE_ASSERT (height_); ACE_ASSERT (width_);
+  halfHeight_ = height_ / 2;
 
-    channelFactor_ = width_ / static_cast<double> (inherited2::channels_);
-    scaleFactorX_ =
-      width_ / static_cast<double> (inherited2::channels_ * inherited2::slots_);
-    scaleFactorX_2 =
-      width_ / static_cast<double> (inherited2::channels_ * ((inherited2::slots_ / 2) - 1));
-    scaleFactorY_ =
-      (is_floating_point_format ? static_cast<double> (height_)
-                                : static_cast<double> (height_) / static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, false)));
-    scaleFactorY_2 = scaleFactorY_ * 2.0;
+  channelFactor_ = width_ / static_cast<double> (inherited2::channels_);
+  scaleFactorX_ =
+    width_ / static_cast<double> (inherited2::channels_ * inherited2::slots_);
+  scaleFactorX_2 =
+    width_ / static_cast<double> (inherited2::channels_ * ((inherited2::slots_ / 2) - 1));
+
+  double max_value_d =
+    static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, sampleIterator_.isSignedSampleFormat_));
+  scaleFactorY_ =
+    (is_floating_point_format ? static_cast<double> (height_)
+                              : static_cast<double> (height_) / (sampleIterator_.isSignedSampleFormat_ ? max_value_d * 2.0
+                                                                                                       : max_value_d));
+  scaleFactorY_2 = scaleFactorY_ * 2.0;
 //} // end lock scope
 }
 
@@ -1152,12 +1151,12 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::dispatch"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
   struct acestream_visualization_gtk_cairo_cbdata* cbdata_p =
     static_cast<struct acestream_visualization_gtk_cairo_cbdata*> (userData_in);
   ACE_ASSERT (cbdata_p);
   ACE_ASSERT (cbdata_p->context);
   ACE_ASSERT (cbdata_p->window);
-  ACE_ASSERT (mode2D_ != NULL);
 
   cairo_t* context_p = NULL;
 #if GTK_CHECK_VERSION (3,22,0)
@@ -1185,7 +1184,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (context_p);
 
   // step1: clear the window(s)
-  if (*mode2D_ < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX)
+  if (inherited::configuration_->spectrumAnalyzer2DMode < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX)
   {
     cairo_set_source_rgb (context_p, 0.0, 0.0, 0.0);
     cairo_rectangle (context_p, 0.0, 0.0, width_, height_);
@@ -1195,7 +1194,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   // step2a: draw signal graphics
   for (unsigned int i = 0; i < inherited2::channels_; ++i)
   {
-    switch (*mode2D_)
+    switch (inherited::configuration_->spectrumAnalyzer2DMode)
     {
       case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE:
       {
@@ -1214,7 +1213,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       }
       case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM:
       {
-        double x;
+        double x, y, magnitude_d;
         // step2aa: draw thin, white columns
         cairo_set_source_rgb (context_p, 1.0, 1.0, 1.0);
         // *IMPORTANT NOTE*: - the first ('DC'-)slot does not contain frequency
@@ -1225,16 +1224,19 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         for (unsigned int j = 1; j < inherited2::halfSlots_; ++j)
         {
           x =
-            (static_cast<double> (i) * channelFactor_) + (static_cast<double> (j) * scaleFactorX_2);
+            (static_cast<double> (i) * channelFactor_) + (static_cast<double> (j - 1) * scaleFactorX_2);
           cairo_move_to (context_p,
                          x,
                          static_cast<double> (height_));
           // *NOTE*: it is 2x the scale factor for signed (!) values, because the
           //         magnitudes are absolute values
+          magnitude_d = inherited2::Magnitude (j, i, true);
+          y = static_cast<double> (height_) * magnitude_d;
+            //static_cast<double> (height_) * (sampleIterator_.isSignedSampleFormat_ ? (magnitude_d * scaleFactorY_2)
+            //                                                                       : (magnitude_d * scaleFactorY_));
           cairo_line_to (context_p,
                          x,
-                         static_cast<double> (height_) - (sampleIterator_.isSignedSampleFormat_ ? (inherited2::Magnitude (j, i, true) * scaleFactorY_2)
-                                                                                                : (inherited2::Magnitude (j, i, true) * scaleFactorY_)));
+                         static_cast<double> (height_) - std::min (y, static_cast<double> (height_)));
         } // end FOR
         break;
       }
@@ -1245,7 +1247,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid 2D mode (was: %d), returning\n"),
                     inherited::mod_->name (),
-                    mode2D_));
+                    inherited::configuration_->spectrumAnalyzer2DMode));
         goto error;
       }
     } // end SWITCH
