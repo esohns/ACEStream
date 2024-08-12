@@ -78,9 +78,6 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
-  //typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
-  //  inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING));
-  //ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
   std::string renderer_modulename_string;
   switch (inherited::configuration_->configuration_->renderer)
   {
@@ -117,6 +114,10 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   bool has_directshow_source_b = true;
   bool add_resampler_b = false;
   bool add_delay_b = false;
+  bool add_renderer_branch_b = !(*iterator).second.second->mute;
+  bool add_save_branch_b = !(*iterator_4).second.second->fileIdentifier.empty ();
+  bool add_display_branch_b =
+    inherited::configuration_->configuration_->displayAnalyzer;
   Stream_Branches_t branches_a;
 
   switch (inherited::configuration_->configuration_->sourceType)
@@ -268,7 +269,9 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
-  if (!(*iterator_4).second.second->fileIdentifier.empty ())
+  if (add_renderer_branch_b ||
+      add_save_branch_b     ||
+      add_display_branch_b)
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_DirectShow_Distributor_Module (this,
@@ -276,9 +279,9 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                     false);
     ACE_ASSERT (module_p);
     branch_p = module_p;
-    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
-    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME)); // 0
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));  // 1
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));     // 2
     Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
     ACE_ASSERT (idistributor_p);
@@ -287,86 +290,93 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     module_p = NULL;
   } // end IF
 
-  if (add_delay_b)
+  // 0
+  if (add_renderer_branch_b)
   {
+    if (add_resampler_b)
+    {
+#if defined (SOX_SUPPORT)
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_DirectShow_SoXResampler_Module (this,
+                                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+#endif // SOX_SUPPORT
+    } // end IF
+
+    if (add_delay_b)
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_DirectShow_Delay_Module (this,
+                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
+                      false);
+      ACE_ASSERT (module_p);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+    } // end IF
+
+    switch (inherited::configuration_->configuration_->renderer)
+    {
+      case STREAM_DEVICE_RENDERER_WAVEOUT:
+      {
+        ACE_NEW_RETURN (module_p,
+                        Test_U_AudioEffect_DirectShow_WavOut_Module (this,
+                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING)),
+                        false);
+        break;
+      }
+      case STREAM_DEVICE_RENDERER_WASAPI:
+      {
+        ACE_NEW_RETURN (module_p,
+                        Test_U_AudioEffect_DirectShow_WASAPIOut_Module (this,
+                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING)),
+                        false);
+        break;
+      }
+      case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+        break;
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+                    ACE_TEXT (stream_name_string_),
+                    inherited::configuration_->configuration_->renderer));
+        return false;
+      }
+    } // end SWITCH
+    if (module_p)
+    {
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+    } // end IF
+  } // end IF
+
+  ++index_i; // 1
+  if (add_display_branch_b)
+  {
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
     ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_DirectShow_Delay_Module (this,
-                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
+                    Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
+                                                                            ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
                     false);
     ACE_ASSERT (module_p);
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
-  } // end IF
-
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
-                                                                          ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  layout_in->append (module_p, branch_p, index_i);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
-                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  layout_in->append (module_p, branch_p, index_i);
-  module_p = NULL;
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
+                                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, branch_p, index_i);
+    module_p = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  ++index_i;
-
-  if (add_resampler_b)
-  {
-#if defined (SOX_SUPPORT)
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_DirectShow_SoXResampler_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
-                    false);
-    layout_in->append (module_p, branch_p, index_i);
-    module_p = NULL;
-#endif // SOX_SUPPORT
   } // end IF
 
-  switch (inherited::configuration_->configuration_->renderer)
-  {
-    case STREAM_DEVICE_RENDERER_WAVEOUT:
-    {
-      ACE_NEW_RETURN (module_p,
-                      Test_U_AudioEffect_DirectShow_WavOut_Module (this,
-                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING)),
-                      false);
-      break;
-    }
-    case STREAM_DEVICE_RENDERER_WASAPI:
-    {
-      ACE_NEW_RETURN (module_p,
-                      Test_U_AudioEffect_DirectShow_WASAPIOut_Module (this,
-                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING)),
-                      false);
-      break;
-    }
-    case STREAM_DEVICE_RENDERER_DIRECTSHOW:
-      break;
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
-                  ACE_TEXT (stream_name_string_),
-                  inherited::configuration_->configuration_->renderer));
-      return false;
-    }
-  } // end SWITCH
-  if (module_p)
-  {
-    layout_in->append (module_p, branch_p, index_i);
-    module_p = NULL;
-  } // end IF
-  ++index_i;
-
-  if (!(*iterator_4).second.second->fileIdentifier.empty ())
+  ++index_i; // 2
+  if (add_save_branch_b)
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_DirectShow_WAVEncoder_Module (this,

@@ -172,7 +172,9 @@ load_capture_devices (GtkListStore* listStore_in)
       while (enum_moniker_p->Next (1, &moniker_p, NULL) == S_OK)
       { ACE_ASSERT (moniker_p);
         properties_p = NULL;
-        result = moniker_p->BindToStorage (0, 0, IID_PPV_ARGS (&properties_p));
+        result_2 = moniker_p->BindToStorage (NULL, // *TODO*: CreateBindCtx() here ?
+                                             NULL,
+                                             IID_PPV_ARGS (&properties_p));
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -7232,7 +7234,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
       result_2 =
         (*mediafoundation_stream_iterator).second.configuration_->format->SetGUID (MF_MT_SUBTYPE,
                                                                                    GUID_s);
-      if (FAILED (result))
+      if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaType::SetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
@@ -7538,7 +7540,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
       result_2 =
         (*mediafoundation_stream_iterator).second.configuration_->format->GetGUID (MF_MT_MAJOR_TYPE, //MF_MT_AM_FORMAT_TYPE,
                                                                                    &GUID_s);
-      if (FAILED (result))
+      if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_MAJOR_TYPE): \"%s\", returning\n"),

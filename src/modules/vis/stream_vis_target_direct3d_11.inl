@@ -61,6 +61,13 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
  , pixelShader_ (NULL)
  , inputLayout_ (NULL)
  , vertexBuffer_ (NULL)
+ , backBuffer_ (NULL)
+ , samplerState_ (NULL)
+ , texture_ (NULL)
+ , depthStencilBuffer_ (NULL)
+ , depthStencilView_ (NULL)
+ , depthStencilState_ (NULL)
+ , rasterizerState_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D11_T::Stream_Vis_Target_Direct3D11_T"));
 
@@ -103,6 +110,20 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
     inputLayout_->Release ();
   if (vertexBuffer_)
     vertexBuffer_->Release ();
+  if (backBuffer_)
+    backBuffer_->Release ();
+  if (samplerState_)
+    samplerState_->Release ();
+  if (texture_)
+    texture_->Release ();
+  if (depthStencilBuffer_)
+    depthStencilBuffer_->Release ();
+  if (depthStencilView_)
+    depthStencilView_->Release ();
+  if (depthStencilState_)
+    depthStencilState_->Release ();
+  if (rasterizerState_)
+    rasterizerState_->Release ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -335,6 +356,27 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
     if (vertexBuffer_)
       vertexBuffer_->Release ();
     vertexBuffer_ = NULL;
+    if (backBuffer_)
+      backBuffer_->Release ();
+    backBuffer_ = NULL;
+    if (samplerState_)
+      samplerState_->Release ();
+    samplerState_ = NULL;
+    if (texture_)
+      texture_->Release ();
+    texture_ = NULL;
+    if (depthStencilBuffer_)
+      depthStencilBuffer_->Release ();
+    depthStencilBuffer_ = NULL;
+    if (depthStencilView_)
+      depthStencilView_->Release ();
+    depthStencilView_ = NULL;
+    if (depthStencilState_)
+      depthStencilState_->Release ();
+    depthStencilState_ = NULL;
+    if (rasterizerState_)
+      rasterizerState_->Release ();
+    rasterizerState_ = NULL;
   } // end IF
 
   if (COM_initialized)

@@ -230,7 +230,8 @@ load_capture_devices (GtkListStore* listStore_in)
       while (S_OK == enum_moniker_p->Next (1, &moniker_p, NULL))
       { ACE_ASSERT (moniker_p);
         properties_p = NULL;
-        result_2 = moniker_p->BindToStorage (NULL, NULL,
+        result_2 = moniker_p->BindToStorage (NULL, // *TODO*: CreateBindCtx() here ?
+                                             NULL,
                                              IID_PPV_ARGS (&properties_p));
         if (FAILED (result_2))
         {

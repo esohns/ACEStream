@@ -64,7 +64,7 @@ AutoWrap (int autoType,
   DISPID dispID;
   HRESULT hr;
   char buf[200];
-  char szName[200];
+  char szName[256];
 
   // Convert down to ANSI
   WideCharToMultiByte (CP_ACP, 0, ptName, -1, szName, 256, NULL, NULL);
@@ -201,6 +201,7 @@ Test_I_MSOffice_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMe
         books_p = result.pdispVal;
       }
       ACE_ASSERT (books_p);
+
       IDispatch* book_p = NULL;
       {
         VARIANT result;
@@ -209,6 +210,7 @@ Test_I_MSOffice_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMe
         book_p = result.pdispVal;
       }
       ACE_ASSERT (book_p);
+
       IDispatch* sheet_p = NULL;
       {
         VARIANT result;
@@ -235,6 +237,7 @@ Test_I_MSOffice_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMe
           SafeArrayPutElement (arr.parray, indices, (void*)&tmp);
         }
       }
+
       IDispatch* range_p = NULL;
       {
         VARIANT parm;

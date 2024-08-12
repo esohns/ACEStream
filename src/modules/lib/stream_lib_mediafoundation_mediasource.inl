@@ -449,15 +449,16 @@ template <typename TimePolicyType,
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                                                     MessageType,
                                                     ConfigurationType>::Stream_MediaFramework_MediaFoundation_MediaSource_T ()
- : configuration_ (NULL)
+ : buffering_ (true)
+ , configuration_ (NULL)
  , eventQueue_ (NULL)
 //, hasCOMReference_ (false)
- , presentationDescriptor_ (NULL)
  , lock_ ()
+ , mediaStream_ (NULL)
+ , presentationDescriptor_ (NULL)
  , referenceCount_ (0)
  , state_ (STATE_INVALID)
  , tokens_ ()
- , mediaStream_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Stream_MediaFramework_MediaFoundation_MediaSource_T"));
 

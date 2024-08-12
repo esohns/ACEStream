@@ -5631,7 +5631,7 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (IMFActivate* activate_in)
   HRESULT result_2 = E_FAIL;
   WCHAR buffer_a[BUFSIZ];
   UINT32 length;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
 #if defined (_DEBUG)
   // sanity check(s)
   length = 0;
@@ -5649,7 +5649,7 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (IMFActivate* activate_in)
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (result);
   ACE_NOTREACHED (return result;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
   if (FAILED (result_2)) // MF_E_ATTRIBUTENOTFOUND: 0xC00D36E6L
   {
     ACE_DEBUG ((LM_DEBUG,
@@ -5662,11 +5662,11 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (IMFActivate* activate_in)
   return result;
 }
 std::string
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
 Stream_MediaFramework_MediaFoundation_Tools::toString (IMFMediaSourceEx* mediaSource_in)
 #else
 Stream_MediaFramework_MediaFoundation_Tools::toString (IMFMediaSource* mediaSource_in)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::toString"));
 
@@ -5674,11 +5674,11 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (IMFMediaSource* mediaSour
 
   HRESULT result_2 = E_FAIL;
   IMFAttributes* attributes_p = NULL;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   WCHAR buffer_a[BUFSIZ];
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   result_2 = mediaSource_in->GetSourceAttributes (&attributes_p);
   if (FAILED (result_2))
   {
@@ -5705,11 +5705,11 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (IMFMediaSource* mediaSour
               ACE_TEXT ("cannot convert IMFMediaSource to string on this target platform, continuing\n")));
 
   return ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_MEDIAFOUNDATION_MEDIASOURCE_FRIENDLY_NAME_L));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
 error:
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   if (attributes_p)
     attributes_p->Release ();
 

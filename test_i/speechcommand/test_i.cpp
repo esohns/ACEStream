@@ -1676,6 +1676,7 @@ do_work (const std::string& scorerFile_in,
           renderer_modulename_string =
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING);
           // *WARNING*: falls through !
+          ACE_FALLTHROUGH;
         }
         case STREAM_DEVICE_RENDERER_MEDIAFOUNDATION:
         {

@@ -470,22 +470,22 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
         video_info_header_p =
           reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_s.pbFormat);
         // *NOTE*: empty --> use entire video
-        result_2 = SetRectEmpty (&video_info_header_p->rcSource);
-        ACE_ASSERT (SUCCEEDED (result_2));
+        BOOL result_3 = SetRectEmpty (&video_info_header_p->rcSource);
+        ACE_ASSERT (result_3);
         // *NOTE*: empty --> fill entire buffer
-        result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
-        ACE_ASSERT (SUCCEEDED (result_2));
+        result_3 = SetRectEmpty (&video_info_header_p->rcTarget);
+        ACE_ASSERT (result_3);
       } // end IF
       else if (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo2))
       {
         video_info_header2_p =
           reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type_s.pbFormat);
         // *NOTE*: empty --> use entire video
-        result_2 = SetRectEmpty (&video_info_header2_p->rcSource);
-        ACE_ASSERT (SUCCEEDED (result_2));
+        BOOL result_3 = SetRectEmpty (&video_info_header2_p->rcSource);
+        ACE_ASSERT (result_3);
         // *NOTE*: empty --> fill entire buffer
-        result_2 = SetRectEmpty (&video_info_header2_p->rcTarget);
-        ACE_ASSERT (SUCCEEDED (result_2));
+        result_3 = SetRectEmpty (&video_info_header2_p->rcTarget);
+        ACE_ASSERT (result_3);
       } // end ELSE IF
       else
       {

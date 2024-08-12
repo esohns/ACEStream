@@ -130,7 +130,8 @@ Stream_Device_DirectShow_Tools::devicePathToString (const std::string& devicePat
     ACE_ASSERT (!moniker_p);
     while (S_OK == enum_moniker_p->Next (1, &moniker_p, NULL))
     { ACE_ASSERT (moniker_p);
-      result_2 = moniker_p->BindToStorage (NULL, NULL,
+      result_2 = moniker_p->BindToStorage (NULL, // *TODO*: CreateBindCtx() here ?
+                                           NULL,
                                            IID_PPV_ARGS (&properties_p));
       if (FAILED (result_2))
       {
@@ -262,7 +263,8 @@ Stream_Device_DirectShow_Tools::devicePath (const std::string& friendlyName_in)
     ACE_ASSERT (!moniker_p);
     while (S_OK == enum_moniker_p->Next (1, &moniker_p, NULL))
     { ACE_ASSERT (moniker_p);
-      result_2 = moniker_p->BindToStorage (NULL, NULL,
+      result_2 = moniker_p->BindToStorage (NULL, // *TODO*: CreateBindCtx() here ?
+                                           NULL,
                                            IID_PPV_ARGS (&properties_p));
       if (FAILED (result_2))
       {
@@ -391,7 +393,8 @@ Stream_Device_DirectShow_Tools::devicePath (ULONG deviceId_in)
     ACE_ASSERT (!moniker_p);
     while (S_OK == enum_moniker_p->Next (1, &moniker_p, NULL))
     { ACE_ASSERT (moniker_p);
-      result_2 = moniker_p->BindToStorage (NULL, NULL,
+      result_2 = moniker_p->BindToStorage (NULL, // *TODO*: CreateBindCtx() here ?
+                                           NULL,
                                            IID_PPV_ARGS (&properties_p));
       if (FAILED (result_2))
       {
@@ -544,7 +547,8 @@ Stream_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory_in)
   while (S_OK == enum_moniker_p->Next (1, &moniker_p, NULL))
   { ACE_ASSERT (moniker_p);
     ACE_ASSERT (!properties_p);
-    result_2 = moniker_p->BindToStorage (NULL, NULL,
+    result_2 = moniker_p->BindToStorage (NULL, // *TODO*: CreateBindCtx() here ?
+                                         NULL,
                                          IID_PPV_ARGS (&properties_p));
     if (FAILED (result_2))
     {
@@ -1412,7 +1416,8 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const struct Stream_Device_Iden
   while (S_OK == enum_moniker_p->Next (1, &moniker_p, NULL))
   { ACE_ASSERT (moniker_p);
     ACE_ASSERT (!properties_p);
-    result = moniker_p->BindToStorage (NULL, NULL,
+    result = moniker_p->BindToStorage (NULL, // *TODO*: CreateBindCtx() here ?
+                                       NULL,
                                        IID_PPV_ARGS (&properties_p));
     if (FAILED (result))
     {
@@ -1492,7 +1497,8 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const struct Stream_Device_Iden
     goto error;
   } // end IF
 
-  result = moniker_p->BindToObject (NULL, NULL,
+  result = moniker_p->BindToObject (NULL, // *TODO*: CreateBindCtx() here ?
+                                    NULL,
                                     IID_PPV_ARGS (&filter_p));
   if (FAILED (result))
   {

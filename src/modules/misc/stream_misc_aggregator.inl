@@ -1492,7 +1492,10 @@ retry:
         tails_.insert (std::make_pair (session_id,
                                        tail_2));
       } // end lock scope
-    } // *WARNING*: control falls through here
+
+      // *WARNING*: control falls through here
+      ACE_FALLTHROUGH;
+    }
     case STREAM_SESSION_MESSAGE_LINK:
     {
       SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;

@@ -204,8 +204,8 @@ load_capture_devices (GtkListStore* listStore_in)
       ACE_ASSERT (SUCCEEDED (result_2) && devices_p);
       enumerator_p->Release (); enumerator_p = NULL;
       UINT num_devices_i = 0;
-      result = devices_p->GetCount (&num_devices_i);
-      ACE_ASSERT (SUCCEEDED (result));
+      result_2 = devices_p->GetCount (&num_devices_i);
+      ACE_ASSERT (SUCCEEDED (result_2));
       IMMDevice* device_p = NULL;
       struct _GUID GUID_s = GUID_NULL;
       IPropertyStore* property_store_p = NULL;
@@ -215,24 +215,24 @@ load_capture_devices (GtkListStore* listStore_in)
            i < num_devices_i;
            ++i)
       { ACE_ASSERT (!device_p);
-        result = devices_p->Item (i,
-                                  &device_p);
-        ACE_ASSERT (SUCCEEDED (result) && device_p);
-        result = device_p->OpenPropertyStore (STGM_READ,
-                                              &property_store_p);
-        ACE_ASSERT (SUCCEEDED (result) && property_store_p);
+        result_2 = devices_p->Item (i,
+                                    &device_p);
+        ACE_ASSERT (SUCCEEDED (result_2) && device_p);
+        result_2 = device_p->OpenPropertyStore (STGM_READ,
+                                                &property_store_p);
+        ACE_ASSERT (SUCCEEDED (result_2) && property_store_p);
         device_p->Release (); device_p = NULL;
 
-        result = property_store_p->GetValue (PKEY_Device_FriendlyName,
-                                             &property_s);
-        ACE_ASSERT (SUCCEEDED (result));
+        result_2 = property_store_p->GetValue (PKEY_Device_FriendlyName,
+                                               &property_s);
+        ACE_ASSERT (SUCCEEDED (result_2));
         ACE_ASSERT (property_s.vt == VT_LPWSTR);
         device_friendlyname_string =
           ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal));
         PropVariantClear (&property_s);
-        result = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
-                                             &property_s);
-        ACE_ASSERT (SUCCEEDED (result));
+        result_2 = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
+                                               &property_s);
+        ACE_ASSERT (SUCCEEDED (result_2));
         property_store_p->Release (); property_store_p = NULL;
         ACE_ASSERT (property_s.vt == VT_LPWSTR);
         device_identifier_string =
@@ -3203,7 +3203,10 @@ load_audio_effects (GtkListStore* listStore_in)
       } // end IF
       ACE_ASSERT (enum_DMO_p);
 
-      while (S_OK == enum_DMO_p->Next (1, &class_id, &string_p, NULL))
+      while (S_OK == enum_DMO_p->Next (1,
+                                       &class_id,
+                                       &string_p,
+                                       NULL))
       { ACE_ASSERT (string_p);
         friendly_name_string =
            ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (string_p));
@@ -7237,12 +7240,10 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
 
   ACE_UNUSED_ARG (toggleButton_in);
 
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -7288,7 +7289,7 @@ continue_:
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       directshow_modulehandler_configuration_iterator =
-        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       if (is_active)
@@ -7306,7 +7307,7 @@ continue_:
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       mediafoundation_modulehandler_configuration_iterator =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       if (is_active)
@@ -7329,9 +7330,8 @@ continue_:
   struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p->configuration);
-
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   if (is_active)
@@ -8567,12 +8567,60 @@ togglebutton_visualization_toggled_cb (GtkToggleButton* toggleButton_in,
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
+  bool is_active_b = gtk_toggle_button_get_active (toggleButton_in);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->displayAnalyzer =
+        is_active_b;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->displayAnalyzer =
+        is_active_b;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (data_p);
+  data_p->configuration->streamConfiguration.configuration_->displayAnalyzer =
+    is_active_b;
+#endif // ACE_WIN32 || ACE_WIN64
+
   GtkBox* box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HBOX_VISUALIZATION_NAME)));
   ACE_ASSERT (box_p);
   gtk_widget_set_sensitive (GTK_WIDGET (box_p),
-                            gtk_toggle_button_get_active (toggleButton_in));
+                            is_active_b);
 } // togglebutton_visualization_toggled_cb
 
 void

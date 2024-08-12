@@ -66,7 +66,7 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
           if (likely (!flushSessionMessages_in))
             break;
           // *WARNING*: control falls through here
-          //[[fallthrough]];
+          ACE_FALLTHROUGH;
         }
         case STREAM_MESSAGE_DATA:
         case STREAM_MESSAGE_OBJECT:

@@ -733,6 +733,10 @@ class MSAFluidSolver2D;
 struct Test_I_UI_GTK_CBData
  : Common_UI_GTK_CBData
 {
+  Test_I_UI_GTK_CBData ()
+   : solver (NULL)
+  {}
+
   MSAFluidSolver2D* solver;
 };
 #endif // GTK_SUPPORT

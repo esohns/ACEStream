@@ -853,8 +853,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         goto done;
       }
       case ACE_Message_Block::MB_EVENT:
+      {
         dispatch (&CBData_);
-      // *WARNING*: control falls through
+        // *WARNING*: control falls through
+        ACE_FALLTHROUGH;
+      }
       default:
       {
         message_block_p->release (); message_block_p = NULL;
@@ -1184,22 +1187,22 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (context_p);
 
   // step1: clear the window(s)
-  if (inherited::configuration_->spectrumAnalyzer2DMode < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX)
-  {
-    cairo_set_source_rgb (context_p, 0.0, 0.0, 0.0);
-    cairo_rectangle (context_p, 0.0, 0.0, width_, height_);
-    cairo_fill (context_p);
-  } // end IF
+  //if (inherited::configuration_->spectrumAnalyzer2DMode < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX)
+  //{
+  //  cairo_set_source_rgb (context_p, 0.0, 0.0, 0.0);
+  //  cairo_rectangle (context_p, 0.0, 0.0, width_, height_);
+  //  cairo_fill (context_p);
+  //} // end IF
 
   // step2a: draw signal graphics
+  cairo_set_source_rgb (context_p, 0.0, 1.0, 0.0);
   for (unsigned int i = 0; i < inherited2::channels_; ++i)
   {
     switch (inherited::configuration_->spectrumAnalyzer2DMode)
     {
       case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE:
       {
-        // step2aa: draw a thin, green polyline
-        cairo_set_source_rgb (context_p, 0.0, 1.0, 0.0);
+        // step2aa: draw a thin polyline
         cairo_move_to (context_p,
                        static_cast<double> (i) * channelFactor_,
                        (sampleIterator_.isSignedSampleFormat_ ? static_cast<double> (halfHeight_)
@@ -1214,29 +1217,34 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM:
       {
         double x, y, magnitude_d;
-        // step2aa: draw thin, white columns
-        cairo_set_source_rgb (context_p, 1.0, 1.0, 1.0);
+        // step2aa: draw thin columns
         // *IMPORTANT NOTE*: - the first ('DC'-)slot does not contain frequency
         //                     information --> j = 1
         //                   - the slots N/2 - N are mirrored and do not contain
         //                     additional information
         //                     --> there are only N/2 - 1 meaningful values
+
+        //static double logMinFreq_d = log10 (100.0); // <-- min frequency to display
         for (unsigned int j = 1; j < inherited2::halfSlots_; ++j)
         {
+          //x =
+          //  (static_cast<double> (i) * channelFactor_) + 
+          //  (log10 (static_cast<double> (inherited2::Frequency (j))) - logMinFreq_d) * ((width_ - 1) / 2.0) / (log10 (inherited2::sampleRate_ / 2.0) - logMinFreq_d);
           x =
             (static_cast<double> (i) * channelFactor_) + (static_cast<double> (j - 1) * scaleFactorX_2);
           cairo_move_to (context_p,
                          x,
                          static_cast<double> (height_));
-          // *NOTE*: it is 2x the scale factor for signed (!) values, because the
-          //         magnitudes are absolute values
+
+          // method2: dB scale
+          //magnitude_d = 10.0 * log10 (inherited2::SqMagnitude (j, i, false));
+          //y = magnitude_d;
+          // method1: (normalized-) magnitude
           magnitude_d = inherited2::Magnitude (j, i, true);
           y = static_cast<double> (height_) * magnitude_d;
-            //static_cast<double> (height_) * (sampleIterator_.isSignedSampleFormat_ ? (magnitude_d * scaleFactorY_2)
-            //                                                                       : (magnitude_d * scaleFactorY_));
           cairo_line_to (context_p,
                          x,
-                         static_cast<double> (height_) - std::min (y, static_cast<double> (height_)));
+                         static_cast<double> (height_) - y);
         } // end FOR
         break;
       }

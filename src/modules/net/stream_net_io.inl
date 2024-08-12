@@ -177,7 +177,7 @@ continue_:
       }
 
       // *WARNING*: the control flow falls through here
-      //[[fallthrough]];
+      ACE_FALLTHROUGH;
     }
     case STREAM_CONTROL_MESSAGE_ABORT:
     { ACE_ASSERT (connection_p);

@@ -1582,7 +1582,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       } // end lock scope
 
       // *WARNING*: falls through
-      //[[fallthrough]];
+      ACE_FALLTHROUGH;
     }
     default:
     {

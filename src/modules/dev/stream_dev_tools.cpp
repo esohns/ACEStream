@@ -185,6 +185,7 @@ Stream_Device_Tools::id (const struct Stream_Device_Identifier& deviceIdentifier
     {
       deviceIdentifier_out =
         Stream_MediaFramework_DirectSound_Tools::endpointIdToDirectSoundGUID (deviceIdentifier_in.identifier._string);
+      break;
     }
     default:
     {

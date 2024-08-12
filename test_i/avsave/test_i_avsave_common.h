@@ -999,8 +999,9 @@ struct Stream_AVSave_UI_CBData
    , isFirst (true)
    , progressData ()
    , spectrumAnalyzerCBData ()
+   , UIState (NULL)
   {
-    progressData.state = UIState;
+    //progressData.state = UIState;
   }
 
   Common_IDispatch*                               dispatch; // video

@@ -565,11 +565,13 @@ struct Test_U_AudioEffect_StreamConfiguration
    , capturer (STREAM_DEVICE_CAPTURER_INVALID)
    , renderer (STREAM_DEVICE_RENDERER_INVALID)
    , sourceType (AUDIOEFFECT_SOURCE_INVALID)
+   , displayAnalyzer (true)
   {}
 
   enum Stream_Device_Capturer        capturer;
   enum Stream_Device_Renderer        renderer;
   enum Test_U_AudioEffect_SourceType sourceType;
+  bool                               displayAnalyzer;
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

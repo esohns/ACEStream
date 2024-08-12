@@ -471,11 +471,11 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     struct tagVIDEOINFOHEADER* video_info_header_p =
       reinterpret_cast<struct tagVIDEOINFOHEADER*> (outputFormat_inout.pbFormat);
     // *NOTE*: empty --> use entire video
-    result_2 = SetRectEmpty (&video_info_header_p->rcSource);
-    ACE_ASSERT (SUCCEEDED (result_2));
-    result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
+    BOOL result_3 = SetRectEmpty (&video_info_header_p->rcSource);
+    ACE_ASSERT (result_3);
+    result_3 = SetRectEmpty (&video_info_header_p->rcTarget);
     // *NOTE*: empty --> fill entire buffer
-    ACE_ASSERT (SUCCEEDED (result_2));
+    ACE_ASSERT (result_3);
     ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
     ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
     ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);

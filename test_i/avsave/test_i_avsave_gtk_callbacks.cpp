@@ -185,7 +185,9 @@ load_capture_devices (GtkListStore* listStore_in)
       while (enum_moniker_p->Next (1, &moniker_p, NULL) == S_OK)
       { ACE_ASSERT (moniker_p);
         properties_p = NULL;
-        result = moniker_p->BindToStorage (0, 0, IID_PPV_ARGS (&properties_p));
+        result_2 = moniker_p->BindToStorage (NULL, // *TODO*: CreateBindCtx() here ?
+                                             NULL,
+                                             IID_PPV_ARGS (&properties_p));
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -299,7 +301,7 @@ error:
       {
         ACE_OS::memset (buffer_a, 0, sizeof (WCHAR[BUFSIZ]));
         length = 0;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
         result_2 =
           devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
                                         buffer_a, sizeof (WCHAR[BUFSIZ]),
