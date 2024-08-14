@@ -2208,7 +2208,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                 inherited::mod_->name (),
                 ACE_TEXT (inherited2::stateToString (STREAM_STATE_FINISHED).c_str ()),
                 &timeout,
-                ACE_TEXT (Common_Error_Tools::errorToString (GetLastError (), false, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_StateMachine_Base_T::wait(%s,%#T): \"%m\", continuing\n"),

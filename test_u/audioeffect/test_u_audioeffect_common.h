@@ -365,8 +365,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif // SOX_SUPPORT
    , mute (false)
 #if defined (GUI_SUPPORT)
-   , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
-   , spectrumAnalyzerResolution (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_ANALYZER_RESOLUTION)
+   , spectrumAnalyzerConfiguration (NULL)
 #if defined (GTKGL_SUPPORT)
    , OpenGLTextureId (0)
    , VAO (0)
@@ -392,8 +391,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif // SOX_SUPPORT
   bool                                                      mute;
 #if defined (GUI_SUPPORT)
-  enum Stream_Visualization_SpectrumAnalyzer_2DMode         spectrumAnalyzer2DMode;
-  unsigned int                                              spectrumAnalyzerResolution;
+  struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
 #if defined (GTKGL_SUPPORT)
   GLuint                                                    OpenGLTextureId;
   GLuint                                                    VAO;
@@ -799,6 +797,7 @@ struct Test_U_AudioEffect_UI_CBDataBase
 {
   Test_U_AudioEffect_UI_CBDataBase ()
    : Test_U_UI_CBData ()
+   , switchCaptureDevice (true)
 #if defined (GTKGL_SUPPORT)
    , OpenGLInstructions (NULL)
    , OpenGLInstructionsLock (NULL)
@@ -820,6 +819,9 @@ struct Test_U_AudioEffect_UI_CBDataBase
 #endif // GTKGL_SUPPORT
   {}
 
+  // *NOTE*: iff the user specifies a capture device on the command line, do NOT
+  //         autoselect a different one
+  bool                                            switchCaptureDevice;
 #if defined (GTKGL_SUPPORT)
   Stream_Visualization_GTKGL_Instructions_t*      OpenGLInstructions;
   ACE_Thread_Mutex*                               OpenGLInstructionsLock;

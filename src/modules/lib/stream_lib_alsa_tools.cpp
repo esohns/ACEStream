@@ -739,16 +739,38 @@ Stream_MediaFramework_ALSA_Tools::getCardNumber (const std::string& cardName_in)
 
   std::string device_id_string = cardName_in;
   std::string::size_type position_i = device_id_string.find (':', 0);
-  std::istringstream converter;
   if (position_i != std::string::npos)
   {
+    // something like "hw:0,0[,0]"
     device_id_string = device_id_string.substr (position_i + 1,
                                                 std::string::npos);
-    converter.str (device_id_string);
-    converter >> return_value;
-    return return_value;
+    position_i = device_id_string.find (',', 0);
+    if (position_i != std::string::npos)
+      device_id_string = device_id_string.substr (0,
+                                                  position_i);
+    bool is_number_b = true;
+    for (std::string::size_type i = 0; i < device_id_string.size (); i++)
+      if (!isdigit (device_id_string[i]))
+      {
+        is_number_b = false;
+        break;
+      } // end IF
+    if (is_number_b)
+    {
+      std::istringstream converter;
+      converter.str (device_id_string);
+      converter >> return_value;
+      return return_value;
+    } // end IF
+    // device id is not numeric; might be "sysdefault:CARD=PCH[,0]"
+    position_i = device_id_string.find (ACE_TEXT_ALWAYS_CHAR ("CARD="), 0);
+    if (position_i != std::string::npos)
+      device_id_string = device_id_string.substr (position_i + 5,
+                                                  std::string::npos);
   } // end IF
 
+  // *WARNING*: "...This works only for physical sound cards, not for virtual
+  //            cards. ..."
   int result = snd_card_get_index (device_id_string.c_str ());
   if (unlikely (result < 0))
   {
@@ -818,7 +840,14 @@ continue_:
     hint_string = string_p;
     free (string_p); string_p = NULL;
 
-    // filter hardware devices
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("card %u: found %s device: \"%s\"...\n"),
+                cardIndex_in,
+                ((direction_in == SND_PCM_STREAM_PLAYBACK) ? ACE_TEXT ("playback")
+                                                           : ACE_TEXT ("capture")),
+                ACE_TEXT (hint_string.c_str ())));
+
+    // filter 'default' devices
     device_type = hint_string;
     position_i = device_type.find (':', 0);
     if (position_i != std::string::npos)

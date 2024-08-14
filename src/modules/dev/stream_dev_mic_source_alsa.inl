@@ -779,7 +779,7 @@ continue_:
                     session_data_r.sessionId));
         has_finished = true;
         // enqueue(/process) STREAM_SESSION_END
-        inherited::finished (false); // recurse upstream ?
+        inherited::change (STREAM_STATE_SESSION_STOPPING);
       } // end IF
     } // end lock scope
 

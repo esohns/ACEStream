@@ -1090,6 +1090,9 @@ do_work (
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
+#if defined (GUI_SUPPORT)
+  struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration spectrumanalyzer_configuration;
+#endif // GUI_SUPPORT
   struct Stream_AllocatorConfiguration allocator_configuration;
   struct Stream_AllocatorConfiguration* allocator_configuration_p = NULL;
   Common_TimerConfiguration timer_configuration;
@@ -1260,6 +1263,10 @@ do_work (
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+#if defined (GUI_SUPPORT)
+      directshow_modulehandler_configuration.spectrumAnalyzerConfiguration =
+        &spectrumanalyzer_configuration;
+#endif // GUI_SUPPORT
       directshow_modulehandler_configuration.fileIdentifier.identifier =
         sourceFileName_in;
       directshow_modulehandler_configuration.allocatorConfiguration =
@@ -1357,6 +1364,10 @@ do_work (
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+#if defined (GUI_SUPPORT)
+      mediafoundation_modulehandler_configuration.spectrumAnalyzerConfiguration =
+        &spectrumanalyzer_configuration;
+#endif // GUI_SUPPORT
       mediafoundation_modulehandler_configuration.fileIdentifier.identifier =
         sourceFileName_in;
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
@@ -1458,6 +1469,10 @@ do_work (
     }
   } // end SWITCH
 #else
+#if defined (GUI_SUPPORT)
+  modulehandler_configuration.spectrumAnalyzerConfiguration =
+    &spectrumanalyzer_configuration;
+#endif // GUI_SUPPORT
   modulehandler_configuration.allocatorConfiguration =
     allocator_configuration_p;
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;

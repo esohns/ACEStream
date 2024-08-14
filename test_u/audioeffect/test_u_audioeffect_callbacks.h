@@ -21,7 +21,6 @@
 #ifndef TEST_U_AUDIOEFFECT_CALLBACKS_H
 #define TEST_U_AUDIOEFFECT_CALLBACKS_H
 
-#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #undef GetObject
 #include "mfidl.h"
@@ -135,6 +134,7 @@ extern "C"
   G_MODULE_EXPORT void togglebutton_record_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void togglebutton_save_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void togglebutton_visualization_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void checkbutton_window_function_toggled_cb (GtkToggleButton*, gpointer);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -38,6 +38,25 @@
 #include "stream_vis_gtk_common.h"
 #include "stream_vis_gtk_window.h"
 
+struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration
+{
+  Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration ()
+   : applyWindowFunction (false)
+   , mode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
+   , resolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_RESOLUTION)
+   , window (NULL)
+  {}
+
+  bool                                              applyWindowFunction; // e.g. Hamming-, Hann-, ...
+  enum Stream_Visualization_SpectrumAnalyzer_2DMode mode;
+  unsigned int                                      resolution;
+#if GTK_CHECK_VERSION (4,0,0)
+  GdkSurface*                                       window;
+#else
+  GdkWindow*                                        window;
+#endif // GTK_CHECK_VERSION (4,0,0)
+};
+
 //////////////////////////////////////////
 
 struct acestream_visualization_gtk_cairo_cbdata
@@ -54,6 +73,8 @@ struct acestream_visualization_gtk_cairo_cbdata
 #endif // GTK_CHECK_VERSION (4,0,0)
 };
 
+//////////////////////////////////////////
+
 #if GTK_CHECK_VERSION (3,0,0)
 gboolean acestream_visualization_gtk_cairo_draw_cb (GtkWidget*, cairo_t*, gpointer);
 #else
@@ -63,9 +84,6 @@ gboolean acestream_visualization_gtk_cairo_expose_event_cb (GtkWidget*, GdkEvent
 void acestream_visualization_gtk_cairo_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
 
 gboolean acestream_visualization_gtk_cairo_idle_update_cb (gpointer);
-
-typedef Common_Math_FFT_T<float> Common_Math_FFT_Float_t;
-typedef Common_Math_FFT_T<double> Common_Math_FFT_Double_t;
 
 extern const char libacestream_default_vis_spectrum_analyzer_module_name_string[];
 

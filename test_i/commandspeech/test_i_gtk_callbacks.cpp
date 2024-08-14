@@ -3245,17 +3245,17 @@ drawingarea_key_press_event_cb (GtkWidget* widget_in,
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode =
-          (((*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode == STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE) ? STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM
-                                                                                                                                                                   : STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE);
+    { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration);
+      (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode =
+          (((*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode == STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE) ? STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM
+                                                                                                                                                                                : STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode =
-        (((*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode == STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE) ? STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM
-                                                                                                                                                                      : STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE);
+    { ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration);
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode =
+        (((*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode == STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE) ? STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM
+                                                                                                                                                                                   : STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE);
       break;
     }
     default:
@@ -3267,9 +3267,10 @@ drawingarea_key_press_event_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode =
-    (((*modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode == STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE) ? STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM
-                                                                                                                                                  : STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration);
+  (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode =
+    (((*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode == STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE) ? STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM
+                                                                                                                                                               : STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE);
 #endif // ACE_WIN32 || ACE_WIN64
 
   return TRUE; // <-- stop propagation
@@ -3345,7 +3346,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
         return FALSE;
       istream_p = dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
       mode =
-        (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
+        (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode;
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->outputFormat.cbFormat == sizeof (struct tWAVEFORMATEX));
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> ((*directshow_modulehandler_configuration_iterator).second.second->outputFormat.pbFormat);
@@ -3373,7 +3374,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
         return FALSE;
       istream_p = dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
       mode =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode;
       result =
         (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->GetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
                                                                                                         &sample_size);
@@ -3423,7 +3424,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
     return FALSE;
   istream_p = dynamic_cast<Stream_IStream_t*> (ui_cb_data_p->stream);
   mode =
-    (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
+    (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode;
   is_signed_format =
       snd_pcm_format_signed ((*modulehandler_configuration_iterator).second.second->outputFormat.format);
   sample_size =

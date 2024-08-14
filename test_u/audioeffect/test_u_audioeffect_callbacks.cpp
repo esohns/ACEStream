@@ -131,7 +131,8 @@ bool
 load_capture_devices (GtkListStore* listStore_in,
                       enum Stream_Device_Capturer capturer_in)
 #else
-load_capture_devices (GtkListStore* listStore_in)
+load_capture_devices (GtkListStore* listStore_in,
+                      const std::string& deviceIdentifier_in)
 #endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("::load_capture_devices"));
@@ -531,6 +532,114 @@ error_2:
   char* string_p = NULL, *string_2 = NULL;
   void** hints_p = NULL;
   std::string device_name_string;
+
+  if (!deviceIdentifier_in.empty ())
+  {
+    card_i = Stream_MediaFramework_ALSA_Tools::getCardNumber (deviceIdentifier_in);
+    if (unlikely (card_i == -1))
+    { // *NOTE*: might be a virtual device like "default"
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getCardNumber(\"%s\"), aborting\n"),
+                  ACE_TEXT (deviceIdentifier_in.c_str ())));
+      return false;
+    } // end IF
+    result_2 = snd_card_get_longname (card_i, &string_p);
+    if (result_2 || !string_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_card_get_longname(%d): \"%s\", aborting\n"),
+                  card_i,
+                  ACE_TEXT (snd_strerror (result_2))));
+      return false;
+    } // end IF
+    result_2 =
+        snd_device_name_hint (card_i,
+                              ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PCM_INTERFACE_NAME),
+                              &hints_p);
+    if (unlikely (result_2 < 0))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_device_name_hint(%d): \"%s\", aborting\n"),
+                  card_i,
+                  ACE_TEXT (snd_strerror (result_2))));
+      free (string_p);
+      return false;
+    } // end IF
+    for (void** i = hints_p;
+         *i;
+         ++i)
+    {
+      string_2 = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("IOID"));
+      if (!string_2) // NULL --> both
+        goto continue_;
+      if (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("Input")))
+      {
+        free (string_2); string_2 = NULL;
+        continue;
+      } // end IF
+      free (string_2); string_2 = NULL;
+continue_:
+      string_2 = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("NAME"));
+      if (!string_2)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to snd_device_name_get_hint(NAME): \"%m\", continuing\n")));
+        continue;
+      } // end IF
+      if (//(ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("default")) == 0)             ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("dmix:"), 5) == 0)           ||
+          //(ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("dsnoop:"), 7) == 0)         ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("front:"), 6) == 0)          ||
+          (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("null")) == 0)                ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("plughw:"), 7) == 0)         ||
+          //(ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("pipewire")) == 0)            ||
+          (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("pulse")) == 0)               ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround21:"), 11) == 0)    ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround40:"), 11) == 0)    ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround41:"), 11) == 0)    ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround50:"), 11) == 0)    ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround51:"), 11) == 0)    ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround71:"), 11) == 0))
+      {
+        free (string_2); string_2 = NULL;
+        continue;
+      } // end IF
+      device_name_string = string_2;
+      // std::string::size_type position_i = device_name_string.find (':', 0);
+      // if (position_i != std::string::npos)
+      //   device_name_string.erase (position_i, std::string::npos);
+      free (string_2); string_2 = NULL;
+      string_2 = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("DESC"));
+      if (!string_2)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to snd_device_name_get_hint(DESC): \"%m\", continuing\n")));
+        continue;
+      } // end IF
+
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("found device \"%s\"/\"%s\": \"%s\"\n"),
+                  ACE_TEXT (string_p),
+                  ACE_TEXT (device_name_string.c_str ()),
+                  ACE_TEXT (string_2)));
+
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, ACE_TEXT_ALWAYS_CHAR (string_2),
+                          1, ACE_TEXT_ALWAYS_CHAR (device_name_string.c_str ()),
+                          2, card_i,
+                          -1);
+
+      free (string_2); string_2 = NULL;
+      snd_device_name_free_hint (hints_p); hints_p = NULL;
+      free (string_p); string_p = NULL;
+
+      break;
+    } // end FOR
+
+    return true;
+  } // end IF
+
   do
   {
     result_2 = snd_card_next (&card_i);
@@ -556,14 +665,14 @@ error_2:
     {
       string_2 = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("IOID"));
       if (!string_2) // NULL --> both
-        goto continue_;
+        goto continue_2;
       if (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("Input")))
       {
         free (string_2); string_2 = NULL;
         continue;
       } // end IF
       free (string_2); string_2 = NULL;
-continue_:
+continue_2:
       string_2 = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("NAME"));
       if (!string_2)
       {
@@ -571,16 +680,14 @@ continue_:
                     ACE_TEXT ("failed to snd_device_name_get_hint(): \"%m\", continuing\n")));
         continue;
       } // end IF
-      if ((ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("default")) == 0)             ||
+      if (//(ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("default")) == 0)             ||
           (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("dmix:"), 5) == 0)           ||
-          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("dsnoop:"), 7) == 0)         ||
-  //        (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("hw:CARD=MID,DEV=0")) == 0)   ||
+          //(ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("dsnoop:"), 7) == 0)         ||
           (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("front:"), 6) == 0)          ||
           (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("null")) == 0)                ||
           (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("plughw:"), 7) == 0)         ||
-          (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("pipewire")) == 0)            ||
+          //(ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("pipewire")) == 0)            ||
           (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("pulse")) == 0)               ||
-  //        (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("sysdefault:CARD=MID")) == 0) ||
           (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround21:"), 11) == 0)    ||
           (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround40:"), 11) == 0)    ||
           (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround41:"), 11) == 0)    ||
@@ -4239,6 +4346,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   GtkRadioButton* radio_button_p = NULL;
   GtkDrawingArea* drawing_area_2 = NULL;
   gulong result_2 = 0;
+  bool desensitize_device_combobox_b = false;
+  std::string device_identifier_string;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
@@ -4331,6 +4440,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator_3 = // file writer
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
   ACE_ASSERT (modulehandler_configuration_iterator_3 != data_p->configuration->streamConfiguration.end ());
+
+  desensitize_device_combobox_b = !data_p->switchCaptureDevice;
+  device_identifier_string =
+    (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step1: initialize widgets
@@ -4484,13 +4597,54 @@ idle_initialize_UI_cb (gpointer userData_in)
   if (!load_capture_devices (list_store_p,
                              capturer_e))
 #else
-  if (!load_capture_devices (list_store_p))
+  if (!load_capture_devices (list_store_p,
+                             device_identifier_string))
 #endif // ACE_WIN32 || ACE_WIN64
   {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+    if (!device_identifier_string.empty ())
+    {
+    //  int mode = STREAM_LIB_ALSA_CAPTURE_DEFAULT_MODE;
+      int mode = SND_PCM_NONBLOCK         |
+                 SND_PCM_NO_AUTO_RESAMPLE |
+                 SND_PCM_NO_AUTO_CHANNELS |
+                 SND_PCM_NO_SOFTVOL;
+    //   if ((*modulehandler_configuration_iterator).second.second->ALSAConfiguration->asynch)
+    //     mode |= SND_PCM_ASYNC;
+      result =
+        snd_pcm_open (&data_p->handle,
+                      device_identifier_string.c_str (),
+                      SND_PCM_STREAM_CAPTURE,
+                      mode);
+      if ((result < 0) || !data_p->handle)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to snd_pcm_open(\"%s\",%d) for capture: \"%s\", aborting\n"),
+                    ACE_TEXT (device_identifier_string.c_str ()),
+                    mode,
+                    ACE_TEXT (snd_strerror (result))));
+        goto error;
+      } // end IF
+      (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->handle =
+        data_p->handle;
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("opened ALSA device (capture) \"%s\"\n"),
+                  ACE_TEXT (device_identifier_string.c_str ())));
+
+      goto continue_;
+    } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
+
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_capture_devices(), aborting\n")));
     goto error;
   } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+continue_:
+#endif // ACE_WIN32 || ACE_WIN64
+
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_DEVICE_NAME)));
@@ -4511,6 +4665,9 @@ idle_initialize_UI_cb (gpointer userData_in)
                                   //"cell-background", 0,
                                   ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
+
+  if (desensitize_device_combobox_b)
+      gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), FALSE);
 
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -5009,10 +5166,10 @@ idle_initialize_UI_cb (gpointer userData_in)
                                                           current_level_i))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getVolumeLevels(\"%s\",\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getVolumeLevels(\"%s\",\"%s\"), continuing\n"),
                 ACE_TEXT ((*modulehandler_configuration_iterator_2).second.second->deviceIdentifier.identifier.c_str ()),
                 ACE_TEXT (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_SELEM_VOLUME_NAME)));
-    goto error;
+    goto continue_2;
   } // end IF
   gtk_range_set_range (GTK_RANGE (scale_p),
                        static_cast<gdouble> (min_level_i),
@@ -5022,6 +5179,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                             static_cast<gdouble> (1));
   gtk_range_set_value (GTK_RANGE (scale_p),
                        static_cast<gdouble> (current_level_i));
+continue_2:
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -5129,19 +5287,23 @@ idle_initialize_UI_cb (gpointer userData_in)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
+    { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration);
       mode_2d =
-        (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
+        (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode;
+#if defined (GTKGL_SUPPORT)
       mode_3d =
         (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode;
+#endif // GTKGL_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
+    { ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration);
       mode_2d =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode;
+#if defined (GTKGL_SUPPORT)
       mode_3d =
         (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode;
+#endif // GTKGL_SUPPORT
       break;
     }
     default:
@@ -5153,8 +5315,9 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration);
   mode_2d =
-    (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
+    (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode;
 #if defined (GTKGL_SUPPORT)
   mode_3d =
     (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode;
@@ -5531,7 +5694,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                 ACE_TEXT ("failed to realize OpenGL widget: \"%s\", continuing\n"),
                 ACE_TEXT (error_p->message)));
     g_error_free (error_p); error_p = NULL;
-    goto continue_;
+    goto continue_3;
   } // end ELSE
 
   gl_context_p = gtk_gl_area_get_context ((*opengl_contexts_iterator).first);
@@ -5561,7 +5724,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,16,0)
-continue_:
+continue_3:
 #endif // GTK_CHECK_VERSION (3,16,0)
 #endif // GTKGL_SUPPORT
 
@@ -5836,6 +5999,8 @@ continue_:
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->window);
       window_p =
         (*directshow_modulehandler_configuration_iterator).second.second->window;
+      (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window =
+        window_p;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -5845,6 +6010,8 @@ continue_:
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->window);
       window_p =
         (*mediafoundation_modulehandler_configuration_iterator).second.second->window;
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window =
+        window_p;
       break;
     }
     default:
@@ -5861,6 +6028,8 @@ continue_:
     gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->window);
   window_p = (*modulehandler_configuration_iterator).second.second->window;
+  (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window =
+    window_p;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (window_p);
 
@@ -6044,7 +6213,8 @@ idle_session_end_cb (gpointer userData_in)
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_DEVICE_NAME)));
   ACE_ASSERT (combo_box_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
+  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
+                            ui_data_base_p->switchCaptureDevice);
 
   GtkFrame* frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
@@ -6430,13 +6600,15 @@ idle_update_display_cb (gpointer userData_in)
   ACE_ASSERT (iterator != state_r.builders.end ());
 
   // trigger refresh of the 2D area ?
+  GtkDrawingArea* drawing_area_p = NULL;
+  GdkWindow* window_p = NULL;
   if (!ui_cb_data_base_p->render2d)
     goto continue_2;
-  GtkDrawingArea* drawing_area_p =
+  drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
-  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
   if (unlikely (!window_p))
     goto continue_2; // <-- not realized yet
 
@@ -6729,22 +6901,24 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  ACE_ASSERT (ui_cb_data_p->handle);
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->ALSAConfiguration);
   ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format);
   (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format =
     &ui_cb_data_p->configuration->streamConfiguration.configuration_->format;
 
-  if ((ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE) &&
-      !Stream_MediaFramework_ALSA_Tools::setFormat (ui_cb_data_p->handle,
-                                                    *(*modulehandler_configuration_iterator).second.second->ALSAConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::setFormat(): \"%m\", returning\n")));
-    (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format = NULL;
-    return;
+  if (ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE)
+  { ACE_ASSERT (ui_cb_data_p->handle);
+    if (!Stream_MediaFramework_ALSA_Tools::setFormat (ui_cb_data_p->handle,
+                                                      *(*modulehandler_configuration_iterator).second.second->ALSAConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::setFormat(): \"%m\", returning\n")));
+      (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format = NULL;
+      return;
+    } // end IF
   } // end IF
-  (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format = NULL;
+  (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format =
+    NULL;
 
   bytes_per_frame_i =
     (snd_pcm_format_width (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format) / 8) *
@@ -7331,7 +7505,7 @@ continue_:
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   if (is_active)
@@ -8540,11 +8714,11 @@ togglebutton_mute_toggled_cb (GtkToggleButton* toggleButton_in,
   (*modulehandler_configuration_iterator).second.second->mute =
     is_active;
 #endif // ACE_WIN32 || ACE_WIN64
-  GtkHScale* hscale_p =
-    GTK_HSCALE (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_VOLUME_NAME)));
-  ACE_ASSERT (hscale_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (hscale_p),
+  GtkScale* scale_p =
+    GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_VOLUME_NAME)));
+  ACE_ASSERT (scale_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (scale_p),
                             !is_active);
 } // togglebutton_mute_toggled_cb
 
@@ -8624,6 +8798,78 @@ togglebutton_visualization_toggled_cb (GtkToggleButton* toggleButton_in,
 } // togglebutton_visualization_toggled_cb
 
 void
+checkbutton_window_function_toggled_cb (GtkToggleButton* toggleButton_in,
+                                        gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::checkbutton_window_function_toggled_cb"));
+
+  // sanity check(s)
+  ACE_ASSERT (toggleButton_in);
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+
+  bool is_active_b = gtk_toggle_button_get_active (toggleButton_in);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->applyWindowFunction =
+        is_active_b;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->applyWindowFunction =
+        is_active_b;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (data_p);
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+  (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->applyWindowFunction =
+    is_active_b;
+#endif // ACE_WIN32 || ACE_WIN64
+} // checkbutton_window_function_toggled_cb
+
+void
 radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
                            gpointer userData_in)
 {
@@ -8657,7 +8903,6 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -8670,7 +8915,6 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -8707,15 +8951,15 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode =
+    { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration);
+      (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode =
           (radio_button_p == GTK_RADIO_BUTTON (toggleButton_in) ? STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE
                                                                 : STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode =
+    { ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration);
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode =
           (radio_button_p == GTK_RADIO_BUTTON (toggleButton_in) ? STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE
                                                                 : STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM);
       break;
@@ -8729,7 +8973,8 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode =
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration);
+  (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode =
       (radio_button_p == GTK_RADIO_BUTTON (toggleButton_in) ? STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE
                                                             : STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -9996,7 +10241,8 @@ continue_:
       ACE_ASSERT (combo_box_p);
       n_rows =
         gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
-      gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), (n_rows > 0));
+      gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
+                                (n_rows > 0) && ui_cb_data_base_p->switchCaptureDevice);
       if (!n_rows)
         return;
       gint index_i = 0;
@@ -10347,8 +10593,8 @@ combobox_device_changed_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   ACE_UNUSED_ARG (card_id_i);
-  (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier =
-      device_identifier_string;
+  if (ui_cb_data_base_p->switchCaptureDevice)
+    (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier = device_identifier_string;
 #endif // ACE_WIN32 || ACE_WIN64
 
   bool result_2 = false;
@@ -10532,14 +10778,16 @@ continue_:
              SND_PCM_NO_SOFTVOL;
 //   if ((*modulehandler_configuration_iterator).second.second->ALSAConfiguration->asynch)
 //     mode |= SND_PCM_ASYNC;
-  result = snd_pcm_open (&ui_cb_data_p->handle,
-                         device_identifier_string.c_str (),
-                         SND_PCM_STREAM_CAPTURE, mode);
+  result =
+    snd_pcm_open (&ui_cb_data_p->handle,
+                  (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str (),
+                  SND_PCM_STREAM_CAPTURE,
+                  mode);
   if ((result < 0) || !ui_cb_data_p->handle)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_pcm_open(\"%s\",%d) for capture: \"%s\", aborting\n"),
-                ACE_TEXT (device_identifier_string.c_str ()),
+                ACE_TEXT ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ()),
                 mode,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
@@ -10548,7 +10796,7 @@ continue_:
     ui_cb_data_p->handle;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("opened ALSA device (capture) \"%s\"\n"),
-              ACE_TEXT (device_identifier_string.c_str ())));
+              ACE_TEXT ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ())));
 
   result_2 =
       load_formats (ui_cb_data_p->handle,
@@ -10756,7 +11004,7 @@ continue_2:
   gtk_range_set_value (GTK_RANGE (scale_2),
                        static_cast<gdouble> (boost_f));
 #else
-  if (!Stream_MediaFramework_ALSA_Tools::getVolumeLevels (device_identifier_string,
+  if (!Stream_MediaFramework_ALSA_Tools::getVolumeLevels ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier,
                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME),
                                                           true, // capture
                                                           min_level_i,
@@ -10764,10 +11012,10 @@ continue_2:
                                                           current_level_i))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getVolumeLevels(\"%s\",\"%s\"), returning\n"),
-                ACE_TEXT (device_identifier_string.c_str ()),
+                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getVolumeLevels(\"%s\",\"%s\"), continuing\n"),
+                ACE_TEXT ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ()),
                 ACE_TEXT (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME)));
-    return;
+    goto continue_;
   } // end IF
   gtk_range_set_range (GTK_RANGE (scale_p),
                        static_cast<gdouble> (min_level_i),
@@ -10778,7 +11026,8 @@ continue_2:
   gtk_range_set_value (GTK_RANGE (scale_p),
                        static_cast<gdouble> (current_level_i));
 
-  if (!Stream_MediaFramework_ALSA_Tools::getVolumeLevels (device_identifier_string,
+continue_:
+  if (!Stream_MediaFramework_ALSA_Tools::getVolumeLevels ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier,
                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_BOOST_NAME),
                                                           true, // capture
                                                           min_level_i,
@@ -10786,10 +11035,10 @@ continue_2:
                                                           current_level_i))
   {
       ACE_DEBUG ((LM_ERROR,
-                 ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getVolumeLevels(\"%s\",\"%s\"), returning\n"),
-                 ACE_TEXT (device_identifier_string.c_str ()),
+                 ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getVolumeLevels(\"%s\",\"%s\"), continuing\n"),
+                 ACE_TEXT ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ()),
                  ACE_TEXT (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_BOOST_NAME)));
-      return;
+      goto continue_2;
   } // end IF
   gtk_range_set_range (GTK_RANGE (scale_2),
                        static_cast<gdouble> (min_level_i),
@@ -10797,6 +11046,7 @@ continue_2:
   gtk_range_set_increments (GTK_RANGE (scale_2),
                             static_cast<gdouble> (1),
                             static_cast<gdouble> (1));
+  gtk_scale_clear_marks (scale_2);
   for (long i = min_level_i;
        i <= max_level_i;
        i += 1)
@@ -10804,13 +11054,14 @@ continue_2:
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter.clear ();
     converter << i;
-    gtk_scale_add_mark (GTK_SCALE (scale_2),
+    gtk_scale_add_mark (scale_2,
                         static_cast<gdouble> (i),
                         GTK_POS_TOP,
                         converter.str ().c_str ());
   } // end FOR
   gtk_range_set_value (GTK_RANGE (scale_2),
                        static_cast<gdouble> (current_level_i));
+continue_2:
 #endif // ACE_WIN32 || ACE_WIN64
 
   return;
@@ -11172,7 +11423,6 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #else
   // sanity check(s)
   ACE_ASSERT (ui_cb_data_p->configuration);
-  ACE_ASSERT (ui_cb_data_p->handle);
 
   ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format =
     format_e;
@@ -11182,10 +11432,12 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   if (load_all_formats_b)
     result_2 = load_all_sample_rates (list_store_p);
   else
+  { ACE_ASSERT (ui_cb_data_p->handle);
     result_2 =
       load_sample_rates (ui_cb_data_p->handle,
                          ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
                          list_store_p);
+  } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
@@ -11626,7 +11878,6 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
 #else
   // sanity check(s)
   ACE_ASSERT (ui_cb_data_p->configuration);
-  ACE_ASSERT (ui_cb_data_p->handle);
 
   ui_cb_data_p->configuration->streamConfiguration.configuration_->format.rate =
     sample_rate;
@@ -11636,10 +11887,12 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   if (load_all_formats_b)
     result_2 = load_all_sample_resolutions (list_store_p);
   else
+  { ACE_ASSERT (ui_cb_data_p->handle);
     result_2 =
       load_sample_resolutions (ui_cb_data_p->handle,
                                ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
                                list_store_p);
+  } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
@@ -12111,7 +12364,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   // sanity check(s)
-  ACE_ASSERT (ui_cb_data_p->handle);
   ACE_ASSERT (ui_cb_data_p->configuration);
   ACE_UNUSED_ARG (format_e);
   ACE_UNUSED_ARG (bits_per_sample);
@@ -12121,10 +12373,12 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   if (load_all_formats_b)
     result_2 = load_all_channels (list_store_p);
   else
+  { ACE_ASSERT (ui_cb_data_p->handle);
     result_2 =
       load_channels (ui_cb_data_p->handle,
                      ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
                      list_store_p);
+  } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
@@ -12453,7 +12707,6 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   // sanity check(s)
-  ACE_ASSERT (ui_cb_data_p->handle);
   ACE_ASSERT (ui_cb_data_p->configuration);
 
   ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels =
@@ -12511,7 +12764,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
         return FALSE;
       istream_p = dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
       mode =
-        (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
+        (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode;
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->outputFormat.cbFormat == sizeof (struct tWAVEFORMATEX));
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> ((*directshow_modulehandler_configuration_iterator).second.second->outputFormat.pbFormat);
@@ -12539,7 +12792,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
         return FALSE;
       istream_p = dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
       mode =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode;
       result =
         (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->GetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
                                                                                                         &sample_size);
@@ -12591,7 +12844,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
     return FALSE;
   istream_p = dynamic_cast<Stream_IStream_t*> (ui_cb_data_p->stream);
   mode =
-    (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
+    (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode;
   is_signed_format =
       snd_pcm_format_signed (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
   sample_size =

@@ -462,15 +462,19 @@ Test_U_AudioEffect_EventHandler::end (Stream_SessionId_t sessionId_in)
     Common_UI_GTK_State_t& state_r =
       const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-      event_source_id = g_idle_add (idle_session_end_cb,
-                                    CBData_);
+      // *NOTE*: do not use g_idle_add, because that will never be called;
+      //         the system is never idle while in-session, because it's busy
+      //         updating the display...
+      event_source_id = g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS,
+                                       idle_session_end_cb,
+                                       CBData_);
       if (event_source_id == 0)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
+                    ACE_TEXT ("failed to g_timeout_add(idle_session_end_cb): \"%m\", continuing\n")));
         goto continue_;
       } // end IF
-      //CBData_->UIState.eventSourceIds.insert (event_source_id);
+      state_r.eventSourceIds.insert (event_source_id);
       state_r.eventStack.push (COMMON_UI_EVENT_STOPPED);
     } // end lock scope
 #endif // GTK_USE
@@ -482,6 +486,7 @@ Test_U_AudioEffect_EventHandler::end (Stream_SessionId_t sessionId_in)
 continue_:
 #endif // GTK_USE
 #endif // GUI_SUPPORT
+
   if (sessionData_)
     sessionData_ = NULL;
 }
@@ -532,6 +537,48 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+      guint event_source_id = 0;
+#endif // GTK_USE
+      if (CBData_)
+      {
+#if defined (GTK_USE)
+        Common_UI_GTK_State_t& state_r =
+          const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+          // *NOTE*: do not use g_idle_add, because that will never be called;
+          //         the system is never idle while in-session, because it's busy
+          //         updating the display...
+          event_source_id = g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS,
+                                           idle_session_end_cb,
+                                           CBData_);
+          if (event_source_id == 0)
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to g_timeout_add(idle_session_end_cb): \"%m\", continuing\n")));
+            goto continue_;
+          } // end IF
+          state_r.eventSourceIds.insert (event_source_id);
+        } // end lock scope
+#endif // GTK_USE
+      } // end IF
+#endif // GUI_SUPPORT
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+continue_:
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
+      event_e = COMMON_UI_EVENT_ABORT;
+
+      if (sessionData_)
+        sessionData_ = NULL;
+      break;
+    }
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
 #if defined (GUI_SUPPORT)
@@ -551,7 +598,8 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
       break;
     }
     case STREAM_SESSION_MESSAGE_STEP:
-      event_e = COMMON_UI_EVENT_STEP; break;
+      event_e = COMMON_UI_EVENT_STEP;
+      break;
     default:
     {
       std::string type_string;

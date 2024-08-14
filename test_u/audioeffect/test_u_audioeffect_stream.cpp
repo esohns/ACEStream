@@ -181,7 +181,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                       Test_U_Dec_MP3Decoder_DirectShow_Module (this,
                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_1LAYER3_DEFAULT_NAME_STRING)),
                       false);
-      add_resampler_b = true;
+      add_resampler_b = true; // *TODO*: depends on file format !
       add_delay_b = true;
       break;
     }
@@ -279,9 +279,12 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                     false);
     ACE_ASSERT (module_p);
     branch_p = module_p;
-    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME)); // 0
-    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));  // 1
-    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));     // 2
+    if (add_renderer_branch_b)
+      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+    if (add_display_branch_b)
+      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+    if (add_save_branch_b)
+      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
     Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
     ACE_ASSERT (idistributor_p);
@@ -290,7 +293,6 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     module_p = NULL;
   } // end IF
 
-  // 0
   if (add_renderer_branch_b)
   {
     if (add_resampler_b)
@@ -352,9 +354,10 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     } // end IF
   } // end IF
 
-  ++index_i; // 1
   if (add_display_branch_b)
   {
+    if (add_renderer_branch_b)
+      ++index_i;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     ACE_NEW_RETURN (module_p,
@@ -375,9 +378,10 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #endif // GUI_SUPPORT
   } // end IF
 
-  ++index_i; // 2
   if (add_save_branch_b)
   {
+    if (add_renderer_branch_b || add_display_branch_b)
+      ++index_i;
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_DirectShow_WAVEncoder_Module (this,
                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
@@ -2157,6 +2161,12 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
   Stream_Module_t* module_p = NULL;
   bool add_delay_b = false;
   Stream_Branches_t branches_a;
+  bool add_renderer_branch_b = !(*iterator).second.second->mute;
+  bool add_save_branch_b = !(*iterator_3).second.second->fileIdentifier.empty ();
+  bool add_display_branch_b =
+    inherited::configuration_->configuration_->displayAnalyzer;
+  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
+  unsigned int index_i = 0;
 
   switch (inherited::configuration_->configuration_->sourceType)
   {
@@ -2216,86 +2226,95 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
   // *NOTE*: this processing stream may have branches, depending on:
   //         - whether the output is muted
   //         - whether the output is saved to file
-  if (!(*iterator).second.second->mute ||
-      !(*iterator_3).second.second->fileIdentifier.empty ())
+  if (add_renderer_branch_b ||
+      add_save_branch_b ||
+      add_display_branch_b)
   {
-    typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
-    unsigned int index_i = 0;
-    if (!(*iterator).second.second->mute &&
-        !(*iterator_3).second.second->fileIdentifier.empty ())
-    {
-      ACE_NEW_RETURN (module_p,
-                      Test_U_AudioEffect_Distributor_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
-                      false);
-      branch_p = module_p;
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_Distributor_Module (this,
+                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
+                    false);
+    branch_p = module_p;
+
+    if (add_renderer_branch_b)
       branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+    if (add_save_branch_b)
       branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
-      Stream_IDistributorModule* idistributor_p =
-        dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
-      ACE_ASSERT (idistributor_p);
-      idistributor_p->initialize (branches_a);
-      layout_in->append (module_p, NULL, 0);
-      module_p = NULL;
-    } // end IF
+    if (add_display_branch_b)
+      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
 
-    if (!(*iterator).second.second->mute)
+    Stream_IDistributorModule* idistributor_p =
+      dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
+    ACE_ASSERT (idistributor_p);
+    idistributor_p->initialize (branches_a);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+  } // end IF
+
+  if (add_renderer_branch_b)
+  {
+    if (add_delay_b)
     {
-      if (add_delay_b)
-      {
-        ACE_NEW_RETURN (module_p,
-                        Test_U_ALSA_Delay_Module (this,
-                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
-                        false);
-        layout_in->append (module_p, branch_p, index_i);
-        module_p = NULL;
-      } // end IF
-
       ACE_NEW_RETURN (module_p,
-                      Test_U_AudioEffect_StatisticAnalysis_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+                      Test_U_ALSA_Delay_Module (this,
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
                       false);
       layout_in->append (module_p, branch_p, index_i);
       module_p = NULL;
+    } // end IF
+
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_Target_ALSA_Module (this,
+                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
+                    false);
+    layout_in->append (module_p, branch_p, index_i);
+    module_p = NULL;
+  } // end IF
+
+  if (add_save_branch_b)
+  {
+    if (add_renderer_branch_b)
+      ++index_i;
+
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_ALSA_WAVEncoder_Module (this,
+                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
+                    false);
+    layout_in->append (module_p, branch_p, index_i);
+    module_p = NULL;
+    // *NOTE*: currently, on UNIX systems, the WAV encoder writes the WAV file
+    //         itself
+    //  ACE_NEW_RETURN (module_p,
+    //                  Test_U_AudioEffect_Module_FileWriter_Module (this,
+    //                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING)),
+    //                  false);
+    //  modules_out.push_back (module_p);
+    //  module_p = NULL;
+  } // end IF
+
+  if (add_display_branch_b)
+  {
+    if (add_renderer_branch_b || add_save_branch_b)
+      ++index_i;
+
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_StatisticAnalysis_Module (this,
+                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+                    false);
+    layout_in->append (module_p, branch_p, index_i);
+    module_p = NULL;
+
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-      ACE_NEW_RETURN (module_p,
-                      Test_U_AudioEffect_Vis_SpectrumAnalyzer_Module (this,
-                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                      false);
-      layout_in->append (module_p, branch_p, index_i);
-      module_p = NULL;
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_Vis_SpectrumAnalyzer_Module (this,
+                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                    false);
+    layout_in->append (module_p, branch_p, index_i);
+    module_p = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-
-      ACE_NEW_RETURN (module_p,
-                      Test_U_AudioEffect_Target_ALSA_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
-                      false);
-      layout_in->append (module_p, branch_p, index_i);
-      ++index_i;
-      module_p = NULL;
-    } // end IF
-
-    if (!(*iterator_3).second.second->fileIdentifier.empty ())
-    {
-      ACE_NEW_RETURN (module_p,
-                      Test_U_AudioEffect_ALSA_WAVEncoder_Module (this,
-                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
-                      false);
-      layout_in->append (module_p, branch_p, index_i);
-      ++index_i;
-      module_p = NULL;
-      // *NOTE*: currently, on UNIX systems, the WAV encoder writes the WAV file
-      //         itself
-      //  ACE_NEW_RETURN (module_p,
-      //                  Test_U_AudioEffect_Module_FileWriter_Module (this,
-      //                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING)),
-      //                  false);
-      //  modules_out.push_back (module_p);
-      //  module_p = NULL;
-    } // end IF
-  } // end ELSE
+  } // end IF
 
   delete_out = true;
 
@@ -2308,7 +2327,7 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_ALSA_Stream::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT (!isRunning ());
+  // ACE_ASSERT (!isRunning ());
 
 //  bool result = false;
   ACE_ASSERT (configuration_in.configuration_);

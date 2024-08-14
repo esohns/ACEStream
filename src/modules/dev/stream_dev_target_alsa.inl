@@ -615,7 +615,7 @@ end:
           queue_.flush (false); // flush all data messages
         queue_.waitForIdleState ();
       } // end IF
-      else
+      else if (inherited::thr_count_ > 0)
         stop (true,             // wait ?
               high_priority_b); // high priority ?
 
@@ -799,13 +799,6 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::svc"));
 
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
-  Common_Error_Tools::setThreadName (inherited::threadName_, NULL);
-#else
-  Common_Error_Tools::setThreadName (inherited::threadName_, 0);
-#endif // _WIN32_WINNT_WIN10
-#endif // ACE_WIN32 || ACE_WIN64
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: (%s): worker thread (id: %t, group: %d) starting\n"),
               inherited::mod_->name (),

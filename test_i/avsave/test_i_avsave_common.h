@@ -421,8 +421,7 @@ struct Stream_AVSave_ModuleHandlerConfiguration
    , sinus (false) // N/A
    , sinusFrequency (0.0) // N/A
 #if defined (GUI_SUPPORT)
-   , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
-   , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
+   , spectrumAnalyzerConfiguration (NULL)
 #endif // GUI_SUPPORT
    , targetFileName ()
 #if defined (GUI_SUPPORT)
@@ -445,8 +444,7 @@ struct Stream_AVSave_ModuleHandlerConfiguration
   bool                                              sinus; // N/A
   double                                            sinusFrequency; // N/A
 #if defined (GUI_SUPPORT)
-  enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMode;
-  unsigned int                                      spectrumAnalyzerResolution;
+  struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
 #endif // GUI_SUPPORT
   std::string                                       targetFileName;
 #if defined (GUI_SUPPORT)

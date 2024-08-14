@@ -255,9 +255,8 @@ struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration
    , manageSoX (false)
    , mute (false)
    , queue (NULL)
-#if defined(GUI_SUPPORT)
-   , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
-   , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
+#if defined (GUI_SUPPORT)
+   , spectrumAnalyzerConfiguration (NULL)
 #endif // GUI_SUPPORT
    , subscriber (NULL)
    , subscribers (NULL)
@@ -280,8 +279,7 @@ struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration
   bool                                              mute;
   ACE_Message_Queue_Base*                           queue;
 #if defined (GUI_SUPPORT)
-  enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMode;
-  unsigned int                                      spectrumAnalyzerResolution;
+  struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
 #endif // GUI_SUPPORT
   Test_I_DirectShow_ISessionNotify_t*               subscriber;
   Test_I_DirectShow_Subscribers_t*                  subscribers;
@@ -307,8 +305,7 @@ struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
    , mute (false)
    , queue (NULL)
 #if defined(GUI_SUPPORT)
-   , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
-   , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
+   , spectrumAnalyzerConfiguration (NULL)
 #endif // GUI_SUPPORT
    , subscriber (NULL)
    , subscribers (NULL)
@@ -331,8 +328,7 @@ struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
   bool                                              mute;
   ACE_Message_Queue_Base*                           queue;
 #if defined (GUI_SUPPORT)
-  enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMode;
-  unsigned int                                      spectrumAnalyzerResolution;
+  struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
 #endif // GUI_SUPPORT
   Test_I_MediaFoundation_ISessionNotify_t*          subscriber;
   Test_I_MediaFoundation_Subscribers_t*             subscribers;
@@ -358,8 +354,7 @@ struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
    , mute (false)
    , queue (NULL)
 #if defined (GUI_SUPPORT)
-   , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
-   , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
+   , spectrumAnalyzerConfiguration (NULL)
 #endif // GUI_SUPPORT
    , subscriber (NULL)
    , subscribers (NULL)
@@ -382,8 +377,7 @@ struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
   bool                                              mute;
   ACE_Message_Queue_Base*                           queue;
 #if defined (GUI_SUPPORT)
-  enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMode;
-  unsigned int                                      spectrumAnalyzerResolution;
+  struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
 #endif // GUI_SUPPORT
   Test_I_ALSA_ISessionNotify_t*                     subscriber;
   Test_I_ALSA_Subscribers_t*                        subscribers;

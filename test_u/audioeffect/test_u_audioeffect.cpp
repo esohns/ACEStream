@@ -134,8 +134,9 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #else
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : device [\"")
-            << Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT, SND_PCM_STREAM_CAPTURE)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : capture device [\"")
+            << Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                                SND_PCM_STREAM_CAPTURE)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-e[[STRING]]: effect [\"")
@@ -190,6 +191,14 @@ do_printUsage (const std::string& programName_in)
             << path
             << ACE_TEXT_ALWAYS_CHAR ("] {\"\" --> do not save}")
             << std::endl;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-p [STRING] : playback device [\"")
+            << Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                                SND_PCM_STREAM_PLAYBACK)
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << std::endl;
+#endif // ACE_WIN32 || ACE_WIN64
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S
             << ACE_TEXT_ALWAYS_CHAR ("] [0: off])")
@@ -224,7 +233,8 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      bool& showConsole_out,
 #else
-                     std::string& deviceIdentifier_out,
+                     std::string& captureDeviceIdentifier_out,
+                     bool& captureDeviceIdentifierSet_out,
                      std::string& effect_out,
 #endif // ACE_WIN32 || ACE_WIN64
                      std::string& sourceFileName_out,
@@ -239,6 +249,10 @@ do_processArguments (int argc_in,
                      enum Stream_MediaFramework_Type& mediaFramework_out,
 #endif // ACE_WIN32 || ACE_WIN64
                      std::string& targetFileName_out,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+                     std::string& playbackDeviceIdentifier_out,
+#endif // ACE_WIN32 || ACE_WIN64
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& mute_out,
@@ -261,11 +275,10 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   showConsole_out = false;
 #else
-//  deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-//  deviceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  deviceIdentifier_out =
+  captureDeviceIdentifier_out =
       Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                        SND_PCM_STREAM_CAPTURE);
+  captureDeviceIdentifierSet_out = false;
   effect_out.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
   sourceFileName_out.clear ();
@@ -290,6 +303,12 @@ do_processArguments (int argc_in,
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
   targetFileName_out = path;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  playbackDeviceIdentifier_out =
+    Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                     SND_PCM_STREAM_PLAYBACK);
+#endif // ACE_WIN32 || ACE_WIN64
   statisticReportingInterval_out =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
   traceInformation_out = false;
@@ -312,7 +331,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("cmxy");
 #else
-  options_string += ACE_TEXT_ALWAYS_CHAR ("d:e::");
+  options_string += ACE_TEXT_ALWAYS_CHAR ("d:e::p:");
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
@@ -346,8 +365,9 @@ do_processArguments (int argc_in,
 #else
       case 'd':
       {
-        deviceIdentifier_out =
+        captureDeviceIdentifier_out =
             ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        captureDeviceIdentifierSet_out = true;
         break;
       }
       case 'e':
@@ -418,6 +438,15 @@ do_processArguments (int argc_in,
           targetFileName_out.clear ();
         break;
       }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+      case 'p':
+      {
+        playbackDeviceIdentifier_out =
+          ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        break;
+      }
+#endif // ACE_WIN32 || ACE_WIN64
       case 's':
       {
         converter.clear ();
@@ -1030,7 +1059,8 @@ do_work (
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
 #else
-         const std::string& deviceIdentifier_in,
+         const std::string& captureDeviceIdentifier_in,
+         const std::string& playbackDeviceIdentifier_in,
          const std::string& effectName_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const std::string& sourceFilename_in,
@@ -1068,6 +1098,9 @@ do_work (
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
+#if defined (GUI_SUPPORT)
+  struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration spectrumanalyzer_configuration;
+#endif // GUI_SUPPORT
   struct Stream_AllocatorConfiguration allocator_configuration;
   struct Common_AllocatorConfiguration* allocator_configuration_p = NULL;
   Common_TimerConfiguration timer_configuration;
@@ -1300,6 +1333,10 @@ do_work (
       if (!sourceFilename_in.empty ())
         directshow_modulehandler_configuration.fileIdentifier.identifier =
           sourceFilename_in;
+#if defined (GUI_SUPPORT)
+      directshow_modulehandler_configuration.spectrumAnalyzerConfiguration =
+        &spectrumanalyzer_configuration;
+#endif // GUI_SUPPORT
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
@@ -1442,6 +1479,10 @@ do_work (
       if (!sourceFilename_in.empty ())
         mediafoundation_modulehandler_configuration.fileIdentifier.identifier =
           sourceFilename_in;
+#if defined (GUI_SUPPORT)
+      mediafoundation_modulehandler_configuration.spectrumAnalyzerConfiguration =
+        &spectrumanalyzer_configuration;
+#endif // GUI_SUPPORT
 
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
@@ -1544,7 +1585,8 @@ do_work (
 //    STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES;
   //configuration_in.delayConfiguration.interval =
   //  ACE_Time_Value (0, (1.0F / (float)44100) * 1000000.0F);
-  modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;
+  modulehandler_configuration.deviceIdentifier.identifier =
+    captureDeviceIdentifier_in;
   modulehandler_configuration.effect = effectName_in;
   modulehandler_configuration.generatorConfiguration =
     &configuration_in.generatorConfiguration;
@@ -1559,6 +1601,10 @@ do_work (
   if (!sourceFilename_in.empty ())
     modulehandler_configuration.fileIdentifier.identifier =
       sourceFilename_in;
+#if defined (GUI_SUPPORT)
+  modulehandler_configuration.spectrumAnalyzerConfiguration =
+    &spectrumanalyzer_configuration;
+#endif // GUI_SUPPORT
 
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
@@ -1569,10 +1615,9 @@ do_work (
 
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.ALSAConfiguration = &ALSA_configuration_2;
-  Stream_MediaFramework_ALSA_Tools::listCards ();
+  //Stream_MediaFramework_ALSA_Tools::listCards ();
   modulehandler_configuration_2.deviceIdentifier.identifier =
-    Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
-                                                     SND_PCM_STREAM_PLAYBACK);
+    playbackDeviceIdentifier_in;
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
@@ -2059,9 +2104,10 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool show_console = false;
 #else
-  std::string device_identifier_string =
+  std::string capture_device_identifier_string =
     Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                      SND_PCM_STREAM_CAPTURE);
+  bool capture_device_identifier_set_b = false;
   std::string effect_name;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path;
@@ -2090,6 +2136,12 @@ ACE_TMAIN (int argc_in,
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
   std::string target_filename = path;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  std::string playback_device_identifier_string =
+    Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                     SND_PCM_STREAM_PLAYBACK);
+#endif // ACE_WIN32 || ACE_WIN64
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
   bool trace_information = false;
@@ -2106,7 +2158,8 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             show_console,
 #else
-                            device_identifier_string,
+                            capture_device_identifier_string,
+                            capture_device_identifier_set_b,
                             effect_name,
 #endif // ACE_WIN32 || ACE_WIN64
                             source_filename,
@@ -2121,6 +2174,10 @@ ACE_TMAIN (int argc_in,
                             media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
                             target_filename,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+                            playback_device_identifier_string,
+#endif // ACE_WIN32 || ACE_WIN64
                             statistic_reporting_interval,
                             trace_information,
                             mute,
@@ -2327,6 +2384,7 @@ ACE_TMAIN (int argc_in,
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_TYPE;
   struct Test_U_AudioEffect_UI_CBData ui_cb_data;
   ui_cb_data.configuration = &configuration;
+  ui_cb_data.switchCaptureDevice = !capture_device_identifier_set_b;
 
 #if defined (GTK_SUPPORT)
   ui_cb_data.progressData.state = &state_r;
@@ -2483,7 +2541,8 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            show_console,
 #else
-           device_identifier_string,
+           capture_device_identifier_string,
+           playback_device_identifier_string,
            effect_name,
 #endif // ACE_WIN32 || ACE_WIN64
            source_filename,

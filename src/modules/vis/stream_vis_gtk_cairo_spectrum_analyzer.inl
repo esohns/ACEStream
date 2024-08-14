@@ -247,7 +247,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     halfHeight_ = height_ / 2;
   } // end ELSE
 
-  if (unlikely (!configuration_in.spectrumAnalyzer2DMode >= STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX ))
+  ACE_ASSERT (configuration_in.spectrumAnalyzerConfiguration);
+  if (unlikely (configuration_in.spectrumAnalyzerConfiguration->mode >= STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX))
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: there will (currently) be no graphics output\n"),
                 inherited::mod_->name ()));
@@ -297,6 +298,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->spectrumAnalyzerConfiguration);
 
   // step1: process inbound samples
   // *NOTE*: a 'data sample' consists of #channel 'sound sample's, which may
@@ -320,8 +322,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   unsigned int offset = 0;
   unsigned int tail_slot = 0;
   ACE_Message_Block* message_block_p = message_inout;
-  bool compute_fft_b = 
-    inherited::configuration_->spectrumAnalyzer2DMode == STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM;
+  bool compute_fft_b =
+    inherited::configuration_->spectrumAnalyzerConfiguration->mode == STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM;
 
 next:
   number_of_samples =
@@ -350,13 +352,22 @@ next:
       for (unsigned int j = 0; j < samples_to_write; ++j)
         inherited2::buffer_[i][tail_slot + j] = sampleIterator_.get (j, i);
 
+      // apply window function ?
+      if (unlikely (inherited::configuration_->spectrumAnalyzerConfiguration->applyWindowFunction))
+        for (unsigned int j = 0; j < samples_to_write; ++j)
+        { // --> 'Hamming'-window
+          ValueType factor =
+            (0.54 - 0.46 * std::cos ((2.0 * M_PI * (tail_slot + j)) / static_cast<ValueType> (inherited2::slots_)));
+          inherited2::buffer_[i][tail_slot + j] *= factor;
+        } // end FOR
+
       // step1b: process sample data ?
       if (compute_fft_b)
       {
         // initialize the FFT working set buffer, transform to complex
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
           inherited2::X_[i][inherited2::bitReverseMap_[j]] =
-            std::complex<ValueType> (inherited2::buffer_[i][j], 0.0);
+            std::complex<ValueType> (inherited2::buffer_[i][j], 0);
 
 //        if (bufferedSamples_ >= inherited2::slots_)
 //        {
@@ -424,6 +435,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+      ACE_ASSERT (inherited::configuration_->spectrumAnalyzerConfiguration);
       ACE_ASSERT (inherited::sessionData_);
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
@@ -499,7 +512,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
       result_2 =
         inherited2::Initialize (channels,
-                                inherited::configuration_->spectrumAnalyzerResolution,
+                                inherited::configuration_->spectrumAnalyzerConfiguration->resolution,
                                 sample_rate);
       if (unlikely (!result_2))
       {
@@ -1187,18 +1200,16 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (context_p);
 
   // step1: clear the window(s)
-  //if (inherited::configuration_->spectrumAnalyzer2DMode < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX)
-  //{
-  //  cairo_set_source_rgb (context_p, 0.0, 0.0, 0.0);
-  //  cairo_rectangle (context_p, 0.0, 0.0, width_, height_);
-  //  cairo_fill (context_p);
-  //} // end IF
+  // *NOTE*: not required if the widget is double-buffered...
+  cairo_set_source_rgb (context_p, 0.0, 0.0, 0.0);
+  cairo_rectangle (context_p, 0.0, 0.0, width_, height_);
+  cairo_fill (context_p);
 
   // step2a: draw signal graphics
-  cairo_set_source_rgb (context_p, 0.0, 1.0, 0.0);
+  cairo_set_source_rgb (context_p, 0.0, 1.0, 0.0); // green
   for (unsigned int i = 0; i < inherited2::channels_; ++i)
   {
-    switch (inherited::configuration_->spectrumAnalyzer2DMode)
+    switch (inherited::configuration_->spectrumAnalyzerConfiguration->mode)
     {
       case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE:
       {
@@ -1212,6 +1223,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                          (static_cast<double> (i) * channelFactor_) + (static_cast<double> (j) * scaleFactorX_),
                          (sampleIterator_.isSignedSampleFormat_ ? static_cast<double> (halfHeight_) - (inherited2::buffer_[i][j] * scaleFactorY_)
                                                                 : static_cast<double> (height_) - (inherited2::buffer_[i][j] * scaleFactorY_)));
+
         break;
       }
       case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM:
@@ -1227,9 +1239,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         //static double logMinFreq_d = log10 (100.0); // <-- min frequency to display
         for (unsigned int j = 1; j < inherited2::halfSlots_; ++j)
         {
+          // method2: logarithmic scale
           //x =
           //  (static_cast<double> (i) * channelFactor_) + 
           //  (log10 (static_cast<double> (inherited2::Frequency (j))) - logMinFreq_d) * ((width_ - 1) / 2.0) / (log10 (inherited2::sampleRate_ / 2.0) - logMinFreq_d);
+          // method1: linear scale
           x =
             (static_cast<double> (i) * channelFactor_) + (static_cast<double> (j - 1) * scaleFactorX_2);
           cairo_move_to (context_p,
@@ -1237,15 +1251,20 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                          static_cast<double> (height_));
 
           // method2: dB scale
+          // *TODO*: needs normalization
           //magnitude_d = 10.0 * log10 (inherited2::SqMagnitude (j, i, false));
           //y = magnitude_d;
           // method1: (normalized-) magnitude
-          magnitude_d = inherited2::Magnitude (j, i, true);
-          y = static_cast<double> (height_) * magnitude_d;
+          //magnitude_d = inherited2::Magnitude (j, i, true);
+          //y = static_cast<double> (height_) * magnitude_d;
+          magnitude_d = inherited2::Magnitude2 (j, i, true);
+          y = sampleIterator_.isSignedSampleFormat_ ? magnitude_d * scaleFactorY_2 * 4.0
+                                                    : magnitude_d * scaleFactorY_;
           cairo_line_to (context_p,
                          x,
                          static_cast<double> (height_) - y);
         } // end FOR
+
         break;
       }
       case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID:
@@ -1255,16 +1274,16 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid 2D mode (was: %d), returning\n"),
                     inherited::mod_->name (),
-                    inherited::configuration_->spectrumAnalyzer2DMode));
+                    inherited::configuration_->spectrumAnalyzerConfiguration->mode));
         goto error;
       }
     } // end SWITCH
     cairo_stroke (context_p);
 
-    // step2ab: draw a thin red line between channels
+    // step2ab: draw a thin line between channels
     if (i > 0)
     {
-      cairo_set_source_rgb (context_p, 1.0, 0.0, 0.0);
+      cairo_set_source_rgb (context_p, 1.0, 0.0, 0.0); //  red
       cairo_move_to (context_p,
                      i * channelFactor_,
                      0);
@@ -1272,6 +1291,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                      i * channelFactor_,
                      height_);
       cairo_stroke (context_p);
+      cairo_set_source_rgb (context_p, 0.0, 1.0, 0.0); // green
     } // end IF
   } // end FOR
 
