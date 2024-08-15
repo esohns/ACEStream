@@ -21,6 +21,7 @@
 #ifndef STREAM_BASE_H
 #define STREAM_BASE_H
 
+#include <list>
 #include <string>
 
 #include "ace/Atomic_Op.h"
@@ -117,6 +118,7 @@ class Stream_Base_T
  , public Common_IInitialize_T<Stream_Configuration_T<//StreamName,
                                                       ConfigurationType,
                                                       HandlerConfigurationType> >
+ , public Common_ISubscribe_T<Stream_IEvent_T<NotificationType> >
  , public Common_IStatistic_T<StatisticContainerType>
  , public Common_IGetR_2_T<SessionDataContainerType>
  , public Common_ISetPR_T<SessionDataContainerType>
@@ -226,7 +228,7 @@ class Stream_Base_T
   virtual void stop (bool = true,   // wait for completion ?
                      bool = true,   // recurse upstream (if any) ?
                      bool = false); // high priority ?
-  inline virtual Stream_SessionId_t id () const { const StateType& state_r = state (); return (state_r.sessionData ? state_r.sessionData->sessionId : -1); }
+  inline virtual Stream_SessionId_t id () const { return (state_.sessionData ? state_.sessionData->sessionId : -1); }
   virtual bool isRunning () const;
   virtual void finished (bool = true); // recurse upstream (if any) ?
   virtual unsigned int flush (bool = true,   // flush inbound data ?
@@ -303,6 +305,11 @@ class Stream_Base_T
   // implement Common_IInitialize_T
   virtual bool initialize (const CONFIGURATION_T&);
 
+  // implement Common_ISubscribe_T
+  typedef Stream_IEvent_T<NotificationType> IEVENT_T;
+  virtual void subscribe (IEVENT_T*); // new subscriber
+  virtual void unsubscribe (IEVENT_T*); // existing subscriber
+
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to the statistic report module (if any)
   virtual bool collect (StatisticContainerType&); // return value: statistic data
@@ -353,6 +360,8 @@ class Stream_Base_T
                                   TimePolicyType,
                                   HandlerConfigurationType> IMODULE_HANDLER_T;
   typedef Common_IStatistic_T<StatisticContainerType> ISTATISTIC_T;
+  typedef std::list<IEVENT_T*> SUBSCRIBERS_T;
+  typedef typename SUBSCRIBERS_T::iterator SUBSCRIBERS_ITERATOR_T;
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       TimePolicyType,
                                       ControlMessageType,
@@ -418,6 +427,11 @@ class Stream_Base_T
   typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> STATE_MACHINE_CONTROL_T;
   typedef Common_IGetP_T<ISTREAM_T> IGET_T;
   typedef Common_ISetP_T<StateType> ISET_T;
+  // helper types
+  struct SUBSCRIBERS_IS_EQUAL_P
+  {
+    inline bool operator() (IEVENT_T* first, IEVENT_T* second) { return (first == second); }
+  };
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T (const Stream_Base_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T& operator= (const Stream_Base_T&))
@@ -468,6 +482,7 @@ class Stream_Base_T
                           int) const; // indentation
 
   bool                      delete_; // delete modules ?
+  SUBSCRIBERS_T             subscribers_;
 };
 
 // include template definition

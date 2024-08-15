@@ -299,9 +299,9 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
+      inherited::isHighPriorityStop_ = true;
       inherited::change (STREAM_STATE_SESSION_STOPPING);
-      break;
-      //goto abort;
+      goto end;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
@@ -659,7 +659,14 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-//abort:
+end:
+      // *NOTE*: only process the first 'session end' message
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+        if (unlikely (sessionEndProcessed_))
+          break; // done
+        sessionEndProcessed_ = true;
+      } // end lock scope
+
       bool COM_initialized = Common_Tools::initializeCOM ();
 
 #if defined (_DEBUG)
@@ -681,27 +688,6 @@ error:
 
       builder_p->Release (); builder_p = NULL;
 #endif // _DEBUG
-
-      inherited::sessionEndProcessed_ = true;
-      if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
-      {
-        Common_ITask* itask_p = this; // *TODO*: is the no other way ?
-        itask_p->stop (false,         // wait for completion ?
-                       false);        // high priority ?
-      } // end IF
-
-      if (inherited::timerId_ != -1)
-      {
-        const void* act_p = NULL;
-        result = itimer_manager_p->cancel_timer (inherited::timerId_,
-                                                 &act_p);
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
-                      inherited::mod_->name (),
-                      inherited::timerId_));
-        inherited::timerId_ = -1;
-      } // end IF
 
       // deregister graph from the ROT ?
       if (ROTID_)
@@ -775,10 +761,28 @@ error:
         IAMDroppedFrames_->Release (); IAMDroppedFrames_ = NULL;
       } // end IF
 
-      inherited::queue_.flush (false); // flush any data (!) messages
-
       if (COM_initialized)
         Common_Tools::finalizeCOM ();
+
+      if (inherited::timerId_ != -1)
+      {
+        const void* act_p = NULL;
+        result = itimer_manager_p->cancel_timer (inherited::timerId_,
+                                                 &act_p);
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
+                      inherited::mod_->name (),
+                      inherited::timerId_));
+        inherited::timerId_ = -1;
+      } // end IF
+
+      if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+      {
+        Common_ITask* itask_p = this; // *TODO*: is there no other way ?
+        itask_p->stop (false,                           // wait for completion ?
+                       inherited::isHighPriorityStop_); // high priority ?
+      } // end IF
 
       break;
     }

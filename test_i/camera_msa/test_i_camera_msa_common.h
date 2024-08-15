@@ -333,11 +333,7 @@ struct Test_I_CameraMSA_ModuleHandlerConfiguration
    , window (0)
 #endif // ACE_WIN32 || ACE_WIN64
   {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
-#else
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
-#endif // ACE_WIN32 || ACE_WIN64
   }
 
   struct Stream_Device_Identifier deviceIdentifier; // source module

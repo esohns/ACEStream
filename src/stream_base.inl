@@ -18,8 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <deque>
-
 #include "ace/Log_Msg.h"
 
 #include "stream_data_base.h"
@@ -76,6 +74,7 @@ Stream_Base_T<ACE_SYNCH_USE,
  , statistic_ ()
  /////////////////////////////////////////
  , delete_ (false)
+ , subscribers_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
@@ -367,6 +366,105 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
 
   return true;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+void
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              StreamName,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::subscribe (IEVENT_T* interfaceHandle_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::subscribe"));
+
+  // sanity check(s)
+  ACE_ASSERT (interfaceHandle_in);
+
+  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
+    subscribers_.push_back (interfaceHandle_in);
+    subscribers_.sort ();
+    subscribers_.unique (SUBSCRIBERS_IS_EQUAL_P ());
+  } // end lock scope
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+void
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              StreamName,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::unsubscribe (IEVENT_T* interfaceHandle_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unsubscribe"));
+
+  // sanity check(s)
+  ACE_ASSERT (interfaceHandle_in);
+
+  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
+    SUBSCRIBERS_ITERATOR_T iterator = subscribers_.begin ();
+    for (;
+         iterator != subscribers_.end ();
+         iterator++)
+      if ((*iterator) == interfaceHandle_in)
+        break;
+
+    if (iterator != subscribers_.end ())
+      subscribers_.erase (iterator);
+    else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid argument (was: %@), continuing\n"),
+                  ACE_TEXT (name_.c_str ()),
+                  interfaceHandle_in));
+  } // end lock scope
 }
 
 template <ACE_SYNCH_DECL,
@@ -1470,6 +1568,22 @@ session_end:
     default:
       break;
   } // end SWITCH
+
+  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
+    for (SUBSCRIBERS_ITERATOR_T iterator = subscribers_.begin ();
+         iterator != subscribers_.end ();
+         )
+    {
+      try {
+        (*iterator++)->onEvent (notification_in);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in Stream_IEvent_T::onEvent(%d), continuing\n"),
+                    ACE_TEXT (name_.c_str ()),
+                    notification_in));
+      }
+    } // end FOR
+  } // end lock scope
 }
 
 template <ACE_SYNCH_DECL,

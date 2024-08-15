@@ -1185,8 +1185,6 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       allocator_configuration.defaultBufferSize =
         Stream_MediaFramework_MediaFoundation_Tools::frameSize (mediafoundation_stream_configuration.format);
 
-      mediafoundation_modulehandler_configuration.concurrency =
-        STREAM_HEADMODULECONCURRENCY_ACTIVE;
       //Stream_MediaFramework_MediaFoundation_Tools::setResolution ({ 80, 60},
       //                                                            mediafoundation_modulehandler_configuration.outputFormat);
       mediafoundation_modulehandler_configuration_2.outputFormat =

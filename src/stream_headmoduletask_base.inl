@@ -1183,7 +1183,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     {
       isHighPriorityStop_ = true;
       inherited2::change (STREAM_STATE_SESSION_STOPPING);
-      break;
+      goto end;
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
@@ -1240,6 +1240,7 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       // *NOTE*: only process the first 'session end' message (see above: 2566)
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         if (unlikely (sessionEndProcessed_))
@@ -1269,9 +1270,9 @@ error:
       } // end IF
 
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
-      { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
-        itask_p->stop (false,  // wait for completion ?
-                       false); // high priority ?
+      { Common_ITask* itask_p = this; // *TODO*: is there no other way ?
+        itask_p->stop (false,                // wait for completion ?
+                       isHighPriorityStop_); // high priority ?
       } // end IF
 
       break;
@@ -1563,7 +1564,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_ABORT:
     { // *NOTE*: if the head module thread has left already, there is no session
       //         data at this level of abstraction
-      if (inherited::sessionData_)
+      if (likely (inherited::sessionData_))
       { // *TODO*: there is obviously a race condition here
         inherited::sessionData_->increase ();
         SessionDataType& session_data_r =
@@ -2804,6 +2805,17 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       } // end lock scope
       inherited2::signal ();
 
+      ACE_ASSERT (inherited::sessionData_);
+      inherited::sessionData_->increase ();
+      // *TODO*: remove type inferences
+      SessionDataType& session_data_r =
+          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      bool aborted_b = false;
+      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock, false);
+        aborted_b = session_data_r.aborted;
+      } // end lock scope
+      inherited::sessionData_->decrease ();
+
       bool release_lock = false;
       SessionDataContainerType* session_data_container_p = NULL;
       typename inherited::ISTREAM_T* istream_p =
@@ -2973,6 +2985,9 @@ continue_2:
         }
       } // end SWITCH
 
+      if (unlikely (aborted_b)) // *NOTE*: there will be no session-end message; transition manually
+        inherited2::change (STREAM_STATE_STOPPED);
+
       break;
     }
     case STREAM_STATE_PAUSED:
@@ -3045,10 +3060,11 @@ continue_2:
       switch (inherited::configuration_->concurrency)
       {
         case STREAM_HEADMODULECONCURRENCY_ACTIVE:
+          break;
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
         case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
         {
-          // *NOTE*: concurrent thread(s) never reach close(0)
+          // *NOTE*: passive/concurrent thread(s) never reach close(0)
           //         --> release session data here
           if (likely (inherited::sessionData_))
           {

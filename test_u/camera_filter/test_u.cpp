@@ -18,7 +18,6 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 #include "stdafx.h"
-#include "stream_vis_common.h"
 
 #include <iostream>
 #include <string>
@@ -76,6 +75,7 @@
 
 #include "stream_misc_defines.h"
 
+#include "stream_vis_common.h"
 #include "stream_vis_tools.h"
 
 #include "test_u_defines.h"
@@ -440,11 +440,11 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
               ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (deviceIdentifier_in.identifier._string).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (captureFormat_inout, true).c_str ())));
 
-  Common_Image_Resolution_t resolution_s;
-  resolution_s.cx = 320;
-  resolution_s.cy = 240;
-  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-                                                         captureFormat_inout);
+  //Common_Image_Resolution_t resolution_s;
+  //resolution_s.cx = 320;
+  //resolution_s.cy = 240;
+  //Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+  //                                                       captureFormat_inout);
 
   media_type_p =
     Stream_MediaFramework_DirectShow_Tools::copy (captureFormat_inout);
