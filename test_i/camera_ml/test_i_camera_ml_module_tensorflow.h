@@ -47,6 +47,69 @@
 
 #include "stream_module_tensorflow.h"
 
+#if defined (TENSORFLOW_SUPPORT)
+template <typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename MediaType>
+class Test_I_CameraML_Module_Tensorflow_T
+ : public Stream_Module_Tensorflow_T<ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+{
+  typedef Stream_Module_Tensorflow_T<ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+
+ public:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  typedef typename inherited::ISTREAM_T ISTREAM_T;
+  Test_I_CameraML_Module_Tensorflow_T (ISTREAM_T*); // stream handle
+#else
+  Test_I_CameraML_Module_Tensorflow_T (typename inherited::ISTREAM_T*); // stream handle
+#endif // ACE_WIN32 || ACE_WIN64
+  inline virtual ~Test_I_CameraML_Module_Tensorflow_T () {}
+
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
+
+  // implement (part of) Stream_ITaskBase
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_Tensorflow_T ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_Tensorflow_T (const Test_I_CameraML_Module_Tensorflow_T&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_Tensorflow_T& operator= (const Test_I_CameraML_Module_Tensorflow_T&))
+
+  // helper methods
+  bool loadLabels (const std::string&); // label file path
+  std::vector<size_t> filterBoxes (std::vector<float>&, // scores
+                                   double);             // threshold (score)
+  void drawBoundingBoxes (cv::Mat&,              // image
+                          std::vector<float>&,   // scores
+                          std::vector<float>&,   // classes
+                          std::vector<float>&,   // boxes
+                          std::vector<size_t>&); // indices ("good")
+
+  std::map<int, std::string> labelMap_;
+  Common_Image_Resolution_t  resolution_;
+  int                        stride_;
+};
+#endif // TENSORFLOW_SUPPORT
+
+///////////////////////////////////////////
+
 #if defined (TENSORFLOW_CC_SUPPORT)
 template <typename ConfigurationType,
           ////////////////////////////////
@@ -69,7 +132,6 @@ class Test_I_CameraML_Module_Tensorflow_2
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   typedef typename inherited::ISTREAM_T ISTREAM_T;
   Test_I_CameraML_Module_Tensorflow_2 (ISTREAM_T*); // stream handle

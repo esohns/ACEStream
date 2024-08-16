@@ -17,9 +17,6 @@
 *   Free Software Foundation, Inc.,                                       *
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
-#include "ace/Default_Constants.h"
-#include "common_defines.h"
-#include "common_file_tools.h"
 #include "stdafx.h"
 
 #include <iostream>
@@ -38,6 +35,7 @@
 #include "linux/videodev2.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "ace/Default_Constants.h"
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/Init_ACE.h"
@@ -52,6 +50,9 @@
 #if defined (HAVE_CONFIG_H)
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
+
+#include "common_defines.h"
+#include "common_file_tools.h"
 
 #include "common_os_tools.h"
 
@@ -163,7 +164,7 @@ do_print_usage (const std::string& programName_in)
 #else
   device_identifier_string =
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-  device_identifier_string += ACE_DIRECTORY_SEPARATOR_CHAR;
+  device_identifier_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   device_identifier_string +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -172,9 +173,10 @@ do_print_usage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   std::string path = Common_File_Tools::getWorkingDirectory ();
-  path += ACE_DIRECTORY_SEPARATOR_CHAR;
-  path += COMMON_LOCATION_DATA_SUBDIRECTORY;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR;
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  // *NOTE*: model file needs to be relative to cwd
+  path = ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [PATH]   : model file [\"")
             << path
@@ -262,10 +264,11 @@ do_process_arguments (int argc_in,
   deviceIdentifier_out.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
-  modelFile_out = Common_File_Tools::getWorkingDirectory ();
-  modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR;
-  modelFile_out += COMMON_LOCATION_DATA_SUBDIRECTORY;
-  modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR;
+  //modelFile_out = Common_File_Tools::getWorkingDirectory ();
+  //modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  // *NOTE*: model file needs to be relative to cwd
+  modelFile_out = ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+  modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE);
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -943,22 +946,34 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         Common_File_Tools::getSourceDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
                                                ACE_TEXT_ALWAYS_CHAR (""));
       directshow_modulehandler_configuration.shaderFile +=
-        ACE_DIRECTORY_SEPARATOR_STR;
+        ACE_DIRECTORY_SEPARATOR_STR_A;
       directshow_modulehandler_configuration.shaderFile +=
         ACE_TEXT_ALWAYS_CHAR (STREAM_SUBMODULE_SUBDIRECTORY_STRING);
       directshow_modulehandler_configuration.shaderFile +=
-        ACE_DIRECTORY_SEPARATOR_STR;
+        ACE_DIRECTORY_SEPARATOR_STR_A;
       directshow_modulehandler_configuration.shaderFile +=
         ACE_TEXT_ALWAYS_CHAR (STREAM_SUBMODULE_VISUALIZATION_DIRECTORY_STRING);
       directshow_modulehandler_configuration.shaderFile +=
-        ACE_DIRECTORY_SEPARATOR_STR;
+        ACE_DIRECTORY_SEPARATOR_STR_A;
       directshow_modulehandler_configuration.shaderFile +=
         ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
       directshow_modulehandler_configuration.shaderFile +=
-        ACE_DIRECTORY_SEPARATOR_STR;
+        ACE_DIRECTORY_SEPARATOR_STR_A;
       directshow_modulehandler_configuration.shaderFile +=
         ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_11_DEFAULT_SHADER_FILE);
       ACE_ASSERT (Common_File_Tools::isReadable (directshow_modulehandler_configuration.shaderFile));
+
+      directshow_modulehandler_configuration.labelFile =
+        Common_File_Tools::getWorkingDirectory ();
+      directshow_modulehandler_configuration.labelFile +=
+        ACE_DIRECTORY_SEPARATOR_STR_A;
+      directshow_modulehandler_configuration.labelFile +=
+        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+      directshow_modulehandler_configuration.labelFile +=
+        ACE_DIRECTORY_SEPARATOR_CHAR_A;
+      directshow_modulehandler_configuration.labelFile +=
+        ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LABEL_FILE);
+      directshow_modulehandler_configuration.modelFile = modelFile_in;
 
       //if (statisticReportingInterval_in)
       //{
@@ -1418,10 +1433,12 @@ ACE_TMAIN (int argc_in,
   device_identifier.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string model_file = Common_File_Tools::getWorkingDirectory ();
-  model_file += ACE_DIRECTORY_SEPARATOR_CHAR;
-  model_file += COMMON_LOCATION_DATA_SUBDIRECTORY;
-  model_file += ACE_DIRECTORY_SEPARATOR_CHAR;
+  //std::string model_file = Common_File_Tools::getWorkingDirectory ();
+  //model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  // *NOTE*: model file needs to be relative to cwd
+  std::string model_file =
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+  model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE);
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

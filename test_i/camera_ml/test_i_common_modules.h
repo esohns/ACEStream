@@ -456,18 +456,32 @@ typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
 //                                       Stream_CameraML_MediaFoundation_SessionData,
 //                                       struct Stream_UserData> Stream_CameraML_MediaFoundation_MessageHandler;
 
-#if defined (TENSORFLOW_CC_SUPPORT)
-typedef Test_I_CameraML_Module_Tensorflow_2<struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration,
+#if defined (TENSORFLOW_SUPPORT)
+typedef Test_I_CameraML_Module_Tensorflow_T<struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration,
                                             Stream_ControlMessage_t,
                                             Stream_CameraML_DirectShow_Message_t,
                                             Stream_CameraML_DirectShow_SessionMessage_t,
                                             struct _AMMediaType> Stream_CameraML_DirectShow_Tensorflow;
 
-typedef Test_I_CameraML_Module_Tensorflow_2<struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration,
+typedef Test_I_CameraML_Module_Tensorflow_T<struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration,
                                             Stream_ControlMessage_t,
                                             Stream_CameraML_MediaFoundation_Message_t,
                                             Stream_CameraML_MediaFoundation_SessionMessage_t,
                                             IMFMediaType*> Stream_CameraML_MediaFoundation_Tensorflow;
+#endif // TENSORFLOW_SUPPORT
+
+#if defined (TENSORFLOW_CC_SUPPORT)
+typedef Test_I_CameraML_Module_Tensorflow_2<struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration,
+                                            Stream_ControlMessage_t,
+                                            Stream_CameraML_DirectShow_Message_t,
+                                            Stream_CameraML_DirectShow_SessionMessage_t,
+                                            struct _AMMediaType> Stream_CameraML_DirectShow_Tensorflow_2;
+
+typedef Test_I_CameraML_Module_Tensorflow_2<struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration,
+                                            Stream_ControlMessage_t,
+                                            Stream_CameraML_MediaFoundation_Message_t,
+                                            Stream_CameraML_MediaFoundation_SessionMessage_t,
+                                            IMFMediaType*> Stream_CameraML_MediaFoundation_Tensorflow_2;
 #endif // TENSORFLOW_CC_SUPPORT
 #else
 //typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
@@ -707,7 +721,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                  
 //                              Stream_INotify_t,                                 // stream notification interface type
 //                              Stream_CameraML_MediaFoundation_MessageHandler);   // writer type
 
-#if defined (TENSORFLOW_CC_SUPPORT)
+#if defined (TENSORFLOW_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                               // session event type
                               struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
@@ -721,6 +735,22 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_MediaFoundation_SessionData,      
                               libacestream_default_ml_tensorflow_module_name_string,
                               Stream_INotify_t,                                                  // stream notification interface type
                               Stream_CameraML_MediaFoundation_Tensorflow);                       // writer type
+#endif // TENSORFLOW_SUPPORT
+
+#if defined (TENSORFLOW_CC_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                               // session event type
+                              struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_ml_tensorflow_module_name_string,
+                              Stream_INotify_t,                                             // stream notification interface type
+                              Stream_CameraML_DirectShow_Tensorflow_2);                       // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                    // session event type
+                              struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_ml_tensorflow_module_name_string,
+                              Stream_INotify_t,                                                  // stream notification interface type
+                              Stream_CameraML_MediaFoundation_Tensorflow_2);                       // writer type
 #endif // TENSORFLOW_CC_SUPPORT
 #else
 //DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                           // session data type

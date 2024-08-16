@@ -23,8 +23,8 @@
 
 #include "tensorflow/c/c_api.h"
 #if defined (TENSORFLOW_CC_SUPPORT)
-#undef Status
-#undef Success
+//#undef Status
+//#undef Success
 #include "tensorflow/core/public/session.h"
 #endif // TENSORFLOW_CC_SUPPORT
 
@@ -67,12 +67,7 @@ class Stream_Module_Tensorflow_T
                                  struct Stream_UserData> inherited;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_Module_Tensorflow_T (typename inherited::ISTREAM_T*); // stream handle
-#else
-  Stream_Module_Tensorflow_T (typename inherited::ISTREAM_T*); // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_Tensorflow_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -125,12 +120,7 @@ class Stream_Module_Tensorflow_2
                                  struct Stream_UserData> inherited;
 
  public:
-         // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_Module_Tensorflow_2 (typename inherited::ISTREAM_T*); // stream handle
-#else
-  Stream_Module_Tensorflow_2 (typename inherited::ISTREAM_T*); // stream handle
-#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_Tensorflow_2 ();
 
   // override (part of) Stream_IModuleHandler_T

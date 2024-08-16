@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include <fstream>
+#include <numeric>
 #include <regex>
 #include <set>
 #include <sstream>
@@ -27,6 +28,9 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #endif // OPENCV_SUPPORT
 
+#if defined (TENSORFLOW_SUPPORT)
+#include "tensorflow/c/c_api.h"
+#endif // TENSORFLOW_SUPPORT
 #if defined (TENSORFLOW_CC_SUPPORT)
 #include "tensorflow/core/framework/types.pb.h"
 #endif // TENSORFLOW_CC_SUPPORT
@@ -39,6 +43,413 @@
 #include "stream_lib_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_macros.h"
+
+#if defined (TENSORFLOW_SUPPORT)
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                    MediaType>::Test_I_CameraML_Module_Tensorflow_T (ISTREAM_T* stream_in)
+#else
+                                    MediaType>::Test_I_CameraML_Module_Tensorflow_T (typename inherited::ISTREAM_T* stream_in)
+#endif // ACE_WIN32 || ACE_WIN64
+ : inherited (stream_in)
+ , inherited2 ()
+ , labelMap_ ()
+ , resolution_ ()
+ , stride_ (0)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::Test_I_CameraML_Module_Tensorflow_T"));
+
+}
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+bool
+Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                            Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::initialize"));
+
+  if (inherited::isInitialized_)
+  {
+  } // end IF
+
+  if (!loadLabels (configuration_in.labelFile))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to loadLabels(\"%s\"), aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (configuration_in.labelFile.c_str ())));
+    return false;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: loaded %Q label(s)\n"),
+              inherited::mod_->name (),
+              labelMap_.size ()));
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
+}
+
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+void
+Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                   bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::handleDataMessage"));
+
+  static int nFrames = 30;
+  static int iFrame = 0;
+  static double fps = 0.0;
+  static time_t start = time (NULL);
+  static time_t end;
+
+  if (nFrames % (iFrame + 1) == 0)
+  {
+    time (&end);
+    fps = nFrames / difftime (end, start);
+    time (&start);
+  } // end IF
+  iFrame++;
+
+  std::vector<size_t> good_indices_a;
+
+  // step0: convert image frame to matrix
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  cv::Mat frame_matrix (resolution_.cy,
+                        resolution_.cx,
+#else
+  cv::Mat frame_matrix (resolution_.height,
+                        resolution_.width,
+#endif // ACE_WIN32 || ACE_WIN64
+                        CV_8UC3,
+                        message_inout->rd_ptr (),
+                        cv::Mat::AUTO_STEP);
+
+  uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
+
+  // run the graph on tensor
+  TF_Operation* input_operation_p = NULL;
+  struct TF_Output input_s;
+  input_s.oper = input_operation_p;
+  input_s.index = 0;
+  TF_Tensor* input_tensor_p = NULL;
+  TF_Tensor* run_input_tensors_a[1];
+  run_input_tensors_a[0] = input_tensor_p;
+  TF_Operation* output_operation_p = NULL;
+  struct TF_Output output_s;
+  output_s.oper = output_operation_p;
+  output_s.index = 0;
+  TF_Tensor* output_tensor_p = NULL;
+  TF_Tensor* run_output_tensors_a[1];
+  run_output_tensors_a[0] = output_tensor_p;
+  TF_Status* status_p = TF_NewStatus ();
+  ACE_ASSERT (status_p);
+  TF_SetStatus (status_p, TF_OK, ACE_TEXT_ALWAYS_CHAR (""));
+  TF_SessionRun (inherited::session_,
+                 NULL,
+                 /* Input tensors */ &input_s, run_input_tensors_a, 1,
+                 /* Output tensors */ &output_s, run_output_tensors_a, 1,
+                 /* Target operations */ NULL, 0,
+                 NULL,
+                 status_p);
+  if (unlikely (TF_GetCode (status_p) != TF_OK))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to TF_SessionRun(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (TF_Message (status_p))));
+    TF_DeleteStatus (status_p);
+    inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+    return;
+  } // end IF
+  TF_DeleteStatus (status_p); status_p = NULL;
+
+  std::vector<float> scores_a;
+  std::vector<float> classes_a;
+  std::vector<float> boxes_a;
+  good_indices_a = filterBoxes (scores_a, 0.5);
+  //  for (size_t i = 0; i < goodIdxs.size(); i++)
+//      LOG(INFO) << "score:" << scores(goodIdxs.at(i)) << ",class:" << labelsMap[classes(goodIdxs.at(i))]
+//                << " (" << classes(goodIdxs.at(i)) << "), box:" << "," << boxes(0, goodIdxs.at(i), 0) << ","
+//                << boxes(0, goodIdxs.at(i), 1) << "," << boxes(0, goodIdxs.at(i), 2) << ","
+//                << boxes(0, goodIdxs.at(i), 3);
+
+  // draw bboxes and captions
+  drawBoundingBoxes (frame_matrix, scores_a, classes_a, boxes_a, good_indices_a);
+
+  // draw fps
+  cv::putText (frame_matrix,
+               std::to_string (fps).substr (0, 5),
+               cv::Point (0, frame_matrix.rows),
+               cv::FONT_HERSHEY_SIMPLEX,
+               0.7,
+               cv::Scalar (255, 255, 255));
+}
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+void
+Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                      bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::handleSessionMessage"));
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::sessionData_);
+
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+
+  switch (message_inout->type ())
+  {
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+#else
+      struct Stream_MediaFramework_V4L_MediaType media_type_s;
+#endif // ACE_WIN32 || ACE_WIN64
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
+                                media_type_s);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      resolution_ =
+        Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
+      stride_ = resolution_.cx * 3;
+#else
+      ACE_ASSERT (Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_s.format.pixelformat) == 24);
+      resolution_.height = media_type_s.format.height;
+      resolution_.width = media_type_s.format.width;
+      stride_ = resolution_.width * 3;
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      stride_ = resolution_.cx * 3;
+#else
+      stride_ = resolution_.width * 3;
+#endif // ACE_WIN32 || ACE_WIN64
+
+      break;
+
+//error:
+      inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      return;
+    }
+    case STREAM_SESSION_MESSAGE_END:
+    {
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+}
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+bool
+Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    MediaType>::loadLabels (const std::string& fileName_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::loadLabels"));
+
+  labelMap_.clear ();
+
+  // read file into a string
+  std::ifstream file_stream (fileName_in);
+  if (file_stream.bad ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to open label map file (was: \"%s\"), aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (fileName_in.c_str ())));
+    return false;
+  } // end IF
+  std::stringstream string_stream;
+  string_stream << file_stream.rdbuf ();
+  std::string file_string = string_stream.str ();
+
+  // search entry patterns of type 'item { ... }' and parse each of them
+  std::smatch matcherEntry;
+  std::smatch matcherId;
+  std::smatch matcherName;
+  std::regex reEntry ("item \\{([\\S\\s]*?)\\}");
+  std::regex reId ("[0-9]+");
+  std::regex reName ("\'.+\'");
+  std::string entry;
+
+  std::sregex_iterator stringBegin (file_string.begin (), file_string.end (), reEntry);
+  std::sregex_iterator stringEnd;
+
+  int id;
+  std::string name;
+  for (std::sregex_iterator i = stringBegin; i != stringEnd; i++)
+  {
+    matcherEntry = *i;
+    entry = matcherEntry.str ();
+    std::regex_search (entry, matcherId, reId);
+    if (!matcherId.empty ())
+      id = stoi (matcherId[0].str ());
+    else
+      continue;
+    std::regex_search (entry, matcherName, reName);
+    if (!matcherName.empty ())
+      name = matcherName[0].str ().substr (1, matcherName[0].str ().length () - 2);
+    else
+      continue;
+    labelMap_.insert (std::pair<int, std::string> (id, name));
+  } // end FOR
+
+  return true;
+}
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+std::vector<size_t>
+Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    MediaType>::filterBoxes (std::vector<float>& scores_in,
+                                                             double thresholdScore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::filterBoxes"));
+
+  std::vector<size_t> sortIdxs (scores_in.size ());
+  std::iota (sortIdxs.begin (), sortIdxs.end (), 0);
+
+  // Create set of "bad" idxs
+  std::set<size_t> badIdxs;
+  size_t i = 0;
+  while (i < sortIdxs.size ())
+  {
+    if (scores_in.at (sortIdxs.at (i)) < thresholdScore_in)
+      badIdxs.insert (sortIdxs[i]);
+    if (badIdxs.find (sortIdxs.at (i)) != badIdxs.end ())
+    {
+      i++;
+      continue;
+    } // end IF
+
+//    Rect2f box1 = Rect2f(Point2f(boxes(0, sortIdxs.at(i), 1), boxes(0, sortIdxs.at(i), 0)),
+//                         Point2f(boxes(0, sortIdxs.at(i), 3), boxes(0, sortIdxs.at(i), 2)));
+//    for (size_t j = i + 1; j < sortIdxs.size(); j++) {
+//        if (scores(sortIdxs.at(j)) < thresholdScore) {
+//            badIdxs.insert(sortIdxs[j]);
+//            continue;
+//        }
+//        Rect2f box2 = Rect2f(Point2f(boxes(0, sortIdxs.at(j), 1), boxes(0, sortIdxs.at(j), 0)),
+//                             Point2f(boxes(0, sortIdxs.at(j), 3), boxes(0, sortIdxs.at(j), 2)));
+//        if (IOU(box1, box2) > thresholdIOU)
+//            badIdxs.insert(sortIdxs[j]);
+//    }
+    i++;
+  } // end WHILE
+
+  // Prepare "good" idxs for return
+  std::vector<size_t> goodIdxs;
+  for (std::vector<size_t>::iterator iterator = sortIdxs.begin ();
+       iterator != sortIdxs.end ();
+       ++iterator)
+    if (badIdxs.find (sortIdxs.at (*iterator)) == badIdxs.end ())
+      goodIdxs.push_back (*iterator);
+
+  return goodIdxs;
+}
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+void
+Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    MediaType>::drawBoundingBoxes (cv::Mat& image_in,
+                                                                   std::vector<float>& scores_in,
+                                                                   std::vector<float>& classes_in,
+                                                                   std::vector<float>& boxes_in,
+                                                                   std::vector<size_t>& indices_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::drawBoundingBoxes"));
+
+  for (size_t j = 0;
+       j < indices_in.size ();
+       j++)
+  {
+    double xMin, xMax, yMin, yMax;
+    //xMin = boxes_in (0, indices_in.at (j), 1);
+    //xMax = boxes_in (0, indices_in.at (j), 3);
+    //yMin = boxes_in (0, indices_in.at (j), 0);
+    //yMax = boxes_in (0, indices_in.at (j), 2);
+
+    cv::Point tl, br;
+    tl = cv::Point((int) (xMin * image_in.cols), (int) (yMin * image_in.rows));
+    br = cv::Point((int) (xMax * image_in.cols), (int) (yMax * image_in.rows));
+    cv::rectangle (image_in, tl, br, cv::Scalar (0, 255, 255), 1);
+
+    // Ceiling the score down to 3 decimals (weird!)
+    float scoreRounded = std::floor (scores_in.at (indices_in.at (j)) * 1000.0f) / 1000.0f;
+    std::string score_string = std::to_string (scoreRounded).substr (0, 5);
+    std::string caption = labelMap_[classes_in.at (indices_in.at(j))] + " (" + score_string + ")";
+
+    // Adding caption of type "LABEL (X.XXX)" to the top-left corner of the bounding box
+    int fontCoeff = 12;
+    cv::Point brRect = cv::Point (tl.x + caption.length () * fontCoeff / 1.6, tl.y + fontCoeff);
+    cv::rectangle (image_in, tl, brRect, cv::Scalar (0, 255, 255), -1);
+    cv::Point textCorner = cv::Point (tl.x, tl.y + fontCoeff * 0.9);
+    cv::putText (image_in, caption, textCorner, cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar (255, 0, 0));
+  } // end FOR
+}
+#endif // TENSORFLOW_SUPPORT
+
+///////////////////////////////////////////
 
 #if defined (TENSORFLOW_CC_SUPPORT)
 template <typename ConfigurationType,
@@ -119,9 +530,10 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_2::handleDataMessage"));
 
   // set input & output nodes names
-  static std::string inputLayer = "image_tensor:0";
+  static std::string inputLayer = ACE_TEXT_ALWAYS_CHAR ("image_tensor:0");
   static std::vector<std::string> outputLayer =
-    {"detection_boxes:0", "detection_scores:0", "detection_classes:0", "num_detections:0"};
+    { ACE_TEXT_ALWAYS_CHAR ("detection_boxes:0"), ACE_TEXT_ALWAYS_CHAR ("detection_scores:0"), ACE_TEXT_ALWAYS_CHAR ("detection_classes:0"),
+      ACE_TEXT_ALWAYS_CHAR ("num_detections:0") };
 
   static int nFrames = 30;
   static int iFrame = 0;

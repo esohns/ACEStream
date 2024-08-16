@@ -59,9 +59,13 @@ Stream_CameraML_DirectShow_Stream::Stream_CameraML_DirectShow_Stream ()
 #endif // FFMPEG_SUPPORT
  , flip_ (this,
           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
-#if defined (TENSORFLOW_CC_SUPPORT)
+#if defined (TENSORFLOW_SUPPORT)
  , tensorflow_ (this,
                 ACE_TEXT_ALWAYS_CHAR (MODULE_ML_TENSORFLOW_DEFAULT_NAME_STRING))
+#endif // TENSORFLOW_SUPPORT
+#if defined (TENSORFLOW_CC_SUPPORT)
+ , tensorflow_cc_ (this,
+                   ACE_TEXT_ALWAYS_CHAR (MODULE_ML_TENSORFLOW_DEFAULT_NAME_STRING))
 #endif // TENSORFLOW_CC_SUPPORT
  , convert_2 (this,
               ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
@@ -104,8 +108,10 @@ Stream_CameraML_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #endif // FFMPEG_SUPPORT
   layout_in->append (&flip_, NULL, 0);
 #if defined (TENSORFLOW_CC_SUPPORT)
+  layout_in->append (&tensorflow_cc_, NULL, 0);
+#elif defined (TENSORFLOW_SUPPORT)
   layout_in->append (&tensorflow_, NULL, 0);
-#endif // TENSORFLOW_CC_SUPPORT
+#endif // TENSORFLOW_SUPPORT || TENSORFLOW_CC_SUPPORT
   switch (inherited::configuration_->configuration_->renderer)
   {
 #if defined (GTK_SUPPORT)

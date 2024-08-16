@@ -18,6 +18,12 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#if defined (TENSORFLOW_CC_SUPPORT)
+#include "tensorflow/core/platform/status.h"
+#include "tensorflow/cc/saved_model/loader.h"
+#include "tensorflow/cc/saved_model/tag_constants.h"
+#endif // TENSORFLOW_CC_SUPPORT
+
 #include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
@@ -32,11 +38,7 @@ template <typename ConfigurationType,
 Stream_Module_Tensorflow_T<ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
                            SessionMessageType>::Stream_Module_Tensorflow_T (typename inherited::ISTREAM_T* stream_in)
-#else
-                           SessionMessageType>::Stream_Module_Tensorflow_T (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , session_ (NULL)
  , status_ (NULL)
@@ -194,7 +196,7 @@ Stream_Module_Tensorflow_T<ConfigurationType,
     {
       break;
 
-error:
+//error:
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -218,11 +220,7 @@ template <typename ConfigurationType,
 Stream_Module_Tensorflow_2<ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
                            SessionMessageType>::Stream_Module_Tensorflow_2 (typename inherited::ISTREAM_T* stream_in)
-#else
-                           SessionMessageType>::Stream_Module_Tensorflow_2 (typename inherited::ISTREAM_T* stream_in)
-#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , session_ (NULL)
 {
@@ -242,7 +240,10 @@ Stream_Module_Tensorflow_2<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Tensorflow_2::~Stream_Module_Tensorflow_2"));
 
   if (session_)
+  {
+    session_->Close ();
     delete session_;
+  } // end IF
 }
 
 template <typename ConfigurationType,
@@ -261,32 +262,55 @@ Stream_Module_Tensorflow_2<ConfigurationType,
   if (inherited::isInitialized_)
   {
     if (session_)
+    {
+      session_->Close ();
       delete session_;
+    } // end IF
     session_ = NULL;
   } // end IF
 
   tensorflow::GraphDef graph_def;
-  tensorflow::Status status =
-    tensorflow::ReadBinaryProto (tensorflow::Env::Default (),
-                                 configuration_in.modelFile,
-                                 &graph_def);
+  tensorflow::Status status;
+  // *NOTE*: model file needs to be relative to cwd
+  status = tensorflow::ReadBinaryProto (tensorflow::Env::Default (),
+                                        configuration_in.modelFile,
+                                        &graph_def);
+  //tensorflow::SavedModelBundle bundle;
+  //status = tensorflow::LoadSavedModel (tensorflow::SessionOptions (),
+  //                                     tensorflow::RunOptions (),
+  //                                     Common_File_Tools::directory (configuration_in.modelFile),
+  //                                     {tensorflow::kSavedModelTagServe},
+  //                                     &bundle);
   if (!status.ok ())
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ReadBinaryProto() (model was: \"%s\"), aborting\n"),
+                ACE_TEXT ("%s: failed to LoadSavedModel() (model was: \"%s\"): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (configuration_in.modelFile.c_str ())));
+                ACE_TEXT (configuration_in.modelFile.c_str ()),
+                ACE_TEXT (status.ToString ().c_str ())));
     return false;
   } // end IF
+  //graph_def = bundle.meta_graph_def.graph_def ();
+  //status = tensorflow::NewSession (tensorflow::SessionOptions (),
+  //                                 &session_);
+  //if (!status.ok () || !session_)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to NewSession(): \"%s\", aborting\n"),
+  //              inherited::mod_->name (),
+  //              ACE_TEXT (status.ToString ().c_str ())));
+  //  return false;
+  //} // end IF
   session_ = tensorflow::NewSession (tensorflow::SessionOptions ());
   ACE_ASSERT (session_);
   status = session_->Create (graph_def);
   if (!status.ok ())
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Session::Create() (model was: \"%s\"), aborting\n"),
+                ACE_TEXT ("%s: failed to Session::Create() (model was: \"%s\"): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (configuration_in.modelFile.c_str ())));
+                ACE_TEXT (configuration_in.modelFile.c_str ()),
+                ACE_TEXT (status.ToString ().c_str ())));
     return false;
   } // end IF
 

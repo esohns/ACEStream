@@ -378,11 +378,7 @@ struct Stream_CameraML_ModuleHandlerConfiguration
    , window (0)
 #endif // ACE_WIN32 || ACE_WIN64
   {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    //concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
-#else
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
-#endif // ACE_WIN32 || ACE_WIN64
   }
 
   struct Stream_Device_Identifier deviceIdentifier; // source module
