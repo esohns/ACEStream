@@ -160,8 +160,9 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
+      inherited::isHighPriorityStop_ = true;
       inherited::change (STREAM_STATE_SESSION_STOPPING);
-      break;
+      goto end;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     { ACE_ASSERT (inherited::sessionData_);
@@ -206,6 +207,7 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       // *NOTE*: only process the first 'session end' message (see above: 2566)
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         if (unlikely (inherited::sessionEndProcessed_))
@@ -243,8 +245,8 @@ error:
 
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
-        itask_p->stop (false,  // wait for completion ?
-                       false); // high priority ?
+        itask_p->stop (false,                           // wait for completion ?
+                       inherited::isHighPriorityStop_); // high priority ?
       } // end IF
 
       break;
@@ -503,8 +505,9 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
       } // end lock scope
       if (likely (finish_b))
       {
+        inherited::change (STREAM_STATE_SESSION_STOPPING);
         // enqueue(/process) STREAM_SESSION_END
-        inherited::finished (false); // recurse upstream ?
+        // inherited::finished (false); // recurse upstream ?
         continue;
       } // end IF
     } // end IF

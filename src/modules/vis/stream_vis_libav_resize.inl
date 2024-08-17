@@ -129,6 +129,18 @@ Stream_Visualization_LibAVResize_T<TaskType,
   inherited::buffer_->set (message_inout->type ());
   message_inout->release (); message_inout = NULL;
 
+// #if defined (_DEBUG)
+//    if (!Common_File_Tools::store (ACE_TEXT_ALWAYS_CHAR ("output.data"),
+//                                   data_a[0],
+//                                   inherited::frameSize_))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
+//                  ACE_TEXT ("output.data")));
+//      goto error;
+//    } // end IF
+// #endif // _DEBUG
+
   // forward the converted frame
   result = inherited::put_next (inherited::buffer_, NULL);
   if (unlikely (result == -1))
@@ -139,19 +151,6 @@ Stream_Visualization_LibAVResize_T<TaskType,
     goto error;
   } // end IF
   inherited::buffer_ = NULL;
-
-//#if defined (_DEBUG)
-//    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
-//    if (!Common_File_Tools::store (filename_string,
-//                                   data[0],
-//                                   inherited::decodeFrameSize_))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
-//                  ACE_TEXT (filename_string.c_str ())));
-//      goto error;
-//    } // end IF
-//#endif // _DEBUG
 
   // allocate a message buffer for the next frame
   inherited::buffer_ = inherited::allocateMessage (inherited::frameSize_);
@@ -275,7 +274,7 @@ Stream_Visualization_LibAVResize_T<TaskType,
 
       // initialize conversion context
         flags_i = //(SWS_FAST_BILINEAR); // interpolation
-           (SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
+           (SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
       inherited::context_ =
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -440,7 +439,8 @@ error:
 
       // initialize conversion context
       // *TODO*: use passed-in flags here
-      flags_i = SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT; // interpolation
+      flags_i =
+        SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT; // interpolation
       inherited::context_ =
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

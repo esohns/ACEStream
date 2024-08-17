@@ -80,6 +80,7 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
 
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
+  ACE_Reverse_Lock<ACE_Thread_Mutex> reverse_lock (inherited::lock_);
 
   { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
     for (THREAD_TO_QUEUE_CONST_ITERATOR_T iterator = queues_.begin ();
@@ -168,7 +169,10 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
           modules_.find ((*iterator).second);
         ACE_ASSERT (iterator_2 != modules_.end ());
         ACE_ASSERT ((*iterator_2).second);
-        result = (*iterator_2).second->writer ()->put (message_block_p, NULL); // process inline
+        { ACE_GUARD (ACE_Reverse_Lock<ACE_Thread_Mutex>, aGuard_2, reverse_lock);
+          result =
+            (*iterator_2).second->writer ()->put (message_block_p, NULL); // process inline
+        } // end lock scope
       } // end IF
       else
         result =

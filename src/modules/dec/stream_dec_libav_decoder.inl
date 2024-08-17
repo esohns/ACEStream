@@ -655,7 +655,7 @@ continue_:
       //context_->coded_width = width;
       //context_->coded_height = height;
 //      context_->pix_fmt = AV_PIX_FMT_NONE;
-      context_->pix_fmt = outputFormat_;
+      context_->pix_fmt = AV_PIX_FMT_YUV420P;
       //context_->draw_horiz_band = NULL;
       context_->get_format = stream_decoder_libav_getformat_cb;
 //      context_->slice_count = 0;
@@ -758,7 +758,7 @@ continue_:
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (outputFormat_).c_str ())));
 
         flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-                 SWS_LANCZOS | SWS_ACCURATE_RND | SWS_BITEXACT);
+                 SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
         transformContext_ =
             sws_getCachedContext (NULL,
                                   formatWidth_, formatHeight_, context_->pix_fmt,
@@ -939,7 +939,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                 context_->width, context_->height));
 
     int flags = ( // SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-      SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
+      SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
     transformContext_ =
       sws_getCachedContext (NULL,
                             context_->width, context_->height, context_->pix_fmt,
@@ -1073,9 +1073,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     } // end IF
     message_block_p->wr_ptr (outputFrameSize_);
 
-//#if defined (_DEBUG)
-//    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
-//    if (!Common_File_Tools::store (filename_string,
+// #if defined (_DEBUG)
+//    if (!Common_File_Tools::store (ACE_TEXT_ALWAYS_CHAR ("output.data"),
 //                                   data_a[0],
 //                                   outputFrameSize_))
 //    {
@@ -1086,7 +1085,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 //      message_block_p->release ();
 //      return false;
 //    }  // end IF
-//#endif // _DEBUG
+// #endif // _DEBUG
   } // end IF
   else
   {

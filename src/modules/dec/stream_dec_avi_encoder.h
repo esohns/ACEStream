@@ -261,9 +261,11 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   enum Stream_Decoder_AVIIndexType  indexType_; // AVI 1.0 "idx1" at end of file / "inx1" + super-index
 
   // helper methods
-  virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool generateHeader (ACE_Message_Block*); // message buffer handle
   bool generateAVIXHeader (ACE_Message_Block*); // message buffer handle
+#else
+  bool generateHeader ();
 #endif // ACE_WIN32 || ACE_WIN64
   bool generateIndex (enum Stream_Decoder_AVIIndexType, // index version
                       ACE_Message_Block*);              // message buffer handle

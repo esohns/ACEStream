@@ -366,7 +366,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       } // end IF
       else if (result > 0)
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
+                    ACE_TEXT ("%s: aborting session: flushed %u data messages\n"),
                     inherited::mod_->name (),
                     result));
 
@@ -616,8 +616,12 @@ end:
         queue_.waitForIdleState ();
       } // end IF
       else if (inherited::thr_count_ > 0)
+      {
+        if (high_priority_b)
+          queue_.flush (false);
         stop (true,             // wait ?
               high_priority_b); // high priority ?
+      } // end ELSE IF
 
       if (likely (deviceHandle_))
       {
@@ -703,16 +707,16 @@ end:
       } // end IF
 #endif // _DEBUG
 
-      result = queue_.deactivate ();
-      if (unlikely (result == -1))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
-                    inherited::mod_->name ()));
-      result = queue_.flush ();
-      if (unlikely (result == -1))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
-                    inherited::mod_->name ()));
+      // result = queue_.deactivate ();
+      // if (unlikely (result == -1))
+      //   ACE_DEBUG ((LM_ERROR,
+      //               ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
+      //               inherited::mod_->name ()));
+      // result = queue_.flush ();
+      // if (unlikely (result == -1))
+      //   ACE_DEBUG ((LM_ERROR,
+      //               ACE_TEXT ("%s: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
+      //               inherited::mod_->name ()));
 
       break;
     }
@@ -884,7 +888,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       if (unlikely (available_frames == 0))
       {
         result = snd_pcm_wait (deviceHandle_,
-                               STREAM_LIB_ALSA_DEFAULT_WAIT_TIMEOUT_MS);
+                               SND_PCM_WAIT_IO);
         if (unlikely (result < 0))
         { error_i = result;
           // underrun ? --> recover
@@ -893,8 +897,9 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
             goto recover;
 
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to snd_pcm_wait(): \"%s\", aborting\n"),
+                      ACE_TEXT ("%s: failed to snd_pcm_wait(%d): \"%s\", aborting\n"),
                       inherited::mod_->name (),
+                      SND_PCM_WAIT_IO,
                       ACE_TEXT (snd_strerror (result))));
           head_p->release (); head_p = NULL;
           return -1;

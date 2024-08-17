@@ -69,6 +69,10 @@ Stream_Module_Injector_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      goto end;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       inherited::threadCount_ = 1;
@@ -79,6 +83,7 @@ Stream_Module_Injector_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
       if (!inherited::configuration_->queue ||

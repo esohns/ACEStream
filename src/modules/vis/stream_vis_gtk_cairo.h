@@ -97,7 +97,7 @@ class Stream_Module_Vis_GTK_Cairo_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement Common_IDispatch
-  // *IMPORTANT NOTE*: argument is always NULL
+  // *IMPORTANT NOTE*: argument MUST be cairo_t* !
   virtual void dispatch (void*);
 
   // implement Common_ISetP_T
@@ -122,6 +122,12 @@ class Stream_Module_Vis_GTK_Cairo_T
   GdkPixbuf*       surface_; // target-
 #endif // GTK_CHECK_VERSION
   ACE_Thread_Mutex surfaceLock_;
+#if GTK_CHECK_VERSION (4,0,0)
+  GdkCairoContext* drawingContext_;
+#endif // GTK_CHECK_VERSION (4,0,0)
+#if GTK_CHECK_VERSION (3,22,0)
+  cairo_region_t*  cairoRegion_;
+#endif // GTK_CHECK_VERSION (3,22,0)
 };
 
 // include template definition

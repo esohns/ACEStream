@@ -74,6 +74,12 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , bufferedSamples_ (0)
  , CBData_ ()
  , channelFactor_ (0.0)
+#if GTK_CHECK_VERSION (4,0,0)
+ , drawingContext_ (NULL)
+#endif // GTK_CHECK_VERSION (4,0,0)
+#if GTK_CHECK_VERSION (3,22,0)
+ , cairoRegion_ (NULL)
+#endif // GTK_CHECK_VERSION (3,22,0)
  , scaleFactorX_ (0.0)
  , scaleFactorX_2 (0.0)
  , scaleFactorY_ (0.0)
@@ -120,6 +126,15 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   if (unlikely (CBData_.context))
     cairo_destroy (CBData_.context);
+
+#if GTK_CHECK_VERSION (4,0,0)
+  if (drawingContext_)
+    g_object_unref (drawingContext_);
+#endif // GTK_CHECK_VERSION (4,0,0)
+#if GTK_CHECK_VERSION (3,22,0)
+  if (cairoRegion_)
+    cairo_region_destroy (cairoRegion_);
+#endif // GTK_CHECK_VERSION (3,22,0)
 }
 
 template <ACE_SYNCH_DECL,
@@ -151,6 +166,19 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   if (unlikely (inherited::isInitialized_))
   {
+#if GTK_CHECK_VERSION (4,0,0)
+    if (drawingContext_)
+    {
+      g_object_unref (drawingContext_); drawingContext_ = NULL;
+    } // end IF
+#endif // GTK_CHECK_VERSION (4,0,0)
+#if GTK_CHECK_VERSION (3,22,0)
+    if (cairoRegion_)
+    {
+      cairo_region_destroy (cairoRegion_); cairoRegion_ = NULL;
+    } // end IF
+#endif // GTK_CHECK_VERSION (3,22,0)
+
     // (re-)activate() the message queue
     // *NOTE*: as this is a 'passive' object, the queue needs to be explicitly
     //         (re-)activate()d (see below)
@@ -218,6 +246,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end IF
   else
   {
+    CBData_.window = configuration_in.window;
+
 #if GTK_CHECK_VERSION (3,6,0)
 #else
     gdk_threads_enter ();
@@ -239,6 +269,21 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                              &height_,
                              NULL);
 #endif /* GTK_CHECK_VERSION (x,0,0) */
+
+    ACE_ASSERT (CBData_.window);
+    if (unlikely (!initialize_Cairo (CBData_.window,
+                                     CBData_.context)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo(), aborting\n"),
+                  inherited::mod_->name ()));
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+      gdk_threads_leave ();
+#endif // GTK_CHECK_VERSION (3,6,0)
+      return false;
+    } // end IF
+
 #if GTK_CHECK_VERSION (3,6,0)
 #else
     gdk_threads_leave ();
@@ -246,12 +291,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     ACE_ASSERT (height_ && width_);
     halfHeight_ = height_ / 2;
   } // end ELSE
-
-  ACE_ASSERT (configuration_in.spectrumAnalyzerConfiguration);
-  if (unlikely (configuration_in.spectrumAnalyzerConfiguration->mode >= STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX))
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: there will (currently) be no graphics output\n"),
-                inherited::mod_->name ()));
 
   //ACE_ASSERT (inherited::msg_queue_);
   //int result = inherited::msg_queue_->activate ();
@@ -925,17 +964,32 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (window_in);
   ACE_ASSERT (!cairoContext_out);
 
+#if GTK_CHECK_VERSION (3,22,0)
+  if (cairoRegion_)
+  {
+    cairo_region_destroy (cairoRegion_); cairoRegion_ = NULL;
+  } // end IF
+#endif // GTK_CHECK_VERSION (3,22,0)
+
 #if GTK_CHECK_VERSION (4,0,0)
-  GdkDrawingContext* drawing_context_p =
-    gdk_surface_create_cairo_context (window_in);
-  if (unlikely (!drawing_context_p))
+  if (drawingContext_)
+  {
+    g_object_unref (drawingContext_); drawingContext_ = NULL;
+  } // end IF
+
+  drawingContext_ = gdk_surface_create_cairo_context (window_in);
+  if (unlikely (!drawingContext_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to gdk_surface_create_cairo_context(), aborting\n"),
                 inherited::mod_->name ()));
     return false;
   } // end IF
-  cairoContext_out = gdk_drawing_context_get_cairo_context ();
+  cairoContext_out = gdk_drawing_context_get_cairo_context (drawingContext_);
+#endif // GTK_CHECK_VERSION (4,0,0)
+#if GTK_CHECK_VERSION (3,22,0)
+  cairoRegion_ = cairo_region_create ();
+  ACE_ASSERT (cairoRegion_);
 #else
   cairoContext_out = gdk_cairo_create (window_in);
   if (unlikely (!cairoContext_out))
@@ -945,12 +999,15 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return false;
   } // end IF
-#endif // GTK_CHECK_VERSION (4,0,0)
+#endif // GTK_CHECK_VERSION ()
 
-  //cairo_set_line_cap (cairoContext_out, CAIRO_LINE_CAP_BUTT);
-  cairo_set_line_width (cairoContext_out, 1.0);
-  //cairo_set_line_join (cairoContext_out, CAIRO_LINE_JOIN_MITER);
-  //cairo_set_dash (cairoContext_out, NULL, 0, 0.0);
+  if (cairoContext_out)
+  {
+    //cairo_set_line_cap (cairoContext_out, CAIRO_LINE_CAP_BUTT);
+    cairo_set_line_width (cairoContext_out, 1.0);
+    //cairo_set_line_join (cairoContext_out, CAIRO_LINE_JOIN_MITER);
+    //cairo_set_dash (cairoContext_out, NULL, 0, 0.0);
+  } // end IF
 
   return true;
 }
@@ -1175,14 +1232,19 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (cbdata_p->window);
 
   cairo_t* context_p = NULL;
-#if GTK_CHECK_VERSION (3,22,0)
-  cairo_region_t* cairo_region_p = cairo_region_create ();
-  ACE_ASSERT (cairo_region_p);
+#if GTK_CHECK_VERSION (4,0,0)
+  ACE_ASSERT (cairoRegion_);
+  ACE_ASSERT (drawingContext_);
+  gdk_draw_context_begin_frame (drawingContext_,
+                                cairoRegion_);
+  context_p = gdk_cairo_context_cairo_create (drawingContext_);
+#elif GTK_CHECK_VERSION (3,22,0)
+  ACE_ASSERT (cairoRegion_);
   GdkDrawingContext* drawing_context_p =
-    gdk_window_begin_draw_frame (cbdata_p->window, cairo_region_p);
+    gdk_window_begin_draw_frame (cbdata_p->window,
+                                 cairoRegion_);
   ACE_ASSERT (drawing_context_p);
-  context_p =
-    gdk_drawing_context_get_cairo_context (drawing_context_p);
+  context_p = gdk_drawing_context_get_cairo_context (drawing_context_p);
 #elif GTK_CHECK_VERSION (3,10,0)
   cairo_surface_t* surface_p = NULL;
   context_p = cbdata_p->context;
@@ -1196,7 +1258,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end IF
 
   context_p = cbdata_p->context;
-#endif // GTK_CHECK_VERSION (3,22,0)
+#endif // GTK_CHECK_VERSION ()
   ACE_ASSERT (context_p);
 
   // step1: clear the window(s)
@@ -1295,9 +1357,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     } // end IF
   } // end FOR
 
-#if GTK_CHECK_VERSION (3,22,0)
-  gdk_window_end_draw_frame (cbdata_p->window, drawing_context_p);
-  cairo_region_destroy (cairo_region_p);
+#if GTK_CHECK_VERSION (4,0,0)
+  gdk_draw_context_end_frame (drawingContext_);
+#elif GTK_CHECK_VERSION (3,22,0)
+  gdk_window_end_draw_frame (cbdata_p->window,
+                             drawing_context_p);
 #elif GTK_CHECK_VERSION (3,10,0)
   surface_p = cairo_get_target (context_p);
   ACE_ASSERT (surface_p);

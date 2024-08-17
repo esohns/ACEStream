@@ -39,7 +39,7 @@
 #define STREAM_LIB_ALSA_DEFAULT_FORMAT                            SND_PCM_FORMAT_S16
 #define STREAM_LIB_ALSA_DEFAULT_SAMPLE_RATE                       48000 // Hz
 #define STREAM_LIB_ALSA_DEFAULT_LOG_FILE                          "alsa.log"
-#define STREAM_LIB_ALSA_DEFAULT_WAIT_TIMEOUT_MS                   30 // ms
+#define STREAM_LIB_ALSA_DEFAULT_WAIT_TIMEOUT_MS                   20 // ms
 
 // capture stream
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH                    true

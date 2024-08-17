@@ -177,6 +177,12 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   unsigned int                                       bufferedSamples_;
   struct acestream_visualization_gtk_cairo_cbdata    CBData_;
   double                                             channelFactor_;
+#if GTK_CHECK_VERSION (4,0,0)
+  GdkCairoContext*                                   drawingContext_;
+#endif // GTK_CHECK_VERSION (4,0,0)
+#if GTK_CHECK_VERSION (3,22,0)
+  cairo_region_t*                                    cairoRegion_;
+#endif // GTK_CHECK_VERSION (3,22,0)
   double                                             scaleFactorX_;
   // *NOTE*: there are only (N/2)-1 meaningful values for real-valued data
   double                                             scaleFactorX_2; // /2 for spectrum

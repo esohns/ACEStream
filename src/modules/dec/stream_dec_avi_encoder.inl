@@ -703,9 +703,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::handleDataMessage"));
 
   // sanity check(s)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (inherited::configuration_);
-  // *TODO*: remove type inference
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+#endif // ACE_WIN32 || ACE_WIN64
 
   // initialize return value(s)
   // *NOTE*: the default behavior is to pass all messages along. In this case,
@@ -783,20 +784,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     isFirst_ = false;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-    message_block_p =
-      inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-    if (unlikely (!message_block_p))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), returning\n"),
-                  inherited::mod_->name (),
-                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
-      message_inout->release (); message_inout = NULL;
-      goto error;
-    } // end IF
-#endif // ACE_WIN32 || ACE_WIN64
     if (unlikely (!generateHeader (message_block_p)))
+#else
+    if (unlikely (!generateHeader ()))
+#endif // ACE_WIN32 || ACE_WIN64
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateHeader(), returning\n"),
@@ -807,8 +798,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     RIFFOffsetsAndSizes_.push_back (std::make_pair (0, 0));
-#else
-    message_block_p->release (); message_block_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 
@@ -1580,14 +1569,18 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionDataContainerType,
                                        SessionDataType,
                                        MediaType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                                        UserDataType>::generateHeader (ACE_Message_Block* messageBlock_inout)
+#else
+                                       UserDataType>::generateHeader ()
+#endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::generateHeader"));
 
   // sanity check(s)
-  ACE_ASSERT (messageBlock_inout);
   ACE_ASSERT (inherited::sessionData_);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_ASSERT (messageBlock_inout);
 #else
   if (!formatContext_)
   {

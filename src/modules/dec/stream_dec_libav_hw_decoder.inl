@@ -843,7 +843,7 @@ continue_:
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (outputFormat_).c_str ())));
 
         flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-                 SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
+                 SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
         transformContext_ =
             sws_getCachedContext (NULL,
                                   formatWidth_, formatHeight_, intermediateFormat_,
@@ -1076,7 +1076,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
     } // end IF
 
     int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-      SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
+      SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
     transformContext_ =
       sws_getCachedContext (NULL,
                             context_->width, context_->height, intermediateFormat_,

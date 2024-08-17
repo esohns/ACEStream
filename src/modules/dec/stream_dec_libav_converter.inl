@@ -282,7 +282,7 @@ Stream_Decoder_LibAVConverter_T<TaskType,
       // initialize conversion context
       ACE_ASSERT (!context_);
       flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-        SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
+        SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
       context_ =
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -427,7 +427,7 @@ error:
       } // end IF
 
       int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-                   SWS_FAST_BILINEAR);
+                   SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
       context_ =
           sws_getCachedContext (NULL,
                                 frame_->width, frame_->height, inputFormat_,
@@ -438,9 +438,9 @@ error:
       if (!context_)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to sws_getCachedContext(): \"%m\", returning\n"),
+                    ACE_TEXT ("%s: failed to sws_getCachedContext(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
-        break;
+        goto error_2;
       } // end IF
 
       // initialize frame buffer
@@ -448,10 +448,10 @@ error:
       if (!buffer_)
       {
         ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), returning\n"),
+                    ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
                     inherited::mod_->name (),
                     frameSize_));
-        break;
+        goto error_2;
       } // end IF
       result = av_image_fill_linesizes (frame_->linesize,
                                         static_cast<AVPixelFormat> (frame_->format),
@@ -469,6 +469,11 @@ error:
                   inherited::mod_->name (),
                   frame_->width, frame_->height));
       break;
+
+error_2:
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      return;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
