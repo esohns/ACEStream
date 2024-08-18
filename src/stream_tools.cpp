@@ -185,9 +185,8 @@ allocate:
       return;
     } // end IF
 
-    for (message_block_p = messageBlock_inout->cont ();
-         message_block_p;
-         message_block_p = message_block_p->cont ())
+    message_block_p = messageBlock_inout->cont ();
+    while (message_block_p)
     { ACE_ASSERT (message_block_p->length () <= messageBlock_inout->space ());
       result = messageBlock_inout->copy (message_block_p->rd_ptr (),
                                          message_block_p->length ());
@@ -198,7 +197,13 @@ allocate:
         messageBlock_inout->release (); messageBlock_inout = NULL;
         return;
       } // end IF
-    } // end FOR
+      message_block_p = message_block_p->cont ();
+    } // end WHILE
+    message_block_p = messageBlock_inout->cont ();
+    messageBlock_inout->cont (NULL);
+   if (likely (message_block_p))
+     message_block_p->release ();
+
     return;
   } // end ELSE
 
