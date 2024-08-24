@@ -2007,8 +2007,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     }
   } // end IF
 
-  // step1: wait for inbound processing (i.e. the 'writer' side) pipeline to
-  //        flush
+  // step1a: wait for inbound processing (i.e. 'writer' side) pipeline to flush
   TASK_T* task_p = NULL;
   Stream_IMessageQueue* iqueue_p = NULL;
   Stream_ModuleList_t modules_a;
@@ -2057,12 +2056,55 @@ Stream_Base_T<ACE_SYNCH_USE,
         } while (true);
       } // end ELSE
     } // end FOR
+
+    // step1b: wait for outbound processing (i.e. 'reader' side) pipeline to flush
+    for (Stream_ModuleListReverseIterator_t iterator = modules_a.rbegin ();
+         iterator != modules_a.rend ();
+         ++iterator)
+    {
+      task_p = (*iterator)->reader ();
+      if (unlikely (!task_p))
+        continue; // close()d already ?
+      if (likely (!task_p->msg_queue_))
+        continue; // synchronous task --> nothing to do
+
+      iqueue_p = dynamic_cast<Stream_IMessageQueue*> (task_p->msg_queue_);
+      if (iqueue_p)
+      { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard2, reverse_lock);
+        iqueue_p->waitForIdleState (waitForever_in);
+      } // end IF
+      else
+      {
+        int result = -1;
+        ACE_Time_Value one_second (1, 0);
+        do
+        {
+          if (likely (task_p->msg_queue_->is_empty ()))
+            break; // nothing to do
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s/%s reader: waiting to process %B byte(s) in %B message(s)...\n"),
+                      ACE_TEXT (name_.c_str ()),
+                      (*iterator)->name (),
+                      task_p->msg_queue_->message_bytes (),
+                      task_p->msg_queue_->message_count ()));
+
+          { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard2, reverse_lock);
+            result = ACE_OS::sleep (one_second);
+          } // end lock scope
+          if (unlikely (result == -1))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s/%s reader: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+                        ACE_TEXT (name_.c_str ()),
+                        (*iterator)->name (),
+                        &one_second));
+        } while (true);
+      } // end ELSE
+    } // end FOR
   } // end lock scope
 
-  // step2: wait for outbound processing (i.e. the 'reader' side) pipeline to
-  //        flush
-  // *NOTE*: never block here; the connection may be closing
-  messageQueue_.waitForIdleState (false); // block ?
+  // step2: wait for outbound processing (i.e. 'reader' side) pipeline to flush
+  // *TODO*: never block here; a connection may be closing
+  messageQueue_.waitForIdleState (waitForever_in); // block ?
 }
 
 template <ACE_SYNCH_DECL,
@@ -2198,7 +2240,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   Stream_ModuleList_t modules_a = layout_.list (false);
   Stream_ModuleList_t main_modules_a = layout_.list (true);
   modules_a.push_front (this_p->inherited::head ());
-  TASK_T* task_p = NULL;
+  STREAM_TASK_BASE_T* task_p = NULL;
   ACE_Time_Value one_second (1, 0);
   size_t message_count = 0;
   //ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> reverse_lock (inherited::lock_);
@@ -2215,9 +2257,10 @@ Stream_Base_T<ACE_SYNCH_USE,
                          ACE_TEXT ("ACE_Stream_Tail")))
       break;
 
-    task_p = const_cast<MODULE_T*> (*iterator_2)->writer ();
+    task_p =
+      dynamic_cast<STREAM_TASK_BASE_T*> (const_cast<MODULE_T*> (*iterator_2)->writer ());
     if (unlikely (!task_p))
-      continue; // close()d already ?
+      continue; // close()d already ? || ACE_Thru_Task
     if (likely (task_p->msg_queue_))
     {
       do
@@ -2243,8 +2286,9 @@ Stream_Base_T<ACE_SYNCH_USE,
 
     if (waitForThreads_in)
     {
+      TASK_T* task_2 = task_p;
       { //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard2, reverse_lock);
-        result = task_p->wait ();
+        result = task_2->wait ();
       } // end lock scope
       if (unlikely (result == -1))
       {
@@ -2270,9 +2314,9 @@ Stream_Base_T<ACE_SYNCH_USE,
        iterator_2 != modules_a.rend ();
        ++iterator_2)
   {
-    task_p = (*iterator_2)->reader ();
+    task_p = dynamic_cast<STREAM_TASK_BASE_T*> ((*iterator_2)->reader ());
     if (unlikely (!task_p))
-      continue; // close()d already ?
+      continue; // close()d already || ACE_Thru_Task
     ACE_ASSERT (task_p->msg_queue_);
     do
     {
@@ -2313,8 +2357,9 @@ Stream_Base_T<ACE_SYNCH_USE,
 
     if (waitForThreads_in)
     {
+      TASK_T* task_2 = task_p;
       { //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard2, reverse_lock);
-        result = task_p->wait ();
+        result = task_2->wait ();
       } // end lock scope
       if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
@@ -2995,7 +3040,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
 
   std::string stream_layout_string;
-  COMMON_TASK_BASE_T* task_p = NULL;
+  STREAM_TASK_BASE_T* task_p = NULL;
   const MODULE_T* module_p = NULL, *module_2 = NULL;
   std::vector<Stream_IDistributorModule*> distributors_a;
   Stream_IDistributorModule* idistributor_p = NULL;
@@ -3020,7 +3065,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
     // mark asynchronous tasks with an asterisk
     task_p =
-      dynamic_cast<COMMON_TASK_BASE_T*> (const_cast<MODULE_T*> (module_p)->writer ());
+      dynamic_cast<STREAM_TASK_BASE_T*> (const_cast<MODULE_T*> (module_p)->writer ());
     if (task_p && task_p->get ())
       stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR ("*"));
 
@@ -3066,9 +3111,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 
         // mark asynchronous tasks with an asterisk
         task_p =
-          static_cast<COMMON_TASK_BASE_T*> (const_cast<MODULE_T*> (module_p)->writer ());
-        ACE_ASSERT (task_p);
-        if (task_p->get ())
+          dynamic_cast<STREAM_TASK_BASE_T*> (const_cast<MODULE_T*> (module_p)->writer ());
+        if (task_p && task_p->get ())
           stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR ("*"));
 
         stream_layout_string.append (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ())));
@@ -3176,16 +3220,15 @@ Stream_Base_T<ACE_SYNCH_USE,
   std::vector<Stream_IDistributorModule*> distributors_a;
   Stream_IDistributorModule* idistributor_p = NULL;
   MODULE_T* module_p = module_in;
-  COMMON_TASK_BASE_T* task_p = NULL;
+  STREAM_TASK_BASE_T* task_p = NULL;
 
   do
   { ACE_ASSERT (module_p);
 
     // mark asynchronous tasks with an asterisk
     task_p =
-      static_cast<COMMON_TASK_BASE_T*> (const_cast<MODULE_T*> (module_p)->writer ());
-    ACE_ASSERT (task_p);
-    if (task_p->get ())
+      dynamic_cast<STREAM_TASK_BASE_T*> (const_cast<MODULE_T*> (module_p)->writer ());
+    if (task_p && task_p->get ())
       result.append (ACE_TEXT_ALWAYS_CHAR ("*"));
 
     result.append (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ())));
