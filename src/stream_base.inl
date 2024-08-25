@@ -2247,8 +2247,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   size_t message_count = 0;
   //ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> reverse_lock (inherited::lock_);
   unsigned int head_reader_retries_i = 0;
-  bool queue_has_data_b;
-  MESSAGE_QUEUE_T* queue_p = NULL;
+  // bool queue_has_data_b;
+  // MESSAGE_QUEUE_T* queue_p = NULL;
 
   for (Stream_ModuleListIterator_t iterator_2 = modules_a.begin ();
        iterator_2 != modules_a.end ();
@@ -2259,10 +2259,10 @@ Stream_Base_T<ACE_SYNCH_USE,
       continue; // close()d already ?
     if (task_p->msg_queue_)
     {
-      queue_has_data_b = true;
+      // queue_has_data_b = true;
       do
       {
-        queue_has_data_b = task_p->msg_queue_->message_bytes () > 0;
+        // queue_has_data_b = task_p->msg_queue_->message_bytes () > 0;
         message_count = task_p->msg_queue_->message_count ();
         if (!message_count/* ||
             !queue_has_data_b*/) // *TODO*: remove this clause: should wait for session/control messages as well
@@ -2317,11 +2317,11 @@ Stream_Base_T<ACE_SYNCH_USE,
       continue; // close()d already ?
     if (task_p->msg_queue_)
     {
-      queue_has_data_b = true;
+      // queue_has_data_b = true;
       do
       {
+        // queue_has_data_b = task_p->msg_queue_->message_bytes () > 0;
         message_count = task_p->msg_queue_->message_count ();
-        queue_has_data_b = task_p->msg_queue_->message_bytes () > 0;
         if (!message_count/* ||
             !queue_has_data_b*/) // *TODO*: remove this clause: should wait for session/control messages as well
           break;
