@@ -32,6 +32,7 @@ class Stream_IMessageQueue
   virtual int enqueue_head_i (ACE_Message_Block*,       // message block handle
                               ACE_Time_Value* = 0) = 0; // timeout [NULL: block]
 
+  virtual bool hasData () = 0;
   // *NOTE*: returns #flushed messages
   virtual unsigned int flush (bool = false) = 0; // flush session messages ?
 

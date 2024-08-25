@@ -977,7 +977,7 @@ retry:
                                           eventType_in,
                                           sessionData_inout,
                                           userData_in,
-                                          false)); // expedited ?
+                                          expedited_in));
   if (unlikely (!session_message_p))
   {
     if (likely (allocator_))

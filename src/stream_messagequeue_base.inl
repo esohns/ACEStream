@@ -171,6 +171,21 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType>
+bool
+Stream_MessageQueueBase_T<ACE_SYNCH_USE,
+                          TimePolicyType>::hasData ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::hasData"));
+
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
+    return (inherited::cur_bytes_ > 0);
+  } // end lock scope
+
+  return false;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType>
 unsigned int
 Stream_MessageQueueBase_T<ACE_SYNCH_USE,
                           TimePolicyType>::flush (bool flushSessionMessages_in)

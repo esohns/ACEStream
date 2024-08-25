@@ -2103,8 +2103,10 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end lock scope
 
   // step2: wait for outbound processing (i.e. 'reader' side) pipeline to flush
-  // *TODO*: never block here; a connection may be closing
-  messageQueue_.waitForIdleState (waitForever_in); // block ?
+  // *NOTE*: never block here; a connection may be closing, and some event
+  //         dispatchers (e.g. select reactor) may be holding their own lock
+  //         here and therefore will hang forever !
+  messageQueue_.waitForIdleState (false); // block ?
 }
 
 template <ACE_SYNCH_DECL,
@@ -2240,33 +2242,30 @@ Stream_Base_T<ACE_SYNCH_USE,
   Stream_ModuleList_t modules_a = layout_.list (false);
   Stream_ModuleList_t main_modules_a = layout_.list (true);
   modules_a.push_front (this_p->inherited::head ());
-  STREAM_TASK_BASE_T* task_p = NULL;
+  TASK_T* task_p = NULL;
   ACE_Time_Value one_second (1, 0);
   size_t message_count = 0;
   //ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> reverse_lock (inherited::lock_);
   unsigned int head_reader_retries_i = 0;
+  bool queue_has_data_b;
+  MESSAGE_QUEUE_T* queue_p = NULL;
 
   for (Stream_ModuleListIterator_t iterator_2 = modules_a.begin ();
        iterator_2 != modules_a.end ();
        ++iterator_2)
   { ACE_ASSERT (*iterator_2);
-    // skip stream tail (i.e. last module)
-    if (!ACE_OS::strcmp ((*iterator_2)->name (),
-                         ACE_TEXT (STREAM_MODULE_TAIL_NAME)) ||
-        !ACE_OS::strcmp ((*iterator_2)->name (),
-                         ACE_TEXT ("ACE_Stream_Tail")))
-      break;
-
-    task_p =
-      dynamic_cast<STREAM_TASK_BASE_T*> (const_cast<MODULE_T*> (*iterator_2)->writer ());
+    task_p = const_cast<MODULE_T*> (*iterator_2)->writer ();
     if (unlikely (!task_p))
-      continue; // close()d already ? || ACE_Thru_Task
-    if (likely (task_p->msg_queue_))
+      continue; // close()d already ?
+    if (task_p->msg_queue_)
     {
+      queue_has_data_b = true;
       do
       {
+        queue_has_data_b = task_p->msg_queue_->message_bytes () > 0;
         message_count = task_p->msg_queue_->message_count ();
-        if (likely (!message_count))
+        if (!message_count/* ||
+            !queue_has_data_b*/) // *TODO*: remove this clause: should wait for session/control messages as well
           break;
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s/%s writer: waiting to process %B byte(s) in %B message(s)...\n"),
@@ -2286,9 +2285,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 
     if (waitForThreads_in)
     {
-      TASK_T* task_2 = task_p;
       { //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard2, reverse_lock);
-        result = task_2->wait ();
+        result = task_p->wait ();
       } // end lock scope
       if (unlikely (result == -1))
       {
@@ -2314,52 +2312,57 @@ Stream_Base_T<ACE_SYNCH_USE,
        iterator_2 != modules_a.rend ();
        ++iterator_2)
   {
-    task_p = dynamic_cast<STREAM_TASK_BASE_T*> ((*iterator_2)->reader ());
+    task_p = (*iterator_2)->reader ();
     if (unlikely (!task_p))
-      continue; // close()d already || ACE_Thru_Task
-    ACE_ASSERT (task_p->msg_queue_);
-    do
+      continue; // close()d already ?
+    if (task_p->msg_queue_)
     {
-      //result = task_p->msg_queue_->wait ();
-      message_count = task_p->msg_queue_->message_count ();
-      if (!message_count)
-        break;
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s/%s reader: waiting to process %B byte(s) in %B message(s)...\n"),
-                  ACE_TEXT (name_.c_str ()), (*iterator_2)->name (),
-                  task_p->msg_queue_->message_bytes (), message_count));
-
-      { //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard2, reverse_lock);
-        result = ACE_OS::sleep (one_second);
-      } // end lock scope
-      if (unlikely (result == -1))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s/%s reader: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-                    ACE_TEXT (name_.c_str ()), (*iterator_2)->name (),
-                    &one_second));
-
-      // *NOTE*: there is a chance that outbound data is being dispatched while
-      //         waiting; no flush()ing/idle()ing can prevent this race
-      //         --> bail out after x retries
-      if (unlikely ((*iterator_2) == modules_a.front ()))
+      queue_has_data_b = true;
+      do
       {
-        if (head_reader_retries_i == STREAM_DEFAULT_STOP_WAIT_HEAD_READER_RETRIES)
-        {
-          ACE_DEBUG ((LM_WARNING,
-                      ACE_TEXT ("%s/%s reader: retried waiting %d time(s), giving up\n"),
-                      ACE_TEXT (name_.c_str ()), (*iterator_2)->name (),
-                      STREAM_DEFAULT_STOP_WAIT_HEAD_READER_RETRIES));
+        message_count = task_p->msg_queue_->message_count ();
+        queue_has_data_b = task_p->msg_queue_->message_bytes () > 0;
+        if (!message_count/* ||
+            !queue_has_data_b*/) // *TODO*: remove this clause: should wait for session/control messages as well
           break;
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s/%s reader: waiting to process %B byte(s) in %B message(s)...\n"),
+                    ACE_TEXT (name_.c_str ()), (*iterator_2)->name (),
+                    task_p->msg_queue_->message_bytes (), message_count));
+
+        { //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard2, reverse_lock);
+          result = ACE_OS::sleep (one_second);
+        } // end lock scope
+        if (unlikely (result == -1))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s/%s reader: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+                      ACE_TEXT (name_.c_str ()), (*iterator_2)->name (),
+                      &one_second));
+
+        // *NOTE*: there is a slight chance that outbound data is being dispatched
+        //         while waiting. Note that data dispatch currently happens
+        //         synchronously, so unless no new outbound data is being
+        //         generated 'asynchronously', this should be fine
+        //         --> bail out after x retries
+        if (unlikely ((*iterator_2) == modules_a.front ()))
+        {
+          if (head_reader_retries_i == STREAM_DEFAULT_STOP_WAIT_HEAD_READER_RETRIES)
+          {
+            ACE_DEBUG ((LM_WARNING,
+                        ACE_TEXT ("%s/%s reader: retried waiting %d time(s), giving up\n"),
+                        ACE_TEXT (name_.c_str ()), (*iterator_2)->name (),
+                        STREAM_DEFAULT_STOP_WAIT_HEAD_READER_RETRIES));
+            break;
+          } // end IF
+          ++head_reader_retries_i;
         } // end IF
-        ++head_reader_retries_i;
-      } // end IF
-    } while (true);
+      } while (true);
+    } // end IF
 
     if (waitForThreads_in)
     {
-      TASK_T* task_2 = task_p;
       { //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard2, reverse_lock);
-        result = task_2->wait ();
+        result = task_p->wait ();
       } // end lock scope
       if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,

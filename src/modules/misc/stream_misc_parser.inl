@@ -1091,14 +1091,16 @@ continue_:
         }
         if (unlikely (!result_2))
         {
-          // *NOTE*: most probable reason: connection
-          //         has been closed --> session end
-          ACE_DEBUG ((LM_ERROR,
+          // *NOTE*: most probable reason: connection has been closed
+          //         --> received end-of-session
+          ACE_DEBUG (((inherited2::error_ ? LM_ERROR : LM_DEBUG),
                       ACE_TEXT ("%s: failed to Common_IParser_T::parse(), aborting\n"),
                       inherited::mod_->name ()));
-          goto error;
+          if (unlikely (inherited2::error_))
+            goto error;
+          break;
         } // end IF
-        // *NOTE*: handle cases where all available data has been parsed
+        // *NOTE*: handle cases where all (available) data has been parsed
         if (inherited2::finished_)
         {
           inherited2::finished_ = false;

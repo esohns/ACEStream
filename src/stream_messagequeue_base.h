@@ -59,6 +59,7 @@ class Stream_MessageQueueBase_T
   // *WARNING*: caller needs to hold inherited::lock_ !
   virtual int enqueue_head_i (ACE_Message_Block*,   // message block handle
                               ACE_Time_Value* = 0); // timeout [NULL: block]
+  virtual bool hasData ();
   virtual unsigned int flush (bool = false); // flush session messages ?
   inline virtual void reset () { isShuttingDown_ = false; }
   virtual void signal ();
