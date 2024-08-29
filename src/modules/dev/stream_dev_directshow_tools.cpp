@@ -503,6 +503,14 @@ Stream_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory_in)
     return result;
   } // end ELSE
 
+  bool is_audio_b = false;
+  std::wstring property_string = STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING_L;
+  if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
+  {
+    is_audio_b = true;
+    property_string = STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING_L;
+  } // end IF
+
   ICreateDevEnum* enumerator_p = NULL;
   IEnumMoniker* enum_moniker_p = NULL;
   IMoniker* moniker_p = NULL;
@@ -561,28 +569,38 @@ Stream_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory_in)
     } // end IF
     ACE_ASSERT (properties_p);
 
-    result_2 =
-      properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING_L,
-                          &variant_s,
-                          0);
+    result_2 = properties_p->Read (property_string.c_str (),
+                                   &variant_s,
+                                   0);
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING_L),
+                  ACE_TEXT_WCHAR_TO_TCHAR (property_string.c_str ()),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       properties_p->Release (); properties_p = NULL;
       moniker_p->Release (); moniker_p = NULL;
       enum_moniker_p->Release (); enum_moniker_p = NULL;
       return result;
     } // end IF
-    ACE_Wide_To_Ascii converter (variant_s.bstrVal);
-    result_2 = VariantClear (&variant_s);
-    ACE_ASSERT (SUCCEEDED (result_2));
-    ACE_OS::strcpy (device_identifier_s.identifier._string,
-                    converter.char_rep ());
+    std::string device_id_string;
+    if (is_audio_b)
+    { ACE_ASSERT (variant_s.vt == VT_I4);
+      device_identifier_s.identifier._id = variant_s.iVal;
+      device_identifier_s.identifierDiscriminator =
+        Stream_Device_Identifier::ID;
+    } // end IF
+    else
+    {
+      ACE_Wide_To_Ascii converter (variant_s.bstrVal);
+      device_id_string = converter.char_rep ();
+      result_2 = VariantClear (&variant_s);
+      ACE_ASSERT (SUCCEEDED (result_2));
+      ACE_OS::strcpy (device_identifier_s.identifier._string,
+                      device_id_string.c_str ());
+    } // end ELSE
     result.push_back (device_identifier_s);
-#if defined (_DEBUG)
+
     std::string friendly_name_string;
     result_2 =
       properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING_L,
@@ -617,14 +635,14 @@ Stream_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory_in)
     ACE_ASSERT (SUCCEEDED (result_2));
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("found %scapture device \"%s\" [%s]: %s\n"),
-                (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory) ? ACE_TEXT ("audio ")
-                                                                                       : (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory) ? ACE_TEXT ("video ")
-                                                                                                                                                                : (InlineIsEqualGUID (deviceCategory_in, AM_KSCATEGORY_CAPTURE) ? ACE_TEXT ("WDM ")
-                                                                                                                                                                                                                                : ACE_TEXT ("")))),
+                (is_audio_b ? ACE_TEXT ("audio ")
+                            : (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory) ? ACE_TEXT ("video ")
+                                                                                                     : (InlineIsEqualGUID (deviceCategory_in, AM_KSCATEGORY_CAPTURE) ? ACE_TEXT ("WDM ")
+                                                                                                                                                                     : ACE_TEXT ("")))),
                 ACE_TEXT (converter_3.char_rep ()),
                 ACE_TEXT (friendly_name_string.c_str ()),
-                ACE_TEXT (converter.char_rep ())));
-#endif // _DEBUG
+                ACE_TEXT (device_id_string.c_str ())));
+
     properties_p->Release (); properties_p = NULL;
   } // end WHILE
   moniker_p->Release (); moniker_p = NULL;

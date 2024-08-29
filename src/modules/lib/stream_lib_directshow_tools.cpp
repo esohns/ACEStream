@@ -1846,11 +1846,9 @@ Stream_MediaFramework_DirectShow_Tools::append (IGraphBuilder* builder_in,
     if (filter_p) filter_p->Release ();
     return false;
   } // end IF
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"\n"),
               ACE_TEXT_WCHAR_TO_TCHAR (filterName_in.c_str ())));
-#endif // _DEBUG
 
   if (filter_p)
   {
@@ -2206,6 +2204,67 @@ Stream_MediaFramework_DirectShow_Tools::has (const Stream_MediaFramework_DirectS
       return true;
 
   return false;
+}
+
+bool
+Stream_MediaFramework_DirectShow_Tools::start (IGraphBuilder* builder_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::start"));
+
+  bool result = true;
+
+  // sanity check(s)
+  ACE_ASSERT (builder_in);
+
+  HRESULT result_2 = E_FAIL;
+  IMediaControl* media_control_p = NULL;
+  OAFilterState filter_state_e = 0;
+
+  result_2 = builder_in->QueryInterface (IID_PPV_ARGS (&media_control_p));
+  ACE_ASSERT (SUCCEEDED (result_2) && media_control_p);
+  result_2 = media_control_p->GetState (INFINITE,
+                                        &filter_state_e);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  if ((filter_state_e == State_Paused) ||
+      (filter_state_e == State_Stopped))
+  {
+    result_2 = media_control_p->Run ();
+    result = SUCCEEDED (result_2);
+  } // end IF
+  media_control_p->Release (); media_control_p = NULL;
+
+  return result;
+}
+
+bool
+Stream_MediaFramework_DirectShow_Tools::stop (IGraphBuilder* builder_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::stop"));
+
+  bool result = false;
+
+  // sanity check(s)
+  ACE_ASSERT (builder_in);
+
+  HRESULT result_2 = E_FAIL;
+  IMediaControl* media_control_p = NULL;
+  OAFilterState filter_state_e = 0;
+
+  result_2 = builder_in->QueryInterface (IID_PPV_ARGS (&media_control_p));
+  ACE_ASSERT (SUCCEEDED (result_2) && media_control_p);
+  result_2 = media_control_p->GetState (INFINITE,
+                                        &filter_state_e);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  if ((filter_state_e == State_Paused) ||
+      (filter_state_e == State_Running))
+  {
+    result = true;
+    result_2 = media_control_p->Stop ();
+    ACE_ASSERT (SUCCEEDED (result_2));
+  } // end IF
+  media_control_p->Release (); media_control_p = NULL;
+
+  return result;
 }
 
 void

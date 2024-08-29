@@ -313,7 +313,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
         if (likely (release_upstream_lock_b))
         {
-          result = session_data_upstream_p->lock->release ();
+          result = sessionDataLock_->release ();
           if (unlikely (result == -1))
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX_T::release(): \"%m\", continuing\n"),
@@ -362,9 +362,11 @@ continue_:
         break;
       --linked_;
 
+      int result = -1;
       const typename SessionMessageType::DATA_T::DATA_T* session_data_upstream_p = NULL;
       typename SessionMessageType::DATA_T* session_data_container_p = NULL;
       typename SessionMessageType::DATA_T::DATA_T* session_data_message_p = NULL;
+      bool release_saved_upstream_lock_b = false;
 
       // *IMPORTANT NOTE*: in case the session has been aborted asynchronously,
       //                   the 'session end' message may already have been
@@ -396,11 +398,29 @@ continue_:
       if (session_data_upstream_p->lock != session_data_message_p->lock)
           goto continue_2; // <-- already 'reset' by head module ?
       ACE_ASSERT (sessionDataLock_);
-      ACE_ASSERT (session_data_upstream_p->lock != sessionDataLock_);
+      //ACE_ASSERT (session_data_upstream_p->lock != sessionDataLock_);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_upstream_p->lock);
-        ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, *sessionDataLock_);
+        if (likely (session_data_upstream_p->lock != sessionDataLock_))
+        {
+          result = sessionDataLock_->acquire ();
+          if (unlikely (result == -1))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n"),
+                        inherited::mod_->name ()));
+          release_saved_upstream_lock_b = true;
+        } // end IF
+  
         const_cast<typename SessionMessageType::DATA_T::DATA_T*> (session_data_message_p)->lock =
           sessionDataLock_;
+
+        if (likely (release_saved_upstream_lock_b))
+        {
+          result = sessionDataLock_->release ();
+          if (unlikely (result == -1))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX_T::release(): \"%m\", continuing\n"),
+                        inherited::mod_->name ()));
+        } // end IF
       } // end lock scope
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: stream has been unlinked, reset upstream session data lock (is: %@)\n"),

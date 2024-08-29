@@ -1117,6 +1117,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   //struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
   MONITORINFOEX monitor_info_ex_s;
   unsigned int delta_x, delta_y;
+  bool graph_was_running_b = true;
 
   // initialize return value(s)
   if (IVideoWindow_out)
@@ -1266,10 +1267,15 @@ continue_:
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
+
     // --> replace null renderer with video renderer
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: replacing null renderer with video renderer\n"),
                 inherited::mod_->name ()));
+
+    graph_was_running_b =
+      Stream_MediaFramework_DirectShow_Tools::stop (IGraphBuilder_in);
+
     Stream_MediaFramework_DirectShow_Tools::remove (IGraphBuilder_in,
                                                     ibase_filter_p);
     ibase_filter_p->Release (); ibase_filter_p = NULL;
@@ -1459,11 +1465,11 @@ continue_:
       goto error;
     } // end IF
     ivmr_windowless_control_p->Release (); ivmr_windowless_control_p = NULL;
-#elif COMMON_OS_WIN32_TARGET_PLATFORM(0x0501) // _WIN32_WINNT_WINXP
+#elif COMMON_OS_WIN32_TARGET_PLATFORM (0x0501) // _WIN32_WINNT_WINXP
     //ACE_ASSERT (false); // *TODO*
     //ACE_NOTSUP_RETURN (false);
     //ACE_NOTREACHED (return false;);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0501/0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0501/0x0600)
   } // end ELSE IF
   else if (InlineIsEqualGUID (CLSID_VideoRenderer, GUID_s))
   {}
@@ -1572,6 +1578,8 @@ continue_:
   // *TODO*: forward WM_MOVE messages to the video window via NotifyOwnerMessage
   //         (see also: https://msdn.microsoft.com/en-us/library/windows/desktop/dd407298(v=vs.85).aspx)
 
+  if (graph_was_running_b)
+    Stream_MediaFramework_DirectShow_Tools::start (IGraphBuilder_in);
 
   return true;
 

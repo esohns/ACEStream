@@ -290,8 +290,9 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
           CoCreateInstance (__uuidof (MMDeviceEnumerator), NULL, CLSCTX_ALL,
                             IID_PPV_ARGS (&enumerator_p));
         ACE_ASSERT (SUCCEEDED (result_2) && enumerator_p);
-        result_2 =
-          enumerator_p->GetDefaultAudioEndpoint (eCapture, eMultimedia, &device_p);
+        result_2 = enumerator_p->GetDefaultAudioEndpoint (eCapture,
+                                                          eMultimedia,
+                                                          &device_p);
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -695,6 +696,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
   BYTE*                          data_p                   = 0;
   DWORD                          flags_i                  = 0;
   size_t                         bytes_to_read_i          = 0;
+  bool                           session_aborted_b        = false;
 
   do
   {
@@ -845,24 +847,25 @@ continue_:
     // *TODO*: remove type inferences
     { ACE_ASSERT (session_data_p->lock);
       ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_p->lock, result);
-      if (unlikely (session_data_p->aborted))
-      {
-        if (!has_finished)
-        {
-          // *TODO*: remove type inferences
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: session (id was: %u) aborted\n"),
-                      inherited::mod_->name (),
-                      session_data_p->sessionId));
-
-          has_finished = true;
-          // enqueue(/process) STREAM_SESSION_END
-          inherited::finished (false); // recurse upstream ?
-        } // end IF
-
-        continue; // continue processing until STREAM_SESSION_END
-      } // end IF
+      session_aborted_b = session_data_p->aborted;
     } // end lock scope
+    if (unlikely (session_aborted_b))
+    {
+      if (!has_finished)
+      {
+        // *TODO*: remove type inferences
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: session (id was: %u) aborted\n"),
+                    inherited::mod_->name (),
+                    session_data_p->sessionId));
+
+        has_finished = true;
+        // enqueue(/process) STREAM_SESSION_END
+        inherited::finished (false); // recurse upstream ?
+      } // end IF
+
+      continue; // continue processing until STREAM_SESSION_END
+    } // end IF
 
     // step1: wait for the next buffer
     result_3 = WaitForSingleObject (event_, INFINITE);

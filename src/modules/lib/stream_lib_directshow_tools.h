@@ -107,6 +107,8 @@ class Stream_MediaFramework_DirectShow_Tools
                    const std::wstring&); // filter name
   static bool has (const Stream_MediaFramework_DirectShow_GraphConfiguration_t&, // graph layout configuration
                    const std::wstring&);                                         // filter name
+  static bool start (IGraphBuilder*);     // graph handle
+  static bool stop (IGraphBuilder*);     // graph handle
   static void shutdown (IGraphBuilder*); // graph handle
 
   // -------------------------------------
