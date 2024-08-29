@@ -2041,27 +2041,27 @@ Stream_MediaFramework_DirectShow_Tools::remove (IGraphBuilder* builder_in,
   // sanity check(s)
   ACE_ASSERT (builder_in);
   ACE_ASSERT (filter_in);
-  ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::has (builder_in, ACE_TEXT_ALWAYS_WCHAR (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
+  std::string filter_name_string =
+    Stream_MediaFramework_DirectShow_Tools::name (filter_in);
+  ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::has (builder_in, ACE_TEXT_ALWAYS_WCHAR (filter_name_string.c_str ())));
 
   if (!Stream_MediaFramework_DirectShow_Tools::disconnect (filter_in))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::disconnect(%s), continuing\n"),
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
+                ACE_TEXT (filter_name_string.c_str ())));
 
   HRESULT result = builder_in->RemoveFilter (filter_in);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGrapBuilder::RemoveFilter(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ()),
+                ACE_TEXT (filter_name_string.c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("removed \"%s\"...\n"),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
-#endif // _DEBUG
+              ACE_TEXT (filter_name_string.c_str ())));
 
   return true;
 }
