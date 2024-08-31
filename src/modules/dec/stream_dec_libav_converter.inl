@@ -141,7 +141,7 @@ Stream_Decoder_LibAVConverter_T<TaskType,
   ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
 
   // sanity check(s)
-  ACE_ASSERT (buffer_);
+  ACE_ASSERT (buffer_ && context_ && frame_);
 //  ACE_ASSERT (buffer_->capacity () >= frameSize_);
 
   result = av_image_fill_linesizes (line_sizes_a,

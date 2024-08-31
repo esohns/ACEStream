@@ -1075,6 +1075,10 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     return;
   } // end IF
 
+#if defined (GUI_SUPPORT)
+  struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration spectrum_analyzer_configuration;
+#endif // GUI_SUPPORT
+
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_audio_modulehandler_configuration;
@@ -1295,6 +1299,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       // analyzer
       directshow_audio_modulehandler_configuration_3 =
         directshow_audio_modulehandler_configuration;
+      directshow_audio_modulehandler_configuration_3.spectrumAnalyzerConfiguration =
+        &spectrum_analyzer_configuration;
 
       directshow_video_stream_configuration.messageAllocator =
         &directshow_message_allocator;

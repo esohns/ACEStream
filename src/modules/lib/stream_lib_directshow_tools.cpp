@@ -2041,6 +2041,8 @@ Stream_MediaFramework_DirectShow_Tools::remove (IGraphBuilder* builder_in,
   // sanity check(s)
   ACE_ASSERT (builder_in);
   ACE_ASSERT (filter_in);
+  // *NOTE*: "...filters are given names when they participate [!] in a filter
+  //         graph..." --> retrieve filter name before removing it
   std::string filter_name_string =
     Stream_MediaFramework_DirectShow_Tools::name (filter_in);
   ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::has (builder_in, ACE_TEXT_ALWAYS_WCHAR (filter_name_string.c_str ())));

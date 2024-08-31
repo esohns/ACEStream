@@ -120,9 +120,15 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
 //    avcodec_free_context (&videoCodecContext_);
 
   if (audioFrame_)
+  {
+    av_free (audioFrame_->buf[0]); audioFrame_->buf[0] = NULL;
     av_frame_free (&audioFrame_);
+  } // end IF
   if (videoFrame_)
+  {
+    av_free (videoFrame_->buf[0]); videoFrame_->buf[0] = NULL;
     av_frame_free (&videoFrame_);
+  } // end IF
 }
 
 template <ACE_SYNCH_DECL,

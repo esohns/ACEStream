@@ -163,8 +163,8 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
       ++index_i;
     } // end IF
     if (save_to_file_b)
-    { ACE_ASSERT (inherited::configuration_->configuration_->module_2);
-      layout_in->append (&converter_2, NULL, 0);
+    {
+      //layout_in->append (&converter_2, NULL, 0);
       layout_in->append (&tagger_, NULL, 0);
       ACE_ASSERT (inherited::configuration_->configuration_->module_2);
       layout_in->append (inherited::configuration_->configuration_->module_2, NULL, 0); // output is AVI
