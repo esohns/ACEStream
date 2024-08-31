@@ -61,9 +61,9 @@ Stream_Visualization_LibAVResize_T<TaskType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize_T::handleDataMessage"));
 
-  // sanity check(s)
-  if (unlikely (!inherited::context_))
-    return; // nothing to do
+  //// sanity check(s)
+  //if (unlikely (!inherited::context_))
+  //  return; // nothing to do
 
   // initialize return value(s)
   passMessageDownstream_out = false;

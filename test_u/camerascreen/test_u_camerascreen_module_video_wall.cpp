@@ -139,7 +139,7 @@ Test_U_CameraScreen_VideoWall::handleDataMessage (Stream_CameraScreen_Message_t*
   } // end FOR
 
   result = inherited::put_next (message_p, NULL);
-  ACE_ASSERT (result == 0);
+  ACE_ASSERT (result >= 0);
 
   return;
 

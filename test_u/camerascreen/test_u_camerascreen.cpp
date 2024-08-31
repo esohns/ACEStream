@@ -1079,6 +1079,7 @@ do_work (int argc_in,
   struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
   struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // converter
   struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2b; // resize
+  struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2c; // resize_2 (video wall)
   struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // display
   struct Stream_CameraScreen_DirectShow_StreamConfiguration directshow_stream_configuration;
   Stream_CameraScreen_DirectShow_EventHandler_t directshow_ui_event_handler;
@@ -1336,11 +1337,24 @@ do_work (int argc_in,
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
+      directshow_modulehandler_configuration_2c.outputFormat = *media_type_p;
+      delete media_type_p; media_type_p = NULL;
+
+      media_type_p =
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
+      ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration_3.outputFormat = *media_type_p;
       delete media_type_p; media_type_p = NULL;
       directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
         directshow_modulehandler_configuration_3.window;
       stream_p = &directshow_stream;
+
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+                                                                              std::make_pair (&module_configuration,
+                                                                                              &directshow_modulehandler_configuration_2)));
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                              std::make_pair (&module_configuration,
+                                                                                              &directshow_modulehandler_configuration_2b)));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1360,6 +1374,11 @@ do_work (int argc_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration.session);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       stream_p = &mediafoundation_stream;
+
+      mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+                                                                                  std::make_pair (&module_configuration,
+                                                                                                  &mediafoundation_modulehandler_configuration_2)));
+
       break;
     }
     default:
@@ -1438,21 +1457,16 @@ do_work (int argc_in,
       {
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         {
+          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAVResize_2"),
+                                                                 std::make_pair (&module_configuration,
+                                                                                 &directshow_modulehandler_configuration_2c)));
+        
           curses_configuration_p = &directShowConfiguration_in.cursesConfiguration;
-          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
-                                                                                 std::make_pair (&module_configuration,
-                                                                                                 &directshow_modulehandler_configuration_2)));
-          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
-                                                                                 std::make_pair (&module_configuration,
-                                                                                                 &directshow_modulehandler_configuration_2b)));
           break;
         }
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
         {
           curses_configuration_p = &mediaFoundationConfiguration_in.cursesConfiguration;
-          mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
-                                                                                      std::make_pair (&module_configuration,
-                                                                                                      &mediafoundation_modulehandler_configuration_2)));
           break;
         }
         default:
@@ -1527,7 +1541,7 @@ do_work (int argc_in,
           resolution_s.cx = getmaxx (state_r.std_window);
           resolution_s.cy = getmaxy (state_r.std_window);
           Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-                                                                 directshow_modulehandler_configuration.outputFormat);
+                                                                 directshow_modulehandler_configuration_2c.outputFormat);
 
           Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
                                                              directshow_modulehandler_configuration_2.outputFormat);

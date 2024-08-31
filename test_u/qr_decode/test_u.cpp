@@ -371,10 +371,9 @@ continue_:
   displayFormat_inout = *media_type_p;
   delete media_type_p; media_type_p = NULL;
 
-  // *NOTE*: --> the default display format is RGB24
+  // *NOTE*: --> the default decode format is BGR24
   ACE_ASSERT (InlineIsEqualGUID (displayFormat_inout.majortype, MEDIATYPE_Video));
   displayFormat_inout.subtype = MEDIASUBTYPE_RGB24;
-  //displayFormat_inout.subtype = MEDIASUBTYPE_RGB32;
   displayFormat_inout.bFixedSizeSamples = TRUE;
   displayFormat_inout.bTemporalCompression = FALSE;
   if (InlineIsEqualGUID (displayFormat_inout.formattype, FORMAT_VideoInfo))
@@ -391,7 +390,6 @@ continue_:
     ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
     ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
     video_info_header_p->bmiHeader.biBitCount = 24;
-    //video_info_header_p->bmiHeader.biBitCount = 32;
     video_info_header_p->bmiHeader.biCompression = BI_RGB;
     video_info_header_p->bmiHeader.biSizeImage =
       DIBSIZE (video_info_header_p->bmiHeader);
@@ -1037,6 +1035,7 @@ do_work (int argc_in,
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
+  //modulehandler_configuration.flipImage = true;
   Test_U_EventHandler event_handler;
   modulehandler_configuration.subscriber = &event_handler;
 

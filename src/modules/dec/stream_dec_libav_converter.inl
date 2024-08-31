@@ -362,7 +362,7 @@ Stream_Decoder_LibAVConverter_T<TaskType,
       ACE_ASSERT (result >= 0);
 
 continue_:
-      if (media_type_3.format != AV_PIX_FMT_NONE)
+      if (inputFormat_ != media_type_3.format)
       { ACE_ASSERT (session_data_r.lock);
         inherited2::setFormat (media_type_3.format,
                                media_type_2);

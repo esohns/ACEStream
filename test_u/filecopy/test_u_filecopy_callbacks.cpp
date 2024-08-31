@@ -17,7 +17,6 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "common_log_common.h"
 #include "stdafx.h"
 
 #include "test_u_filecopy_callbacks.h"
@@ -28,7 +27,8 @@
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
-//#include "ace/Synch.h"
+#include "common_log_common.h"
+
 #include "common_timer_manager.h"
 
 #include "common_ui_gtk_common.h"
@@ -150,20 +150,22 @@ idle_initialize_UI_cb (gpointer userData_in)
   struct Stream_Filecopy_UI_CBData* data_p =
     static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
   ACE_ASSERT (data_p);
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-  ACE_ASSERT (gtk_manager_p);
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+  ACE_ASSERT (data_p->UIState);
+
+  //Common_UI_GTK_Manager_t* gtk_manager_p =
+  //  COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  //ACE_ASSERT (gtk_manager_p);
+  //Common_UI_GTK_State_t& state_r =
+  //  const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   //// sanity check(s)
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   Common_UI_GTK_BuildersConstIterator_t iterator =
-    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+    data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != state_r.builders.end ());
+  ACE_ASSERT (iterator != data_p->UIState->builders.end ());
 
   // step1: initialize dialog window(s)
   GtkWidget* dialog_p =
@@ -334,7 +336,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //  g_object_unref (buffer_p);
 
   // step5: initialize updates
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->UIState->lock, G_SOURCE_REMOVE);
     // schedule asynchronous updates of the log view
     guint event_source_id = g_timeout_add_seconds (1,
                                                    idle_update_log_display_cb,
@@ -344,7 +346,7 @@ idle_initialize_UI_cb (gpointer userData_in)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("added event source (id: %u)\n"),
                   event_source_id));
-      state_r.eventSourceIds.insert (event_source_id);
+      data_p->UIState->eventSourceIds.insert (event_source_id);
     } // end IF
     else
     {
@@ -362,7 +364,7 @@ idle_initialize_UI_cb (gpointer userData_in)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("added event source (id: %u)\n"),
                   event_source_id));
-      state_r.eventSourceIds.insert (event_source_id);
+      data_p->UIState->eventSourceIds.insert (event_source_id);
     } // end IF
     else
     {
@@ -827,13 +829,25 @@ idle_update_progress_cb (gpointer userData_in)
 #endif // ACE_WIN32 || ACE_WIN64
     } // end IF
 
-//    Common_UI_GTK_PendingActionsIterator_t iterator_3 =
-//        data_p->pendingActions.find (*iterator_2);
-//    ACE_ASSERT (iterator_3 != data_p->pendingActions.end ());
-//    state_r.eventSourceIds.erase ((*iterator_3).first);
-//    data_p->pendingActions.erase (iterator_3);
-    state_r.eventSourceIds.clear ();
-    data_p->pendingActions.clear ();
+    struct find_id
+     //: std::unary_function<ACE_Thread_ID, bool>
+    {
+      ACE_thread_t id_;
+      find_id (ACE_thread_t id)
+       : id_ (id)
+      {}
+
+      bool operator() (std::pair<guint, ACE_Thread_ID> const& id_in) const
+      {
+        return id_in.second.id () == id_;
+      }
+    };
+   Common_UI_GTK_PendingActionsIterator_t iterator_3 =
+      std::find_if (data_p->pendingActions.begin (), data_p->pendingActions.end (), 
+                    find_id (*iterator_2));
+    ACE_ASSERT (iterator_3 != data_p->pendingActions.end ());
+    state_r.eventSourceIds.erase ((*iterator_3).first);
+    data_p->pendingActions.erase (iterator_3);
   } // end FOR
   data_p->completedActions.clear ();
 
@@ -1263,10 +1277,8 @@ button_quit_clicked_cb (GtkWidget* widget_in,
                 SIGINT));
 
   // step3: stop GTK event processing
-  // *NOTE*: triggering UI shutdown here is more consistent, compared to doing
-  //         it from the signal handler
-  COMMON_UI_GTK_MANAGER_SINGLETON::instance()->stop (false, // wait ?
-                                                     true); // high priority ?
+  COMMON_UI_GTK_MANAGER_SINGLETON::instance()->stop (false,  // wait ?
+                                                     false); // high priority ?
 
   return FALSE;
 } // button_quit_clicked_cb

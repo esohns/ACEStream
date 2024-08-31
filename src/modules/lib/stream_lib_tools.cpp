@@ -1326,10 +1326,11 @@ Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (enum AVPixelFormat pix
       return MEDIASUBTYPE_IMC4;
 
     case AV_PIX_FMT_ARGB:
-    case AV_PIX_FMT_RGBA:
     case AV_PIX_FMT_ABGR:
-    case AV_PIX_FMT_BGRA:
       return MEDIASUBTYPE_ARGB32;
+    case AV_PIX_FMT_RGBA:
+    case AV_PIX_FMT_BGRA:
+      return MEDIASUBTYPE_RGB32;
 
     case AV_PIX_FMT_GRAY16BE:
     case AV_PIX_FMT_GRAY16LE:

@@ -159,28 +159,28 @@ libacestream_glut_draw (void)
                                 cb_data_p->mediaType.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
                                 cb_data_p->textureId,
-                                true);
+                                true); // update
   message_block_p->release ();
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   // *TODO*: find out why this reports GL_INVALID_OPERATION
-  COMMON_GL_PRINT_ERROR;
+  //COMMON_GL_PRINT_ERROR;
 
   glLoadIdentity (); // Reset the transformation matrix.
-  COMMON_GL_ASSERT;
+  //COMMON_GL_ASSERT;
 
   glTranslatef (0.0f, 0.0f, -5.0f); // Move back into the screen 7
-  COMMON_GL_ASSERT;
+  //COMMON_GL_ASSERT;
 
   static GLfloat cube_rotation = 0.0f;
   glRotatef (cube_rotation, 1.0f, 1.0f, 1.0f); // Rotate The Cube On X, Y, and Z
-  COMMON_GL_ASSERT;
+  //COMMON_GL_ASSERT;
 
   glBindTexture (GL_TEXTURE_2D, cb_data_p->textureId);
-  COMMON_GL_ASSERT;
+  //COMMON_GL_ASSERT;
 
   glBegin (GL_QUADS);
-  COMMON_GL_ASSERT;
+  //COMMON_GL_ASSERT;
 
   // Front Face
   glTexCoord2f (0.0f, 0.0f); glVertex3f (-1.0f, -1.0f, 1.0f); // Bottom Left Of The Texture and Quad
@@ -215,17 +215,17 @@ libacestream_glut_draw (void)
 
   glEnd ();
   // *TODO*: find out why this reports GL_INVALID_OPERATION
-  COMMON_GL_PRINT_ERROR;
+  //COMMON_GL_PRINT_ERROR;
 
   cube_rotation -= 1.0f; // Decrease The Rotation Variable For The Cube
 
   glBindTexture (GL_TEXTURE_2D, 0);
-  COMMON_GL_ASSERT;
+  //COMMON_GL_ASSERT;
 //  glDeleteTextures (1, &cb_data_p->textureId);
 //  COMMON_GL_ASSERT;
 
   glFlush ();
-  COMMON_GL_ASSERT;
+  //COMMON_GL_ASSERT;
 
   glutSwapBuffers ();
 }

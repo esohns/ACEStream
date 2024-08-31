@@ -55,6 +55,8 @@ Stream_CameraScreen_DirectShow_Stream::Stream_CameraScreen_DirectShow_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+ , resize_2 (this,
+             ACE_TEXT_ALWAYS_CHAR ("LibAVResize_2"))
  , videoWall_ (this,
                ACE_TEXT_ALWAYS_CHAR ("VideoWall"))
 #if defined (CURSES_SUPPORT)
@@ -101,7 +103,12 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
     case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
     {
       layout_in->append (&convert_, NULL, 0);
-      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+      if (inherited::configuration_->configuration_->useVideoWall)
+      {
+        layout_in->append (&resize_, NULL, 0); // output is video wall thumbnail size
+        layout_in->append (&videoWall_, NULL, 0);
+      } // end IF
+      layout_in->append (&resize_2, NULL, 0); // output is window size/fullscreen
       layout_in->append (&CursesDisplay_, NULL, 0);
       break;
     }
@@ -110,15 +117,18 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
     {
       layout_in->append (&convert_, NULL, 0);
-      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
       if (inherited::configuration_->configuration_->useVideoWall)
+      {
+        layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
         layout_in->append (&videoWall_, NULL, 0);
+      } // end IF
       layout_in->append (&GTKDisplay_, NULL, 0);
       break;
     }
 #endif // GTK_SUPPORT
     case STREAM_VISUALIZATION_VIDEORENDERER_GDI:
     {
+      layout_in->append (&convert_, NULL, 0);
       if (inherited::configuration_->configuration_->useVideoWall)
       {
         layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
@@ -129,6 +139,7 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
     {
+      layout_in->append (&convert_, NULL, 0);
       if (inherited::configuration_->configuration_->useVideoWall)
       {
         layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
@@ -139,6 +150,7 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
     {
+      layout_in->append (&convert_, NULL, 0);
       if (inherited::configuration_->configuration_->useVideoWall)
       {
         layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
