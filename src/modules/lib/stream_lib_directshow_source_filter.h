@@ -60,6 +60,7 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
  : public CSource
  , public IAMFilterMiscFlags
  , public IMemAllocator
+ //, virtual public IUnknown
  , public Common_IInitialize_T<ConfigurationType>
  , public Common_IInitializeP_T<struct _AMMediaType>
 {
@@ -76,7 +77,7 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
   Stream_MediaFramework_DirectShow_Source_Filter_T ();
   virtual ~Stream_MediaFramework_DirectShow_Source_Filter_T ();
 
-  // ------------------------------------
+  // --------------------------------------
   static CUnknown* WINAPI CreateInstance (LPUNKNOWN, // aggregating IUnknown interface handle ('owner')
                                           HRESULT*); // return value: result
   static void WINAPI DeleteInstance (void*); // instance handle
@@ -92,7 +93,7 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
   //static void operator delete (void*,   // instance handle
   //                             size_t); // number of bytes
 
-  // ------------------------------------
+  // --------------------------------------
   // implement/overload IAMFilterMiscFlags
   inline virtual STDMETHODIMP_(ULONG) GetMiscFlags (void) { return AM_FILTER_MISC_FLAGS_IS_SOURCE; }
 
@@ -102,10 +103,11 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
   inline virtual STDMETHODIMP_(ULONG) Release () { return inherited::NonDelegatingRelease (); }
   virtual STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**);
 
-  //inline virtual int GetPinCount () { return 1; }
-  //inline virtual CBasePin* GetPin (int) { return outputPin_; }
-  //virtual HRESULT AddPin (CBasePin*);
-  //virtual HRESULT RemovePin (CBasePin*);
+  //inline virtual STDMETHODIMP_(LONG) GetPinVersion () { return 1; }
+  //inline virtual STDMETHODIMP_(int) GetPinCount () { return 1; }
+  //inline virtual STDMETHODIMP_(CBasePin*) GetPin (int) { return outputPin_; }
+  //virtual STDMETHODIMP AddPin (CBasePin*);
+  //virtual STDMETHODIMP RemovePin (CBasePin*);
 
   virtual STDMETHODIMP SetProperties (struct _AllocatorProperties*,  // requested
                                       struct _AllocatorProperties*); // return value: actual
@@ -119,7 +121,7 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
   inline virtual STDMETHODIMP Commit (void) { return NOERROR; }
   inline virtual STDMETHODIMP Decommit (void) { return NOERROR; }
 
-  // ------------------------------------
+  // --------------------------------------
 
   // implement Common_IInitialize_T
   virtual bool initialize (const ConfigurationType&);
@@ -186,35 +188,35 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
 
   // override / implement (part of) CBasePin
   // *NOTE*: called during connection negotiation, before SetMediaType()
-  virtual HRESULT CheckMediaType (const CMediaType*);
-  virtual HRESULT GetMediaType (int, CMediaType*);
+  virtual STDMETHODIMP CheckMediaType (const CMediaType*);
+  virtual STDMETHODIMP GetMediaType (int, CMediaType*);
   // *NOTE*: "...Before calling this method, the pin calls the
   //         CBasePin::CheckMediaType method to determine whether the media type
   //         is acceptable. Therefore, the pmt parameter is assumed to be an
   //         acceptable media type. ..."
-  virtual HRESULT SetMediaType (const CMediaType*);
+  virtual STDMETHODIMP SetMediaType (const CMediaType*);
   // *NOTE*: support "Handling Format Changes from the Video Renderer"
   virtual STDMETHODIMP QueryAccept (const struct _AMMediaType*);
 
   // implement/overload (part of) CBaseOutputPin
-  virtual HRESULT DecideAllocator (IMemInputPin*,
-                                   IMemAllocator**);
-  virtual HRESULT DecideBufferSize (IMemAllocator*,
-                                    struct _AllocatorProperties*);
+  virtual STDMETHODIMP DecideAllocator (IMemInputPin*,
+                                        IMemAllocator**);
+  virtual STDMETHODIMP DecideBufferSize (IMemAllocator*,
+                                         struct _AllocatorProperties*);
 
   //// implement/overload (part of) CSourceStream
   //virtual DWORD ThreadProc ();
   //virtual HRESULT DoBufferProcessingLoop ();
   // Called by the thread (see: DoBufferProcessingLoop()); blocks until data is
   // available
-  virtual HRESULT FillBuffer (IMediaSample*);
+  virtual STDMETHODIMP FillBuffer (IMediaSample*);
 
   // Called as the thread is created/destroyed - use to perform
   // jobs such as start/stop streaming mode
   // If OnThreadCreate returns an error the thread will exit.
-  virtual HRESULT OnThreadCreate ();
-  virtual HRESULT OnThreadDestroy ();
-  virtual HRESULT OnThreadStartPlay ();
+  virtual STDMETHODIMP OnThreadCreate ();
+  virtual STDMETHODIMP OnThreadDestroy ();
+  virtual STDMETHODIMP OnThreadStartPlay ();
 
   //virtual HRESULT Active (void);
   //virtual HRESULT Inactive (void);

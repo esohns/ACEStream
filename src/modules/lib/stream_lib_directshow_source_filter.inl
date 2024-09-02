@@ -159,7 +159,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
                                                  ConfigurationType,
                                                  PinConfigurationType>::Stream_MediaFramework_DirectShow_Source_Filter_T ()
  : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE), // name
-              NULL,                                                            // owner
+              NULL,//this,                                                            // owner
               CLSID_ACEStream_MediaFramework_Source_Filter)                    // CLSID
  , configuration_ (NULL)
  , outputPin_ (NULL)

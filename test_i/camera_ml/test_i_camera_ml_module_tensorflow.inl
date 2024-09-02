@@ -428,6 +428,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
     //xMax = boxes_in (0, indices_in.at (j), 3);
     //yMin = boxes_in (0, indices_in.at (j), 0);
     //yMax = boxes_in (0, indices_in.at (j), 2);
+    ACE_ASSERT (false); // *TODO*
 
     cv::Point tl, br;
     tl = cv::Point((int) (xMin * image_in.cols), (int) (yMin * image_in.rows));
@@ -437,13 +438,15 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
     // Ceiling the score down to 3 decimals (weird!)
     float scoreRounded = std::floor (scores_in.at (indices_in.at (j)) * 1000.0f) / 1000.0f;
     std::string score_string = std::to_string (scoreRounded).substr (0, 5);
-    std::string caption = labelMap_[classes_in.at (indices_in.at(j))] + " (" + score_string + ")";
+    std::string caption = labelMap_[static_cast<int> (classes_in.at (indices_in.at (j)))] + " (" + score_string + ")";
 
     // Adding caption of type "LABEL (X.XXX)" to the top-left corner of the bounding box
-    int fontCoeff = 12;
-    cv::Point brRect = cv::Point (tl.x + caption.length () * fontCoeff / 1.6, tl.y + fontCoeff);
+    static int fontCoeff = 12;
+    cv::Point brRect =
+      cv::Point (tl.x + static_cast<int> (caption.length ()) * static_cast<int> (fontCoeff / 1.6f),
+                 tl.y + fontCoeff);
     cv::rectangle (image_in, tl, brRect, cv::Scalar (0, 255, 255), -1);
-    cv::Point textCorner = cv::Point (tl.x, tl.y + fontCoeff * 0.9);
+    cv::Point textCorner = cv::Point (tl.x, tl.y + static_cast<int> (fontCoeff * 0.9f));
     cv::putText (image_in, caption, textCorner, cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar (255, 0, 0));
   } // end FOR
 }
@@ -875,13 +878,15 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
     // Ceiling the score down to 3 decimals (weird!)
     float scoreRounded = std::floor (scores_in (indices_in.at (j)) * 1000.0f) / 1000.0f;
     std::string score_string = std::to_string (scoreRounded).substr (0, 5);
-    std::string caption = labelMap_[classes_in (indices_in.at(j))] + " (" + score_string + ")";
+    std::string caption = labelMap_[static_cast<int> (classes_in (indices_in.at (j)))] + " (" + score_string + ")";
 
     // Adding caption of type "LABEL (X.XXX)" to the top-left corner of the bounding box
-    int fontCoeff = 12;
-    cv::Point brRect = cv::Point (tl.x + caption.length () * fontCoeff / 1.6, tl.y + fontCoeff);
+    static int fontCoeff = 12;
+    cv::Point brRect =
+      cv::Point (tl.x + static_cast<int> (caption.length ()) * static_cast<int> (fontCoeff / 1.6f),
+                 tl.y + fontCoeff);
     cv::rectangle (image_in, tl, brRect, cv::Scalar (0, 255, 255), -1);
-    cv::Point textCorner = cv::Point (tl.x, tl.y + fontCoeff * 0.9);
+    cv::Point textCorner = cv::Point (tl.x, tl.y + static_cast<int> (fontCoeff * 0.9f));
     cv::putText (image_in, caption, textCorner, cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar (255, 0, 0));
   } // end FOR
 }
