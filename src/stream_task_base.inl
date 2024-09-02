@@ -430,10 +430,13 @@ continue_:
       session_data_container_p->decrease (); session_data_container_p = NULL;
 
       // switch session data
-      ACE_ASSERT (sessionData_2);
-      sessionData_->decrease (); sessionData_ = NULL;
-      sessionData_ = sessionData_2;
-      sessionData_2 = NULL;
+      // *NOTE*: the distributor is one notable example where this fails (the nth (n > 1) time around)
+      if (likely (sessionData_2))
+      {
+        sessionData_->decrease (); sessionData_ = NULL;
+        sessionData_ = sessionData_2;
+        sessionData_2 = NULL;
+      } // end IF
 
 continue_2:
       Stream_ILinkCB* ilink_p = dynamic_cast<Stream_ILinkCB*> (this);
