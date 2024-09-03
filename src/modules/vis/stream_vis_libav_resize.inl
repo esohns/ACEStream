@@ -273,8 +273,8 @@ Stream_Visualization_LibAVResize_T<TaskType,
 #endif // ACE_WIN32 || ACE_WIN64
 
       // initialize conversion context
-        flags_i = //(SWS_FAST_BILINEAR); // interpolation
-           (SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
+      flags_i = //(SWS_FAST_BILINEAR); // interpolation
+        (SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
       inherited::context_ =
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

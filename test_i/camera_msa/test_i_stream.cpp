@@ -91,7 +91,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //modules_out.push_back (&statisticReport_);
 #if defined (FFMPEG_SUPPORT)
   layout_in->append (&convert_, NULL, 0);
-  layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+  //layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 #endif // FFMPEG_SUPPORT
   layout_in->append (&flip_, NULL, 0);
 
