@@ -204,6 +204,8 @@ elseif (WIN32)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_LIBRARY_PATH)
+ # *NOTE*: ffmpeg was built with "vcpkg-libpng" support, so now there is a new dependency to zlib1.dll, liblzma.dll, iconv-2.dll :-(
+ file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_LIBRARY_PATH)
  file (TO_CMAKE_PATH ${LIBICONV_LIB_DIR} ICONV_LIBRARY_PATH)
@@ -212,16 +214,17 @@ elseif (WIN32)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/zlib/${BUILD_PATH_SUFFIX}/${CMAKE_BUILD_TYPE} ZLIB_LIBRARY_PATH)
- set (RUNTIME_LIBRARY_DIRS ${ACE_LIBRARY_PATH}
-                           ${GTK_LIBRARY_PATH}
+ set (RUNTIME_LIBRARY_DIRS ${GTK_LIBRARY_PATH}
                            ${WXWIDGETS_LIBRARY_PATH}
+                           ${VCPKG_PATH}
                            ${FFMPEG_LIBRARY_PATH}
                            ${IMAGEMAGICK_LIBRARY_PATH}
                            ${ICONV_LIBRARY_PATH}
                            ${LIBXML_LIBRARY_PATH}
                            ${LIBMYSQL_LIBRARY_PATH}
                            ${SSL_LIBRARY_PATH}
-                           ${ZLIB_LIBRARY_PATH})
+                           ${ZLIB_LIBRARY_PATH}
+                           ${ACE_LIBRARY_PATH})
  create_target_launcher (${EXECUTABLE}
                          COMMAND ${COMMAND}
                          ARGS "-c.\\\\etc\\\\options.cnf -f output.txt -l -p 443 -r -t -u https://www.heise.de/newsticker/"

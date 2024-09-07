@@ -216,6 +216,8 @@ if (UNIX)
 elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
+ # *NOTE*: ffmpeg was built with "vcpkg-libpng" support, so now there is a new dependency to zlib1.dll, liblzma.dll, iconv-2.dll :-(
+ file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_LIBRARY_PATH)
@@ -227,9 +229,9 @@ elseif (WIN32)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${ZLIB_LIB_DIR}" ZLIB_LIBRARY_PATH)
- set (RUNTIME_LIBRARY_DIRS ${ACE_LIBRARY_PATH}
-                           ${GTK_LIBRARY_PATH}
+ set (RUNTIME_LIBRARY_DIRS ${GTK_LIBRARY_PATH}
                            ${WXWIDGETS_LIBRARY_PATH}
+                           ${VCPKG_PATH}
                            ${FFMPEG_LIBRARY_PATH}
                            ${IMAGEMAGICK_LIBRARY_PATH}
 #                           ${ICONV_LIBRARY_PATH}
@@ -237,7 +239,8 @@ elseif (WIN32)
   #                         ${LIBMYSQL_LIBRARY_PATH}
                            ${SSL_LIBRARY_PATH}
                            ${ZLIB_LIBRARY_PATH}
-                           ${OO_LIBRARY_PATH})
+                           ${OO_LIBRARY_PATH}
+                           ${ACE_LIBRARY_PATH})
  create_target_launcher (${EXECUTABLE}
                          COMMAND ${COMMAND}
                          ARGS "-c.\\\\etc\\\\soffice.ini -f.\\\\etc\\\\template.ods -h localhost -i.\\\\etc\\\\symbols.ini -l -o .\\\\output.ods -p 2083 -r -t -u https://www.tagesschau.de/wirtschaft/boersenkurse/suche/"

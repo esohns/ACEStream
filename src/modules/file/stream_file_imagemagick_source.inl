@@ -169,6 +169,14 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
                   ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ())));
       return false;
     } // end IF
+    if (unlikely (!directory_.length ()))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: found no file(s) (directory was: \"%s\"), aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ())));
+      return false;
+    } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: processing %d file(s) in \"%s\"\n"),
                 inherited::mod_->name (),

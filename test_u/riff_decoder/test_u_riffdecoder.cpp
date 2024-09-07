@@ -270,12 +270,13 @@ do_work (bool debug_in,
 //    } // end IF
   stream.wait (true, false, false);
 
-  module_p = const_cast<Stream_Module_t*> (stream.find (ACE_TEXT ("AVI_Decoder")));
+  module_p =
+    const_cast<Stream_Module_t*> (stream.find (ACE_TEXT (STREAM_DEC_DECODER_AVI_DEFAULT_NAME_STRING)));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::find(\"%s\"): \"%m\", returning\n"),
-                ACE_TEXT ("AVI_Decoder")));
+                ACE_TEXT (STREAM_DEC_DECODER_AVI_DEFAULT_NAME_STRING)));
     goto end;
   } // end IF
   task_p =
@@ -292,7 +293,7 @@ do_work (bool debug_in,
     if (((*iterator).identifier == FOURCC ('R', 'I', 'F', 'F')) ||
         ((*iterator).identifier == FOURCC ('L', 'I', 'S', 'T')))
       ACE_DEBUG ((LM_INFO,
-                  ACE_TEXT ("@%Q: fourCC: \"%c%c%c%c\"/\"%c%c%c%c\"; size: %u byte(s)\n"),
+                  ACE_TEXT ("@%Q: \"%c%c%c%c\"/\"%c%c%c%c\"; size: %u byte(s)\n"),
                   (*iterator).offset,
                   char_p[3], char_p[2], char_p[1], char_p[0],
                   char_2[3], char_2[2], char_2[1], char_2[0],
