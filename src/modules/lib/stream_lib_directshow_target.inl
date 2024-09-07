@@ -602,6 +602,7 @@ Stream_MediaFramework_DirectShow_Target_T<TaskType,
       return false;
     } // end IF
     FilterType* filter_2 = static_cast<FilterType*> (unknown_p);
+    //ACE_ASSERT (filter_2);
     if (!filter_2->initialize (*inherited::configuration_->filterConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,

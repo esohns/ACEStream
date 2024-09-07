@@ -3133,8 +3133,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (recurseUpstream_in);
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
   enum Stream_StateMachine_ControlState state_e = inherited2::current ();
+  if (state_e == STREAM_STATE_FINISHED)
+    return; // nothing to do
   if (state_e != STREAM_STATE_SESSION_STOPPING)
   { ACE_ASSERT (false);
     ACE_DEBUG ((LM_WARNING,
@@ -3142,6 +3143,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                 inherited::mod_->name (),
                 ACE_TEXT (inherited2::stateToString (state_e).c_str ())));
   } // end IF
+  ACE_ASSERT (inherited::configuration_);
 
   // send final session message downstream ?
   // --> this triggers the state transition STOPPING --> STOPPED
