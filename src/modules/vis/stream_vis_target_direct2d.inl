@@ -129,8 +129,7 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  if (!bitmap_ || !pitch_ || !renderTarget_)
-    return; // not initialized (yet)
+  ACE_ASSERT (bitmap_ && pitch_ && renderTarget_);
 
   struct D2D_RECT_U rectangle_2;
   ACE_OS::memset (&rectangle_2, 0, sizeof (struct D2D_RECT_U));
@@ -246,8 +245,6 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
       pitch_ =
         Stream_MediaFramework_DirectShow_Tools::toRowStride (media_type_s);
 
-      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-
       // start message pump ?
       if (!inherited::window_)
       { // need a window/message pump
@@ -258,13 +255,27 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
         while (inherited::thr_count_ && !inherited::window_); // *TODO*: never do this
       } // end IF
       else
-      { ACE_ASSERT (false); // *TODO*
+      {
+        if (unlikely (!initialize_Direct2D (inherited::window_,
+                                            format_)))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to initialize_Direct2D(), aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
       } // end ELSE
+
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       break;
 
-//error:
+error:
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       notify (STREAM_SESSION_MESSAGE_ABORT);
 

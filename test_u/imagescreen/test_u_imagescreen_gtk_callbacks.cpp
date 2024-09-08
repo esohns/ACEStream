@@ -19,11 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include <sstream>
-
 #include "test_u_imagescreen_gtk_callbacks.h"
 
-#include "ace/config-lite.h"
+#include <sstream>
 
 #include "gdk/gdkkeysyms.h"
 
@@ -40,6 +38,7 @@
 
 #include "common_ui_gtk_common.h"
 #include "common_ui_gtk_defines.h"
+#include "common_ui_gtk_manager_common.h"
 #include "common_ui_gtk_tools.h"
 
 #include "test_u_imagescreen_defines.h"
@@ -120,7 +119,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
   Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_configuration_iterator =
-      ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   // step1: initialize dialog window(s)
@@ -247,6 +246,17 @@ idle_initialize_UI_cb (gpointer userData_in)
                 ACE_TEXT ((*stream_configuration_iterator).second.second->fileIdentifier.identifier.c_str ())));
     return G_SOURCE_REMOVE;
   } // end IF
+
+//  GtkDrawingArea* drawing_area_p =
+//    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+//                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME)));
+//  ACE_ASSERT (drawing_area_p);
+//  (*stream_configuration_iterator).second.second->window =
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//    gdk_win32_window_get_impl_hwnd (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
+//#else
+//    gdk_x11_window_get_impl_xid (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
+//#endif // ACE_WIN32 || ACE_WIN64
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -506,10 +516,8 @@ idle_session_end_cb (gpointer userData_in)
   struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
-
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
 
   GtkToggleButton* toggle_button_p =
@@ -553,7 +561,6 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (ui_cb_data_p->UIState);
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_configuration_iterator =
@@ -584,7 +591,8 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
 
     // stop stream
     ui_cb_data_p->stream->stop (false,  // wait ?
-                                true); // locked access ?
+                                false,  // recurse upstream ?
+                                false); // high priority ?
 
     return;
   } // end IF
@@ -712,92 +720,39 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
   ui_cb_data_p->stream->start ();
 } // toggleaction_record_toggled_cb
 
-//void
-//toggleaction_fullscreen_toggled_cb (GtkToggleAction* toggleAction_in,
-//                                    gpointer userData_in)
-//{
-//  struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
-//    static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
+void
+togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
+                                    gpointer userData_in)
+{
+  // sanity check(s)
+  struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p);
+  Common_UI_GTK_BuildersIterator_t iterator =
+    ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
 
-//  // sanity check(s)
-//  ACE_ASSERT (ui_cb_data_p);
+  bool is_active_b = gtk_toggle_button_get_active (toggleButton_in);
+  Stream_IStreamControlBase* stream_base_p = NULL;
+  Stream_IStream_t* stream_p = NULL;
+  Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_iterator;
+  
+  stream_base_p = ui_cb_data_p->stream;
+  stream_p = ui_cb_data_p->stream;
+  stream_iterator =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+  (*stream_iterator).second.second->fullScreen = is_active_b;
 
-//  bool is_active_b =
-//#if GTK_CHECK_VERSION(3,0,0)
-//      gtk_toggle_action_get_active (toggleAction_in);
-//#elif GTK_CHECK_VERSION(2,0,0)
-//      gtk_toggle_button_get_active (toggleButton_in);
-//#endif // GTK_CHECK_VERSION
+  ACE_ASSERT (stream_base_p);
+  if (!stream_base_p->isRunning ())
+    return;
 
-//  Common_UI_GTK_BuildersIterator_t iterator =
-//    ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-//  ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
-
-//  Stream_IStreamControlBase* stream_base_p = NULL;
-//  Stream_IStream_t* stream_p = NULL;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
-//  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
-//  struct Stream_CamSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
-//    NULL;
-//  Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-//  switch (ui_cb_data_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//    {
-//      directshow_cb_data_p =
-//        static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (ui_cb_data_p);
-//      stream_base_p = directshow_cb_data_p->stream;
-//      stream_p = directshow_cb_data_p->stream;
-//      ACE_ASSERT (directshow_cb_data_p->configuration);
-//      directshow_stream_iterator =
-//        directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-//      ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
-//      (*directshow_stream_iterator).second.second->fullScreen = is_active;
-//      break;
-//    }
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//    {
-//      mediafoundation_cb_data_p =
-//        static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (ui_cb_data_p);
-//      stream_base_p = mediafoundation_cb_data_p->stream;
-//      stream_p = mediafoundation_cb_data_p->stream;
-//      ACE_ASSERT (mediafoundation_cb_data_p->configuration);
-//      mediafoundation_stream_iterator =
-//        mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-//      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->streamConfiguration.end ());
-//      (*mediafoundation_stream_iterator).second.second->fullScreen = is_active;
-//      break;
-//    }
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-//                  ui_cb_data_p->mediaFramework));
-//      return;
-//    }
-//  } // end SWITCH
-//#else
-//  struct Stream_CamSave_V4L_UI_CBData* cb_data_p =
-//    static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_p);
-//  stream_base_p = cb_data_p->stream;
-//  stream_p = cb_data_p->stream;
-//  ACE_ASSERT (cb_data_p->configuration);
-//  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-//    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-//  ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
-//  (*iterator_2).second.second->fullScreen = is_active_b;
-//#endif
-//  ACE_ASSERT (stream_base_p);
-//  if (!stream_base_p->isRunning ())
-//    return;
-
-//  ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
 //  GtkWindow* window_p =
 //    GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
 //                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_WINDOW_FULLSCREEN)));
 //  ACE_ASSERT (window_p);
-
+//
 //  if (is_active_b)
 //  {
 //    gtk_widget_show (GTK_WIDGET (window_p));
@@ -811,57 +766,40 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
 //    gtk_widget_hide (GTK_WIDGET (window_p));
 //  } // end ELSE
 
-//  ACE_ASSERT (stream_p);
-//  const Stream_Module_t* module_p = NULL;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  switch (ui_cb_data_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//      module_p =
-//        stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
-//      break;
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//      module_p =
-//        stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
-//      break;
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: invalid/unkown media framework (was: %d), returning\n"),
-//                  ACE_TEXT (stream_p->name ().c_str ()),
-//                  ui_cb_data_p->mediaFramework));
-//      return;
-//    }
-//  } // end SWITCH
-//#else
-//  module_p =
-//      stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
-//#endif
-//  if (!module_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to Stream_IStream::find(\"Display\"), returning\n"),
-//                ACE_TEXT (stream_p->name ().c_str ())));
-//    return;
-//  } // end IF
-//  Common_UI_IFullscreen* ifullscreen_p =
-//    dynamic_cast<Common_UI_IFullscreen*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-//  if (!ifullscreen_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s:Display: failed to dynamic_cast<Common_UI_IFullscreen*>(0x%@), returning\n"),
-//                ACE_TEXT (stream_p->name ().c_str ()),
-//                const_cast<Stream_Module_t*> (module_p)->writer ()));
-//    return;
-//  } // end IF
-//  try {
-//    ifullscreen_p->toggle ();
-//  } catch (...) {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("caught exception in Common_UI_IFullscreen::toggle(), returning\n")));
-//    return;
-//  }
-//} // toggleaction_fullscreen_toggled_cb
+  ACE_ASSERT (stream_p);
+  const Stream_Module_t* module_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  module_p =
+    stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT2D_DEFAULT_NAME_STRING));
+#else
+  module_p =
+    stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING));
+#endif
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_IStream::find(\"Display\"), returning\n"),
+                ACE_TEXT (stream_p->name ().c_str ())));
+    return;
+  } // end IF
+  Common_UI_IFullscreen* ifullscreen_p =
+    dynamic_cast<Common_UI_IFullscreen*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  if (!ifullscreen_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s:Display: failed to dynamic_cast<Common_UI_IFullscreen*>(0x%@), returning\n"),
+                ACE_TEXT (stream_p->name ().c_str ()),
+                const_cast<Stream_Module_t*> (module_p)->writer ()));
+    return;
+  } // end IF
+  try {
+    ifullscreen_p->toggle ();
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Common_UI_IFullscreen::toggle(), returning\n")));
+    return;
+  }
+} // togglebutton_fullscreen_toggled_cb
 
 void
 combobox_display_changed_cb (GtkWidget* widget_in,
@@ -938,15 +876,13 @@ button_about_clicked_cb (GtkWidget* widget_in,
                          gpointer userData_in)
 {
   ACE_UNUSED_ARG (widget_in);
+
+  // sanity check(s)
   struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_p);
-
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
 
   // retrieve about dialog handle
@@ -960,6 +896,8 @@ button_about_clicked_cb (GtkWidget* widget_in,
                 ACE_TEXT (TEST_U_UI_GTK_DIALOG_ABOUT_NAME)));
     return TRUE; // propagate
   } // end IF
+  //gtk_widget_show (GTK_WIDGET (dialog_p));
+  //gdk_window_raise (gtk_widget_get_window (GTK_WIDGET (dialog_p)));
 
   // run dialog
   gint result = gtk_dialog_run (dialog_p);
@@ -986,7 +924,8 @@ button_quit_clicked_cb (GtkWidget* widget_in,
 //    static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
 //  ACE_ASSERT (ui_cb_data_p);
 
-  gtk_main_quit ();
+  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
+                                                      false);
 
   return FALSE;
 } // button_quit_clicked_cb
@@ -1037,21 +976,16 @@ key_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (eventKey_in);
-
   struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
       reinterpret_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_p);
-
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
 
   switch (eventKey_in->keyval)
   {
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
     case GDK_KEY_Escape:
     case GDK_KEY_f:
     case GDK_KEY_F:
@@ -1059,7 +993,7 @@ key_cb (GtkWidget* widget_in,
     case GDK_Escape:
     case GDK_f:
     case GDK_F:
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
     {
       bool is_active_b = false;
       GtkToggleButton* toggle_button_p =
@@ -1069,11 +1003,11 @@ key_cb (GtkWidget* widget_in,
       is_active_b = gtk_toggle_button_get_active (toggle_button_p);
 
       // sanity check(s)
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
       if ((eventKey_in->keyval == GDK_KEY_Escape) &&
 #else
       if ((eventKey_in->keyval == GDK_Escape) &&
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
           !is_active_b)
         break; // <-- not in fullscreen mode, nothing to do
 
@@ -1102,7 +1036,9 @@ dialog_main_key_press_event_cb (GtkWidget* widget_in,
                                 GdkEventKey* eventKey_in,
                                 gpointer userData_in)
 {
-  return key_cb (widget_in, eventKey_in, userData_in);
+  return key_cb (widget_in,
+                 eventKey_in,
+                 userData_in);
 }
 
 #ifdef __cplusplus

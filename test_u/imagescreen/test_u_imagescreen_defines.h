@@ -52,6 +52,6 @@
 #define TEST_U_UI_GTK_STATUSBAR_NAME                   "statusbar"
 #define TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME     "togglebutton_fullscreen"
 #define TEST_U_UI_GTK_TOGGLEBUTTON_PLAY_NAME           "togglebutton_start"
-//#define TEST_U_UI_GTK_WINDOW_FULLSCREEN                "window_fullscreen"
+#define TEST_U_UI_GTK_WINDOW_FULLSCREEN                "window_fullscreen"
 
 #endif
