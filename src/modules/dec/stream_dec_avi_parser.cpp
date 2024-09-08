@@ -926,7 +926,7 @@ yy_symbol_value_print (FILE *yyo,
                           { const char* char_p =
                               reinterpret_cast<const char*> (&((*yyvaluep).chunk_meta).identifier);
                             ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("@%lu: fourcc: \"%c%c%c%c\", size: %u, offset: %lu\n"),
+                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u, offset: %u\n"),
                                              ((*yyvaluep).chunk_meta).offset,
                                              char_p[3],char_p[2],char_p[1],char_p[0],
                                              ((*yyvaluep).chunk_meta).size,
@@ -938,7 +938,7 @@ yy_symbol_value_print (FILE *yyo,
                           { const char* char_p =
                               reinterpret_cast<const char*> (&((*yyvaluep).chunk_meta).identifier);
                             ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("@%lu: fourcc: \"%c%c%c%c\", size: %u, offset: %lu\n"),
+                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u, offset: %u\n"),
                                              ((*yyvaluep).chunk_meta).offset,
                                              char_p[3],char_p[2],char_p[1],char_p[0],
                                              ((*yyvaluep).chunk_meta).size,
@@ -950,7 +950,7 @@ yy_symbol_value_print (FILE *yyo,
                           { const char* char_p =
                               reinterpret_cast<const char*> (&((*yyvaluep).chunk_meta).identifier);
                             ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("@%lu: fourcc: \"%c%c%c%c\", size: %u, offset: %lu\n"),
+                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u, offset: %u\n"),
                                              ((*yyvaluep).chunk_meta).offset,
                                              char_p[3],char_p[2],char_p[1],char_p[0],
                                              ((*yyvaluep).chunk_meta).size,
@@ -962,7 +962,7 @@ yy_symbol_value_print (FILE *yyo,
                           { const char* char_p =
                               reinterpret_cast<const char*> (&((*yyvaluep).chunk_meta).identifier);
                             ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("@%lu: fourcc: \"%c%c%c%c\", size: %u, offset: %lu\n"),
+                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u, offset: %u\n"),
                                              ((*yyvaluep).chunk_meta).offset,
                                              char_p[3],char_p[2],char_p[1],char_p[0],
                                              ((*yyvaluep).chunk_meta).size,
@@ -1261,20 +1261,30 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
 
   case 7: /* $@2: %empty  */
                                          {
-                                           driver->chunks_.push_back ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta));
-
                                            const char* char_p = NULL;
-                                           if ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta).identifier == FOURCC ('s', 't', 'r', 'f'))
+
+                                           if ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta).identifier == FOURCC ('s', 't', 'r', 'h'))
                                            {
-                                             ACE_ASSERT (driver->frameSize_);
                                              char_p =
                                                driver->fragment_->base () + (driver->fragmentOffset_ - (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta).size);
-                                             // *NOTE*: hard-coded offset into struct tagBITMAPINFOHEADER
-                                             *driver->frameSize_ =
-                                               *reinterpret_cast<const ACE_UINT32*> (char_p + 4 + 4 + 4 + 2 + 2 + 4);
-                                             ACE_DEBUG ((LM_DEBUG,
-                                                         ACE_TEXT ("frame size is: %u byte(s)\n"),
-                                                         *driver->frameSize_));
+                                             driver->isVids_ =
+                                                FOURCC ('s', 'd', 'i', 'v') == *reinterpret_cast<const ACE_UINT32*> (char_p);
+                                           } // end IF
+
+                                           if ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta).identifier == FOURCC ('s', 't', 'r', 'f'))
+                                           { ACE_ASSERT (driver->frameSize_);
+                                             if (driver->isVids_ &&
+                                                 !*driver->frameSize_) // get first video stream only
+                                             {
+                                               char_p =
+                                                 driver->fragment_->base () + (driver->fragmentOffset_ - (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta).size);
+                                               // *NOTE*: hard-coded offset into struct tagBITMAPINFOHEADER
+                                               *driver->frameSize_ =
+                                                 *reinterpret_cast<const ACE_UINT32*> (char_p + 4 + 4 + 4 + 2 + 2 + 4);
+                                               ACE_DEBUG ((LM_DEBUG,
+                                                           ACE_TEXT ("video frame size is: %u byte(s)\n"),
+                                                           *driver->frameSize_));
+                                             } // end IF
                                            } // end IF
 
                                            char_p =
@@ -1296,12 +1306,24 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
                                              if (driver->parseHeaderOnly_)
                                                driver->finished_ = true;
                                              driver->inFrames_ = true;
-                                             if (!driver->frame ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta)) ||
-                                                 driver->parseHeaderOnly_)
+                                             if (driver->parseHeaderOnly_)
                                                YYACCEPT;
+
+                                             driver->chunks_.push_back ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta));
+
+/*                                             std::string frame_header_string = match_results[1].str ();
+                                             bool is_video_frame =
+                                               frame_header_string[0] == 'c' && frame_header_string[1] == 'd';*/
+                                             if (!driver->frame ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta)))
+                                               YYABORT;
                                            } // end IF
-                                           else if (driver->inFrames_)
-                                             driver->betweenFrameChunk ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta));
+                                           else
+                                           {
+                                             driver->chunks_.push_back ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta));
+
+                                             if (driver->inFrames_)
+                                               driver->betweenFrameChunk ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta));
+                                           }
                                          }
     break;
 

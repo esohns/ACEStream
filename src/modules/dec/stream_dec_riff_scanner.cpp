@@ -2713,7 +2713,7 @@ static const yy_state_type yy_NUL_trans[59] =
 static const flex_int32_t yy_rule_linenum[13] =
     {   0,
        99,  108,  117,  126,  129,  136,  146,  155,  164,  174,
-      198,  205
+      197,  204
     } ;
 
 /* The intent behind this definition is that it'll catch
@@ -3229,7 +3229,7 @@ YY_DECL
   //yylloc->step ();
   yy_flex_debug = driver->getDebugScanner ();
 
-  int missing_bytes = 0;
+  unsigned int missing_bytes = 0;
 
 
 
@@ -3424,7 +3424,7 @@ YY_RULE_SETUP
 { ACE_ASSERT (missing_bytes);
                              --missing_bytes;
                              char c = 0;
-                             for (int i = 0;
+                             for (unsigned int i = 0;
                                   i < missing_bytes;
                                   ++i)
                              {
@@ -3432,8 +3432,7 @@ YY_RULE_SETUP
                                // *IMPORTANT NOTE*: yyinput() zeroes the buffer --> put the data back
                                *(yyg->yy_c_buf_p - 1) = c;
                              } // end FOR
-/*                             if (missing_bytes)
-                               break;*/
+
                              driver->fragmentOffset_ += yylval->chunk_meta.size;
                              driver->offset_ += yylval->chunk_meta.size;
                              if (unlikely (yylval->chunk_meta.size % 2))
@@ -4942,8 +4941,7 @@ RIFF_Scanner_reset_hold_char (yyscan_t yyscanner)
 
   struct yyguts_t* yyg = static_cast<struct yyguts_t*> (yyscanner);
   ACE_ASSERT (yyg);
-  if (yyg->yy_hold_char)
-    *yyg->yy_c_buf_p = yyg->yy_hold_char;
+  *yyg->yy_c_buf_p = yyg->yy_hold_char;
 }
 
 #ifdef __cplusplus

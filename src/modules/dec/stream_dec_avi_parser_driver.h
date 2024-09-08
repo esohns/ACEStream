@@ -59,7 +59,7 @@ class Stream_Decoder_AVIParserDriver
   virtual ~Stream_Decoder_AVIParserDriver ();
 
   // target data, needs to be set before invoking parse() !
-  void initialize (unsigned int&,                                         // target data (frame size)
+  void initialize (ACE_UINT32&,                                           // target data (bitmap frame size)
                    bool,                                                  // parse header only ? : parse the whole (file) stream
                    bool = COMMON_PARSER_DEFAULT_LEX_TRACE,                // debug scanner ?
                    bool = COMMON_PARSER_DEFAULT_YACC_TRACE,               // debug parser ?
@@ -91,7 +91,8 @@ class Stream_Decoder_AVIParserDriver
   bool                        parseHeaderOnly_;
 
   // target
-  unsigned int*               frameSize_;
+  bool                        isVids_; // currently in 'vids' strh
+  ACE_UINT32*                 frameSize_; // bitmap-
 
  protected:
   yyscan_t                    scannerState_;

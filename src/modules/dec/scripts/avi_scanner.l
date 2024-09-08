@@ -91,7 +91,7 @@ DATA           [\x00-\xFF]
   //yylloc->step ();
   yy_flex_debug = driver->getDebugScanner ();
 
-  int missing_bytes = 0;
+  unsigned int missing_bytes = 0;
 %}
 
 <INITIAL>{
@@ -173,7 +173,7 @@ DATA           [\x00-\xFF]
 {DATA}{1}                  { ACE_ASSERT (missing_bytes);
                              --missing_bytes;
                              char c = 0;
-                             for (int i = 0;
+                             for (unsigned int i = 0;
                                   i < missing_bytes;
                                   ++i)
                              {
@@ -181,8 +181,7 @@ DATA           [\x00-\xFF]
                                // *IMPORTANT NOTE*: yyinput() zeroes the buffer --> put the data back
                                *(yyg->yy_c_buf_p - 1) = c;
                              } // end FOR
-/*                             if (missing_bytes)
-                               break;*/
+
                              driver->fragmentOffset_ += yylval->chunk_meta.size;
                              driver->offset_ += yylval->chunk_meta.size;
                              if (unlikely (yylval->chunk_meta.size % 2))

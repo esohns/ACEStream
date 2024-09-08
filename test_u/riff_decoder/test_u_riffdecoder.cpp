@@ -80,6 +80,10 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING]: filename")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-h         : parse header only [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l         : log to a file [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -99,6 +103,7 @@ do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
                      bool& debug_out,
                      std::string& fileName_out,
+                     bool& parseHeaderOnly_out,
                      bool& logToFile_out,
                      bool& traceInformation_out,
                      bool& printVersionAndExit_out)
@@ -108,13 +113,14 @@ do_processArguments (int argc_in,
   // initialize results
   debug_out = false;
   fileName_out.clear ();
+  parseHeaderOnly_out = false;
   logToFile_out = false;
   traceInformation_out = false;
   printVersionAndExit_out = false;
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("df:ltv"),
+                              ACE_TEXT ("df:hltv"),
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
@@ -138,6 +144,11 @@ do_processArguments (int argc_in,
           fileName_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
           fileName_out.clear ();
+        break;
+      }
+      case 'h':
+      {
+        parseHeaderOnly_out = true;
         break;
       }
       case 'l':
@@ -191,7 +202,8 @@ do_processArguments (int argc_in,
 
 void
 do_work (bool debug_in,
-         const std::string& fileName_in)
+         const std::string& fileName_in,
+         bool parseHeaderOnly_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
@@ -221,6 +233,7 @@ do_work (bool debug_in,
   if (debug_in)
     configuration.parserConfiguration.debugScanner = true;
 #endif // _DEBUG
+  configuration.parserConfiguration.extractHeaderOnly = parseHeaderOnly_in;
 
   // ********************** module configuration data **************************
   struct Test_U_RIFFDecoder_ModuleHandlerConfiguration modulehandler_configuration;
@@ -365,6 +378,7 @@ ACE_TMAIN (int argc_in,
   // step1a set defaults
   bool debug = false;
   std::string file_name;
+  bool parse_header_only_b = false;
   bool log_to_file = false;
   bool trace_information = false;
   bool print_version_and_exit = false;
@@ -374,6 +388,7 @@ ACE_TMAIN (int argc_in,
                             argv_in,
                             debug,
                             file_name,
+                            parse_header_only_b,
                             log_to_file,
                             trace_information,
                             print_version_and_exit))
@@ -486,7 +501,8 @@ ACE_TMAIN (int argc_in,
   timer.start ();
   // step2: do actual work
   do_work (debug,
-           file_name);
+           file_name,
+           parse_header_only_b);
   timer.stop ();
 
   // debug info

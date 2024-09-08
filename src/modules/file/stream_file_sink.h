@@ -68,9 +68,9 @@ class Stream_Module_FileWriter_T
   Stream_Module_FileWriter_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Module_FileWriter_T ();
 
-  // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator* = NULL);
+  //// override (part of) Stream_IModuleHandler_T
+  //virtual bool initialize (const ConfigurationType&,
+  //                         Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -126,9 +126,9 @@ class Stream_Module_FileWriter_2
   Stream_Module_FileWriter_2 (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Module_FileWriter_2 ();
 
-  // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator* = NULL);
+  //// override (part of) Stream_IModuleHandler_T
+  //virtual bool initialize (const ConfigurationType&,
+  //                         Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle

@@ -107,8 +107,6 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  if (unlikely (!isOpen_))
-    return;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   size_t bytes_transferred = std::numeric_limits<unsigned int>::max ();
@@ -144,7 +142,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
     {
       if (unlikely (bytes_written != static_cast<ssize_t> (message_inout->total_length ())))
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_File_IO::send_n(): \"%m\" [wrote %d/%d bytes], continuing\n"),
+                    ACE_TEXT ("%s: failed to ACE_File_IO::send_n(): \"%m\" [wrote %B/%B bytes], continuing\n"),
                     inherited::mod_->name (),
                     bytes_transferred,
                     message_inout->total_length ()));
@@ -194,9 +192,10 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
       const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
           session_data_container_r.getR ();
       std::string directory, file_name;
-      int open_flags = (O_CREAT |
-                        O_TRUNC |
-                        O_WRONLY);
+      int open_flags = (O_WRONLY |
+                        O_CREAT  |
+                        O_TRUNC  |
+                        O_BINARY);
 
       result =
         path_.set (ACE_TEXT (session_data_r.targetFileName.c_str ()));
@@ -224,11 +223,11 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
       // *TODO*: remove type inferences
       directory =
         (session_data_r.targetFileName.empty () ? (is_empty ? Common_File_Tools::getTempDirectory ()
-                                                            : ACE_TEXT (path_name_p))
+                                                            : ACE_TEXT_ALWAYS_CHAR (path_name_p))
                                                 : session_data_r.targetFileName);
       file_name =
         (session_data_r.targetFileName.empty () ? (is_empty ? ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME)
-                                                            : ACE_TEXT (path_name_p))
+                                                            : ACE_TEXT_ALWAYS_CHAR (path_name_p))
                                                 : session_data_r.targetFileName);
       // sanity check(s)
       if (!Common_File_Tools::isDirectory (directory))
@@ -402,9 +401,10 @@ continue_:
                     inherited::mod_->name (),
                     ACE_TEXT (file_name.c_str ())));
 
-      int open_flags = (O_CREAT |
-                        O_TRUNC |
-                        O_WRONLY);
+      int open_flags = (O_WRONLY |
+                        O_CREAT  |
+                        O_TRUNC  |
+                        O_BINARY);
       if (unlikely (!Common_File_Tools::open (file_name,  // FQ file name
                                               open_flags, // flags
                                               stream_)))  // stream
@@ -467,28 +467,28 @@ continue_:
   } // end SWITCH
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-bool
-Stream_Module_FileWriter_T<ACE_SYNCH_USE,
-                           TimePolicyType,
-                           ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType>::initialize (const ConfigurationType& configuration_in,
-                                                            Stream_IAllocator* allocator_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::initialize"));
-
-  ACE_UNUSED_ARG (allocator_in);
-
-  return inherited::initialize (configuration_in,
-                                allocator_in);
-}
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType>
+//bool
+//Stream_Module_FileWriter_T<ACE_SYNCH_USE,
+//                           TimePolicyType,
+//                           ConfigurationType,
+//                           ControlMessageType,
+//                           DataMessageType,
+//                           SessionMessageType>::initialize (const ConfigurationType& configuration_in,
+//                                                            Stream_IAllocator* allocator_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::initialize"));
+//
+//  ACE_UNUSED_ARG (allocator_in);
+//
+//  return inherited::initialize (configuration_in,
+//                                allocator_in);
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -558,8 +558,6 @@ Stream_Module_FileWriter_2<TimePolicyType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  if (unlikely (!isOpen_))
-    return;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   size_t bytes_transferred = std::numeric_limits<unsigned int>::max ();
@@ -643,9 +641,10 @@ Stream_Module_FileWriter_2<TimePolicyType,
       const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
           session_data_container_r.getR ();
       std::string directory, file_name;
-      int open_flags = (O_CREAT |
-                        O_TRUNC |
-                        O_WRONLY);
+      int open_flags = (O_WRONLY |
+                        O_CREAT  |
+                        O_TRUNC  |
+                        O_BINARY);
 
       result =
         path_.set (ACE_TEXT (session_data_r.targetFileName.c_str ()));
@@ -673,11 +672,11 @@ Stream_Module_FileWriter_2<TimePolicyType,
       // *TODO*: remove type inferences
       directory =
         (session_data_r.targetFileName.empty () ? (is_empty ? Common_File_Tools::getTempDirectory ()
-                                                            : ACE_TEXT (path_name_p))
+                                                            : ACE_TEXT_ALWAYS_CHAR (path_name_p))
                                                 : session_data_r.targetFileName);
       file_name =
         (session_data_r.targetFileName.empty () ? (is_empty ? ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME)
-                                                            : ACE_TEXT (path_name_p))
+                                                            : ACE_TEXT_ALWAYS_CHAR (path_name_p))
                                                 : session_data_r.targetFileName);
       // sanity check(s)
       if (!Common_File_Tools::isDirectory (directory))
@@ -701,7 +700,7 @@ Stream_Module_FileWriter_2<TimePolicyType,
         else if (Common_File_Tools::isValidFilename (directory))
         {
           directory =
-            ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
+            ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ()), ACE_DIRECTORY_SEPARATOR_CHAR));
           if (!Common_File_Tools::isDirectory (directory))
             if (unlikely (!Common_File_Tools::createDirectory (directory)))
             {
@@ -841,9 +840,10 @@ continue_:
                     inherited::mod_->name (),
                     ACE_TEXT (file_name.c_str ())));
 
-      int open_flags = (O_CREAT |
-                        O_TRUNC |
-                        O_WRONLY);
+      int open_flags = (O_WRONLY |
+                        O_CREAT  |
+                        O_TRUNC  |
+                        O_BINARY);
       if (unlikely (!Common_File_Tools::open (file_name,  // FQ file name
                                               open_flags, // flags
                                               stream_)))  // stream
@@ -907,43 +907,43 @@ continue_:
   } // end SWITCH
 }
 
-template <typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-bool
-Stream_Module_FileWriter_2<TimePolicyType,
-                           ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType>::initialize (const ConfigurationType& configuration_in,
-                                                            Stream_IAllocator* allocator_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_2::initialize"));
-
-  ACE_UNUSED_ARG (allocator_in);
-
-  //int result =
-  //  path_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
-  //if (unlikely (result == -1))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
-  //              inherited::mod_->name (),
-  //              ACE_TEXT (configuration_in.targetFileName.c_str ())));
-  //  return false;
-  //} // end IF
-
-  //if (unlikely (Common_File_Tools::isReadable (configuration_in.targetFileName)))
-  //  ACE_DEBUG ((LM_WARNING,
-  //              ACE_TEXT ("%s: target file \"%s\" exists, continuing\n"),
-  //              inherited::mod_->name (),
-  //              ACE_TEXT (configuration_in.targetFileName.c_str ())));
-
-  return inherited::initialize (configuration_in,
-                                allocator_in);
-}
+//template <typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType>
+//bool
+//Stream_Module_FileWriter_2<TimePolicyType,
+//                           ConfigurationType,
+//                           ControlMessageType,
+//                           DataMessageType,
+//                           SessionMessageType>::initialize (const ConfigurationType& configuration_in,
+//                                                            Stream_IAllocator* allocator_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_2::initialize"));
+//
+//  ACE_UNUSED_ARG (allocator_in);
+//
+//  //int result =
+//  //  path_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
+//  //if (unlikely (result == -1))
+//  //{
+//  //  ACE_DEBUG ((LM_ERROR,
+//  //              ACE_TEXT ("%s: failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
+//  //              inherited::mod_->name (),
+//  //              ACE_TEXT (configuration_in.targetFileName.c_str ())));
+//  //  return false;
+//  //} // end IF
+//
+//  //if (unlikely (Common_File_Tools::isReadable (configuration_in.targetFileName)))
+//  //  ACE_DEBUG ((LM_WARNING,
+//  //              ACE_TEXT ("%s: target file \"%s\" exists, continuing\n"),
+//  //              inherited::mod_->name (),
+//  //              ACE_TEXT (configuration_in.targetFileName.c_str ())));
+//
+//  return inherited::initialize (configuration_in,
+//                                allocator_in);
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1019,7 +1019,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  if (isOpen_)
+  if (unlikely (isOpen_))
   {
     result = stream_.close ();
     if (unlikely (result == -1))
@@ -1066,12 +1066,6 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  if (unlikely (!isOpen_))
-  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to open file, returning\n")));
-    return;
-  } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   size_t bytes_transferred = std::numeric_limits<unsigned int>::max ();
@@ -1242,7 +1236,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
           ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
       else if (Common_File_Tools::isValidFilename (file_name))
         file_name =
-          ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
+          ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ()), ACE_DIRECTORY_SEPARATOR_CHAR));
       file_name = directory +
                   ACE_DIRECTORY_SEPARATOR_CHAR_A +
                   file_name;
@@ -1264,13 +1258,14 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
       } // end IF
       result =
           file_connector.connect (stream_,                 // stream
-                                  path_,               // filename
+                                  path_,                   // filename
                                   NULL,                    // timeout (block)
                                   ACE_Addr::sap_any,       // (local) filename: N/A
                                   0,                       // reuse_addr: N/A
-                                  (O_CREAT |
-                                   O_TRUNC |
-                                   O_WRONLY),              // flags --> open
+                                  (O_WRONLY |
+                                   O_CREAT  |
+                                   O_TRUNC  |
+                                   O_BINARY),              // flags --> open
                                   ACE_DEFAULT_FILE_PERMS); // permissions --> open
       if (unlikely (result == -1))
       {
@@ -1380,9 +1375,10 @@ error:
                     inherited::mod_->name (),
                     ACE_TEXT (file_name.c_str ())));
 
-      int open_flags = (O_CREAT |
-                        O_TRUNC |
-                        O_WRONLY);
+      int open_flags = (O_WRONLY |
+                        O_CREAT  |
+                        O_TRUNC  |
+                        O_BINARY);
       if (unlikely (!Common_File_Tools::open (file_name,  // FQ file name
                                               open_flags, // flags
                                               stream_)))  // stream
@@ -1409,9 +1405,9 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
-        ACE_TCHAR buffer[PATH_MAX];
-        ACE_OS::memset (buffer, 0, sizeof (buffer));
-        result = path_.addr_to_string (buffer, sizeof (buffer));
+        ACE_TCHAR buffer_a[PATH_MAX];
+        ACE_OS::memset (buffer_a, 0, sizeof (ACE_TCHAR[PATH_MAX]));
+        result = path_.addr_to_string (buffer_a, sizeof (ACE_TCHAR[PATH_MAX]));
         if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
@@ -1433,10 +1429,10 @@ error:
         } // end IF
         isOpen_ = false;
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed file stream \"%s\" (wrote: %u byte(s))\n"),
+                    ACE_TEXT ("%s: closed file stream \"%s\" (wrote: %q byte(s))\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (buffer),
-                    static_cast<unsigned int> (file_info.size_)));
+                    buffer_a,
+                    file_info.size_));
       } // end IF
 
       break;
@@ -1493,16 +1489,16 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
     isOpen_ = false;
   } // end IF
 
-  result_2 =
-    path_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
-  if (unlikely (result_2 == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (configuration_in.targetFileName.c_str ())));
-    return false;
-  } // end IF
+  //result_2 =
+  //  path_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
+  //if (unlikely (result_2 == -1))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
+  //              inherited::mod_->name (),
+  //              ACE_TEXT (configuration_in.targetFileName.c_str ())));
+  //  return false;
+  //} // end IF
 
   // sanity check(s)
   // *TODO*: remove type inferences

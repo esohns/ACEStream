@@ -334,10 +334,10 @@ dispatch:
   // sanity check(s)
   ACE_ASSERT (buffer_);
   size_t buffered_bytes = buffer_->total_length ();
-  ACE_ASSERT (buffered_bytes >= frameSize_ + 4 + 4);
+  ACE_ASSERT (buffered_bytes >= chunk_in.size + 4 + 4);
 
   message_block_p = NULL;
-  if (buffered_bytes == frameSize_ + 4 + 4)
+  if (buffered_bytes == chunk_in.size + 4 + 4)
     goto dispatch_2;
 
   // --> (buffered_bytes > frameSize_ + 4 + 4)
@@ -347,12 +347,12 @@ dispatch:
   do
   {
     skipped_bytes += message_block_2->length ();
-    if (skipped_bytes >= frameSize_ + 4 + 4)
+    if (skipped_bytes >= chunk_in.size + 4 + 4)
       break;
     message_block_2 = message_block_2->cont ();
     ACE_ASSERT (message_block_2);
   } while (true);
-  if (skipped_bytes > frameSize_ + 4 + 4)
+  if (skipped_bytes > chunk_in.size + 4 + 4)
   {
     ACE_Message_Block* message_block_3 = message_block_2->duplicate ();
     if (unlikely (!message_block_3))
@@ -364,7 +364,7 @@ dispatch:
     } // end IF
 
     bytes_to_skip =
-      message_block_2->length () - (skipped_bytes - (frameSize_ + 4 + 4));
+      message_block_2->length () - (skipped_bytes - (chunk_in.size + 4 + 4));
     message_block_3->rd_ptr (bytes_to_skip);
     message_block_2->length (bytes_to_skip);
     if (message_block_2->cont ())
@@ -374,13 +374,13 @@ dispatch:
   } // end IF
 
 dispatch_2:
-  ACE_ASSERT (buffer_->total_length () == frameSize_ + 4 + 4);
+  ACE_ASSERT (buffer_->total_length () == chunk_in.size + 4 + 4);
 
   // remove AVI frame header (00db, ...)
   Stream_Tools::skip (4 + 4,
                       buffer_,
                       false); // release skipped bytes, if possible
-  ACE_ASSERT (buffer_->total_length () == frameSize_);
+  ACE_ASSERT (buffer_->total_length () == chunk_in.size);
 
   RIFF_Scanner_reset_hold_char (inherited2::scannerState_);
   result = inherited::put_next (buffer_, NULL);

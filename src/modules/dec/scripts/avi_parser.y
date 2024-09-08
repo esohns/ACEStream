@@ -205,20 +205,30 @@ chunks:         %empty                   { $$ = 0; }
                                          }
                   chunks                 { $$ = 4 + 4 + 4 + $3; };
                 | "chunk"                {
-                                           driver->chunks_.push_back ($1);
-
                                            const char* char_p = NULL;
-                                           if ($1.identifier == FOURCC ('s', 't', 'r', 'f'))
+
+                                           if ($1.identifier == FOURCC ('s', 't', 'r', 'h'))
                                            {
-                                             ACE_ASSERT (driver->frameSize_);
                                              char_p =
                                                driver->fragment_->base () + (driver->fragmentOffset_ - $1.size);
-                                             // *NOTE*: hard-coded offset into struct tagBITMAPINFOHEADER
-                                             *driver->frameSize_ =
-                                               *reinterpret_cast<const ACE_UINT32*> (char_p + 4 + 4 + 4 + 2 + 2 + 4);
-                                             ACE_DEBUG ((LM_DEBUG,
-                                                         ACE_TEXT ("frame size is: %u byte(s)\n"),
-                                                         *driver->frameSize_));
+                                             driver->isVids_ =
+                                                FOURCC ('s', 'd', 'i', 'v') == *reinterpret_cast<const ACE_UINT32*> (char_p);
+                                           } // end IF
+
+                                           if ($1.identifier == FOURCC ('s', 't', 'r', 'f'))
+                                           { ACE_ASSERT (driver->frameSize_);
+                                             if (driver->isVids_ &&
+                                                 !*driver->frameSize_) // get first video stream only
+                                             {
+                                               char_p =
+                                                 driver->fragment_->base () + (driver->fragmentOffset_ - $1.size);
+                                               // *NOTE*: hard-coded offset into struct tagBITMAPINFOHEADER
+                                               *driver->frameSize_ =
+                                                 *reinterpret_cast<const ACE_UINT32*> (char_p + 4 + 4 + 4 + 2 + 2 + 4);
+                                               ACE_DEBUG ((LM_DEBUG,
+                                                           ACE_TEXT ("video frame size is: %u byte(s)\n"),
+                                                           *driver->frameSize_));
+                                             } // end IF
                                            } // end IF
 
                                            char_p =
@@ -240,12 +250,24 @@ chunks:         %empty                   { $$ = 0; }
                                              if (driver->parseHeaderOnly_)
                                                driver->finished_ = true;
                                              driver->inFrames_ = true;
-                                             if (!driver->frame ($1) ||
-                                                 driver->parseHeaderOnly_)
+                                             if (driver->parseHeaderOnly_)
                                                YYACCEPT;
+
+                                             driver->chunks_.push_back ($1);
+
+/*                                             std::string frame_header_string = match_results[1].str ();
+                                             bool is_video_frame =
+                                               frame_header_string[0] == 'c' && frame_header_string[1] == 'd';*/
+                                             if (!driver->frame ($1))
+                                               YYABORT;
                                            } // end IF
-                                           else if (driver->inFrames_)
-                                             driver->betweenFrameChunk ($1);
+                                           else
+                                           {
+                                             driver->chunks_.push_back ($1);
+
+                                             if (driver->inFrames_)
+                                               driver->betweenFrameChunk ($1);
+                                           }
                                          }
                   chunks                 { $$ = 4 + 4 + $1.size + $3; };
 %%
