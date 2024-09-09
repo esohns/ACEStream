@@ -21,7 +21,7 @@
 
 #include "test_u_camsave_gtk_callbacks.h"
 
-#include <math.h>
+#include <cmath>
 
 #include <limits>
 #include <map>
@@ -4941,7 +4941,7 @@ button_hw_settings_clicked_cb (GtkButton* button_in,
       // display modal properties dialog
       // *TODO*: implement modeless support
       result =
-        OleCreatePropertyFrame (gdk_win32_window_get_impl_hwnd (window_p), // Parent window {NULL ? modeless : modal}
+        OleCreatePropertyFrame (NULL,//gdk_win32_window_get_impl_hwnd (window_p), // Parent window {NULL ? modeless : modal}
                                 0, 0,                     // Reserved
 #if defined (OLE2ANSI)
                                 Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str (), // Caption for the dialog box

@@ -73,9 +73,9 @@
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "test_i_camera_ml_common.h"
-#if defined (TENSORFLOW_CC_SUPPORT)
+#if defined (TENSORFLOW_SUPPORT) || defined (TENSORFLOW_CC_SUPPORT)
 #include "test_i_camera_ml_module_tensorflow.h"
-#endif // TENSORFLOW_CC_SUPPORT
+#endif // TENSORFLOW_SUPPORT || TENSORFLOW_CC_SUPPORT
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 

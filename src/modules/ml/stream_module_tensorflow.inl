@@ -40,6 +40,7 @@ Stream_Module_Tensorflow_T<ConfigurationType,
                            DataMessageType,
                            SessionMessageType>::Stream_Module_Tensorflow_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
+ , graph_ (NULL)
  , session_ (NULL)
  , status_ (NULL)
 {
@@ -58,6 +59,8 @@ Stream_Module_Tensorflow_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Tensorflow_T::~Stream_Module_Tensorflow_T"));
 
+  if (graph_)
+    TF_DeleteGraph (graph_);
   if (session_)
     TF_DeleteSession (session_, status_);
   if (status_)
@@ -79,6 +82,9 @@ Stream_Module_Tensorflow_T<ConfigurationType,
 
   if (inherited::isInitialized_)
   {
+    if (graph_)
+      TF_DeleteGraph (graph_);
+    graph_ = NULL;
     if (session_)
       TF_DeleteSession (session_, status_);
     session_ = NULL;
@@ -110,11 +116,11 @@ Stream_Module_Tensorflow_T<ConfigurationType,
 
   status_ = TF_NewStatus ();
   ACE_ASSERT (status_);
-  TF_Graph* graph_p = TF_NewGraph ();
-  ACE_ASSERT (graph_p);
+  graph_ = TF_NewGraph ();
+  ACE_ASSERT (graph_);
   TF_ImportGraphDefOptions* options_p = TF_NewImportGraphDefOptions ();
   ACE_ASSERT (options_p);
-  TF_GraphImportGraphDef (graph_p, buffer_p, options_p, status_);
+  TF_GraphImportGraphDef (graph_, buffer_p, options_p, status_);
   TF_DeleteImportGraphDefOptions (options_p); options_p = NULL;
   if (unlikely (TF_GetCode (status_) != TF_OK))
   {
@@ -122,7 +128,7 @@ Stream_Module_Tensorflow_T<ConfigurationType,
                 ACE_TEXT ("%s: failed to import model (was: \"%s\"), aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (configuration_in.modelFile.c_str ())));
-    TF_DeleteGraph (graph_p);
+    TF_DeleteGraph (graph_); graph_ = NULL;
     TF_DeleteBuffer (buffer_p);
     return false;
   } // end IF
@@ -131,7 +137,7 @@ Stream_Module_Tensorflow_T<ConfigurationType,
   // create session
   TF_SessionOptions* options_2 = TF_NewSessionOptions ();
   ACE_ASSERT (options_2);
-  session_ = TF_NewSession (graph_p, options_2, status_);
+  session_ = TF_NewSession (graph_, options_2, status_);
   TF_DeleteSessionOptions (options_2); options_2 = NULL;
   if (TF_GetCode (status_) != TF_OK)
   {
@@ -139,7 +145,7 @@ Stream_Module_Tensorflow_T<ConfigurationType,
                 ACE_TEXT ("%s: failed to create session, aborting\n"),
                 inherited::mod_->name ()));
     TF_DeleteSession (session_, status_); session_ = NULL;
-    TF_DeleteGraph (graph_p);
+    TF_DeleteGraph (graph_); graph_ = NULL;
     TF_DeleteStatus (status_); status_ = NULL;
     return false;
   } // end IF

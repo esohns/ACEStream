@@ -44,6 +44,8 @@
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_macros.h"
 
+#include "test_i_camera_ml_defines.h"
+
 #if defined (TENSORFLOW_SUPPORT)
 template <typename ConfigurationType,
           typename ControlMessageType,
@@ -61,6 +63,13 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
+ , input0_ ()
+ , inputs_a_ ()
+ , output0_ ()
+ , output1_ ()
+ , output2_ ()
+ , output3_ ()
+ , outputs_a_ ()
  , labelMap_ ()
  , resolution_ ()
  , stride_ (0)
@@ -101,10 +110,52 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
               inherited::mod_->name (),
               labelMap_.size ()));
 
-  return inherited::initialize (configuration_in,
-                                allocator_in);
+  if (!inherited::initialize (configuration_in,
+                              allocator_in))
+    return false;
+
+  ACE_ASSERT (inherited::graph_);
+  TF_Operation* input_operation_p =
+    TF_GraphOperationByName (inherited::graph_,
+                             ACE_TEXT_ALWAYS_CHAR ("image_tensor"));
+  ACE_ASSERT (input_operation_p);
+  input0_.oper = input_operation_p;
+  input0_.index = 0;
+  inputs_a_[0] = input0_;
+
+  TF_Operation* output_operation_p =
+    TF_GraphOperationByName (inherited::graph_,
+                             ACE_TEXT_ALWAYS_CHAR ("detection_boxes"));
+  ACE_ASSERT (output_operation_p);
+  TF_Operation* output_operation_2 =
+    TF_GraphOperationByName (inherited::graph_,
+                             ACE_TEXT_ALWAYS_CHAR ("detection_scores"));
+  ACE_ASSERT (output_operation_2);
+  TF_Operation* output_operation_3 =
+    TF_GraphOperationByName (inherited::graph_,
+                             ACE_TEXT_ALWAYS_CHAR ("detection_classes"));
+  ACE_ASSERT (output_operation_3);
+  TF_Operation* output_operation_4 =
+    TF_GraphOperationByName (inherited::graph_,
+                             ACE_TEXT_ALWAYS_CHAR ("num_detections"));
+  ACE_ASSERT (output_operation_4);
+  output0_.oper = output_operation_p;
+  output0_.index = 0;
+  output1_.oper = output_operation_2;
+  output1_.index = 0;
+  output2_.oper = output_operation_3;
+  output2_.index = 0;
+  output3_.oper = output_operation_4;
+  output3_.index = 0;
+  outputs_a_[0] = output0_;
+  outputs_a_[1] = output1_;
+  outputs_a_[2] = output2_;
+  outputs_a_[3] = output3_;
+
+  return true;
 }
 
+inline void deallocator (void* data_in, size_t length_in, void* arg_in) {}
 
 template <typename ConfigurationType,
           typename ControlMessageType,
@@ -123,14 +174,14 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 
   static int nFrames = 30;
   static int iFrame = 0;
-  static double fps = 0.0;
+  static float fps = 0.0f;
   static time_t start = time (NULL);
   static time_t end;
 
   if (nFrames % (iFrame + 1) == 0)
   {
     time (&end);
-    fps = nFrames / difftime (end, start);
+    fps = nFrames / (float)difftime (end, start);
     time (&start);
   } // end IF
   iFrame++;
@@ -151,62 +202,103 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 
   uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
 
-  // run the graph on tensor
-  TF_Operation* input_operation_p = NULL;
-  struct TF_Output input_s;
-  input_s.oper = input_operation_p;
-  input_s.index = 0;
-  TF_Tensor* input_tensor_p = NULL;
+  // step1: run the graph on the image frame
+  int64_t raw_input_dims_a[4] = {1, resolution_.cy, resolution_.cx, 3};
+  TF_Tensor* input_tensor_p = TF_NewTensor (TF_UINT8, raw_input_dims_a, 4, data_p,
+                                            resolution_.cx * resolution_.cy * 3,
+                                            &deallocator, NULL);
+  ACE_ASSERT (input_tensor_p);
   TF_Tensor* run_input_tensors_a[1];
   run_input_tensors_a[0] = input_tensor_p;
-  TF_Operation* output_operation_p = NULL;
-  struct TF_Output output_s;
-  output_s.oper = output_operation_p;
-  output_s.index = 0;
-  TF_Tensor* output_tensor_p = NULL;
-  TF_Tensor* run_output_tensors_a[1];
+
+  std::vector<int64_t> boxes_dims_a = {1, TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I, 4};
+  std::vector<int64_t> scores_dims_a = {1, TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I};
+  std::vector<int64_t> classes_dims_a = {1, TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I};
+  std::vector<int64_t> num_detections_dims_a = {1, 1};
+  TF_Tensor* output_tensor_p =
+    TF_AllocateTensor (TF_FLOAT, boxes_dims_a.data (), static_cast<int> (boxes_dims_a.size ()), sizeof (float) * 4 * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I);
+  ACE_ASSERT (output_tensor_p);
+  TF_Tensor* output_tensor_2 =
+    TF_AllocateTensor (TF_FLOAT, scores_dims_a.data (), static_cast<int> (scores_dims_a.size ()), sizeof (float) * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I);
+  ACE_ASSERT (output_tensor_2);
+  TF_Tensor* output_tensor_3 =
+    TF_AllocateTensor (TF_FLOAT, classes_dims_a.data (), static_cast<int> (classes_dims_a.size ()), sizeof (float) * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I);
+  ACE_ASSERT (output_tensor_3);
+  TF_Tensor* output_tensor_4 =
+    TF_AllocateTensor (TF_FLOAT, num_detections_dims_a.data (), static_cast<int> (num_detections_dims_a.size ()), sizeof (float));
+  ACE_ASSERT (output_tensor_4);
+  TF_Tensor* run_output_tensors_a[4];
   run_output_tensors_a[0] = output_tensor_p;
-  TF_Status* status_p = TF_NewStatus ();
-  ACE_ASSERT (status_p);
-  TF_SetStatus (status_p, TF_OK, ACE_TEXT_ALWAYS_CHAR (""));
+  run_output_tensors_a[1] = output_tensor_2;
+  run_output_tensors_a[2] = output_tensor_3;
+  run_output_tensors_a[3] = output_tensor_4;
+
+  TF_SetStatus (status_, TF_OK, ACE_TEXT_ALWAYS_CHAR (""));
   TF_SessionRun (inherited::session_,
                  NULL,
-                 /* Input tensors */ &input_s, run_input_tensors_a, 1,
-                 /* Output tensors */ &output_s, run_output_tensors_a, 1,
+                 /* Input tensors */ inputs_a_, run_input_tensors_a, 1,
+                 /* Output tensors */ outputs_a_, run_output_tensors_a, 4,
                  /* Target operations */ NULL, 0,
                  NULL,
-                 status_p);
-  if (unlikely (TF_GetCode (status_p) != TF_OK))
+                 status_);
+  if (unlikely (TF_GetCode (status_) != TF_OK))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to TF_SessionRun(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (TF_Message (status_p))));
-    TF_DeleteStatus (status_p);
+                ACE_TEXT (TF_Message (status_))));
+    TF_DeleteTensor (input_tensor_p);
+    TF_DeleteTensor (output_tensor_p);
+    TF_DeleteTensor (output_tensor_2);
+    TF_DeleteTensor (output_tensor_3);
+    TF_DeleteTensor (output_tensor_4);
     inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
     return;
   } // end IF
-  TF_DeleteStatus (status_p); status_p = NULL;
+  TF_DeleteTensor (input_tensor_p); input_tensor_p = NULL;
 
+  // step2: extract results
+  std::vector<int> boxes_a;
   std::vector<float> scores_a;
   std::vector<float> classes_a;
-  std::vector<float> boxes_a;
-  good_indices_a = filterBoxes (scores_a, 0.5);
+  float* result_p = (float*)TF_TensorData (output_tensor_p);
+  float* result_2 = (float*)TF_TensorData (output_tensor_2);
+  float* result_3 = (float*)TF_TensorData (output_tensor_3);
+  float* result_4 = (float*)TF_TensorData (output_tensor_4);
+  int num_detections_i = (int)(result_4[0]);
+  for (int i = 0; i < num_detections_i && i < TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I; i++)
+  {
+    boxes_a.push_back ((int)(result_p[i*4 + 1] * resolution_.cx)); // xmin
+    boxes_a.push_back ((int)(result_p[i*4 + 3] * resolution_.cx)); // xmax
+    boxes_a.push_back ((int)(result_p[i*4 + 0] * resolution_.cy)); // ymin
+    boxes_a.push_back ((int)(result_p[i*4 + 2] * resolution_.cy)); // ymax
+
+    scores_a.push_back (result_2[i]);
+
+    classes_a.push_back (result_3[i]);
+  } // end FOR
+
+  TF_DeleteTensor (output_tensor_p);
+  TF_DeleteTensor (output_tensor_2);
+  TF_DeleteTensor (output_tensor_3);
+  TF_DeleteTensor (output_tensor_4);
+
+  good_indices_a = filterBoxes (scores_a, 0.5f);
   //  for (size_t i = 0; i < goodIdxs.size(); i++)
 //      LOG(INFO) << "score:" << scores(goodIdxs.at(i)) << ",class:" << labelsMap[classes(goodIdxs.at(i))]
 //                << " (" << classes(goodIdxs.at(i)) << "), box:" << "," << boxes(0, goodIdxs.at(i), 0) << ","
 //                << boxes(0, goodIdxs.at(i), 1) << "," << boxes(0, goodIdxs.at(i), 2) << ","
 //                << boxes(0, goodIdxs.at(i), 3);
 
-  // draw bboxes and captions
+  // step3a: draw bboxes and captions
   drawBoundingBoxes (frame_matrix, scores_a, classes_a, boxes_a, good_indices_a);
 
-  // draw fps
+  // step3b: draw fps
   cv::putText (frame_matrix,
-               std::to_string (fps).substr (0, 5),
-               cv::Point (0, frame_matrix.rows),
+               std::to_string (fps).substr (0, 5) + ACE_TEXT_ALWAYS_CHAR (" fps"),
+               cv::Point (0, frame_matrix.rows - 3),
                cv::FONT_HERSHEY_SIMPLEX,
-               0.7,
+               0.5,
                cv::Scalar (255, 255, 255));
 }
 
@@ -264,9 +356,17 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
       stride_ = resolution_.width * 3;
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#endif // ACE_WIN32 || ACE_WIN64
+
       break;
 
 //error:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#endif // ACE_WIN32 || ACE_WIN64
+
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
       return;
@@ -298,7 +398,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 
   // read file into a string
   std::ifstream file_stream (fileName_in);
-  if (file_stream.bad ())
+  if (unlikely (file_stream.bad ()))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to open label map file (was: \"%s\"), aborting\n"),
@@ -355,7 +455,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
                                     DataMessageType,
                                     SessionMessageType,
                                     MediaType>::filterBoxes (std::vector<float>& scores_in,
-                                                             double thresholdScore_in)
+                                                             float thresholdScore_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::filterBoxes"));
 
@@ -369,11 +469,6 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   {
     if (scores_in.at (sortIdxs.at (i)) < thresholdScore_in)
       badIdxs.insert (sortIdxs[i]);
-    if (badIdxs.find (sortIdxs.at (i)) != badIdxs.end ())
-    {
-      i++;
-      continue;
-    } // end IF
 
 //    Rect2f box1 = Rect2f(Point2f(boxes(0, sortIdxs.at(i), 1), boxes(0, sortIdxs.at(i), 0)),
 //                         Point2f(boxes(0, sortIdxs.at(i), 3), boxes(0, sortIdxs.at(i), 2)));
@@ -414,25 +509,24 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
                                     MediaType>::drawBoundingBoxes (cv::Mat& image_in,
                                                                    std::vector<float>& scores_in,
                                                                    std::vector<float>& classes_in,
-                                                                   std::vector<float>& boxes_in,
+                                                                   std::vector<int>& boxes_in,
                                                                    std::vector<size_t>& indices_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::drawBoundingBoxes"));
 
+  int xMin, xMax, yMin, yMax;
   for (size_t j = 0;
        j < indices_in.size ();
        j++)
   {
-    double xMin, xMax, yMin, yMax;
-    //xMin = boxes_in (0, indices_in.at (j), 1);
-    //xMax = boxes_in (0, indices_in.at (j), 3);
-    //yMin = boxes_in (0, indices_in.at (j), 0);
-    //yMax = boxes_in (0, indices_in.at (j), 2);
-    ACE_ASSERT (false); // *TODO*
+    xMin = boxes_in.at (indices_in.at (j) * 4 + 0);
+    xMax = boxes_in.at (indices_in.at (j) * 4 + 1);
+    yMin = boxes_in.at (indices_in.at (j) * 4 + 2);
+    yMax = boxes_in.at (indices_in.at (j) * 4 + 3);
 
     cv::Point tl, br;
-    tl = cv::Point((int) (xMin * image_in.cols), (int) (yMin * image_in.rows));
-    br = cv::Point((int) (xMax * image_in.cols), (int) (yMax * image_in.rows));
+    tl = cv::Point (xMin, yMin);
+    br = cv::Point (xMax, yMax);
     cv::rectangle (image_in, tl, br, cv::Scalar (0, 255, 255), 1);
 
     // Ceiling the score down to 3 decimals (weird!)
@@ -447,7 +541,12 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
                  tl.y + fontCoeff);
     cv::rectangle (image_in, tl, brRect, cv::Scalar (0, 255, 255), -1);
     cv::Point textCorner = cv::Point (tl.x, tl.y + static_cast<int> (fontCoeff * 0.9f));
-    cv::putText (image_in, caption, textCorner, cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar (255, 0, 0));
+    cv::putText (image_in,
+                 caption,
+                 textCorner,
+                 cv::FONT_HERSHEY_SIMPLEX,
+                 0.4,
+                 cv::Scalar (255, 0, 0));
   } // end FOR
 }
 #endif // TENSORFLOW_SUPPORT
@@ -704,9 +803,17 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
 #endif // ACE_WIN32 || ACE_WIN64
       shape_.AddDim (3);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#endif // ACE_WIN32 || ACE_WIN64
+
       break;
 
 //error:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#endif // ACE_WIN32 || ACE_WIN64
+
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
       return;

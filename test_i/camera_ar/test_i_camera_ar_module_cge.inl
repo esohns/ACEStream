@@ -23,6 +23,8 @@
 #include "stream_macros.h"
 #include "stream_tools.h"
 
+#include "test_i_camera_ar_defines.h"
+
 template <typename TaskType,
           typename MediaType>
 Test_I_CameraAR_Module_CGE_T<TaskType,
@@ -63,8 +65,9 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
 
   uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   float red_f, green_f, blue_f, luminance_f, difference_f;
-  static int screen_width_i = ScreenWidth ();
-  static int screen_height_i = ScreenHeight ();
+  static int screen_width_i = inherited3::ScreenWidth ();
+  static int screen_height_i = inherited3::ScreenHeight ();
+  static int screen_resolution_i = screen_width_i * screen_height_i;
 
   // backup previous frame data
   ACE_OS::memmove (previousImage, currentImage, sizeof (float) * screen_width_i * screen_height_i);
@@ -76,71 +79,70 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
     for (int x = 0; x < screen_width_i; x++)
     {
       // store luminance values
-      red_f = (float)data_p[2] / 255.0f;
-      green_f = (float)data_p[1] / 255.0f;
-      blue_f = (float)data_p[0] / 255.0f;
+      red_f = data_p[2] / 255.0f;
+      green_f = data_p[1] / 255.0f;
+      blue_f = data_p[0] / 255.0f;
       luminance_f = 0.2987f * red_f + 0.5870f * green_f + 0.1140f * blue_f;
-      currentImage[y * screen_width_i + x] = luminance_f;
+      currentImage[y*screen_width_i + x] = luminance_f;
 
       // low-pass filter camera image
       currentFilteredImage[y*screen_width_i + x] += (currentImage[y*screen_width_i + x] - currentFilteredImage[y*screen_width_i + x]) * 0.8f;
 
       // compute difference between two successive camera frames
       difference_f =
-        fabs (currentFilteredImage[y*screen_width_i + x] - previousFilteredImage[y*screen_width_i + x]);
-      // add threshold to filter out camera noise
-      currentMotionImage[y * screen_width_i + x] =
+        std::fabs (currentFilteredImage[y*screen_width_i + x] - previousFilteredImage[y*screen_width_i + x]);
+      // ...add threshold to filter out camera noise
+      currentMotionImage[y*screen_width_i + x] =
         (difference_f >= 0.05f) ? difference_f : 0.0f;
 
       data_p += 3;
     } // end FOR
 
   // compute flow vector map
-  int patch_size_i = 9;
-  int search_size_i = 7;
-
   float patch_difference_max_f/*, patch_difference_x_f, patch_difference_y_f*/;
   float accumulated_difference_f, patch_pixel_f, base_pixel_f;
   int search_vector_x_i, search_vector_y_i, patch_pixel_x_i, patch_pixel_y_i;
   int base_pixel_x_i, base_pixel_y_i;
-  for (int x = 0; x < screen_width_i; x++)
-    for (int y = 0; y < screen_height_i; y++)
+  for (int x = 0; x < screen_width_i; ++x)
+    for (int y = 0; y < screen_height_i; ++y)
     {
       patch_difference_max_f = INFINITY;
 //      patch_difference_x_f = 0.0f;
 //      patch_difference_y_f = 0.0f;
-      flowFieldX[y * screen_width_i + x] = 0.0f;
-      flowFieldY[y * screen_width_i + x] = 0.0f;
+      flowFieldX[y*screen_width_i + x] = 0.0f;
+      flowFieldY[y*screen_width_i + x] = 0.0f;
 
       // search over a given rectangular area for a "patch" of old image
       // that "resembles" a patch of the new image
-      for (int sx = 0; sx < search_size_i; sx++)
-        for (int sy = 0; sy < search_size_i; sy++)
+      for (int sx = 0; sx < TEST_I_CAMERA_AR_SEARCH_SIZE_I; ++sx)
+        for (int sy = 0; sy < TEST_I_CAMERA_AR_SEARCH_SIZE_I; ++sy)
         {
           // search vector is centre of patch test
-          search_vector_x_i = x + (sx - search_size_i / 2);
-          search_vector_y_i = y + (sy - search_size_i / 2);
+          search_vector_x_i = x + (sx - TEST_I_CAMERA_AR_SEARCH_SIZE_I / 2);
+          search_vector_y_i = y + (sy - TEST_I_CAMERA_AR_SEARCH_SIZE_I / 2);
 
           accumulated_difference_f = 0.0f;
 
           // for each pixel in search patch, accumulate difference with base patch
-          for (int px = 0; px < patch_size_i; px++)
-            for (int py = 0; py < patch_size_i; py++)
+          for (int px = 0; px < TEST_I_CAMERA_AR_PATCH_SIZE_I; px++)
+            for (int py = 0; py < TEST_I_CAMERA_AR_PATCH_SIZE_I; py++)
             {
               // Work out search patch offset indices
-              patch_pixel_x_i = search_vector_x_i + (px - patch_size_i / 2);
-              patch_pixel_y_i = search_vector_y_i + (py - patch_size_i / 2);
+              patch_pixel_x_i =
+                search_vector_x_i + (px - TEST_I_CAMERA_AR_PATCH_SIZE_I / 2);
+              patch_pixel_y_i =
+                search_vector_y_i + (py - TEST_I_CAMERA_AR_PATCH_SIZE_I / 2);
 
               // Work out base patch indices
-              base_pixel_x_i = x + (px - patch_size_i / 2);
-              base_pixel_y_i = y + (py - patch_size_i / 2);
+              base_pixel_x_i = x + (px - TEST_I_CAMERA_AR_PATCH_SIZE_I / 2);
+              base_pixel_y_i = y + (py - TEST_I_CAMERA_AR_PATCH_SIZE_I / 2);
 
               // Get adjacent values for each patch
               patch_pixel_f = getPixel (currentImage, patch_pixel_x_i, patch_pixel_y_i);
               base_pixel_f = getPixel (previousImage, base_pixel_x_i, base_pixel_y_i);
 
               // Accumulate difference
-              accumulated_difference_f += fabs (patch_pixel_f - base_pixel_f);
+              accumulated_difference_f += std::fabs (patch_pixel_f - base_pixel_f);
             } // end FOR
 
           // Record the vector offset for the search patch that is the
@@ -156,10 +158,10 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
 
   // modulate flow vector map with motion map, to remove vectors that
   // erroneously indicate large local motion
-  for (int i = 0; i < screen_width_i * screen_height_i; i++)
+  for (int i = 0; i < screen_resolution_i; i++)
   {
-    flowFieldX[i] *= currentMotionImage[i] > 0 ? 1.0f : 0.0f;
-    flowFieldY[i] *= currentMotionImage[i] > 0 ? 1.0f : 0.0f;
+    flowFieldX[i] = currentMotionImage[i] > 0.0f ? flowFieldX[i] : 0.0f;
+    flowFieldY[i] = currentMotionImage[i] > 0.0f ? flowFieldY[i] : 0.0f;
   } // end FOR
 }
 
@@ -225,6 +227,10 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
       ballX = inherited3::ScreenWidth () / 2.0f;
       ballY = inherited3::ScreenHeight () / 2.0f;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#endif // ACE_WIN32 || ACE_WIN64
+
       break;
 
 //error:
@@ -286,7 +292,7 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_CGE_T::OnUserUpdate"));
 
   // process next message
-  if (processNextMessage ())
+  if (unlikely (!processNextMessage ()))
     return false; // done
 
   // move ball
@@ -300,23 +306,27 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   ballY += 1.0f * ballVelocityY * fElapsedTime_in;
 
   // add "drag" effect to ball velocity
-  ballVelocityX *= 0.85f;
-  ballVelocityY *= 0.85f;
+  ballVelocityX *= TEST_I_CAMERA_AR_DRAG_FACTOR_F;
+  ballVelocityY *= TEST_I_CAMERA_AR_DRAG_FACTOR_F;
 
   // wrap ball around screen
-  while (ballX >= inherited3::ScreenWidth ()) ballX -= (float)inherited3::ScreenWidth ();
-  while (ballY >= inherited3::ScreenHeight ()) ballY -= (float)inherited3::ScreenHeight ();
-  while (ballX < 0) ballX += (float)inherited3::ScreenWidth ();
-  while (ballY < 0) ballY += (float)inherited3::ScreenHeight ();
+  while (ballX >= (float)inherited3::ScreenWidth ())
+    ballX -= (float)inherited3::ScreenWidth ();
+  while (ballY >= (float)inherited3::ScreenHeight ())
+    ballY -= (float)inherited3::ScreenHeight ();
+  while (ballX < 0.0f)
+    ballX += (float)inherited3::ScreenWidth ();
+  while (ballY < 0.0f)
+    ballY += (float)inherited3::ScreenHeight ();
 
   // draw image
   drawImage (currentImage);
 
   // draw ball
-  inherited3::Fill (static_cast<int> (ballX - 4),
-                    static_cast<int> (ballY - 4),
-                    static_cast<int> (ballX + 4),
-                    static_cast<int> (ballY + 4), PIXEL_SOLID, FG_RED);
+  inherited3::Fill (static_cast<int> (ballX - 4.0f), static_cast<int> (ballY - 4.0f),
+                    static_cast<int> (ballX + 4.0f), static_cast<int> (ballY + 4.0f),
+                    PIXEL_SOLID,
+                    FG_RED);
 
   return !inherited3::GetKey (VK_ESCAPE).bPressed;
 }
@@ -477,11 +487,13 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   wchar_t symbol_c = 0;
   short bg_color_i = 0, fg_color_i = 0;
   int pixel_bw = 0;
+  static int screen_width_i = inherited3::ScreenWidth ();
+  static int screen_height_i = inherited3::ScreenHeight ();
 
-  for (int x = 0; x < ScreenWidth (); x++)
-    for (int y = 0; y < ScreenHeight (); y++)
+  for (int x = 0; x < screen_width_i; x++)
+    for (int y = 0; y < screen_height_i; y++)
     {
-	    pixel_bw = (int)(image_in[y*ScreenWidth () + x] * 13.0f);
+	    pixel_bw = (int)(image_in[y*screen_width_i + x] * 13.0f);
 	    switch (pixel_bw)
 	    {
 	      case 0:  bg_color_i = BG_BLACK;     fg_color_i = FG_BLACK;     symbol_c = PIXEL_SOLID; break;
@@ -497,7 +509,8 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
 	      case 10: bg_color_i = BG_GREY;      fg_color_i = FG_WHITE;     symbol_c = PIXEL_HALF; break;
 	      case 11: bg_color_i = BG_GREY;      fg_color_i = FG_WHITE;     symbol_c = PIXEL_THREEQUARTERS; break;
 	      case 12: bg_color_i = BG_GREY;      fg_color_i = FG_WHITE;     symbol_c = PIXEL_SOLID; break;
-	    } // end SWITCH
+        default: bg_color_i = BG_WHITE;     fg_color_i = FG_WHITE;     symbol_c = PIXEL_SOLID; break;
+      } // end SWITCH
 	    inherited3::Draw (x, y, symbol_c, bg_color_i | fg_color_i);
     } // end FOR
 }
@@ -511,18 +524,18 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_CGE_T::processNextMessage"));
 
   ACE_Message_Block* message_block_p = NULL;
-  static ACE_Time_Value no_wait = COMMON_TIME_NOW;
+  static ACE_Time_Value no_wait = ACE_OS::gettimeofday ();
   int result = inherited::getq (message_block_p, &no_wait);
   if (unlikely (result == -1))
   {
     int error = ACE_OS::last_error ();
     if (likely (error == EWOULDBLOCK))
-      return false; // continue CGE
+      return true; // continue CGE
     if (unlikely (error != ESHUTDOWN))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: worker thread %t failed to ACE_Task::getq(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
-    return true; // stop PGE
+    return false; // stop CGE
   } // end IF
   ACE_ASSERT (message_block_p);
 
@@ -536,7 +549,7 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
                   inherited::mod_->name ()));
       message_block_p->release ();
     } // end IF
-    return true; // stop CGE
+    return false; // stop CGE
   } // end IF
 
   // process manually
@@ -547,8 +560,8 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   {
     inherited::stop (false, // wait ?
                      true); // high priority ?
-    return true; // stop CGE
+    return false; // stop CGE
   } // end IF
 
-  return false; // continue CGE
+  return true; // continue CGE
 }

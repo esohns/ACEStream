@@ -187,14 +187,14 @@ do_work (int argc_in,
       fdt.append_child (mammals, ACE_TEXT_ALWAYS_CHAR ("canids"));
       fdt.append_child (felins, ACE_TEXT_ALWAYS_CHAR ("cats"));
 
-      tree_t::fixed_depth_iterator fi = fdt.begin_fixed (felins, 0);
+      tree_t::fixed_depth_iterator fi = fdt.begin_fixed (felins, 0, true);
       while (fdt.is_valid (fi))
       {
         std::cout << *fi << std::endl;
         ++fi;
       } // end WHILE
 
-      fi = fdt.begin_fixed (felins, 0);
+      fi = fdt.begin_fixed (felins, 0, true);
       while (fi != fdt.end_fixed (felins, 0)) // *IMPORTANT NOTE*: this crashes on tree.hh v3.7-latest
       {
         std::cout << *fi << std::endl;

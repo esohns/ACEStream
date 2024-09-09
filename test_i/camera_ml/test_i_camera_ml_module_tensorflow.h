@@ -95,12 +95,20 @@ class Test_I_CameraML_Module_Tensorflow_T
   // helper methods
   bool loadLabels (const std::string&); // label file path
   std::vector<size_t> filterBoxes (std::vector<float>&, // scores
-                                   double);             // threshold (score)
+                                   float);              // threshold (score)
   void drawBoundingBoxes (cv::Mat&,              // image
                           std::vector<float>&,   // scores
                           std::vector<float>&,   // classes
-                          std::vector<float>&,   // boxes
+                          std::vector<int>&,     // boxes
                           std::vector<size_t>&); // indices ("good")
+
+  struct TF_Output           input0_;
+  struct TF_Output           inputs_a_[1];
+  struct TF_Output           output0_;
+  struct TF_Output           output1_;
+  struct TF_Output           output2_;
+  struct TF_Output           output3_;
+  struct TF_Output           outputs_a_[4];
 
   std::map<int, std::string> labelMap_;
   Common_Image_Resolution_t  resolution_;

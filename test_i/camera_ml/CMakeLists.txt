@@ -142,12 +142,11 @@ if (OPENCV_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${OPENCV_LIBRARIES})
 endif (OPENCV_SUPPORT)
 if (TENSORFLOW_SUPPORT)
- if (TENSORFLOW_CC_SUPPORT)
-  target_link_libraries (${EXECUTABLE} PUBLIC ${tensorflow_cc_LIBRARIES})
- else ()
-  target_link_libraries (${EXECUTABLE} PUBLIC ${tensorflow_LIBRARIES})
- endif (TENSORFLOW_CC_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${tensorflow_LIBRARIES})
 endif (TENSORFLOW_SUPPORT)
+if (TENSORFLOW_CC_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${tensorflow_cc_LIBRARIES})
+endif (TENSORFLOW_CC_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 # target_link_libraries (${EXECUTABLE} PUBLIC stdc++fs)
@@ -206,11 +205,13 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 file (TO_NATIVE_PATH "${PROJECT_SOURCE_DIR}/test_i/${EXECUTABLE}/share/model.pb" MODEL_PATH)
 if (UNIX)
+ set (WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/${EXECUTABLE})
  set (ARGS "${ARGS} -f ${MODEL_PATH}")
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
-# set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
+ file (TO_NATIVE_PATH ${PROJECT_SOURCE_DIR}/test_i/${EXECUTABLE} WORKING_DIRECTORY)
+ string (REPLACE "\\" "\\\\" WORKING_DIRECTORY ${WORKING_DIRECTORY})
  string (REPLACE "\\" "\\\\" MODEL_PATH ${MODEL_PATH})
  set (ARGS "${ARGS} -f ${MODEL_PATH}")
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
@@ -223,12 +224,11 @@ elseif (WIN32)
   file (TO_CMAKE_PATH "${OPENCV_LIB_DIR}" OPENCV_PATH)
  endif (OPENCV_SUPPORT)
  if (TENSORFLOW_SUPPORT)
-  if (TENSORFLOW_CC_SUPPORT)
-   file (TO_CMAKE_PATH "${tensorflow_cc_LIB_DIR}" TENSORFLOW_PATH)
-  else ()
-   file (TO_CMAKE_PATH "${tensorflow_LIB_DIR}" TENSORFLOW_PATH)
-  endif (TENSORFLOW_CC_SUPPORT)
+  file (TO_CMAKE_PATH "${tensorflow_LIB_DIR}" TENSORFLOW_PATH)
  endif (TENSORFLOW_SUPPORT)
+ if (TENSORFLOW_CC_SUPPORT)
+  file (TO_CMAKE_PATH "${tensorflow_cc_LIB_DIR}" TENSORFLOW_CC_PATH)
+ endif (TENSORFLOW_CC_SUPPORT)
  if (GTK_SUPPORT)
   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
  endif (GTK_SUPPORT)
@@ -242,6 +242,7 @@ elseif (WIN32)
                            ${IMAGEMAGICK_PATH}
                            ${OPENCV_PATH}
                            ${TENSORFLOW_PATH}
+                           ${TENSORFLOW_CC_PATH}
                            ${ACE_LIBRARY_PATH})
  if (GTK_SUPPORT)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
@@ -257,14 +258,14 @@ create_target_launcher (${EXECUTABLE}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/${EXECUTABLE}
+                        WORKING_DIRECTORY ${WORKING_DIRECTORY}
                         ENVIRONMENT ${ENVIRONMENT})
 
 ##########################################
 
 add_test (NAME ${EXECUTABLE}_test
           COMMAND ${PROJECT_BINARY_DIR}/${EXECUTABLE} -l -t
-          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+          WORKING_DIRECTORY ${WORKING_DIRECTORY})
 
 set_tests_properties (${EXECUTABLE}_test
                       PROPERTIES

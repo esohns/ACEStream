@@ -1114,10 +1114,13 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       } // end IF
       //ACE_ASSERT (stream_config_p);
       // directShowCBData_in.streamConfiguration = stream_config_p;
-      //Stream_MediaFramework_DirectShow_Tools::setResolution ({ 160, 99},
-      //                                                       directshow_modulehandler_configuration.format);
+#if defined (_DEBUG)
       Stream_MediaFramework_DirectShow_Tools::setResolution ({ 80, 60},
                                                              directshow_modulehandler_configuration.outputFormat);
+#else
+      Stream_MediaFramework_DirectShow_Tools::setResolution ({ 160, 99},
+                                                             directshow_modulehandler_configuration.outputFormat);
+#endif // _DEBUG
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);

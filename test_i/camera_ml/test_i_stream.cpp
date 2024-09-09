@@ -104,14 +104,14 @@ Stream_CameraML_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //modules_out.push_back (&statisticReport_);
 #if defined (FFMPEG_SUPPORT)
   layout_in->append (&convert_, NULL, 0);
-  layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+  //layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 #endif // FFMPEG_SUPPORT
   layout_in->append (&flip_, NULL, 0);
-#if defined (TENSORFLOW_CC_SUPPORT)
-  layout_in->append (&tensorflow_cc_, NULL, 0);
-#elif defined (TENSORFLOW_SUPPORT)
+//#if defined (TENSORFLOW_CC_SUPPORT)
+//  layout_in->append (&tensorflow_cc_, NULL, 0);
+//#elif defined (TENSORFLOW_SUPPORT)
   layout_in->append (&tensorflow_, NULL, 0);
-#endif // TENSORFLOW_SUPPORT || TENSORFLOW_CC_SUPPORT
+//#endif // TENSORFLOW_SUPPORT || TENSORFLOW_CC_SUPPORT
   switch (inherited::configuration_->configuration_->renderer)
   {
 #if defined (GTK_SUPPORT)

@@ -81,6 +81,7 @@ class Stream_Module_Tensorflow_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
+  TF_Graph*   graph_;
   TF_Session* session_;
   TF_Status*  status_;
 
