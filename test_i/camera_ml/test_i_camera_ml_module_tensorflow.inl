@@ -155,8 +155,6 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   return true;
 }
 
-inline void deallocator (void* data_in, size_t length_in, void* arg_in) {}
-
 template <typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -204,10 +202,14 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 
   // step1: run the graph on the image frame
   int64_t raw_input_dims_a[4] = {1, resolution_.cy, resolution_.cx, 3};
-  TF_Tensor* input_tensor_p = TF_NewTensor (TF_UINT8, raw_input_dims_a, 4, data_p,
-                                            resolution_.cx * resolution_.cy * 3,
-                                            &deallocator, NULL);
+  TF_Tensor* input_tensor_p = TF_NewTensor (TF_UINT8, raw_input_dims_a, 4,
+                                            data_p, resolution_.cx * resolution_.cy * 3,
+                                            &test_i_cameraml_module_tensorflow_deallocator, NULL);
   ACE_ASSERT (input_tensor_p);
+  //TF_Tensor* input_tensor_p = TF_AllocateTensor (TF_UINT8, raw_input_dims_a, 4,
+  //                                               resolution_.cx * resolution_.cy * 3);
+  //ACE_ASSERT (input_tensor_p);
+  //ACE_OS::memcpy (TF_TensorData (input_tensor_p), data_p, TF_TensorByteSize (input_tensor_p));
   TF_Tensor* run_input_tensors_a[1];
   run_input_tensors_a[0] = input_tensor_p;
 
@@ -216,7 +218,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   std::vector<int64_t> classes_dims_a = {1, TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I};
   std::vector<int64_t> num_detections_dims_a = {1, 1};
   TF_Tensor* output_tensor_p =
-    TF_AllocateTensor (TF_FLOAT, boxes_dims_a.data (), static_cast<int> (boxes_dims_a.size ()), sizeof (float) * 4 * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I);
+    TF_AllocateTensor (TF_FLOAT, boxes_dims_a.data (), static_cast<int> (boxes_dims_a.size ()), sizeof (float) * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I * 4);
   ACE_ASSERT (output_tensor_p);
   TF_Tensor* output_tensor_2 =
     TF_AllocateTensor (TF_FLOAT, scores_dims_a.data (), static_cast<int> (scores_dims_a.size ()), sizeof (float) * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I);
@@ -294,9 +296,11 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   drawBoundingBoxes (frame_matrix, scores_a, classes_a, boxes_a, good_indices_a);
 
   // step3b: draw fps
+  std::ostringstream converter;
+  converter << fps;
   cv::putText (frame_matrix,
-               std::to_string (fps).substr (0, 5) + ACE_TEXT_ALWAYS_CHAR (" fps"),
-               cv::Point (0, frame_matrix.rows - 3),
+               converter.str ().substr (0, 5) + ACE_TEXT_ALWAYS_CHAR (" fps"),
+               cv::Point (3, frame_matrix.rows - 3),
                cv::FONT_HERSHEY_SIMPLEX,
                0.5,
                cv::Scalar (255, 255, 255));
@@ -341,14 +345,13 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::toFrameBits (media_type_s) == 24);
       resolution_ =
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
-      stride_ = resolution_.cx * 3;
 #else
       ACE_ASSERT (Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_s.format.pixelformat) == 24);
       resolution_.height = media_type_s.format.height;
       resolution_.width = media_type_s.format.width;
-      stride_ = resolution_.width * 3;
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       stride_ = resolution_.cx * 3;
@@ -639,14 +642,14 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
 
   static int nFrames = 30;
   static int iFrame = 0;
-  static double fps = 0.0;
+  static float fps = 0.0f;
   static time_t start = time (NULL);
   static time_t end;
 
   if (nFrames % (iFrame + 1) == 0)
   {
     time (&end);
-    fps = nFrames / difftime (end, start);
+    fps = nFrames / (float)difftime (end, start);
     time (&start);
   } // end IF
   iFrame++;
@@ -699,7 +702,7 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
     } // end FOR
   } // end FOR
 
-  // run the graph on tensor
+  // run the graph on the image frame
   tensorflow::Status status = inherited::session_->Run ({{inputLayer, tensor}},
                                                         outputLayer, {},
                                                         &outputs);
@@ -730,11 +733,13 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
   drawBoundingBoxes (frame_matrix, scores, classes, boxes, good_indices_a);
 
   // draw fps
+  std::ostringstream converter;
+  converter << fps;
   cv::putText (frame_matrix,
-               std::to_string (fps).substr (0, 5),
-               cv::Point (0, frame_matrix.rows),
+               converter.str ().substr (0, 5),
+               cv::Point (3, frame_matrix.rows - 3),
                cv::FONT_HERSHEY_SIMPLEX,
-               0.7,
+               0.5,
                cv::Scalar (255, 255, 255));
 }
 
@@ -777,14 +782,13 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::toFrameBits (media_type_s) == 24);
       resolution_ =
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
-      stride_ = resolution_.cx * 3;
 #else
       ACE_ASSERT (Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_s.format.pixelformat) == 24);
       resolution_.height = media_type_s.format.height;
       resolution_.width = media_type_s.format.width;
-      stride_ = resolution_.width * 3;
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       stride_ = resolution_.cx * 3;
@@ -994,7 +998,12 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
                  tl.y + fontCoeff);
     cv::rectangle (image_in, tl, brRect, cv::Scalar (0, 255, 255), -1);
     cv::Point textCorner = cv::Point (tl.x, tl.y + static_cast<int> (fontCoeff * 0.9f));
-    cv::putText (image_in, caption, textCorner, cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar (255, 0, 0));
+    cv::putText (image_in,
+                 caption,
+                 textCorner,
+                 cv::FONT_HERSHEY_SIMPLEX,
+                 0.4,
+                 cv::Scalar (255, 0, 0));
   } // end FOR
 }
 #endif // TENSORFLOW_CC_SUPPORT

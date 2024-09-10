@@ -75,10 +75,10 @@ class Stream_Module_Tensorflow_T
                            Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
-  virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                  bool&);            // return value: pass message downstream ?
-  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                     bool&);               // return value: pass message downstream ?
+  inline virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                         bool&) {}          // return value: pass message downstream ?
+  inline virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                            bool&) {}             // return value: pass message downstream ?
 
  protected:
   TF_Graph*   graph_;
@@ -129,10 +129,10 @@ class Stream_Module_Tensorflow_2
                            Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
-  virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                  bool&);            // return value: pass message downstream ?
-  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                     bool&);               // return value: pass message downstream ?
+  inline virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                         bool&) {}          // return value: pass message downstream ?
+  inline virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                            bool&) {}             // return value: pass message downstream ?
 
  protected:
   tensorflow::Session* session_;

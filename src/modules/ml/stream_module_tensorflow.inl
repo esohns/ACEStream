@@ -59,10 +59,10 @@ Stream_Module_Tensorflow_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Tensorflow_T::~Stream_Module_Tensorflow_T"));
 
-  if (graph_)
-    TF_DeleteGraph (graph_);
   if (session_)
     TF_DeleteSession (session_, status_);
+  if (graph_)
+    TF_DeleteGraph (graph_);
   if (status_)
     TF_DeleteStatus (status_);
 }
@@ -82,12 +82,12 @@ Stream_Module_Tensorflow_T<ConfigurationType,
 
   if (inherited::isInitialized_)
   {
-    if (graph_)
-      TF_DeleteGraph (graph_);
-    graph_ = NULL;
     if (session_)
       TF_DeleteSession (session_, status_);
     session_ = NULL;
+    if (graph_)
+      TF_DeleteGraph (graph_);
+    graph_ = NULL;
     if (status_)
       TF_DeleteStatus (status_);
     status_ = NULL;
@@ -152,68 +152,6 @@ Stream_Module_Tensorflow_T<ConfigurationType,
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
-}
-
-template <typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-void
-Stream_Module_Tensorflow_T<ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                   bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Tensorflow_T::handleDataMessage"));
-
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
-
-}
-
-template <typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-void
-Stream_Module_Tensorflow_T<ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                      bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Tensorflow_T::handleSessionMessage"));
-
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::isInitialized_);
-  ACE_ASSERT (inherited::sessionData_);
-
-  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-      const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-
-  switch (message_inout->type ())
-  {
-    case STREAM_SESSION_MESSAGE_BEGIN:
-    {
-      break;
-
-//error:
-      inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
-
-      break;
-    }
-    case STREAM_SESSION_MESSAGE_END:
-    {
-      break;
-    }
-    default:
-      break;
-  } // end SWITCH
 }
 
 //////////////////////////////////////////
@@ -322,67 +260,5 @@ Stream_Module_Tensorflow_2<ConfigurationType,
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
-}
-
-template <typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-void
-Stream_Module_Tensorflow_2<ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                   bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Tensorflow_2::handleDataMessage"));
-
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
-
-}
-
-template <typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-void
-Stream_Module_Tensorflow_2<ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                      bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Tensorflow_2::handleSessionMessage"));
-
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
-
-       // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::isInitialized_);
-  ACE_ASSERT (inherited::sessionData_);
-
-//  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-//    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-
-  switch (message_inout->type ())
-  {
-    case STREAM_SESSION_MESSAGE_BEGIN:
-    {
-      break;
-
-//error:
-      inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
-
-      break;
-    }
-    case STREAM_SESSION_MESSAGE_END:
-    {
-      break;
-    }
-    default:
-      break;
-  } // end SWITCH
 }
 #endif // TENSORFLOW_CC_SUPPORT
