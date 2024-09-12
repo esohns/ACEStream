@@ -19,9 +19,8 @@
  ***************************************************************************/
 
 #include <fstream>
-#include <numeric>
+#include <iomanip>
 #include <regex>
-#include <set>
 #include <sstream>
 
 #if defined (OPENCV_SUPPORT)
@@ -198,57 +197,64 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
                         message_inout->rd_ptr (),
                         cv::Mat::AUTO_STEP);
 
-  uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
-
   // step1: run the graph on the image frame
-  int64_t raw_input_dims_a[4] = {1, resolution_.cy, resolution_.cx, 3};
-  TF_Tensor* input_tensor_p = TF_NewTensor (TF_UINT8, raw_input_dims_a, 4,
-                                            data_p, resolution_.cx * resolution_.cy * 3,
-                                            &test_i_cameraml_module_tensorflow_deallocator, NULL);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  static int64_t raw_input_dims_a[4] = {1, resolution_.cy, resolution_.cx, 3};
+#else
+  static int64_t raw_input_dims_a[4] = {1, resolution_.height, resolution_.width, 3};
+#endif // ACE_WIN32 || ACE_WIN64
+  TF_Tensor* input_tensor_p =
+    TF_NewTensor (TF_UINT8, raw_input_dims_a, 4,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                  message_inout->rd_ptr (), resolution_.cx * resolution_.cy * 3,
+#else
+                  message_inout->rd_ptr (), resolution_.width * resolution_.height * 3,
+#endif // ACE_WIN32 || ACE_WIN64
+                  &test_i_cameraml_module_tensorflow_deallocator, NULL);
   ACE_ASSERT (input_tensor_p);
   //TF_Tensor* input_tensor_p = TF_AllocateTensor (TF_UINT8, raw_input_dims_a, 4,
   //                                               resolution_.cx * resolution_.cy * 3);
   //ACE_ASSERT (input_tensor_p);
   //ACE_OS::memcpy (TF_TensorData (input_tensor_p), data_p, TF_TensorByteSize (input_tensor_p));
-  TF_Tensor* run_input_tensors_a[1];
+  static TF_Tensor* run_input_tensors_a[1];
   run_input_tensors_a[0] = input_tensor_p;
 
-  std::vector<int64_t> boxes_dims_a = {1, TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I, 4};
-  std::vector<int64_t> scores_dims_a = {1, TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I};
-  std::vector<int64_t> classes_dims_a = {1, TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I};
-  std::vector<int64_t> num_detections_dims_a = {1, 1};
+  static int64_t boxes_dims_a[3] = {1, TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I, 4};
+  static int64_t scores_dims_a[2] = {1, TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I};
+  static int64_t classes_dims_a[2] = {1, TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I};
+  static int64_t num_detections_dims_a[2] = {1, 1};
   TF_Tensor* output_tensor_p =
-    TF_AllocateTensor (TF_FLOAT, boxes_dims_a.data (), static_cast<int> (boxes_dims_a.size ()), sizeof (float) * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I * 4);
+    TF_AllocateTensor (TF_FLOAT, boxes_dims_a, 3, sizeof (float) * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I * 4);
   ACE_ASSERT (output_tensor_p);
   TF_Tensor* output_tensor_2 =
-    TF_AllocateTensor (TF_FLOAT, scores_dims_a.data (), static_cast<int> (scores_dims_a.size ()), sizeof (float) * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I);
+    TF_AllocateTensor (TF_FLOAT, scores_dims_a, 2, sizeof (float) * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I);
   ACE_ASSERT (output_tensor_2);
   TF_Tensor* output_tensor_3 =
-    TF_AllocateTensor (TF_FLOAT, classes_dims_a.data (), static_cast<int> (classes_dims_a.size ()), sizeof (float) * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I);
+    TF_AllocateTensor (TF_FLOAT, classes_dims_a, 2, sizeof (float) * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I);
   ACE_ASSERT (output_tensor_3);
   TF_Tensor* output_tensor_4 =
-    TF_AllocateTensor (TF_FLOAT, num_detections_dims_a.data (), static_cast<int> (num_detections_dims_a.size ()), sizeof (float));
+    TF_AllocateTensor (TF_FLOAT, num_detections_dims_a, 2, sizeof (float));
   ACE_ASSERT (output_tensor_4);
-  TF_Tensor* run_output_tensors_a[4];
+  static TF_Tensor* run_output_tensors_a[4];
   run_output_tensors_a[0] = output_tensor_p;
   run_output_tensors_a[1] = output_tensor_2;
   run_output_tensors_a[2] = output_tensor_3;
   run_output_tensors_a[3] = output_tensor_4;
 
-  TF_SetStatus (status_, TF_OK, ACE_TEXT_ALWAYS_CHAR (""));
+  TF_SetStatus (inherited::status_, TF_OK, ACE_TEXT_ALWAYS_CHAR (""));
   TF_SessionRun (inherited::session_,
-                 NULL,
+                 /* RunOptions */ NULL,
                  /* Input tensors */ inputs_a_, run_input_tensors_a, 1,
                  /* Output tensors */ outputs_a_, run_output_tensors_a, 4,
                  /* Target operations */ NULL, 0,
-                 NULL,
-                 status_);
-  if (unlikely (TF_GetCode (status_) != TF_OK))
+                 /* RunMetadata */ NULL,
+                 /* Output status */ inherited::status_);
+  if (unlikely (TF_GetCode (inherited::status_) != TF_OK))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to TF_SessionRun(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (TF_Message (status_))));
+                ACE_TEXT (TF_Message (inherited::status_))));
     TF_DeleteTensor (input_tensor_p);
     TF_DeleteTensor (output_tensor_p);
     TF_DeleteTensor (output_tensor_2);
@@ -257,7 +263,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
     inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
     return;
   } // end IF
-  TF_DeleteTensor (input_tensor_p); input_tensor_p = NULL;
+  TF_DeleteTensor (input_tensor_p);
 
   // step2: extract results
   std::vector<int> boxes_a;
@@ -270,10 +276,17 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   int num_detections_i = (int)(result_4[0]);
   for (int i = 0; i < num_detections_i && i < TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I; i++)
   {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     boxes_a.push_back ((int)(result_p[i*4 + 1] * resolution_.cx)); // xmin
     boxes_a.push_back ((int)(result_p[i*4 + 3] * resolution_.cx)); // xmax
     boxes_a.push_back ((int)(result_p[i*4 + 0] * resolution_.cy)); // ymin
     boxes_a.push_back ((int)(result_p[i*4 + 2] * resolution_.cy)); // ymax
+#else
+    boxes_a.push_back ((int)(result_p[i*4 + 1] * resolution_.width)); // xmin
+    boxes_a.push_back ((int)(result_p[i*4 + 3] * resolution_.width)); // xmax
+    boxes_a.push_back ((int)(result_p[i*4 + 0] * resolution_.height)); // ymin
+    boxes_a.push_back ((int)(result_p[i*4 + 2] * resolution_.height)); // ymax
+#endif // ACE_WIN32 || ACE_WIN64
 
     scores_a.push_back (result_2[i]);
 
@@ -285,7 +298,8 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   TF_DeleteTensor (output_tensor_3);
   TF_DeleteTensor (output_tensor_4);
 
-  good_indices_a = filterBoxes (scores_a, 0.5f);
+  good_indices_a =
+    filterBoxes (scores_a, TEST_I_CAMERA_ML_DEFAULT_THRESHOLD_SCORE_F);
   //  for (size_t i = 0; i < goodIdxs.size(); i++)
 //      LOG(INFO) << "score:" << scores(goodIdxs.at(i)) << ",class:" << labelsMap[classes(goodIdxs.at(i))]
 //                << " (" << classes(goodIdxs.at(i)) << "), box:" << "," << boxes(0, goodIdxs.at(i), 0) << ","
@@ -462,41 +476,74 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::filterBoxes"));
 
-  std::vector<size_t> sortIdxs (scores_in.size ());
-  std::iota (sortIdxs.begin (), sortIdxs.end (), 0);
-
-  // Create set of "bad" idxs
-  std::set<size_t> badIdxs;
-  size_t i = 0;
-  while (i < sortIdxs.size ())
-  {
-    if (scores_in.at (sortIdxs.at (i)) < thresholdScore_in)
-      badIdxs.insert (sortIdxs[i]);
-
-//    Rect2f box1 = Rect2f(Point2f(boxes(0, sortIdxs.at(i), 1), boxes(0, sortIdxs.at(i), 0)),
-//                         Point2f(boxes(0, sortIdxs.at(i), 3), boxes(0, sortIdxs.at(i), 2)));
-//    for (size_t j = i + 1; j < sortIdxs.size(); j++) {
-//        if (scores(sortIdxs.at(j)) < thresholdScore) {
-//            badIdxs.insert(sortIdxs[j]);
-//            continue;
-//        }
-//        Rect2f box2 = Rect2f(Point2f(boxes(0, sortIdxs.at(j), 1), boxes(0, sortIdxs.at(j), 0)),
-//                             Point2f(boxes(0, sortIdxs.at(j), 3), boxes(0, sortIdxs.at(j), 2)));
-//        if (IOU(box1, box2) > thresholdIOU)
-//            badIdxs.insert(sortIdxs[j]);
-//    }
-    i++;
-  } // end WHILE
-
-  // Prepare "good" idxs for return
+  //std::vector<size_t> sortIdxs (scores_in.size ());
+  //std::iota (sortIdxs.begin (), sortIdxs.end (), 0);
   std::vector<size_t> goodIdxs;
-  for (std::vector<size_t>::iterator iterator = sortIdxs.begin ();
-       iterator != sortIdxs.end ();
-       ++iterator)
-    if (badIdxs.find (sortIdxs.at (*iterator)) == badIdxs.end ())
-      goodIdxs.push_back (*iterator);
+
+  for (size_t i = 0;
+       i < scores_in.size ();
+       ++i)
+    if (scores_in[i] >= thresholdScore_in)
+      goodIdxs.push_back (i);
 
   return goodIdxs;
+
+//  // Create set of "bad" idxs
+//  std::set<size_t> badIdxs;
+//  size_t i = 0;
+//  while (i < sortIdxs.size ())
+//  {
+//    if (scores_in.at (sortIdxs.at (i)) < thresholdScore_in)
+//      badIdxs.insert (sortIdxs[i]);
+//
+////    Rect2f box1 = Rect2f(Point2f(boxes(0, sortIdxs.at(i), 1), boxes(0, sortIdxs.at(i), 0)),
+////                         Point2f(boxes(0, sortIdxs.at(i), 3), boxes(0, sortIdxs.at(i), 2)));
+////    for (size_t j = i + 1; j < sortIdxs.size(); j++) {
+////        if (scores(sortIdxs.at(j)) < thresholdScore) {
+////            badIdxs.insert(sortIdxs[j]);
+////            continue;
+////        }
+////        Rect2f box2 = Rect2f(Point2f(boxes(0, sortIdxs.at(j), 1), boxes(0, sortIdxs.at(j), 0)),
+////                             Point2f(boxes(0, sortIdxs.at(j), 3), boxes(0, sortIdxs.at(j), 2)));
+////        if (IOU(box1, box2) > thresholdIOU)
+////            badIdxs.insert(sortIdxs[j]);
+////    }
+//    i++;
+//  } // end WHILE
+//
+//  // Prepare "good" idxs for return
+//  //std::vector<size_t> goodIdxs;
+//  struct test_i_cameraml_tensorflow_index_remove_predicate
+//   //: public std::binary_function<size_t,
+//   //                              std::vector<size_t>,
+//   //                              bool>
+//  {
+//    typedef size_t first_argument_type;
+//    typedef std::vector<size_t> second_argument_type;
+//    typedef bool result_type;
+//
+//    inline bool operator() (size_t index_in,
+//                            const std::set<size_t>& array_in) const
+//    {
+//      return std::find (array_in.begin (), array_in.end (), index_in) != array_in.end ();
+//    }
+//  };
+//  sortIdxs.erase (std::remove_if (sortIdxs.begin (), sortIdxs.end (),
+//                                  std::bind (struct test_i_cameraml_tensorflow_index_remove_predicate (),
+//                                             std::placeholders::_1,
+//                                             badIdxs)),
+//                  sortIdxs.end ());
+//
+//  //for (std::vector<size_t>::iterator iterator = sortIdxs.begin ();
+//  //     iterator != sortIdxs.end ();
+//  //     ++iterator)
+//  //  if (badIdxs.find (sortIdxs.at (*iterator)) == badIdxs.end ())
+//  //    goodIdxs.push_back (*iterator);
+//
+//  //return goodIdxs;
+//  return sortIdxs;
+
+
 }
 
 template <typename ConfigurationType,
@@ -518,32 +565,42 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::drawBoundingBoxes"));
 
   int xMin, xMax, yMin, yMax;
+  std::string caption;
+  cv::Point tl, br, brRect, textCorner;
+  std::ostringstream converter;
+
   for (size_t j = 0;
        j < indices_in.size ();
        j++)
   {
-    xMin = boxes_in.at (indices_in.at (j) * 4 + 0);
-    xMax = boxes_in.at (indices_in.at (j) * 4 + 1);
-    yMin = boxes_in.at (indices_in.at (j) * 4 + 2);
-    yMax = boxes_in.at (indices_in.at (j) * 4 + 3);
+    xMin = boxes_in[indices_in[j]*4 + 0];
+    xMax = boxes_in[indices_in[j]*4 + 1];
+    yMin = boxes_in[indices_in[j]*4 + 2];
+    yMax = boxes_in[indices_in[j]*4 + 3];
 
-    cv::Point tl, br;
-    tl = cv::Point (xMin, yMin);
-    br = cv::Point (xMax, yMax);
+    tl.x = xMin;
+    tl.y = yMin;
+    br.x = xMax;
+    br.y = yMax;
     cv::rectangle (image_in, tl, br, cv::Scalar (0, 255, 255), 1);
 
-    // Ceiling the score down to 3 decimals (weird!)
-    float scoreRounded = std::floor (scores_in.at (indices_in.at (j)) * 1000.0f) / 1000.0f;
-    std::string score_string = std::to_string (scoreRounded).substr (0, 5);
-    std::string caption = labelMap_[static_cast<int> (classes_in.at (indices_in.at (j)))] + " (" + score_string + ")";
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << std::fixed << std::setprecision (3) << scores_in[indices_in[j]];
+    caption = labelMap_[static_cast<int> (classes_in[indices_in[j]])] +
+              ACE_TEXT_ALWAYS_CHAR (" (") +
+              converter.str () +
+              ACE_TEXT_ALWAYS_CHAR (")");
 
-    // Adding caption of type "LABEL (X.XXX)" to the top-left corner of the bounding box
+    // add caption of type "LABEL (X.XXX)" to the top-left corner of the bounding box
     static int fontCoeff = 12;
-    cv::Point brRect =
-      cv::Point (tl.x + static_cast<int> (caption.length ()) * static_cast<int> (fontCoeff / 1.6f),
-                 tl.y + fontCoeff);
+    brRect.x =
+      tl.x + static_cast<int> (caption.length ()) * static_cast<int> (fontCoeff / 1.6f);
+    brRect.y = tl.y + fontCoeff;
     cv::rectangle (image_in, tl, brRect, cv::Scalar (0, 255, 255), -1);
-    cv::Point textCorner = cv::Point (tl.x, tl.y + static_cast<int> (fontCoeff * 0.9f));
+
+    textCorner.x = tl.x;
+    textCorner.y = tl.y + static_cast<int> (fontCoeff * 0.9f);
     cv::putText (image_in,
                  caption,
                  textCorner,

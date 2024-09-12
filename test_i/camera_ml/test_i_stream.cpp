@@ -34,6 +34,8 @@
 #include "stream_dev_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "stream_module_ml_defines.h"
+
 #include "stream_stat_defines.h"
 
 #include "stream_vis_defines.h"
@@ -1229,11 +1231,15 @@ Stream_CameraML_Stream::Stream_CameraML_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
-// , flip_ (this,
-//          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
-#if defined (TENSORFLOW_CC_SUPPORT)
+ , flip_ (this,
+          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
+#if defined (TENSORFLOW_SUPPORT)
  , tensorflow_ (this,
                 ACE_TEXT_ALWAYS_CHAR (MODULE_ML_TENSORFLOW_DEFAULT_NAME_STRING))
+#endif // TENSORFLOW_SUPPORT
+#if defined (TENSORFLOW_CC_SUPPORT)
+ , tensorflow_cc_ (this,
+                   ACE_TEXT_ALWAYS_CHAR (MODULE_ML_TENSORFLOW_DEFAULT_NAME_STRING))
 #endif // TENSORFLOW_CC_SUPPORT
 #if defined (GTK_SUPPORT)
  , GTKDisplay_ (this,
@@ -1265,10 +1271,13 @@ Stream_CameraML_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&source_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
   layout_in->append (&convert_, NULL, 0);
-  layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-//  layout_in->append (&flip_, NULL, 0);
+  // layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+  layout_in->append (&flip_, NULL, 0);
+#if defined (TENSORFLOW_SUPPORT)
+  // layout_in->append (&tensorflow_, NULL, 0);
+#endif // TENSORFLOW_SUPPORT
 #if defined (TENSORFLOW_CC_SUPPORT)
-  layout_in->append (&tensorflow_, NULL, 0);
+  layout_in->append (&tensorflow_cc_, NULL, 0);
 #endif // TENSORFLOW_CC_SUPPORT
   switch (inherited::configuration_->configuration_->renderer)
   {
