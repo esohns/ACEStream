@@ -48,7 +48,7 @@
 #include "stream_module_tensorflow.h"
 
 #if defined (TENSORFLOW_SUPPORT)
-inline void test_i_cameraml_module_tensorflow_deallocator (void* data_in, size_t length_in, void* arg_in) {}
+inline void test_i_cameraml_module_tensorflow_noop_deallocator (void* data_in, size_t length_in, void* arg_in) {}
 
 template <typename ConfigurationType,
           ////////////////////////////////

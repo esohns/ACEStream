@@ -210,8 +210,9 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 #else
                   message_inout->rd_ptr (), resolution_.width * resolution_.height * 3,
 #endif // ACE_WIN32 || ACE_WIN64
-                  &test_i_cameraml_module_tensorflow_deallocator, NULL);
+                  &test_i_cameraml_module_tensorflow_noop_deallocator, NULL);
   ACE_ASSERT (input_tensor_p);
+
   //TF_Tensor* input_tensor_p = TF_AllocateTensor (TF_UINT8, raw_input_dims_a, 4,
   //                                               resolution_.cx * resolution_.cy * 3);
   //ACE_ASSERT (input_tensor_p);
