@@ -274,7 +274,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   float* result_2 = (float*)TF_TensorData (output_tensor_2);
   float* result_3 = (float*)TF_TensorData (output_tensor_3);
   float* result_4 = (float*)TF_TensorData (output_tensor_4);
-  int num_detections_i = (int)(result_4[0]);
+  int num_detections_i = (int)(std::ceil (result_4[0]));
   for (int i = 0; i < num_detections_i && i < TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I; i++)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -588,7 +588,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter.clear ();
     converter << std::fixed << std::setprecision (3) << scores_in[indices_in[j]];
-    caption = labelMap_[static_cast<int> (classes_in[indices_in[j]])] +
+    caption = labelMap_[static_cast<int> (std::ceil (classes_in[indices_in[j]]))] +
               ACE_TEXT_ALWAYS_CHAR (" (") +
               converter.str () +
               ACE_TEXT_ALWAYS_CHAR (")");
