@@ -87,6 +87,9 @@ class Test_I_EventHandler_T
 #endif // GUI_SUPPORT
   unsigned int                                 numberOfFrames_;
   typename SessionMessageType::DATA_T::DATA_T* sessionData_;
+
+  enum AVPixelFormat                           format_;
+  Common_Image_Resolution_t                    resolution_;
 };
 
 // include template definition

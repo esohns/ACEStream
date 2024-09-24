@@ -388,32 +388,29 @@ error:
       if (!inherited::configuration_->handleResize)
         break;
 
+      ACE_ASSERT (inherited::sessionData_);
+      typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T& session_data_r =
+        const_cast<typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
+                                media_type_2);
+
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (inherited::configuration_->outputFormat,
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
-      if (!frame_ ||
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-          ((static_cast<unsigned int> (frame_->height) == media_type_s.resolution.cy) &&
-           (static_cast<unsigned int> (frame_->width) == media_type_s.resolution.cx)))
-#else
-          ((static_cast<unsigned int> (frame_->height) == media_type_s.resolution.height) &&
-           (static_cast<unsigned int> (frame_->width) == media_type_s.resolution.width)))
-#endif // ACE_WIN32 || ACE_WIN64
-        break; // does not concern 'this'
 
-      if (buffer_)
-      {
-        buffer_->release (); buffer_ = NULL;
-      } // end IF
+      inputFormat_ = media_type_2.format;
 
-      //  frame_->format = session_data_r.format;
+      ACE_ASSERT (frame_);
+      frame_->format = media_type_s.format;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      frame_->height = media_type_s.resolution.cy;
-      frame_->width = media_type_s.resolution.cx;
+      frame_->height = media_type_2.resolution.cy;
+      frame_->width = media_type_2.resolution.cx;
 #else
-      frame_->height = media_type_s.resolution.height;
-      frame_->width = media_type_s.resolution.width;
+      frame_->height = media_type_2.resolution.height;
+      frame_->width = media_type_2.resolution.width;
 #endif // ACE_WIN32 || ACE_WIN64
 
       frameSize_ =
@@ -444,6 +441,11 @@ error:
       } // end IF
 
       // initialize frame buffer
+      if (buffer_)
+      {
+        buffer_->release (); buffer_ = NULL;
+      } // end IF
+
       buffer_ = inherited::allocateMessage (frameSize_);
       if (!buffer_)
       {

@@ -82,6 +82,8 @@ Test_I_EventHandler_T<NotificationType,
 #endif // GUI_SUPPORT
  , numberOfFrames_ (0)
  , sessionData_ (NULL)
+ , format_ (AV_PIX_FMT_NONE)
+ , resolution_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_EventHandler_T::Test_I_EventHandler_T"));
 
@@ -136,6 +138,13 @@ Test_I_EventHandler_T<NotificationType,
   //numberOfFrames_ = 0;
   sessionData_ =
     &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_in);
+  ACE_ASSERT (sessionData_);
+  ACE_ASSERT (!sessionData_->formats.empty ());
+
+  const struct Stream_MediaFramework_FFMPEG_MediaType& media_type_r =
+    sessionData_->formats.front ();
+  format_ = media_type_r.video.format;
+  resolution_ = media_type_r.video.resolution;
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
@@ -317,8 +326,7 @@ Test_I_EventHandler_T<NotificationType,
     CBData_->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != CBData_->configuration->streamConfiguration.end ());
   if ((*stream_iterator).second.second->frameNumber == numberOfFrames_)
-  { ACE_ASSERT (sessionData_);
-    ACE_ASSERT (!sessionData_->formats.empty ());
+  {
     std::string filename_string = Common_File_Tools::getTempDirectory ();
     filename_string += ACE_DIRECTORY_SEPARATOR_STR_A;
     filename_string += ACE_TEXT_ALWAYS_CHAR ("output.bmp");
@@ -326,13 +334,13 @@ Test_I_EventHandler_T<NotificationType,
     ACE_OS::memset (&buffers_a[0], 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
     buffers_a[0] = reinterpret_cast<uint8_t*> (message_in.rd_ptr ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    Common_Image_Tools::saveBMP (sessionData_->formats.front ().video.resolution,
-                                 Stream_MediaFramework_Tools::AVPixelFormatToBitCount (sessionData_->formats.front ().video.format, false),
+    Common_Image_Tools::saveBMP (resolution_,
+                                 Stream_MediaFramework_Tools::AVPixelFormatToBitCount (format_, false),
                                  buffers_a,
                                  filename_string);
 #else
-    Common_Image_Tools::savePNG (sessionData_->formats.front ().video.resolution,
-                                 sessionData_->formats.front ().video.format,
+    Common_Image_Tools::savePNG (resolution_,
+                                 format_,
                                  buffers_a,
                                  filename_string);
 #endif // ACE_WIN32 || ACE_WIN64

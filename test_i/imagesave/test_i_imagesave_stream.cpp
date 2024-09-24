@@ -56,9 +56,13 @@ Test_I_Stream::Test_I_Stream ()
 #endif // FFMPEG_SUPPORT
   //, report_ (this,
  //            ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+#if defined (FFMPEG_SUPPORT)
+ , converter_ (this,
+               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
-#if defined (GUI_SUPPORT)
+#endif // FFMPEG_SUPPORT
+#if defined(GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , Direct3D_ (this,
               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
@@ -110,8 +114,9 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
 
   layout_in->append (&defragment_, NULL, 0);
 
-#if defined(FFMPEG_SUPPORT)
+#if defined (FFMPEG_SUPPORT)
   layout_in->append (&decoder2_, NULL, 0);
+  //layout_in->append (&converter_, NULL, 0);
 #endif // FFMPEG_SUPPORT
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch

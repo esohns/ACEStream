@@ -32,6 +32,7 @@
 #include "stream_dec_mpeg_4_decoder.h"
 #include "stream_dec_mpeg_ts_decoder.h"
 #if defined (FFMPEG_SUPPORT)
+#include "stream_dec_libav_converter.h"
 #include "stream_dec_libav_decoder.h"
 #endif // FFMPEG_SUPPORT
 
@@ -165,8 +166,8 @@ typedef Stream_Miscellaneous_MediaSplitter_T<ACE_MT_SYNCH,
                                              Test_I_ImageSave_SessionData> Test_I_MediaSplitter_t;
 
 #if defined (FFMPEG_SUPPORT)
-//typedef Stream_Decoder_LibAVConverter_T<Test_I_TaskBaseSynch_t,
-//                                        struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_LibAVConverter;
+typedef Stream_Decoder_LibAVConverter_T<Test_I_TaskBaseSynch_t,
+                                        struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_LibAVConverter;
 typedef Stream_Visualization_LibAVResize_T<Test_I_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_LibAVResize;
 #endif // FFMPEG_SUPPORT
@@ -277,19 +278,19 @@ DATASTREAM_MODULE_DUPLEX (Test_I_ImageSave_SessionData,                         
                           Test_I_MediaSplitter);                                    // name
 
 #if defined (FFMPEG_SUPPORT)
-//DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                   // session data type
-//                              enum Stream_SessionMessageType,                   // session event type
-//                              struct Test_I_ImageSave_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_dec_libav_converter_module_name_string,
-//                              Stream_INotify_t,                                 // stream notification interface type
-//                              Test_I_LibAVConverter);                   // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                                // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Test_I_ImageSave_ModuleHandlerConfiguration,          // module handler configuration type
+                              libacestream_default_dec_libav_converter_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_I_LibAVConverter);                                      // writer type
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Test_I_ImageSave_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                             // session data type
+                              enum Stream_SessionMessageType,                           // session event type
+                              struct Test_I_ImageSave_ModuleHandlerConfiguration,       // module handler configuration type
                               libacestream_default_vis_libav_resize_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Test_I_LibAVResize);                      // writer type
+                              Stream_INotify_t,                                         // stream notification interface type
+                              Test_I_LibAVResize);                                      // writer type
 #endif // FFMPEG_SUPPORT
 
 //DATASTREAM_MODULE_DUPLEX (Test_I_DirectShow_SessionData,                // session data type

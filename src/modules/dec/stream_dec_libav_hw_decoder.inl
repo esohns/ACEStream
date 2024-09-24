@@ -1137,7 +1137,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_RESIZE,
                                                    session_data_container_p,
                                                    NULL,
-                                                   true))) // expedited ?
+                                                   false))) // expedited ?
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
                     inherited::mod_->name (),

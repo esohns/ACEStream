@@ -84,13 +84,6 @@
 #include "stream_control_message.h"
 #include "stream_macros.h"
 
-#include "stream_dev_defines.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "stream_dev_directshow_tools.h"
-#include "stream_dev_mediafoundation_tools.h"
-#endif // ACE_WIN32 || ACE_WIN64
-#include "stream_dev_tools.h"
-
 #include "stream_lib_tools.h"
 
 #include "stream_misc_defines.h"
@@ -106,7 +99,7 @@
 #if defined (GTK_USE)
 #include "test_i_imagesave_gtk_callbacks.h"
 #elif defined (WXWIDGETS_USE)
-#include "test_u_camsave_ui.h"
+#include "test_i_imagesave_ui.h"
 #endif
 #endif // GUI_SUPPORT
 #include "test_i_imagesave_signalhandler.h"
@@ -444,7 +437,7 @@ do_work (
   // ********************** module configuration data **************************
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
-  //allocator_configuration.defaultBufferSize = 524288;
+  allocator_configuration.defaultBufferSize = 524288;
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
   codec_configuration.codecId = AV_CODEC_ID_H264;
   //codec_configuration.useParser = false;
@@ -554,12 +547,12 @@ do_work (
     STREAM_DEV_CAM_DEFAULT_CAPTURE_FRAME_RATE;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_RGB24;
+  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_BGR24;
 #else
-  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_RGB32;
+  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_BGR32;
 #endif // GTK_USE
 #else
-  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_RGB32;
+  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_BGR32;
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.outputFormat.video.resolution.cx = 1920;

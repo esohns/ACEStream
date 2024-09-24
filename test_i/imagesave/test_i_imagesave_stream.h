@@ -97,8 +97,11 @@ class Test_I_Stream
   Test_I_LibAVDecoder_Module    decoder2_;
 #endif // FFMPEG_SUPPORT
   //Test_I_StatisticReport_Module report_;
+#if defined (FFMPEG_SUPPORT)
+  Test_I_LibAVConverter_Module  converter_;
   Test_I_LibAVResize_Module     resize_;
-#if defined (GUI_SUPPORT)
+#endif // FFMPEG_SUPPORT
+#if defined(GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Direct3D_Module        Direct3D_;
 #else
