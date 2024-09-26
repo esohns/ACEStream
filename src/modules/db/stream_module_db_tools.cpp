@@ -68,8 +68,8 @@ Stream_Module_DataBase_Tools::timestampToDatabaseString (const ACE_Time_Value& t
 
   // step2: create string
   // *TODO*: rewrite this in C++
-  char time_string[BUFSIZ];
-  if (unlikely (ACE_OS::strftime (time_string,
+  char buffer_a[BUFSIZ];
+  if (unlikely (ACE_OS::strftime (buffer_a,
                                   sizeof (char[BUFSIZ]),
                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_DB_TOOLS_STRFTIME_FORMAT),
                                   &time_local) != STREAM_MODULE_DB_TOOLS_STRFTIME_SIZE))
@@ -78,14 +78,14 @@ Stream_Module_DataBase_Tools::timestampToDatabaseString (const ACE_Time_Value& t
                 ACE_TEXT ("failed to ACE_OS::strftime(): \"%m\", aborting\n")));
     return result;
   } // end IF
-  result = time_string;
+  result = buffer_a;
 
   // OK: append any usecs
   if (likely (timestamp_in.usec ()))
   {
     std::ostringstream converter;
     converter << timestamp_in.usec ();
-    result += ACE_TEXT_ALWAYS_CHAR (".");
+    result += '.';
     result += converter.str ();
   } // end IF
 

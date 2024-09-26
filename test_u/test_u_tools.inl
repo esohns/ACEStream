@@ -17,7 +17,6 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <limits>
 #endif // ACE_WIN32 || ACE_WIN64
@@ -58,8 +57,8 @@ Test_U_Tools::spawn (const std::string& threadName_in,
   } // end IF
   thread_data_p->CBData = &const_cast<CallbackDataType&> (callbackData_in);
   ACE_TCHAR thread_name[BUFSIZ];
-  ACE_OS::memset (thread_name, 0, sizeof (thread_name));
-//  char* thread_name_p = NULL;
+  ACE_OS::memset (thread_name, 0, sizeof (ACE_TCHAR[BUFSIZ]));
+  //  char* thread_name_p = NULL;
 //  ACE_NEW_NORETURN (thread_name_p,
 //                    ACE_TCHAR[BUFSIZ]);
 //  if (!thread_name_p)

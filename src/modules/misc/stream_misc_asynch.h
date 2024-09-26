@@ -24,13 +24,8 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_time_common.h"
-
+#include "stream_common.h"
 #include "stream_task_base_asynch.h"
-
-// forward declarations
-class ACE_Message_Block;
-class Stream_IAllocator;
 
 extern const char libacestream_default_misc_asynch_module_name_string[];
 

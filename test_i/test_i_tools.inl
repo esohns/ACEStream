@@ -57,8 +57,8 @@ Test_I_Tools::spawn (const std::string& threadName_in,
   } // end IF
   thread_data_p->CBData = &const_cast<CallbackDataType&> (callbackData_in);
   ACE_TCHAR thread_name[BUFSIZ];
-  ACE_OS::memset (thread_name, 0, sizeof (thread_name));
-//  char* thread_name_p = NULL;
+  ACE_OS::memset (thread_name, 0, sizeof (ACE_TCHAR[BUFSIZ]));
+  //  char* thread_name_p = NULL;
 //  ACE_NEW_NORETURN (thread_name_p,
 //                    ACE_TCHAR[BUFSIZ]);
 //  if (!thread_name_p)

@@ -21,13 +21,12 @@
 #ifndef TEST_U_COMMON_H
 #define TEST_U_COMMON_H
 
-#include <string>
-
-#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "linux/videodev2.h"
 #endif // ACE_WIN32 || ACE_WIN64
+
+#include <string>
 
 #if defined (GUI_SUPPORT)
 #include "ace/OS.h"

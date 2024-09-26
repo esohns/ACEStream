@@ -21,8 +21,6 @@
 #ifndef TEST_U_DEFINES_H
 #define TEST_U_DEFINES_H
 
-#include "ace/config-lite.h"
-
 #define TEST_U_STREAM_DEFAULT_GTK_CSS_FILE           "resources.css"
 
 #define TEST_U_EVENT_THREAD_NAME                     "event processor"

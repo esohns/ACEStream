@@ -21,8 +21,6 @@
 
 #include "stream_cacheddatablockallocatorheap.h"
 
-#include "ace/Synch.h"
-
 // initialize statics
 template <ACE_SYNCH_DECL>
 typename Stream_CachedDataBlockAllocatorHeap_T<ACE_SYNCH_USE>::DATABLOCK_LOCK_T

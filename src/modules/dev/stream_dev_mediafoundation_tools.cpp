@@ -21,8 +21,6 @@
 
 #include "stream_dev_mediafoundation_tools.h"
 
-#include <sstream>
-
 #include "oleauto.h"
 
 #include "dmoreg.h"
@@ -39,6 +37,8 @@
 #include "mferror.h"
 
 #include "wmcodecdsp.h"
+
+#include <sstream>
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"

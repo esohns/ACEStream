@@ -21,7 +21,6 @@
 #ifndef STREAM_MODULE_MYSQLREADER_H
 #define STREAM_MODULE_MYSQLREADER_H
 
-#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "mysql.h"
 #else

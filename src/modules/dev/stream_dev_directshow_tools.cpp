@@ -21,8 +21,6 @@
 
 #include "stream_dev_directshow_tools.h"
 
-#include <sstream>
-
 #include "amvideo.h"
 #include "d3d9types.h"
 #include "dmoreg.h"
@@ -48,9 +46,10 @@
 #endif // UUIDS_H
 #include "wmcodecdsp.h"
 
+#include <sstream>
+
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
-#include "ace/Synch.h"
 
 #include "common.h"
 #include "common_os_tools.h"

@@ -14,6 +14,10 @@
 #include "windows.h"
 #endif // _MSC_VER
 
+#if defined (VALGRIND_USE)
+#include "valgrind/valgrind.h"
+#endif // VALGRIND_USE
+
 // C RunTime Header Files
 #include <string>
 
@@ -21,10 +25,6 @@
 #include "ace/config-lite.h"
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
-
-#if defined (VALGRIND_USE)
-#include "valgrind/valgrind.h"
-#endif // VALGRIND_USE
 
 // Local Header Files
 #if defined (HAVE_CONFIG_H)
