@@ -21,7 +21,7 @@
 
 #include "test_u_message.h"
 
-#if defined(IMAGEMAGICK_SUPPORT)
+#if defined (IMAGEMAGICK_SUPPORT)
 #include "MagickWand/MagickWand.h"
 #endif // IMAGEMAGICK_SUPPORT
 

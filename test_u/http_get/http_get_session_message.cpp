@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "http_get_session_message.h"
 
 #include "ace/Log_Msg.h"

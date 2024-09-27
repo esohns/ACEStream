@@ -21,13 +21,6 @@
 
 #include "test_u_camsave_gtk_callbacks.h"
 
-#include <cmath>
-
-#include <limits>
-#include <map>
-#include <set>
-#include <sstream>
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "strmif.h"
 #undef NANOSECONDS
@@ -60,6 +53,12 @@
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "gdk/gdkkeysyms.h"
+
+#include <cmath>
+#include <limits>
+#include <map>
+#include <set>
+#include <sstream>
 
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"

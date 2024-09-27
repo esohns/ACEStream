@@ -21,7 +21,6 @@
 
 #include "test_i_gtk_callbacks.h"
 
-#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "functiondiscoverykeys_devpkey.h"
 #endif // ACE_WIN32 || ACE_WIN64

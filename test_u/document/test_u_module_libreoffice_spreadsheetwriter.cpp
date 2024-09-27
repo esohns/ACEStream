@@ -21,8 +21,6 @@
 
 #include "test_u_module_libreoffice_spreadsheetwriter.h"
 
-#include "ace/Log_Msg.h"
-
 #include "com/sun/star/beans/Optional.hpp"
 #include "com/sun/star/document/MacroExecMode.hpp"
 #include "com/sun/star/frame/Desktop.hpp"
@@ -37,6 +35,8 @@
 #include "com/sun/star/table/XCellRange.hpp"
 
 #include "rtl/bootstrap.h"
+
+#include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
 #include "common_os_tools.h"

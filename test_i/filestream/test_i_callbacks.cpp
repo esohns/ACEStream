@@ -17,7 +17,6 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "common_log_common.h"
 #include "stdafx.h"
 
 #include "test_i_callbacks.h"
@@ -30,7 +29,8 @@
 
 #include "common_file_tools.h"
 
-#include "ace/Synch.h"
+#include "common_log_common.h"
+
 #include "common_timer_manager.h"
 
 #include "common_ui_gtk_common.h"

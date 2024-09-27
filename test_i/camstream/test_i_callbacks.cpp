@@ -17,17 +17,10 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "camstream/test_i_camstream_network.h"
 #include "stdafx.h"
 
 #include "test_i_callbacks.h"
 
-#include <limits>
-#include <map>
-#include <set>
-#include <sstream>
-
-#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "strmif.h"
 #undef NANOSECONDS
@@ -43,6 +36,11 @@
 #else
 #include "ace/Dirent_Selector.h"
 #endif // ACE_WIN32 || ACE_WIN64
+
+#include <limits>
+#include <map>
+#include <set>
+#include <sstream>
 
 #include "ace/Guard_T.h"
 
@@ -74,6 +72,7 @@
 #include "net_connection_configuration.h"
 
 #include "test_i_camstream_defines.h"
+#include "test_i_camstream_network.h"
 #include "test_i_common_modules.h"
 #include "test_i_target_message.h"
 #include "test_i_source_common.h"

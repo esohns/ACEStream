@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "test_i_avsave_ui.h"
 
 #include "stream_dev_tools.h"

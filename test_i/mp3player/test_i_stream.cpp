@@ -19,6 +19,8 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include "test_i_stream.h"
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "mtype.h"
 #else
@@ -37,8 +39,6 @@ extern "C"
 #include "stream_macros.h"
 
 #include "stream_file_defines.h"
-
-#include "test_i_stream.h"
 
 Test_I_Stream::Test_I_Stream ()
  : inherited ()

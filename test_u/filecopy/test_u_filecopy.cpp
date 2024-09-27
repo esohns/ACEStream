@@ -17,7 +17,6 @@
 *   Free Software Foundation, Inc.,                                       *
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
-#include "common_log_common.h"
 #include "stdafx.h"
 
 #include <iostream>
@@ -40,6 +39,7 @@
 
 #include "common_os_tools.h"
 
+#include "common_log_common.h"
 #include "common_log_tools.h"
 #if defined (GUI_SUPPORT)
 #include "common_logger_queue.h"

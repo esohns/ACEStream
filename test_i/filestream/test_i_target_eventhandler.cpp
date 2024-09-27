@@ -19,17 +19,16 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_i_target_eventhandler.h"
-
-#include "ace/Guard_T.h"
-#include "ace/Synch_Traits.h"
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #include "gtk/gtk.h"
 #endif // GTK_USE
 #endif // GUI_SUPPORT
+
+#include "ace/Guard_T.h"
+#include "ace/Synch_Traits.h"
 
 #include "stream_macros.h"
 #include "stream_session_message_base.h"

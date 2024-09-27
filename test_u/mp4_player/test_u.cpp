@@ -17,7 +17,6 @@
 *   Free Software Foundation, Inc.,                                       *
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
-#include "mp4_player/test_u_mp4_player_common.h"
 #include "stdafx.h"
 
 #include <iostream>
@@ -83,6 +82,7 @@
 #include "test_u_defines.h"
 
 #include "test_u_eventhandler.h"
+#include "test_u_mp4_player_common.h"
 #include "test_u_mp4_player_defines.h"
 #include "test_u_signalhandler.h"
 #include "test_u_stream.h"

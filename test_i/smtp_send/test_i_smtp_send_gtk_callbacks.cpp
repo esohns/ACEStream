@@ -21,7 +21,6 @@
 
 #include "test_i_smtp_send_gtk_callbacks.h"
 
-#include "ace/config-lite.h"
 #include "gdk/gdkkeysyms.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "gdk/gdkwin32.h"

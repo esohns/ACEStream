@@ -19,13 +19,13 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include "http_get_eventhandler.h"
+
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #include "gtk/gtk.h"
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-
-#include "http_get_eventhandler.h"
 
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"

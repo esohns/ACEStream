@@ -81,7 +81,7 @@ RegDeleteKeyValueW (__in      HKEY     hKey,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
 #include "ace/Log_Msg.h"
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 
 #include "class_factory.h"
 #include "registry.h"       // Helpers to register COM objects.

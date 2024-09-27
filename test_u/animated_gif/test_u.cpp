@@ -19,13 +19,13 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#include <iostream>
-#include <string>
-
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "amvideo.h"
 #include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64
+
+#include <iostream>
+#include <string>
 
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

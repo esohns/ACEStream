@@ -21,16 +21,16 @@
 
 #include "http_get_callbacks.h"
 
-#include <sstream>
-
-#include "ace/Log_Msg.h"
-#include "ace/Time_Value.h"
-
 #include "gmodule.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "gdk/gdkwin32.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
+
+#include <sstream>
+
+#include "ace/Log_Msg.h"
+#include "ace/Time_Value.h"
 
 #include "common_time_common.h"
 #include "common_timer_manager.h"
@@ -45,9 +45,9 @@
 
 #include "stream_dec_tools.h"
 
-#ifdef HAVE_CONFIG_H
+#if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
-#endif
+#endif // HAVE_CONFIG_H
 
 #include "net_configuration.h"
 

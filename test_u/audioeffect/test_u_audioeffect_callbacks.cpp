@@ -21,11 +21,6 @@
 
 #include "test_u_audioeffect_callbacks.h"
 
-#include <limits>
-#include <map>
-#include <set>
-#include <sstream>
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "Dmo.h"
 #include "functiondiscoverykeys_devpkey.h"
@@ -75,6 +70,11 @@ extern "C"
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
+
+#include <limits>
+#include <map>
+#include <set>
+#include <sstream>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

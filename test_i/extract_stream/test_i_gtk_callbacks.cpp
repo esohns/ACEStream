@@ -21,11 +21,6 @@
 
 #include "test_i_gtk_callbacks.h"
 
-#include <limits>
-#include <map>
-#include <set>
-#include <sstream>
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -33,9 +28,12 @@ extern "C"
 }
 #endif /* __cplusplus */
 
-#include "ace/config-lite.h"
-
 #include "gdk/gdkkeysyms.h"
+
+#include <limits>
+#include <map>
+#include <set>
+#include <sstream>
 
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"

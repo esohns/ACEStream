@@ -19,13 +19,13 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dec_common.h"
-
 #include "test_i_message.h"
 
 #include "ace/Malloc_Base.h"
 
 #include "stream_macros.h"
+
+#include "stream_dec_common.h"
 
 #include "http_tools.h"
 

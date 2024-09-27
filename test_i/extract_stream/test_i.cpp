@@ -19,9 +19,6 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#include <iostream>
-#include <string>
-
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -30,6 +27,9 @@
 #include "gtk/gtk.h"
 #endif // GTK_USE
 #endif // GUI_SUPPORT
+
+#include <iostream>
+#include <string>
 
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

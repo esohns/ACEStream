@@ -30,8 +30,6 @@
 
 #include "stream_macros.h"
 
-//#include "stream_dec_common.h"
-
 #include "stream_document_defines.h"
 
 #include "test_i_http_get_defines.h"

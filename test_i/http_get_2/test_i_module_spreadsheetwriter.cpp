@@ -21,8 +21,6 @@
 
 #include "test_i_module_spreadsheetwriter.h"
 
-#include "ace/Log_Msg.h"
-
 #include "rtl/bootstrap.h"
 
 #include "com/sun/star/beans/Optional.hpp"
@@ -38,6 +36,8 @@
 #include "com/sun/star/sheet/XSpreadsheet.hpp"
 #include "com/sun/star/table/XCell.hpp"
 #include "com/sun/star/table/XCellRange.hpp"
+
+#include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
 

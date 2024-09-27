@@ -19,14 +19,14 @@
 ***************************************************************************/
 #include "stdafx.h"
 
+#if defined (SSL_SUPPORT)
+#include "openssl/ssl.h";
+#endif // SSL_SUPPORT
+
 #include <iostream>
 #include <limits>
 #include <regex>
 #include <string>
-
-#if defined(SSL_SUPPORT)
-#include "openssl/ssl.h";
-#endif // SSL_SUPPORT
 
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

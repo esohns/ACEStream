@@ -19,9 +19,6 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#include <iostream>
-#include <string>
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define INITGUID // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
 #include "mfapi.h"
@@ -39,6 +36,9 @@
 #include "gtk/gtk.h"
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
+
+#include <iostream>
+#include <string>
 
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

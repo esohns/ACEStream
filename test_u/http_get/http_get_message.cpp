@@ -19,15 +19,14 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dec_common.h"
-
-//#include "ace/Synch.h"
 #include "http_get_message.h"
 
 #include "ace/Log_Msg.h"
 #include "ace/Malloc_Base.h"
 
 #include "stream_macros.h"
+
+#include "stream_dec_common.h"
 
 #include "http_defines.h"
 

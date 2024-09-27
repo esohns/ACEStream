@@ -19,9 +19,6 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#include <iostream>
-#include <string>
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define INITGUID // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
 // *NOTE*: uuids.h doesn't have double include protection
@@ -34,6 +31,9 @@
 #else
 #include "linux/videodev2.h"
 #endif // ACE_WIN32 || ACE_WIN64
+
+#include <iostream>
+#include <string>
 
 #include "ace/Default_Constants.h"
 #include "ace/Get_Opt.h"

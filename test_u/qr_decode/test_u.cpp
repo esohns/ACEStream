@@ -1,8 +1,5 @@
 #include "stdafx.h"
 
-#include <iostream>
-#include <string>
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "amvideo.h"
 #include "dvdmedia.h"
@@ -15,7 +12,9 @@
 #endif // UUIDS_H
 #endif // ACE_WIN32 || ACE_WIN64
 
-#include "ace/config-lite.h"
+#include <iostream>
+#include <string>
+
 #include "ace/ACE.h"
 #include "ace/Get_Opt.h"
 #include "ace/High_Res_Timer.h"

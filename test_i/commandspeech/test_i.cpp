@@ -19,9 +19,6 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#include <iostream>
-#include <string>
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "mtype.h"
 // *NOTE*: uuids.h doesn't have double include protection
@@ -36,6 +33,9 @@
 #if defined (SOX_SUPPORT)
 #include "sox.h"
 #endif // SOX_SUPPORT
+
+#include <iostream>
+#include <string>
 
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
