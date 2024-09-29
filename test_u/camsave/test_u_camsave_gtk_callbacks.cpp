@@ -2598,7 +2598,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     device_identifier_string = (*iterator_2).second.second->deviceIdentifier.identifier;
     filename_string = (*libcamera_iterator_2).second.second->targetFileName;
     libcamera_iterator_3 =
-      ui_cb_data_p->configuration->libCamera_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+      ui_cb_data_p->configuration->libCamera_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
     ACE_ASSERT (libcamera_iterator_3 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
     display_device_string = (*libcamera_iterator_3).second.second->display.device;
     is_display_b =
@@ -6462,7 +6462,7 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 //    ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
 //  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-    ui_cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+    ui_cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());

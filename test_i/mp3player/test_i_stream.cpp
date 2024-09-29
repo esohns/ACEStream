@@ -128,7 +128,7 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   bool reset_setup_pipeline = false;
   struct Test_I_MP3Player_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  Test_I_MP3Decoder* MP3Decoder_impl_p = NULL;
+  // Test_I_MP3Decoder* MP3Decoder_impl_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
 #else

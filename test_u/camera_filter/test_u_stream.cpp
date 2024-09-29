@@ -1280,7 +1280,7 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&source_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
   layout_in->append (&convert_, NULL, 0);
-  layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+  // layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
   switch (inherited::configuration_->configuration_->renderer)
   {
 #if defined (GTK_SUPPORT)

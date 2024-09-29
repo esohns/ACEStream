@@ -1234,11 +1234,11 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
   //         32-bit quantities are stored native-endian. ..."
   // *TODO*: determine color depth of selected (default) screen (i.e.'Display'
   //         ":0")
-  outputFormat_out.format.pixelformat = V4L2_PIX_FMT_RGB32;
+  outputFormat_out.format.pixelformat = V4L2_PIX_FMT_BGR32;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #if defined (GTK2_USE)
-  outputFormat_out.format.pixelformat = V4L2_PIX_FMT_RGB24;
+  outputFormat_out.format.pixelformat = V4L2_PIX_FMT_BGR24;
 #endif // GTK2_USE
 #endif // GTK_USE
 #endif // GUI_SUPPORT
@@ -1336,9 +1336,18 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // GUI_SUPPORT
 
   // ********************** module configuration data **************************
+#if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
+#else
+  struct Stream_AllocatorConfiguration allocator_configuration;
+#endif // FFMPEG_SUPPORT
   //if (bufferSize_in)
   //  allocator_configuration.defaultBufferSize = bufferSize_in;
+
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
+  codec_configuration.parserFlags = PARSER_FLAG_ONCE | PARSER_FLAG_USE_CODEC_TS;
+#endif // FFMPEG_SUPPORT
 
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1482,14 +1491,18 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   {
 #if defined (LIBCAMERA_SUPPORT)
     libcamera_modulehandler_configuration.allocatorConfiguration =
-        &allocator_configuration;
+      &allocator_configuration;
+#if defined (FFMPEG_SUPPORT)
+    libcamera_modulehandler_configuration.codecConfiguration =
+      &codec_configuration;
+#endif // FFMPEG_SUPPORT
     libcamera_modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
     libcamera::Camera* camera_p = NULL;
     libcamera::CameraManager* camera_manager_p = NULL;
     ACE_NEW_NORETURN (camera_manager_p,
                       libcamera::CameraManager ());
     ACE_ASSERT (camera_manager_p);
-    int result = camera_manager_p->start();
+    int result = camera_manager_p->start ();
     if (result)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1520,14 +1533,17 @@ error:
   else
   {
     v4l_modulehandler_configuration.allocatorConfiguration =
-        &allocator_configuration;
+      &allocator_configuration;
     v4l_modulehandler_configuration.buffers =
       STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
+#if defined (FFMPEG_SUPPORT)
+    v4l_modulehandler_configuration.codecConfiguration = &codec_configuration;
+#endif // FFMPEG_SUPPORT
     v4l_modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
     Stream_Device_Tools::getDefaultCaptureFormat (deviceIdentifier_in.identifier,
                                                   v4l_modulehandler_configuration.outputFormat);
     v4l_modulehandler_configuration.outputFormat.format.pixelformat =
-        V4L2_PIX_FMT_RGB32;
+      V4L2_PIX_FMT_RGB32;
     if (statisticReportingInterval_in)
     {
       v4l_modulehandler_configuration.statisticCollectionInterval.set (0,
@@ -1536,7 +1552,7 @@ error:
         statisticReportingInterval_in;
     } // end IF
 #if defined (GUI_SUPPORT)
-  v4l_modulehandler_configuration.subscriber = &v4l_ui_event_handler;
+    v4l_modulehandler_configuration.subscriber = &v4l_ui_event_handler;
 #endif // GUI_SUPPORT
     v4l_modulehandler_configuration.targetFileName = targetFilename_in;
   } // end ELSE
@@ -1861,6 +1877,7 @@ error:
   // *NOTE*: apparently, Windows Media Player supports only RGB 5:5:5 16bpp AVI
   //         content (see also avienc.c:448)
   v4l_converter_2_modulehandler_configuration = v4l_modulehandler_configuration;
+  v4l_converter_2_modulehandler_configuration.flipImage = true;
   v4l_converter_2_modulehandler_configuration.outputFormat.format.pixelformat =
       V4L2_PIX_FMT_BGR24;
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
@@ -2600,8 +2617,8 @@ ACE_TMAIN (int argc_in,
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+  // Common_UI_GTK_State_t& state_r =
+  //   const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 
 //  Common_Logger_Queue_t logger;
 //  logger.initialize (&state_r.logQueue,

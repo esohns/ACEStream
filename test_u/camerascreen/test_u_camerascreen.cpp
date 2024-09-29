@@ -1457,7 +1457,7 @@ do_work (int argc_in,
       {
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         {
-          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAVResize_2"),
+          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2"),
                                                                  std::make_pair (&module_configuration,
                                                                                  &directshow_modulehandler_configuration_2c)));
         

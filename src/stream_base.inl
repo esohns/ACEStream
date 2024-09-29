@@ -3072,7 +3072,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     if (task_p && task_p->get ())
       stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR ("*"));
 
-    stream_layout_string.append (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ())));
+    stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR (module_p->name ()));
 
     module_2 = const_cast<MODULE_T*> (module_p)->next ();
     if (module_2 && // *NOTE*: module_p might be an aggregator
@@ -3118,7 +3118,7 @@ Stream_Base_T<ACE_SYNCH_USE,
         if (task_p && task_p->get ())
           stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR ("*"));
 
-        stream_layout_string.append (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ())));
+        stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR (module_p->name ()));
 
         if (ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
                             ACE_TEXT (STREAM_MODULE_TAIL_NAME)) &&
@@ -3234,7 +3234,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     if (task_p && task_p->get ())
       result.append (ACE_TEXT_ALWAYS_CHAR ("*"));
 
-    result.append (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ())));
+    result.append (ACE_TEXT_ALWAYS_CHAR (module_p->name ()));
 
     if (ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
                         ACE_TEXT (STREAM_MODULE_TAIL_NAME)) &&

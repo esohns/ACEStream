@@ -56,7 +56,7 @@ Stream_CameraScreen_DirectShow_Stream::Stream_CameraScreen_DirectShow_Stream ()
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
  , resize_2 (this,
-             ACE_TEXT_ALWAYS_CHAR ("LibAVResize_2"))
+             ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2"))
  , videoWall_ (this,
                ACE_TEXT_ALWAYS_CHAR ("VideoWall"))
 #if defined (CURSES_SUPPORT)

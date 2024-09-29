@@ -26,7 +26,7 @@
 #include "stream_dev_defines.h"
 
 #if defined (FFMPEG_SUPPORT)
-#define STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING                       "LibAVResize"
+#define STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING                       "LibAV_Resize"
 #endif // FFMPEG_SUPPORT
 #if defined (IMAGEMAGICK_SUPPORT)
 #define STREAM_VIS_IMAGEMAGICK_RESIZE_DEFAULT_NAME_STRING                 "ImageMagickResize"

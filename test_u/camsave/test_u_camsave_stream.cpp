@@ -1623,7 +1623,8 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
   {
     if (display_b)
     {
-      layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
+      if ((*iterator).second.second->codecConfiguration->codecId == AV_CODEC_ID_NONE)
+        layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)

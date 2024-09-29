@@ -759,6 +759,7 @@ do_work (int argc_in,
   // video_codec_configuration.format = AV_PIX_FMT_VDPAU;
 
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration;
+  ALSA_configuration.asynch = false;
 #endif // ACE_WIN32 || ACE_WIN64
   codec_configuration.parserFlags = PARSER_FLAG_ONCE | PARSER_FLAG_USE_CODEC_TS;
   //codec_configuration_2.parserFlags = 0;

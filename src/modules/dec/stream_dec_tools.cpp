@@ -869,7 +869,8 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
 
   // *TODO*: define a balanced scaler parametrization that suits most
   //         applications, or expose this as a parameter
-  int flags = (SWS_FAST_BILINEAR);
+  int flags =
+    (SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
   struct SwsContext* context_p =
       (context_in ? context_in
                   : sws_getCachedContext (NULL,
@@ -924,10 +925,7 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
     goto clean;
   } // end IF
   // *NOTE*: ffmpeg returns fewer than the expected number of rows in some cases
-  // *TODO*: find out when and why (support off-by-one rounding)
-  else if (unlikely (result_2 != static_cast<int> (targetHeight_in))      &&
-                     (result_2 != static_cast<int> (targetHeight_in + 1)) &&
-                     (result_2 != static_cast<int> (targetHeight_in - 1)))
+  else if (unlikely (result_2 != static_cast<int> (targetHeight_in)))
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("sws_scale() returned: %d (expected: %u), continuing\n"),
                 result_2, targetHeight_in));

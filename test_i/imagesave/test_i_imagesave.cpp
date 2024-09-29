@@ -17,6 +17,7 @@
 *   Free Software Foundation, Inc.,                                       *
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
+#include "libavutil/pixfmt.h"
 #include "stdafx.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -440,6 +441,7 @@ do_work (
   allocator_configuration.defaultBufferSize = 524288;
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
   codec_configuration.codecId = AV_CODEC_ID_H264;
+  codec_configuration.parserFlags = PARSER_FLAG_ONCE | PARSER_FLAG_USE_CODEC_TS;
   //codec_configuration.useParser = false;
 #else
   struct Stream_AllocatorConfiguration allocator_configuration;
@@ -547,7 +549,11 @@ do_work (
     STREAM_DEV_CAM_DEFAULT_CAPTURE_FRAME_RATE;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_BGR24;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_RGB24;
+#else
+  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_BGRA;
+#endif // ACE_WIN32 || ACE_WIN64
 #else
   modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_BGR32;
 #endif // GTK_USE

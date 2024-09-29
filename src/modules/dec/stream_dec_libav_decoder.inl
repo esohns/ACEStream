@@ -154,7 +154,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       av_frame_free (&frame_); ACE_ASSERT (!frame_);
     } // end IF
     frameSize_ = 0;
-    outputFormat_ = STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT;
+    outputFormat_ = AV_PIX_FMT_NONE;
     outputFrameSize_ = 0;
     if (parserContext_)
     {
@@ -458,21 +458,19 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       if (unlikely (!inherited::configuration_->codecConfiguration->useParser))
         goto continue_;
       parserContext_ = av_parser_init (inherited::configuration_->codecConfiguration->codecId);
-      if (!parserContext_)
+      if (unlikely (!parserContext_))
       {
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: av_parser_init(\"%s\"[%d]) failed: \"%m\", continuing\n"),
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: av_parser_init(\"%s\"[%d]) failed: \"%m\", aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)), inherited::configuration_->codecConfiguration->codecId));
+        goto error;
       } // end IF
-      else
-      {
-        parserContext_->flags = inherited::configuration_->codecConfiguration->parserFlags;
-        //parserContext_->flags |= PARSER_FLAG_COMPLETE_FRAMES;
-        //parserContext_->flags |= PARSER_FLAG_ONCE;
-        //parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
-        //parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
-      } // end ELSE
+      parserContext_->flags = inherited::configuration_->codecConfiguration->parserFlags;
+      //parserContext_->flags |= PARSER_FLAG_COMPLETE_FRAMES;
+      //parserContext_->flags |= PARSER_FLAG_ONCE;
+      //parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
+      //parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
 
 continue_:
       context_ = avcodec_alloc_context3 (codec_p);
@@ -714,6 +712,11 @@ continue_:
       avcodec_parameters_free (&codec_parameters_p); codec_parameters_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
 
+      // if (context_->codec->capabilities & AV_CODEC_CAP_TRUNCATED)
+      // {
+      //   codec_context->flags |= AV_CODEC_FLAG_TRUNCATED;
+      // } // end IF
+
 //      result = av_dict_set (&dictionary_p,
 //                            NULL, NULL,
 //                            0);
@@ -747,7 +750,6 @@ continue_:
                                   formatWidth_,
                                   formatHeight_,
                                   1); // *TODO*: linesize alignment
-//      ACE_ASSERT (frameSize_ != 4294967274);
 
       if (context_->pix_fmt != outputFormat_)
       {
