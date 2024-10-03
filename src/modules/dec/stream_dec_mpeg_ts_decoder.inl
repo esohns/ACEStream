@@ -342,23 +342,15 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::isInitialized_);
 
-//  const SessionDataContainerType& session_data_container_r =
-//    message_inout->getR ();
-//  typename SessionDataContainerType::DATA_T& session_data_r =
-//    const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
-
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      goto continue_;
+      break;
 
 //error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
-      break;
-
-continue_:
       break;
     }
     case STREAM_SESSION_MESSAGE_END:

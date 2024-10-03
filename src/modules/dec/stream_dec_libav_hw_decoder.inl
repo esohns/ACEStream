@@ -1057,11 +1057,11 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   } // end IF
 
   // pixel format/resolution may have changed
-  if (unlikely (//(context_->pix_fmt != intermediateFormat_)             ||
+  if (unlikely ((!Stream_MediaFramework_Tools::isAcceleratedFormat (context_->pix_fmt) && (context_->pix_fmt != intermediateFormat_)) ||
                 (context_->width != static_cast<int> (formatWidth_))   ||
                 (context_->height != static_cast<int> (formatHeight_))))
   {
-    //intermediateFormat_ = context_->pix_fmt;
+    intermediateFormat_ = context_->pix_fmt;
 
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: reinit occurred; converting decoded pixel format %s to %s (@ %ux%u)\n"),
