@@ -73,6 +73,10 @@ Stream_CameraScreen_DirectShow_Stream::Stream_CameraScreen_DirectShow_Stream ()
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT2D_DEFAULT_NAME_STRING))
  , Direct3DDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
+ , Direct3D11Display_ (this,
+                       ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_11_DEFAULT_NAME_STRING))
+ , Direct3D12Display_ (this,
+                       ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_12_DEFAULT_NAME_STRING))
  , DirectShowDisplay_ (this,
                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
  , OpenGLDisplay_ (this,
@@ -157,6 +161,28 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
         layout_in->append (&videoWall_, NULL, 0);
       } // end IF
       layout_in->append (&Direct3DDisplay_, NULL, 0);
+      break;
+    }
+    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11:
+    {
+      layout_in->append (&convert_, NULL, 0);
+      if (inherited::configuration_->configuration_->useVideoWall)
+      {
+        layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+        layout_in->append (&videoWall_, NULL, 0);
+      } // end IF
+      layout_in->append (&Direct3D11Display_, NULL, 0);
+      break;
+    }
+    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_12:
+    {
+      layout_in->append (&convert_, NULL, 0);
+      if (inherited::configuration_->configuration_->useVideoWall)
+      {
+        layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+        layout_in->append (&videoWall_, NULL, 0);
+      } // end IF
+      layout_in->append (&Direct3D12Display_, NULL, 0);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:

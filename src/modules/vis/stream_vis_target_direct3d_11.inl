@@ -152,8 +152,9 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  if (!context_ || !swapChain_ || !texture_)
-    return; // not ready (yet)
+  // *TODO*: make this an 'active' module and remove this
+  if (!context_ || !texture_ || !swapChain_)
+    return; // --> not ready yet
 
   struct D3D11_MAPPED_SUBRESOURCE mapped_subresource_s;
   ACE_OS::memset (&mapped_subresource_s, 0, sizeof (struct D3D11_MAPPED_SUBRESOURCE));
@@ -168,8 +169,8 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
                   message_inout->length ());
   context_->Unmap (texture_, 0);
 
-  UINT vertex_count = 6;
-  context_->Draw (vertex_count, 0);
+  static UINT vertex_count_i = 6;
+  context_->Draw (vertex_count_i, 0);
 
   result = swapChain_->Present (1, 0);
   ACE_ASSERT (SUCCEEDED (result));
@@ -591,6 +592,7 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to create window, aborting\n"),
                 inherited::mod_->name ()));
+    inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
     return -1;
   } // end IF
   //SetWindowLongPtr (window_, GWLP_USERDATA, (LONG_PTR)&CBData_);
@@ -607,6 +609,7 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to initialize_Direct3D(), aborting\n"),
                 inherited::mod_->name ()));
     CloseWindow (inherited::window_); inherited::window_ = NULL;
+    inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
     return -1;
   } // end IF
 
@@ -680,22 +683,50 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
   swap_chain_descriptor_s.Windowed = TRUE;
 
   enum D3D_FEATURE_LEVEL feature_level_e;
-  UINT flags_i = D3D11_CREATE_DEVICE_SINGLETHREADED;
+  //UINT flags_i = D3D11_CREATE_DEVICE_SINGLETHREADED;
+  UINT flags_i = 0;
 #if defined (_DEBUG) || defined (DEBUG)
   flags_i |= D3D11_CREATE_DEVICE_DEBUG;
 #endif // _DEBUG || DEBUG
-  HRESULT result_2 = D3D11CreateDeviceAndSwapChain (NULL,
-                                                    D3D_DRIVER_TYPE_HARDWARE,
-                                                    NULL,
-                                                    flags_i,
-                                                    NULL,
-                                                    0,
-                                                    D3D11_SDK_VERSION,
-                                                    &swap_chain_descriptor_s,
-                                                    &swapChain_,
-                                                    &device_,
-                                                    &feature_level_e,
-                                                    &context_);
+  
+  // Driver types
+  D3D_DRIVER_TYPE driverTypes[] =
+  {
+    D3D_DRIVER_TYPE_HARDWARE,
+    D3D_DRIVER_TYPE_WARP,
+    D3D_DRIVER_TYPE_REFERENCE,
+  };
+
+  // feature levels
+  D3D_FEATURE_LEVEL featureLevels[] =
+  {
+    D3D_FEATURE_LEVEL_11_0,
+    D3D_FEATURE_LEVEL_10_1,
+    D3D_FEATURE_LEVEL_10_0,
+  };
+
+  int numDriverTypes = ARRAYSIZE( driverTypes );
+  int numFeatureLevels = ARRAYSIZE( featureLevels );
+  
+  HRESULT result_2 = E_FAIL;
+  for (int driverTypeIndex = 0;
+       driverTypeIndex < numDriverTypes;
+       driverTypeIndex++)
+  {
+    result_2 = D3D11CreateDeviceAndSwapChain (NULL,
+                                              driverTypes[driverTypeIndex],
+                                              NULL,
+                                              flags_i,
+                                              featureLevels, numFeatureLevels,
+                                              D3D11_SDK_VERSION,
+                                              &swap_chain_descriptor_s,
+                                              &swapChain_,
+                                              &device_,
+                                              &feature_level_e,
+                                              &context_);
+    if (SUCCEEDED (result_2))
+      break;
+  } // end FOR
   if (unlikely (FAILED (result_2)))
   {
     ACE_DEBUG ((LM_ERROR,

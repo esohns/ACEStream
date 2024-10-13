@@ -18,14 +18,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_VIS_TARGET_DIRECT3D_11_T_H
-#define STREAM_MODULE_VIS_TARGET_DIRECT3D_11_T_H
+#ifndef STREAM_MODULE_VIS_TARGET_DIRECT3D_12_T_H
+#define STREAM_MODULE_VIS_TARGET_DIRECT3D_12_T_H
 
-//#include "dxgicommon.h"
-#include "d3d11.h"
+#include "dxgi1_4.h"
+#include "d3d12.h"
+#include "d3dx12.h"
+#include "DirectXMath.h"
 #include "guiddef.h"
-
-#include <string>
 
 #include "ace/Global_Macros.h"
 
@@ -33,7 +33,7 @@
 
 #include "stream_vis_target_win32_base.h"
 
-extern const char libacestream_default_vis_direct3d11_module_name_string[];
+extern const char libacestream_default_vis_direct3d12_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -48,7 +48,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           ////////////////////////////////
           typename MediaType>
-class Stream_Vis_Target_Direct3D11_T
+class Stream_Vis_Target_Direct3D12_T
  : public Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                                          TimePolicyType,
                                          ConfigurationType,
@@ -67,8 +67,8 @@ class Stream_Vis_Target_Direct3D11_T
 
  public:
   typedef typename inherited::ISTREAM_T ISTREAM_T;
-  Stream_Vis_Target_Direct3D11_T (ISTREAM_T*); // stream handle
-  virtual ~Stream_Vis_Target_Direct3D11_T ();
+  Stream_Vis_Target_Direct3D12_T (ISTREAM_T*); // stream handle
+  virtual ~Stream_Vis_Target_Direct3D12_T ();
 
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
@@ -82,35 +82,19 @@ class Stream_Vis_Target_Direct3D11_T
   // implement Common_UI_IFullscreen
   virtual void toggle ();
 
- protected:
-  bool compileShaders (const std::string&, // (FQ) filename
-                       ID3D11Device*);     // device handle
-
-  ID3D11DeviceContext*      context_;
-  ID3D11Device*             device_;
-  struct _GUID              format_;
-  ID3D11RenderTargetView*   renderTargetView_;
-  ID3D11ShaderResourceView* shaderResourceView_;
-  IDXGISwapChain*           swapChain_;
-  ID3D11VertexShader*       vertexShader_;
-  ID3D11PixelShader*        pixelShader_;
-  ID3D11InputLayout*        inputLayout_;
-  ID3D11Buffer*             vertexBuffer_;
-  ID3D11Texture2D*          backBuffer_;
-  ID3D11SamplerState*       samplerState_;
-  ID3D11Texture2D*          texture_;
-  ID3D11Texture2D*          depthStencilBuffer_;
-  ID3D11DepthStencilView*   depthStencilView_;
-  ID3D11DepthStencilState*  depthStencilState_;
-  ID3D11RasterizerState*    rasterizerState_;
-
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D11_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D11_T (const Stream_Vis_Target_Direct3D11_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D11_T& operator= (const Stream_Vis_Target_Direct3D11_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D12_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D12_T (const Stream_Vis_Target_Direct3D12_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D12_T& operator= (const Stream_Vis_Target_Direct3D12_T&))
 
   // helper types
-  typedef Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
+  struct Vertex
+  {
+    DirectX::XMFLOAT3 position;
+    DirectX::XMFLOAT2 uv;
+  };
+
+  typedef Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
                                          TimePolicyType,
                                          ConfigurationType,
                                          ControlMessageType,
@@ -126,9 +110,38 @@ class Stream_Vis_Target_Direct3D11_T
   // helper methods
   bool initialize_Direct3D (HWND,     // (target-) window handle
                             REFGUID); // (input-) format
+  void waitForPreviousFrame ();
+
+  // pipeline objects
+  CD3DX12_VIEWPORT           viewport_;
+  CD3DX12_RECT               scissorRect_;
+  IDXGISwapChain3*           swapChain_;
+  ID3D12Device*              device_;
+  ID3D12Resource*            renderTargets_[STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_12_DEFAULT_FRAME_COUNT];
+  ID3D12CommandAllocator*    commandAllocator_;
+  ID3D12CommandQueue*        commandQueue_;
+  ID3D12RootSignature*       rootSignature_;
+  ID3D12DescriptorHeap*      rtvHeap_;
+  ID3D12DescriptorHeap*      srvHeap_;
+  ID3D12PipelineState*       pipelineState_;
+  ID3D12GraphicsCommandList* commandList_;
+  UINT                       rtvDescriptorSize_;
+
+  // application resources
+  ID3D12Resource*            vertexBuffer_;
+  D3D12_VERTEX_BUFFER_VIEW   vertexBufferView_;
+  ID3D12Resource*            texture_;
+
+  // synchronization objects
+  UINT                       frameIndex_;
+  HANDLE                     fenceEvent_;
+  ID3D12Fence*               fence_;
+  UINT64                     fenceValue_;
+
+  struct _GUID               format_;
 };
 
 // include template definition
-#include "stream_vis_target_direct3d_11.inl"
+#include "stream_vis_target_direct3d_12.inl"
 
 #endif

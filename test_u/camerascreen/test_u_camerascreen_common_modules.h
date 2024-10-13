@@ -60,6 +60,9 @@
 #include "stream_vis_gtk_window.h"
 #endif // GTK_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+// #include "dxgitype.h"
+#include "stream_vis_target_direct3d_12.h"
+#include "stream_vis_target_direct3d_11.h"
 #include "stream_vis_target_direct2d.h"
 #include "stream_vis_target_direct3d.h"
 #include "stream_vis_target_directshow.h"
@@ -270,6 +273,26 @@ typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Stream_CameraScreen_DirectShow_SessionData,
                                      Stream_CameraScreen_DirectShow_SessionData_t,
                                      struct _AMMediaType> Stream_CameraScreen_DirectShow_Direct3D_Display;
+
+typedef Stream_Vis_Target_Direct3D11_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
+                                       struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
+                                       Stream_ControlMessage_t,
+                                       Stream_CameraScreen_DirectShow_Message_t,
+                                       Stream_CameraScreen_DirectShow_SessionMessage_t,
+                                       Stream_CameraScreen_DirectShow_SessionData,
+                                       Stream_CameraScreen_DirectShow_SessionData_t,
+                                       struct _AMMediaType> Stream_CameraScreen_DirectShow_Direct3D_11_Display;
+
+typedef Stream_Vis_Target_Direct3D12_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
+                                       struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
+                                       Stream_ControlMessage_t,
+                                       Stream_CameraScreen_DirectShow_Message_t,
+                                       Stream_CameraScreen_DirectShow_SessionMessage_t,
+                                       Stream_CameraScreen_DirectShow_SessionData,
+                                       Stream_CameraScreen_DirectShow_SessionData_t,
+                                       struct _AMMediaType> Stream_CameraScreen_DirectShow_Direct3D_12_Display;
 
 struct Stream_CameraScreen_DirectShow_FilterConfiguration
  : Stream_MediaFramework_DirectShow_FilterConfiguration
@@ -549,6 +572,20 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,       
                               libacestream_default_vis_direct3d_module_name_string,
                               Stream_INotify_t,                                                 // stream notification interface type
                               Stream_CameraScreen_DirectShow_Direct3D_Display);                 // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                   // session event type
+                              struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_direct3d11_module_name_string,
+                              Stream_INotify_t,                                                 // stream notification interface type
+                              Stream_CameraScreen_DirectShow_Direct3D_11_Display);              // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                   // session event type
+                              struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_direct3d12_module_name_string,
+                              Stream_INotify_t,                                                 // stream notification interface type
+                              Stream_CameraScreen_DirectShow_Direct3D_12_Display);              // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                   // session event type

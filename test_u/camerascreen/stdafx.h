@@ -13,35 +13,23 @@
 // Windows Header Files
 #include "windows.h"
 
-//#include "strmif.h"
-//#undef NANOSECONDS
-//#include "reftime.h"
-#if defined (DEBUG)
-//// *NOTE*: wxWidgets may have #defined __WXDEBUG__
-//#if defined (__WXDEBUG__)
-//#undef __WXDEBUG__
-//#endif // __WXDEBUG__
-//#include "wxdebug.h"
-#endif // DEBUG
-// *NOTE*: uuids.h doesn't have double include protection
-//#if defined (UUIDS_H)
-//#else
-//#define UUIDS_H
-//#include "uuids.h"
-//#endif // UUIDS_H
+//#include "dxgi.h"
+//#include "dxgicommon.h"
+//#include "dxgitype.h"
+//#include "d3d12.h"
+//#include "d3dx12.h"
 #endif // _MSC_VER
+
+#if defined (VALGRIND_USE)
+#include "valgrind/valgrind.h"
+#endif // VALGRIND_USE
 
 // C RunTime Header Files
 #include <string>
 
 // System Library Header Files
-#include "ace/config-lite.h"
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
-
-#if defined (VALGRIND_USE)
-#include "valgrind/valgrind.h"
-#endif // VALGRIND_USE
 
 // Local Header Files
 #if defined (HAVE_CONFIG_H)

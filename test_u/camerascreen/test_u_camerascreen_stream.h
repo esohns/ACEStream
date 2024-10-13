@@ -106,24 +106,26 @@ class Stream_CameraScreen_DirectShow_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_DirectShow_Stream& operator= (const Stream_CameraScreen_DirectShow_Stream&))
 
   // modules
-  Stream_CameraScreen_DirectShow_Source_Module           source_;
-  Stream_CameraScreen_DirectShow_StatisticReport_Module  statisticReport_;
-  Stream_CameraScreen_DirectShow_LibAVConvert_Module     convert_; // RGB
-  Stream_CameraScreen_DirectShow_LibAVResize_Module      resize_; // --> window size/fullscreen
-  Stream_CameraScreen_DirectShow_LibAVResize_Module      resize_2; // --> video wall resolution
-  Test_U_CameraScreen_VideoWall_Module                   videoWall_;
+  Stream_CameraScreen_DirectShow_Source_Module              source_;
+  Stream_CameraScreen_DirectShow_StatisticReport_Module     statisticReport_;
+  Stream_CameraScreen_DirectShow_LibAVConvert_Module        convert_; // RGB
+  Stream_CameraScreen_DirectShow_LibAVResize_Module         resize_; // --> window size/fullscreen
+  Stream_CameraScreen_DirectShow_LibAVResize_Module         resize_2; // --> video wall resolution
+  Test_U_CameraScreen_VideoWall_Module                      videoWall_;
 #if defined (CURSES_SUPPORT)
-  Test_U_CameraScreen_Curses_Window_Module               CursesDisplay_;
+  Test_U_CameraScreen_Curses_Window_Module                  CursesDisplay_;
 #endif // CURSES_SUPPORT
 #if defined (GTK_SUPPORT)
-  Stream_CameraScreen_DirectShow_GTK_Display_Module      GTKDisplay_;
+  Stream_CameraScreen_DirectShow_GTK_Display_Module         GTKDisplay_;
 #endif // GTK_SUPPORT
-  Stream_CameraScreen_DirectShow_GDI_Display_Module      GDIDisplay_;
-  Stream_CameraScreen_DirectShow_Direct2D_Display_Module Direct2DDisplay_;
-  Stream_CameraScreen_DirectShow_Direct3D_Display_Module Direct3DDisplay_;
-  Stream_CameraScreen_DirectShow_Display_Module          DirectShowDisplay_;
+  Stream_CameraScreen_DirectShow_GDI_Display_Module         GDIDisplay_;
+  Stream_CameraScreen_DirectShow_Direct2D_Display_Module    Direct2DDisplay_;
+  Stream_CameraScreen_DirectShow_Direct3D_Display_Module    Direct3DDisplay_;
+  Stream_CameraScreen_DirectShow_Direct3D_11_Display_Module Direct3D11Display_;
+  Stream_CameraScreen_DirectShow_Direct3D_12_Display_Module Direct3D12Display_;
+  Stream_CameraScreen_DirectShow_Display_Module             DirectShowDisplay_;
 #if defined (GLUT_SUPPORT)
-  Stream_CameraScreen_DirectShow_OpenGL_Display_Module   OpenGLDisplay_;
+  Stream_CameraScreen_DirectShow_OpenGL_Display_Module      OpenGLDisplay_;
 #endif // GLUT_SUPPORT
 };
 

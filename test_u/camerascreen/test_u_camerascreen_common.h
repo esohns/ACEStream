@@ -93,6 +93,7 @@ extern "C"
 
 #include "test_u_common.h"
 
+#include "test_u_camerascreen_defines.h"
 #include "test_u_camerascreen_message.h"
 #include "test_u_camerascreen_session_message.h"
 
@@ -426,7 +427,7 @@ struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration
    , filterCLSID (GUID_NULL)
    , outputFormat ()
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
-   //, sourceFormat ()
+   , shaderFile (ACE_TEXT_ALWAYS_CHAR (TEST_U_DIRECT3D_11_SHADER_FILE_NAME))
    , subscriber (NULL)
    , subscribers (NULL)
    , windowController (NULL)
@@ -453,6 +454,7 @@ struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration
 //    if (outputFormat)
 //      Stream_MediaFramework_DirectShow_Tools::delete_ (outputFormat);
     push = rhs_in.push;
+    shaderFile = rhs_in.shaderFile;
     subscriber = rhs_in.subscriber;
     subscribers = rhs_in.subscribers;
     if (windowController)
@@ -477,18 +479,18 @@ struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration
     return *this;
   }
 
-  struct tagRECT                                        area;
-  IGraphBuilder*                                        builder;
-  struct Stream_MediaFramework_Direct3D_Configuration*  direct3DConfiguration;
+  struct tagRECT                                             area;
+  IGraphBuilder*                                             builder;
+  struct Stream_MediaFramework_Direct3D_Configuration*       direct3DConfiguration;
   struct Stream_CameraScreen_DirectShow_FilterConfiguration* filterConfiguration;
-  CLSID                                                 filterCLSID;
-  struct _AMMediaType                                   outputFormat;
-  bool                                                  push;
-  //struct _AMMediaType                                   sourceFormat;
+  CLSID                                                      filterCLSID;
+  struct _AMMediaType                                        outputFormat;
+  bool                                                       push;
+  std::string                                                shaderFile;
   Stream_CameraScreen_DirectShow_ISessionNotify_t*           subscriber;
   Stream_CameraScreen_DirectShow_Subscribers_t*              subscribers;
-  IVideoWindow*                                         windowController;
-  IMFVideoDisplayControl*                               windowController2; // EVR
+  IVideoWindow*                                              windowController;
+  IMFVideoDisplayControl*                                    windowController2; // EVR
 };
 
 struct Stream_CameraScreen_MediaFoundation_StreamConfiguration;

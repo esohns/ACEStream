@@ -1,5 +1,5 @@
 if (WIN32)
- include (directxsdk)
+# include (directxsdk)
 endif (WIN32)
 
 include (ffmpeg)
@@ -26,7 +26,11 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../dec/
 include (opencv)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
-include (wayland)
+if (UNIX)
+ include (wayland)
+elseif (WIN32)
+ include (directx)
+endif ()
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
@@ -46,6 +50,11 @@ if (WIN32 AND DIRECTXSDK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${DIRECTXSDK_INCLUDE_DIR}>)
 endif (WIN32 AND DIRECTXSDK_SUPPORT)
+
+if (WIN32 AND DIRECTX_HEADERS_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${DIRECTX_HEADERS_INCLUDE_DIR}>)
+endif (WIN32 AND DIRECTX_HEADERS_SUPPORT)
 
 if (FFMPEG_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -256,6 +265,9 @@ elseif (WIN32)
       stream_vis_target_direct3d_11.cpp
       stream_vis_target_direct3d_11.h
       stream_vis_target_direct3d_11.inl
+      stream_vis_target_direct3d_12.cpp
+      stream_vis_target_direct3d_12.h
+      stream_vis_target_direct3d_12.inl
       stream_vis_target_directshow.cpp
       stream_vis_target_directshow.h
       stream_vis_target_directshow.inl
@@ -431,6 +443,8 @@ elseif (WIN32)
       stream_vis_target_direct3d.inl
       stream_vis_target_direct3d_11.h
       stream_vis_target_direct3d_11.inl
+      stream_vis_target_direct3d_12.h
+      stream_vis_target_direct3d_12.inl
       stream_vis_target_directshow.h
       stream_vis_target_directshow.inl
       stream_vis_target_gdi.h

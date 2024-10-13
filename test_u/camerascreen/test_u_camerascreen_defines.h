@@ -33,6 +33,12 @@
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // CURSES_SUPPORT
 
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define TEST_U_DIRECT3D_11_SHADER_FILE_NAME          "shaders.hlsl"
+#define TEST_U_DIRECT3D_12_SHADER_FILE_NAME          "shaders_12.hlsl"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #define TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X 6
 #define TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y 5
 

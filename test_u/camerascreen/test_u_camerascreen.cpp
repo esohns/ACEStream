@@ -127,8 +127,16 @@ do_print_usage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-3          : use Direct3D renderer [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-9          : use Direct3D 9 renderer [")
             << true
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : use Direct3D 11 renderer [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : use Direct3D 12 renderer [")
+            << false
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #else
@@ -296,7 +304,7 @@ do_process_arguments (int argc_in,
   options_string += ACE_TEXT_ALWAYS_CHAR ("c");
 #endif // CURSES_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  options_string += ACE_TEXT_ALWAYS_CHAR ("123m");
+  options_string += ACE_TEXT_ALWAYS_CHAR ("129mxy");
 #else
   options_string += ACE_TEXT_ALWAYS_CHAR ("1x");
 #endif // ACE_WIN32 || ACE_WIN64
@@ -328,7 +336,7 @@ do_process_arguments (int argc_in,
         renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D;
         break;
       }
-      case '3':
+      case '9':
       {
         renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D;
         break;
@@ -401,6 +409,16 @@ do_process_arguments (int argc_in,
         break;
       }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+      case 'x':
+      {
+        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11;
+        break;
+      }
+      case 'y':
+      {
+        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_12;
+        break;
+      }
 #else
       case 'x':
       {
@@ -1105,8 +1123,16 @@ do_work (int argc_in,
         deviceIdentifier_in;
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
-      //directshow_modulehandler_configuration.lock = &state_r.subscribersLock;
-
+      std::string shader_file_path = Common_File_Tools::getWorkingDirectory ();
+      shader_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+      shader_file_path +=
+        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+      shader_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+      shader_file_path +=
+        (renderer_in == STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_12 ? ACE_TEXT_ALWAYS_CHAR (TEST_U_DIRECT3D_12_SHADER_FILE_NAME)
+                                                                            : ACE_TEXT_ALWAYS_CHAR (TEST_U_DIRECT3D_11_SHADER_FILE_NAME));
+      directshow_modulehandler_configuration.shaderFile = shader_file_path;
+      ACE_ASSERT (Common_File_Tools::canRead (directshow_modulehandler_configuration.shaderFile, ACE_TEXT_ALWAYS_CHAR ("")));
       //if (statisticReportingInterval_in)
       //{
       //  directshow_modulehandler_configuration.statisticCollectionInterval.set (0,
