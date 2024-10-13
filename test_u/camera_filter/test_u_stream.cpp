@@ -59,6 +59,10 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
                  ACE_TEXT_ALWAYS_CHAR ("SobelFilter"))
  , marchingSquaresFilter_ (this,
                            ACE_TEXT_ALWAYS_CHAR ("MarchingSquaresFilter"))
+#if defined (LIBNOISE_SUPPORT)
+ , perlinNoiseFilter_ (this,
+                       ACE_TEXT_ALWAYS_CHAR ("PerlinNoiseFilter"))
+#endif // LIBNOISE_SUPPORT
 #if defined (GTK_SUPPORT)
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
@@ -129,8 +133,10 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
     {
       // layout_in->append (&sobelFilter_, NULL, 0);
-      //layout_in->append (&Direct3DDisplay_, NULL, 0);
-      layout_in->append (&marchingSquaresFilter_, NULL, 0);
+      layout_in->append (&perlinNoiseFilter_, NULL, 0);
+      layout_in->append (&Direct3DDisplay_, NULL, 0);
+
+      //layout_in->append (&marchingSquaresFilter_, NULL, 0);
       //layout_in->append (&weightedVoronoiStippleFilter_, NULL, 0);
       break;
     }

@@ -1,5 +1,6 @@
-#set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/ui/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui/scripts")
-#include (PreUIFramework)
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/scripts")
+include (libnoise)
+
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/gl/scripts")
 include (assimp)
 include (glew)
@@ -35,6 +36,10 @@ endif (UNIX)
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
+if (LIBNOISE_SUPPORT)
+ include_directories (${LIBNOISE_INCLUDE_DIRS})
+endif (LIBNOISE_SUPPORT)
+
 if (GLEW_SUPPORT)
  include_directories (${GLEW_INCLUDE_DIRS})
 endif (GLEW_SUPPORT)
@@ -47,12 +52,15 @@ endif (GLUT_SUPPORT)
 if (FFMPEG_SUPPORT)
  include_directories (${ffmpeg_INCLUDE_DIRS})
 endif (FFMPEG_SUPPORT)
+
 if (LIBCAMERA_SUPPORT)
  include_directories (${LIBCAMERA_INCLUDE_DIRS})
 endif (LIBCAMERA_SUPPORT)
+
 if (OLC_PGE_SUPPORT)
  include_directories (${PGE_INCLUDE_DIR})
 endif (OLC_PGE_SUPPORT)
+
 if (JC_VORONOI_SUPPORT)
  include_directories (${VORONOI_INCLUDE_DIR})
 endif (JC_VORONOI_SUPPORT)
@@ -115,6 +123,14 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_signalhandler.h
      test_u_stream.cpp
      test_u_stream.h)
+
+if (LIBNOISE_SUPPORT)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
+      test_u_module_perlin_noise_filter.cpp
+      test_u_module_perlin_noise_filter.h)
+endif (LIBNOISE_SUPPORT)
+
 if (GLUT_SUPPORT)
  set (${EXECUTABLE}_EXE_SRCS
       ${${EXECUTABLE}_EXE_SRCS}
@@ -125,6 +141,7 @@ if (GLUT_SUPPORT)
       test_u_module_opengl_glut_3.cpp
       test_u_module_opengl_glut_3.h)
 endif (GLUT_SUPPORT)
+
 if (JC_VORONOI_SUPPORT)
  set (${EXECUTABLE}_EXE_SRCS
       ${${EXECUTABLE}_EXE_SRCS}
@@ -164,6 +181,10 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
+if (LIBNOISE_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${LIBNOISE_LIBRARIES})
+endif (LIBNOISE_SUPPORT)
+
 if (GLEW_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${GLEW_LIBRARIES})
 endif (GLEW_SUPPORT)
@@ -173,9 +194,11 @@ endif (GLUT_SUPPORT)
 if (FFMPEG_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)
+
 if (LIBCAMERA_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${LIBCAMERA_LIBRARIES})
 endif (LIBCAMERA_SUPPORT)
+
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_V4L_LIBRARIES})
@@ -252,6 +275,7 @@ if (UNIX)
 elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
+ file (TO_CMAKE_PATH "${LIBNOISE_LIB_DIR}" LIBNOISE_PATH)
  file (TO_CMAKE_PATH "${OPENGL_LIB_DIR}" OPENGL_PATH)
  file (TO_CMAKE_PATH "${GLEW_LIB_DIR}" GLEW_PATH)
  file (TO_CMAKE_PATH "${GLUT_LIB_DIR}" GLUT_PATH)
@@ -269,6 +293,7 @@ elseif (WIN32)
  endif (WXWIDGETS_SUPPORT)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                           ${LIBNOISE_PATH}
                            ${OPENGL_PATH}
                            ${GLEW_PATH}
                            ${GLUT_PATH}
