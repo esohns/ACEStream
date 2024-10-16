@@ -108,8 +108,8 @@ class Stream_Vis_Target_Direct3D12_T
   virtual int svc ();
 
   // helper methods
-  bool initialize_Direct3D (HWND,     // (target-) window handle
-                            REFGUID); // (input-) format
+  bool initialize_Direct3D (HWND,          // (target-) window handle
+                            bool = false); // use software renderer ?
   void waitForPreviousFrame ();
 
   // pipeline objects

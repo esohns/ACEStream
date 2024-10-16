@@ -631,6 +631,9 @@ Stream_Vis_Target_Direct3D11_T<ACE_SYNCH_USE,
 
     TranslateMessage (&message_s);
     DispatchMessage (&message_s);
+
+    if (message_s.message == WM_CLOSE)
+      break;
   } // end WHILE
   DestroyWindow (inherited::window_); inherited::window_ = NULL;
 

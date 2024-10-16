@@ -107,7 +107,8 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
   for (UINT i = 0;
        i < STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_12_DEFAULT_FRAME_COUNT;
        i++)
-    renderTargets_[i]->Release ();
+    if (renderTargets_[i])
+      renderTargets_[i]->Release ();
   if (commandAllocator_)
     commandAllocator_->Release ();
   if (commandQueue_)
@@ -223,7 +224,8 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
   commandList_->ClearRenderTargetView (rtvHandle_h, clearColor, 0, NULL);
   commandList_->IASetPrimitiveTopology (D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
   commandList_->IASetVertexBuffers (0, 1, &vertexBufferView_);
-  commandList_->DrawInstanced (3, 1, 0, 0);
+  //commandList_->DrawInstanced (3, 1, 0, 0);
+  commandList_->DrawInstanced (6, 1, 0, 0);
 
   // Indicate that the back buffer will now be used to present.
   commandList_->ResourceBarrier (1,
@@ -526,7 +528,7 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
               inherited::window_));
 
   if (unlikely (!initialize_Direct3D (inherited::window_,
-                                      format_)))
+                                      inherited::configuration_->direct3DConfiguration->useSoftwareRenderer))) // use software renderer ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize_Direct3D(), aborting\n"),
@@ -554,6 +556,9 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
 
     TranslateMessage (&message_s);
     DispatchMessage (&message_s);
+
+    if (message_s.message == WM_CLOSE)
+      break;
   } // end WHILE
   DestroyWindow (inherited::window_); inherited::window_ = NULL;
 
@@ -587,7 +592,7 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
                                SessionDataType,
                                SessionDataContainerType,
                                MediaType>::initialize_Direct3D (HWND window_in,
-                                                                REFGUID format_in)
+                                                                bool useSoftwareRenderer_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D12_T::initialize_Direct3D"));
 
@@ -645,16 +650,23 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
   {
     DXGI_ADAPTER_DESC1 desc;
     adapter_p->GetDesc1 (&desc);
+
     if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
     {
+      if (useSoftwareRenderer_in)
+        break;
+
       // Don't select the Basic Render Driver adapter.
       adapter_p->Release (); adapter_p = NULL;
       continue;
     } // end IF
 
+    // --> not a software renderer device
+
     // Check to see whether the adapter supports Direct3D 12, but don't create the
     // actual device yet.
-    if (SUCCEEDED (D3D12CreateDevice (adapter_p,
+    if (!useSoftwareRenderer_in &&
+        SUCCEEDED (D3D12CreateDevice (adapter_p,
                                       D3D_FEATURE_LEVEL_11_0,
                                       _uuidof (ID3D12Device),
                                       NULL)))
@@ -975,9 +987,17 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
 
     Vertex triangleVertices[] =
     {
-        { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 0.5f, 0.0f } },
-        { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 1.0f, 1.0f } },
-        { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f } }
+      {{-1.0f, -1.0f, 0.0f}, {0.0f, 1.0f}}, // point at bottom-left
+      {{-1.0f,  1.0f, 0.0f}, {0.0f, 0.0f}}, // point at top-left
+      {{ 1.0f,  1.0f, 0.0f}, {1.0f, 0.0f}}, // point at top-right
+
+      {{-1.0f, -1.0f, 0.0f}, {0.0f, 1.0f}}, // point at bottom-left
+      {{ 1.0f,  1.0f, 0.0f}, {1.0f, 0.0f}}, // point at top-right
+      {{ 1.0f, -1.0f, 0.0f}, {1.0f, 1.0f}}  // point at bottom-right
+
+      //{ { 0.0f, 0.25f * aspectRatio, 0.0f }, { 0.5f, 0.0f } },
+      //{ { 0.25f, -0.25f * aspectRatio, 0.0f }, { 1.0f, 1.0f } },
+      //{ { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f } }
     };
 
     const UINT vertexBufferSize = sizeof (triangleVertices);

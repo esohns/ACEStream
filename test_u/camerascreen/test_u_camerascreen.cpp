@@ -1373,6 +1373,8 @@ do_work (int argc_in,
       delete media_type_p; media_type_p = NULL;
       directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
         directshow_modulehandler_configuration_3.window;
+      directShowConfiguration_in.direct3DConfiguration.useSoftwareRenderer =
+        true; // *TODO*: why doesn't the HW device work ?
       stream_p = &directshow_stream;
 
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),

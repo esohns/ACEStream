@@ -28,8 +28,12 @@ libacestream_vis_target_win32_base_window_proc_cb (HWND hWnd, UINT message, WPAR
   {
     case WM_CLOSE:
     { // *NOTE*: WM_CLOSE is normally NOT seen by GetMessage()...
-      BOOL bRet = PostMessage (hWnd, message, wParam, lParam);
-      ACE_ASSERT (bRet);
+      static bool is_first_b = true;
+      if (is_first_b)
+      { is_first_b = false;
+        BOOL bRet = PostMessage (hWnd, message, wParam, lParam);
+        ACE_ASSERT (bRet);
+      } // end IF
       break;
     }
     case WM_DESTROY:

@@ -22,10 +22,7 @@
 #define STREAM_LIB_DIRECTDRAW_COMMON_H
 
 #include "windef.h"
-//#pragma pack(push)
-//#pragma pack(4)
 #include "d3d9types.h"
-//#pragma pack(pop)
 #include "d3d9.h"
 
 #include "ace/OS.h"
@@ -50,6 +47,8 @@ struct Stream_MediaFramework_Direct3D_Configuration
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
    //, usage (0)
    , threadId (0)
+  ///////////////////////////////////////
+   , useSoftwareRenderer (false)
   {
     behaviorFlags = //D3DCREATE_ADAPTERGROUP_DEVICE          |
                     //D3DCREATE_DISABLE_DRIVER_MANAGEMENT    |
@@ -159,6 +158,10 @@ struct Stream_MediaFramework_Direct3D_Configuration
   //DWORD                          usage; // see also: D3DUSAGE
   // *IMPORTANT NOTE*: set to the thread that allocates 'handle'
   ACE_thread_t                   threadId;
+
+  /////////////////////////////////////////
+  // Direct3D12
+  bool                           useSoftwareRenderer;
 };
 
 #endif
