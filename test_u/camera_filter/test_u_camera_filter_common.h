@@ -550,17 +550,32 @@ struct Test_U_StreamState
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
+enum Test_U_CameraFilter_Mode
+{
+  TEST_U_MODE_SOBEL = 0,
+  TEST_U_MODE_PERLIN_NOISE,
+  TEST_U_MODE_MARCHING_SQUARES,
+  TEST_U_MODE_WEIGHTED_VORONOI_STIPPLE,
+  TEST_U_MODE_GLUT,
+  TEST_U_MODE_GLUT_2,
+  TEST_U_MODE_GLUT_3
+};
+
 struct Test_U_CameraFilter_StreamConfiguration
  : Stream_Configuration
 {
   Test_U_CameraFilter_StreamConfiguration ()
    : Stream_Configuration ()
+   , mode (TEST_U_MODE_SOBEL)
    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_INVALID)
   {
     printFinalReport = true;
   }
+
+  enum Test_U_CameraFilter_Mode           mode;
   enum Stream_Visualization_VideoRenderer renderer;
 };
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_CameraFilter_DirectShow_StreamConfiguration
  : Test_U_CameraFilter_StreamConfiguration

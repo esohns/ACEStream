@@ -110,6 +110,64 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&convert_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
 
+  bool add_renderer_b = true;
+  switch (inherited::configuration_->configuration_->mode)
+  {
+    case TEST_U_MODE_SOBEL:
+    {
+      layout_in->append (&sobelFilter_, NULL, 0);
+      break;
+    }
+    case TEST_U_MODE_PERLIN_NOISE:
+    {
+      layout_in->append (&perlinNoiseFilter_, NULL, 0);
+      break;
+    }
+    case TEST_U_MODE_MARCHING_SQUARES:
+    {
+      layout_in->append (&marchingSquaresFilter_, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+    case TEST_U_MODE_WEIGHTED_VORONOI_STIPPLE:
+    {
+      layout_in->append (&weightedVoronoiStippleFilter_, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+#if defined (GLUT_SUPPORT)
+    case TEST_U_MODE_GLUT:
+    {
+      //layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+      layout_in->append (&OpenGLDisplay_, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+    case TEST_U_MODE_GLUT_2:
+    {
+      layout_in->append (&GLUTDisplay_2, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+    case TEST_U_MODE_GLUT_3:
+    {
+      layout_in->append (&GLUTDisplay_3, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+#endif // GLUT_SUPPORT
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown mode (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->mode));
+      return false;
+    }
+  } // end SWITCH
+  if (!add_renderer_b)
+    goto continue_;
+
   switch (inherited::configuration_->configuration_->renderer)
   {
 #if defined (GTK_SUPPORT)
@@ -132,12 +190,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
     {
-      // layout_in->append (&sobelFilter_, NULL, 0);
-      layout_in->append (&perlinNoiseFilter_, NULL, 0);
       layout_in->append (&Direct3DDisplay_, NULL, 0);
-
-      //layout_in->append (&marchingSquaresFilter_, NULL, 0);
-      //layout_in->append (&weightedVoronoiStippleFilter_, NULL, 0);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
@@ -149,10 +202,6 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
     {
-      //layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-      //layout_in->append (&OpenGLDisplay_, NULL, 0);
-      //layout_in->append (&GLUTDisplay_2, NULL, 0);
-      layout_in->append (&GLUTDisplay_3, NULL, 0);
       break;
     }
 #endif // GLUT_SUPPORT
@@ -166,6 +215,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
   } // end SWITCH
 
+continue_:
   return true;
 }
 

@@ -165,8 +165,8 @@ do_print_usage (const std::string& programName_in)
             << device_identifier_string
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-g          : OpenGL mode [")
-            << false
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-g          : mode [")
+            << TEST_U_MODE_SOBEL
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::string path = Common_File_Tools::getTempDirectory ();
@@ -200,6 +200,7 @@ bool
 do_process_arguments (int argc_in,
                       ACE_TCHAR** argv_in, // cannot be const...
                       struct Stream_Device_Identifier& deviceIdentifier_out,
+                      enum Test_U_CameraFilter_Mode& mode_out,
                       bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                       enum Stream_MediaFramework_Type& mediaFramework_out,
@@ -247,6 +248,7 @@ do_process_arguments (int argc_in,
   deviceIdentifier_out.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
+  mode_out = TEST_U_MODE_SOBEL;
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -260,7 +262,7 @@ do_process_arguments (int argc_in,
   traceInformation_out = false;
   printVersionAndExit_out = false;
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:glo:tv");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:g:lo:tv");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("123m");
 #else
@@ -318,7 +320,12 @@ do_process_arguments (int argc_in,
       }
       case 'g':
       {
-        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT;
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter.clear ();
+        converter << ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        int mode_i = 0;
+        converter >> mode_i;
+        mode_out = static_cast<enum Test_U_CameraFilter_Mode> (mode_i);
         break;
       }
       case 'l':
@@ -386,7 +393,7 @@ do_process_arguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
 do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifier_in,
-                          bool hasUI_in,
+                          enum Test_U_CameraFilter_Mode mode_in,
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
                           struct _AMMediaType& captureFormat_inout,
@@ -440,11 +447,22 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
               ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (deviceIdentifier_in.identifier._string).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (captureFormat_inout, true).c_str ())));
 
-  //Common_Image_Resolution_t resolution_s;
-  //resolution_s.cx = 320;
-  //resolution_s.cy = 240;
-  //Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-  //                                                       captureFormat_inout);
+  switch (mode_in)
+  {
+    case TEST_U_MODE_WEIGHTED_VORONOI_STIPPLE:
+    {
+      // *NOTE*: the default size (i.e. 640x480) is too slow for this filter...
+      Common_Image_Resolution_t resolution_s;
+      resolution_s.cx = 320;
+      resolution_s.cy = 240;
+      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                             captureFormat_inout);
+
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
 
   media_type_p =
     Stream_MediaFramework_DirectShow_Tools::copy (captureFormat_inout);
@@ -524,45 +542,6 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
 
   IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
   IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
-
-//  DWORD window_style = (WS_CAPTION     |
-//                        WS_MAXIMIZEBOX |
-//                        WS_MINIMIZEBOX |
-//                        //WS_OVERLAPPED     |
-//                        WS_SIZEBOX     |
-//                        WS_SYSMENU     |
-//                        WS_VISIBLE);
-//  DWORD window_style_ex = (WS_EX_APPWINDOW     |
-//                           WS_EX_RIGHTSCROLLBAR// |
-//                           /*WS_EX_WINDOWEDGE*/);
-//  windowHandle_out =
-//    CreateWindowEx (window_style_ex,                                  // dwExStyle
-//#if defined (UNICODE)
-//                    ACE_TEXT_ALWAYS_WCHAR ("EDIT"),                   // lpClassName
-//#else
-//                    ACE_TEXT_ALWAYS_CHAR ("EDIT"),                    // lpClassName
-//#endif // UNICODE
-//                    NULL,                                             // lpWindowName
-//                    window_style,                                     // dwStyle
-//                    CW_USEDEFAULT, CW_USEDEFAULT,                     // x,y
-//                    STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH,        // width
-//                    STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT,       // height
-//                    //parent_window_handle,                           // hWndParent
-//                    NULL,                                             // hWndParent
-//                    NULL,                                             // hMenu
-//                    GetModuleHandle (NULL),                           // hInstance
-//                    NULL);                                            // lpParam
-//  if (unlikely (!windowHandle_out))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to CreateWindow(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-//    goto error;
-//  } // end IF
-//  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("opened display window (size: %dx%d, handle: 0x%@)\n"),
-//              STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH, STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT,
-//              windowHandle_out));
 
   return true;
 
@@ -925,6 +904,7 @@ do_initializeSignals (ACE_Sig_Set& signals_out)
 
 void
 do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
+         enum Test_U_CameraFilter_Mode& mode_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1119,6 +1099,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
           &directshow_message_allocator;
       directshow_stream_configuration.module =
         &directshow_message_handler;
+      directshow_stream_configuration.mode = mode_in;
       directshow_stream_configuration.renderer = renderer_in;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
@@ -1149,6 +1130,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
           &mediafoundation_message_allocator;
       mediafoundation_stream_configuration.module =
           &mediafoundation_message_handler;
+      mediafoundation_stream_configuration.mode = mode_in;
       //mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
       //  renderer_in;
 
@@ -1183,6 +1165,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module = &message_handler;
+  stream_configuration.mode = mode_in;
   stream_configuration.renderer = renderer_in;
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
@@ -1211,7 +1194,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     {
       struct _AMMediaType* media_type_p = NULL;
       if (!do_initialize_directshow (deviceIdentifier_in,
-                                     false,                             // has UI ?
+                                     mode_in,
                                      directshow_modulehandler_configuration.builder,
                                      stream_config_p,
                                      directshow_stream_configuration.format,
@@ -1663,6 +1646,7 @@ ACE_TMAIN (int argc_in,
   device_identifier.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
+  enum Test_U_CameraFilter_Mode program_mode_e = TEST_U_MODE_SOBEL;
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
@@ -1683,6 +1667,7 @@ ACE_TMAIN (int argc_in,
   if (!do_process_arguments (argc_in,
                              argv_in,
                              device_identifier,
+                             program_mode_e,
                              log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                              media_framework_e,
@@ -1791,6 +1776,7 @@ ACE_TMAIN (int argc_in,
   timer.start ();
   // step2: do actual work
   do_work (device_identifier,
+           program_mode_e,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
