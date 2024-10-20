@@ -188,14 +188,20 @@ Test_I_Target_EventHandler::notify (Stream_SessionId_t sessionId_in,
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
+  size_t length = message_in.total_length ();
+
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+#endif // GTK_USE
+    CBData_->progressData.statistic.bytes += length;
+#if defined (GTK_USE)
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 }
+
 void
 Test_I_Target_EventHandler::notify (Stream_SessionId_t sessionId_in,
                                     const Test_I_Target_SessionMessage& sessionMessage_in)

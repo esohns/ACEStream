@@ -192,7 +192,7 @@ elseif (WIN32)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
  create_target_launcher (${EXECUTABLE_SOURCE}
                          COMMAND ${COMMAND}
-                         ARGS "-f D:\\\\temp\\\\H264_720p.ts -l -t"
+                         ARGS "-f G:\\\\video\\\\Akira.mkv -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${GTK_PATH}
                                               ${WXWIDGETS_PATH}

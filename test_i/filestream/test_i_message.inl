@@ -97,7 +97,7 @@ Test_I_Message_T<MessageType,
     // *NOTE*: the argument to malloc doesn't matter, as this will be
     //         a shallow copy which just references the same data block
     ACE_NEW_MALLOC_NORETURN (message_p,
-                             static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
+                             static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (sizeof (OWN_TYPE_T),
                                                                                                     '\0')),
                              OWN_TYPE_T (*this));
   } // end ELSE

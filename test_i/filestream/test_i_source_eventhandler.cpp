@@ -197,7 +197,7 @@ Test_I_Source_EventHandler::notify (Stream_SessionId_t sessionId_in,
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
-  unsigned int length = message_in.total_length ();
+  size_t length = message_in.total_length ();
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)

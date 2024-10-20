@@ -1677,6 +1677,13 @@ idle_update_info_display_source_cb (gpointer userData_in)
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
+          ACE_ASSERT (spin_button_p);
+          gtk_spin_button_set_value (spin_button_p,
+                                     static_cast<gdouble> (ui_cb_data_p->progressData.transferred));
+
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
 
@@ -1823,6 +1830,13 @@ idle_update_info_display_target_cb (gpointer userData_in)
         }
         case COMMON_UI_EVENT_DATA:
         {
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
+          ACE_ASSERT (spin_button_p);
+          gtk_spin_button_set_value (spin_button_p,
+                                     static_cast<gdouble> (ui_cb_data_p->progressData.statistic.bytes));
+
           spin_button_p =
               GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
@@ -3119,23 +3133,24 @@ button_quit_clicked_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (userData_in);
-  //Stream_GTK_CBData* ui_cb_data_p = static_cast<Stream_GTK_CBData*> (userData_in);
-  //// sanity check(s)
-  //ACE_ASSERT (ui_cb_data_p);
 
-  //// step1: remove event sources
-  //{
-  //  ACE_Guard<ACE_Thread_Mutex> aGuard (ui_cb_data_p->UIState.lock);
+  // sanity check(s)
+  Test_I_GTK_CBData* ui_cb_data_p =
+    static_cast<Test_I_GTK_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->UIState);
 
-  //  for (Common_UI_GTKeventSourceIdsIterator_t iterator = ui_cb_data_p->UIState.eventSourceIds.begin ();
-  //       iterator != ui_cb_data_p->UIState.eventSourceIds.end ();
-  //       iterator++)
-  //    if (!g_source_remove (*iterator))
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-  //                  *iterator));
-  //  ui_cb_data_p->UIState.eventSourceIds.clear ();
-  //} // end lock scope
+  // step1: remove event sources
+  { ACE_Guard<ACE_Thread_Mutex> aGuard (ui_cb_data_p->UIState->lock);
+    for (Common_UI_GTK_EventSourceIdsIterator_t iterator = ui_cb_data_p->UIState->eventSourceIds.begin ();
+         iterator != ui_cb_data_p->UIState->eventSourceIds.end ();
+         iterator++)
+      if (!g_source_remove (*iterator))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+                    *iterator));
+    ui_cb_data_p->UIState->eventSourceIds.clear ();
+  } // end lock scope
 
   // step2: initiate shutdown sequence
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

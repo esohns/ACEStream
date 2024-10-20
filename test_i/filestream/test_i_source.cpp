@@ -1021,6 +1021,7 @@ ACE_TMAIN (int argc_in,
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 //  lock_2 = &state_r.subscribersLock;
+  ui_cb_data.UIState = &state_r;
 #endif // GTK_USE
   Common_Logger_Queue_t logger;
   logger.initialize (&state_r.logQueue,

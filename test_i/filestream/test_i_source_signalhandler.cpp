@@ -148,17 +148,18 @@ Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
     connection_manager_p->abort ();
     connection_manager_p->wait ();
 
-    // step3: stop UI event processing ?
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
-                                                        true); // high priority ?
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+//    // step3: stop UI event processing ?
+//#if defined (GUI_SUPPORT)
+//#if defined (GTK_USE)
+//    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
+//                                                        true); // high priority ?
+//#endif // GTK_USE
+//#endif // GUI_SUPPORT
 
     // step4: stop reactor (&& proactor, if applicable)
     Common_Event_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
-                                               false);                                    // wait ?
+                                               false,                                     // wait ?
+                                               false);                                    // close singletons ?
 
     // *IMPORTANT NOTE*: there is no reason to wait here
   } // end IF

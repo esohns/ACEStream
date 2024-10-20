@@ -1162,6 +1162,7 @@ ACE_TMAIN (int argc_in,
   struct Test_I_Target_UI_CBData ui_cb_data;
   ui_cb_data.configuration = &configuration;
   //ui_cb_data.progressData.state = &ui_cb_data;
+  ui_cb_data.UIState = &state_r;
 #endif // GUI_SUPPORT
 
   // step1d: initialize logging and/or tracing
