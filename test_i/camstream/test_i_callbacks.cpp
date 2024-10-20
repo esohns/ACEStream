@@ -6519,6 +6519,7 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   int result = -1;
 
   ACE_UNUSED_ARG (widget_in);
+
   // sanity check(s)
   struct Test_I_GTK_CBData* ui_cb_data_p =
     static_cast<struct Test_I_GTK_CBData*> (userData_in);
@@ -6552,7 +6553,8 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   // step3: stop GTK event processing
   // *NOTE*: triggering UI shutdown here is more consistent, compared to doing
   //         it from the signal handler
-  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
+  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,
+                                                      true);
 
   return FALSE;
 } // button_quit_clicked_cb

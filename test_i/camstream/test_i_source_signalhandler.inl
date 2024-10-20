@@ -131,8 +131,9 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
 
     // step1: stop processing stream
     ACE_ASSERT (inherited::configuration_->stream);
-    inherited::configuration_->stream->stop (false, // don't block
-                                             true); // locked access
+    inherited::configuration_->stream->stop (false,  // don't block
+                                             true,   // recurse upstream ?
+                                             false); // high priority ?
 
     // step2: stop/abort(/wait) for connections
     //ConnectionManagerType* connection_manager_p =
@@ -140,7 +141,8 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
     //ACE_ASSERT (connection_manager_p);
     //connection_manager_p->stop ();
     ACE_ASSERT (inherited::configuration_->connectionManager);
-    inherited::configuration_->connectionManager->stop (false, true);
+    inherited::configuration_->connectionManager->stop (false,
+                                                        true);
     inherited::configuration_->connectionManager->abort ();
     //inherited::configuration_->connectionManager->wait ();
   } // end IF

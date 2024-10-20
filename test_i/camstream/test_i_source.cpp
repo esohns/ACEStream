@@ -1940,7 +1940,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 //    connection_manager_p->abort ();
   iconnection_manager_p->wait ();
   Common_Event_Tools::finalizeEventDispatch (event_dispatch_state_s,
-                                             true); // wait ?
+                                             true,   // wait ?
+                                             false); // close singletons ?
 
   // step3: clean up
 clean:
