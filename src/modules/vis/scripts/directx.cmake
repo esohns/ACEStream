@@ -15,7 +15,7 @@ if (WIN32)
                 DOC "searching for DirectX-Headers.lib"
                 NO_DEFAULT_PATH)
   if (NOT DIRECTX_HEADERS_LIBRARY)
-   message (FATAL_ERROR "could not find DirectX-Headers.lib, continuing")
+   message (WARNING "could not find DirectX-Headers.lib, continuing")
   else ()
    message (STATUS "found DirectX-Headers.lib library \"${DIRECTX_HEADERS_LIBRARY}\"")
   endif (NOT DIRECTX_HEADERS_LIBRARY)
