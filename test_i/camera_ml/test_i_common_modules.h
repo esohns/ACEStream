@@ -76,6 +76,9 @@
 #if defined (TENSORFLOW_SUPPORT) || defined (TENSORFLOW_CC_SUPPORT)
 #include "test_i_camera_ml_module_tensorflow.h"
 #endif // TENSORFLOW_SUPPORT || TENSORFLOW_CC_SUPPORT
+#if defined (MEDIAPIPE_SUPPORT)
+#include "test_i_camera_ml_module_mediapipe.h"
+#endif // MEDIAPIPE_SUPPORT
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
@@ -511,6 +514,28 @@ typedef Test_I_CameraML_Module_Tensorflow_2<struct Stream_CameraML_V4L_ModuleHan
 
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (MEDIAPIPE_SUPPORT)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Test_I_CameraML_Module_MediaPipe_T<struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration,
+                                           Stream_ControlMessage_t,
+                                           Stream_CameraML_DirectShow_Message_t,
+                                           Stream_CameraML_DirectShow_SessionMessage_t,
+                                           struct _AMMediaType> Stream_CameraML_DirectShow_MediaPipe;
+
+typedef Test_I_CameraML_Module_MediaPipe_T<struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration,
+                                           Stream_ControlMessage_t,
+                                           Stream_CameraML_MediaFoundation_Message_t,
+                                           Stream_CameraML_MediaFoundation_SessionMessage_t,
+                                           IMFMediaType*> Stream_CameraML_MediaFoundation_MediaPipe;
+#else
+typedef Test_I_CameraML_Module_MediaPipe_T<struct Stream_CameraML_V4L_ModuleHandlerConfiguration,
+                                           Stream_ControlMessage_t,
+                                           Stream_CameraML_Message_t,
+                                           Stream_CameraML_SessionMessage_t,
+                                           struct Stream_MediaFramework_V4L_MediaType> Stream_CameraML_MediaPipe;
+#endif // ACE_WIN32 || ACE_WIN64
+#endif // MEDIAPIPE_SUPPORT
+
 //////////////////////////////////////////
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -786,5 +811,30 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                  
                               Stream_CameraML_Tensorflow_2);                         // writer type
 #endif // TENSORFLOW_CC_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (MEDIAPIPE_SUPPORT)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                               // session event type
+                              struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_ml_mediapipe_module_name_string,
+                              Stream_INotify_t,                                             // stream notification interface type
+                              Stream_CameraML_DirectShow_MediaPipe);                        // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                    // session event type
+                              struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_ml_mediapipe_module_name_string,
+                              Stream_INotify_t,                                                  // stream notification interface type
+                              Stream_CameraML_MediaFoundation_MediaPipe);                        // writer type
+#else
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                        // session event type
+                              struct Stream_CameraML_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_ml_mediapipe_module_name_string,
+                              Stream_INotify_t,                                      // stream notification interface type
+                              Stream_CameraML_MediaPipe);                            // writer type
+#endif // ACE_WIN32 || ACE_WIN64
+#endif // MEDIAPIPE_SUPPORT
 
 #endif

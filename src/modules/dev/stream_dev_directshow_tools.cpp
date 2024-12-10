@@ -1683,7 +1683,7 @@ default_:
   } // end IF
 
   result = pin_2->QueryInterface (IID_PPV_ARGS (&IAMBufferNegotiation_out));
-  if (FAILED (result))
+  if (FAILED (result) && result != E_NOINTERFACE)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMBufferNegotiation): \"%s\", aborting\n"),
@@ -1691,7 +1691,10 @@ default_:
     pin_2->Release (); pin_2 = NULL;
     goto error;
   } // end IF
-  ACE_ASSERT (IAMBufferNegotiation_out);
+  else if (result != E_NOINTERFACE)
+  {
+    ACE_ASSERT (IAMBufferNegotiation_out);
+  } // end ELSE
 
   result = pin_2->QueryInterface (IID_PPV_ARGS (&IAMStreamConfig_out));
   if (FAILED (result))

@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_i_stream.h"
+#include "test_i_stream_2.h"
 
 #include "ace/Log_Msg.h"
 
@@ -47,7 +47,7 @@
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Stream_CameraML_DirectShow_Stream::Stream_CameraML_DirectShow_Stream ()
+Stream_CameraML_DirectShow_Stream_2::Stream_CameraML_DirectShow_Stream_2 ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
@@ -61,14 +61,8 @@ Stream_CameraML_DirectShow_Stream::Stream_CameraML_DirectShow_Stream ()
 #endif // FFMPEG_SUPPORT
  , flip_ (this,
           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
-#if defined (TENSORFLOW_SUPPORT)
- , tensorflow_ (this,
-                ACE_TEXT_ALWAYS_CHAR (MODULE_ML_TENSORFLOW_DEFAULT_NAME_STRING))
-#endif // TENSORFLOW_SUPPORT
-#if defined (TENSORFLOW_CC_SUPPORT)
- , tensorflow_cc_ (this,
-                   ACE_TEXT_ALWAYS_CHAR (MODULE_ML_TENSORFLOW_DEFAULT_NAME_STRING))
-#endif // TENSORFLOW_CC_SUPPORT
+ , mediapipe_ (this,
+               ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_NAME_STRING))
  , convert_2 (this,
               ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
 #if defined (GTK_SUPPORT)
@@ -86,15 +80,15 @@ Stream_CameraML_DirectShow_Stream::Stream_CameraML_DirectShow_Stream ()
  , DirectShowDisplay_ (this,
                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_DirectShow_Stream::Stream_CameraML_DirectShow_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_DirectShow_Stream_2::Stream_CameraML_DirectShow_Stream_2"));
 
 }
 
 bool
-Stream_CameraML_DirectShow_Stream::load (Stream_ILayout* layout_in,
-                                         bool& delete_out)
+Stream_CameraML_DirectShow_Stream_2::load (Stream_ILayout* layout_in,
+                                           bool& delete_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_DirectShow_Stream::load"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_DirectShow_Stream_2::load"));
 
   // initialize return value(s)
   delete_out = false;
@@ -109,11 +103,7 @@ Stream_CameraML_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 #endif // FFMPEG_SUPPORT
   layout_in->append (&flip_, NULL, 0);
-//#if defined (TENSORFLOW_CC_SUPPORT)
-//  layout_in->append (&tensorflow_cc_, NULL, 0);
-//#elif defined (TENSORFLOW_SUPPORT)
-  layout_in->append (&tensorflow_, NULL, 0);
-//#endif // TENSORFLOW_SUPPORT || TENSORFLOW_CC_SUPPORT
+  layout_in->append (&mediapipe_, NULL, 0);
   switch (inherited::configuration_->configuration_->renderer)
   {
 #if defined (GTK_SUPPORT)
@@ -161,9 +151,9 @@ Stream_CameraML_DirectShow_Stream::load (Stream_ILayout* layout_in,
 }
 
 bool
-Stream_CameraML_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
+Stream_CameraML_DirectShow_Stream_2::initialize (const inherited::CONFIGURATION_T& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_DirectShow_Stream::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_DirectShow_Stream_2::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
@@ -569,7 +559,7 @@ error:
 
 //////////////////////////////////////////
 
-Stream_CameraML_MediaFoundation_Stream::Stream_CameraML_MediaFoundation_Stream ()
+Stream_CameraML_MediaFoundation_Stream_2::Stream_CameraML_MediaFoundation_Stream_2 ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
@@ -582,13 +572,13 @@ Stream_CameraML_MediaFoundation_Stream::Stream_CameraML_MediaFoundation_Stream (
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
  , referenceCount_ (1)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream::Stream_CameraML_MediaFoundation_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream_2::Stream_CameraML_MediaFoundation_Stream_2"));
 
 }
 
-Stream_CameraML_MediaFoundation_Stream::~Stream_CameraML_MediaFoundation_Stream ()
+Stream_CameraML_MediaFoundation_Stream_2::~Stream_CameraML_MediaFoundation_Stream_2 ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream::~Stream_CameraML_MediaFoundation_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream_2::~Stream_CameraML_MediaFoundation_Stream_2"));
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   HRESULT result = E_FAIL;
@@ -610,9 +600,9 @@ Stream_CameraML_MediaFoundation_Stream::~Stream_CameraML_MediaFoundation_Stream 
 }
 
 const Stream_Module_t*
-Stream_CameraML_MediaFoundation_Stream::find (const std::string& name_in) const
+Stream_CameraML_MediaFoundation_Stream_2::find (const std::string& name_in) const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream::find"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream_2::find"));
 
   //if (!ACE_OS::strcmp (name_in.c_str (),
   //                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_NULL_MODULE_NAME)))
@@ -622,9 +612,9 @@ Stream_CameraML_MediaFoundation_Stream::find (const std::string& name_in) const
 }
 
 void
-Stream_CameraML_MediaFoundation_Stream::start ()
+Stream_CameraML_MediaFoundation_Stream_2::start ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream::start"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream_2::start"));
 
   // sanity check(s)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
@@ -662,11 +652,11 @@ Stream_CameraML_MediaFoundation_Stream::start ()
 }
 
 void
-Stream_CameraML_MediaFoundation_Stream::stop (bool waitForCompletion_in,
+Stream_CameraML_MediaFoundation_Stream_2::stop (bool waitForCompletion_in,
                                                   bool recurseUpstream_in,
                                                   bool highPriority_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream::stop"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream_2::stop"));
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
@@ -686,14 +676,14 @@ Stream_CameraML_MediaFoundation_Stream::stop (bool waitForCompletion_in,
 }
 
 HRESULT
-Stream_CameraML_MediaFoundation_Stream::QueryInterface (const IID& IID_in,
+Stream_CameraML_MediaFoundation_Stream_2::QueryInterface (const IID& IID_in,
                                                             void** interface_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream::QueryInterface"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream_2::QueryInterface"));
 
   static const QITAB query_interface_table[] =
   {
-    QITABENT (Stream_CameraML_MediaFoundation_Stream, IMFAsyncCallback),
+    QITABENT (Stream_CameraML_MediaFoundation_Stream_2, IMFAsyncCallback),
     { 0 },
   };
 
@@ -703,16 +693,16 @@ Stream_CameraML_MediaFoundation_Stream::QueryInterface (const IID& IID_in,
                    interface_out);
 }
 ULONG
-Stream_CameraML_MediaFoundation_Stream::AddRef ()
+Stream_CameraML_MediaFoundation_Stream_2::AddRef ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream::AddRef"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream_2::AddRef"));
 
   return InterlockedIncrement (&referenceCount_);
 }
 ULONG
-Stream_CameraML_MediaFoundation_Stream::Release ()
+Stream_CameraML_MediaFoundation_Stream_2::Release ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream::Release"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream_2::Release"));
 
   ULONG count = InterlockedDecrement (&referenceCount_);
   //if (count == 0);
@@ -722,10 +712,10 @@ Stream_CameraML_MediaFoundation_Stream::Release ()
 }
 
 HRESULT
-Stream_CameraML_MediaFoundation_Stream::GetParameters (DWORD* flags_out,
+Stream_CameraML_MediaFoundation_Stream_2::GetParameters (DWORD* flags_out,
                                                            DWORD* queue_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream::GetParameters"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream_2::GetParameters"));
 
   ACE_UNUSED_ARG (flags_out);
   ACE_UNUSED_ARG (queue_out);
@@ -736,9 +726,9 @@ Stream_CameraML_MediaFoundation_Stream::GetParameters (DWORD* flags_out,
 }
 
 HRESULT
-Stream_CameraML_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
+Stream_CameraML_MediaFoundation_Stream_2::Invoke (IMFAsyncResult* result_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream::Invoke"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream_2::Invoke"));
 
   HRESULT result = E_FAIL;
   IMFMediaEvent* media_event_p = NULL;
@@ -927,10 +917,10 @@ error:
 }
 
 bool
-Stream_CameraML_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
-                                                  bool& delete_out)
+Stream_CameraML_MediaFoundation_Stream_2::load (Stream_ILayout* layout_in,
+                                                bool& delete_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream::load"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream_2::load"));
 
   // initialize return value(s)
   delete_out = false;
@@ -946,9 +936,9 @@ Stream_CameraML_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
 }
 
 bool
-Stream_CameraML_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
+Stream_CameraML_MediaFoundation_Stream_2::initialize (const inherited::CONFIGURATION_T& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream_2::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
@@ -1226,7 +1216,7 @@ error:
   return false;
 }
 #else
-Stream_CameraML_Stream::Stream_CameraML_Stream ()
+Stream_CameraML_Stream_2::Stream_CameraML_Stream_2 ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING))
@@ -1238,14 +1228,8 @@ Stream_CameraML_Stream::Stream_CameraML_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
  , flip_ (this,
           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
-#if defined (TENSORFLOW_SUPPORT)
- , tensorflow_ (this,
-                ACE_TEXT_ALWAYS_CHAR (MODULE_ML_TENSORFLOW_DEFAULT_NAME_STRING))
-#endif // TENSORFLOW_SUPPORT
-#if defined (TENSORFLOW_CC_SUPPORT)
- , tensorflow_cc_ (this,
-                   ACE_TEXT_ALWAYS_CHAR (MODULE_ML_TENSORFLOW_DEFAULT_NAME_STRING))
-#endif // TENSORFLOW_CC_SUPPORT
+ , mediapipe_ (this,
+               ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_NAME_STRING))
 #if defined (GTK_SUPPORT)
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
@@ -1257,15 +1241,15 @@ Stream_CameraML_Stream::Stream_CameraML_Stream ()
  , X11Display_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_Stream::Stream_CameraML_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_Stream_2::Stream_CameraML_Stream_2"));
 
 }
 
 bool
-Stream_CameraML_Stream::load (Stream_ILayout* layout_in,
-                              bool& delete_out)
+Stream_CameraML_Stream_2::load (Stream_ILayout* layout_in,
+                                bool& delete_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_Stream::load"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_Stream_2::load"));
 
   // initialize return value(s)
   delete_out = false;
@@ -1278,12 +1262,7 @@ Stream_CameraML_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&convert_, NULL, 0);
   // layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
   layout_in->append (&flip_, NULL, 0);
-#if defined (TENSORFLOW_SUPPORT)
-  // layout_in->append (&tensorflow_, NULL, 0);
-#endif // TENSORFLOW_SUPPORT
-#if defined (TENSORFLOW_CC_SUPPORT)
-  layout_in->append (&tensorflow_cc_, NULL, 0);
-#endif // TENSORFLOW_CC_SUPPORT
+  layout_in->append (&mediapipe_, NULL, 0);
   switch (inherited::configuration_->configuration_->renderer)
   {
 #if defined (GTK_SUPPORT)
@@ -1317,9 +1296,9 @@ Stream_CameraML_Stream::load (Stream_ILayout* layout_in,
 }
 
 bool
-Stream_CameraML_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+Stream_CameraML_Stream_2::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_Stream::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraML_Stream_2::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());

@@ -44,7 +44,6 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -90,9 +89,9 @@
 
 #include "test_i_camera_ml_defines.h"
 #include "test_i_eventhandler.h"
-#include "test_i_stream.h"
+#include "test_i_stream_2.h"
 
-const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CameraMLStream");
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CameraMLStream_2");
 
 void
 do_print_usage (const std::string& programName_in)
@@ -175,13 +174,13 @@ do_print_usage (const std::string& programName_in)
   std::string path = Common_File_Tools::getWorkingDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   // *NOTE*: model file needs to be relative to cwd
-  path = ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [PATH]   : model file [\"")
-            << path
-            << ACE_TEXT_ALWAYS_CHAR ("\"]")
-            << std::endl;
+  //path = ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+  //path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE);
+  //std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [PATH]   : model file [\"")
+  //          << path
+  //          << ACE_TEXT_ALWAYS_CHAR ("\"]")
+  //          << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -220,7 +219,7 @@ bool
 do_process_arguments (int argc_in,
                       ACE_TCHAR** argv_in, // cannot be const...
                       struct Stream_Device_Identifier& deviceIdentifier_out,
-                      std::string& modelFile_out,
+                      //std::string& modelFile_out,
                       bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                       enum Stream_MediaFramework_Type& mediaFramework_out,
@@ -271,9 +270,9 @@ do_process_arguments (int argc_in,
   //modelFile_out = Common_File_Tools::getWorkingDirectory ();
   //modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   // *NOTE*: model file needs to be relative to cwd
-  modelFile_out = ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
-  modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE);
+  //modelFile_out = ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+  //modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE);
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -287,7 +286,7 @@ do_process_arguments (int argc_in,
   traceInformation_out = false;
   mode_out = STREAM_CAMERA_ML_PROGRAMMODE_NORMAL;
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:f:lo:p:tv");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:lo:p:tv");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("231m");
 #else
@@ -343,11 +342,11 @@ do_process_arguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
         break;
       }
-      case 'f':
-      {
-        modelFile_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
-        break;
-      }
+      //case 'f':
+      //{
+      //  modelFile_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+      //  break;
+      //}
       case 'l':
       {
         logToFile_out = true;
@@ -860,7 +859,7 @@ do_finalize_v4l (struct Stream_Device_Identifier& deviceIdentifier_inout)
 
 void
 do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
-         const std::string& modelFile_in,
+         //const std::string& modelFile_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -899,10 +898,6 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Stream_CameraML_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
-  //Stream_CameraML_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
-  //Stream_CameraML_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-  //Stream_CameraML_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -913,38 +908,38 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         deviceIdentifier_in;
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
-      directshow_modulehandler_configuration.shaderFile =
-        Common_File_Tools::getSourceDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                               ACE_TEXT_ALWAYS_CHAR (""));
-      directshow_modulehandler_configuration.shaderFile +=
-        ACE_DIRECTORY_SEPARATOR_STR_A;
-      directshow_modulehandler_configuration.shaderFile +=
-        ACE_TEXT_ALWAYS_CHAR (STREAM_SUBMODULE_SUBDIRECTORY_STRING);
-      directshow_modulehandler_configuration.shaderFile +=
-        ACE_DIRECTORY_SEPARATOR_STR_A;
-      directshow_modulehandler_configuration.shaderFile +=
-        ACE_TEXT_ALWAYS_CHAR (STREAM_SUBMODULE_VISUALIZATION_DIRECTORY_STRING);
-      directshow_modulehandler_configuration.shaderFile +=
-        ACE_DIRECTORY_SEPARATOR_STR_A;
-      directshow_modulehandler_configuration.shaderFile +=
-        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
-      directshow_modulehandler_configuration.shaderFile +=
-        ACE_DIRECTORY_SEPARATOR_STR_A;
-      directshow_modulehandler_configuration.shaderFile +=
-        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_11_DEFAULT_SHADER_FILE);
-      ACE_ASSERT (Common_File_Tools::isReadable (directshow_modulehandler_configuration.shaderFile));
+      //directshow_modulehandler_configuration.shaderFile =
+      //  Common_File_Tools::getSourceDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+      //                                         ACE_TEXT_ALWAYS_CHAR (""));
+      //directshow_modulehandler_configuration.shaderFile +=
+      //  ACE_DIRECTORY_SEPARATOR_STR_A;
+      //directshow_modulehandler_configuration.shaderFile +=
+      //  ACE_TEXT_ALWAYS_CHAR (STREAM_SUBMODULE_SUBDIRECTORY_STRING);
+      //directshow_modulehandler_configuration.shaderFile +=
+      //  ACE_DIRECTORY_SEPARATOR_STR_A;
+      //directshow_modulehandler_configuration.shaderFile +=
+      //  ACE_TEXT_ALWAYS_CHAR (STREAM_SUBMODULE_VISUALIZATION_DIRECTORY_STRING);
+      //directshow_modulehandler_configuration.shaderFile +=
+      //  ACE_DIRECTORY_SEPARATOR_STR_A;
+      //directshow_modulehandler_configuration.shaderFile +=
+      //  ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+      //directshow_modulehandler_configuration.shaderFile +=
+      //  ACE_DIRECTORY_SEPARATOR_STR_A;
+      //directshow_modulehandler_configuration.shaderFile +=
+      //  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_11_DEFAULT_SHADER_FILE);
+      //ACE_ASSERT (Common_File_Tools::isReadable (directshow_modulehandler_configuration.shaderFile));
 
-      directshow_modulehandler_configuration.labelFile =
-        Common_File_Tools::getWorkingDirectory ();
-      directshow_modulehandler_configuration.labelFile +=
-        ACE_DIRECTORY_SEPARATOR_STR_A;
-      directshow_modulehandler_configuration.labelFile +=
-        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
-      directshow_modulehandler_configuration.labelFile +=
-        ACE_DIRECTORY_SEPARATOR_CHAR_A;
-      directshow_modulehandler_configuration.labelFile +=
-        ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LABEL_FILE);
-      directshow_modulehandler_configuration.modelFile = modelFile_in;
+      //directshow_modulehandler_configuration.labelFile =
+      //  Common_File_Tools::getWorkingDirectory ();
+      //directshow_modulehandler_configuration.labelFile +=
+      //  ACE_DIRECTORY_SEPARATOR_STR_A;
+      //directshow_modulehandler_configuration.labelFile +=
+      //  ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+      //directshow_modulehandler_configuration.labelFile +=
+      //  ACE_DIRECTORY_SEPARATOR_CHAR_A;
+      //directshow_modulehandler_configuration.labelFile +=
+      //  ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LABEL_FILE);
+      //directshow_modulehandler_configuration.modelFile = modelFile_in;
 
       //if (statisticReportingInterval_in)
       //{
@@ -992,14 +987,14 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.buffers = STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
-  modulehandler_configuration.labelFile =
-      Common_File_Tools::getWorkingDirectory ();
-  modulehandler_configuration.labelFile += ACE_DIRECTORY_SEPARATOR_STR;
-  modulehandler_configuration.labelFile += COMMON_LOCATION_DATA_SUBDIRECTORY;
-  modulehandler_configuration.labelFile += ACE_DIRECTORY_SEPARATOR_CHAR;
-  modulehandler_configuration.labelFile +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LABEL_FILE);
-  modulehandler_configuration.modelFile = modelFile_in;
+  //modulehandler_configuration.labelFile =
+  //    Common_File_Tools::getWorkingDirectory ();
+  //modulehandler_configuration.labelFile += ACE_DIRECTORY_SEPARATOR_STR;
+  //modulehandler_configuration.labelFile += COMMON_LOCATION_DATA_SUBDIRECTORY;
+  //modulehandler_configuration.labelFile += ACE_DIRECTORY_SEPARATOR_CHAR;
+  //modulehandler_configuration.labelFile +=
+  //    ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LABEL_FILE);
+  //modulehandler_configuration.modelFile = modelFile_in;
 //  modulehandler_configuration.display = displayDevice_in;
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
@@ -1022,11 +1017,11 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   Stream_CameraML_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                               &heap_allocator,     // heap allocator handle
                                                                               true);               // block ?
-  Stream_CameraML_DirectShow_Stream directshow_stream;
+  Stream_CameraML_DirectShow_Stream_2 directshow_stream;
   Stream_CameraML_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                                         &heap_allocator,     // heap allocator handle
                                                                                         true);               // block ?
-  Stream_CameraML_MediaFoundation_Stream mediafoundation_stream;
+  Stream_CameraML_MediaFoundation_Stream_2 mediafoundation_stream;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1407,10 +1402,10 @@ ACE_TMAIN (int argc_in,
   //std::string model_file = Common_File_Tools::getWorkingDirectory ();
   //model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   // *NOTE*: model file needs to be relative to cwd
-  std::string model_file =
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
-  model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE);
+  //std::string model_file =
+  //  ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+  //model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE);
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
@@ -1432,7 +1427,7 @@ ACE_TMAIN (int argc_in,
   if (!do_process_arguments (argc_in,
                              argv_in,
                              device_identifier,
-                             model_file,
+                             //model_file,
                              log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                              media_framework_e,
@@ -1462,22 +1457,22 @@ ACE_TMAIN (int argc_in,
   if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to a deadlock --> ensure the streaming elements are sufficiently efficient in this regard\n")));
-  if (!Common_File_Tools::isReadable (model_file))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid arguments, aborting\n")));
-
-    do_print_usage (ACE::basename (argv_in[0]));
-    Common_Tools::finalize ();
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    // *PORTABILITY*: on Windows, finalize ACE...
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
-    return EXIT_FAILURE;
-  } // end IF
+//  if (!Common_File_Tools::isReadable (model_file))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("invalid arguments, aborting\n")));
+//
+//    do_print_usage (ACE::basename (argv_in[0]));
+//    Common_Tools::finalize ();
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//    // *PORTABILITY*: on Windows, finalize ACE...
+//    result = ACE::fini ();
+//    if (result == -1)
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
+//#endif // ACE_WIN32 || ACE_WIN64
+//    return EXIT_FAILURE;
+//  } // end IF
 
   // step1d: initialize logging and/or tracing
   std::string log_file_name;
@@ -1562,7 +1557,7 @@ ACE_TMAIN (int argc_in,
   timer.start ();
   // step2: do actual work
   do_work (device_identifier,
-           model_file,
+           //model_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
