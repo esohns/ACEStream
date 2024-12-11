@@ -5333,10 +5333,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
         return;
       } // end IF
       ACE_ASSERT ((*directshow_stream_iterator).second.second->builder);
-      ACE_ASSERT (buffer_negotiation_p);
+      //ACE_ASSERT (buffer_negotiation_p);
       ACE_ASSERT (directshow_cb_data_p->streamConfiguration);
-
-      buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+      if (buffer_negotiation_p)
+      {
+        buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+      } // end IF
 
       if (directshow_cb_data_p->configuration->direct3DConfiguration.handle)
       {
@@ -5604,6 +5606,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
+  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
   struct Stream_CamSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
     NULL;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
@@ -5617,6 +5620,9 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
+      directshow_stream_iterator_2 =
+        directshow_cb_data_p->configuration->streamConfiguration.find (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")));
+      ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -5723,15 +5729,17 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                                                          directshow_cb_data_p->configuration->streamConfiguration.configuration_->format);
       // *NOTE*: need to set this for RGB-capture formats ONLY !
       // *TODO*: MJPG is transformed inside the DirectShow pipeline to RGB32, so requires flípping as well... :-(
-      (*directshow_stream_iterator).second.second->flipImage =
-        Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format);
+      // *TODO*: YUV2 is transformed inside the DirectShow pipeline to RGB32, so requires flípping as well... :-(
+      (*directshow_stream_iterator).second.second->flipImage = true;
+        //Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format);
+      (*directshow_stream_iterator_2).second.second->flipImage = (*directshow_stream_iterator).second.second->flipImage;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_->format);
       HRESULT result_2 =
         mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_->format->SetGUID (MF_MT_SUBTYPE,
-                                                                                                      GUID_s);
+                                                                                                       GUID_s);
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,

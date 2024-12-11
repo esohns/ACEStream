@@ -618,9 +618,12 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     goto error;
   } // end IF
   ACE_ASSERT (IGraphBuilder_out);
-  ACE_ASSERT (buffer_negotiation_p);
+  //ACE_ASSERT (buffer_negotiation_p);
   ACE_ASSERT (IAMStreamConfig_out);
-  buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+  if (buffer_negotiation_p)
+  {
+    buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+  } // end IF
 
   if (!Stream_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder_out,
                                                          CLSID_VideoInputDeviceCategory,
@@ -1433,6 +1436,10 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         deviceIdentifier_in;
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
+      // *NOTE*: need to set this for RGB-capture formats ONLY !
+      // *TODO*: MJPG is transformed inside the DirectShow pipeline to RGB32, so requires flípping as well... :-(
+      // *TODO*: YUV2 is transformed inside the DirectShow pipeline to RGB32, so requires flípping as well... :-(
+      directshow_modulehandler_configuration.flipImage = true;
       directshow_modulehandler_configuration.handleResize = false; // there is a resize module downstream that handles resize messages
       directshow_modulehandler_configuration.lock = &state_r.subscribersLock;
 
