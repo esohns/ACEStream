@@ -171,6 +171,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
                       fd_in, ACE_TEXT ("VIDIOC_QUERYBUF")));
           goto error;
         } // end IF
+        // *TODO*: when/why does this assert trigger ?
         ACE_ASSERT (buffer.length >= format.fmt.pix.sizeimage);
 
         if (allocator_in)

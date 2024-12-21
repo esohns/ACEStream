@@ -324,6 +324,9 @@ struct Test_I_CameraMSA_ModuleHandlerConfiguration
 {
   Test_I_CameraMSA_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
+#if defined (FFMPEG_SUPPORT)
+   , codecConfiguration (NULL)
+#endif // FFMPEG_SUPPORT
    , deviceIdentifier ()
    , display ()
    , fullScreen (false)
@@ -336,17 +339,20 @@ struct Test_I_CameraMSA_ModuleHandlerConfiguration
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
 
-  struct Stream_Device_Identifier deviceIdentifier; // source module
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
+#endif // FFMPEG_SUPPORT
+  struct Stream_Device_Identifier                         deviceIdentifier; // source module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Common_UI_DisplayDevice  display; // display module
+  struct Common_UI_DisplayDevice                          display; // display module
 #else
-  struct Common_UI_Display        display; // display module
+  struct Common_UI_Display                                display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
-  bool                            fullScreen;
+  bool                                                    fullScreen;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                            window;
+  HWND                                                    window;
 #else
-  Window                          window;
+  Window                                                  window;
 #endif // ACE_WIN32 || ACE_WIN64
 };
 //extern const char stream_name_string_[];
@@ -478,10 +484,6 @@ struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration
   Test_I_CameraMSA_V4L_ModuleHandlerConfiguration ()
    : Test_I_CameraMSA_ModuleHandlerConfiguration ()
    , buffers (STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS)
-#if defined (FFMPEG_SUPPORT)
-   , codecFormat (AV_PIX_FMT_NONE)
-   , codecId (AV_CODEC_ID_NONE)
-#endif // FFMPEG_SUPPORT
    , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , outputFormat ()
    , subscriber (NULL)
@@ -497,14 +499,10 @@ struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration
   }
 
   __u32                                      buffers; // v4l device buffers
-#if defined (FFMPEG_SUPPORT)
-  enum AVPixelFormat                         codecFormat; // preferred output-
-  enum AVCodecID                             codecId;
-#endif // FFMPEG_SUPPORT
   enum v4l2_memory                           method; // v4l camera source
   struct Stream_MediaFramework_V4L_MediaType outputFormat;
-  Test_I_ISessionNotify_t*      subscriber;
-  Test_I_Subscribers_t*         subscribers;
+  Test_I_ISessionNotify_t*                   subscriber;
+  Test_I_Subscribers_t*                      subscribers;
   struct wl_shell_surface*                   surface;
   struct wl_display*                         waylandDisplay;
 };

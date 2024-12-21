@@ -1832,8 +1832,8 @@ Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (enum AVPixelFormat format_i
     case AV_PIX_FMT_BAYER_GRBG16LE:
     case AV_PIX_FMT_BAYER_GRBG16BE:
       return 64;
-    case AV_PIX_FMT_XVMC:
-      return 0;
+    // case AV_PIX_FMT_XVMC:
+    //   return 0;
     case AV_PIX_FMT_YUV440P10LE:
     case AV_PIX_FMT_YUV440P10BE:
       return 20;

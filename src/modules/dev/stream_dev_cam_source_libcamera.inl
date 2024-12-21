@@ -161,7 +161,7 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
       ACE_ASSERT (!session_data_r.formats.empty ());
       media_type_s = getMediaType (session_data_r.formats.back ());
 
-      libcamera::StreamRoles roles_a;
+      std::vector<libcamera::StreamRole> roles_a;
       libcamera::StreamConfiguration* configuration_p = NULL;
 //      libcamera::FrameBuffer* buffer_p = NULL;
       int status_i = -1;
@@ -243,7 +243,7 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
         const libcamera::FrameBuffer::Plane& plane_r =
             (*iterator)->planes ().front ();
         void* memory_p =
-            ::mmap (NULL, plane_r.length, PROT_READ, MAP_SHARED, plane_r.fd.fd (), 0);
+            ::mmap (NULL, plane_r.length, PROT_READ, MAP_SHARED, plane_r.fd.get (), 0);
         mappedBuffers_[(*iterator).get ()] =
             std::make_pair (memory_p, plane_r.length);
 

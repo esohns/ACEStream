@@ -243,8 +243,11 @@ class Test_I_Stream
   // modules
   Test_I_V4L_Source_Module      source_;
   // Test_I_StatisticReport_Module statisticReport_;
+#if defined (FFMPEG_SUPPORT)
+  Test_I_LibAVDecode_Module     decode_; // --> BGRA (Xlib)
   Test_I_LibAVConvert_Module    convert_; // --> BGRA (Xlib)
   Test_I_LibAVResize_Module     resize_; // --> window size/fullscreen
+#endif // FFMPEG_SUPPORT
   Test_I_V4L_HFlip_Module       flip_;
 };
 #endif // ACE_WIN32 || ACE_WIN64

@@ -29,6 +29,12 @@
 
 #include "test_i_common.h"
 
+#if defined (MYSQL_SUPPORT)
+#else
+const char libacestream_default_test_i_db_target_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR ("Database");
+#endif // MYSQL_SUPPORT
+
 Test_I_Module_DataBaseWriter::Test_I_Module_DataBaseWriter (inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  //, commit_ (false)
@@ -60,6 +66,7 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
+#if defined (MYSQL_SUPPORT)
       ACE_ASSERT (inherited::state_);
 
       ACE_TCHAR host_address[BUFSIZ];
@@ -209,6 +216,7 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       //        int on_off = 1;
       //        connection_->setClientOption ("clientTrace", &on_off);
       //      } // end IF
+#endif // MYSQL_SUPPORT
 
       break;
 
@@ -220,6 +228,7 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
       // sanity check(s)
+#if defined (MYSQL_SUPPORT)
       if (unlikely (!inherited::state_))
         return; // nothing to do
 
@@ -324,11 +333,10 @@ commit:
 close:
       mysql_close (inherited::state_);
       inherited::state_ = NULL;
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: closed database connection\n"),
                   inherited::mod_->name ()));
-#endif // _DEBUG
+#endif // MYSQL_SUPPORT
 
       break;
     }

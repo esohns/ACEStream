@@ -326,6 +326,9 @@ struct Test_U_CameraFilter_ModuleHandlerConfiguration
 {
   Test_U_CameraFilter_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
+#if defined (FFMPEG_SUPPORT)
+   , codecConfiguration (NULL)
+#endif // FFMPEG_SUPPORT
    , deviceIdentifier ()
    , display ()
    , fullScreen (false)
@@ -341,17 +344,20 @@ struct Test_U_CameraFilter_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
   }
 
-  struct Stream_Device_Identifier deviceIdentifier; // source module
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
+#endif // FFMPEG_SUPPORT
+  struct Stream_Device_Identifier                         deviceIdentifier; // source module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Common_UI_DisplayDevice  display; // display module
+  struct Common_UI_DisplayDevice                          display; // display module
 #else
-  struct Common_UI_Display        display; // display module
+  struct Common_UI_Display                                display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
-  bool                            fullScreen;
+  bool                                                    fullScreen;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                            window;
+  HWND                                                    window;
 #else
-  Window                          window;
+  Window                                                  window;
 #endif // ACE_WIN32 || ACE_WIN64
 };
 //extern const char stream_name_string_[];

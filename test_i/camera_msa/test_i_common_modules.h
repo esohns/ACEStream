@@ -40,6 +40,7 @@
 
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_converter.h"
+#include "stream_dec_libav_decoder.h"
 #endif // FFMPEG_SUPPORT
 #include "stream_dec_rgb24_hflip.h"
 
@@ -168,7 +169,7 @@ typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Test_I_SessionMessage_t,
                                enum Stream_ControlType,
                                enum Stream_SessionMessageType,
-                               struct Stream_UserData> Test_U_TaskBaseSynch_t;
+                               struct Stream_UserData> Test_I_TaskBaseSynch_t;
 typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                 Common_TimePolicy_t,
                                 struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
@@ -177,7 +178,7 @@ typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                 Test_I_SessionMessage_t,
                                 enum Stream_ControlType,
                                 enum Stream_SessionMessageType,
-                                struct Stream_UserData> Test_U_TaskBaseAsynch_t;
+                                struct Stream_UserData> Test_I_TaskBaseAsynch_t;
 
 typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Stream_ControlMessage_t,
@@ -194,10 +195,19 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       struct Stream_UserData> Test_I_V4L_Source;
 
 #if defined (FFMPEG_SUPPORT)
-typedef Stream_Decoder_LibAVConverter_T<Test_U_TaskBaseSynch_t,
+typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_I_Message_t,
+                                      Test_I_SessionMessage_t,
+                                      Test_I_CameraMSA_V4L_SessionData_t,
+                                      struct Stream_MediaFramework_V4L_MediaType> Test_I_LibAVDecode;
+
+typedef Stream_Decoder_LibAVConverter_T<Test_I_TaskBaseSynch_t,
                                         struct Stream_MediaFramework_V4L_MediaType> Test_I_LibAVConvert;
 
-typedef Stream_Visualization_LibAVResize_T<Test_U_TaskBaseSynch_t,
+typedef Stream_Visualization_LibAVResize_T<Test_I_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_V4L_MediaType> Test_I_LibAVResize;
 #endif // FFMPEG_SUPPORT
 
@@ -318,7 +328,7 @@ typedef Test_I_Module_PGE_T<Test_U_MediaFoundation_TaskBaseAsynch_t,
 //                                       struct Stream_UserData> Test_I_MessageHandler;
 
 #if defined (OLC_PGE_SUPPORT)
-typedef Test_I_Module_PGE_T<Test_U_TaskBaseAsynch_t,
+typedef Test_I_Module_PGE_T<Test_I_TaskBaseAsynch_t,
                             struct Stream_MediaFramework_V4L_MediaType> Test_I_PGE;
 #endif // OLC_PGE_SUPPORT
 
@@ -393,6 +403,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_V4L_SessionData,                 
                               Test_I_V4L_Source);                       // writer type
 
 #if defined (FFMPEG_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_V4L_SessionData,                          // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,    // module handler configuration type
+                              libacestream_default_dec_libav_decoder_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_I_LibAVDecode);                                       // writer type
+
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration, // module handler configuration type

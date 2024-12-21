@@ -408,6 +408,16 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 //        snd_spcm_init();
         std::string device_identifier_string =
           inherited::configuration_->deviceIdentifier.identifier;
+        if (unlikely (device_identifier_string.empty ()))
+        {
+          device_identifier_string =
+            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s: playback device not set, falling back to \"%s\"\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (device_identifier_string.c_str ())));
+        } // end IF
+
 open:
         result =
           snd_pcm_open (&deviceHandle_,

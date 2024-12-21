@@ -1060,6 +1060,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       struct AVStream* stream_p = NULL;
       int result = -1;
       int sample_rate_i = 0;
+      int num_channels_i = 0;
 
       result =
         avformat_alloc_output_context2 (&formatContext_, // return value: format context handle
@@ -1105,7 +1106,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         case AV_PIX_FMT_YUYV422:
           break;
         case AV_PIX_FMT_YUVA444P:
-          codec_id = AV_CODEC_ID_AYUV;
+          codec_id = AV_CODEC_ID_CYUV;
           break;
         // compressed formats
         // *NOTE*: "... MJPEG, or at least the MJPEG in AVIs having the MJPG
@@ -1433,19 +1434,19 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       //      codec_context_p->side_data_only_packets = 1;
       //      codec_context_p->chroma_intra_matrix = NULL;
       //      codec_context_p->dump_separator = NULL;
-      audioCodecContext_->channels =
-        (media_type_2.channels ? media_type_2.channels : 2);
       audioCodecContext_->sample_fmt =
         media_type_2.format == AV_SAMPLE_FMT_NONE ? AV_SAMPLE_FMT_S16 : media_type_2.format;
       audioCodecContext_->sample_rate = sample_rate_i;
-      switch (media_type_2.channels)
+      num_channels_i =
+        (media_type_2.channels ? media_type_2.channels : 2);
+      switch (num_channels_i)
       {
         case 1:
-          audioCodecContext_->channel_layout = AV_CH_LAYOUT_MONO;
+          av_channel_layout_default (&audioCodecContext_->ch_layout, 1);
           break;
         case 0: // i.e. N/A
         case 2:
-          audioCodecContext_->channel_layout = AV_CH_LAYOUT_STEREO;
+          av_channel_layout_default (&audioCodecContext_->ch_layout, 2);
           break;
         default:
         {

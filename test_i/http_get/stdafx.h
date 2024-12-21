@@ -28,9 +28,13 @@
 #undef my_socket_defined
 #define uint unsigned int
 #define ulong unsigned long
+#if defined (MYSQL_SUPPORT)
 #include "mysql.h"
+#endif // MYSQL_SUPPORT
 #else
+#if defined (MYSQL_SUPPORT)
 #include "mysql/mysql.h"
+#endif // MYSQL_SUPPORT
 #endif // _MSC_VER
 
 // System Library Header Files

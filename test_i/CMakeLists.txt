@@ -285,35 +285,37 @@ install (TARGETS ${PROJECT_NAME}_Test_I
 
 # ----------------------------------------
 
-add_subdirectory (avsave)
-add_subdirectory (camera_ar)
-add_subdirectory (camera_ml)
-add_subdirectory (camera_msa)
-add_subdirectory (commandspeech)
-add_subdirectory (extract_stream)
-# *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
-#                   interdependencies
-add_subdirectory (camstream)
-add_subdirectory (filestream)
-add_subdirectory (http_get)
-add_subdirectory (http_get_2)
-add_subdirectory (pop_receive)
-add_subdirectory (smtp_send)
-# *IMPORTANT NOTE* /END
-add_subdirectory (imagesave)
-add_subdirectory (mp3player)
-add_subdirectory (speechcommand)
-
 add_custom_target (test_i ALL
                    COMMENT "building test_i...")
-add_dependencies (test_i avsave camera_ar camera_ml camera_msa commandspeech extract_stream imagesave mp3player speechcommand)
+if (BUILD_TEST_I)
+ add_subdirectory (avsave)
+ add_subdirectory (camera_ar)
+ add_subdirectory (camera_ml)
+ add_subdirectory (camera_msa)
+ add_subdirectory (commandspeech)
+ add_subdirectory (extract_stream)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
-add_dependencies (test_i camsource camtarget filesource filetarget HTTP_get_1 HTTP_get_2 POP_receive SMTP_send)
-if (WIN32)
- add_dependencies (test_i camtarget_source camtarget_source_mf)
-endif (WIN32)
+ add_subdirectory (camstream)
+ add_subdirectory (filestream)
+ add_subdirectory (http_get)
+ add_subdirectory (http_get_2)
+ add_subdirectory (pop_receive)
+ add_subdirectory (smtp_send)
 # *IMPORTANT NOTE* /END
+ add_subdirectory (imagesave)
+ add_subdirectory (mp3player)
+ add_subdirectory (speechcommand)
+
+ add_dependencies (test_i avsave camera_ar camera_ml camera_msa commandspeech extract_stream imagesave mp3player speechcommand)
+# *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
+#                   interdependencies
+ add_dependencies (test_i camsource camtarget filesource filetarget HTTP_get_1 HTTP_get_2 POP_receive SMTP_send)
+ if (WIN32)
+  add_dependencies (test_i camtarget_source camtarget_source_mf)
+ endif (WIN32)
+# *IMPORTANT NOTE* /END
+endif (BUILD_TEST_I)
 
 cmake_policy (SET CMP0012 NEW)
 if (NOT BUILD_TEST_I)

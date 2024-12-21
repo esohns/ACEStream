@@ -43,7 +43,7 @@
 #include "linux/videodev2.h"
 
 #if defined (LIBCAMERA_SUPPORT)
-//#include "libcamera/libcamera.h"
+#include "libcamera/libcamera.h"
 #endif // LIBCAMERA_SUPPORT
 
 #include "X11/X.h"

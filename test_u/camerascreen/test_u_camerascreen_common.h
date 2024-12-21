@@ -538,10 +538,10 @@ struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration
   Stream_CameraScreen_V4L_ModuleHandlerConfiguration ()
    : Stream_CameraScreen_ModuleHandlerConfiguration ()
    , buffers (STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS)
-#if defined (FFMPEG_SUPPORT)
-   , codecFormat (AV_PIX_FMT_NONE)
-   , codecId (AV_CODEC_ID_NONE)
-#endif // FFMPEG_SUPPORT
+// #if defined (FFMPEG_SUPPORT)
+//    , codecFormat (AV_PIX_FMT_NONE)
+//    , codecId (AV_CODEC_ID_NONE)
+// #endif // FFMPEG_SUPPORT
    , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , outputFormat ()
    , subscriber (NULL)
@@ -557,10 +557,10 @@ struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration
   }
 
   __u32                                      buffers; // v4l device buffers
-#if defined (FFMPEG_SUPPORT)
-  enum AVPixelFormat                         codecFormat; // preferred output-
-  enum AVCodecID                             codecId;
-#endif // FFMPEG_SUPPORT
+// #if defined (FFMPEG_SUPPORT)
+//   enum AVPixelFormat                         codecFormat; // preferred output-
+//   enum AVCodecID                             codecId;
+// #endif // FFMPEG_SUPPORT
   enum v4l2_memory                           method; // v4l camera source
   struct Stream_MediaFramework_V4L_MediaType outputFormat;
   Stream_CameraScreen_ISessionNotify_t*      subscriber;
@@ -616,11 +616,14 @@ struct Stream_CameraScreen_StreamConfiguration
 {
   Stream_CameraScreen_StreamConfiguration ()
    : Stream_Configuration ()
+   , fullscreen (false)
    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_INVALID)
    , useVideoWall (false)
   {
     printFinalReport = true;
   }
+
+  bool                                    fullscreen;
   enum Stream_Visualization_VideoRenderer renderer;
   bool                                    useVideoWall;
 };

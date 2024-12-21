@@ -751,6 +751,7 @@ do_finalize_mediafoundation (IMFMediaSession*& mediaSession_inout)
 #else
 bool
 do_initialize_v4l (const std::string& deviceIdentifier_in,
+                   enum Test_U_CameraFilter_Mode mode_in,
                    struct Stream_Device_Identifier& deviceIdentifier_out,
                    struct Stream_MediaFramework_V4L_MediaType& captureFormat_out,
                    struct Stream_MediaFramework_V4L_MediaType& outputFormat_out)
@@ -791,13 +792,59 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
               ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()), captureFormat_out.format.pixelformat,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
-  // // *NOTE*: use for voronoi-stipple filter
-  // captureFormat_out.format.width = 320;
-  // captureFormat_out.format.height = 240;
-  captureFormat_out.format.width = 640;
-  captureFormat_out.format.height = 480;
-  Stream_Device_Tools::setFormat (deviceIdentifier_out.fileDescriptor,
-                                  captureFormat_out.format);
+  switch (mode_in)
+  {
+    case TEST_U_MODE_WEIGHTED_VORONOI_STIPPLE:
+      captureFormat_out.format.width = 320;
+      captureFormat_out.format.height = 240;
+      break;
+    default:
+      captureFormat_out.format.width = 1280;
+      captureFormat_out.format.height = 720;
+      break;
+  } // end SWITCH
+
+  if (!Stream_MediaFramework_Tools::isRGB (captureFormat_out.format.pixelformat))
+  {
+    __u32 pixel_format_i = 0;
+    Stream_MediaFramework_V4L_CaptureFormats_t formats_a =
+      Stream_Device_Tools::getCaptureSubFormats (deviceIdentifier_out.fileDescriptor);
+    for (Stream_MediaFramework_V4L_CaptureFormatsIterator_t iterator = formats_a.begin ();
+         iterator != formats_a.end ();
+         ++iterator)
+    {
+      pixel_format_i = (*iterator).first;
+      enum AVCodecID codec_id_e =
+        Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (pixel_format_i);
+      if (codec_id_e == AV_CODEC_ID_NONE)
+        break;
+    } // end FOR
+    if (pixel_format_i)
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("\"%s\" (%d): setting \"%s\" capture format\n"),
+                  ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor,
+                  ACE_TEXT (Stream_MediaFramework_Tools::v4lFormatToString (pixel_format_i).c_str ())));
+      Common_Image_Resolution_t resolution_s;
+      resolution_s.height = captureFormat_out.format.height;
+      resolution_s.width = captureFormat_out.format.width;
+      struct v4l2_fract frame_rate_s = { 0, 1 }; // don't care
+      struct v4l2_pix_format format_s =
+        Stream_Device_Tools::getVideoCaptureFormat (deviceIdentifier_out.fileDescriptor,
+                                                    pixel_format_i,
+                                                    resolution_s,
+                                                    frame_rate_s);
+      ACE_ASSERT (format_s.pixelformat == pixel_format_i);
+      if (!Stream_Device_Tools::setFormat (deviceIdentifier_out.fileDescriptor,
+                                           format_s))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
+        return false;
+      } // end IF
+      captureFormat_out.format = format_s;
+    } // end IF
+  } // end IF
 
   // *NOTE*: Gtk 2 expects RGB24
   // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
@@ -807,8 +854,6 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
   // *TODO*: auto-determine color depth of selected (default) screen (i.e.
   //         'Display' ":0")
   outputFormat_out = captureFormat_out;
-  if (!Stream_MediaFramework_Tools::isRGB (captureFormat_out.format.pixelformat))
-    outputFormat_out.format.pixelformat = V4L2_PIX_FMT_RGB32;
 
   return true;
 
@@ -904,7 +949,7 @@ do_initializeSignals (ACE_Sig_Set& signals_out)
 
 void
 do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
-         enum Test_U_CameraFilter_Mode& mode_in,
+         enum Test_U_CameraFilter_Mode mode_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -978,6 +1023,12 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   //} // end IF
 
   // ********************** module configuration data **************************
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
+  //codec_configuration.parserFlags =
+  //PARSER_FLAG_COMPLETE_FRAMES /* | PARSER_FLAG_FETCHED_OFFSET*/;
+  codec_configuration.useParser = false;
+#endif // FFMPEG_SUPPORT
   struct Stream_AllocatorConfiguration allocator_configuration;
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1054,12 +1105,19 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 //  Test_U_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator_2;
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.buffers = STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
+#if defined (FFMPEG_SUPPORT)
+  modulehandler_configuration.codecConfiguration = &codec_configuration;
+#endif // FFMPEG_SUPPORT
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
 //  modulehandler_configuration.display = displayDevice_in;
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   Stream_Device_Tools::getDefaultCaptureFormat (deviceIdentifier_in.identifier,
                                                 modulehandler_configuration.outputFormat);
+#if defined (FFMPEG_SUPPORT)
+  codec_configuration.codecId =
+    Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (modulehandler_configuration.outputFormat.format.pixelformat);
+#endif // FFMPEG_SUPPORT
   modulehandler_configuration.subscriber = &ui_event_handler;
 
   struct Test_U_CameraFilter_V4L_StreamConfiguration stream_configuration;
@@ -1262,6 +1320,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   } // end SWITCH
 #else
   if (!do_initialize_v4l (deviceIdentifier_in.identifier,
+                          mode_in,
                           modulehandler_configuration.deviceIdentifier,
                           stream_configuration.format,
                           modulehandler_configuration.outputFormat))
@@ -1272,6 +1331,45 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   } // end IF
   stream_p = &stream;
 
+  bool add_renderer_b = true;
+  switch (mode_in)
+  {
+    case TEST_U_MODE_SOBEL:
+      break;
+    case TEST_U_MODE_PERLIN_NOISE:
+      break;
+    case TEST_U_MODE_MARCHING_SQUARES:
+      add_renderer_b = false;
+      break;
+    case TEST_U_MODE_WEIGHTED_VORONOI_STIPPLE:
+      add_renderer_b = false;
+      break;
+#if defined (GLUT_SUPPORT)
+    case TEST_U_MODE_GLUT:
+      add_renderer_b = false;
+      break;
+    case TEST_U_MODE_GLUT_2:
+      add_renderer_b = false;
+      break;
+    case TEST_U_MODE_GLUT_3:
+      add_renderer_b = false;
+      break;
+#endif // GLUT_SUPPORT
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown mode (was: %d), returning\n"),
+                  mode_in));
+      return;
+    }
+  } // end SWITCH
+  modulehandler_configuration_2 = modulehandler_configuration;
+  modulehandler_configuration_2.outputFormat.format.pixelformat =
+    V4L2_PIX_FMT_RGBA32;
+
+  if (!add_renderer_b)
+    goto continue_;
+
   switch (renderer_in)
   {
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
@@ -1280,7 +1378,6 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       //                   Xlib; XCreateImage() only 'likes' 32-bit data, regardless
       //                   of what 'depth' values are set (in fact, it requires BGRA
       //                   on little-endian platforms) --> convert
-      modulehandler_configuration_2 = modulehandler_configuration;
       modulehandler_configuration_2.outputFormat.format.pixelformat =
         V4L2_PIX_FMT_BGRA32;
       break;
@@ -1288,15 +1385,11 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
     {
-      modulehandler_configuration_2 = modulehandler_configuration;
-      modulehandler_configuration_2.outputFormat.format.pixelformat =
-        V4L2_PIX_FMT_RGBA32;
       break;
     }
 #endif // GLUT_SUPPORT
     case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
     {
-      modulehandler_configuration_2 = modulehandler_configuration;
       modulehandler_configuration_2.outputFormat.format.pixelformat =
         V4L2_PIX_FMT_BGRA32;
       break;
@@ -1304,6 +1397,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     default:
       break;
   } // end SWITCH
+
+continue_:
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));

@@ -30,13 +30,23 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
+#if defined (MYSQL_SUPPORT)
 #include "stream_module_mysqlwriter.h"
+#else
+#include "stream_task_base_synch.h"
+#endif // MYSQL_SUPPORT
 
 #include "test_i_common.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
+#if defined (MYSQL_SUPPORT)
+#else
+extern const char libacestream_default_test_i_db_target_module_name_string[];
+#endif // MYSQL_SUPPORT
+
 class Test_I_Module_DataBaseWriter
+#if defined (MYSQL_SUPPORT)
  : public Stream_Module_MySQLWriter_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Test_I_HTTPGet_ModuleHandlerConfiguration,
@@ -44,7 +54,19 @@ class Test_I_Module_DataBaseWriter
                                       Test_I_Stream_Message,
                                       Test_I_Stream_SessionMessage,
                                       struct Test_I_Stream_SessionData>
+#else
+ : public Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                                 Common_TimePolicy_t,
+                                 struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                                 Stream_ControlMessage_t,
+                                 Test_I_Stream_Message,
+                                 Test_I_Stream_SessionMessage,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
+#endif // MYSQL_SUPPORT
 {
+#if defined (MYSQL_SUPPORT)
   typedef Stream_Module_MySQLWriter_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Test_I_HTTPGet_ModuleHandlerConfiguration,
@@ -52,6 +74,17 @@ class Test_I_Module_DataBaseWriter
                                       Test_I_Stream_Message,
                                       Test_I_Stream_SessionMessage,
                                       struct Test_I_Stream_SessionData> inherited;
+#else
+  typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                                 Common_TimePolicy_t,
+                                 struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                                 Stream_ControlMessage_t,
+                                 Test_I_Stream_Message,
+                                 Test_I_Stream_SessionMessage,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+#endif // MYSQL_SUPPORT
 
  public:
   Test_I_Module_DataBaseWriter (inherited::ISTREAM_T*); // stream handle
@@ -70,11 +103,20 @@ class Test_I_Module_DataBaseWriter
 };
 
 // declare module
+#if defined (MYSQL_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // session data type
                               enum Stream_SessionMessageType,           // session event type
                               struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_db_mysql_target_module_name_string,
                               Stream_INotify_t,                         // stream notification interface type
                               Test_I_Module_DataBaseWriter);            // writer type
+#else
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // session data type
+                              enum Stream_SessionMessageType,           // session event type
+                              struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_test_i_db_target_module_name_string,
+                              Stream_INotify_t,                         // stream notification interface type
+                              Test_I_Module_DataBaseWriter);            // writer type
+#endif // MYSQL_SUPPORT
 
 #endif

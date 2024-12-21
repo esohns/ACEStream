@@ -138,8 +138,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_T::initialize"));
 
-  int result = -1;
-
   if (inherited::isInitialized_)
   {
     if (context_)
@@ -933,6 +931,20 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       sws_freeContext (transformContext_); transformContext_ = NULL;
     } // end IF
 
+    int flags = ( // SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
+      SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
+
+    if ((context_->pix_fmt == outputFormat_) &&
+         (context_->width == static_cast<int> (formatWidth_) && context_->height == static_cast<int> (formatHeight_)))
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: reinit occurred; decoded pixel format %s (@ %ux%u) is output format\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (context_->pix_fmt).c_str ()),
+                  context_->width, context_->height));
+      goto continue_;
+    } // end IF
+
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: reinit occurred; converting decoded pixel format %s to %s (@ %ux%u)\n"),
                 inherited::mod_->name (),
@@ -940,8 +952,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (outputFormat_).c_str ()),
                 context_->width, context_->height));
 
-    int flags = ( // SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-      SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
     transformContext_ =
       sws_getCachedContext (NULL,
                             context_->width, context_->height, context_->pix_fmt,
@@ -956,6 +966,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       return false;
     } // end IF
 
+continue_:
     bool send_resize_b = ((context_->width != static_cast<int> (formatWidth_)) ||
                           (context_->height != static_cast<int> (formatHeight_)));
     format_ = context_->pix_fmt;
@@ -1101,7 +1112,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       av_frame_unref (frame_);
       return false;
     } // end IF
-    message_block_p->base (reinterpret_cast<char*> (frame_->data),
+    // *TODO*: this doesn't work for e.g. Chroma-Luminance types
+    ACE_ASSERT (!Stream_Module_Decoder_Tools::isChromaLuminance (outputFormat_));
+    message_block_p->base (reinterpret_cast<char*> (frame_->data[0]),
                            frameSize_,
                            0); // own image data
     message_block_p->wr_ptr (frameSize_);

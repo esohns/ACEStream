@@ -33,7 +33,6 @@
 #include "stream_misc_defines.h"
 #include "stream_misc_messagehandler.h"
 
-
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_filter.h"
 #endif // FFMPEG_SUPPORT
@@ -69,7 +68,9 @@
 #include "stream_stat_statistic_analysis.h"
 #include "stream_stat_statistic_report.h"
 
+#if defined (DEEPSPEECH_SUPPORT)
 #include "stream_dec_deepspeech_decoder.h"
+#endif // DEEPSPEECH_SUPPORT
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
@@ -409,6 +410,7 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
+#if defined (DEEPSPEECH_SUPPORT)
 typedef Stream_Decoder_DeepSpeechDecoder_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
                                            struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
@@ -426,6 +428,7 @@ typedef Stream_Decoder_DeepSpeechDecoder_T<ACE_MT_SYNCH,
                                            Test_I_MediaFoundation_SessionMessage_t,
                                            Test_I_SpeechCommand_MediaFoundation_SessionData_t,
                                            IMFMediaType*> Test_I_MediaFoundation_DeepSpeechDecoder;
+#endif // DEEPSPEECH_SUPPORT
 
 //////////////////////////////////////////
 
@@ -635,6 +638,7 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
+#if defined (DEEPSPEECH_SUPPORT)
 typedef Stream_Decoder_DeepSpeechDecoder_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
                                            struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
@@ -643,6 +647,7 @@ typedef Stream_Decoder_DeepSpeechDecoder_T<ACE_MT_SYNCH,
                                            Test_I_ALSA_SessionMessage_t,
                                            Test_I_SpeechCommand_ALSA_SessionData_t,
                                            struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_DeepSpeechDecoder;
+#endif // DEEPSPEECH_SUPPORT
 
 //////////////////////////////////////////
 
@@ -881,6 +886,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData, 
 
 //////////////////////////////////////////
 
+#if defined (DEEPSPEECH_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_DirectShow_SessionData,                         // session data type
                               enum Stream_SessionMessageType,                                // session event type
                               struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,   // module handler configuration type
@@ -893,6 +899,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData, 
                               libacestream_default_dec_deepspeech_decoder_module_name_string,
                               Stream_INotify_t,                                              // stream notification interface type
                               Test_I_MediaFoundation_DeepSpeechDecoder);                                // writer type
+#endif // DEEPSPEECH_SUPPORT
 
 //////////////////////////////////////////
 
@@ -1032,12 +1039,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,            
 
 //////////////////////////////////////////
 
+#if defined (DEEPSPEECH_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,                         // session data type
                               enum Stream_SessionMessageType,                                // session event type
                               struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,   // module handler configuration type
                               libacestream_default_dec_deepspeech_decoder_module_name_string,
                               Stream_INotify_t,                                              // stream notification interface type
                               Test_I_ALSA_DeepSpeechDecoder);                                // writer type
+#endif // DEEPSPEECH_SUPPORT
 
 //////////////////////////////////////////
 

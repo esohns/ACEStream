@@ -385,7 +385,8 @@ Stream_Module_Decoder_Tools::isChromaLuminance (enum AVPixelFormat format_in)
     case AV_PIX_FMT_P016BE: ///< like NV12, with 16bpp per component, big-endian
 #endif // ACE_WIN32 || ACE_WIN64
       return true;
-    default: break;
+    default:
+      break;
   } // end SWITCH
 
   return false;
@@ -811,7 +812,9 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
   bool result = false;
   int result_2 = -1;
   int in_linesize[AV_NUM_DATA_POINTERS];
+  ACE_OS::memset (in_linesize, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
   int out_linesize[AV_NUM_DATA_POINTERS];
+  ACE_OS::memset (out_linesize, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
   result_2 =
     av_image_fill_linesizes (in_linesize,
                              sourcePixelFormat_in,

@@ -281,10 +281,10 @@ Stream_Device_Tools::getVideoCaptureDevices (libcamera::CameraManager* manager_i
                 ACE_TEXT ("found video capture device \"%s\"\n"),
                 ACE_TEXT ((*iterator)->id ().c_str ())));
     const libcamera::ControlList& properties_r = (*iterator)->properties ();
-    ACE_ASSERT (properties_r.contains(libcamera::properties::Model));
+    ACE_ASSERT (properties_r.contains (libcamera::properties::Model.id()));
 
     device_identifier_s.description =
-        properties_r.get (libcamera::properties::Model);
+        properties_r.get (libcamera::properties::Model.id ()).toString ();
     device_identifier_s.identifier = (*iterator)->id ();
     return_value.push_back (device_identifier_s);
   } // end FOR
@@ -325,7 +325,7 @@ Stream_Device_Tools::getCaptureFormats (libcamera::Camera* camera_in)
   // initialize return value(s)
   Stream_MediaFramework_LibCamera_CaptureFormats_t return_value;
 
-  libcamera::StreamRoles roles_a;
+  std::vector<libcamera::StreamRole> roles_a;
   roles_a.push_back (libcamera::StreamRole::Raw);
   std::unique_ptr<libcamera::CameraConfiguration> configuration_p =
     camera_in->generateConfiguration (roles_a);
@@ -364,7 +364,7 @@ Stream_Device_Tools::getCaptureResolutions (libcamera::Camera* camera_in,
   // initialize return value(s)
   Common_Image_Resolutions_t return_value;
 
-  libcamera::StreamRoles roles_a;
+  std::vector<libcamera::StreamRole> roles_a;
   roles_a.push_back (libcamera::StreamRole::Raw);
   std::unique_ptr<libcamera::CameraConfiguration> configuration_p =
     camera_in->generateConfiguration (roles_a);
@@ -406,7 +406,7 @@ Stream_Device_Tools::defaultCaptureFormat (libcamera::Camera* camera_in)
   // initialize return value(s)
   struct Stream_MediaFramework_LibCamera_MediaType return_value;
 
-  libcamera::StreamRoles roles_a;
+  std::vector<libcamera::StreamRole> roles_a;
   roles_a.push_back (libcamera::StreamRole::Viewfinder);
   std::unique_ptr<libcamera::CameraConfiguration> configuration_p =
     camera_in->generateConfiguration (roles_a);
@@ -668,7 +668,11 @@ Stream_Device_Tools::getVideoCaptureFormat (int fileDescriptor_in,
     } // end IF
   } // end FOR
   if (!return_value.pixelformat)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve capture format, aborting\n")));
     return return_value;
+  } // end IF
 
   // (try to) retrieve the missing format information
   struct v4l2_format format_s;

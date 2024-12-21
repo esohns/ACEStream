@@ -104,7 +104,7 @@
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
-const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CameraARStream");
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CameraMSAStream");
 
 void
 do_print_usage (const std::string& programName_in)
@@ -793,29 +793,47 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
               ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()), captureFormat_out.format.pixelformat,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
-//  if (!Stream_MediaFramework_Tools::isRGB (captureFormat_out.format.pixelformat))
-//  {
-//    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("\"%s\" (%d): setting RGB24 capture format\n"),
-//                ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor));
-//    Common_Image_Resolution_t resolution_s;
-//    resolution_s.height = captureFormat_out.format.height;
-//    resolution_s.width = captureFormat_out.format.width;
-//    struct v4l2_pix_format format_s =
-//        Stream_Device_Tools::getVideoCaptureFormat (deviceIdentifier_out.fileDescriptor,
-//                                                    V4L2_PIX_FMT_RGB24,
-//                                                    resolution_s,
-//                                                    captureFormat_out.frameRate);
-//    ACE_ASSERT (format_s.pixelformat == V4L2_PIX_FMT_RGB24);
-//    if (!Stream_Device_Tools::setFormat (deviceIdentifier_out.fileDescriptor,
-//                                         format_s))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
-//      return false;
-//    } // end IF
-//    captureFormat_out.format = format_s;
-//  } // end IF
+ if (!Stream_MediaFramework_Tools::isRGB (captureFormat_out.format.pixelformat))
+ {
+   __u32 pixel_format_i = 0;
+   Stream_MediaFramework_V4L_CaptureFormats_t formats_a =
+     Stream_Device_Tools::getCaptureSubFormats (deviceIdentifier_out.fileDescriptor);
+   for (Stream_MediaFramework_V4L_CaptureFormatsIterator_t iterator = formats_a.begin ();
+        iterator != formats_a.end ();
+        ++iterator)
+   {
+     pixel_format_i = (*iterator).first;
+     enum AVCodecID codec_id_e =
+       Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (pixel_format_i);
+     if (codec_id_e == AV_CODEC_ID_NONE)
+       break;
+   } // end FOR
+   if (pixel_format_i)
+   {
+     ACE_DEBUG ((LM_DEBUG,
+                 ACE_TEXT ("\"%s\" (%d): setting \"%s\" capture format\n"),
+                 ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor,
+                 ACE_TEXT (Stream_MediaFramework_Tools::v4lFormatToString (pixel_format_i).c_str ())));
+     Common_Image_Resolution_t resolution_s;
+     resolution_s.height = captureFormat_out.format.height;
+     resolution_s.width = captureFormat_out.format.width;
+     struct v4l2_fract frame_rate_s = { 0, 1 }; // don't care
+     struct v4l2_pix_format format_s =
+         Stream_Device_Tools::getVideoCaptureFormat (deviceIdentifier_out.fileDescriptor,
+                                                     pixel_format_i,
+                                                     resolution_s,
+                                                     frame_rate_s);
+     ACE_ASSERT (format_s.pixelformat == pixel_format_i);
+     if (!Stream_Device_Tools::setFormat (deviceIdentifier_out.fileDescriptor,
+                                          format_s))
+     {
+       ACE_DEBUG ((LM_ERROR,
+                   ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
+       return false;
+     } // end IF
+     captureFormat_out.format = format_s;
+   } // end IF
+ } // end IF
 
   // *NOTE*: Gtk 2 expects RGB24
   // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
@@ -900,6 +918,13 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // GUI_SUPPORT
 
   // ********************** module configuration data **************************
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
+  //codec_configuration.parserFlags =
+  //PARSER_FLAG_COMPLETE_FRAMES /* | PARSER_FLAG_FETCHED_OFFSET*/;
+  codec_configuration.useParser = false;
+#endif // FFMPEG_SUPPORT
+
   struct Stream_AllocatorConfiguration allocator_configuration;
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -979,12 +1004,19 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 //  Test_I_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator_2;
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.buffers = STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
+#if defined (FFMPEG_SUPPORT)
+  modulehandler_configuration.codecConfiguration = &codec_configuration;
+#endif // FFMPEG_SUPPORT
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
 //  modulehandler_configuration.display = displayDevice_in;
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   Stream_Device_Tools::getDefaultCaptureFormat (deviceIdentifier_in.identifier,
                                                 modulehandler_configuration.outputFormat);
+#if defined (FFMPEG_SUPPORT)
+  codec_configuration.codecId =
+    Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (modulehandler_configuration.outputFormat.format.pixelformat);
+#endif // FFMPEG_SUPPORT
   modulehandler_configuration.subscriber = &ui_event_handler;
 
   struct Test_I_V4L_StreamConfiguration stream_configuration;
@@ -1222,9 +1254,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   } // end IF
   stream_p = &stream;
 
-//  if (!Stream_MediaFramework_Tools::isRGB (stream_configuration.format.format.pixelformat))
-//    modulehandler_configuration.outputFormat.format.pixelformat =
-//      V4L2_PIX_FMT_RGB32;
+ if (!Stream_MediaFramework_Tools::isRGB (stream_configuration.format.format.pixelformat))
+   modulehandler_configuration.outputFormat.format.pixelformat = V4L2_PIX_FMT_RGB32;
   // modulehandler_configuration.outputFormat.format.width = 80;
   // modulehandler_configuration.outputFormat.format.height = 60;
 

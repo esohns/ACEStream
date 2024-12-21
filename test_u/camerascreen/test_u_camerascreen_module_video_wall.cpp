@@ -212,19 +212,39 @@ Test_U_CameraScreen_VideoWall::handleSessionMessage (Stream_CameraScreen_Session
       struct Stream_MediaFramework_V4L_MediaType media_type_3 = media_type_r;
 #endif // ACE_WIN32 || ACE_WIN64
 
-      ACE_ASSERT (session_data_r.lock);
+      switch (bytesPerPixel_)
+      {
+        case 3:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      inherited2::setFormat (MEDIASUBTYPE_RGB24, media_type_3);
+          inherited2::setFormat (MEDIASUBTYPE_RGB24, media_type_3);
 #else
-      inherited2::setFormat (V4L2_PIX_FMT_RGB24, media_type_3);
+          inherited2::setFormat (V4L2_PIX_FMT_RGB24, media_type_3);
 #endif // ACE_WIN32 || ACE_WIN64
+          break;
+        case 4:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+          inherited2::setFormat (MEDIASUBTYPE_RGB32, media_type_3);
+#else
+          inherited2::setFormat (V4L2_PIX_FMT_RGB32, media_type_3);
+#endif // ACE_WIN32 || ACE_WIN64
+          break;
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown byte(s)/pixel (was: %d), aborting\n"),
+                      inherited::mod_->name (),
+                      bytesPerPixel_));
+          goto error;
+        }
+      } // end SWITCH
+      ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         session_data_r.formats.push_back (media_type_3);
       } // end lock scope
 
       break;
 
-//error:
+error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;

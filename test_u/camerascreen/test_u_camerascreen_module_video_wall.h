@@ -128,7 +128,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,       
                               Stream_INotify_t,                                                 // stream notification interface type
                               Test_U_CameraScreen_VideoWall);                                   // writer type
 #else
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData_t,                     // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                            // session event type
                               struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_video_wall_module_name_string,

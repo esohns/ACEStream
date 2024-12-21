@@ -1184,7 +1184,7 @@ Stream_CameraAR_Stream::Stream_CameraAR_Stream ()
 
 bool
 Stream_CameraAR_Stream::load (Stream_ILayout* layout_in,
-                                  bool& delete_out)
+                              bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraAR_Stream::load"));
 

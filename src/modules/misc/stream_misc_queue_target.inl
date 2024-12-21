@@ -75,7 +75,7 @@ Stream_Module_QueueWriter_T<ACE_SYNCH_USE,
   if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Queue_T::enqueue_tail(): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
     goto error;
   } // end IF
@@ -115,7 +115,7 @@ Stream_Module_QueueWriter_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                bool& passMessageDownstream_out)
+                                                                 bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueWriter_T::handleSessionMessage"));
 
@@ -127,6 +127,17 @@ Stream_Module_QueueWriter_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+      ACE_ASSERT (inherited::configuration_->queue);
+
+      int result = inherited::configuration_->queue->activate ();
+      ACE_UNUSED_ARG (result);
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_END:
     {
       // sanity check(s)
@@ -142,6 +153,7 @@ Stream_Module_QueueWriter_T<ACE_SYNCH_USE,
       }
       //if (imessage_queue_p)
       //  imessage_queue_p->waitForIdleState (true);
+
       break;
     }
     default:

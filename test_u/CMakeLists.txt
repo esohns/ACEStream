@@ -301,34 +301,36 @@ install (TARGETS ${PROJECT_NAME}_Test_U
 
 # ----------------------------------------
 
-add_subdirectory (animated_gif)
-add_subdirectory (audioeffect)
-add_subdirectory (branch)
-add_subdirectory (camera_filter)
-add_subdirectory (camerascreen)
-add_subdirectory (camsave)
-add_subdirectory (capturewindow)
-add_subdirectory (document)
-add_subdirectory (filecopy)
-# *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
-#                   interdependencies
-add_subdirectory (http_get)
-# *IMPORTANT NOTE* /END
-add_subdirectory (imagescreen)
-add_subdirectory (mp4_player)
-add_subdirectory (parser)
-add_subdirectory (qr_decode)
-add_subdirectory (riff_decoder)
-add_subdirectory (tree)
-
 # phonies
 add_custom_target (test_u ALL
                    COMMENT "building test_u...")
-add_dependencies (test_u animated_gif audioeffect branch camera_filter camerascreen camsave capturewindow document filecopy imagescreen mp4_player parser QR_decode RIFF_decoder tree)
+if (BUILD_TEST_U)
+ add_subdirectory (animated_gif)
+ add_subdirectory (audioeffect)
+ add_subdirectory (branch)
+ add_subdirectory (camera_filter)
+ add_subdirectory (camerascreen)
+ add_subdirectory (camsave)
+ add_subdirectory (capturewindow)
+ add_subdirectory (document)
+ add_subdirectory (filecopy)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
-add_dependencies (test_u HTTP_GET)
+ add_subdirectory (http_get)
 # *IMPORTANT NOTE* /END
+ add_subdirectory (imagescreen)
+ add_subdirectory (mp4_player)
+ add_subdirectory (parser)
+ add_subdirectory (qr_decode)
+ add_subdirectory (riff_decoder)
+ add_subdirectory (tree)
+
+ add_dependencies (test_u animated_gif audioeffect branch camera_filter camerascreen camsave capturewindow document filecopy imagescreen mp4_player parser QR_decode RIFF_decoder tree)
+# *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
+#                   interdependencies
+ add_dependencies (test_u HTTP_GET)
+# *IMPORTANT NOTE* /END
+endif (BUILD_TEST_U)
 
 cmake_policy (SET CMP0012 NEW)
 if (NOT BUILD_TEST_U)

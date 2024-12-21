@@ -67,6 +67,16 @@ stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
   for (const enum AVPixelFormat* iterator = formats_in;
        *iterator != -1;
        ++iterator)
+  {
+    if (Stream_MediaFramework_Tools::isAcceleratedFormat (*iterator))
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: rejecting format \"%s\"; it is accelerated\n"),
+                  ACE_TEXT (avcodec_get_name (context_in->codec_id)),
+                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*iterator).c_str ())));
+      continue;
+    } // end IF
+
     if (!Stream_Module_Decoder_Tools::isCompressedVideo (*iterator))
     {
       ACE_DEBUG ((LM_DEBUG,
@@ -80,6 +90,7 @@ stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
                   ACE_TEXT ("%s: rejecting format \"%s\"; it is compressed\n"),
                   ACE_TEXT (avcodec_get_name (context_in->codec_id)),
                   ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*iterator).c_str ())));
+  } // end IF
 
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("%s: does not support any uncompressed video format, aborting\n"),

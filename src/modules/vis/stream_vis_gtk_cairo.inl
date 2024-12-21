@@ -324,7 +324,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   } // end IF
 #elif GTK_CHECK_VERSION (3,10,0)
     gdk_window_create_similar_image_surface (window_in,
-                                             CAIRO_FORMAT_RGB24,
+                                             CAIRO_FORMAT_ARGB32,
                                              gdk_window_get_width (window_in),
                                              gdk_window_get_height (window_in),
                                              gdk_window_get_scale_factor (window_in));
@@ -419,15 +419,15 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   //#endif // GTK_CHECK_VERSION
   //#if defined (ACE_WIN32) || defined (ACE_WIN64)
   //      if (n_channels_i == 3)
-  //        ACE_ASSERT (Stream_MediaFramework_Tools::toBitCount (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW) == 24); // CAIRO_FORMAT_RGB24
+  //        ACE_ASSERT (Stream_MediaFramework_Tools::toBitCount (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW) == 24); //
   //      else
-  //        ACE_ASSERT (Stream_MediaFramework_Tools::toBitCount (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW) == 32); // CAIRO_FORMAT_RGB32
+  //        ACE_ASSERT (Stream_MediaFramework_Tools::toBitCount (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW) == 32); // CAIRO_FORMAT_RGB24 || CAIRO_FORMAT_ARGB32
   //#else
   //#if defined (FFMPEG_SUPPORT)
   //      if (n_channels_i == 3)
-  //        ACE_ASSERT (media_type_s.format == AV_PIX_FMT_RGB24); // CAIRO_FORMAT_RGB24
+  //        ACE_ASSERT (media_type_s.format == AV_PIX_FMT_RGB24); //
   //      else
-  //        ACE_ASSERT (media_type_s.format == AV_PIX_FMT_RGB32); // CAIRO_FORMAT_ARGB32
+  //        ACE_ASSERT (media_type_s.format == AV_PIX_FMT_RGB32); // CAIRO_FORMAT_RGB24 || CAIRO_FORMAT_ARGB32
   //#else
   //      ACE_ASSERT (false); // *TODO*
   //#endif // FFMPEG_SUPPORT
@@ -597,7 +597,7 @@ error:
       surface_ =
 #if GTK_CHECK_VERSION (3,10,0)
         gdk_window_create_similar_image_surface (inherited::configuration_->window,
-                                                 CAIRO_FORMAT_RGB24,
+                                                 CAIRO_FORMAT_ARGB32,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                                  resolution_s.cx,
                                                  resolution_s.cy,

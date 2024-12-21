@@ -1171,10 +1171,14 @@ Test_I_Stream::Test_I_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING))
  // , statisticReport_ (this,
  //                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+#if defined (FFMPEG_SUPPORT)
+ , decode_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
  , convert_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+#endif // FFMPEG_SUPPORT
  , flip_ (this,
           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
 {
@@ -1184,7 +1188,7 @@ Test_I_Stream::Test_I_Stream ()
 
 bool
 Test_I_Stream::load (Stream_ILayout* layout_in,
-                                  bool& delete_out)
+                     bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream::load"));
 
@@ -1193,11 +1197,22 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+  ACE_ASSERT ((*iterator).second.second->codecConfiguration);
+
+  bool requires_codec_b =
+    (*iterator).second.second->codecConfiguration->codecId != AV_CODEC_ID_NONE;
 
   layout_in->append (&source_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
+#if defined (FFMPEG_SUPPORT)
+  if (requires_codec_b)
+    layout_in->append (&decode_, NULL, 0);
   layout_in->append (&convert_, NULL, 0);
   // layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+#endif // FFMPEG_SUPPORT
   layout_in->append (&flip_, NULL, 0);
 
   return true;

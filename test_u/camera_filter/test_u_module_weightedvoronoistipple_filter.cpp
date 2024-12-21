@@ -432,6 +432,8 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::svc (void)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to olc::PixelGameEngine::Start(), aborting\n"),
                     inherited::mod_->name ()));
+        stop_processing = true;
+        this->notify (STREAM_SESSION_MESSAGE_ABORT);
         return -1;
       } // end IF
       stop_processing = true;
@@ -461,13 +463,13 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::processNextMessage ()
   if (unlikely (result == -1))
   {
     int error = ACE_OS::last_error ();
-    //if (likely (error == EWOULDBLOCK))
-      return false; // continue PGE
+    if (likely (error == EWOULDBLOCK))
+      return true; // continue PGE
     if (unlikely (error != ESHUTDOWN))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: worker thread %t failed to ACE_Task::getq(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
-    return true; // stop PGE
+    return false; // stop PGE
   } // end IF
   ACE_ASSERT (message_block_p);
 

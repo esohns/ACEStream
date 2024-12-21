@@ -21,7 +21,11 @@
 #ifndef STREAM_DEC_FESTIVAL_DECODER_T_H
 #define STREAM_DEC_FESTIVAL_DECODER_T_H
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "festival.h"
+#else
+#include "festival/festival.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"

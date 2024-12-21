@@ -766,14 +766,14 @@ error_2:
       // *TODO*: prevent this from occurring altogether (e.g. pre-buffer all
       //         'early' messages in the head module, introduce an intermediate
       //         state machine state 'in_session') to handle these situations
-      if (unlikely ((this == inherited::mod_->writer ()) &&
-                    !sessionData_))
-      {
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: no session data (yet): dropping early/late data message, continuing\n"),
-                    inherited::mod_->name ()));
-        goto error_3;
-      } // end IF
+      // if (unlikely ((this == inherited::mod_->writer ()) &&
+      //               !sessionData_))
+      // {
+      //   ACE_DEBUG ((LM_WARNING,
+      //               ACE_TEXT ("%s: no session data (yet): dropping early/late data message, continuing\n"),
+      //               inherited::mod_->name ()));
+      //   goto error_3;
+      // } // end IF
 
       try {
         handleDataMessage (message_p,
