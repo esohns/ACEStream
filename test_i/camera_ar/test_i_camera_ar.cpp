@@ -384,9 +384,12 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     goto error;
   } // end IF
   ACE_ASSERT (IGraphBuilder_out);
-  ACE_ASSERT (buffer_negotiation_p);
+  //ACE_ASSERT (buffer_negotiation_p);
   ACE_ASSERT (IAMStreamConfig_out);
-  buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+  if (buffer_negotiation_p)
+  {
+    buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+  } // end IF
 
   if (!Stream_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder_out,
                                                          CLSID_VideoInputDeviceCategory,
@@ -1198,6 +1201,12 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       return;
     }
   } // end SWITCH
+
+  struct _COORD coord_s = {4, 4};
+  Common_UI_Tools::setConsoleFontSize (coord_s);
+  coord_s = {80, 60};
+  Common_UI_Tools::setConsoleSize (coord_s);
+  Common_UI_Tools::setConsoleMaxWindowSize (80);
 #else
   if (!do_initialize_v4l (deviceIdentifier_in.identifier,
                           modulehandler_configuration.deviceIdentifier,

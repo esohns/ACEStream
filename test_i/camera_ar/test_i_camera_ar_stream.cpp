@@ -168,12 +168,12 @@ Stream_CameraAR_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T&
                                                                        STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L,
                                                                        buffer_negotiation_p))
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation(), aborting\n"),
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation(), continuing\n"),
                   ACE_TEXT (stream_name_string_)));
-      goto error;
+      //goto error;
     } // end IF
-    ACE_ASSERT (buffer_negotiation_p);
+    //ACE_ASSERT (buffer_negotiation_p);
 
     goto continue_;
   } // end IF
@@ -193,7 +193,7 @@ Stream_CameraAR_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T&
     goto error;
   } // end IF
   ACE_ASSERT ((*iterator).second.second->builder);
-  ACE_ASSERT (buffer_negotiation_p);
+  //ACE_ASSERT (buffer_negotiation_p);
   ACE_ASSERT (stream_config_p);
   stream_config_p->Release (); stream_config_p = NULL;
 
@@ -286,25 +286,27 @@ continue_:
   } // end IF
   isample_grabber_p->Release (); isample_grabber_p = NULL;
 
-  ACE_ASSERT (buffer_negotiation_p);
-  ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
-  // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
-  //         if this is -1/0 (why ?)
-  allocator_properties.cbAlign = 1;
-  allocator_properties.cbBuffer =
-    configuration_in.configuration_->allocatorConfiguration->defaultBufferSize;
-  allocator_properties.cbPrefix = -1; // <-- use default
-  allocator_properties.cBuffers =
-    STREAM_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
-  result_2 =
-      buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
-  if (FAILED (result_2)) // E_UNEXPECTED: 0x8000FFFF --> graph already connected
+  if (buffer_negotiation_p)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
-    goto error;
+    ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
+    // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+    //         if this is -1/0 (why ?)
+    allocator_properties.cbAlign = 1;
+    allocator_properties.cbBuffer =
+      configuration_in.configuration_->allocatorConfiguration->defaultBufferSize;
+    allocator_properties.cbPrefix = -1; // <-- use default
+    allocator_properties.cBuffers =
+      STREAM_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+    result_2 =
+        buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
+    if (FAILED (result_2)) // E_UNEXPECTED: 0x8000FFFF --> graph already connected
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+      goto error;
+    } // end IF
   } // end IF
 
   if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second->builder,
@@ -339,29 +341,32 @@ continue_:
   ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::connected ((*iterator).second.second->builder,
                                                                  STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L));
 
-#if defined (_DEBUG)
-  ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
-  result_2 =
-      buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
-  if (FAILED (result_2)) // E_FAIL (0x80004005)
+  if (buffer_negotiation_p)
   {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s/%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
-    //goto error;
-  } // end IF
-  else
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: negotiated allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
-                ACE_TEXT (stream_name_string_),
-                allocator_properties.cBuffers,
-                allocator_properties.cbBuffer,
-                allocator_properties.cbAlign,
-                allocator_properties.cbPrefix));
+#if defined (_DEBUG)
+    ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
+    result_2 =
+      buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
+    if (FAILED (result_2)) // E_FAIL (0x80004005)
+    {
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s/%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+      //goto error;
+    } // end IF
+    else
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: negotiated allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
+                  ACE_TEXT (stream_name_string_),
+                  allocator_properties.cBuffers,
+                  allocator_properties.cbBuffer,
+                  allocator_properties.cbAlign,
+                  allocator_properties.cbPrefix));
 #endif // _DEBUG
-  buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+    buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+  } // end IF
 
   result_2 =
     (*iterator).second.second->builder->QueryInterface (IID_PPV_ARGS (&media_filter_p));
