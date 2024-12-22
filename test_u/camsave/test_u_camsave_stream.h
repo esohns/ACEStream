@@ -105,7 +105,9 @@ class Stream_CamSave_DirectShow_Stream
   Stream_CamSave_VfW_Source_Module                   vFWSource_;
   Stream_CamSave_DirectShow_Source_Module            directShowSource_;
   Stream_CamSave_DirectShow_StatisticReport_Module   statisticReport_;
-  //Stream_CamSave_DirectShow_LibAVDecoder_Module      decoder_; // --> RGB
+#if defined (FFMPEG_SUPPORT)
+  Stream_CamSave_DirectShow_LibAVDecoder_Module      decoder_; // --> RGB/ChromaLuminance
+#endif // FFMPEG_SUPPORT
   Stream_CamSave_DirectShow_Distributor_Module       distributor_; // (sub-)branch ?
   ////////////////////////////////////////
 #if defined (FFMPEG_SUPPORT)

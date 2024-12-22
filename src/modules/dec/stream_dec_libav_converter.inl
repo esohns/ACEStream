@@ -149,11 +149,11 @@ Stream_Decoder_LibAVConverter_T<TaskType,
                                     static_cast<int> (frame_->width));
   ACE_ASSERT (result >= 0);
   result =
-      av_image_fill_pointers (data_a,
-                              inputFormat_,
-                              static_cast<int> (frame_->height),
-                              reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
-                              line_sizes_a);
+    av_image_fill_pointers (data_a,
+                            inputFormat_,
+                            static_cast<int> (frame_->height),
+                            reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
+                            line_sizes_a);
   ACE_ASSERT (result >= 0);
   if (unlikely (!Stream_Module_Decoder_Tools::convert (context_,
                                                        frame_->width, frame_->height, inputFormat_,
@@ -163,7 +163,7 @@ Stream_Decoder_LibAVConverter_T<TaskType,
                                                        inherited::configuration_->flipImage)))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
+                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), aborting\n"),
                 inherited::mod_->name ()));
     goto error;
   } // end IF
@@ -178,7 +178,7 @@ Stream_Decoder_LibAVConverter_T<TaskType,
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
     goto error;
   } // end IF
@@ -486,6 +486,11 @@ error_2:
       if (context_)
       {
         sws_freeContext (context_); context_ = NULL;
+      } // end IF
+      if (frame_)
+      {
+        av_frame_unref (frame_);
+        av_frame_free (&frame_);
       } // end IF
 
       break;

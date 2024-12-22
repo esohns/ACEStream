@@ -134,11 +134,15 @@ Test_U_CameraFilter_OpenGL_GLUT_2::handleSessionMessage (Test_U_SessionMessage_t
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       CBData_.resolution =
         Stream_MediaFramework_DirectShow_Tools::toResolution (CBData_.mediaType);
+      CBData_.depth =
+        Stream_MediaFramework_DirectShow_Tools::toFrameBits (CBData_.mediaType) / 8;
 
       CBData_.mouseX = CBData_.resolution.cx / 2;
       CBData_.mouseY = CBData_.resolution.cy / 2;
 #else
       CBData_.resolution = CBData_.mediaType.resolution;
+      CBData_.depth =
+        Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (CBData_.mediaType.format) / 8;
 
       CBData_.mouseX = CBData_.resolution.width / 2;
       CBData_.mouseY = CBData_.resolution.height / 2;
@@ -554,6 +558,7 @@ camera_filter_glut_2_draw (void)
                                 cb_data_p->mediaType.resolution.width,
                                 cb_data_p->mediaType.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
+                                cb_data_p->depth,
                                 cb_data_p->textureId,
                                 frame_count_i == 1);
   message_block_p->release ();

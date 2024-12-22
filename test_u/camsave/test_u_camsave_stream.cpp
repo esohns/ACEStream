@@ -53,6 +53,10 @@ Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+#if defined (FFMPEG_SUPPORT)
+ , decoder_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
+#endif // FFMPEG_SUPPORT
  , distributor_ (this,
                  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
 #if defined (FFMPEG_SUPPORT)
@@ -111,9 +115,12 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
     inherited::configuration_->find (Stream_Visualization_Tools::rendererToModuleName (inherited::configuration_->configuration_->renderer));
   // sanity check(s)
   ACE_ASSERT (iterator != inherited::configuration_->end ());
+  ACE_ASSERT ((*iterator).second.second->codecConfiguration);
   ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
   ACE_ASSERT ((*iterator_2).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
 
+  bool requires_codec_b =
+    (*iterator).second.second->codecConfiguration->codecId != AV_CODEC_ID_NONE;
   bool display_b =
     ACE_OS::strlen ((*iterator_2).second.second->deviceIdentifier.identifier._string);
   bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
@@ -134,6 +141,9 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
+      // *NOTE*: MJPG is transformed inside the DirectShow pipeline to RGB32
+      requires_codec_b = false;
+
       layout_in->append (&directShowSource_, NULL, 0);
       break;
     }
@@ -148,7 +158,10 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
   } // end SWITCH
 
   layout_in->append (&statisticReport_, NULL, 0);
-  //layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
+
+  if (requires_codec_b)
+    layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB/ChromaLuminance
+
   if (display_b || save_to_file_b)
   {
     if (display_b && save_to_file_b)

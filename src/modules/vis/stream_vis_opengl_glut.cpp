@@ -138,6 +138,11 @@ libacestream_glut_draw (void)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Common_Image_Resolution_t resolution_s =
     Stream_MediaFramework_DirectShow_Tools::toResolution (cb_data_p->mediaType);
+  unsigned int depth_i =
+    Stream_MediaFramework_DirectShow_Tools::toFrameBits (cb_data_p->mediaType) / 8;
+#else
+  unsigned int depth_i =
+    Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (cb_data_p->mediaType.format) / 8;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Message_Block* message_block_p = NULL;
 
@@ -158,6 +163,7 @@ libacestream_glut_draw (void)
                                 cb_data_p->mediaType.resolution.width,
                                 cb_data_p->mediaType.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
+                                depth_i,
                                 cb_data_p->textureId,
                                 true); // update
   message_block_p->release ();

@@ -175,9 +175,9 @@ Test_U_CameraFilter_Sobel_Filter::handleDataMessage (Test_U_Message_t*& message_
       buffer_[index_i + 2] = static_cast<uint8_t> (b_f * 255.0f);
     } // end FOR
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_OS::memcpy (data_p, buffer_, resolution_.cx * resolution_.cy * bytesPerPixel_ * sizeof (uint8_t));
+  ACE_OS::memcpy (data_p, buffer_, resolution_.cx * resolution_.cy * bytesPerPixel_);
 #else
-  ACE_OS::memcpy (data_p, buffer_, resolution_.width * resolution_.height * bytesPerPixel_ * sizeof (uint8_t));
+  ACE_OS::memcpy (data_p, buffer_, resolution_.width * resolution_.height * bytesPerPixel_);
 #endif // ACE_WIN32 || ACE_WIN64
 
   ++frameCount_;
@@ -220,6 +220,7 @@ Test_U_CameraFilter_Sobel_Filter::handleSessionMessage (Test_U_SessionMessage_t*
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_r);
 
       buffer_ = new uint8_t[resolution_.cx * resolution_.cy * bytesPerPixel_];
+      //ACE_OS::memset (buffer_, 0, resolution_.cx * resolution_.cy * bytesPerPixel_);
 #else
       const struct Stream_MediaFramework_V4L_MediaType& media_type_r =
         session_data_r.formats.back ();
@@ -232,6 +233,7 @@ Test_U_CameraFilter_Sobel_Filter::handleSessionMessage (Test_U_SessionMessage_t*
       resolution_.height = media_type_r.format.height;
 
       buffer_ = new uint8_t[resolution_.width * resolution_.height * bytesPerPixel_];
+      //ACE_OS::memset (buffer_, 0, resolution_.width * resolution_.height * bytesPerPixel_);
 #endif // ACE_WIN32 || ACE_WIN64
 
       break;

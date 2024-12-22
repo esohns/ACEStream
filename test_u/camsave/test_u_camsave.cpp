@@ -737,11 +737,14 @@ continue_:
       //         stream_vis_gtk_pixbuf.inl:236), BUT
       //         "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
       //         alpha in the upper 8 bits, then red, then green, then blue. The
-      //         32-bit quantities are stored native-endian. ..."
+      //         32-bit quantities are stored native-endian. ..."; this holds
+      //         for Gtk > 3.10.0
       // *TODO*: determine color depth of selected (default) screen (i.e.'Display'
       //         ":0")
       displayFormat_inout.subtype = MEDIASUBTYPE_RGB24;
-      //displayFormat_inout.subtype = MEDIASUBTYPE_RGB32;
+#if GTK_CHECK_VERSION (3,10,0)
+      displayFormat_inout.subtype = MEDIASUBTYPE_RGB32;
+#endif // GTK_CHECK_VERSION (3,10,0)
       if (InlineIsEqualGUID (displayFormat_inout.formattype, FORMAT_VideoInfo))
       { ACE_ASSERT (displayFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
         video_info_header_p =
@@ -756,7 +759,9 @@ continue_:
         ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
         ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
         video_info_header_p->bmiHeader.biBitCount = 24;
-        //video_info_header_p->bmiHeader.biBitCount = 32;
+#if GTK_CHECK_VERSION (3,10,0)
+        video_info_header_p->bmiHeader.biBitCount = 32;
+#endif // GTK_CHECK_VERSION (3,10,0)
         video_info_header_p->bmiHeader.biCompression = BI_RGB;
         video_info_header_p->bmiHeader.biSizeImage =
           DIBSIZE (video_info_header_p->bmiHeader);
@@ -778,6 +783,9 @@ continue_:
         ACE_ASSERT (video_info_header_2->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
         ACE_ASSERT (video_info_header_2->bmiHeader.biPlanes == 1);
         video_info_header_2->bmiHeader.biBitCount = 24;
+#if GTK_CHECK_VERSION (3,10,0)
+        video_info_header_2->bmiHeader.biBitCount = 32;
+#endif // GTK_CHECK_VERSION (3,10,0)
         video_info_header_2->bmiHeader.biCompression = BI_RGB;
         video_info_header_2->bmiHeader.biSizeImage =
           DIBSIZE (video_info_header_2->bmiHeader);
@@ -875,13 +883,14 @@ continue_:
     {
       IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
     } // end IF
+
     return true;
   } // end IF
 
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
                                                             captureFormat_inout,
                                                             saveFormat_inout, // directshow output format
-                                                            NULL,
+                                                            NULL, // no window handle (yet)
                                                             IGraphBuilder_out,
                                                             graph_configuration))
   {
@@ -1230,19 +1239,19 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
               ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()), captureFormat_out.format.pixelformat,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
+  // *TODO*: determine color depth of selected (default) screen (i.e. 'Display'
+  //         ":0")
   outputFormat_out = captureFormat_out;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   // *NOTE*: Gtk 2 expects RGB24
+  outputFormat_out.format.pixelformat = V4L2_PIX_FMT_BGR24;
+#if GTK_CHECK_VERSION (3,10,0)
   // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
   //         alpha in the upper 8 bits, then red, then green, then blue. The
   //         32-bit quantities are stored native-endian. ..."
-  // *TODO*: determine color depth of selected (default) screen (i.e.'Display'
-  //         ":0")
   outputFormat_out.format.pixelformat = V4L2_PIX_FMT_BGR32;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-#if defined (GTK2_USE)
-  outputFormat_out.format.pixelformat = V4L2_PIX_FMT_BGR24;
-#endif // GTK2_USE
+#endif // GTK_CHECK_VERSION (3,10,0)
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
@@ -1349,6 +1358,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
+  codec_configuration.codecId = AV_CODEC_ID_MJPEG;
   codec_configuration.parserFlags = PARSER_FLAG_ONCE | PARSER_FLAG_USE_CODEC_TS;
 #endif // FFMPEG_SUPPORT
 
@@ -1432,13 +1442,15 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     {
       directshow_modulehandler_configuration.allocatorConfiguration =
         &allocator_configuration;
+#if defined (FFMPEG_SUPPORT)
+      directshow_modulehandler_configuration.codecConfiguration = &codec_configuration;
+#endif // FFMPEG_SUPPORT
       directshow_modulehandler_configuration.deviceIdentifier =
         deviceIdentifier_in;
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
       // *NOTE*: need to set this for RGB-capture formats ONLY !
-      // *TODO*: MJPG is transformed inside the DirectShow pipeline to RGB32, so requires flípping as well... :-(
-      // *TODO*: YUV2 is transformed inside the DirectShow pipeline to RGB32, so requires flípping as well... :-(
+      // *TODO*: MJPG is transformed inside the DirectShow pipeline to RGB32, and requires flípping as well... :-(
       directshow_modulehandler_configuration.flipImage = true;
       directshow_modulehandler_configuration.handleResize = false; // there is a resize module downstream that handles resize messages
       directshow_modulehandler_configuration.lock = &state_r.subscribersLock;
@@ -1654,6 +1666,9 @@ error:
 
 #if defined (FFMPEG_SUPPORT)
       directshow_modulehandler_configuration_4 = directshow_modulehandler_configuration;
+      // *NOTE*: need to set this for RGB-capture formats ONLY !
+      // *TODO*: MJPG is transformed inside the DirectShow pipeline to RGB32, and requires flípping as well... :-(
+      directshow_modulehandler_configuration_4.flipImage = true;
       directshow_modulehandler_configuration_4.handleResize = false; // write as-is
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                              std::make_pair (&module_configuration,

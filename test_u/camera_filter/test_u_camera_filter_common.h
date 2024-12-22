@@ -588,10 +588,15 @@ struct Test_U_CameraFilter_DirectShow_StreamConfiguration
 {
   Test_U_CameraFilter_DirectShow_StreamConfiguration ()
    : Test_U_CameraFilter_StreamConfiguration ()
-   , format ()
-  {}
+   , captureFormat ()
+   , outputFormat ()
+  {
+    ACE_OS::memset (&captureFormat, 0, sizeof (struct _AMMediaType));
+    ACE_OS::memset (&outputFormat, 0, sizeof (struct _AMMediaType));
+  }
 
-  struct _AMMediaType format;
+  struct _AMMediaType captureFormat; // capture-
+  struct _AMMediaType outputFormat;  // directshow- (!) output-
 };
 
 typedef Stream_IStreamControl_T<enum Stream_ControlType,

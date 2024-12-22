@@ -126,6 +126,7 @@ scale_step_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->solver);
 
+  // *TODO*: cannot really set this at runtime (will crash at some point !)
   ui_cb_data_p->solver->step_ =
     static_cast<int> (gtk_range_get_value (range_in));
 }

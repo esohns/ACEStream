@@ -32,6 +32,7 @@
 #if defined (GUI_SUPPORT)
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_converter.h"
+#include "stream_dec_libav_decoder.h"
 #endif // FFMPEG_SUPPORT
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -39,7 +40,6 @@
 #else
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_avi_encoder.h"
-#include "stream_dec_libav_decoder.h"
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -234,8 +234,18 @@ typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CamSave_DirectShow_SessionData> Stream_CamSave_DirectShow_Distributor_Writer_t;
 
 #if defined (FFMPEG_SUPPORT)
+typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Stream_CamSave_DirectShow_Message_t,
+                                      Stream_CamSave_DirectShow_SessionMessage_t,
+                                      Stream_CamSave_DirectShow_SessionData_t,
+                                      struct _AMMediaType> Stream_CamSave_DirectShow_LibAVDecoder;
+
 typedef Stream_Decoder_LibAVConverter_T<Test_U_DirectShow_TaskBaseSynch_t,
                                         struct _AMMediaType> Stream_CamSave_DirectShow_LibAVConverter;
+
 typedef Stream_Visualization_LibAVResize_T<Test_U_DirectShow_TaskBaseSynch_t,
                                            struct _AMMediaType> Stream_CamSave_DirectShow_LibAVResize;
 #endif // FFMPEG_SUPPORT
@@ -777,9 +787,17 @@ DATASTREAM_MODULE_DUPLEX (Stream_CamSave_DirectShow_SessionData,            // s
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,            // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_libav_decoder_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_CamSave_DirectShow_LibAVDecoder);          // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,            // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_libav_converter_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_DirectShow_LibAVConverter);        // writer type
+
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,            // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type

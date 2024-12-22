@@ -249,7 +249,7 @@ Test_I_Module_PGE_T<TaskType,
   for (typename std::vector<flow_zone>::iterator iterator = flow_zones_a.begin ();
        iterator != flow_zones_a.end ();
        ++iterator)
-    if ((*iterator).productAboveLimit (solver_.UVCutoff_))
+    if ((*iterator).UVMeanAboveLimit (solver_.UVCutoff_))
     {
       addForce ((*iterator).x_ / static_cast<float> (width_i), (*iterator).y_ / static_cast<float> (height_i),
                 (*iterator).u_ / static_cast<float> (width_i), (*iterator).v_ / static_cast<float> (height_i),

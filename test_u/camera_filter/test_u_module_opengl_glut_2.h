@@ -69,13 +69,11 @@ struct Test_U_CameraFilter_OpenGL_GLUT_2_WindowData
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Message_Queue_Base*                            queue;
-  Common_Image_Resolution_t                          resolution;
-  Stream_IStreamControlBase*                         stream;
 
-  // canvas
-  // int                                                columns;
-  // int                                                rows;
-  // int                                                scaleFactor;
+  Common_Image_Resolution_t                          resolution;
+  unsigned int                                       depth;
+
+  Stream_IStreamControlBase*                         stream;
 
   // time
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

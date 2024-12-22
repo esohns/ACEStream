@@ -69,23 +69,11 @@ struct Test_U_CameraFilter_OpenGL_GLUT_3_WindowData
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Message_Queue_Base*                            queue;
+
   Common_Image_Resolution_t                          resolution;
+  unsigned int                                       depth;
+
   Stream_IStreamControlBase*                         stream;
-
-  // canvas
-  // int                                                columns;
-  // int                                                rows;
-  // int                                                scaleFactor;
-
-//  // time
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  std::chrono::steady_clock::time_point              tp1;
-//#elif defined (ACE_LINUX)
-//  std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>
-//    tp1;
-//#else
-//#error missing implementation, aborting
-//#endif // ACE_WIN32 || ACE_WIN64 || ACE_LINUX
 
   // mouse
   int                                                mouseX;
