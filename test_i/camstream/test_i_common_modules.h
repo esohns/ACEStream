@@ -134,6 +134,25 @@ typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                 enum Stream_ControlType,
                                 enum Stream_SessionMessageType,
                                 struct Stream_UserData> Test_I_MediaFoundation_TaskBaseAsynch_t;
+
+typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Test_I_Target_DirectShow_Stream_Message,
+                               Test_I_Target_DirectShow_SessionMessage,
+                               enum Stream_ControlType,
+                               enum Stream_SessionMessageType,
+                               struct Stream_UserData> Test_I_Target_DirectShow_TaskBaseSynch_t;
+typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t,
+                                struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
+                                Stream_ControlMessage_t,
+                                Test_I_Target_DirectShow_Stream_Message,
+                                Test_I_Target_DirectShow_SessionMessage,
+                                enum Stream_ControlType,
+                                enum Stream_SessionMessageType,
+                                struct Stream_UserData> Test_I_Target_DirectShow_TaskBaseAsynch_t;
 #else
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
@@ -631,10 +650,16 @@ typedef Stream_Decoder_LibAVConverter_T<Test_I_DirectShow_TaskBaseSynch_t,
 typedef Stream_Decoder_LibAVConverter_T<Test_I_MediaFoundation_TaskBaseSynch_t,
                                         IMFMediaType*> Test_I_Source_MediaFoundation_Converter;
 
+typedef Stream_Decoder_LibAVConverter_T<Test_I_Target_DirectShow_TaskBaseSynch_t,
+                                        struct _AMMediaType> Test_I_Target_DirectShow_Converter;
+
 typedef Stream_Visualization_LibAVResize_T<Test_I_DirectShow_TaskBaseSynch_t,
                                            struct _AMMediaType> Test_I_Source_DirectShow_Resize;
 typedef Stream_Visualization_LibAVResize_T<Test_I_MediaFoundation_TaskBaseSynch_t,
                                            IMFMediaType*> Test_I_Source_MediaFoundation_Resize;
+
+typedef Stream_Visualization_LibAVResize_T<Test_I_Target_DirectShow_TaskBaseSynch_t,
+                                           struct _AMMediaType> Test_I_Target_DirectShow_Resize;
 #else
 typedef Stream_Decoder_LibAVConverter_T<Test_I_V4L_TaskBaseSynch_t,
                                         struct Stream_MediaFramework_V4L_MediaType> Test_I_Source_V4L_Converter;
@@ -762,6 +787,18 @@ typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Test_I_Target_DirectSho
 typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Test_I_Target_DirectShow_Stream_Message,
                                                                 struct Test_I_Target_DirectShow_FilterConfiguration,
                                                                 struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Test_I_Target_AsynchDirectShowFilter_t;
+
+#if defined (GTK_SUPPORT)
+typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
+                                       struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
+                                       Stream_ControlMessage_t,
+                                       Test_I_Target_DirectShow_Stream_Message,
+                                       Test_I_Target_DirectShow_SessionMessage,
+                                       Test_I_Target_DirectShow_SessionData,
+                                       Test_I_Target_DirectShow_SessionData_t,
+                                       struct _AMMediaType> Test_I_Target_DirectShow_GTK_Cairo;
+#endif // GTK_SUPPORT
 typedef Stream_Vis_Target_DirectShow_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
@@ -1025,6 +1062,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_MediaFoundation_SessionData,        
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_I_Source_MediaFoundation_Converter);                        // writer type
 
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                             // session event type
+                              struct Test_I_Target_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_libav_decoder_module_name_string,
+                              Stream_INotify_t,                                           // stream notification interface type
+                              Test_I_Target_DirectShow_Converter);                        // writer type
+
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                             // session event type
                               struct Test_I_Source_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
@@ -1037,6 +1081,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_MediaFoundation_SessionData,        
                               libacestream_default_vis_libav_resize_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_I_Source_MediaFoundation_Resize);                           // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                             // session event type
+                              struct Test_I_Target_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_libav_resize_module_name_string,
+                              Stream_INotify_t,                                           // stream notification interface type
+                              Test_I_Target_DirectShow_Resize);                           // writer type
 #else
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L_SessionData,                             // session data type
                               enum Stream_SessionMessageType,                            // session event type
@@ -1116,24 +1167,34 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L_SessionData,                // s
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_DirectShow_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                             // session event type
                               struct Test_I_Target_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_direct3d_module_name_string,
                               Stream_INotify_t,                                           // stream notification interface type
                               Test_I_Target_Display);                                     // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_DirectShow_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                             // session event type
                               struct Test_I_Target_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_directshow_module_name_string,
                               Stream_INotify_t,                                           // stream notification interface type
                               Test_I_Target_DirectShow_Display);                          // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_MediaFoundation_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_MediaFoundation_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_mediafoundation_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_I_Target_MediaFoundation_Display);                          // writer type
+#if defined (GUI_SUPPORT)
+#if defined (GTK_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                             // session event type
+                              struct Test_I_Target_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_gtk_cairo_module_name_string,
+                              Stream_INotify_t,                                           // stream notification interface type
+                              Test_I_Target_DirectShow_GTK_Cairo);                        // writer type
+#endif // GTK_SUPPORT
+#endif // GUI_SUPPORT
 #else
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)

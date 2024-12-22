@@ -540,9 +540,12 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     goto error;
   } // end IF
   ACE_ASSERT (IGraphBuilder_out);
-  ACE_ASSERT (buffer_negotiation_p);
+  //ACE_ASSERT (buffer_negotiation_p);
   ACE_ASSERT (IAMStreamConfig_out);
-  buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+  if (buffer_negotiation_p)
+  {
+    buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+  } // end IF
 
   if (!Stream_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder_out,
                                                          CLSID_VideoInputDeviceCategory,
@@ -568,7 +571,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   outputFormat_inout = *media_type_p;
   delete (media_type_p); media_type_p = NULL;
 
-  // *NOTE*: the default output format is RGB24
+  // *NOTE*: the default output format is RGB32
   ACE_ASSERT (InlineIsEqualGUID (outputFormat_inout.majortype, MEDIATYPE_Video));
   outputFormat_inout.subtype = MEDIASUBTYPE_RGB32;
   outputFormat_inout.bFixedSizeSamples = TRUE;
@@ -926,7 +929,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration_3;
   struct Test_I_Source_DirectShow_StreamConfiguration directshow_stream_configuration_4;
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
-  Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
 
   struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
   //struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // visualization
@@ -970,7 +972,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 
       directshow_modulehandler_configuration_4 =
         directshow_modulehandler_configuration;
-      directshow_modulehandler_configuration_4.flipImage = true;
+      //directshow_modulehandler_configuration_4.flipImage = true;
       directshow_modulehandler_configuration_4.handleResize = false;
 
       directshow_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
@@ -1248,19 +1250,15 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_modulehandler_iterator =
-        (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
-
       result =
         do_initialize_directshow (deviceIdentifier_in,
                                   !UIDefinitionFilename_in.empty (), // has UI ?
-                                  (*directshow_modulehandler_iterator).second.second->builder,
+                                  directshow_modulehandler_configuration.builder,
                                   directShowCBData_in.streamConfiguration,
                                   (*directshow_stream_iterator).second.configuration_->format,
-                                  (*directshow_modulehandler_iterator).second.second->outputFormat);
+                                  directshow_modulehandler_configuration.outputFormat);
 
-      Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_modulehandler_iterator).second.second->outputFormat,
+      Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat,
                                                     directshow_modulehandler_configuration_4.outputFormat);
       Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
                                                          directshow_modulehandler_configuration_4.outputFormat);
@@ -1413,7 +1411,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                        ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
       directshow_tcp_connection_manager_p->set (*static_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
                                                 &user_data_s);
-      (*directshow_modulehandler_iterator).second.second->connectionManager =
+      directshow_modulehandler_configuration.connectionManager =
         directshow_tcp_connection_manager_p;
       iconnection_manager_p = directshow_tcp_connection_manager_p;
       report_handler_p = directshow_tcp_connection_manager_p;
@@ -1611,20 +1609,20 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      (*directshow_modulehandler_iterator).second.second->allocatorConfiguration =
+      directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
-      (*directshow_modulehandler_iterator).second.second->configuration =
+      directshow_modulehandler_configuration.configuration =
         directShowCBData_in.configuration;
-      (*directshow_modulehandler_iterator).second.second->connectionConfigurations =
+      directshow_modulehandler_configuration.connectionConfigurations =
         &directShowCBData_in.configuration->connectionConfigurations;
-      (*directshow_modulehandler_iterator).second.second->direct3DConfiguration =
+      directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowCBData_in.configuration->direct3DConfiguration;
-      (*directshow_modulehandler_iterator).second.second->statisticReportingInterval =
+      directshow_modulehandler_configuration.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
       //(*directshow_modulehandler_iterator).second.second->stream =
       //  ((directshow_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? directShowCBData_in.stream
       //                                                                 : directShowCBData_in.UDPStream);
-      (*directshow_modulehandler_iterator).second.second->subscriber =
+      directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
       break;
     }

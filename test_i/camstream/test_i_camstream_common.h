@@ -306,7 +306,6 @@ struct Test_I_CamStream_UI_CBData
    , isFirst (true)
 #if defined (GTK_USE)
    , dispatch (NULL)
-   //, pixelBuffer (NULL)
 #endif // GTK_USE
    , progressData ()
   {}
@@ -315,7 +314,6 @@ struct Test_I_CamStream_UI_CBData
   bool                                    isFirst; // first activation ?
 #if defined (GTK_USE)
   Common_IDispatch*                       dispatch;
-  //GdkPixbuf*                              pixelBuffer;
 #endif // GTK_USE
   struct Test_I_CamStream_UI_ProgressData progressData;
 };

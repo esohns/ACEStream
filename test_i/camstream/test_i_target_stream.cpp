@@ -87,10 +87,34 @@ Test_I_Target_DirectShow_TCPStream::load (Stream_ILayout* layout_in,
   //ACE_ASSERT (module_p);
   //layout_in->append (module_p, NULL, 0);
   module_p = NULL;
+#if defined (GTK_USE)
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_DirectShow_Converter_Module (this,
+                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_DirectShow_Resize_Module (this,
+                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_DirectShow_GTK_Cairo_Module (this,
+                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)),
+                  false);
+#else
+  // *IMPORTANT NOTE*: make sure the dll is registered for this to work
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_DirectShow_Display_Module (this,
                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)),
                   false);
+#endif // GTK_USE
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
 
@@ -141,24 +165,24 @@ Test_I_Target_DirectShow_TCPStream::initialize (const CONFIGURATION_T& configura
   // ---------------------------------------------------------------------------
 
   // ******************* Display Handler ***************************************
-  Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)));
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)));
-    goto error;
-  } // end IF
+  //Stream_Module_t* module_p =
+  //  const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)));
+  //if (!module_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+  //              ACE_TEXT (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)));
+  //  goto error;
+  //} // end IF
 
-  Test_I_Target_DirectShow_Display* directshow_display_impl_p =
-    dynamic_cast<Test_I_Target_DirectShow_Display*> (module_p->writer ());
-  if (!directshow_display_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Target_DirectShow_Display*> failed, aborting\n")));
-    goto error;
-  } // end IF
+  //Test_I_Target_DirectShow_Display* directshow_display_impl_p =
+  //  dynamic_cast<Test_I_Target_DirectShow_Display*> (module_p->writer ());
+  //if (!directshow_display_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Test_I_Target_DirectShow_Display*> failed, aborting\n")));
+  //  goto error;
+  //} // end IF
 
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,

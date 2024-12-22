@@ -633,10 +633,15 @@ struct Stream_CameraScreen_DirectShow_StreamConfiguration
 {
   Stream_CameraScreen_DirectShow_StreamConfiguration ()
    : Stream_CameraScreen_StreamConfiguration ()
-   , format ()
-  {}
+   , captureFormat ()
+   , outputFormat ()
+  {
+    ACE_OS::memset (&captureFormat, 0, sizeof (struct _AMMediaType));
+    ACE_OS::memset (&outputFormat, 0, sizeof (struct _AMMediaType));
+  }
 
-  struct _AMMediaType format;
+  struct _AMMediaType captureFormat;
+  struct _AMMediaType outputFormat; // directshow- (!)
 };
 
 typedef Stream_IStreamControl_T<enum Stream_ControlType,

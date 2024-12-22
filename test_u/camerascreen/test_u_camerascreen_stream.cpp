@@ -97,21 +97,21 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->configuration_);
 
   layout_in->append (&source_, NULL, 0);
-  //modules_out.push_back (&statisticReport_);
+  //layout_in->append (&statisticReport_, NULL, 0);
+  if (inherited::configuration_->configuration_->useVideoWall)
+  {
+    layout_in->append (&resize_, NULL, 0); // output is video wall thumbnail size
+    layout_in->append (&videoWall_, NULL, 0);
+  } // end IF
 
   switch (inherited::configuration_->configuration_->renderer)
   {
 #if defined (CURSES_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
     {
-      layout_in->append (&convert_, NULL, 0);
-      if (inherited::configuration_->configuration_->useVideoWall)
-      {
-        layout_in->append (&resize_, NULL, 0); // output is video wall thumbnail size
-        layout_in->append (&videoWall_, NULL, 0);
-      } // end IF
       layout_in->append (&resize_2, NULL, 0); // output is window size/fullscreen
       layout_in->append (&CursesDisplay_, NULL, 0);
       break;
@@ -121,86 +121,43 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
     {
       layout_in->append (&convert_, NULL, 0);
-      if (inherited::configuration_->configuration_->useVideoWall)
-      {
-        layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-        layout_in->append (&videoWall_, NULL, 0);
-      } // end IF
       layout_in->append (&GTKDisplay_, NULL, 0);
       break;
     }
 #endif // GTK_SUPPORT
     case STREAM_VISUALIZATION_VIDEORENDERER_GDI:
     {
-      layout_in->append (&convert_, NULL, 0);
-      if (inherited::configuration_->configuration_->useVideoWall)
-      {
-        layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-        layout_in->append (&videoWall_, NULL, 0);
-      } // end IF
       layout_in->append (&GDIDisplay_, NULL, 0);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
     {
-      layout_in->append (&convert_, NULL, 0);
-      if (inherited::configuration_->configuration_->useVideoWall)
-      {
-        layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-        layout_in->append (&videoWall_, NULL, 0);
-      } // end IF
       layout_in->append (&Direct2DDisplay_, NULL, 0);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
     {
-      layout_in->append (&convert_, NULL, 0);
-      if (inherited::configuration_->configuration_->useVideoWall)
-      {
-        layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-        layout_in->append (&videoWall_, NULL, 0);
-      } // end IF
       layout_in->append (&Direct3DDisplay_, NULL, 0);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11:
     {
-      layout_in->append (&convert_, NULL, 0);
-      if (inherited::configuration_->configuration_->useVideoWall)
-      {
-        layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-        layout_in->append (&videoWall_, NULL, 0);
-      } // end IF
       layout_in->append (&Direct3D11Display_, NULL, 0);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_12:
     {
-      layout_in->append (&convert_, NULL, 0);
-      if (inherited::configuration_->configuration_->useVideoWall)
-      {
-        layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-        layout_in->append (&videoWall_, NULL, 0);
-      } // end IF
       layout_in->append (&Direct3D12Display_, NULL, 0);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
     {
-      layout_in->append (&convert_, NULL, 0);
-      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-      if (inherited::configuration_->configuration_->useVideoWall)
-        layout_in->append (&videoWall_, NULL, 0);
       layout_in->append (&DirectShowDisplay_, NULL, 0);
       break;
     }
 #if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
     {
-      layout_in->append (&convert_, NULL, 0);
-      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-      if (inherited::configuration_->configuration_->useVideoWall)
-        layout_in->append (&videoWall_, NULL, 0);
       layout_in->append (&OpenGLDisplay_, NULL, 0);
       break;
     }
@@ -255,6 +212,16 @@ Stream_CameraScreen_DirectShow_Stream::initialize (const inherited::CONFIGURATIO
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
   ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
 
+  source_impl_p =
+    dynamic_cast<Stream_CameraScreen_DirectShow_Source*> (source_.writer ());
+  if (!source_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_CameraScreen_DirectShow_Source> failed, aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    return false;
+  } // end IF
+
   // ---------------------------------------------------------------------------
   // step1: set up directshow filter graph
   result_2 = CoInitializeEx (NULL,
@@ -288,12 +255,15 @@ Stream_CameraScreen_DirectShow_Stream::initialize (const inherited::CONFIGURATIO
                                                                        STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L,
                                                                        buffer_negotiation_p))
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation(), aborting\n"),
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation(), continuing\n"),
                   ACE_TEXT (stream_name_string_)));
-      goto error;
+      //goto error;
     } // end IF
-    ACE_ASSERT (buffer_negotiation_p);
+    else
+    {
+      ACE_ASSERT (buffer_negotiation_p);
+    } // end ELSE
 
     goto continue_;
   } // end IF
@@ -313,14 +283,14 @@ Stream_CameraScreen_DirectShow_Stream::initialize (const inherited::CONFIGURATIO
     goto error;
   } // end IF
   ACE_ASSERT ((*iterator).second.second->builder);
-  ACE_ASSERT (buffer_negotiation_p);
+  //ACE_ASSERT (buffer_negotiation_p);
   ACE_ASSERT (stream_config_p);
   stream_config_p->Release (); stream_config_p = NULL;
 
 continue_:
   if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*iterator).second.second->builder,
                                                          CLSID_VideoInputDeviceCategory,
-                                                         configuration_in.configuration_->format))
+                                                         configuration_in.configuration_->captureFormat))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), aborting\n"),
@@ -347,8 +317,8 @@ continue_:
   //direct3D_manager_p->Release (); direct3D_manager_p = NULL;
 
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
-                                                            configuration_in.configuration_->format,
-                                                            (*iterator).second.second->outputFormat,
+                                                            configuration_in.configuration_->captureFormat,
+                                                            configuration_in.configuration_->outputFormat, // directshow- (!)
                                                             NULL, // use NULL-VideoRenderer
                                                             //(*iterator).second.second->window,
                                                             (*iterator).second.second->builder,
@@ -406,25 +376,27 @@ continue_:
   } // end IF
   isample_grabber_p->Release (); isample_grabber_p = NULL;
 
-  ACE_ASSERT (buffer_negotiation_p);
-  ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
-  // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
-  //         if this is -1/0 (why ?)
-  allocator_properties.cbAlign = 1;
-  allocator_properties.cbBuffer =
-    configuration_in.configuration_->allocatorConfiguration->defaultBufferSize;
-  allocator_properties.cbPrefix = -1; // <-- use default
-  allocator_properties.cBuffers =
-    STREAM_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
-  result_2 =
-      buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
-  if (FAILED (result_2)) // E_UNEXPECTED: 0x8000FFFF --> graph already connected
+  if (buffer_negotiation_p)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
-    goto error;
+    ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
+    // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+    //         if this is -1/0 (why ?)
+    allocator_properties.cbAlign = 1;
+    allocator_properties.cbBuffer =
+      configuration_in.configuration_->allocatorConfiguration->defaultBufferSize;
+    allocator_properties.cbPrefix = -1; // <-- use default
+    allocator_properties.cBuffers =
+      STREAM_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+    result_2 =
+        buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
+    if (FAILED (result_2)) // E_UNEXPECTED: 0x8000FFFF --> graph already connected
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+      goto error;
+    } // end IF
   } // end IF
 
   if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second->builder,
@@ -459,29 +431,32 @@ continue_:
   ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::connected ((*iterator).second.second->builder,
                                                                  STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L));
 
-#if defined (_DEBUG)
-  ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
-  result_2 =
-      buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
-  if (FAILED (result_2)) // E_FAIL (0x80004005)
+  if (buffer_negotiation_p)
   {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s/%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
-    //goto error;
-  } // end IF
-  else
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: negotiated allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
-                ACE_TEXT (stream_name_string_),
-                allocator_properties.cBuffers,
-                allocator_properties.cbBuffer,
-                allocator_properties.cbAlign,
-                allocator_properties.cbPrefix));
+#if defined (_DEBUG)
+    ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
+    result_2 =
+      buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
+    if (FAILED (result_2)) // E_FAIL (0x80004005)
+    {
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s/%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+      //goto error;
+    } // end IF
+    else
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: negotiated allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
+                  ACE_TEXT (stream_name_string_),
+                  allocator_properties.cBuffers,
+                  allocator_properties.cbBuffer,
+                  allocator_properties.cbAlign,
+                  allocator_properties.cbPrefix));
 #endif // _DEBUG
-  buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+    buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+  } // end IF
 
   result_2 =
     (*iterator).second.second->builder->QueryInterface (IID_PPV_ARGS (&media_filter_p));
@@ -537,22 +512,8 @@ continue_:
   //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
-  // step4: initialize module(s)
-
-  // ******************* Camera Source ************************
-  source_impl_p =
-    dynamic_cast<Stream_CameraScreen_DirectShow_Source*> (source_.writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_DirectShow_Source> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
-
-  // ---------------------------------------------------------------------------
   // step5: update session data
-  session_data_p->formats.push_back (configuration_in.configuration_->format);
+  session_data_p->formats.push_back (configuration_in.configuration_->outputFormat);
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat ((*iterator).second.second->builder,
                                                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB_L,
@@ -1226,12 +1187,12 @@ continue_:
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
-  source_impl_p->setP (&(inherited::state_));
+  //source_impl_p->setP (&(inherited::state_));
 
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
-  source_.arg (inherited::sessionData_);
+  //source_.arg (inherited::sessionData_);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))

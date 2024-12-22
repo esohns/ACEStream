@@ -357,7 +357,11 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
   Test_I_Target_DirectShow_ISessionNotify_t*           subscriber;        // event handler module
   Test_I_Target_DirectShow_Subscribers_t*              subscribers;       // event handler module
 #if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  GdkWindow*                                           window;            // display module
+#else
   HWND                                                 window;            // display module
+#endif // GTK_USE
   IVideoWindow*                                        windowController;  // display module
   IMFVideoDisplayControl*                              windowController2; // display module: EVR
 #endif // GUI_SUPPORT
@@ -815,11 +819,13 @@ struct Test_I_Target_DirectShow_UI_CBData
   Test_I_Target_DirectShow_UI_CBData ()
    : Test_I_CamStream_UI_CBData ()
    , configuration (NULL)
+   , stream (NULL)
    , subscribers ()
   {}
 
-  struct Test_I_Target_DirectShow_Configuration* configuration;
-  Test_I_Target_DirectShow_Subscribers_t         subscribers;
+  struct Test_I_Target_DirectShow_Configuration*       configuration;
+  Stream_IStream_T<ACE_MT_SYNCH, Common_TimePolicy_t>* stream;
+  Test_I_Target_DirectShow_Subscribers_t               subscribers;
 };
 
 struct Test_I_Target_MediaFoundation_UI_CBData
@@ -828,11 +834,13 @@ struct Test_I_Target_MediaFoundation_UI_CBData
   Test_I_Target_MediaFoundation_UI_CBData ()
    : Test_I_CamStream_UI_CBData ()
    , configuration (NULL)
+   , stream (NULL)
    , subscribers ()
   {}
 
-  struct Test_I_Target_MediaFoundation_Configuration* configuration;
-  Test_I_Target_MediaFoundation_Subscribers_t         subscribers;
+  struct Test_I_Target_MediaFoundation_Configuration*  configuration;
+  Stream_IStream_T<ACE_MT_SYNCH, Common_TimePolicy_t>* stream;
+  Test_I_Target_MediaFoundation_Subscribers_t          subscribers;
 };
 #else
 struct Test_I_Target_UI_CBData

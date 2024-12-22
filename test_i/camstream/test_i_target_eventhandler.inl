@@ -91,9 +91,29 @@ Test_I_Target_EventHandler_T<SessionDataType,
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
+  CBData_->progressData.transferred = 0;
+
+  ACE_ASSERT (!sessionData_->connectionStates.empty ());
+  Test_I_Target_DirectShow_TCPConnectionManager_t* connection_manager_p =
+    TEST_I_TARGET_DIRECTSHOW_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (connection_manager_p);
+  Net_IINETConnection_t* connection_p =
+    connection_manager_p->get ((*sessionData_->connectionStates.begin ()).first);
+  ACE_ASSERT (connection_p);
+  Test_I_Target_DirectShow_AsynchTCPConnection_t* tcp_connection_p =
+    dynamic_cast<Test_I_Target_DirectShow_AsynchTCPConnection_t*> (connection_p);
+  ACE_ASSERT (tcp_connection_p);
+  CBData_->stream =
+    &const_cast<Test_I_Target_DirectShow_TCPStream&> (tcp_connection_p->stream ());
+  Stream_Module_t* module_p =
+    const_cast<Stream_Module_t*> (CBData_->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
+  ACE_ASSERT (module_p);
+  CBData_->dispatch = dynamic_cast<Common_IDispatch*> (module_p->writer ());
+  ACE_ASSERT (CBData_->dispatch);
+  connection_p->decrease (); connection_p = NULL;
+
   guint event_source_id = 0;
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-    CBData_->progressData.transferred = 0;
     event_source_id = g_idle_add (idle_start_target_UI_cb,
                                   CBData_);
     if (!event_source_id)
@@ -140,6 +160,8 @@ Test_I_Target_EventHandler_T<SessionDataType,
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
+  CBData_->dispatch = NULL;
+
   guint event_source_id = 0;
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     event_source_id = g_idle_add (idle_end_target_UI_cb,

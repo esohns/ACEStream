@@ -596,6 +596,18 @@ do_initialize_directshow (struct _AMMediaType& sourceMediaType_inout,
   outputMediaType_inout = *media_type_p;
   delete (media_type_p); media_type_p = NULL;
 
+#if defined (GTK_USE)
+  outputMediaType_inout.subtype = MEDIASUBTYPE_RGB24;
+  video_info_header_p =
+    reinterpret_cast<struct tagVIDEOINFOHEADER*> (outputMediaType_inout.pbFormat);
+  ACE_ASSERT (video_info_header_p);
+  video_info_header_p->bmiHeader.biBitCount = 24;
+  video_info_header_p->bmiHeader.biSizeImage =
+    GetBitmapSize (&video_info_header_p->bmiHeader);
+  outputMediaType_inout.lSampleSize =
+    video_info_header_p->bmiHeader.biSizeImage;
+#endif // GTK_USE
+
   return true;
 
 error:
@@ -947,9 +959,8 @@ do_work (unsigned int bufferSize_in,
   allocator_properties.cbPrefix = 0;
 
   struct Test_I_Target_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
-  Test_I_Target_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
+  struct Test_I_Target_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // splitter
   struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
-  Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
 
   Test_I_Target_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in);
   Test_I_Target_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in);
@@ -985,9 +996,11 @@ do_work (unsigned int bufferSize_in,
       directshow_configuration.streamConfiguration.initialize (module_configuration,
                                                                directshow_modulehandler_configuration,
                                                                directshow_stream_configuration);
-      directshow_modulehandler_iterator =
-        directshow_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_iterator != directshow_configuration.streamConfiguration.end ());
+
+      directshow_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING),
+                                                                           std::make_pair (&module_configuration,
+                                                                                           &directshow_modulehandler_configuration_2)));
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1026,9 +1039,6 @@ do_work (unsigned int bufferSize_in,
                                                                     mediafoundation_modulehandler_configuration,
                                                                     mediafoundation_stream_configuration);
 
-      mediafoundation_modulehandler_iterator =
-        mediafoundation_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_configuration.streamConfiguration.end ());
       break;
     }
     default:
@@ -1102,26 +1112,33 @@ do_work (unsigned int bufferSize_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_modulehandler_iterator =
-        directShowCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_iterator != directShowCBData_in.configuration->streamConfiguration.end ());
       result =
-        do_initialize_directshow ((*directshow_modulehandler_iterator).second.second->sourceFormat,
-                                  (*directshow_modulehandler_iterator).second.second->outputFormat);
+        do_initialize_directshow (directshow_modulehandler_configuration.sourceFormat,
+                                  directshow_modulehandler_configuration.outputFormat);
+
+      directshow_modulehandler_configuration_2 =
+        directshow_modulehandler_configuration;
+      struct _AMMediaType* media_type_p = 
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.sourceFormat);
+      ACE_ASSERT (media_type_p);
+      directshow_modulehandler_configuration_2.sourceFormat = *media_type_p;
+      delete media_type_p; media_type_p = NULL;
+
+      media_type_p = 
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.sourceFormat);
+      ACE_ASSERT (media_type_p);
+      directshow_modulehandler_configuration_2.outputFormat = *media_type_p;
+      delete media_type_p; media_type_p = NULL;
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_modulehandler_iterator =
-        mediaFoundationCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediaFoundationCBData_in.configuration->streamConfiguration.end ());
-      ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second->sourceFormat);
-      //ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second->outputFormat);
       result =
-        do_initialize_mediafoundation ((*mediafoundation_modulehandler_iterator).second.second->sourceFormat,
-                                       (*mediafoundation_modulehandler_iterator).second.second->outputFormat);
-      ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second->sourceFormat);
-      ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second->outputFormat);
+        do_initialize_mediafoundation (mediafoundation_modulehandler_configuration.sourceFormat,
+                                       mediafoundation_modulehandler_configuration.outputFormat);
+      ACE_ASSERT (mediafoundation_modulehandler_configuration.sourceFormat);
+      ACE_ASSERT (mediafoundation_modulehandler_configuration.outputFormat);
       break;
     } // end IF
     default:
@@ -1255,7 +1272,7 @@ do_work (unsigned int bufferSize_in,
       directshow_udp_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
                                                                                      : std::numeric_limits<unsigned int>::max (),
                                                        ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-      (*directshow_modulehandler_iterator).second.second->connectionManager =
+      directshow_modulehandler_configuration.connectionManager =
         directshow_tcp_connection_manager_p;
       report_handler_p = directshow_tcp_connection_manager_p;
       break;
@@ -1278,7 +1295,7 @@ do_work (unsigned int bufferSize_in,
       mediafoundation_udp_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
                                                                                           : std::numeric_limits<unsigned int>::max (),
                                                             ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-      (*mediafoundation_modulehandler_iterator).second.second->connectionManager =
+      mediafoundation_modulehandler_configuration.connectionManager =
         mediafoundation_tcp_connection_manager_p;
       report_handler_p = mediafoundation_tcp_connection_manager_p;
       break;
@@ -1472,7 +1489,7 @@ do_work (unsigned int bufferSize_in,
       //directshow_configuration.pinConfiguration.bufferSize = bufferSize_in;
       ACE_ASSERT (!directshow_configuration.pinConfiguration.format);
       directshow_configuration.pinConfiguration.format =
-        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_modulehandler_iterator).second.second->sourceFormat);
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.sourceFormat);
       ACE_ASSERT (directshow_configuration.pinConfiguration.format);
 
       directshow_configuration.pinConfiguration.allocatorProperties =
@@ -1505,7 +1522,7 @@ do_work (unsigned int bufferSize_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       allocator_configuration.defaultBufferSize =
-        (*directshow_modulehandler_iterator).second.second->sourceFormat.lSampleSize;
+        directshow_modulehandler_configuration.sourceFormat.lSampleSize;
       directshow_stream_configuration.cloneModule = true;
       directshow_stream_configuration.messageAllocator = allocator_p;
       if (!UIDefinitionFilename_in.empty ())
