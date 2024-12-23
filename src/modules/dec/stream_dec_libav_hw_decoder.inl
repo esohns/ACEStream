@@ -793,7 +793,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (intermediateFormat_).c_str ())));
       } // end IF
-      context_->pix_fmt = intermediateFormat_;
+      //context_->pix_fmt = intermediateFormat_;
 
 continue_:
       //av_opt_set_int (context_,
@@ -1162,6 +1162,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   if (Stream_MediaFramework_Tools::isAcceleratedFormat (static_cast<enum AVPixelFormat> (hwFrame_->format)))
   {
     frame_->format = intermediateFormat_;
+    frame_->width = hwFrame_->width;
+    frame_->height = hwFrame_->height;
     result = av_hwframe_transfer_data (frame_, hwFrame_, 0);
     if (unlikely (result < 0))
     {
@@ -1174,6 +1176,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
     } // end IF
     av_frame_unref (hwFrame_);
     ACE_ASSERT (frame_->data);
+    //frame_->linesize[0] = frame_->width;
+    //frame_->linesize[1] = frame_->width;
 
     frame_p = frame_;
   } // end IF
@@ -1218,11 +1222,11 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                                 line_sizes_a);
     ACE_ASSERT (result >= 0);
     if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
-                                                         context_->width, context_->height, intermediateFormat_,
+                                                         frame_->linesize[0], context_->height, intermediateFormat_,
                                                          frame_p->data,
                                                          context_->width, context_->height, outputFormat_,
                                                          data_a,
-                                                         false)))
+                                                         false))) // flip vertically ?
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), aborting\n"),
