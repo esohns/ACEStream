@@ -49,6 +49,7 @@ Stream_Decoder_RGB24_HFlip_T<ACE_SYNCH_USE,
                              MediaType>::Stream_Decoder_RGB24_HFlip_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
+ , bytesPerPixel_ (3)
  , resolution_ ({0, 0})
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_RGB24_HFlip_T::Stream_Decoder_RGB24_HFlip_T"));
@@ -78,6 +79,7 @@ Stream_Decoder_RGB24_HFlip_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    bytesPerPixel_ = 3;
     resolution_ = {0, 0};
   } // end IF
 
@@ -116,15 +118,15 @@ Stream_Decoder_RGB24_HFlip_T<ACE_SYNCH_USE,
     for (int x = 0; x < resolution_.cx / 2; ++x)
     {
       r = data_p[0]; g = data_p[1]; b = data_p[2];
-      data_p[0] = data_2[((resolution_.cx - x) * 3) - 3];
-      data_p[1] = data_2[((resolution_.cx - x) * 3) - 2];
-      data_p[2] = data_2[((resolution_.cx - x) * 3) - 1];
-      data_2[((resolution_.cx - x) * 3) - 3] = r;
-      data_2[((resolution_.cx - x) * 3) - 2] = g;
-      data_2[((resolution_.cx - x) * 3) - 1] = b;
-      data_p += 3;
+      data_p[0] = data_2[((resolution_.cx - x) * bytesPerPixel_) - 3];
+      data_p[1] = data_2[((resolution_.cx - x) * bytesPerPixel_) - 2];
+      data_p[2] = data_2[((resolution_.cx - x) * bytesPerPixel_) - 1];
+      data_2[((resolution_.cx - x) * bytesPerPixel_) - 3] = r;
+      data_2[((resolution_.cx - x) * bytesPerPixel_) - 2] = g;
+      data_2[((resolution_.cx - x) * bytesPerPixel_) - 1] = b;
+      data_p += bytesPerPixel_;
     } // end FOR
-    data_p += (resolution_.cx / 2) * 3;
+    data_p += (resolution_.cx / 2) * bytesPerPixel_;
   } // end FOR
 #else
   for (unsigned int y = 0; y < resolution_.height; ++y)
@@ -133,15 +135,15 @@ Stream_Decoder_RGB24_HFlip_T<ACE_SYNCH_USE,
     for (unsigned int x = 0; x < resolution_.width / 2; ++x)
     {
       r = data_p[0]; g = data_p[1]; b = data_p[2];
-      data_p[0] = data_2[((resolution_.width - x) * 3) - 3];
-      data_p[1] = data_2[((resolution_.width - x) * 3) - 2];
-      data_p[2] = data_2[((resolution_.width - x) * 3) - 1];
-      data_2[((resolution_.width - x) * 3) - 3] = r;
-      data_2[((resolution_.width - x) * 3) - 2] = g;
-      data_2[((resolution_.width - x) * 3) - 1] = b;
-      data_p += 3;
+      data_p[0] = data_2[((resolution_.width - x) * bytesPerPixel_) - 3];
+      data_p[1] = data_2[((resolution_.width - x) * bytesPerPixel_) - 2];
+      data_p[2] = data_2[((resolution_.width - x) * bytesPerPixel_) - 1];
+      data_2[((resolution_.width - x) * bytesPerPixel_) - 3] = r;
+      data_2[((resolution_.width - x) * bytesPerPixel_) - 2] = g;
+      data_2[((resolution_.width - x) * bytesPerPixel_) - 1] = b;
+      data_p += bytesPerPixel_;
     } // end FOR
-    data_p += (resolution_.width / 2) * 3;
+    data_p += (resolution_.width / 2) * bytesPerPixel_;
   } // end FOR
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -190,9 +192,12 @@ Stream_Decoder_RGB24_HFlip_T<ACE_SYNCH_USE,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
+
+      bytesPerPixel_ =
+        Stream_MediaFramework_DirectShow_Tools::toFrameBits (media_type_s) / 8;
       resolution_ =
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
-      if (media_type_s.subtype != MEDIASUBTYPE_RGB24)
+      if (!InlineIsEqualGUID (media_type_s.subtype, MEDIASUBTYPE_RGB24))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid media subtype format (was: \"%s\"), aborting\n"),
@@ -206,6 +211,8 @@ Stream_Decoder_RGB24_HFlip_T<ACE_SYNCH_USE,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
+      bytesPerPixel_ =
+        Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (media_type_s.format) / 8;
       resolution_ = media_type_s.resolution;
       if (media_type_s.format != AV_PIX_FMT_RGB24)
       {

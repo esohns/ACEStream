@@ -342,7 +342,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     goto error;
   } // end IF
   ACE_ASSERT (IGraphBuilder_out);
-  ACE_ASSERT (buffer_negotiation_p);
+  //ACE_ASSERT (buffer_negotiation_p);
   ACE_ASSERT (IAMStreamConfig_out);
 
   if (!Stream_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder_out,
@@ -500,22 +500,25 @@ continue_:
   } // end IF
   isample_grabber_p->Release (); isample_grabber_p = NULL;
 
-  // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
-  //         if this is -1/0 (why ?)
-  allocator_properties.cbAlign = 1;
-  allocator_properties.cbPrefix = -1; // <-- use default
-  allocator_properties.cBuffers =
-    STREAM_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
-  result =
-      buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
-  if (FAILED (result)) // E_UNEXPECTED: 0x8000FFFF --> graph already connected
+  if (buffer_negotiation_p)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
+    // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+    //         if this is -1/0 (why ?)
+    allocator_properties.cbAlign = 1;
+    allocator_properties.cbPrefix = -1; // <-- use default
+    allocator_properties.cBuffers =
+      STREAM_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+    result =
+      buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
+    if (FAILED (result)) // E_UNEXPECTED: 0x8000FFFF --> graph already connected
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
   } // end IF
-  buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
 
   if (!Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder_out,
                                                         graph_configuration))

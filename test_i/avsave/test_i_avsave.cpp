@@ -549,9 +549,12 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     goto error;
   } // end IF
   ACE_ASSERT (IGraphBuilder_out);
-  ACE_ASSERT (buffer_negotiation_p);
+  //ACE_ASSERT (buffer_negotiation_p);
   ACE_ASSERT (IAMStreamConfig_out);
-  buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+  if (buffer_negotiation_p)
+  {
+    buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+  } // end IF
 
   struct tWAVEFORMATEX waveformatex_s;
   ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));

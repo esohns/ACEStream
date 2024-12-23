@@ -98,6 +98,7 @@ class Stream_Decoder_RGB24_HFlip_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_RGB24_HFlip_T (const Stream_Decoder_RGB24_HFlip_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_RGB24_HFlip_T& operator= (const Stream_Decoder_RGB24_HFlip_T&))
 
+  int                       bytesPerPixel_;
   Common_Image_Resolution_t resolution_;
 };
 

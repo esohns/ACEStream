@@ -4930,10 +4930,12 @@ combobox_video_source_changed_cb (GtkWidget* widget_in,
         return;
       } // end IF
       ACE_ASSERT ((*directshow_stream_iterator).second.second->builder);
-      ACE_ASSERT (buffer_negotiation_p);
+      //ACE_ASSERT (buffer_negotiation_p);
       ACE_ASSERT (directshow_cb_data_p->streamConfiguration);
-
-      buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+      if (buffer_negotiation_p)
+      {
+        buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+      } // end IF
 
       break;
     }
@@ -4943,7 +4945,7 @@ combobox_video_source_changed_cb (GtkWidget* widget_in,
                       device_identifier_string.c_str ());
       (*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator =
         Stream_Device_Identifier::STRING;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_Device_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second->deviceIdentifier,
                                                                 MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                 media_source_p))
@@ -4954,7 +4956,7 @@ combobox_video_source_changed_cb (GtkWidget* widget_in,
         return;
       } // end IF
       ACE_ASSERT (media_source_p);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
 
       if ((*mediafoundation_stream_iterator).second.second->session)
       {
@@ -4984,7 +4986,7 @@ combobox_video_source_changed_cb (GtkWidget* widget_in,
 
       IMFTopology* topology_p = NULL;
       struct _MFRatio pixel_aspect_ratio = { 1, 1 };
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       HRESULT result_3 = MFTRegisterLocalByCLSID (__uuidof (CColorConvertDMO),
                                                   MFT_CATEGORY_VIDEO_PROCESSOR,
                                                   L"",
@@ -5006,7 +5008,7 @@ combobox_video_source_changed_cb (GtkWidget* widget_in,
         media_source_p->Release (); media_source_p = NULL;
         return;
       } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
       ACE_ASSERT (topology_p);
       //media_source_p->Release (); media_source_p = NULL;
 
@@ -5016,7 +5018,7 @@ combobox_video_source_changed_cb (GtkWidget* widget_in,
         (*mediafoundation_stream_iterator).second.second->session->Release (); (*mediafoundation_stream_iterator).second.second->session = NULL;
       } // end IF
       ACE_ASSERT (!(*mediafoundation_stream_iterator).second.second->session);
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                      (*mediafoundation_stream_iterator).second.second->session,
                                                                      true,
@@ -5027,7 +5029,7 @@ combobox_video_source_changed_cb (GtkWidget* widget_in,
         topology_p->Release (); topology_p = NULL;
         return;
       } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       topology_p->Release (); topology_p = NULL;
 
       if (mediafoundation_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video)
