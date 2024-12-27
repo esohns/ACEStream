@@ -140,12 +140,12 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
                           Test_U_Dev_Mic_Source_WASAPI_Module (this,
                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING)),
                           false);
-          layout_in->append (module_p, NULL, 0);
-          module_p = NULL;
-          ACE_NEW_RETURN (module_p,
-                          Test_U_MicVisualize_DirectShow_Asynch_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_ASYNCH_DEFAULT_NAME_STRING)),
-                          false);
+          //layout_in->append (module_p, NULL, 0);
+          //module_p = NULL;
+          //ACE_NEW_RETURN (module_p,
+          //                Test_U_MicVisualize_DirectShow_Asynch_Module (this,
+          //                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_ASYNCH_DEFAULT_NAME_STRING)),
+          //                false);
           break;
         }
         case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
