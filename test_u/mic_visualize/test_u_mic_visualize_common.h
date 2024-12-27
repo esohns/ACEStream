@@ -98,6 +98,7 @@ extern "C"
 #include "common_error_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "common_gl_camera.h"
 #include "common_gl_shader.h"
 
 #if defined (GUI_SUPPORT)
@@ -774,6 +775,25 @@ typedef Common_ISubscribe_T<Test_U_MicVisualize_ISessionNotify_t> Test_U_MicVisu
 
 //////////////////////////////////////////
 
+#if defined (GLUT_SUPPORT)
+struct Test_U_GLUT_CBData
+{
+  // canvas
+  Common_Math_FFT_T<float>*         fft;
+
+  // menu
+  bool                              wireframe;
+
+  // camera
+  Common_GL_Camera                  camera;
+
+  // mouse
+  int                               mouseX;
+  int                               mouseY;
+  bool                              mouseLMBPressed;
+};
+#endif // GLUT_SUPPORT
+
 #if defined (GUI_SUPPORT)
 struct Test_U_MicVisualize_ProgressData
  : Test_U_UI_ProgressData
@@ -816,6 +836,9 @@ struct Test_U_MicVisualize_UI_CBDataBase
 #if defined (GTKGL_SUPPORT)
    , render3d (true)
 #endif // GTKGL_SUPPORT
+#if defined (GLUT_SUPPORT)
+   , GLUTCBData ()
+#endif // GLUT_SUPPORT
   {}
 
   // *NOTE*: iff the user specifies a capture device on the command line, do NOT
@@ -841,6 +864,10 @@ struct Test_U_MicVisualize_UI_CBDataBase
 #if defined (GTKGL_SUPPORT)
   bool                                            render3d;
 #endif // GTKGL_SUPPORT
+
+#if defined (GLUT_SUPPORT)
+  struct Test_U_GLUT_CBData                       GLUTCBData;
+#endif // GLUT_SUPPORT
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_MicVisualize_DirectShow_UI_CBData
@@ -938,5 +965,4 @@ struct Test_U_MicVisualize_ThreadData
 };
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
-
 #endif

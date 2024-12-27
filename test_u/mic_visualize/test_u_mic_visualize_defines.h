@@ -25,7 +25,7 @@
 #define TEST_U_NOISE_DEFAULT_FREQUENCY_D    440.0 // Hz
 #define TEST_U_DEFAULT_OUTPUT_FILE          "output.wav"
 
-#define TEST_U_DEFAULT_ANALYZER_RESOLUTION  256 // STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE
+#define TEST_U_DEFAULT_ANALYZER_RESOLUTION  2048 // STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -153,5 +153,14 @@
 #endif // GUI_SUPPORT
 
 //----------------------------------------
+
+#if defined (GLUT_SUPPORT)
+#define TEST_U_GLUT_DEFAULT_HEIGHT         834
+#define TEST_U_GLUT_DEFAULT_WIDTH          1112
+#define TEST_U_GLUT_DEFAULT_LAYERS         20
+#define TEST_U_GLUT_DEFAULT_D              18
+#define TEST_U_GLUT_DEFAULT_AMP_FACTOR     0.05f
+#define TEST_U_GLUT_DEFAULT_FPS            30
+#endif // GLUT_SUPPORT
 
 #endif

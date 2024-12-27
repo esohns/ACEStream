@@ -33,6 +33,13 @@
 #include <iostream>
 #include <string>
 
+#if defined (GLEW_SUPPORT)
+#include "GL/glew.h"
+#endif // GLEW_SUPPORT
+#if defined (GLUT_SUPPORT)
+#include "GL/freeglut.h"
+#endif // GLUT_SUPPORT
+
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/Init_ACE.h"
@@ -93,17 +100,20 @@
 #include "test_u_defines.h"
 #include "test_u_tools.h"
 
+#include "test_u_common_modules.h"
+#include "test_u_eventhandler.h"
+#include "test_u_signalhandler.h"
+#include "test_u_mic_visualize_common.h"
+#include "test_u_mic_visualize_defines.h"
+#include "test_u_stream.h"
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "test_u_gtk_callbacks.h"
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
-#include "test_u_common_modules.h"
-#include "test_u_mic_visualize_common.h"
-#include "test_u_mic_visualize_defines.h"
-#include "test_u_eventhandler.h"
-#include "test_u_signalhandler.h"
-#include "test_u_stream.h"
+#if defined (GLUT_SUPPORT)
+#include "test_u_glut_callbacks.h"
+#endif // GLUT_SUPPORT
 
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("MicVisualizeStream");
 
@@ -956,15 +966,15 @@ continue_3:
   ACE_ASSERT (SUCCEEDED (result));
   //result_2 = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
   //ACE_ASSERT (SUCCEEDED (result_2));
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   result = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
   ACE_ASSERT (SUCCEEDED (result));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   if (session_out)
   {
     session_out->Release (); session_out = NULL;
   } // end IF
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateMediaSession (attributes_p,
                                  &session_out);
   if (FAILED (result))
@@ -974,11 +984,11 @@ continue_3:
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   ACE_ASSERT (session_out);
   attributes_p->Release (); attributes_p = NULL;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                  session_out,
                                                                  false, // is partial ?
@@ -989,7 +999,7 @@ continue_3:
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   topology_p->Release (); topology_p = NULL;
 
 continue_4:
@@ -1054,7 +1064,8 @@ do_finalize_mediafoundation ()
 #endif // ACE_WIN32 || ACE_WIN64
 
 void
-do_work (
+do_work (int argc_in,
+         ACE_TCHAR* argv_in[],
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
 #else
@@ -1097,9 +1108,8 @@ do_work (
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
-#if defined (GUI_SUPPORT)
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration spectrumanalyzer_configuration;
-#endif // GUI_SUPPORT
+  spectrumanalyzer_configuration.resolution = TEST_U_DEFAULT_ANALYZER_RESOLUTION;
   struct Stream_AllocatorConfiguration allocator_configuration;
   struct Common_AllocatorConfiguration* allocator_configuration_p = NULL;
   Common_TimerConfiguration timer_configuration;
@@ -1122,6 +1132,9 @@ do_work (
   bool result = false;
   Stream_IStream_t* istream_p = NULL;
   Stream_IStreamControlBase* istream_control_p = NULL;
+#if defined (GLUT_SUPPORT)
+  struct Test_U_GLUT_CBData* GLUT_CBData_p = NULL;
+#endif // GLUT_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_MicVisualize_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
   struct Test_U_MicVisualize_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // directshow target module
@@ -1156,6 +1169,10 @@ do_work (
       directShowCBData_in.OpenGLInstructionsLock =
         &directshow_stream.instructionsLock_;
 #endif // GTKGL_SUPPORT
+#if defined (GLUT_SUPPORT)
+      GLUT_CBData_p = &directShowCBData_in.GLUTCBData;
+#endif // GLUT_SUPPORT
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1174,6 +1191,10 @@ do_work (
       mediaFoundationCBData_in.OpenGLInstructionsLock =
         &mediafoundation_stream.instructionsLock_;
 #endif // GTKGL_SUPPORT
+#if defined (GLUT_SUPPORT)
+      GLUT_CBData_p = &mediaFoundationCBData_in.GLUTCBData;
+#endif // GLUT_SUPPORT
+
       break;
     }
     default:
@@ -1192,6 +1213,9 @@ do_work (
   CBData_in.OpenGLInstructions = &stream.instructions_;
   CBData_in.OpenGLInstructionsLock = &stream.instructionsLock_;
 #endif // GTKGL_SUPPORT
+#if defined (GLUT_SUPPORT)
+  GLUT_CBData_p = &CBData_in.GLUTCBData;
+#endif // GLUT_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Time_Value one_second (1, 0);
 #if defined (GUI_SUPPORT)
@@ -1886,7 +1910,75 @@ do_work (
       was_visible_b = ShowWindow (window_p, SW_HIDE);
     ACE_UNUSED_ARG (was_visible_b);
 #endif // ACE_WIN32 || ACE_WIN64
-    itask_p->wait (false);
+
+#if defined (GLUT_SUPPORT)
+    ACE_ASSERT (GLUT_CBData_p);
+    GLUT_CBData_p->wireframe = false;
+
+    GLUT_CBData_p->camera.position_.x = 0.0f;
+    GLUT_CBData_p->camera.position_.y = 0.0f;
+    GLUT_CBData_p->camera.position_.z = 1000.0f;
+    GLUT_CBData_p->camera.looking_at_.x = 0.0f;
+    GLUT_CBData_p->camera.looking_at_.y = 0.0f;
+    GLUT_CBData_p->camera.looking_at_.z = 0.0f;
+    GLUT_CBData_p->camera.up_.x = 0.0f;
+    GLUT_CBData_p->camera.up_.y = 1.0f;
+    GLUT_CBData_p->camera.up_.z = 0.0f;
+
+    GLUT_CBData_p->mouseX = TEST_U_GLUT_DEFAULT_WIDTH / 2;
+    GLUT_CBData_p->mouseY = TEST_U_GLUT_DEFAULT_HEIGHT / 2;
+    GLUT_CBData_p->mouseLMBPressed = false;
+
+    // initialize GLUT
+    glutInit (&argc_in, argv_in);
+    glutInitDisplayMode (GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH);
+    glutInitWindowSize (TEST_U_GLUT_DEFAULT_WIDTH, TEST_U_GLUT_DEFAULT_HEIGHT);
+
+    int window_i = glutCreateWindow ("MicVisualize");
+    glutSetWindow (window_i);
+    glutSetWindowData (GLUT_CBData_p);
+
+#if defined (GLEW_SUPPORT)
+    // initialize GLEW
+    GLenum err = glewInit ();
+    if (GLEW_OK != err)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to glewInit(): \"%s\", aborting\n"),
+                  ACE_TEXT (glewGetErrorString (err))));
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("using GLEW version: %s\n"),
+                ACE_TEXT (glewGetString (GLEW_VERSION))));
+#endif // GLEW_SUPPORT
+
+    //glDisable (GL_DEPTH_TEST);
+
+    glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
+
+    glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+
+    glutDisplayFunc (test_u_glut_draw);
+    glutReshapeFunc (test_u_glut_reshape);
+    glutVisibilityFunc (test_u_glut_visible);
+
+    glutKeyboardFunc (test_u_glut_key);
+    glutSpecialFunc (test_u_glut_key_special);
+    glutMouseFunc (test_u_glut_mouse_button);
+    glutMotionFunc (test_u_glut_mouse_move);
+    glutPassiveMotionFunc (test_u_glut_mouse_move);
+    glutTimerFunc (100, test_u_glut_timer, 0);
+
+    glutCreateMenu (test_u_glut_menu);
+    glutAddMenuEntry (ACE_TEXT_ALWAYS_CHAR ("wireframe"), 0);
+    glutAttachMenu (GLUT_RIGHT_BUTTON);
+
+    glutMainLoop ();
+#endif // GLUT_SUPPORT
+
+    itask_p->stop (true,
+                   false);
   } // end IF
   else
   {
@@ -1942,25 +2034,7 @@ do_work (
 #endif // GUI_SUPPORT
 
   // step3: clean up
-  //		{ // synch access
-  //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
-
-  //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-  //					 iterator != CBData_in.event_source_ids.end();
-  //					 iterator++)
-  //				g_source_remove(*iterator);
-  //		} // end lock scope
   timer_manager_p->stop ();
-
-  //  { // synch access
-  //    ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
-
-  //		for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-  //				 iterator != CBData_in.event_source_ids.end();
-  //				 iterator++)
-  //			g_source_remove(*iterator);
-  //	} // end lock scope
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
   {
@@ -2534,7 +2608,7 @@ ACE_TMAIN (int argc_in,
   ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work
-  do_work (
+  do_work (argc_in, argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            show_console,
 #else

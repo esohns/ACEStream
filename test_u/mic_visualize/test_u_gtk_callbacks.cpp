@@ -3291,13 +3291,15 @@ load_audio_effects (GtkListStore* listStore_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      DWORD flags_i = DMO_ENUMF_INCLUDE_KEYED;
       IEnumDMO* enum_DMO_p = NULL;
       int result_3 = -1;
       CLSID class_id = GUID_NULL;
       WCHAR* string_p = NULL;
+      DWORD fetched_i = 0;
 
       result_2 = DMOEnum (DMOCATEGORY_AUDIO_EFFECT,
-                          DMO_ENUMF_INCLUDE_KEYED,
+                          flags_i,
                           0, NULL,
                           0, NULL,
                           &enum_DMO_p);
@@ -3313,7 +3315,7 @@ load_audio_effects (GtkListStore* listStore_in)
       while (S_OK == enum_DMO_p->Next (1,
                                        &class_id,
                                        &string_p,
-                                       NULL))
+                                       &fetched_i))
       { ACE_ASSERT (string_p);
         friendly_name_string =
            ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (string_p));
@@ -3966,6 +3968,7 @@ stream_processing_function (void* arg_in)
   Stream_IStreamControlBase* istream_control_p = NULL;
   const Stream_Module_t* module_p = NULL;
   Test_U_Common_ISet_t* resize_notification_p = NULL;
+  Common_Math_FFT_T<float>* fft_p = NULL;
   Common_IDispatch* dispatch_p = NULL;
   guint event_source_id = 0;
   struct Test_U_MicVisualize_UI_CBDataBase* ui_data_base_p = NULL;
@@ -4038,7 +4041,10 @@ stream_processing_function (void* arg_in)
   ACE_ASSERT (resize_notification_p);
   dispatch_p =
     dynamic_cast<Common_IDispatch*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-  ACE_ASSERT (resize_notification_p);
+  ACE_ASSERT (dispatch_p);
+  fft_p =
+    dynamic_cast<Common_Math_FFT_T<float>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  ACE_ASSERT (fft_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (thread_data_base_p->mediaFramework)
   {
@@ -4046,6 +4052,9 @@ stream_processing_function (void* arg_in)
     {
       directshow_ui_cb_data_p->resizeNotification = resize_notification_p;
       directshow_ui_cb_data_p->spectrumAnalyzerCBData.dispatch = dispatch_p;
+#if defined (GLUT_SUPPORT)
+      directshow_ui_cb_data_p->GLUTCBData.fft = fft_p;
+#endif // GLUT_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -4053,6 +4062,9 @@ stream_processing_function (void* arg_in)
       mediafoundation_ui_cb_data_p->resizeNotification = resize_notification_p;
       mediafoundation_ui_cb_data_p->spectrumAnalyzerCBData.dispatch =
         dispatch_p;
+#if defined (GLUT_SUPPORT)
+      mediafoundation_ui_cb_data_p->GLUTCBData.fft = fft_p;
+#endif // GLUT_SUPPORT
       break;
     }
     default:
@@ -4066,6 +4078,9 @@ stream_processing_function (void* arg_in)
 #else
   ui_cb_data_p->resizeNotification = resize_notification_p;
   ui_cb_data_p->spectrumAnalyzerCBData.dispatch = dispatch_p;
+#if defined (GLUT_SUPPORT)
+  ui_cb_data_p->GLUTCBData.fft = fft_p;
+#endif // GLUT_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4146,11 +4161,19 @@ stream_processing_function (void* arg_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_ui_cb_data_p->resizeNotification = NULL;
+      directshow_ui_cb_data_p->spectrumAnalyzerCBData.dispatch = NULL;
+#if defined (GLUT_SUPPORT)
+      directshow_ui_cb_data_p->GLUTCBData.fft = fft_p;
+#endif // GLUT_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediafoundation_ui_cb_data_p->resizeNotification = NULL;
+      mediafoundation_ui_cb_data_p->spectrumAnalyzerCBData.dispatch = NULL;
+#if defined (GLUT_SUPPORT)
+      mediafoundation_ui_cb_data_p->GLUTCBData.fft = fft_p;
+#endif // GLUT_SUPPORT
       break;
     }
     default:
@@ -4163,6 +4186,10 @@ stream_processing_function (void* arg_in)
   } // end SWITCH
 #else
   ui_cb_data_p->resizeNotification = NULL;
+  ui_cb_data_p->spectrumAnalyzerCBData.dispatch = NULL;
+#if defined (GLUT_SUPPORT)
+  ui_cb_data_p->GLUTCBData.fft = fft_p;
+#endif // GLUT_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -7149,14 +7176,20 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_idle_add(): \"%m\", continuing\n")));
 
-    event_source_id = g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS / 2, // ~60fps
-                                     idle_update_display_cb,
-                                     userData_in);
-    if (event_source_id > 0)
-      state_r.eventSourceIds.insert (event_source_id);
-    else
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_timeout_add(): \"%m\", continuing\n")));
+    GtkCheckButton* check_button_p =
+      GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_CHECKBUTTON_VISUALIZATION_NAME)));
+    if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_button_p)))
+    {
+      event_source_id = g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS, // ~30fps
+                                       idle_update_display_cb,
+                                       userData_in);
+      if (event_source_id > 0)
+        state_r.eventSourceIds.insert (event_source_id);
+      else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to g_timeout_add(): \"%m\", continuing\n")));
+    } // end IF
   } // end lock scope
 } // togglebutton_record_toggled_cb
 
@@ -8758,7 +8791,7 @@ togglebutton_visualization_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->displayAnalyzer =
-        is_active_b;
+        true;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8769,7 +8802,7 @@ togglebutton_visualization_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->displayAnalyzer =
-        is_active_b;
+        true;
       break;
     }
     default:
@@ -8786,7 +8819,7 @@ togglebutton_visualization_toggled_cb (GtkToggleButton* toggleButton_in,
     static_cast<struct Test_U_MicVisualize_UI_CBData*> (userData_in);
   ACE_ASSERT (data_p);
   data_p->configuration->streamConfiguration.configuration_->displayAnalyzer =
-    is_active_b;
+    true;
 #endif // ACE_WIN32 || ACE_WIN64
 
   GtkBox* box_p =

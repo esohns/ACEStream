@@ -192,7 +192,7 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   int                                                height_;
   int                                                width_;
 
-  Common_Math_FFT_SampleIterator                     sampleIterator_;
+  Common_Math_FFT_SampleIterator_T<ValueType>        sampleIterator_;
 };
 
 // include template definition

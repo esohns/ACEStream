@@ -405,13 +405,12 @@ next:
       {
         // initialize the FFT working set buffer, transform to complex
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
-          inherited2::X_[i][inherited2::bitReverseMap_[j]] =
-            std::complex<ValueType> (inherited2::buffer_[i][j], 0);
+          inherited2::X_[i][inherited2::bitReverseMap_[j]] = std::complex<ValueType> (inherited2::buffer_[i][j], 0);
 
 //        if (bufferedSamples_ >= inherited2::slots_)
 //        {
           // compute FFT
-          inherited2::Compute (i);
+        inherited2::Compute (i);
 //        } // end IF
       } // end IF
     } // end FOR
@@ -431,8 +430,8 @@ next:
     } // end IF
   } while (message_block_p);
 
-  if (compute_fft_b)
-    inherited2::ComputeMaxValue ();
+  //if (compute_fft_b)
+  //  inherited2::ComputeMaxValue ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -1309,8 +1308,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
           x =
             (static_cast<double> (i) * channelFactor_) + (static_cast<double> (j - 1) * scaleFactorX_2);
           cairo_move_to (context_p,
-                         x,
-                         static_cast<double> (height_));
+                         x, static_cast<double> (height_));
 
           // method2: dB scale
           // *TODO*: needs normalization
@@ -1319,12 +1317,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
           // method1: (normalized-) magnitude
           //magnitude_d = inherited2::Magnitude (j, i, true);
           //y = static_cast<double> (height_) * magnitude_d;
-          magnitude_d = inherited2::Magnitude2 (j, i, true);
-          y = sampleIterator_.isSignedSampleFormat_ ? magnitude_d * scaleFactorY_2 * 4.0
+          magnitude_d = inherited2::Magnitude2 (j, i, false);
+          y = sampleIterator_.isSignedSampleFormat_ ? magnitude_d * scaleFactorY_2
                                                     : magnitude_d * scaleFactorY_;
           cairo_line_to (context_p,
-                         x,
-                         static_cast<double> (height_) - y);
+                         x, static_cast<double> (height_) - y);
         } // end FOR
 
         break;
