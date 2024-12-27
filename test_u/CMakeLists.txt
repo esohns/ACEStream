@@ -319,13 +319,14 @@ if (BUILD_TEST_U)
  add_subdirectory (http_get)
 # *IMPORTANT NOTE* /END
  add_subdirectory (imagescreen)
+ add_subdirectory (mic_visualize)
  add_subdirectory (mp4_player)
  add_subdirectory (parser)
  add_subdirectory (qr_decode)
  add_subdirectory (riff_decoder)
  add_subdirectory (tree)
 
- add_dependencies (test_u animated_gif audioeffect branch camera_filter camerascreen camsave capturewindow document filecopy imagescreen mp4_player parser QR_decode RIFF_decoder tree)
+ add_dependencies (test_u animated_gif audioeffect branch camera_filter camerascreen camsave capturewindow document filecopy imagescreen mic_visualize mp4_player parser QR_decode RIFF_decoder tree)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
  add_dependencies (test_u HTTP_GET)
