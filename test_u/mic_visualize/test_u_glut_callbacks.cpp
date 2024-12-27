@@ -179,7 +179,7 @@ test_u_glut_draw (void)
   glRotatef (static_cast<float> (M_PI_4) * (180.0f / static_cast<float> (M_PI)), 1.0f, 0.0f, 0.0f);
   glRotatef (frame_count_i / 10.0f * (180.0f / static_cast<float> (M_PI)), 0.0f, 0.0f, 1.0f);
 
-  float x, y, z;
+  float x1, y1, z1;
   int i = 0;
   float r, g, b;
   std::vector<float> spectrum_a;
@@ -196,19 +196,28 @@ test_u_glut_draw (void)
     glColor3f (r, g, b);
 
     glBegin (GL_LINE_STRIP);
-    for (float a = 0; a < 2.0f * static_cast<float> (M_PI); a += 1 / static_cast<float> (k))
+    for (float a = 0.0f; a < 2.0f * static_cast<float> (M_PI); a += 1.0f / static_cast<float> (k))
     {
-      x = TEST_U_GLUT_DEFAULT_D * k * std::cos (a);
-      y = TEST_U_GLUT_DEFAULT_D * k * std::sin (a);
-      z = static_cast<float> (k); //*std::cos (frame_count_i);
+      float x = TEST_U_GLUT_DEFAULT_D * k * std::cos (a);
+      float y = TEST_U_GLUT_DEFAULT_D * k * std::sin (a);
+      float z = static_cast<float> (k); //*std::cos (frame_count_i);
       // z *= noise(x/30,y/30);
       if (i < static_cast<int> (spectrum_a.size ()))
       {
         z -= spectrum_a[i++] * TEST_U_GLUT_DEFAULT_AMP_FACTOR;
         // stroke(255, 144, random(0,255));
       } // end IF
+
+      if (unlikely (a == 0.0f))
+      {
+        x1 = x;
+        y1 = y;
+        z1 = z;
+      } // end IF
+
       glVertex3f (x, y, z);
     } // end FOR
+    glVertex3f (x1, y1, z1);
     glEnd ();
   } // end FOR
 
@@ -228,7 +237,7 @@ void
 test_u_glut_visible (int vis)
 {
   if (vis == GLUT_VISIBLE)
-    glutIdleFunc (test_u_glut_idle);
+    ;// glutIdleFunc (test_u_glut_idle);
   else
     glutIdleFunc (NULL);
 }
