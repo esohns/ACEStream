@@ -12,31 +12,19 @@ if (UNIX)
                 PATHS $ENV{LIB_ROOT}/DeepSpeech/tensorflow/bazel-bin
                 PATH_SUFFIXES native_client
                 DOC "searching for ${DEEPSPEECH_LIB_FILE}")
-  set (FST_LIB_FILE "libfst.so.10.0.0")
+  set (FST_LIB_FILE "libfst.so")
   find_library (FST_LIBRARY ${FST_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/DeepSpeech/native_client/ctcdecode/third_party/openfst-1.6.7/src/lib
                 PATH_SUFFIXES .libs
                 DOC "searching for ${FST_LIB_FILE}")
-  # set (DECODER_3_LIB_FILE "third_party.a")
-  # find_library (DECODER_3_LIBRARY ${DECODER_3_LIB_FILE}
-  #               PATHS $ENV{LIB_ROOT}/DeepSpeech/native_client
-  #               PATH_SUFFIXES ctcdecode
-  #               DOC "searching for ${DECODER_3_LIB_FILE}")
-  # set (DECODER_1_LIB_FILE "first_party.a")
-  # find_library (DECODER_1_LIBRARY ${DECODER_1_LIB_FILE}
-  #               PATHS $ENV{LIB_ROOT}/DeepSpeech/native_client
-  #               PATH_SUFFIXES ctcdecode
-  #               DOC "searching for ${DECODER_1_LIB_FILE}")
   if (NOT DEEPSPEECH_LIBRARY OR NOT FST_LIBRARY)
    message (WARNING "could not find ${DEEPSPEECH_LIB_FILE}, continuing")
   else ()
    message (STATUS "Found ${DEEPSPEECH_LIB_FILE} library \"${DEEPSPEECH_LIBRARY}\"")
    message (STATUS "Found ${FST_LIB_FILE} library \"${FST_LIBRARY}\"")
-   # message (STATUS "Found ${DECODER_3_LIB_FILE} library \"${DECODER_3_LIBRARY}\"")
-   # message (STATUS "Found ${DECODER_1_LIB_FILE} library \"${DECODER_1_LIBRARY}\"")
    set (DEEPSPEECH_FOUND TRUE)
    set (DEEPSPEECH_INCLUDE_DIRS "$ENV{LIB_ROOT}/DeepSpeech/native_client")
-   set (DEEPSPEECH_LIBRARIES "${DEEPSPEECH_LIBRARY};${FST_LIBRARY}")
+   set (DEEPSPEECH_LIBRARIES "${FST_LIBRARY};${DEEPSPEECH_LIBRARY}")
 #   set (DEEPSPEECH_LIB_DIR "$ENV{LIB_ROOT}/DeepSpeech/native_client")
   endif (NOT DEEPSPEECH_LIBRARY OR NOT FST_LIBRARY)
  endif (PKG_DEEPSPEECH_FOUND)

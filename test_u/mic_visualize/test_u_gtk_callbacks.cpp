@@ -3421,7 +3421,7 @@ error:
   // *TODO*: apparently, SoX also 'sox_effect_find()'s LADSPA effects in the
   //         directory specified by the LADSPA_HOME environment variable
   std::string command_line_string =
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_SOX_HELP_SHELL_COMMAND);
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_SOX_HELP_SHELL_COMMAND);
 //  int result_2 = -1;
   std::string command_output_string;
   std::string::size_type start_position, end_position;
@@ -4009,8 +4009,8 @@ stream_processing_function (void* arg_in)
     }
   } // end SWITCH
 #else
-  Test_U_MicVisualize_ALSA_Stream::IINITIALIZE_T* iinitialize_p =
-    dynamic_cast<Test_U_MicVisualize_ALSA_Stream::IINITIALIZE_T*> (ui_cb_data_p->stream);
+  Test_U_ALSA_Stream::IINITIALIZE_T* iinitialize_p =
+    dynamic_cast<Test_U_ALSA_Stream::IINITIALIZE_T*> (ui_cb_data_p->stream);
   ACE_ASSERT (iinitialize_p);
   result_2 =
     iinitialize_p->initialize (ui_cb_data_p->configuration->streamConfiguration);
@@ -6708,13 +6708,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = GUID_NULL;
 #endif // ACE_WIN32 || ACE_WIN64
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value_2 = G_VALUE_INIT;
 #else
   GValue value_2;
@@ -6933,7 +6933,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format =
     &ui_cb_data_p->configuration->streamConfiguration.configuration_->format;
 
-  if (ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE)
+  if (ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == MICVISUALIZE_SOURCE_DEVICE)
   { ACE_ASSERT (ui_cb_data_p->handle);
     if (!Stream_MediaFramework_ALSA_Tools::setFormat (ui_cb_data_p->handle,
                                                       *(*modulehandler_configuration_iterator).second.second->ALSAConfiguration))

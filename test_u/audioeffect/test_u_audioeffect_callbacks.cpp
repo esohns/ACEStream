@@ -5942,7 +5942,7 @@ continue_3:
     g_signal_handlers_block_by_func (G_OBJECT (toggle_button_p),
                                      (gpointer)G_CALLBACK (togglebutton_save_toggled_cb),
                                      userData_in);
-#elif GTK_CHECK_VERSION(2, 0, 0)
+#elif GTK_CHECK_VERSION (2,0,0)
     gtk_signal_handler_block_by_func (GTK_OBJECT (toggle_button_p),
                                       G_CALLBACK (togglebutton_save_toggled_cb),
                                       userData_in);

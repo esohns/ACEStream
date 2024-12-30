@@ -1410,8 +1410,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                                   line_sizes_a);
       ACE_ASSERT (result >= 0);
       if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
-                                                           context_->width, context_->height, intermediateFormat_,
-                                                           static_cast<uint8_t**> (frame_p->data),
+                                                           frame_->linesize[0], context_->height, intermediateFormat_,
+                                                           frame_p->data,
                                                            context_->width, context_->height, outputFormat_,
                                                            data_a)))
       {

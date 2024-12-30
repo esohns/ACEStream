@@ -29,6 +29,10 @@
 
 #include "stream_macros.h"
 
+#include "stream_vis_defines.h"
+
+#include "test_i_target_session_message.h"
+#include "test_i_target_stream.h"
 #if defined (GTK_SUPPORT)
 #include "test_i_callbacks.h"
 #endif // GTK_SUPPORT
@@ -94,6 +98,7 @@ Test_I_Target_EventHandler_T<SessionDataType,
   CBData_->progressData.transferred = 0;
 
   ACE_ASSERT (!sessionData_->connectionStates.empty ());
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Target_DirectShow_TCPConnectionManager_t* connection_manager_p =
     TEST_I_TARGET_DIRECTSHOW_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
@@ -105,6 +110,19 @@ Test_I_Target_EventHandler_T<SessionDataType,
   ACE_ASSERT (tcp_connection_p);
   CBData_->stream =
     &const_cast<Test_I_Target_DirectShow_TCPStream&> (tcp_connection_p->stream ());
+#else
+  Test_I_Target_TCPConnectionManager_t* connection_manager_p =
+    TEST_I_TARGET_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (connection_manager_p);
+  Net_IINETConnection_t* connection_p =
+    connection_manager_p->get ((*sessionData_->connectionStates.begin ()).first);
+  ACE_ASSERT (connection_p);
+  Test_I_Target_AsynchTCPConnection_t* tcp_connection_p =
+    dynamic_cast<Test_I_Target_AsynchTCPConnection_t*> (connection_p);
+  ACE_ASSERT (tcp_connection_p);
+  CBData_->stream =
+    &const_cast<Test_I_Target_TCPStream&> (tcp_connection_p->stream ());
+#endif // ACE_WIN32 || ACE_WIN64
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (CBData_->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);

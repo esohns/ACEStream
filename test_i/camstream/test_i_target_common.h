@@ -849,11 +849,13 @@ struct Test_I_Target_UI_CBData
   Test_I_Target_UI_CBData ()
    : Test_I_CamStream_UI_CBData ()
    , configuration (NULL)
+   , stream (NULL)
    , subscribers ()
   {}
 
-  struct Test_I_Target_Configuration* configuration;
-  Test_I_Target_Subscribers_t         subscribers;
+  struct Test_I_Target_Configuration*                  configuration;
+  Stream_IStream_T<ACE_MT_SYNCH, Common_TimePolicy_t>* stream;
+  Test_I_Target_Subscribers_t                          subscribers;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT

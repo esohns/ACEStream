@@ -149,7 +149,7 @@ do_print_usage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-e[[STRING]]: effect [\"")
-            << ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_SOX_DEFAULT_EFFECT_NAME)
+            << ACE_TEXT_ALWAYS_CHAR (TEST_U_SOX_DEFAULT_EFFECT_NAME)
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> default}")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -386,7 +386,7 @@ do_process_arguments (int argc_in,
           effect_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         else
           effect_out =
-            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_SOX_DEFAULT_EFFECT_NAME);
+            ACE_TEXT_ALWAYS_CHAR (TEST_U_SOX_DEFAULT_EFFECT_NAME);
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1206,7 +1206,7 @@ do_work (int argc_in,
     }
   } // end SWITCH
 #else
-  Test_U_MicVisualize_ALSA_Stream stream;
+  Test_U_ALSA_Stream stream;
   istream_p = &stream;
   istream_control_p = &stream;
 #if defined (GTKGL_SUPPORT)
@@ -2440,7 +2440,7 @@ ACE_TMAIN (int argc_in,
   struct Test_U_MicVisualize_Configuration configuration;
   configuration.generatorConfiguration.amplitude = 1.0;
   configuration.generatorConfiguration.frequency =
-    TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D;
+    TEST_U_NOISE_DEFAULT_FREQUENCY_D;
 #if defined (LIBNOISE_SUPPORT)
   configuration.generatorConfiguration.step =
     STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_STEP;
@@ -2451,8 +2451,7 @@ ACE_TMAIN (int argc_in,
   configuration.generatorConfiguration.z =
     STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Z;
 #endif // LIBNOISE_SUPPORT
-  configuration.generatorConfiguration.type =
-    TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_TYPE;
+  configuration.generatorConfiguration.type = TEST_U_NOISE_DEFAULT_TYPE;
   struct Test_U_MicVisualize_UI_CBData ui_cb_data;
   ui_cb_data.configuration = &configuration;
   ui_cb_data.switchCaptureDevice = !capture_device_identifier_set_b;

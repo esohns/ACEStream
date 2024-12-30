@@ -385,7 +385,7 @@ Test_U_MediaFoundation_EventHandler::notify (Stream_SessionId_t sessionId_in,
 #else
 Test_U_EventHandler::Test_U_EventHandler (
 #if defined (GUI_SUPPORT)
-                                          struct Test_U_AudioEffect_UI_CBData* CBData_in
+                                          struct Test_U_MicVisualize_UI_CBData* CBData_in
 #endif // GUI_SUPPORT
                                          )
 #if defined (GUI_SUPPORT)
@@ -602,8 +602,8 @@ continue_:
     default:
     {
       std::string type_string;
-      Test_U_AudioEffect_SessionMessage::MessageTypeToString (sessionMessage_in.type (),
-                                                              type_string);
+      Test_U_SessionMessage::MessageTypeToString (sessionMessage_in.type (),
+                                                  type_string);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown session message (type was: \"%s\"), continuing\n"),
                   ACE_TEXT (type_string.c_str ())));
