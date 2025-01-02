@@ -105,13 +105,15 @@
 
 // ---------------------------------------
 // adapted from https://github.com/google/mediapipe/blob/master/mediapipe/graphs/hand_tracking/hand_tracking_desktop_live.pbtxt
-// runs for up to 2 hands with previous landmark usage enabled
+// runs for up to 2 hands with previous landmark usage enabled (*TODO*: no image throttling yet (see above))
 #define TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_HANDS_GRAPH_STRING R"(
   # MediaPipe graph that performs hands mesh with TensorFlow Lite on CPU.
 
   # Input image. (ImageFrame)
   input_stream: "input_video"
 
+  # Output image with rendered results. (ImageFrame)
+  #output_stream: "output_video"
   # Collection of detected/processed hands, each represented as a list of
   # landmarks. (std::vector<NormalizedLandmarkList>)
   output_stream: "landmarks"
@@ -161,8 +163,21 @@
     output_stream: "HAND_ROIS_FROM_LANDMARKS:multi_hand_rects"
     output_stream: "HAND_ROIS_FROM_PALM_DETECTIONS:multi_palm_rects"
   }
+  # Subgraph that renders hand-landmark annotation onto the input image.
+  #node {
+  #  calculator: "HandRendererSubgraph"
+  #  input_stream: "IMAGE:throttled_input_video"
+  #  input_stream: "LANDMARKS:landmarks"
+  #  input_stream: "NORM_RECTS:multi_hand_rects"
+  #  input_stream: "DETECTIONS:multi_palm_rects"
+  #  output_stream: "IMAGE:output_video"
+  #}
 )"
 #define TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_HANDS_OUTPUT_STREAM_STRING "landmarks"
+
+#if defined (BOX2D_SUPPORT)
+#define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NAME_STRING "MediaPipe_Box2D"
+#endif // BOX2D_SUPPORT
 #endif // MEDIAPIPE_SUPPORT
 
 #endif

@@ -89,6 +89,7 @@
 
 #include "test_i_camera_ml_defines.h"
 #include "test_i_eventhandler.h"
+#define OLC_PGE_APPLICATION // *TODO*: remove ASAP
 #include "test_i_stream_2.h"
 
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CameraMLStream_2");
@@ -1124,7 +1125,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   Stream_CameraML_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                         &heap_allocator,     // heap allocator handle
                                                         true);               // block ?
-  Stream_CameraML_Stream stream;
+  Stream_CameraML_Stream_2 stream;
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.renderer = renderer_in;
   configuration_in.streamConfiguration.initialize (module_configuration,

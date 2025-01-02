@@ -100,7 +100,6 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
     delete graph_; graph_ = NULL;
   } // end IF
 
-  const char* graph_string = TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_FACE_GRAPH_STRING;
   graph_ = mediapipe::LibMP::Create (configuration_in.model.c_str (),
                                      ACE_TEXT_ALWAYS_CHAR ("input_video"));
   if (unlikely (!graph_))

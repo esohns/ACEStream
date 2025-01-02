@@ -11,6 +11,8 @@ include (wayland)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 include (mediapipe)
+include (box2d)
+include (pge)
 
 if (UNIX)
 # include (CheckLibraryExists)
@@ -142,6 +144,35 @@ if (MEDIAPIPE_SUPPORT)
       test_i_session_message.inl
       test_i_stream_2.cpp
       test_i_stream_2.h)
+
+ if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+  include_directories (${BOX2D_INCLUDE_DIRS})
+  include_directories (${PGE_INCLUDE_DIR})
+
+  set (EXECUTABLE_3 camera_ml_3)
+  set (${EXECUTABLE_3}_EXE_SRCS
+       stdafx.h
+       ../test_i_common.h
+       ../test_i_defines.h
+       test_i_3.cpp
+       test_i_camera_ml_common.h
+       test_i_camera_ml_defines.h
+       test_i_camera_ml_module_mediapipe_3.cpp
+       test_i_camera_ml_module_mediapipe_3.h
+       test_i_camera_ml_module_mediapipe_3.inl
+       test_i_common_modules.h
+       test_i_eventhandler.cpp
+       test_i_eventhandler.h
+       test_i_eventhandler.inl
+       test_i_message.cpp
+       test_i_message.h
+       test_i_message.inl
+       test_i_session_message.cpp
+       test_i_session_message.h
+       test_i_session_message.inl
+       test_i_stream_3.cpp
+       test_i_stream_3.h)
+ endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
 endif (MEDIAPIPE_SUPPORT)
 
 if (UNIX)
@@ -174,6 +205,16 @@ if (MEDIAPIPE_SUPPORT)
  if (WIN32 AND NOT BUILD_TEST_I)
   set_target_properties (${EXECUTABLE_2} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
  endif (WIN32 AND NOT BUILD_TEST_I)
+
+ if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+  add_executable (${EXECUTABLE_3}
+                  EXCLUDE_FROM_ALL
+                  ${${EXECUTABLE_3}_EXE_SRCS})
+  set_property (TARGET ${EXECUTABLE_3} PROPERTY FOLDER "test_i")
+  if (WIN32 AND NOT BUILD_TEST_I)
+   set_target_properties (${EXECUTABLE_3} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+  endif (WIN32 AND NOT BUILD_TEST_I)
+ endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
 endif (MEDIAPIPE_SUPPORT)
 
 #add_dependencies (${EXECUTABLE} ACE)
@@ -200,6 +241,20 @@ if (MEDIAPIPE_SUPPORT)
  add_dependencies (${EXECUTABLE_2} ${PROJECT_NAME}_Visualization)
 
  add_dependencies (${EXECUTABLE_2} ${PROJECT_NAME}_Test_I)
+
+ if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+#add_dependencies (${EXECUTABLE_3} ACE)
+  add_dependencies (${EXECUTABLE_3} Common)
+
+  add_dependencies (${EXECUTABLE_3} ${PROJECT_NAME})
+  add_dependencies (${EXECUTABLE_3} ${PROJECT_NAME}_Decoder)
+  add_dependencies (${EXECUTABLE_3} ${PROJECT_NAME}_Device)
+  add_dependencies (${EXECUTABLE_3} ${PROJECT_NAME}_MediaFramework)
+  add_dependencies (${EXECUTABLE_3} ${PROJECT_NAME}_Miscellaneous)
+  add_dependencies (${EXECUTABLE_3} ${PROJECT_NAME}_Visualization)
+
+  add_dependencies (${EXECUTABLE_3} ${PROJECT_NAME}_Test_I)
+ endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
 endif (MEDIAPIPE_SUPPORT)
 
 if (FFMPEG_SUPPORT)
@@ -282,6 +337,43 @@ if (MEDIAPIPE_SUPPORT)
  target_link_libraries (${EXECUTABLE_2} PUBLIC ${PROJECT_NAME}_Visualization)
 
  target_link_libraries (${EXECUTABLE_2} PUBLIC ${PROJECT_NAME}_Test_I)
+
+ if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+  if (FFMPEG_SUPPORT)
+   target_link_libraries (${EXECUTABLE_3} PUBLIC ${ffmpeg_LIBRARIES})
+  endif (FFMPEG_SUPPORT)
+  if (OPENCV_SUPPORT)
+   target_link_libraries (${EXECUTABLE_3} PUBLIC ${OPENCV_LIBRARIES})
+  endif (OPENCV_SUPPORT)
+  target_link_libraries (${EXECUTABLE_3} PUBLIC MP_FORMATS)
+  target_link_libraries (${EXECUTABLE_3} PUBLIC ${MEDIAPIPE_LIBRARIES})
+  target_link_libraries (${EXECUTABLE_3} PUBLIC ${BOX2D_LIBRARIES})
+  if (UNIX)
+   target_link_libraries (${EXECUTABLE_3} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+  # target_link_libraries (${EXECUTABLE_3} PUBLIC stdc++fs)
+   target_link_libraries (${EXECUTABLE_3} PUBLIC ${PKG_V4L_LIBRARIES})
+  elseif (WIN32)
+ # target_link_options (${EXECUTABLE_3} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+  endif ()
+  target_link_libraries (${EXECUTABLE_3} PUBLIC ${ACE_LIBRARY})
+
+  target_link_libraries (${EXECUTABLE_3} PUBLIC Common)
+  target_link_libraries (${EXECUTABLE_3} PUBLIC CommonImage)
+  target_link_libraries (${EXECUTABLE_3} PUBLIC CommonLog)
+  target_link_libraries (${EXECUTABLE_3} PUBLIC CommonSignal)
+  target_link_libraries (${EXECUTABLE_3} PUBLIC CommonTimer)
+
+  target_link_libraries (${EXECUTABLE_3} PUBLIC ${PROJECT_NAME})
+  target_link_libraries (${EXECUTABLE_3} PUBLIC ${PROJECT_NAME}_Decoder)
+  target_link_libraries (${EXECUTABLE_3} PUBLIC ${PROJECT_NAME}_Device)
+  target_link_libraries (${EXECUTABLE_3} PUBLIC ${PROJECT_NAME}_MachineLearning)
+  target_link_libraries (${EXECUTABLE_3} PUBLIC ${PROJECT_NAME}_MediaFramework)
+  target_link_libraries (${EXECUTABLE_3} PUBLIC ${PROJECT_NAME}_Miscellaneous)
+  target_link_libraries (${EXECUTABLE_3} PUBLIC ${PROJECT_NAME}_Statistic)
+  target_link_libraries (${EXECUTABLE_3} PUBLIC ${PROJECT_NAME}_Visualization)
+
+  target_link_libraries (${EXECUTABLE_3} PUBLIC ${PROJECT_NAME}_Test_I)
+ endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
 endif (MEDIAPIPE_SUPPORT)
 
 # add PCH
@@ -290,6 +382,10 @@ target_precompile_headers (${EXECUTABLE}
 if (MEDIAPIPE_SUPPORT)
  target_precompile_headers (${EXECUTABLE_2}
                             REUSE_FROM ${EXECUTABLE})
+ if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+  target_precompile_headers (${EXECUTABLE_3}
+                             REUSE_FROM ${EXECUTABLE})
+ endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
 endif (MEDIAPIPE_SUPPORT)
 
 install (TARGETS ${EXECUTABLE}
@@ -299,6 +395,11 @@ if (MEDIAPIPE_SUPPORT)
  install (TARGETS ${EXECUTABLE_2}
           EXPORT ${PROJECT_NAME}Targets
           RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
+ if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+  install (TARGETS ${EXECUTABLE_3}
+           EXPORT ${PROJECT_NAME}Targets
+           RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
+ endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
 endif (MEDIAPIPE_SUPPORT)
 if (UNIX)
 # install (FILES etc/${ui_definition_file}
@@ -428,6 +529,54 @@ if (MEDIAPIPE_SUPPORT)
                       COMMENT "Copying OpenCV DLL (Release)"
   )
  endif (WIN32)
+
+ if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+  set (ARGS_3 "-l")
+  if (CMAKE_BUILD_TYPE STREQUAL Debug)
+   set (ARGS_3 "${ARGS_3} -t")
+  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+  if (UNIX)
+   file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_3}" COMMAND_3)
+  elseif (WIN32)
+   file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_3}.exe" COMMAND_3)
+   string (REPLACE "\\" "\\\\" COMMAND_3 ${COMMAND_3})
+   file (TO_CMAKE_PATH "${BOX2D_LIB_DIR}" BOX2D_PATH)
+   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                             ${BOX2D_PATH})
+   file (TO_NATIVE_PATH "$<TARGET_FILE_DIR:${EXECUTABLE_3}>" WORKING_DIRECTORY_3)
+   string (REPLACE "\\" "\\\\" WORKING_DIRECTORY_3 ${WORKING_DIRECTORY_3})
+  endif ()
+  create_target_launcher (${EXECUTABLE_3}
+                          COMMAND ${COMMAND_3}
+                          ARGS ${ARGS_3}
+#                          FORWARD_ARGS
+                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                          WORKING_DIRECTORY ${WORKING_DIRECTORY_3}
+                          ENVIRONMENT ${ENVIRONMENT})
+
+  # Mediapipe Modules
+#  add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
+#                      COMMAND ${CMAKE_COMMAND} -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/modules" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/modules"
+#                      COMMENT "Copying mediapipe/modules"
+#  )
+  # additional file(s)
+#  add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
+#                      COMMAND ${CMAKE_COMMAND} -E copy "${MEDIAPIPE_ROOT}/mediapipe/modules/hand_landmark/handedness.txt" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/modules/hand_landmark"
+#                      COMMENT "Copying mediapipe/modules/hand_landmark/handedness.txt"
+#  )
+  # Mediapipe Models
+#  add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
+#                      COMMAND ${CMAKE_COMMAND} -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/models" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/models"
+#                      COMMENT "Copying mediapipe/models"
+#  )
+
+#  if (WIN32)
+#   add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
+#                       COMMAND ${CMAKE_COMMAND} -E copy "${OPENCV_DIR}/bin/Release/opencv_imgproc453.dll" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>"
+#                       COMMENT "Copying OpenCV DLL (Release)"
+#   )
+#  endif (WIN32)
+ endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
 endif (MEDIAPIPE_SUPPORT)
 
 ##########################################
