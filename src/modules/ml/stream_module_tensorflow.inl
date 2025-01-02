@@ -96,7 +96,7 @@ Stream_Module_Tensorflow_T<ConfigurationType,
   // load 'frozen' graph (aka 'model')
   uint8_t* data_p = NULL;
   ACE_UINT64 size_i = 0;
-  if (unlikely (!Common_File_Tools::load (configuration_in.modelFile,
+  if (unlikely (!Common_File_Tools::load (configuration_in.model,
                                           data_p,
                                           size_i,
                                           0)))
@@ -104,7 +104,7 @@ Stream_Module_Tensorflow_T<ConfigurationType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to load model (was: \"%s\"), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (configuration_in.modelFile.c_str ())));
+                ACE_TEXT (configuration_in.model.c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (data_p && size_i);
@@ -127,7 +127,7 @@ Stream_Module_Tensorflow_T<ConfigurationType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to import model (was: \"%s\"), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (configuration_in.modelFile.c_str ())));
+                ACE_TEXT (configuration_in.model.c_str ())));
     TF_DeleteGraph (graph_); graph_ = NULL;
     TF_DeleteBuffer (buffer_p);
     return false;

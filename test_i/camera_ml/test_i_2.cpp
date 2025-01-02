@@ -198,7 +198,7 @@ do_print_usage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-p          : program mode [")
-            << STREAM_CAMERA_ML_PROGRAMMODE_NORMAL
+            << STREAM_CAMERA_ML_PROGRAMMODE_FACE
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
@@ -284,7 +284,7 @@ do_process_arguments (int argc_in,
   renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND;
 #endif // ACE_WIN32 || ACE_WIN64
   traceInformation_out = false;
-  mode_out = STREAM_CAMERA_ML_PROGRAMMODE_NORMAL;
+  mode_out = STREAM_CAMERA_ML_PROGRAMMODE_FACE;
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:lo:p:tv");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -897,6 +897,91 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   Stream_CameraML_EventHandler_t ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
 
+  switch (mode_in)
+  {
+    case STREAM_CAMERA_ML_PROGRAMMODE_FACE:
+    {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      switch (mediaFramework_in)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          directshow_modulehandler_configuration.model =
+            ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_FACE_GRAPH_STRING);
+          directshow_modulehandler_configuration.outputStream =
+            ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_FACE_OUTPUT_STREAM_STRING);
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          mediafoundation_modulehandler_configuration.model =
+            ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_FACE_GRAPH_STRING);
+          mediafoundation_modulehandler_configuration.outputStream =
+            ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_FACE_OUTPUT_STREAM_STRING);
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      mediaFramework_in));
+          return;
+        }
+      } // end SWITCH
+#else
+      modulehandler_configuration.model =
+        ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_FACE_GRAPH_STRING);
+      modulehandler_configuration.outputStream =
+        ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_FACE_OUTPUT_STREAM_STRING);
+#endif // ACE_WIN32 || ACE_WIN64
+      break;
+    }
+    case STREAM_CAMERA_ML_PROGRAMMODE_HANDS:
+    {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      switch (mediaFramework_in)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          directshow_modulehandler_configuration.model =
+            ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_HANDS_GRAPH_STRING);
+          directshow_modulehandler_configuration.outputStream =
+            ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_HANDS_OUTPUT_STREAM_STRING);
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          mediafoundation_modulehandler_configuration.model =
+            ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_HANDS_GRAPH_STRING);
+          mediafoundation_modulehandler_configuration.outputStream =
+            ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_HANDS_OUTPUT_STREAM_STRING);
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      mediaFramework_in));
+          return;
+        }
+      } // end SWITCH
+#else
+      modulehandler_configuration.model =
+        ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_HANDS_GRAPH_STRING);
+      modulehandler_configuration.outputStream =
+        ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_HANDS_OUTPUT_STREAM_STRING);
+#endif // ACE_WIN32 || ACE_WIN64
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown mode (was: %d), returning\n"),
+                  mode_in));
+      return;
+    }
+  } // end SWITCH
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
   {
@@ -908,38 +993,6 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         deviceIdentifier_in;
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
-      //directshow_modulehandler_configuration.shaderFile =
-      //  Common_File_Tools::getSourceDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-      //                                         ACE_TEXT_ALWAYS_CHAR (""));
-      //directshow_modulehandler_configuration.shaderFile +=
-      //  ACE_DIRECTORY_SEPARATOR_STR_A;
-      //directshow_modulehandler_configuration.shaderFile +=
-      //  ACE_TEXT_ALWAYS_CHAR (STREAM_SUBMODULE_SUBDIRECTORY_STRING);
-      //directshow_modulehandler_configuration.shaderFile +=
-      //  ACE_DIRECTORY_SEPARATOR_STR_A;
-      //directshow_modulehandler_configuration.shaderFile +=
-      //  ACE_TEXT_ALWAYS_CHAR (STREAM_SUBMODULE_VISUALIZATION_DIRECTORY_STRING);
-      //directshow_modulehandler_configuration.shaderFile +=
-      //  ACE_DIRECTORY_SEPARATOR_STR_A;
-      //directshow_modulehandler_configuration.shaderFile +=
-      //  ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
-      //directshow_modulehandler_configuration.shaderFile +=
-      //  ACE_DIRECTORY_SEPARATOR_STR_A;
-      //directshow_modulehandler_configuration.shaderFile +=
-      //  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_11_DEFAULT_SHADER_FILE);
-      //ACE_ASSERT (Common_File_Tools::isReadable (directshow_modulehandler_configuration.shaderFile));
-
-      //directshow_modulehandler_configuration.labelFile =
-      //  Common_File_Tools::getWorkingDirectory ();
-      //directshow_modulehandler_configuration.labelFile +=
-      //  ACE_DIRECTORY_SEPARATOR_STR_A;
-      //directshow_modulehandler_configuration.labelFile +=
-      //  ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
-      //directshow_modulehandler_configuration.labelFile +=
-      //  ACE_DIRECTORY_SEPARATOR_CHAR_A;
-      //directshow_modulehandler_configuration.labelFile +=
-      //  ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LABEL_FILE);
-      //directshow_modulehandler_configuration.modelFile = modelFile_in;
 
       //if (statisticReportingInterval_in)
       //{
@@ -982,19 +1035,9 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-//  Stream_CameraML_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator;
-//  Stream_CameraML_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator_2;
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.buffers = STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
-  //modulehandler_configuration.labelFile =
-  //    Common_File_Tools::getWorkingDirectory ();
-  //modulehandler_configuration.labelFile += ACE_DIRECTORY_SEPARATOR_STR;
-  //modulehandler_configuration.labelFile += COMMON_LOCATION_DATA_SUBDIRECTORY;
-  //modulehandler_configuration.labelFile += ACE_DIRECTORY_SEPARATOR_CHAR;
-  //modulehandler_configuration.labelFile +=
-  //    ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LABEL_FILE);
-  //modulehandler_configuration.modelFile = modelFile_in;
 //  modulehandler_configuration.display = displayDevice_in;
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
@@ -1421,7 +1464,7 @@ ACE_TMAIN (int argc_in,
     Common_UI_Tools::getDefaultDisplay ();
   bool trace_information = false;
   enum Stream_CameraML_ProgramMode program_mode_e =
-      STREAM_CAMERA_ML_PROGRAMMODE_NORMAL;
+    STREAM_CAMERA_ML_PROGRAMMODE_FACE;
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
@@ -1519,7 +1562,8 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
       return EXIT_SUCCESS;
     }
-    case STREAM_CAMERA_ML_PROGRAMMODE_NORMAL:
+    case STREAM_CAMERA_ML_PROGRAMMODE_FACE:
+    case STREAM_CAMERA_ML_PROGRAMMODE_HANDS:
       break;
     default:
     {

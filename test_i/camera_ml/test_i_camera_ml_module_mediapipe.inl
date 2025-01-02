@@ -100,78 +100,8 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
     delete graph_; graph_ = NULL;
   } // end IF
 
-  // adapted from https://github.com/google/mediapipe/blob/master/mediapipe/graphs/face_mesh/face_mesh_desktop_live.pbtxt
-  // runs face mesh for up to 1 face with both attention and previous landmark usage enabled
-  const char* graph_string = R"(
-    # MediaPipe graph that performs face mesh with TensorFlow Lite on CPU.
-
-    # Input image. (ImageFrame)
-    input_stream: "input_video"
-
-    # Output image with rendered results. (ImageFrame)
-    output_stream: "output_video"
-    # Collection of detected/processed faces, each represented as a list of
-    # landmarks. (std::vector<NormalizedLandmarkList>)
-    output_stream: "multi_face_landmarks"
-
-    # Throttles the images flowing downstream for flow control. It passes through
-    # the very first incoming image unaltered, and waits for downstream nodes
-    # (calculators and subgraphs) in the graph to finish their tasks before it
-    # passes through another image. All images that come in while waiting are
-    # dropped, limiting the number of in-flight images in most part of the graph to
-    # 1. This prevents the downstream nodes from queuing up incoming images and data
-    # excessively, which leads to increased latency and memory usage, unwanted in
-    # real-time mobile applications. It also eliminates unnecessarily computation,
-    # e.g., the output produced by a node may get dropped downstream if the
-    # subsequent nodes are still busy processing previous inputs.
-    node {
-      calculator: "FlowLimiterCalculator"
-      input_stream: "input_video"
-      input_stream: "FINISHED:output_video"
-      input_stream_info: {
-        tag_index: "FINISHED"
-        back_edge: true
-      }
-      output_stream: "throttled_input_video"
-    }
-
-    # Defines side packets for further use in the graph.
-    node {
-      calculator: "ConstantSidePacketCalculator"
-      output_side_packet: "PACKET:0:num_faces"
-      output_side_packet: "PACKET:1:use_prev_landmarks"
-      output_side_packet: "PACKET:2:with_attention"
-      node_options: {
-        [type.googleapis.com/mediapipe.ConstantSidePacketCalculatorOptions]: {
-          packet { int_value: 1 }
-          packet { bool_value: true }
-          packet { bool_value: true }
-        }
-      }
-    }
-    # Subgraph that detects faces and corresponding landmarks.
-    node {
-      calculator: "FaceLandmarkFrontCpu"
-      input_stream: "IMAGE:throttled_input_video"
-      input_side_packet: "NUM_FACES:num_faces"
-      input_side_packet: "USE_PREV_LANDMARKS:use_prev_landmarks"
-      input_side_packet: "WITH_ATTENTION:with_attention"
-      output_stream: "LANDMARKS:multi_face_landmarks"
-      output_stream: "ROIS_FROM_LANDMARKS:face_rects_from_landmarks"
-      output_stream: "DETECTIONS:face_detections"
-      output_stream: "ROIS_FROM_DETECTIONS:face_rects_from_detections"
-    }
-    # Subgraph that renders face-landmark annotation onto the input image.
-    node {
-      calculator: "FaceRendererCpu"
-      input_stream: "IMAGE:throttled_input_video"
-      input_stream: "LANDMARKS:multi_face_landmarks"
-      input_stream: "NORM_RECTS:face_rects_from_landmarks"
-      input_stream: "DETECTIONS:face_detections"
-      output_stream: "IMAGE:output_video"
-    }
-  )";
-  graph_ = mediapipe::LibMP::Create (graph_string,
+  const char* graph_string = TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_FACE_GRAPH_STRING;
+  graph_ = mediapipe::LibMP::Create (configuration_in.model.c_str (),
                                      ACE_TEXT_ALWAYS_CHAR ("input_video"));
   if (unlikely (!graph_))
   {
@@ -181,12 +111,13 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
     return false;
   } // end IF
 
-  bool result = graph_->AddOutputStream (ACE_TEXT_ALWAYS_CHAR ("multi_face_landmarks"));
+  bool result = graph_->AddOutputStream (configuration_in.outputStream.c_str ());
   if (unlikely (!result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to mediapipe::LibMP::AddOutputStream(), aborting\n"),
-                inherited::mod_->name ()));
+                ACE_TEXT ("%s: failed to mediapipe::LibMP::AddOutputStream(\"%s\"), aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (configuration_in.outputStream.c_str ())));
     return false;
   } // end IF
 
@@ -248,8 +179,7 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
   // start inference clock
   auto t0 = std::chrono::high_resolution_clock::now ();
 
-  // Feed RGB frame into MP face mesh graph (image data is COPIED internally by
-  // LibMP)
+  // feed RGB frame into MP graph (image data is COPIED internally by LibMP)
   if (!graph_->Process (frame_matrix.data,
                         frame_matrix.cols, frame_matrix.rows,
                         mediapipe::ImageFormat::SRGB))
@@ -260,7 +190,14 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
     inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
     return;
   } // end IF
-  graph_->WaitUntilIdle ();
+  if (!graph_->WaitUntilIdle ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to mediapipe::LibMP::WaitUntilIdle(), aborting\n"),
+                inherited::mod_->name ()));
+    inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+    return;
+  } // end IF
 
   // stop inference clock
   auto t1 = std::chrono::high_resolution_clock::now ();
@@ -271,17 +208,17 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
   std::vector<std::vector<std::array<float, 3>>> normalized_landmarks =
     getLandmarks (graph_);
 
-  // For each face, draw a circle at each landmark's position
-  size_t num_faces = normalized_landmarks.size ();
-  for (int face_num = 0; face_num < num_faces; face_num++)
-    for (const std::array<float, 3>& norm_xyz: normalized_landmarks[face_num])
+  // For each object, draw a circle at each landmark's position
+  size_t num_objs = normalized_landmarks.size ();
+  for (int i = 0; i < num_objs; i++)
+    for (const std::array<float, 3>& norm_xyz: normalized_landmarks[i])
     {
       int x = static_cast<int> (norm_xyz[0] * frame_matrix.cols);
       int y = static_cast<int> (norm_xyz[1] * frame_matrix.rows);
       cv::circle (frame_matrix, cv::Point (x, y), 1, cv::Scalar (0, 255, 0), -1);
     } // end FOR
 
-  cv::putText (frame_matrix, "# Faces Detected: " + std::to_string (num_faces),
+  cv::putText (frame_matrix, "# Objects Detected: " + std::to_string (num_objs),
                cv::Point (10, 40), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar (0, 255, 0));
   cv::putText (frame_matrix, "Inference time: " + std::to_string (inference_time_ms) + " ms",
                cv::Point (10, 60), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar (0, 255, 0));
@@ -393,17 +330,17 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
   std::unique_ptr<const void, decltype(&mediapipe::LibMP::DeletePacket)> lm_packet_ptr (nullptr, mediapipe::LibMP::DeletePacket);
 
   // Keep getting packets from queue until empty
-  while (graph_in->GetOutputQueueSize ("multi_face_landmarks") > 0)
-    lm_packet_ptr.reset (graph_in->GetOutputPacket ("multi_face_landmarks"));
+  while (graph_in->GetOutputQueueSize (inherited::configuration_->outputStream.c_str ()) > 0)
+    lm_packet_ptr.reset (graph_in->GetOutputPacket (inherited::configuration_->outputStream.c_str ()));
   if (lm_packet_ptr.get () == nullptr || mediapipe::LibMP::PacketIsEmpty (lm_packet_ptr.get ()))
     return normalized_landmarks; // return empty vector if no output packets or packet is invalid
 
-  // Create multi_face_landmarks from packet's protobuf data
-  size_t num_faces = mediapipe::LibMP::GetPacketProtoMsgVecSize (lm_packet_ptr.get ());
-  for (int face_num = 0; face_num < num_faces; face_num++)
+  // Create landmarks from packet's protobuf data
+  size_t num_objs = mediapipe::LibMP::GetPacketProtoMsgVecSize (lm_packet_ptr.get ());
+  for (size_t i = 0; i < num_objs; i++)
   {
     // Get reference to protobuf message for face
-    const void* lm_list_proto = mediapipe::LibMP::GetPacketProtoMsgAt (lm_packet_ptr.get (), face_num);
+    const void* lm_list_proto = mediapipe::LibMP::GetPacketProtoMsgAt (lm_packet_ptr.get (), i);
     // Get byte size of protobuf message
     size_t lm_list_proto_size = mediapipe::LibMP::GetProtoMsgByteSize (lm_list_proto);
 
@@ -412,13 +349,13 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
     mediapipe::LibMP::WriteProtoMsgData (proto_data.get (), lm_list_proto, static_cast<int> (lm_list_proto_size));
 
     // Initialize a mediapipe::NormalizedLandmarkList object from the buffer
-    mediapipe::NormalizedLandmarkList face_landmarks;
-    face_landmarks.ParseFromArray (proto_data.get (), static_cast<int> (lm_list_proto_size));
+    mediapipe::NormalizedLandmarkList landmarks;
+    landmarks.ParseFromArray (proto_data.get (), static_cast<int> (lm_list_proto_size));
 
     // Copy the landmark data to our custom data structure
     normalized_landmarks.emplace_back ();
-    for (const mediapipe::NormalizedLandmark& lm : face_landmarks.landmark ())
-      normalized_landmarks[face_num].push_back ({ lm.x (), lm.y (), lm.z () });
+    for (const mediapipe::NormalizedLandmark& lm : landmarks.landmark ())
+      normalized_landmarks[i].push_back ({ lm.x (), lm.y (), lm.z () });
   } // end FOR
 
   return normalized_landmarks;

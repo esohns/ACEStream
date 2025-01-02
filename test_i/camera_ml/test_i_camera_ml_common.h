@@ -103,6 +103,10 @@ enum Stream_CameraML_ProgramMode
 {
   STREAM_CAMERA_ML_PROGRAMMODE_PRINT_VERSION = 0,
   STREAM_CAMERA_ML_PROGRAMMODE_NORMAL,
+#if defined (MEDIAPIPE_SUPPORT)
+  STREAM_CAMERA_ML_PROGRAMMODE_FACE = STREAM_CAMERA_ML_PROGRAMMODE_NORMAL,
+  STREAM_CAMERA_ML_PROGRAMMODE_HANDS,
+#endif // MEDIAPIPE_SUPPORT
   ////////////////////////////////////////
   STREAM_CAMERA_ML_PROGRAMMODE_MAX,
   STREAM_CAMERA_ML_PROGRAMMODE_INVALID
@@ -368,6 +372,12 @@ struct Stream_CameraML_ModuleHandlerConfiguration
 {
   Stream_CameraML_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
+   , labelFile ()
+   , model ()
+#if defined (MEDIAPIPE_SUPPORT)
+   , outputStream ()
+#endif // MEDIAPIPE_SUPPORT
+   ///////////////////////////////////////
    , deviceIdentifier ()
    , display ()
    , fullScreen (false)
@@ -381,6 +391,14 @@ struct Stream_CameraML_ModuleHandlerConfiguration
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
 
+  std::string                     labelFile; // tensorflow
+  // *NOTE*: for tensorflow, this is a file path; for mediapipe it's a string
+  std::string                     model; // tensorflow/mediapipe
+#if defined (MEDIAPIPE_SUPPORT)
+  std::string                     outputStream;
+#endif // MEDIAPIPE_SUPPORT
+
+  ////////////////////////////////////////
   struct Stream_Device_Identifier deviceIdentifier; // source module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Common_UI_DisplayDevice  display; // display module
@@ -412,11 +430,8 @@ struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration
    , direct3DConfiguration (NULL)
    , filterConfiguration (NULL)
    , filterCLSID (GUID_NULL)
-   , labelFile ()
-   , modelFile ()
    , outputFormat ()
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
-   //, sourceFormat ()
    , subscriber (NULL)
    //, subscribers (NULL)
    , windowController (NULL)
@@ -472,11 +487,8 @@ struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration
   struct Stream_MediaFramework_Direct3D_Configuration*   direct3DConfiguration;
   struct Stream_CameraML_DirectShow_FilterConfiguration* filterConfiguration;
   CLSID                                                  filterCLSID;
-  std::string                                            labelFile; // tensorflow
-  std::string                                            modelFile; // tensorflow
   struct _AMMediaType                                    outputFormat;
   bool                                                   push;
-  //struct _AMMediaType                                   sourceFormat;
   Stream_CameraML_DirectShow_ISessionNotify_t*           subscriber;
   //Stream_CameraML_DirectShow_Subscribers_t*              subscribers;
   IVideoWindow*                                          windowController;
@@ -497,8 +509,6 @@ struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration
    , direct3DConfiguration (NULL)
    , manageMediaSession (false)
    , mediaFoundationConfiguration (NULL)
-   , labelFile ()
-   , modelFile ()
    , outputFormat (NULL)
    , session (NULL)
    , subscriber (NULL)
@@ -512,8 +522,6 @@ struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration
   struct Stream_MediaFramework_Direct3D_Configuration*        direct3DConfiguration;
   bool                                                        manageMediaSession;
   struct Stream_MediaFramework_MediaFoundation_Configuration* mediaFoundationConfiguration;
-  std::string                                                 labelFile; // tensorflow
-  std::string                                                 modelFile; // tensorflow
   IMFMediaType*                                               outputFormat;
   IMFMediaSession*                                            session;
   Stream_CameraML_MediaFoundation_ISessionNotify_t*           subscriber;
@@ -537,8 +545,6 @@ struct Stream_CameraML_V4L_ModuleHandlerConfiguration
    , codecId (AV_CODEC_ID_NONE)
 #endif // FFMPEG_SUPPORT
    , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
-   , labelFile ()
-   , modelFile ()
    , outputFormat ()
    , subscriber (NULL)
 //   , subscribers (NULL)
@@ -558,8 +564,6 @@ struct Stream_CameraML_V4L_ModuleHandlerConfiguration
   enum AVCodecID                             codecId;
 #endif // FFMPEG_SUPPORT
   enum v4l2_memory                           method; // v4l camera source
-  std::string                                labelFile; // tensorflow
-  std::string                                modelFile; // tensorflow
   struct Stream_MediaFramework_V4L_MediaType outputFormat;
   Stream_CameraML_ISessionNotify_t*          subscriber;
 //  Stream_CameraML_Subscribers_t*             subscribers;

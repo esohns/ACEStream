@@ -944,7 +944,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         ACE_DIRECTORY_SEPARATOR_CHAR_A;
       directshow_modulehandler_configuration.labelFile +=
         ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LABEL_FILE);
-      directshow_modulehandler_configuration.modelFile = modelFile_in;
+      directshow_modulehandler_configuration.model = modelFile_in;
 
       //if (statisticReportingInterval_in)
       //{
