@@ -406,23 +406,28 @@ if (MEDIAPIPE_SUPPORT)
 
  # Mediapipe Modules
  add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/modules" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/modules"
-    COMMENT "Copying mediapipe/modules"
+                     COMMAND ${CMAKE_COMMAND} -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/modules" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/modules"
+                     COMMENT "Copying mediapipe/modules"
+ )
+ # additional file(s)
+ add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
+                     COMMAND ${CMAKE_COMMAND} -E copy "${MEDIAPIPE_ROOT}/mediapipe/modules/hand_landmark/handedness.txt" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/modules/hand_landmark"
+                     COMMENT "Copying mediapipe/modules/hand_landmark/handedness.txt"
  )
  # Mediapipe Models
  add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/models" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/models"
-    COMMENT "Copying mediapipe/models"
+                     COMMAND ${CMAKE_COMMAND} -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/models" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/models"
+                     COMMENT "Copying mediapipe/models"
  )
+
  if (WIN32)
   set (OPENCV_DIR "$ENV{LIB_ROOT}/opencv/build")
   file (TO_CMAKE_PATH "${OPENCV_DIR}" OPENCV_DIR)
   add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy "${OPENCV_DIR}/bin/Release/opencv_imgproc453.dll" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>"
-    COMMENT "Copying OpenCV DLL (Release)"
+                      COMMAND ${CMAKE_COMMAND} -E copy "${OPENCV_DIR}/bin/Release/opencv_imgproc453.dll" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>"
+                      COMMENT "Copying OpenCV DLL (Release)"
   )
  endif (WIN32)
-
 endif (MEDIAPIPE_SUPPORT)
 
 ##########################################
