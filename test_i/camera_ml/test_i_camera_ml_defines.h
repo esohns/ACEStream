@@ -104,7 +104,8 @@
 #define TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_FACE_OUTPUT_STREAM_STRING "multi_face_landmarks"
 
 // ---------------------------------------
-
+// adapted from https://github.com/google/mediapipe/blob/master/mediapipe/graphs/hand_tracking/hand_tracking_desktop_live.pbtxt
+// runs for up to 2 hands with previous landmark usage enabled
 #define TEST_I_CAMERA_ML_MEDIAPIPE_DEFAULT_HANDS_GRAPH_STRING R"(
   # MediaPipe graph that performs hands mesh with TensorFlow Lite on CPU.
 
@@ -139,10 +140,12 @@
   # Defines side packets for further use in the graph.
   node {
     calculator: "ConstantSidePacketCalculator"
-    output_side_packet: "PACKET:num_hands"
+    output_side_packet: "PACKET:0:num_hands"
+    output_side_packet: "PACKET:1:use_prev_landmarks"
     node_options: {
       [type.googleapis.com/mediapipe.ConstantSidePacketCalculatorOptions]: {
         packet { int_value: 2 }
+        packet { bool_value: true }
       }
     }
   }
@@ -151,6 +154,7 @@
     calculator: "HandLandmarkTrackingCpu"
     input_stream: "IMAGE:input_video"
     input_side_packet: "NUM_HANDS:num_hands"
+    input_side_packet: "USE_PREV_LANDMARKS:use_prev_landmarks"
     output_stream: "LANDMARKS:landmarks"
     output_stream: "HANDEDNESS:handedness"
     output_stream: "PALM_DETECTIONS:multi_palm_detections"

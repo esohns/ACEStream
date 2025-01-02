@@ -154,7 +154,6 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
   static float fps = 0.0f;
   static time_t start = time (NULL);
   static time_t end;
-
   if (nFrames % (iFrame + 1) == 0)
   {
     time (&end);
@@ -180,9 +179,9 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
   auto t0 = std::chrono::high_resolution_clock::now ();
 
   // feed RGB frame into MP graph (image data is COPIED internally by LibMP)
-  if (!graph_->Process (frame_matrix.data,
-                        frame_matrix.cols, frame_matrix.rows,
-                        mediapipe::ImageFormat::SRGB))
+  if (unlikely (!graph_->Process (frame_matrix.data,
+                                  frame_matrix.cols, frame_matrix.rows,
+                                  mediapipe::ImageFormat::SRGB)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to mediapipe::LibMP::Process(), aborting\n"),
@@ -190,7 +189,7 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
     inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
     return;
   } // end IF
-  if (!graph_->WaitUntilIdle ())
+  if (unlikely (!graph_->WaitUntilIdle ()))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to mediapipe::LibMP::WaitUntilIdle(), aborting\n"),
@@ -205,29 +204,29 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
     std::chrono::duration_cast<std::chrono::milliseconds> (t1 - t0).count ();
 
   // get landmark coordinates in custom data structure using helper function
-  std::vector<std::vector<std::array<float, 3>>> normalized_landmarks =
+  std::vector<std::vector<std::array<float, 3> > > normalized_landmarks =
     getLandmarks (graph_);
 
   // For each object, draw a circle at each landmark's position
   size_t num_objs = normalized_landmarks.size ();
   for (int i = 0; i < num_objs; i++)
-    for (const std::array<float, 3>& norm_xyz: normalized_landmarks[i])
+    for (const std::array<float, 3>& norm_xyz : normalized_landmarks[i])
     {
       int x = static_cast<int> (norm_xyz[0] * frame_matrix.cols);
       int y = static_cast<int> (norm_xyz[1] * frame_matrix.rows);
-      cv::circle (frame_matrix, cv::Point (x, y), 1, cv::Scalar (0, 255, 0), -1);
+      cv::circle (frame_matrix, cv::Point (x, y), 1, cv::Scalar (0, 255, 0));
     } // end FOR
 
-  cv::putText (frame_matrix, "# Objects Detected: " + std::to_string (num_objs),
+  cv::putText (frame_matrix, ACE_TEXT_ALWAYS_CHAR ("# Objects Detected: ") + std::to_string (num_objs),
                cv::Point (10, 40), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar (0, 255, 0));
-  cv::putText (frame_matrix, "Inference time: " + std::to_string (inference_time_ms) + " ms",
+  cv::putText (frame_matrix, ACE_TEXT_ALWAYS_CHAR ("Inference time: ") + std::to_string (inference_time_ms) + ACE_TEXT_ALWAYS_CHAR (" ms"),
                cv::Point (10, 60), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar (0, 255, 0));
 
   // step3b: draw fps
   std::ostringstream converter;
   converter << fps;
   cv::putText (frame_matrix, converter.str ().substr (0, 5) + ACE_TEXT_ALWAYS_CHAR (" fps"),
-               cv::Point (10, frame_matrix.rows - 3), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar (255, 255, 255));
+               cv::Point (10, frame_matrix.rows - 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar (255, 255, 255));
 }
 
 template <typename ConfigurationType,
@@ -321,13 +320,13 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_T::getLandmarks"));
 
-  std::vector<std::vector<std::array<float, 3>>> normalized_landmarks;
+  std::vector<std::vector<std::array<float, 3> > > normalized_landmarks;
 
   // I use a unique_ptr for convenience, so that DeletePacket is called automatically
   // You could also manage deletion yourself, manually:
   // const void* packet = face_mesh->GetOutputPacket("multi_face_landmarks");
   // mediapipe::LibMP::DeletePacket(packet);
-  std::unique_ptr<const void, decltype(&mediapipe::LibMP::DeletePacket)> lm_packet_ptr (nullptr, mediapipe::LibMP::DeletePacket);
+  std::unique_ptr<const void, decltype (&mediapipe::LibMP::DeletePacket)> lm_packet_ptr (nullptr, mediapipe::LibMP::DeletePacket);
 
   // Keep getting packets from queue until empty
   while (graph_in->GetOutputQueueSize (inherited::configuration_->outputStream.c_str ()) > 0)
