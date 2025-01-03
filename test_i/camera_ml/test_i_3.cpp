@@ -423,6 +423,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   BOOL result_2 = false;
   IMediaFilter* media_filter_p = NULL;
   struct _AMMediaType* media_type_p = NULL;
+  Common_Image_Resolution_t resolution_s = {640, 480};
 
   // sanity check(s)
   ACE_ASSERT (!IGraphBuilder_out);
@@ -463,6 +464,12 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
               ACE_TEXT ("\"%s\": default capture format: %s\n"),
               ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (deviceIdentifier_in.identifier._string).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (captureFormat_inout, true).c_str ())));
+
+  // *NOTE*: the default capture format may be too large to achieve adequate
+  //         frame rates on some systems
+  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                         captureFormat_inout);
+
   media_type_p =
     Stream_MediaFramework_DirectShow_Tools::copy (captureFormat_inout);
   if (!media_type_p)

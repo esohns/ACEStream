@@ -62,7 +62,9 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
  , stride_ (0)
  , graph_ (NULL)
  , world_ (NULL)
- , dimension_ (0.0f)
+ , halfDimension_ (0.0f)
+ , positionThumb_ (b2Vec2_zero)
+ , positionIndex_ (b2Vec2_zero)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::Test_I_CameraML_Module_MediaPipe_3"));
 
@@ -71,11 +73,12 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   //flags += b2Draw::e_aabbBit;
   //flags += b2Draw::e_pairBit;
   //flags += b2Draw::e_centerOfMassBit;
-  //flags += b2Draw::e_particleBit;
+  flags += b2Draw::e_jointBit;
+  // flags += b2Draw::e_particleBit;
   b2Draw::SetFlags (flags);
 
   b2Vec2 gravity;
-  gravity.Set (0.0f, 10.0f);
+  gravity.Set (0.0f, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_GRAVITY);
   world_ = new b2World (gravity);
   world_->SetDebugDraw (this);
 }
@@ -147,8 +150,6 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
     return false;
   } // end IF
 
-
-
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
@@ -173,26 +174,26 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
       break;
 
     x1 =
-      Common_GL_Tools::map (vertices[i].x, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1));
+      Common_GL_Tools::map (vertices[i].x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1));
     y1 =
-      Common_GL_Tools::map (vertices[i].y, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1));
+      Common_GL_Tools::map (vertices[i].y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1));
     x2 =
-      Common_GL_Tools::map (vertices[i + 1].x, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1));
+      Common_GL_Tools::map (vertices[i + 1].x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1));
     y2 =
-      Common_GL_Tools::map (vertices[i + 1].y, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1));
+      Common_GL_Tools::map (vertices[i + 1].y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1));
     olc::PixelGameEngine::DrawLine (static_cast<int32_t> (x1), static_cast<int32_t> (y1),
                                     static_cast<int32_t> (x2), static_cast<int32_t> (y2),
                                     {static_cast<uint8_t> (color.r * 255.0f), static_cast<uint8_t> (color.g * 255.0f), static_cast<uint8_t> (color.b * 255.0f), 255},
                                     0xFFFFFFFF);
   } // end FOR
   x1 =
-    Common_GL_Tools::map (vertices[vertexCount - 1].x, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1));
+    Common_GL_Tools::map (vertices[vertexCount - 1].x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1));
   y1 =
-    Common_GL_Tools::map (vertices[vertexCount - 1].y, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1));
+    Common_GL_Tools::map (vertices[vertexCount - 1].y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1));
   x2 =
-    Common_GL_Tools::map (vertices[0].x, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1));
+    Common_GL_Tools::map (vertices[0].x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1));
   y2 =
-    Common_GL_Tools::map (vertices[0].y, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1));
+    Common_GL_Tools::map (vertices[0].y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1));
   olc::PixelGameEngine::DrawLine (static_cast<int32_t> (x1), static_cast<int32_t> (y1),
                                   static_cast<int32_t> (x2), static_cast<int32_t> (y2),
                                   {static_cast<uint8_t> (color.r * 255.0f), static_cast<uint8_t> (color.g * 255.0f), static_cast<uint8_t> (color.b * 255.0f), 255},
@@ -229,9 +230,9 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 {
   float x, y;
   x =
-    Common_GL_Tools::map (center.x, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth() - 1));
+    Common_GL_Tools::map (center.x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth() - 1));
   y =
-    Common_GL_Tools::map (center.y, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1));
+    Common_GL_Tools::map (center.y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1));
   olc::PixelGameEngine::DrawCircle (static_cast<int32_t> (x), static_cast<int32_t> (y),
                                     static_cast<int32_t> (radius),
                                     {static_cast<uint8_t> (color.r * 255.0f), static_cast<uint8_t> (color.g * 255.0f), static_cast<uint8_t> (color.b * 255.0f), 255},
@@ -252,9 +253,9 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 {
   float x, y;
   x =
-    Common_GL_Tools::map (center.x, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth() - 1));
+    Common_GL_Tools::map (center.x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth() - 1));
   y =
-    Common_GL_Tools::map (center.y, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1));
+    Common_GL_Tools::map (center.y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1));
   olc::PixelGameEngine::FillCircle (static_cast<int32_t> (x), static_cast<int32_t> (y),
                                     static_cast<int32_t> (radius),
                                     {static_cast<uint8_t> (color.r * 255.0f), static_cast<uint8_t> (color.g * 255.0f), static_cast<uint8_t> (color.b * 255.0f), 255});
@@ -277,9 +278,9 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   for (int32 i = 0; i < count; ++i)
   {
     x =
-      Common_GL_Tools::map (centers[i].x, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth() - 1));
+      Common_GL_Tools::map (centers[i].x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth() - 1));
     y =
-      Common_GL_Tools::map (centers[i].y, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1));
+      Common_GL_Tools::map (centers[i].y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1));
     olc::PixelGameEngine::DrawCircle (static_cast<int32_t> (x), static_cast<int32_t> (y),
                                       static_cast<int32_t> (radius),
                                       colors ? olc::Pixel (static_cast<uint8_t> (colors[i].r * 255.0f), static_cast<uint8_t> (colors[i].g * 255.0f), static_cast<uint8_t> (colors[i].b * 255.0f), 255) : olc::WHITE,
@@ -301,13 +302,13 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 {
   float x1, y1, x2, y2;
   x1 =
-    Common_GL_Tools::map (p1.x, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth() - 1));
+    Common_GL_Tools::map (p1.x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth() - 1));
   y1 =
-    Common_GL_Tools::map (p1.y, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1));
+    Common_GL_Tools::map (p1.y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1));
   x2 =
-    Common_GL_Tools::map (p2.x, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth() - 1));
+    Common_GL_Tools::map (p2.x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth() - 1));
   y2 =
-    Common_GL_Tools::map (p2.y, -dimension_, dimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1));
+    Common_GL_Tools::map (p2.y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1));
   olc::PixelGameEngine::DrawLine (static_cast<int32_t> (x1), static_cast<int32_t> (y1),
                                   static_cast<int32_t> (x2), static_cast<int32_t> (y2),
                                   {static_cast<uint8_t> (color.r * 255.0f), static_cast<uint8_t> (color.g * 255.0f), static_cast<uint8_t> (color.b * 255.0f), 255},
@@ -409,26 +410,43 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   std::vector<std::vector<std::array<float, 3> > > normalized_landmarks =
     getLandmarks (graph_);
 
-  // For each object, draw a circle at each landmark's position
   size_t num_objs = normalized_landmarks.size ();
   for (int i = 0; i < num_objs; i++)
+  {
+    float x_translated_f, y_translated_f;
+    int j = 0;
     for (const std::array<float, 3>& norm_xyz : normalized_landmarks[i])
     {
       int x = static_cast<int> (norm_xyz[0] * frame_matrix.cols);
       int y = static_cast<int> (norm_xyz[1] * frame_matrix.rows);
-      cv::circle (frame_matrix, cv::Point (x, y), 1, cv::Scalar (0, 255, 0));
-    } // end FOR
+      //cv::circle (frame_matrix, cv::Point (x, y), 1, cv::Scalar (0, 255, 0));
 
-  cv::putText (frame_matrix, ACE_TEXT_ALWAYS_CHAR ("# Objects Detected: ") + std::to_string (num_objs),
-               cv::Point (10, 40), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar (0, 255, 0));
-  cv::putText (frame_matrix, ACE_TEXT_ALWAYS_CHAR ("Inference time: ") + std::to_string (inference_time_ms) + ACE_TEXT_ALWAYS_CHAR (" ms"),
-               cv::Point (10, 60), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar (0, 255, 0));
+      if (j == 4 || j == 8) // thumb 'n index finger
+      {
+        x_translated_f =
+          Common_GL_Tools::map (static_cast<float> (x), 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1), -halfDimension_, halfDimension_);
+        y_translated_f =
+          Common_GL_Tools::map (static_cast<float> (y), 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1), -halfDimension_, halfDimension_);
+        if (j == 4)
+          positionThumb_.Set (x_translated_f, y_translated_f);
+        else
+          positionIndex_.Set (x_translated_f, y_translated_f);
+      } // end IF
+
+      j++;
+    } // end FOR
+  } // end FOR
+
+  //cv::putText (frame_matrix, ACE_TEXT_ALWAYS_CHAR ("# Objects Detected: ") + std::to_string (num_objs),
+  //             cv::Point (10, 40), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar (0, 255, 0));
+  //cv::putText (frame_matrix, ACE_TEXT_ALWAYS_CHAR ("Inference time: ") + std::to_string (inference_time_ms) + ACE_TEXT_ALWAYS_CHAR (" ms"),
+  //             cv::Point (10, 60), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar (0, 255, 0));
 
   // step3b: draw fps
-  std::ostringstream converter;
-  converter << fps;
-  cv::putText (frame_matrix, converter.str ().substr (0, 5) + ACE_TEXT_ALWAYS_CHAR (" fps"),
-               cv::Point (10, frame_matrix.rows - 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar (255, 255, 255));
+  //std::ostringstream converter;
+  //converter << fps;
+  //cv::putText (frame_matrix, converter.str ().substr (0, 5) + ACE_TEXT_ALWAYS_CHAR (" fps"),
+  //             cv::Point (10, frame_matrix.rows - 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar (255, 255, 255));
 
   // update frame data
   uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
@@ -442,10 +460,6 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 
       data_p += 3;
     } // end FOR
-
-  static float32 time_step_f = 1.0f / 60.0f;
-  world_->Step (time_step_f, 10, 10);
-  world_->DrawDebugData ();
 }
 
 template <typename ConfigurationType,
@@ -612,7 +626,7 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::OnUserCreate"));
 
-  dimension_ =
+  halfDimension_ =
     std::min (olc::PixelGameEngine::ScreenWidth (), olc::PixelGameEngine::ScreenHeight ()) / 2.0f;
   initializeBox2d ();
 
@@ -637,6 +651,31 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   if (!processNextMessage ())
     return false; // done
 
+  // handle bridge
+  (*bridge_.begin ())->SetTransform (positionThumb_, 0.0f);
+  (*(bridge_.end () - 1))->SetTransform (positionIndex_, 0.0f);
+
+  // handle balls
+  if (Common_Tools::testRandomProbability (0.1f))
+    balls_.push_back (new ball (world_, halfDimension_));
+  for (std::vector<ball*>::iterator iterator = balls_.begin ();
+       iterator != balls_.end ();
+       )
+  {
+    if ((*iterator)->isGone (halfDimension_))
+    {
+      delete *iterator;
+      iterator = balls_.erase (iterator);
+      continue;
+    } // end IF
+
+    ++iterator;
+  } // end FOR
+
+  static float32 time_step_f = 1.0f / 60.0f;
+  world_->Step (time_step_f, 10, 10);
+  world_->DrawDebugData ();
+
   return !inherited3::GetKey (olc::Key::ESCAPE).bPressed;
 }
 
@@ -653,6 +692,17 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
                                    MediaType>::OnUserDestroy ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::OnUserDestroy"));
+
+  for (std::vector<b2Body*>::iterator iterator = bridge_.begin ();
+        iterator != bridge_.end ();
+        ++iterator)
+    (*iterator)->GetWorld ()->DestroyBody (*iterator);
+  bridge_.clear ();
+  for (std::vector<ball*>::iterator iterator = balls_.begin ();
+       iterator != balls_.end ();
+       ++iterator)
+    delete *iterator;
+  balls_.clear ();
 
   return true;
 }
@@ -867,119 +917,39 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::initializeBox2d"));
 
+  b2BodyDef bodyDef;
+  bodyDef.type = b2_dynamicBody;
+  //bodyDef.position.Set (0.0f, 0.0f);
+  b2FixtureDef fixtureDef;
+  fixtureDef.density = 1.0f;
+  b2CircleShape circleShape;
+  circleShape.m_radius = TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS;
+  fixtureDef.shape = &circleShape;
+
+  b2DistanceJointDef jointDef;
+  //jointDef.localAnchorA.Set (0.0f, 0.0f);
+  //jointDef.localAnchorB.Set (0.0f, 0.0f);
+  jointDef.length =
+    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
+  jointDef.dampingRatio =
+    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_DAMP_RATIO;
+  jointDef.frequencyHz =
+    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_FREQ_HZ;
+
+  b2Body* link = world_->CreateBody (&bodyDef);
+  link->CreateFixture (&fixtureDef);
+  bridge_.push_back (link);
+  for (int i = 0; i < TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS - 1; i++)
   {
-    b2EdgeShape shape;
-    shape.Set (b2Vec2 (-dimension_, 0.0f), b2Vec2 (dimension_, 0.0f));
-    ground_->CreateFixture (&shape, 0.0f);
-  }
+    //bodyDef.position.Set (static_cast<float> (i + 1) * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
+    b2Body* newLink = world_->CreateBody (&bodyDef);
+    newLink->CreateFixture (&fixtureDef);
 
-  {
-    b2PolygonShape shape;
-    shape.SetAsBox(0.5f, 0.5f);
+    jointDef.bodyA = link;
+    jointDef.bodyB = newLink;
+    world_->CreateJoint (&jointDef);
 
-    b2BodyDef bd;
-    bd.type = b2_dynamicBody;
-
-    bd.position.Set (-5.0f, 5.0f);
-    bodies_[0] = world_->CreateBody (&bd);
-    bodies_[0]->CreateFixture (&shape, 5.0f);
-
-    bd.position.Set (5.0f, 5.0f);
-    bodies_[1] = world_->CreateBody (&bd);
-    bodies_[1]->CreateFixture (&shape, 5.0f);
-
-    bd.position.Set (5.0f, 15.0f);
-    bodies_[2] = world_->CreateBody (&bd);
-    bodies_[2]->CreateFixture (&shape, 5.0f);
-
-    bd.position.Set (-5.0f, 15.0f);
-    bodies_[3] = world_->CreateBody (&bd);
-    bodies_[3]->CreateFixture (&shape, 5.0f);
-
-    b2DistanceJointDef jd;
-    b2Vec2 p1, p2, d;
-
-    jd.frequencyHz = 2.0f;
-    jd.dampingRatio = 0.0f;
-
-    jd.bodyA = ground_;
-    jd.bodyB = bodies_[0];
-    jd.localAnchorA.Set (-10.0f, 0.0f);
-    jd.localAnchorB.Set (-0.5f, -0.5f);
-    p1 = jd.bodyA->GetWorldPoint (jd.localAnchorA);
-    p2 = jd.bodyB->GetWorldPoint (jd.localAnchorB);
-    d = p2 - p1;
-    jd.length = d.Length ();
-    joints_[0] = world_->CreateJoint (&jd);
-
-    jd.bodyA = ground_;
-    jd.bodyB = bodies_[1];
-    jd.localAnchorA.Set (10.0f, 0.0f);
-    jd.localAnchorB.Set (0.5f, -0.5f);
-    p1 = jd.bodyA->GetWorldPoint (jd.localAnchorA);
-    p2 = jd.bodyB->GetWorldPoint (jd.localAnchorB);
-    d = p2 - p1;
-    jd.length = d.Length ();
-    joints_[1] = world_->CreateJoint (&jd);
-
-    jd.bodyA = ground_;
-    jd.bodyB = bodies_[2];
-    jd.localAnchorA.Set (10.0f, 20.0f);
-    jd.localAnchorB.Set (0.5f, 0.5f);
-    p1 = jd.bodyA->GetWorldPoint (jd.localAnchorA);
-    p2 = jd.bodyB->GetWorldPoint (jd.localAnchorB);
-    d = p2 - p1;
-    jd.length = d.Length ();
-    joints_[2] = world_->CreateJoint (&jd);
-
-    jd.bodyA = ground_;
-    jd.bodyB = bodies_[3];
-    jd.localAnchorA.Set (-10.0f, 20.0f);
-    jd.localAnchorB.Set (-0.5f, 0.5f);
-    p1 = jd.bodyA->GetWorldPoint (jd.localAnchorA);
-    p2 = jd.bodyB->GetWorldPoint (jd.localAnchorB);
-    d = p2 - p1;
-    jd.length = d.Length ();
-    joints_[3] = world_->CreateJoint (&jd);
-
-    jd.bodyA = bodies_[0];
-    jd.bodyB = bodies_[1];
-    jd.localAnchorA.Set (0.5f, 0.0f);
-    jd.localAnchorB.Set (-0.5f, 0.0f);;
-    p1 = jd.bodyA->GetWorldPoint (jd.localAnchorA);
-    p2 = jd.bodyB->GetWorldPoint (jd.localAnchorB);
-    d = p2 - p1;
-    jd.length = d.Length ();
-    joints_[4] = world_->CreateJoint (&jd);
-
-    jd.bodyA = bodies_[1];
-    jd.bodyB = bodies_[2];
-    jd.localAnchorA.Set (0.0f, 0.5f);
-    jd.localAnchorB.Set (0.0f, -0.5f);
-    p1 = jd.bodyA->GetWorldPoint (jd.localAnchorA);
-    p2 = jd.bodyB->GetWorldPoint (jd.localAnchorB);
-    d = p2 - p1;
-    jd.length = d.Length ();
-    joints_[5] = world_->CreateJoint (&jd);
-
-    jd.bodyA = bodies_[2];
-    jd.bodyB = bodies_[3];
-    jd.localAnchorA.Set (-0.5f, 0.0f);
-    jd.localAnchorB.Set (0.5f, 0.0f);
-    p1 = jd.bodyA->GetWorldPoint (jd.localAnchorA);
-    p2 = jd.bodyB->GetWorldPoint (jd.localAnchorB);
-    d = p2 - p1;
-    jd.length = d.Length ();
-    joints_[6] = world_->CreateJoint (&jd);
-
-    jd.bodyA = bodies_[3];
-    jd.bodyB = bodies_[0];
-    jd.localAnchorA.Set (0.0f, -0.5f);
-    jd.localAnchorB.Set (0.0f, 0.5f);
-    p1 = jd.bodyA->GetWorldPoint (jd.localAnchorA);
-    p2 = jd.bodyB->GetWorldPoint (jd.localAnchorB);
-    d = p2 - p1;
-    jd.length = d.Length ();
-    joints_[7] = world_->CreateJoint (&jd);
-  }
+    link = newLink; // prepare for next iteration
+    bridge_.push_back (link);
+  } // end FOR
 }
