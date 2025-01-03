@@ -95,8 +95,10 @@ class Test_I_CameraML_Module_MediaPipe_3
       b2FixtureDef fixture_def;
       fixture_def.shape = &shape;
       fixture_def.density = 1.0f;
-      fixture_def.friction = 0.1f;
-      fixture_def.restitution = 0.85f;
+      fixture_def.friction =
+        TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_FRICTION;
+      fixture_def.restitution =
+        TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RESTITUTION;
       body_->CreateFixture (&fixture_def);
     }
 
