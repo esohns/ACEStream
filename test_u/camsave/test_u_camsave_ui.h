@@ -135,9 +135,7 @@ class Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   virtual void togglebutton_record_toggled_cb (wxCommandEvent&);
   virtual void button_snapshot_clicked_cb (wxCommandEvent&);
   virtual void button_cut_clicked_cb (wxCommandEvent&);
-#if defined (_DEBUG)
   virtual void button_report_clicked_cb (wxCommandEvent&);
-#endif // _DEBUG
   virtual void button_reset_camera_clicked_cb (wxCommandEvent&);
   virtual void choice_source_changed_cb (wxCommandEvent&);
   virtual void button_camera_properties_clicked_cb (wxCommandEvent&);
@@ -205,9 +203,7 @@ class Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   virtual void togglebutton_record_toggled_cb (wxCommandEvent&);
   virtual void button_snapshot_clicked_cb (wxCommandEvent&);
   virtual void button_cut_clicked_cb (wxCommandEvent&);
-#if defined (_DEBUG)
   virtual void button_report_clicked_cb (wxCommandEvent&);
-#endif // _DEBUG
   virtual void button_reset_camera_clicked_cb (wxCommandEvent&);
   virtual void choice_source_changed_cb (wxCommandEvent&);
   virtual void button_camera_properties_clicked_cb (wxCommandEvent&);

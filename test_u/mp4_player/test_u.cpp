@@ -802,7 +802,9 @@ do_work (int argc_in,
       directshow_modulehandler_configuration.codecConfiguration =
         &codec_configuration;
 #endif // FFMPEG_SUPPORT
+#if defined (_DEBUG)
       directshow_modulehandler_configuration.debug = debug_in;
+#endif // _DEBUG
       directshow_modulehandler_configuration.delayConfiguration =
         &delay_configuration;
       directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
@@ -836,7 +838,9 @@ do_work (int argc_in,
       mediafoundation_modulehandler_configuration.codecConfiguration =
         &codec_configuration;
 #endif // FFMPEG_SUPPORT
+#if defined (_DEBUG)
       mediafoundation_modulehandler_configuration.debug = debug_in;
+#endif // _DEBUG
       mediafoundation_modulehandler_configuration.delayConfiguration =
         &delay_configuration;
       mediafoundation_modulehandler_configuration.direct3DConfiguration =

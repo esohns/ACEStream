@@ -7,14 +7,17 @@ if (WIN32)
 #      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
 
- if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+ set (LIB_FILE_SUFFIX "")
+ set (PATH_SUFFIX Release)
+ if ($<CONFIG:Debug>)
   set (LIB_FILE_SUFFIX "d")
- endif (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+  set (PATH_SUFFIX Debug)
+ endif ($<CONFIG:Debug>)
  set (DIRECTSHOW_BASECLASSES_LIB_FILE BaseClasses${LIB_FILE_SUFFIX}.lib)
 # *TODO*: add unicode support
  find_library (BASECLASSES_LIBRARY ${DIRECTSHOW_BASECLASSES_LIB_FILE}
                PATHS ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses
-               PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+               PATH_SUFFIXES ${PATH_SUFFIX}
                DOC "searching for \"${DIRECTSHOW_BASECLASSES_LIB_FILE}\"")
  if (BASECLASSES_LIBRARY)
   set (DS_BASECLASSES_FOUND TRUE)

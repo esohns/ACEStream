@@ -11,9 +11,8 @@ if (UNIX)
  pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
 # pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavcodec)
 elseif (WIN32)
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "$ENV{LIB_ROOT}/DShowBaseClasses")
-#      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow")
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
+ include (DirectXBaseClasses)
 endif ()
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
@@ -30,12 +29,13 @@ if (NOT EXISTS ${ACENetwork_DIR})
 else ()
  message (STATUS "found package \"ACENetwork\": \"${ACENetwork_DIR}\"")
 endif ()
-add_definitions (-DACENETWORK_HAS_DLL)
+#add_definitions (-DACENETWORK_HAS_DLL)
 
-if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+if (WIN32)
  # *NOTE*: DirectShow uses 'DEBUG'
- add_definitions (-DDEBUG) # activate DirectShow debug logging
-endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+# add_definitions (-DDEBUG) # activate DirectShow debug logging
+ add_compile_options ($<$<CONFIG:Debug>:-DDEBUG>)
+endif (WIN32)
 
 if (FFMPEG_SUPPORT)
  include_directories (${ffmpeg_INCLUDE_DIRS})
@@ -369,7 +369,7 @@ if (WIN32)
               etc/${LIBRARY_DS}.def)
  set_property (TARGET ${LIBRARY_DS} PROPERTY FOLDER "test_i")
 
- target_include_directories (${LIBRARY_DS} PUBLIC "${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses")
+ target_include_directories (${LIBRARY_DS} PUBLIC ${DS_BASECLASSES_INCLUDE_DIRS})
 
  add_dependencies (${LIBRARY_DS} Common)
  add_dependencies (${LIBRARY_DS} CommonLog)
@@ -379,27 +379,22 @@ if (WIN32)
  set (CMAKE_MODULE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
  set_target_properties (${LIBRARY_DS} PROPERTIES LINK_FLAGS /SAFESEH:NO)
  
- target_link_libraries (${LIBRARY_DS} strmiids.lib)
- target_link_libraries (${LIBRARY_DS} winmm.lib)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
-  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/Debug/BaseClassesd.lib)
-#  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
- else ()
-#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
-  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/Release/BaseClasses.lib)
- endif (CMAKE_BUILD_TYPE STREQUAL Debug)
- target_link_libraries (${LIBRARY_DS} ${ACE_LIBRARY})
+ target_link_libraries (${LIBRARY_DS} PUBLIC strmiids.lib)
+ target_link_libraries (${LIBRARY_DS} PUBLIC winmm.lib)
 
- target_link_libraries (${LIBRARY_DS} Common)
- target_link_libraries (${LIBRARY_DS} CommonLog)
+ target_link_libraries (${LIBRARY_DS} PUBLIC ${DS_BASECLASSES_LIBRARIES})
 
- target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME})
- target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME}_Device)
- target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME}_MediaFramework)
- target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME}_Miscellaneous)
+ target_link_libraries (${LIBRARY_DS} PUBLIC ${ACE_LIBRARY})
 
- target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME}_Test_I)
+ target_link_libraries (${LIBRARY_DS} PUBLIC Common)
+ target_link_libraries (${LIBRARY_DS} PUBLIC CommonLog)
+
+ target_link_libraries (${LIBRARY_DS} PUBLIC ${PROJECT_NAME})
+ target_link_libraries (${LIBRARY_DS} PUBLIC ${PROJECT_NAME}_Device)
+ target_link_libraries (${LIBRARY_DS} PUBLIC ${PROJECT_NAME}_MediaFramework)
+ target_link_libraries (${LIBRARY_DS} PUBLIC ${PROJECT_NAME}_Miscellaneous)
+
+ target_link_libraries (${LIBRARY_DS} PUBLIC ${PROJECT_NAME}_Test_I)
 
  set_target_properties (${LIBRARY_DS} PROPERTIES DEFINE_SYMBOL STREAM_HAS_DLL)
  set_target_properties (${LIBRARY_DS} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

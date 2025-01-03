@@ -5728,12 +5728,14 @@ continue_2:
   ACE_ASSERT (gl_context_p);
   Common_UI_GTK_Tools::dumpGtkOpenGLInfo (gl_context_p);
 #else
-#if defined (GTKGLAREA_SUPPORT)
+#if defined (_DEBUG)
+#if defined(GTKGLAREA_SUPPORT)
   ACE_ASSERT ((*opengl_contexts_iterator).first->glcontext);
   Common_UI_GTK_Tools::dumpGtkOpenGLInfo ((*opengl_contexts_iterator).first->glcontext);
 #else
   Common_UI_GTK_Tools::dumpGtkOpenGLInfo (gtk_widget_get_window (GTK_WIDGET ((*opengl_contexts_iterator).first)));
 #endif // GTKGLAREA_SUPPORT
+#endif // _DEBUG
 #endif // GTK_CHECK_VERSION(3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)

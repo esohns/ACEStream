@@ -676,7 +676,7 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
     ++iterator;
   } // end FOR
 
-  static float32 time_step_f = 1.0f / 30.0f;
+  static float32 time_step_f = 1.0f / 15.0f;
   world_->Step (time_step_f, 1, 1);
   world_->DrawDebugData ();
 
@@ -922,9 +922,10 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::initializeBox2d"));
 
   b2BodyDef bodyDef;
+  bodyDef.allowSleep = false;
   bodyDef.type = b2_dynamicBody;
   b2FixtureDef fixtureDef;
-  fixtureDef.density = 1.0f;
+  fixtureDef.density = TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BODY_DENSITY;
   fixtureDef.friction = TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_FRICTION;
   fixtureDef.restitution =
     TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RESTITUTION;
@@ -945,7 +946,7 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   bridge_.push_back (link);
   for (int i = 0; i < TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS - 1; i++)
   {
-    bodyDef.position.Set (static_cast<float> (i + 1) * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
+    //bodyDef.position.Set (static_cast<float> (i + 1) * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
     b2Body* newLink = world_->CreateBody (&bodyDef);
     newLink->CreateFixture (&fixtureDef);
 

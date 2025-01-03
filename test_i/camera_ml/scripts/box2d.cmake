@@ -35,6 +35,12 @@ elseif (WIN32)
   endif (BOX2D_FOUND)
  endif (VCPKG_USE)
  if (NOT BOX2D_FOUND)
+#  set (LIB_FILE_SUFFIX "")
+  set (PATH_SUFFIX Release)
+  if ($<CONFIG:Debug>)
+#   set (LIB_FILE_SUFFIX "d")
+   set (PATH_SUFFIX Debug)
+  endif ($<CONFIG:Debug>)
   if (EXISTS $ENV{BOX2D_ROOT})
    set (BOX2D_ROOT $ENV{BOX2D_ROOT})
   else ()
@@ -43,7 +49,7 @@ elseif (WIN32)
   file (TO_CMAKE_PATH "${BOX2D_ROOT}" BOX2D_ROOT)
   find_library (BOX2D_LIBRARY liquidfun.lib
                 PATHS ${BOX2D_ROOT}/build/msvc/Box2D
-                PATH_SUFFIXES Debug
+                PATH_SUFFIXES ${PATH_SUFFIX}
                 DOC "searching for liquidfun.lib"
                 NO_DEFAULT_PATH)
   if (NOT BOX2D_LIBRARY)

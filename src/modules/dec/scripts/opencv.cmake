@@ -19,12 +19,18 @@ elseif (WIN32)
   endif (opencv_FOUND)
  endif (VCPKG_USE)
  if (NOT OPENCV_FOUND)
+  set (LIB_FILE_SUFFIX "")
+  set (PATH_SUFFIX Release)
+  if ($<CONFIG:Debug>)
+   set (LIB_FILE_SUFFIX "d")
+   set (PATH_SUFFIX Debug)
+  endif ($<CONFIG:Debug>)
 #  set (OPENCV_VERSION "460")
   set (OPENCV_VERSION "453")
   set (OPENCV_CORE_LIB_FILE "opencv_core${OPENCV_VERSION}${LIB_FILE_SUFFIX}.lib")
   find_library (OPENCV_CORE_LIBRARY ${OPENCV_CORE_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/opencv/build/lib/
-                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                PATH_SUFFIXES ${PATH_SUFFIX}
                 DOC "searching for ${OPENCV_CORE_LIB_FILE}"
                 NO_DEFAULT_PATH)
   if (NOT OPENCV_CORE_LIBRARY)
@@ -35,7 +41,7 @@ elseif (WIN32)
   set (OPENCV_HIGHGUI_LIB_FILE "opencv_highgui${OPENCV_VERSION}${LIB_FILE_SUFFIX}.lib")
   find_library (OPENCV_HIGHGUI_LIBRARY ${OPENCV_HIGHGUI_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/opencv/build/lib/
-                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                PATH_SUFFIXES ${PATH_SUFFIX}
                 DOC "searching for ${OPENCV_HIGHGUI_LIB_FILE}"
                 NO_DEFAULT_PATH)
   if (NOT OPENCV_HIGHGUI_LIBRARY)
@@ -46,7 +52,7 @@ elseif (WIN32)
   set (OPENCV_IMGCODECS_LIB_FILE "opencv_imgcodecs${OPENCV_VERSION}${LIB_FILE_SUFFIX}.lib")
   find_library (OPENCV_IMGCODECS_LIBRARY ${OPENCV_IMGCODECS_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/opencv/build/lib/
-                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                PATH_SUFFIXES ${PATH_SUFFIX}
                 DOC "searching for ${OPENCV_IMGCODECS_LIB_FILE}"
                 NO_DEFAULT_PATH)
   if (NOT OPENCV_IMGCODECS_LIBRARY)
@@ -57,7 +63,7 @@ elseif (WIN32)
   set (OPENCV_IMGPROC_LIB_FILE "opencv_imgproc${OPENCV_VERSION}${LIB_FILE_SUFFIX}.lib")
   find_library (OPENCV_IMGPROC_LIBRARY ${OPENCV_IMGPROC_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/opencv/build/lib/
-                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                PATH_SUFFIXES ${PATH_SUFFIX}
                 DOC "searching for ${OPENCV_IMGPROC_LIB_FILE}"
                 NO_DEFAULT_PATH)
   if (NOT OPENCV_IMGPROC_LIBRARY)
@@ -68,7 +74,7 @@ elseif (WIN32)
   set (OPENCV_OBJDETECT_LIB_FILE "opencv_objdetect${OPENCV_VERSION}${LIB_FILE_SUFFIX}.lib")
   find_library (OPENCV_OBJDETECT_LIBRARY ${OPENCV_OBJDETECT_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/opencv/build/lib/
-                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                PATH_SUFFIXES ${PATH_SUFFIX}
                 DOC "searching for ${OPENCV_OBJDETECT_LIB_FILE}"
                 NO_DEFAULT_PATH)
   if (NOT OPENCV_OBJDETECT_LIBRARY)
@@ -79,7 +85,7 @@ elseif (WIN32)
   set (OPENCV_VIDEOIO_LIB_FILE "opencv_videoio${OPENCV_VERSION}${LIB_FILE_SUFFIX}.lib")
   find_library (OPENCV_VIDEOIO_LIBRARY ${OPENCV_VIDEOIO_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/opencv/build/lib/
-                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                PATH_SUFFIXES ${PATH_SUFFIX}
                 DOC "searching for ${OPENCV_VIDEOIO_LIB_FILE}"
                 NO_DEFAULT_PATH)
   if (NOT OPENCV_VIDEOIO_LIBRARY)

@@ -107,14 +107,10 @@ if (OLC_CGE_SUPPORT)
       test_i_camera_ar_module_cge.inl)
 endif (OLC_CGE_SUPPORT)
 
-if (UNIX)
-elseif (WIN32)
- if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
-  add_definitions (-DD3D_DEBUG_INFO)
-  # *NOTE*: DirectShow uses 'DEBUG'
-  add_definitions (-DDEBUG) # activate DirectShow debug logging
- endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
-endif ()
+if (WIN32)
+ add_compile_options ($<$<CONFIG:Debug>:-DDEBUG>)
+ add_compile_options ($<$<CONFIG:Debug>:-DD3D_DEBUG_INFO>)
+endif (WIN32)
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
@@ -153,12 +149,13 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
 
  if (DIRECTSHOW_BASECLASSES_SUPPORT)
+  target_link_libraries (${EXECUTABLE} PUBLIC ${DS_BASECLASSES_LIBRARIES})
 # *NOTE*: need unicode build (see above)
-  if (CMAKE_BUILD_TYPE STREQUAL Debug)
-   target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/${CMAKE_BUILD_TYPE}/BaseClassesdu.lib)
-  else ()
-   target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/${CMAKE_BUILD_TYPE}/BaseClassesu.lib)
-  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+#  if (CMAKE_BUILD_TYPE STREQUAL Debug)
+#   target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/${CMAKE_BUILD_TYPE}/BaseClassesdu.lib)
+#  else ()
+#   target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/${CMAKE_BUILD_TYPE}/BaseClassesu.lib)
+#  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
  endif (DIRECTSHOW_BASECLASSES_SUPPORT)
 endif ()
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})

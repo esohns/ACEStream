@@ -85,16 +85,18 @@ class Test_I_CameraML_Module_MediaPipe_3
      : body_ (NULL)
     {
       b2BodyDef body_def;
+      body_def.allowSleep = false;
       body_def.type = b2_dynamicBody;
       body_def.position.Set (0.0f, -halfDimension_in);
-      body_def.linearVelocity.Set (Common_Tools::getRandomNumber (-5.0f, 5.0f),
-                                   Common_Tools::getRandomNumber (-5.0f, 5.0f));
+      body_def.linearVelocity.Set (Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL),
+                                   Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL));
       body_ = world_in->CreateBody (&body_def);
       b2CircleShape shape;
       shape.m_radius = TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS;
       b2FixtureDef fixture_def;
       fixture_def.shape = &shape;
-      fixture_def.density = 1.0f;
+      fixture_def.density =
+        TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BODY_DENSITY;
       fixture_def.friction =
         TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_FRICTION;
       fixture_def.restitution =

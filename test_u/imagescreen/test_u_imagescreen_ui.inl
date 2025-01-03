@@ -1229,7 +1229,6 @@ Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
 
 }
 
-#if defined (_DEBUG)
 void
 Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
                                      Stream_ImageScreen_WxWidgetsIApplication_t,
@@ -1238,7 +1237,6 @@ Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_report_clicked_cb"));
 
 }
-#endif // _DEBUG
 
 void
 Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,

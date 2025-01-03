@@ -230,10 +230,11 @@ target_sources (${PROJECT_NAME}_MediaFramework
 target_precompile_headers (${PROJECT_NAME}_MediaFramework
                            PUBLIC stdafx.h)
 
-if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+if (WIN32)
  # *NOTE*: DirectShow uses 'DEBUG'
- add_definitions (-DDEBUG) # activate DirectShow debug logging
-endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+# add_definitions (-DDEBUG) # activate DirectShow debug logging
+ add_compile_options ($<$<CONFIG:Debug>:-DDEBUG>)
+endif (WIN32)
 
 set_property (TARGET ${PROJECT_NAME}_MediaFramework PROPERTY FOLDER "modules")
 

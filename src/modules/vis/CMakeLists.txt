@@ -38,10 +38,11 @@ get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 if (WIN32)
  add_definitions (-D__STDC_CONSTANT_MACROS)
 
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
+ add_compile_options ($<$<CONFIG:Debug>:-DDEBUG>)
+# if (CMAKE_BUILD_TYPE STREQUAL Debug)
  # *NOTE*: DirectShow uses 'DEBUG'
-  add_definitions (-DDEBUG) # activate DirectShow debug logging
- endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+#  add_definitions (-DDEBUG) # activate DirectShow debug logging
+# endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif (WIN32)
 
 add_library (${PROJECT_NAME}_Visualization STATIC "")

@@ -121,11 +121,10 @@ if (UNIX)
   add_definitions (-DNCURSES_WIDECHAR) # activate wide character support in ncurses
  endif (CURSES_SUPPORT)
 elseif (WIN32)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  add_definitions (-DD3D_DEBUG_INFO)
-  # *NOTE*: DirectShow uses 'DEBUG'
-  add_definitions (-DDEBUG) # activate DirectShow debug logging
- endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+ # *NOTE*: DirectShow uses 'DEBUG'
+# add_definitions (-DDEBUG) # activate DirectShow debug logging
+ add_compile_options ($<$<CONFIG:Debug>:-DDEBUG>)
+ add_compile_options ($<$<CONFIG:Debug>:-DD3D_DEBUG_INFO>)
 
  if (CURSES_SUPPORT)
   add_definitions (-DPDC_WIDE) # activate wide character support in PDCurses

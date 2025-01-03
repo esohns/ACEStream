@@ -91,11 +91,10 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_stream.h)
 
 if (WIN32)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  add_definitions (-DD3D_DEBUG_INFO)
-  # *NOTE*: DirectShow uses 'DEBUG'
-  add_definitions (-DDEBUG) # activate DirectShow debug logging
- endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+ # *NOTE*: DirectShow uses 'DEBUG'
+# add_definitions (-DDEBUG) # activate DirectShow debug logging
+ add_compile_options ($<$<CONFIG:Debug>:-DDEBUG>)
+ add_compile_options ($<$<CONFIG:Debug>:-DD3D_DEBUG_INFO>)
 endif (WIN32)
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
