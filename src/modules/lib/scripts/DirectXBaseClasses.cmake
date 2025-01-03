@@ -8,17 +8,18 @@ if (WIN32)
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
 
  set (LIB_FILE_SUFFIX "")
- set (PATH_SUFFIX Release)
- if ($<CONFIG:Debug>)
+ set (PATH_SUFFIX "Release")
+ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   set (LIB_FILE_SUFFIX "d")
-  set (PATH_SUFFIX Debug)
- endif ($<CONFIG:Debug>)
+  set (PATH_SUFFIX "Debug")
+ endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
  set (DIRECTSHOW_BASECLASSES_LIB_FILE BaseClasses${LIB_FILE_SUFFIX}.lib)
 # *TODO*: add unicode support
  find_library (BASECLASSES_LIBRARY ${DIRECTSHOW_BASECLASSES_LIB_FILE}
                PATHS ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses
                PATH_SUFFIXES ${PATH_SUFFIX}
-               DOC "searching for \"${DIRECTSHOW_BASECLASSES_LIB_FILE}\"")
+               DOC "searching for \"${DIRECTSHOW_BASECLASSES_LIB_FILE}\""
+               NO_DEFAULT_PATH)
  if (BASECLASSES_LIBRARY)
   set (DS_BASECLASSES_FOUND TRUE)
   set (DS_BASECLASSES_INCLUDE_DIRS "${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses")
