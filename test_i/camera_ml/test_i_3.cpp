@@ -1334,10 +1334,10 @@ ACE_TMAIN (int argc_in,
   process_profile.start ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Common_Tools::initialize (true,   // COM ?
-                            false); // RNG ?
+  Common_Tools::initialize (true,  // COM ?
+                            true); // RNG ?
 #else
-  Common_Tools::initialize (false); // RNG ?
+  Common_Tools::initialize (true); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
   // initialize framework(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

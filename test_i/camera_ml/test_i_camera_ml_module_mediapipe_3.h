@@ -87,10 +87,14 @@ class Test_I_CameraML_Module_MediaPipe_3
       b2BodyDef body_def;
       body_def.allowSleep = false;
       body_def.type = b2_dynamicBody;
-      body_def.position.Set (0.0f, -halfDimension_in);
+      body_def.position.Set (Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_X_OFFSET, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_X_OFFSET),
+                             -halfDimension_in);
+      body_def.angularVelocity =
+        Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL);
       body_def.linearVelocity.Set (Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL),
                                    Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL));
       body_ = world_in->CreateBody (&body_def);
+      ACE_ASSERT (body_);
       b2CircleShape shape;
       shape.m_radius = TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS;
       b2FixtureDef fixture_def;
@@ -164,14 +168,14 @@ class Test_I_CameraML_Module_MediaPipe_3
   std::vector<std::vector<std::array<float, 3>>> getLandmarks (mediapipe::LibMP*);
 
   Common_Image_Resolution_t resolution_;
-  int                       stride_;
   mediapipe::LibMP*         graph_;
 
   b2World*                  world_;
-  float                     halfDimension_; // *NOTE*: coords go from [-halfDimension_, halfDimension_]
+  float                     halfDimension_; // *NOTE*: box2d coords go from [-halfDimension_, halfDimension_]
   std::vector<b2Body*>      bridge_;
   std::vector<ball*>        balls_;
-  b2Vec2                    positionThumb_, positionIndex_;
+  b2Vec2                    positionThumb_;
+  b2Vec2                    positionIndex_;
 };
 
 // include template definition

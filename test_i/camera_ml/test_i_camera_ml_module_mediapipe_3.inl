@@ -59,7 +59,6 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
  : inherited (stream_in)
  , inherited2 ()
  , resolution_ ()
- , stride_ (0)
  , graph_ (NULL)
  , world_ (NULL)
  , halfDimension_ (0.0f)
@@ -259,6 +258,14 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   olc::PixelGameEngine::FillCircle (static_cast<int32_t> (x), static_cast<int32_t> (y),
                                     static_cast<int32_t> (radius),
                                     {static_cast<uint8_t> (color.r * 255.0f), static_cast<uint8_t> (color.g * 255.0f), static_cast<uint8_t> (color.b * 255.0f), 255});
+
+  // draw line to see angular velocity
+  //float a_deg_f = std::atan2 (axis.y, axis.x) * 180.0f / static_cast<float> (M_PI);
+  olc::vf2d pos1 = {x, y};
+  olc::vf2d pos2 = {x + (axis.x * radius), y + (axis.y * radius)};
+  olc::PixelGameEngine::DrawLine (pos1, pos2,
+                                  olc::BLACK,
+                                  0xFFFFFFFF);
 }
 
 template <typename ConfigurationType,
@@ -509,11 +516,6 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
       resolution_.height = media_type_s.format.height;
       resolution_.width = media_type_s.format.width;
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      stride_ = resolution_.cx * 3;
-#else
-      stride_ = resolution_.width * 3;
-#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
@@ -676,8 +678,11 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
     ++iterator;
   } // end FOR
 
-  static float32 time_step_f = 1.0f / 15.0f;
-  world_->Step (time_step_f, 1, 1);
+  static float32 time_step_f =
+    1.0f / TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_STEP_FPS;
+  world_->Step (time_step_f,
+                TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_ITER_VEL_PER_STEP,
+                TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_ITER_POS_PER_STEP);
   world_->DrawDebugData ();
 
   return !inherited3::GetKey (olc::Key::ESCAPE).bPressed;
@@ -926,28 +931,37 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   bodyDef.type = b2_dynamicBody;
   b2FixtureDef fixtureDef;
   fixtureDef.density = TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BODY_DENSITY;
-  fixtureDef.friction = TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_FRICTION;
+  fixtureDef.friction = 1.0f;
   fixtureDef.restitution =
     TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RESTITUTION;
   b2CircleShape circleShape;
   circleShape.m_radius = TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS;
   fixtureDef.shape = &circleShape;
 
-  b2DistanceJointDef jointDef;
-  jointDef.length =
-    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
-  jointDef.dampingRatio =
-    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_DAMP_RATIO;
-  jointDef.frequencyHz =
-    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_FREQ_HZ;
+  //b2DistanceJointDef jointDef;
+  //jointDef.collideConnected = true;
+  ////jointDef.localAnchorA.Set (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
+  ////jointDef.localAnchorB.Set (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
+  //jointDef.length =
+  //  TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
+  //jointDef.dampingRatio =
+  //  TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_DAMP_RATIO;
+  //jointDef.frequencyHz =
+  //  TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_FREQ_HZ;
+  b2RevoluteJointDef jointDef;
+  jointDef.collideConnected = false;
+  jointDef.localAnchorA.Set (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
+  jointDef.localAnchorB.Set (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
 
   b2Body* link = world_->CreateBody (&bodyDef);
+  ACE_ASSERT (link);
   link->CreateFixture (&fixtureDef);
   bridge_.push_back (link);
   for (int i = 0; i < TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS - 1; i++)
   {
-    //bodyDef.position.Set (static_cast<float> (i + 1) * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
+    bodyDef.position.Set (static_cast<float> (i + 1) * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH, 0.0f);
     b2Body* newLink = world_->CreateBody (&bodyDef);
+    ACE_ASSERT (newLink);
     newLink->CreateFixture (&fixtureDef);
 
     jointDef.bodyA = link;
