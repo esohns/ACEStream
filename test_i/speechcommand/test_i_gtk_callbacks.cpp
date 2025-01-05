@@ -1755,7 +1755,7 @@ idle_update_info_display_cb (gpointer userData_in)
   struct Test_I_SpeechCommand_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_I_SpeechCommand_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
-  Stream_Decoder_DeepSpeech_Result_t* result_p = NULL;
+  Stream_Decoder_STT_Result_t* result_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -1885,7 +1885,7 @@ idle_update_info_display_cb (gpointer userData_in)
                     ACE_TEXT ("failed to ACE_Unbounded_Stack::pop(): \"%m\", continuing\n")));
     } // end WHILE
 
-    for (Stream_Decoder_DeepSpeech_ResultIterator_t iterator_2 = result_p->begin ();
+    for (Stream_Decoder_STT_ResultIterator_t iterator_2 = result_p->begin ();
          iterator_2 != result_p->end ();
          ++iterator_2)
     {
@@ -2268,6 +2268,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_ASSERT (thread_data_2);
       thread_data_2->CBData = directshow_ui_cb_data_p;
       thread_data_p = thread_data_2;
+      thread_data_p->CBData = directshow_ui_cb_data_p;
       progress_data_p = &directshow_ui_cb_data_p->progressData;
       break;
     }
@@ -2281,6 +2282,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       thread_data_2->CBData = mediafoundation_ui_cb_data_p;
       thread_data_2->mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
       thread_data_p = thread_data_2;
+      thread_data_p->CBData = mediafoundation_ui_cb_data_p;
       progress_data_p = &mediafoundation_ui_cb_data_p->progressData;
       break;
     }
@@ -3589,7 +3591,8 @@ hscale_boost_change_value_cb (GtkRange* range_in,
       directshow_ui_cb_data_p =
         static_cast<struct Test_I_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
-      ACE_ASSERT (directshow_ui_cb_data_p->boostControl);
+      if (!directshow_ui_cb_data_p->boostControl)
+        return FALSE; // propagate the event
       float min_level_f = 0.0F, max_level_f = 0.0F, stepping_f = 0.0F;
       HRESULT result =
         directshow_ui_cb_data_p->boostControl->GetLevelRange (0,

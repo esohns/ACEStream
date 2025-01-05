@@ -18,6 +18,7 @@ include (sox)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
 include (deepspeech)
+include (whisper_cpp)
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
@@ -47,13 +48,13 @@ if (UNIX)
 elseif (WIN32)
  # *NOTE*: workaround
 # set (_PF86 "ProgramFiles(x86)")
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      $ENV{LIB_ROOT}/DShowBaseClasses)
+# set (DIRECTSHOW_BASECLASSES_DIRECTORY
+#      $ENV{LIB_ROOT}/DShowBaseClasses)
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
 
 # DirectShow
 # include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
- include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses)
+ #include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
@@ -181,10 +182,12 @@ endif (GLEW_SUPPORT)
 if (DEEPSPEECH_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${DEEPSPEECH_LIBRARIES})
 endif (DEEPSPEECH_SUPPORT)
+if (WHISPERCPP_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${WHISPERCPP_LIBRARIES})
+endif (WHISPERCPP_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_ALSA_LIBRARIES})
  target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
-# target_link_libraries (${EXECUTABLE} PUBLIC /mnt/win_d/lib/DeepSpeech/native_client/ctcdecode/third_party/openfst-1.6.7/src/lib/.libs/libfst.so)
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC mfuuid.lib)
@@ -236,12 +239,14 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_I)
 target_precompile_headers (${EXECUTABLE}
                            PUBLIC stdafx.h)
 
-set (model_file "deepspeech-0.9.3-models.pbmm")
-set (scorer_file "deepspeech-0.9.3-models.scorer")
-set (german_model_file "model.pbmm")
-set (german_scorer_file "de-aashishag-1-prune-kenlm.scorer")
-set (model_file "etc/${german_model_file}")
-set (scorer_file "etc/${german_scorer_file}")
+set (ds_model_file "deepspeech-0.9.3-models.pbmm")
+set (ds_scorer_file "deepspeech-0.9.3-models.scorer")
+set (ds_german_model_file "model.pbmm")
+set (ds_german_scorer_file "de-aashishag-1-prune-kenlm.scorer")
+set (ds_model_file "etc/${ds_german_model_file}")
+set (ds_scorer_file "etc/${ds_german_scorer_file}")
+set (wh_model_file "$ENV{LIB_ROOT}/whisper.cpp/models/ggml-base.en.bin")
+
 set (ui_definition_file "")
 if (GUI_SUPPORT)
  if (GTK_USE)
@@ -303,7 +308,7 @@ endif ()
 ##########################################
 
 if (UNIX)
- set (ARGS "-c ./${scorer_file} -f ./${model_file}")
+ set (ARGS "-c ./${ds_scorer_file} -f ${wh_model_file}")
 endif (UNIX)
 if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR
     CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
@@ -327,13 +332,15 @@ if (UNIX)
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
 # set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
- file (TO_NATIVE_PATH ".\\${scorer_file}" scorer_file)
- string (REPLACE "\\" "\\\\" scorer_file ${scorer_file})
-# message (STATUS "scorer_file: \"${scorer_file}\"")
- file (TO_NATIVE_PATH ".\\${model_file}" model_file)
- string (REPLACE "\\" "\\\\" model_file ${model_file})
- set (ARGS "${ARGS} -c ${scorer_file} -f ${model_file}")
- set (ARGS "-m ${ARGS}") # use mediafoundation
+ file (TO_NATIVE_PATH ".\\${ds_scorer_file}" ds_scorer_file)
+ string (REPLACE "\\" "\\\\" ds_scorer_file ${ds_scorer_file})
+# message (STATUS "scorer_file: \"${ds_scorer_file}\"")
+ file (TO_NATIVE_PATH ".\\${ds_model_file}" ds_model_file)
+ string (REPLACE "\\" "\\\\" ds_model_file ${ds_model_file})
+ file (TO_NATIVE_PATH "${wh_model_file}" wh_model_file)
+ string (REPLACE "\\" "\\\\" wh_model_file ${wh_model_file})
+ set (ARGS "${ARGS} -c ${ds_scorer_file} -f ${ds_model_file}")
+# set (ARGS "-m ${ARGS}") # use mediafoundation
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if (GUI_SUPPORT)
@@ -359,29 +366,37 @@ elseif (WIN32)
  else ()
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
- file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${GLEW_LIB_DIR}" GLEW_PATH)
  file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
- file (TO_CMAKE_PATH "${DEEPSPEECH_LIB_DIR}" DEEPSPEECH_LIBRARY_PATH)
 # *NOTE*: ffmpeg was built with (vcpkg-)"libpng" support, so now there is a new dependency to zlib1.dll, liblzma.dll, iconv-2.dll :-(
  file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
+ file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${GLEW_PATH}
                            ${ASSIMP_PATH}
                            ${LIBPNG_PATH}
-                           ${DEEPSPEECH_LIBRARY_PATH}
                            ${VCPKG_PATH}
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
-                           ${ACE_LIBRARY_PATH})
+                           ${ACE_PATH})
  if (SOX_SUPPORT)
   file (TO_CMAKE_PATH "${SOX_LIB_DIR}" SOX_PATH)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                             ${SOX_PATH})
  endif (SOX_SUPPORT)
+ if (DEEPSPEECH_SUPPORT)
+  file (TO_CMAKE_PATH "${DEEPSPEECH_LIB_DIR}" DEEPSPEECH_PATH)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${DEEPSPEECH_PATH})
+ endif (DEEPSPEECH_SUPPORT)
+ if (WHISPERCPP_SUPPORT)
+  file (TO_CMAKE_PATH "${WHISPERCPP_LIB_DIR}" WHISPERCPP_PATH)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${WHISPERCPP_PATH})
+ endif (WHISPERCPP_SUPPORT)
 endif ()
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}

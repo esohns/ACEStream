@@ -85,8 +85,8 @@ Test_I_DirectShow_Message::duplicate (void) const
     // *NOTE*: the argument to malloc doesn't matter, as this will be
     //         a shallow copy which just references the same data block
     ACE_NEW_MALLOC_NORETURN (message_p,
-                             static_cast<Test_I_DirectShow_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
-                                                                                                               '\0')),
+                             static_cast<Test_I_DirectShow_Message*> (inherited::message_block_allocator_->calloc (sizeof (Test_I_DirectShow_Message),
+                                                                                                                   '\0')),
                              Test_I_DirectShow_Message (*this));
   } // end ELSE
   if (unlikely (!message_p))

@@ -927,38 +927,53 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::initializeBox2d"));
 
   b2BodyDef bodyDef;
-  bodyDef.allowSleep = false;
-  bodyDef.type = b2_dynamicBody;
+  //bodyDef.allowSleep = false;
+  bodyDef.type = b2_staticBody;
   b2FixtureDef fixtureDef;
-  fixtureDef.density = TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BODY_DENSITY;
-  fixtureDef.friction = 1.0f;
+  fixtureDef.density =
+    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_DENSITY;
+  fixtureDef.friction =
+    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_FRICTION;
   fixtureDef.restitution =
-    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RESTITUTION;
+    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RESTITUTION;
   b2CircleShape circleShape;
   circleShape.m_radius = TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS;
   fixtureDef.shape = &circleShape;
 
-  //b2DistanceJointDef jointDef;
-  //jointDef.collideConnected = true;
-  ////jointDef.localAnchorA.Set (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
-  ////jointDef.localAnchorB.Set (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
-  //jointDef.length =
-  //  TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
-  //jointDef.dampingRatio =
-  //  TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_DAMP_RATIO;
-  //jointDef.frequencyHz =
-  //  TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_FREQ_HZ;
+#if defined (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_REVOLUTE_JOINTS)
   b2RevoluteJointDef jointDef;
-  jointDef.collideConnected = false;
+  jointDef.collideConnected = true;
   jointDef.localAnchorA.Set (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
   jointDef.localAnchorB.Set (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
+#elif defined (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_DISTANCE_JOINTS)
+   b2DistanceJointDef jointDef;
+   jointDef.collideConnected = true;
+  //jointDef.localAnchorA.Set (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
+  //jointDef.localAnchorB.Set (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
+   jointDef.length =
+     TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
+   jointDef.dampingRatio =
+     TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_DAMP_RATIO;
+   jointDef.frequencyHz =
+     TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_FREQ_HZ;
+#else
+  b2RopeJointDef jointDef;
+  jointDef.localAnchorA.Set (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
+  jointDef.localAnchorB.Set (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
+  jointDef.collideConnected = true;
+  jointDef.maxLength = 0.1f;
+#endif
 
   b2Body* link = world_->CreateBody (&bodyDef);
   ACE_ASSERT (link);
+  bodyDef.type = b2_dynamicBody;
+
   link->CreateFixture (&fixtureDef);
   bridge_.push_back (link);
   for (int i = 0; i < TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS - 1; i++)
   {
+    if (i == TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS - 2)
+      bodyDef.type = b2_staticBody;
     bodyDef.position.Set (static_cast<float> (i + 1) * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH, 0.0f);
     b2Body* newLink = world_->CreateBody (&bodyDef);
     ACE_ASSERT (newLink);

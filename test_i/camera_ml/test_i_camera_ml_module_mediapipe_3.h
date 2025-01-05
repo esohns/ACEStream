@@ -88,9 +88,9 @@ class Test_I_CameraML_Module_MediaPipe_3
       body_def.allowSleep = false;
       body_def.type = b2_dynamicBody;
       body_def.position.Set (Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_X_OFFSET, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_X_OFFSET),
-                             -halfDimension_in);
-      body_def.angularVelocity =
-        Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL);
+                             -halfDimension_in + 20.0f);
+      //body_def.angularVelocity =
+      //  Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL);
       body_def.linearVelocity.Set (Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL),
                                    Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL));
       body_ = world_in->CreateBody (&body_def);
@@ -100,7 +100,7 @@ class Test_I_CameraML_Module_MediaPipe_3
       b2FixtureDef fixture_def;
       fixture_def.shape = &shape;
       fixture_def.density =
-        TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BODY_DENSITY;
+        TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_DENSITY;
       fixture_def.friction =
         TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_FRICTION;
       fixture_def.restitution =

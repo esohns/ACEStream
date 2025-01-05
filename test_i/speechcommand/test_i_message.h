@@ -52,9 +52,9 @@ struct Test_I_SpeechCommand_DirectShow_MessageData
   {}
 
   // WaveIn
-  unsigned int                       index;
+  unsigned int                index;
 
-  Stream_Decoder_DeepSpeech_Result_t words;
+  Stream_Decoder_STT_Result_t words;
 };
 //typedef Stream_DataBase_T<struct Test_I_SpeechCommand_DirectShow_MessageData> Test_I_SpeechCommand_DirectShow_MessageData_t;
 
@@ -68,9 +68,9 @@ struct Test_I_SpeechCommand_MediaFoundation_MessageData
   {}
 
   // WaveIn
-  unsigned int                       index;
+  unsigned int                index;
 
-  Stream_Decoder_DeepSpeech_Result_t words;
+  Stream_Decoder_STT_Result_t words;
 };
 //typedef Stream_DataBase_T<struct Test_I_SpeechCommand_MediaFoundation_MessageData> Test_I_SpeechCommand_MediaFoundation_MessageData_t;
 #else
@@ -82,7 +82,7 @@ struct Test_I_SpeechCommand_ALSA_MessageData
    , words ()
   {}
 
-  Stream_Decoder_DeepSpeech_Result_t words;
+  Stream_Decoder_STT_Result_t words;
 };
 //typedef Stream_DataBase_T<struct Test_I_SpeechCommand_ALSA_MessageData> Test_I_SpeechCommand_ALSA_MessageData_t;
 #endif // ACE_WIN32 || ACE_WIN64

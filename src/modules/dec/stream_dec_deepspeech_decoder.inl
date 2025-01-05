@@ -322,7 +322,7 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
                                    SessionMessageType,
                                    SessionDataContainerType,
                                    MediaType>::processWords (const char* inputString_in,
-                                                             Stream_Decoder_DeepSpeech_Result_t& result_out)
+                                                             Stream_Decoder_STT_Result_t& result_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_DeepSpeechDecoder_T::processWords"));
 
@@ -341,7 +341,7 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
     result_out.push_back (token_string);
 #else
   // step1: retrieve new words
-  Stream_Decoder_DeepSpeech_Result_t result;
+  Stream_Decoder_STT_Result_t result;
   while (std::getline (string_stream, token_string, ' '))
     result.push_back (token_string);
 
@@ -351,12 +351,12 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
     result_out = result;
     return static_cast<unsigned int> (result_out.size ());
   } // end IF
-  Stream_Decoder_DeepSpeech_ResultIterator_t start_iterator =
+  Stream_Decoder_STT_ResultIterator_t start_iterator =
     result_out.begin ();
-  Stream_Decoder_DeepSpeech_ResultDifference_t index_i = 0, index_2 = 0;
-  Stream_Decoder_DeepSpeech_ResultIterator_t iterator_2;
+  Stream_Decoder_STT_ResultDifference_t index_i = 0, index_2 = 0;
+  Stream_Decoder_STT_ResultIterator_t iterator_2;
 continue_:
-  for (Stream_Decoder_DeepSpeech_ResultIterator_t iterator = start_iterator;
+  for (Stream_Decoder_STT_ResultIterator_t iterator = start_iterator;
        iterator != result_out.end ();
        ++iterator)
   {

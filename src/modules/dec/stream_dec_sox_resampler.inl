@@ -524,8 +524,9 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                                             encodingInfoOut_,
                                             signalInfoOut_);
 #endif // ACE_WIN32 || ACE_WIN64
-      if (unlikely ((signalInfo_.channels == signalInfoOut_.channels)   &&
-                    (signalInfo_.precision == signalInfoOut_.precision) &&
+      if (unlikely ((encodingInfo_.encoding == encodingInfoOut_.encoding) &&
+                    (signalInfo_.channels == signalInfoOut_.channels)     &&
+                    (signalInfo_.precision == signalInfoOut_.precision)   &&
                     (signalInfo_.rate == signalInfoOut_.rate)))
       {
         ACE_DEBUG ((LM_WARNING,

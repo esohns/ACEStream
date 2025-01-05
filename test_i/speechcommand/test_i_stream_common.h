@@ -61,6 +61,8 @@
 #include "test_i_common.h"
 #include "test_i_configuration.h"
 
+#include "test_i_speechcommand_defines.h"
+
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_DirectShow_Message;
@@ -71,6 +73,17 @@ class Test_I_Message;
 template <typename SessionDataType,
           typename UserDataType>
 class Test_I_SessionMessage_T;
+
+//////////////////////////////////////////
+
+enum Test_I_STTBackend
+{
+  STT_DEEPSPEECH = 0,
+  STT_WHISPERCPP,
+  //
+  STT_MAX = STT_WHISPERCPP,
+  STT_INVALID = -1
+};
 
 //////////////////////////////////////////
 
@@ -485,6 +498,7 @@ struct Test_I_DirectShow_StreamConfiguration
 {
   Test_I_DirectShow_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
+   , STTBackend (TEST_I_DEFAULT_STT_BACKEND)
    , capturer (STREAM_DEVICE_CAPTURER_INVALID)
    , filterGraphConfiguration ()
    , renderer (STREAM_DEVICE_RENDERER_INVALID)
@@ -495,6 +509,7 @@ struct Test_I_DirectShow_StreamConfiguration
     ACE_OS::memset (&format, 0, sizeof (struct _AMMediaType));
   }
 
+  enum Test_I_STTBackend                   STTBackend;
   enum Stream_Device_Capturer              capturer;
   Stream_MediaFramework_DirectShow_Graph_t filterGraphConfiguration;
   enum Stream_Device_Renderer              renderer;
@@ -506,6 +521,7 @@ struct Test_I_MediaFoundation_StreamConfiguration
 {
   Test_I_MediaFoundation_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
+   , STTBackend (TEST_I_DEFAULT_STT_BACKEND)
    , capturer (STREAM_DEVICE_CAPTURER_INVALID)
    , renderer (STREAM_DEVICE_RENDERER_INVALID)
    , format (NULL)
@@ -514,6 +530,7 @@ struct Test_I_MediaFoundation_StreamConfiguration
     renderer = STREAM_DEVICE_RENDERER_MEDIAFOUNDATION;
   }
 
+  enum Test_I_STTBackend      STTBackend;
   enum Stream_Device_Capturer capturer;
   enum Stream_Device_Renderer renderer;
   IMFMediaType*               format;
@@ -538,6 +555,7 @@ struct Test_I_ALSA_StreamConfiguration
 {
   Test_I_ALSA_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
+   , STTBackend (TEST_I_DEFAULT_STT_BACKEND)
    , capturer (STREAM_DEVICE_CAPTURER_INVALID)
    , renderer (STREAM_DEVICE_RENDERER_INVALID)
    , format ()
@@ -546,6 +564,7 @@ struct Test_I_ALSA_StreamConfiguration
     renderer = STREAM_DEVICE_RENDERER_ALSA;
   }
 
+  enum Test_I_STTBackend                      STTBackend;
   enum Stream_Device_Capturer                 capturer;
   enum Stream_Device_Renderer                 renderer;
   struct Stream_MediaFramework_ALSA_MediaType format;

@@ -562,7 +562,8 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
                           struct _AMMediaType& captureMediaType_out,
                           struct _AMMediaType& targetMediaType_out,
                           bool useDirectShowSource_in,
-                          bool mute_in)
+                          bool mute_in,
+                          enum Test_I_STTBackend STT_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
@@ -599,9 +600,9 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   Stream_MediaFramework_DirectShow_Tools::free (targetMediaType_out);
 
   waveformatex_s.wFormatTag = STREAM_DEV_MIC_DEFAULT_FORMAT;
+  waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
   waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS;
   waveformatex_s.nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
-  waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
   waveformatex_s.nBlockAlign =
     (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
   waveformatex_s.nAvgBytesPerSec =
@@ -620,10 +621,16 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
 
   ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
   // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 16000Hz
-  waveformatex_s.wFormatTag = WAVE_FORMAT_PCM;
+  // *NOTE*: whisper.cpp requires float mono at 16000Hz
   waveformatex_s.nChannels = 1;
   waveformatex_s.nSamplesPerSec = 16000;
+  waveformatex_s.wFormatTag = WAVE_FORMAT_PCM;
   waveformatex_s.wBitsPerSample = 16;
+  if (STT_in == STT_WHISPERCPP)
+  {
+    waveformatex_s.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
+    waveformatex_s.wBitsPerSample = 32;
+  } // end IF
   waveformatex_s.nBlockAlign =
     (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
   waveformatex_s.nAvgBytesPerSec =
@@ -1159,6 +1166,7 @@ do_work (const std::string& scorerFile_in,
          const std::string& targetFilename_in,
          unsigned int statisticReportingInterval_in,
          bool mute_in,
+         enum Test_I_STTBackend STT_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool useFrameworkSource_in,
          bool useFrameworkRenderer_in,
@@ -1442,9 +1450,11 @@ do_work (const std::string& scorerFile_in,
         std::string effect_options_string =
           //ACE_TEXT_ALWAYS_CHAR ("2,2 -40,-40,-35,-20,0,-20 -10 -60 1"); // AGC
           //ACE_TEXT_ALWAYS_CHAR ("0.01,0.3 5:-inf,-40.1,-inf,-40,-30,0,-25 12");
-          //ACE_TEXT_ALWAYS_CHAR ("0.1,0.3 -60,-60,-30,-15,-20,-12,-4,-8,-2,-7 -2");
-          ACE_TEXT_ALWAYS_CHAR ("0.02,0.20 5:-60,-40,-10 -5 -90 0.1");
-        directshow_modulehandler_configuration.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.02"));
+          ACE_TEXT_ALWAYS_CHAR ("0.1,0.3 -60,-60,-30,-15,-20,-12,-4,-8,-2,-7 -2");
+          //ACE_TEXT_ALWAYS_CHAR ("0.02,0.20 5:-60,-40,-10 -5 -90 0.1");
+        directshow_modulehandler_configuration.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.1,0.3"));
+        directshow_modulehandler_configuration.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-60,-60,-30,-15,-20,-12,-4,-8,-2,-7"));
+        directshow_modulehandler_configuration.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-2"));
       } // end ELSE
       directshow_modulehandler_configuration.filterConfiguration =
         &directShowConfiguration_in.filterConfiguration;
@@ -1535,8 +1545,7 @@ do_work (const std::string& scorerFile_in,
         directshow_modulehandler_configuration;
       directshow_modulehandler_configuration_4.fileIdentifier.clear ();
       if (!targetFilename_in.empty ())
-        directshow_modulehandler_configuration_4.fileIdentifier.identifier =
-        targetFilename_in;
+        directshow_modulehandler_configuration_4.fileIdentifier.identifier = targetFilename_in;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_4)));
@@ -1817,7 +1826,10 @@ do_work (const std::string& scorerFile_in,
         &directshow_message_allocator;
       directshow_stream_configuration.module =
         &directshow_event_handler;
-      directshow_stream_configuration.printFinalReport = true;
+      directshow_stream_configuration.moduleBranch =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME);
+      //directshow_stream_configuration.printFinalReport = true;
+      directshow_stream_configuration.STTBackend = STT_in;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1830,7 +1842,8 @@ do_work (const std::string& scorerFile_in,
         &mediafoundation_event_handler;
       mediafoundation_stream_configuration.moduleBranch =
         ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME);
-      mediafoundation_stream_configuration.printFinalReport = true;
+      //mediafoundation_stream_configuration.printFinalReport = true;
+      mediafoundation_stream_configuration.STTBackend = STT_in;
       break;
     }
     default:
@@ -1846,7 +1859,8 @@ do_work (const std::string& scorerFile_in,
   stream_configuration.module = &event_handler_module;
   stream_configuration.moduleBranch =
     ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME);
-  stream_configuration.printFinalReport = true;
+  //stream_configuration.printFinalReport = true;
+  stream_configuration.STTBackend = STT_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // intialize timers
@@ -1874,7 +1888,8 @@ do_work (const std::string& scorerFile_in,
                                   directshow_stream_configuration.format,
                                   directshow_modulehandler_configuration.outputFormat,
                                   useFrameworkSource_in, // use DirectShow source ?
-                                  mute_in);
+                                  mute_in,
+                                  STT_in);
       if (unlikely (!result))
         break;
       ACE_ASSERT ((*directshow_modulehandler_iterator).second.second->builder);
@@ -2445,6 +2460,8 @@ ACE_TMAIN (int argc_in,
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
   bool trace_information = false;
   bool mute = false;
+  //enum Test_I_STTBackend STT_backend_e = TEST_I_DEFAULT_STT_BACKEND;
+  enum Test_I_STTBackend STT_backend_e = STT_DEEPSPEECH;
   bool print_version_and_exit = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool use_framework_source = false;
@@ -2770,6 +2787,7 @@ ACE_TMAIN (int argc_in,
            target_filename,
            statistic_reporting_interval,
            mute,
+           STT_backend_e,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            use_framework_source,
            use_framework_renderer,

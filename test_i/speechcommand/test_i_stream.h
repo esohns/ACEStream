@@ -87,6 +87,10 @@ class Test_I_DirectShow_Stream
   virtual bool load (Stream_ILayout*, // return value: layout
                      bool&);          // return value: delete modules ?
 
+  // implement Common_IInitialize_T
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+  virtual bool initialize (const CONFIGURATION_T&); // configuration
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_DirectShow_Stream (const Test_I_DirectShow_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_DirectShow_Stream& operator= (const Test_I_DirectShow_Stream&))
@@ -166,9 +170,9 @@ class Test_I_MediaFoundation_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_I_MediaFoundation_Stream& operator= (const Test_I_MediaFoundation_Stream&))
 
   ACE_SYNCH_CONDITION                      condition_;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   IMFMediaSession*                         mediaSession_;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   Test_I_Mic_Source_MediaFoundation_Module frameworkSource_;
   Test_I_MediaFoundation_Source_Module     mediaFoundationSource_;
   Test_I_MediaFoundation_Target_Module     mediaFoundationTarget_;

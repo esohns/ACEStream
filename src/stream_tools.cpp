@@ -123,10 +123,10 @@ Stream_Tools::crunch (ACE_Message_Block*& messageBlock_inout,
   size_t total_length = messageBlock_inout->total_length ();
   if (total_length > messageBlock_inout->capacity ())
   {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("required %u byte(s) (available: %u): allocating a new message\n"),
-                total_length,
-                messageBlock_inout->capacity ()));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("required %u byte(s) (available: %u): allocating a new message\n"),
+    //            total_length,
+    //            messageBlock_inout->capacity ()));
 
     if (allocator_in)
     {

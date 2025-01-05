@@ -316,7 +316,7 @@ Test_I_EventHandler_T<NotificationType,
       goto continue_;
 #endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
-    for (Stream_Decoder_DeepSpeech_ResultConstIterator_t iterator = data_r.words.begin ();
+    for (Stream_Decoder_STT_ResultConstIterator_t iterator = data_r.words.begin ();
          iterator != data_r.words.end ();
          ++iterator)
       std::cout << *iterator << ACE_TEXT_ALWAYS_CHAR (" ");

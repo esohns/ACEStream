@@ -137,13 +137,16 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
    layout_in->append (module_p, NULL, 0);
    module_p = NULL;
 
-   ACE_NEW_RETURN (module_p,
-                   Test_I_DirectShow_SoXEffect_Module (this,
-                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
-                   false);
-   ACE_ASSERT (module_p);
-   layout_in->append (module_p, NULL, 0);
-   module_p = NULL;
+   if (!(*iterator).second.second->effect.empty ())
+   {
+     ACE_NEW_RETURN (module_p,
+                     Test_I_DirectShow_SoXEffect_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
+                     false);
+     ACE_ASSERT (module_p);
+     layout_in->append (module_p, NULL, 0);
+     module_p = NULL;
+   } // end IF
 #endif // SOX_SUPPORT
 
   // sanity check(s)
@@ -220,7 +223,9 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     ACE_ASSERT (module_p);
     branch_p = module_p;
     branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+    //if (!(*iterator_4).second.second->fileIdentifier.empty ())
+    //  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME));
     Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
     ACE_ASSERT (idistributor_p);
@@ -292,18 +297,40 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
-  layout_in->append (module_p, branch_p, index_i);
   ++index_i;
-  module_p = NULL;
-
+  switch (inherited::configuration_->configuration_->STTBackend)
+  {
+    case STT_DEEPSPEECH:
+    {
 #if defined (DEEPSPEECH_SUPPORT)
-  ACE_NEW_RETURN (module_p,
-                  Test_I_DirectShow_DeepSpeechDecoder_Module (this,
-                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_DEEPSPEECH_DECODER_DEFAULT_NAME_STRING)),
-                  false);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
+      ACE_NEW_RETURN (module_p,
+                      Test_I_DirectShow_DeepSpeechDecoder_Module (this,
+                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_DEEPSPEECH_DECODER_DEFAULT_NAME_STRING)),
+                      false);
 #endif // DEEPSPEECH_SUPPORT
+      break;
+    }
+    case STT_WHISPERCPP:
+    {
+#if defined (WHISPERCPP_SUPPORT)
+      ACE_NEW_RETURN (module_p,
+                      Test_I_DirectShow_WhisperCppDecoder_Module (this,
+                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_NAME_STRING)),
+                      false);
+#endif // WHISPERCPP_SUPPORT
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown STT backend type (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->STTBackend));
+      return false;
+    }
+  } // end SWITCH
+  layout_in->append (module_p, branch_p, index_i);
+  module_p = NULL;
 
   //if (!(*iterator_4).second.second->fileIdentifier.empty ())
   //{
@@ -325,6 +352,439 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //} // end IF
 
   return true;
+}
+
+bool
+Test_I_DirectShow_Stream::initialize (const CONFIGURATION_T& configuration_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_DirectShow_Stream::initialize"));
+
+  bool result = false;
+  HRESULT result_2 = E_FAIL;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
+  bool reset_setup_pipeline = false;
+  struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+
+  // allocate a new session state, reset stream
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
+    false;
+  reset_setup_pipeline = true;
+  if (!inherited::initialize (configuration_in))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    return false;
+  } // end IF
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
+    setup_pipeline;
+  reset_setup_pipeline = false;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+  Test_I_SpeechCommand_DirectShow_SessionData& session_data_r =
+    const_cast<Test_I_SpeechCommand_DirectShow_SessionData&> (inherited::sessionData_->getR ());
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
+  inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_2 != configuration_in.end ());
+  std::string renderer_modulename_string;
+  switch (configuration_in.configuration_->renderer)
+  {
+    case STREAM_DEVICE_RENDERER_WAVEOUT:
+      renderer_modulename_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING);
+      break;
+    case STREAM_DEVICE_RENDERER_WASAPI:
+      renderer_modulename_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING);
+      break;
+    case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+      renderer_modulename_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING);
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown renderer type (was: %d), aborting\n"),
+                  configuration_in.configuration_->renderer));
+      return false;
+    }
+  } // end SWITCH
+  inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (renderer_modulename_string);
+  ACE_ASSERT (iterator_3 != configuration_in.end ());
+  inherited::CONFIGURATION_T::ITERATOR_T iterator_4 =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_4 != configuration_in.end ());
+
+  // *TODO*: remove type inference
+  session_data_r.targetFileName =
+    (*iterator_4).second.second->fileIdentifier.identifier;
+
+  // ---------------------------------------------------------------------------
+
+  // ********************** Statistic Analysis *****************
+//#if defined (GTKGL_SUPPORT)
+//  (*iterator).second.second->dispatch = this;
+//#endif // GTKGL_SUPPORT
+
+  IAMBufferNegotiation* buffer_negotiation_p = NULL;
+  //bool COM_initialized = false;
+  bool release_builder = false;
+  ULONG reference_count = 0;
+  IAMStreamConfig* stream_config_p = NULL;
+  IMediaFilter* media_filter_p = NULL;
+  Stream_MediaFramework_DirectShow_GraphConfiguration_t graph_configuration;
+  struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry graph_entry;
+  IBaseFilter* filter_p = NULL;
+  ISampleGrabber* isample_grabber_p = NULL;
+  std::string log_file_name;
+  IAMGraphStreams* graph_streams_p = NULL;
+  REFERENCE_TIME max_latency_i =
+    MILLISECONDS_TO_100NS_UNITS (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS);
+  bool use_framework_renderer_b = false;
+  int render_device_id_i = -1;
+  //bool has_directshow_source_filter_b = false;
+  bool grab_samples_b = false;
+
+  //has_directshow_source_filter_b =
+  //  (inherited::configuration_->configuration_->capturer != STREAM_DEVICE_CAPTURER_DIRECTSHOW) &&
+  //  !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL);
+  //if (has_directshow_source_filter_b)
+  //{
+  //  if ((*iterator).second.second->builder)
+  //  {
+  //    Stream_MediaFramework_DirectShow_Tools::shutdown ((*iterator).second.second->builder);
+  //    (*iterator).second.second->builder->Release (); (*iterator).second.second->builder = NULL;
+  //  } // end IF
+  //  ACE_ASSERT (!(*iterator).second.second->builder);
+
+  //  Test_I_SpeechCommand_DirectShowFilter_t* filter_p = NULL;
+  //  IBaseFilter* filter_2 = NULL;
+  //  std::wstring filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L;
+
+  //  result_2 =
+  //    CoCreateInstance (CLSID_FilterGraph, NULL,
+  //                      CLSCTX_INPROC_SERVER,
+  //                      IID_PPV_ARGS (&(*iterator).second.second->builder));
+  //  if (FAILED (result_2))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterGraph): \"%s\", aborting\n"),
+  //                ACE_TEXT (Common_Error_Tools::errorToString (result_2, false).c_str ())));
+  //    goto error;
+  //  } // end IF
+  //  ACE_ASSERT ((*iterator).second.second->builder);
+  //  ACE_NEW_NORETURN (filter_p,
+  //                    Test_U_AudioEffect_DirectShowFilter_t ());
+  //  if (!filter_p)
+  //  {
+  //    ACE_DEBUG ((LM_CRITICAL,
+  //                ACE_TEXT ("failed to allocate memory, aborting\n")));
+  //    goto error;
+  //  } // end IF
+
+  //  ACE_ASSERT ((*iterator).second.second->filterConfiguration);
+  //  if (!filter_p->initialize (*(*iterator).second.second->filterConfiguration))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Source_Filter_T::initialize(), aborting\n")));
+  //    delete filter_p; filter_p = NULL;
+  //    goto error;
+  //  } // end IF
+  //  result_2 = filter_p->NonDelegatingQueryInterface (IID_PPV_ARGS (&filter_2));
+  //  if (FAILED (result_2))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to NonDelegatingQueryInterface(IID_IBaseFilter): \"%s\", aborting\n"),
+  //                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+  //    delete filter_p; filter_p = NULL;
+  //    goto error;
+  //  } // end IF
+  //  // *WARNING*: invokes IBaseFilter::GetBuffer
+  //  result_2 =
+  //    (*iterator).second.second->builder->AddFilter (filter_2,
+  //                                                   filter_name.c_str ());
+  //  if (FAILED (result_2))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+  //                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+  //    filter_2->Release (); filter_2 = NULL;
+  //    delete filter_p; filter_p = NULL;
+  //    goto error;
+  //  } // end IF
+  //  filter_2->Release (); filter_2 = NULL;
+  //} // end IF
+  //ACE_ASSERT ((*iterator).second.second->builder);
+
+  //grab_samples_b =
+  //  (inherited::configuration_->configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW) ||
+  //  !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL);
+  //// set sample grabber output format ?
+  //if (grab_samples_b)
+  //  switch (inherited::configuration_->configuration_->renderer)
+  //  {
+  //    case STREAM_DEVICE_RENDERER_WAVEOUT:
+  //    {
+  //      //struct tWAVEFORMATEX waveformatex_s;
+  //      //ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+  //      //Stream_MediaFramework_DirectSound_Tools::getBestFormat ((*iterator_3).second.second->deviceIdentifier.identifier._id,
+  //      //                                                        waveformatex_s);
+  //      struct tWAVEFORMATEX* waveformatex_p =
+  //        Stream_MediaFramework_DirectShow_Tools::toWaveFormatEx (configuration_in.configuration_->format);
+  //      ACE_ASSERT (waveformatex_p);
+  //      result_2 = CreateAudioMediaType (//&waveformatex_s,
+  //                                        waveformatex_p,
+  //                                        &media_type_s,
+  //                                        TRUE);
+  //      ACE_ASSERT (SUCCEEDED (result_2));
+  //      CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+  //      break;
+  //    }
+  //    case STREAM_DEVICE_RENDERER_WASAPI:
+  //    {
+  //      ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+  //      struct tWAVEFORMATEX* waveformatex_p =
+  //        Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat ((*iterator_3).second.second->deviceIdentifier.identifier._guid);
+  //      ACE_ASSERT (waveformatex_p);
+  //      struct tWAVEFORMATEX basic_wave_format_ex_s =
+  //        Stream_MediaFramework_DirectSound_Tools::extensibleTo (*waveformatex_p);
+  //      CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+  //      result_2 = CreateAudioMediaType (&basic_wave_format_ex_s,
+  //                                       &media_type_s,
+  //                                       TRUE);
+  //      ACE_ASSERT (SUCCEEDED (result_2));
+  //      break;
+  //    }
+  //    case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+  //      break;
+  //    default:
+  //    {
+  //      ACE_DEBUG ((LM_ERROR,
+  //                  ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+  //                  ACE_TEXT (stream_name_string_),
+  //                  inherited::configuration_->configuration_->renderer));
+  //      return false;
+  //    }
+  //  } // end SWITCH
+
+  use_framework_renderer_b =
+    ((configuration_in.configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW) &&
+     !(*iterator).second.second->mute);
+  switch (inherited::configuration_->configuration_->renderer)
+  {
+    case STREAM_DEVICE_RENDERER_WAVEOUT:
+    { ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+      render_device_id_i =
+        (*iterator_3).second.second->deviceIdentifier.identifier._id;
+      break;
+    }
+    case STREAM_DEVICE_RENDERER_WASAPI:
+    { ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+      render_device_id_i =
+        static_cast<int> (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId ((*iterator_3).second.second->deviceIdentifier.identifier._guid));
+      break;
+    }
+    case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+    { ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+      render_device_id_i =
+        (*iterator_3).second.second->deviceIdentifier.identifier._id;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->renderer));
+      return false;
+    }
+  } // end SWITCH
+  if ((*iterator).second.second->builder)
+  {
+    union Stream_MediaFramework_DirectSound_AudioEffectOptions effect_options_u;
+    if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (((configuration_in.configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW) ? CLSID_AudioInputDeviceCategory
+                                                                                                                                                : GUID_NULL),
+                                                              configuration_in.configuration_->format,
+                                                              media_type_s,
+                                                              grab_samples_b,
+                                                              (use_framework_renderer_b ? render_device_id_i : -1),
+                                                              (*iterator).second.second->builder,
+                                                              GUID_NULL,
+                                                              effect_options_u,
+                                                              graph_configuration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadAudioRendererGraph(), aborting\n"),
+                  ACE_TEXT (stream_name_string_)));
+      goto error;
+    } // end IF
+  } // end IF
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+  if (!InlineIsEqualGUID (GUID_NULL, GUID_NULL))
+  { ACE_ASSERT (!graph_configuration.empty ());
+    // *NOTE*: this seems to require lSampleSize of 1 to connect successfully....
+    graph_configuration.front ().mediaType->lSampleSize = 1;
+  } // end IF
+
+  //if (has_directshow_source_filter_b)
+  //{ ACE_ASSERT ((*iterator).second.second->builder);
+  //  result_2 =
+  //    (*iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L,
+  //                                                          &filter_p);
+  //  if (unlikely (FAILED (result_2) || !filter_p))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+  //                ACE_TEXT (stream_name_string_),
+  //                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L),
+  //                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+  //    goto error;
+  //  } // end IF
+  //  IPin* pin_p = Stream_MediaFramework_DirectShow_Tools::pin (filter_p,
+  //                                                             PINDIR_OUTPUT,
+  //                                                             0);
+  //  ACE_ASSERT (pin_p);
+  //  typename Test_I_SpeechCommand_DirectShowFilter_t::OUTPUT_PIN_T* pin_2 =
+  //    dynamic_cast<typename Test_I_SpeechCommand_DirectShowFilter_t::OUTPUT_PIN_T*> (pin_p);
+  //  ACE_ASSERT (pin_2);
+  //  if (!pin_2->initialize (configuration_in.configuration_->format))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::initialize(\"%s\"), aborting\n"),
+  //                ACE_TEXT (stream_name_string_),
+  //                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (configuration_in.configuration_->format, true).c_str ())));
+  //    pin_p->Release (); pin_p = NULL;
+  //    filter_p->Release (); filter_p = NULL;
+  //    goto error;
+  //  } // end IF
+  //  pin_p->Release (); pin_p = NULL;
+  //  filter_p->Release (); filter_p = NULL;
+  //} // end IF
+
+  if ((*iterator).second.second->builder)
+  {
+    result_2 =
+      (*iterator).second.second->builder->QueryInterface (IID_PPV_ARGS (&graph_streams_p));
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IAMGraphStreams): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (graph_streams_p);
+    result_2 = graph_streams_p->SyncUsingStreamOffset (TRUE);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IAMGraphStreams::SyncUsingStreamOffset(FALSE): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      goto error;
+    } // end IF
+    result_2 = graph_streams_p->SetMaxGraphLatency (max_latency_i);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IAMGraphStreams::SetMaxGraphLatency(%q): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  max_latency_i,
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      goto error;
+    } // end IF
+    graph_streams_p->Release (); graph_streams_p = NULL;
+
+    if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second->builder,
+                                                          graph_configuration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::connect(), aborting\n"),
+                  ACE_TEXT (stream_name_string_)));
+      goto error;
+    } // end IF
+
+    result_2 =
+      (*iterator).second.second->builder->QueryInterface (IID_PPV_ARGS (&media_filter_p));
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (media_filter_p);
+    result_2 = media_filter_p->SetSyncSource (NULL);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      goto error;
+    } // end IF
+    media_filter_p->Release (); media_filter_p = NULL;
+
+    if ((*iterator_2).second.second->builder)
+    {
+      (*iterator_2).second.second->builder->Release (); (*iterator_2).second.second->builder = NULL;
+    } // end IF
+    (*iterator).second.second->builder->AddRef ();
+    (*iterator_2).second.second->builder = (*iterator).second.second->builder;
+  } // end IF
+
+  struct _AMMediaType* media_type_p =
+    Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format);
+  ACE_ASSERT (media_type_p);
+  session_data_r.formats.push_back (*media_type_p);
+
+  // ---------------------------------------------------------------------------
+
+  if (!inherited::setup (NULL))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    return false;
+  } // end IF
+
+  // -------------------------------------------------------------
+
+  inherited::isInitialized_ = true;
+
+  return true;
+
+error:
+  if (reset_setup_pipeline)
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
+      setup_pipeline;
+  if (buffer_negotiation_p)
+    buffer_negotiation_p->Release ();
+  if (stream_config_p)
+    stream_config_p->Release ();
+  if (media_filter_p)
+    media_filter_p->Release ();
+  if (filter_p)
+    filter_p->Release ();
+  //if (isample_grabber_p)
+  //  isample_grabber_p->Release ();
+  if (graph_streams_p)
+    graph_streams_p->Release ();
+
+  if (release_builder)
+  {
+    (*iterator).second.second->builder->Release (); (*iterator).second.second->builder = NULL;
+  } // end IF
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+
+  return false;
 }
 
 //////////////////////////////////////////
@@ -1035,7 +1495,7 @@ error:
   if (topology_p)
     topology_p->Release ();
   //session_data_r.resetToken = 0;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (session_data_r.session)
   {
     session_data_r.session->Release (); session_data_r.session = NULL;
@@ -1044,7 +1504,7 @@ error:
   {
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   return false;
 }
@@ -1128,11 +1588,11 @@ Test_I_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
 
   // sanity check(s)
   ACE_ASSERT (result_in);
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (mediaSession_);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = mediaSession_->EndGetEvent (result_in, &media_event_p);
   if (FAILED (result))
   {
@@ -1143,7 +1603,7 @@ Test_I_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
     stop_b = true;
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   result = media_event_p->GetType (&event_type);
   ACE_ASSERT (SUCCEEDED (result));
   result = media_event_p->GetStatus (&status);
@@ -1177,14 +1637,14 @@ Test_I_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: received MESessionClosed, shutting down\n"),
                   ACE_TEXT (stream_name_string_)));
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       result = mediaSession_->Shutdown ();
       if (FAILED (result))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                     ACE_TEXT (stream_name_string_),
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       request_event_b = false;
       break;
     }
@@ -1193,14 +1653,14 @@ Test_I_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: received MESessionEnded, closing sesion\n"),
                   ACE_TEXT (stream_name_string_)));
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       result = mediaSession_->Close ();
       if (FAILED (result))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
                     ACE_TEXT (stream_name_string_),
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       break;
     }
     case MESessionCapabilitiesChanged:
@@ -1258,14 +1718,14 @@ Test_I_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: received MESessionStopped, closing session\n"),
                   ACE_TEXT (stream_name_string_)));
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       result = mediaSession_->Close ();
       if (FAILED (result))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
                     ACE_TEXT (stream_name_string_),
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       break;
     }
     case MESessionTopologySet:

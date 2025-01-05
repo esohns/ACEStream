@@ -17,6 +17,7 @@ include (faad)
 include (festival)
 include (mpg123)
 include (opencv)
+include (whisper_cpp)
 include (zlib)
 
 ##########################################
@@ -92,6 +93,10 @@ if (OPENCV_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              "$<BUILD_INTERFACE:${OPENCV_INCLUDE_DIRS}>")
 endif (OPENCV_SUPPORT)
+if (WHISPERCPP_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             "$<BUILD_INTERFACE:${WHISPERCPP_INCLUDE_DIRS}>")
+endif (WHISPERCPP_SUPPORT)
 if (ZLIB_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              "$<BUILD_INTERFACE:${ZLIB_INCLUDE_DIRS}>")
@@ -292,6 +297,13 @@ if (OPENCV_SUPPORT)
       stream_dec_opencv_qr_decoder.h
       stream_dec_opencv_qr_decoder.inl)
 endif (OPENCV_SUPPORT)
+if (WHISPERCPP_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_dec_whisper_decoder.cpp
+      stream_dec_whisper_decoder.h
+      stream_dec_whisper_decoder.inl)
+endif (WHISPERCPP_SUPPORT)
 if (ZLIB_SUPPORT)
  set (source_files
       ${source_files}
@@ -373,6 +385,9 @@ endif (LIBNOISE_SUPPORT)
 if (MPG123_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${MPG123_LIBRARIES})
 endif (MPG123_SUPPORT)
+if (WHISPERCPP_SUPPORT)
+# target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${WHISPERCPP_LIBRARIES})
+endif (WHISPERCPP_SUPPORT)
 if (ZLIB_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${ZLIB_LIBRARIES})
 endif (ZLIB_SUPPORT)
@@ -520,6 +535,12 @@ if (SOX_SUPPORT)
       stream_dec_sox_resampler.h
       stream_dec_sox_resampler.inl)
 endif (SOX_SUPPORT)
+if (WHISPERCPP_SUPPORT)
+ set (${PROJECT_NAME}_Decoder_LIB_HDRS
+      ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+      stream_dec_whisper_decoder.h
+      stream_dec_whisper_decoder.inl)
+endif (WHISPERCPP_SUPPORT)
 if (ZLIB_SUPPORT)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS
       ${${PROJECT_NAME}_Decoder_LIB_HDRS}

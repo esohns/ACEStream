@@ -71,6 +71,9 @@
 #if defined (DEEPSPEECH_SUPPORT)
 #include "stream_dec_deepspeech_decoder.h"
 #endif // DEEPSPEECH_SUPPORT
+#if defined (WHISPERCPP_SUPPORT)
+#include "stream_dec_whisper_decoder.h"
+#endif // WHISPERCPP_SUPPORT
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
@@ -429,6 +432,26 @@ typedef Stream_Decoder_DeepSpeechDecoder_T<ACE_MT_SYNCH,
                                            Test_I_SpeechCommand_MediaFoundation_SessionData_t,
                                            IMFMediaType*> Test_I_MediaFoundation_DeepSpeechDecoder;
 #endif // DEEPSPEECH_SUPPORT
+
+#if defined (WHISPERCPP_SUPPORT)
+typedef Stream_Decoder_WhisperCppDecoder_T<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t,
+                                           struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
+                                           Stream_ControlMessage_t,
+                                           Test_I_DirectShow_Message,
+                                           Test_I_DirectShow_SessionMessage_t,
+                                           Test_I_SpeechCommand_DirectShow_SessionData_t,
+                                           struct _AMMediaType> Test_I_DirectShow_WhisperCppDecoder;
+
+typedef Stream_Decoder_WhisperCppDecoder_T<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t,
+                                           struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
+                                           Stream_ControlMessage_t,
+                                           Test_I_MediaFoundation_Message,
+                                           Test_I_MediaFoundation_SessionMessage_t,
+                                           Test_I_SpeechCommand_MediaFoundation_SessionData_t,
+                                           IMFMediaType*> Test_I_MediaFoundation_WhisperCppDecoder;
+#endif // WHISPERCPP_SUPPORT
 
 //////////////////////////////////////////
 
@@ -900,6 +923,20 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData, 
                               Stream_INotify_t,                                              // stream notification interface type
                               Test_I_MediaFoundation_DeepSpeechDecoder);                                // writer type
 #endif // DEEPSPEECH_SUPPORT
+#if defined (WHISPERCPP_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                    // session event type
+                              struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_whisper_decoder_module_name_string,
+                              Stream_INotify_t,                                                  // stream notification interface type
+                              Test_I_DirectShow_WhisperCppDecoder);                              // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                         // session event type
+                              struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_whisper_decoder_module_name_string,
+                              Stream_INotify_t,                                                       // stream notification interface type
+                              Test_I_MediaFoundation_WhisperCppDecoder);                              // writer type
+#endif // WHISPERCPP_SUPPORT
 
 //////////////////////////////////////////
 

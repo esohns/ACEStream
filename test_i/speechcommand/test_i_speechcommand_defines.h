@@ -21,6 +21,14 @@
 #ifndef TEST_I_SPEECHCOMMAND_DEFINES_H
 #define TEST_I_SPEECHCOMMAND_DEFINES_H
 
+#if defined (WHISPERCPP_SUPPORT)
+#define TEST_I_DEFAULT_STT_BACKEND                     STT_WHISPERCPP
+#elif defined (DEEPSPEECH_SUPPORT)
+#define TEST_I_DEFAULT_STT_BACKEND                     STT_DEEPSPEECH
+#else
+#define TEST_I_DEFAULT_STT_BACKEND                     STT_INVALID
+#endif // WHISPERCPP_SUPPORT || DEEPSPEECH_SUPPORT
+
 #define TEST_I_DEFAULT_MODEL_FILE                      "deepspeech-0.9.3-models.pbmm"
 #define TEST_I_DEFAULT_SCORER_FILE                     "deepspeech-0.9.3-models.scorer"
 #define TEST_I_DEFAULT_RNNN_FILE                       "sh.rnnn"

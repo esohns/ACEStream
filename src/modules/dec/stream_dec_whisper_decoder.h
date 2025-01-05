@@ -18,10 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DEC_DEEPSPEECH_DECODER_T_H
-#define STREAM_DEC_DEEPSPEECH_DECODER_T_H
+#ifndef STREAM_DEC_WHISPERCPP_DECODER_T_H
+#define STREAM_DEC_WHISPERCPP_DECODER_T_H
 
-#include "deepspeech.h"
+#include "whisper.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -37,7 +37,7 @@
 // forward declaration(s)
 class Stream_IAllocator;
 
-extern const char libacestream_default_dec_deepspeech_decoder_module_name_string[];
+extern const char libacestream_default_dec_whisper_decoder_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -50,7 +50,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataContainerType,
           typename MediaType> // session data-
-class Stream_Decoder_DeepSpeechDecoder_T
+class Stream_Decoder_WhisperCppDecoder_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -74,8 +74,8 @@ class Stream_Decoder_DeepSpeechDecoder_T
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  Stream_Decoder_DeepSpeechDecoder_T (typename inherited::ISTREAM_T*); // stream handle
-  virtual ~Stream_Decoder_DeepSpeechDecoder_T ();
+  Stream_Decoder_WhisperCppDecoder_T (typename inherited::ISTREAM_T*); // stream handle
+  virtual ~Stream_Decoder_WhisperCppDecoder_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -88,22 +88,19 @@ class Stream_Decoder_DeepSpeechDecoder_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_DeepSpeechDecoder_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_DeepSpeechDecoder_T (const Stream_Decoder_DeepSpeechDecoder_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_DeepSpeechDecoder_T& operator= (const Stream_Decoder_DeepSpeechDecoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WhisperCppDecoder_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WhisperCppDecoder_T (const Stream_Decoder_WhisperCppDecoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WhisperCppDecoder_T& operator= (const Stream_Decoder_WhisperCppDecoder_T&))
 
-  // helper methods
-  unsigned int processWords (const char*,                   // input string
-                             Stream_Decoder_STT_Result_t&); // return value: result
-
-  unsigned int           bufferedMs_;
-  struct ModelState*     context_;
-  struct StreamingState* context2_;
-  unsigned int           decodedWords_;
-  unsigned int           sampleSize_; // mono-
+  DataMessageType*              buffer_;
+  unsigned int                  bufferedMs_;
+  struct whisper_context*       context_;
+  struct whisper_context_params parameters_;
+  struct whisper_full_params    parameters2_;
+  unsigned int                  sampleSize_;
 };
 
 // include template definition
-#include "stream_dec_deepspeech_decoder.inl"
+#include "stream_dec_whisper_decoder.inl"
 
 #endif
