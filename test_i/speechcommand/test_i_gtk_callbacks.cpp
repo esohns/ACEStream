@@ -4575,8 +4575,19 @@ filechooserbutton_save_current_folder_changed_cb (GtkFileChooserButton* button_i
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
-        Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
+      if (!(*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier.empty ())
+      { // only change the directory, not the file...
+        std::string file_name_string =
+          Common_File_Tools::basename ((*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier, false);
+        std::string file_path_string =
+          Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
+        ACE_ASSERT (Common_File_Tools::isDirectory (file_path_string));
+        file_path_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+        file_path_string += file_name_string;
+        (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier = file_path_string;
+      } // end IF
+      else
+        (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier = Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

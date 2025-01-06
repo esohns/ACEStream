@@ -116,8 +116,8 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //module_p = NULL;
 
 #if defined (FFMPEG_SUPPORT)
-  if (!(*iterator).second.second->filtersDescription.empty ())
-  {
+  //if (!(*iterator).second.second->filtersDescription.empty ())
+  //{
     ACE_NEW_RETURN (module_p,
                     Test_I_DirectShow_FfmpegFilter_Module (this,
                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_FILTER_DEFAULT_NAME_STRING)),
@@ -125,17 +125,17 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     ACE_ASSERT (module_p);
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
-  } // end IF
+  //} // end IF
 #endif // FFMPEG_SUPPORT
 
 #if defined (SOX_SUPPORT)
-   ACE_NEW_RETURN (module_p,
-                   Test_I_DirectShow_SoXResampler_Module (this,
-                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
-                   false);
-   ACE_ASSERT (module_p);
-   layout_in->append (module_p, NULL, 0);
-   module_p = NULL;
+   //ACE_NEW_RETURN (module_p,
+   //                Test_I_DirectShow_SoXResampler_Module (this,
+   //                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
+   //                false);
+   //ACE_ASSERT (module_p);
+   //layout_in->append (module_p, NULL, 0);
+   //module_p = NULL;
 
    if (!(*iterator).second.second->effect.empty ())
    {
@@ -223,9 +223,9 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     ACE_ASSERT (module_p);
     branch_p = module_p;
     branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-    //if (!(*iterator_4).second.second->fileIdentifier.empty ())
-    //  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
     branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME));
+    if (!(*iterator_4).second.second->fileIdentifier.empty ())
+      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
     Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
     ACE_ASSERT (idistributor_p);
@@ -298,6 +298,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #endif // GUI_SUPPORT
 
   ++index_i;
+
   switch (inherited::configuration_->configuration_->STTBackend)
   {
     case STT_DEEPSPEECH:
@@ -332,24 +333,26 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, branch_p, index_i);
   module_p = NULL;
 
-  //if (!(*iterator_4).second.second->fileIdentifier.empty ())
-  //{
-  //  ACE_NEW_RETURN (module_p,
-  //                  Test_I_DirectShow_WAVEncoder_Module (this,
-  //                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
-  //                  false);
-  //  ACE_ASSERT (module_p);
-  //  layout_in->append (module_p, branch_p, index_i);
-  //  module_p = NULL;
+  ++index_i;
 
-  //  ACE_NEW_RETURN (module_p,
-  //                  Test_I_DirectShow_FileWriter_Module (this,
-  //                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
-  //                  false);
-  //  ACE_ASSERT (module_p);
-  //  layout_in->append (module_p, branch_p, index_i);
-  //  module_p = NULL;
-  //} // end IF
+  if (!(*iterator_4).second.second->fileIdentifier.empty ())
+  {
+    ACE_NEW_RETURN (module_p,
+                    Test_I_DirectShow_WAVEncoder_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, branch_p, index_i);
+    module_p = NULL;
+
+    ACE_NEW_RETURN (module_p,
+                    Test_I_DirectShow_FileWriter_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, branch_p, index_i);
+    module_p = NULL;
+  } // end IF
 
   return true;
 }

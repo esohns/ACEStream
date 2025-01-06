@@ -110,11 +110,13 @@ class Stream_Decoder_LibAVFilter_T
   void drainBuffers (Stream_SessionId_t); // session id
 
   struct AVFilterContext* bufferSourceContext_;
+  struct AVFilterContext* bufferFormatContext_;
   struct AVFilterContext* bufferSinkContext_;
   struct AVFilterGraph*   filterGraph_;
   struct AVFrame*         frame_;
   struct AVFrame*         frame_2;
   unsigned int            frameSize_;
+  unsigned int            outputFrameSize_;
 };
 
 // include template definition

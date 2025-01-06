@@ -339,7 +339,7 @@ elseif (WIN32)
  string (REPLACE "\\" "\\\\" ds_model_file ${ds_model_file})
  file (TO_NATIVE_PATH "${wh_model_file}" wh_model_file)
  string (REPLACE "\\" "\\\\" wh_model_file ${wh_model_file})
- set (ARGS "${ARGS} -c ${ds_scorer_file} -f ${ds_model_file}")
+ set (ARGS "${ARGS} -c ${ds_scorer_file} -f ${wh_model_file}")
 # set (ARGS "-m ${ARGS}") # use mediafoundation
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})

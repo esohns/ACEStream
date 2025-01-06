@@ -1374,6 +1374,7 @@ do_work (const std::string& scorerFile_in,
   struct Common_EventDispatchState dispatch_state_s;
 
   ACE_ASSERT (allocator_configuration_p);
+  allocator_configuration_p->defaultBufferSize = 65535; // 64kb
   if (unlikely (!heap_allocator.initialize (*allocator_configuration_p)))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1445,8 +1446,8 @@ do_work (const std::string& scorerFile_in,
       } // end IF
       else
       {
-        directshow_modulehandler_configuration.effect =
-          ACE_TEXT_ALWAYS_CHAR ("compand");
+        //directshow_modulehandler_configuration.effect =
+        //  ACE_TEXT_ALWAYS_CHAR ("compand");
         std::string effect_options_string =
           //ACE_TEXT_ALWAYS_CHAR ("2,2 -40,-40,-35,-20,0,-20 -10 -60 1"); // AGC
           //ACE_TEXT_ALWAYS_CHAR ("0.01,0.3 5:-inf,-40.1,-inf,-40,-30,0,-25 12");
@@ -1456,6 +1457,21 @@ do_work (const std::string& scorerFile_in,
         directshow_modulehandler_configuration.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-60,-60,-30,-15,-20,-12,-4,-8,-2,-7"));
         directshow_modulehandler_configuration.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-2"));
       } // end ELSE
+
+      std::string rnnn_file_path_string;
+        // = Common_File_Tools::getWorkingDirectory ();
+      //rnnn_file_path_string += ACE_DIRECTORY_SEPARATOR_STR;
+      rnnn_file_path_string +=
+        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+      rnnn_file_path_string += ACE_TEXT_ALWAYS_CHAR ("/");
+      rnnn_file_path_string += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_RNNN_FILE);
+      //std::string ffmpeg_filter_description_string = ACE_TEXT_ALWAYS_CHAR ("arnndn=m='");
+      //ffmpeg_filter_description_string += rnnn_file_path_string;
+      //ffmpeg_filter_description_string += ACE_TEXT_ALWAYS_CHAR ("'");
+      std::string ffmpeg_filter_description_string = ACE_TEXT_ALWAYS_CHAR ("in,format,out");
+      directshow_modulehandler_configuration.filtersDescription =
+        ffmpeg_filter_description_string;
+
       directshow_modulehandler_configuration.filterConfiguration =
         &directShowConfiguration_in.filterConfiguration;
       directshow_modulehandler_configuration.messageAllocator =
@@ -2460,8 +2476,8 @@ ACE_TMAIN (int argc_in,
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
   bool trace_information = false;
   bool mute = false;
-  //enum Test_I_STTBackend STT_backend_e = TEST_I_DEFAULT_STT_BACKEND;
-  enum Test_I_STTBackend STT_backend_e = STT_DEEPSPEECH;
+  enum Test_I_STTBackend STT_backend_e = TEST_I_DEFAULT_STT_BACKEND;
+  //enum Test_I_STTBackend STT_backend_e = STT_DEEPSPEECH;
   bool print_version_and_exit = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool use_framework_source = false;

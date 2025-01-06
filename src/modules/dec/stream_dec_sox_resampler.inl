@@ -214,10 +214,9 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXResampler_T::handleDataMessage"));
 
   // sanity check(s)
-  if (unlikely (!chain_))
-    return;
-  //ACE_ASSERT (inherited::configuration_);
-  //ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+  ACE_ASSERT (chain_);
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
   // initialize return value(s)
   passMessageDownstream_out = false;
@@ -226,9 +225,6 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL, *message_block_2 = NULL;
   char* effect_options[1];
   struct sox_format_t* input_buffer_p = NULL, *output_buffer_p = NULL;
-  size_t buffer_size_i =
-    //inherited::configuration_->allocatorConfiguration->defaultBufferSize;
-    STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE;
 
   input_buffer_p =
       sox_open_mem_read (message_inout->rd_ptr (),
@@ -256,13 +252,13 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
 
   if (unlikely (!buffer_))
   {
-    buffer_ = inherited::allocateMessage (static_cast<unsigned int> (buffer_size_i));
+    buffer_ = inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (unlikely (!buffer_))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: allocateMessage(%Q) failed: \"%m\", returning\n"),
+                  ACE_TEXT ("%s: allocateMessage(%u) failed: \"%m\", returning\n"),
                   inherited::mod_->name (),
-                  buffer_size_i));
+                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       goto error;
     } // end IF
   } // end IF
@@ -307,7 +303,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                   ACE_TEXT (sox_strerror (result))));
       goto error;
     } // end IF
-    ACE_ASSERT (output_buffer_p->tell_off == buffer_size_i);
+    ACE_ASSERT (output_buffer_p->tell_off == inherited::configuration_->allocatorConfiguration->defaultBufferSize);
 
     // output buffer is full --> allocate another one
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -321,13 +317,13 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
 
     message_block_2 = NULL;
     message_block_2 =
-      inherited::allocateMessage (static_cast<unsigned int> (buffer_size_i));
+      inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (unlikely (!message_block_2))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: allocateMessage(%d) failed: \"%m\", returning\n"),
+                  ACE_TEXT ("%s: allocateMessage(%u) failed: \"%m\", returning\n"),
                   inherited::mod_->name (),
-                  buffer_size_i));
+                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       goto error;
     } // end IF
     message_block_p->cont (message_block_2);
@@ -345,7 +341,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     output_buffer_p = NULL;
     output_buffer_p =
       sox_open_mem_write (message_block_p->wr_ptr (),
-                          buffer_size_i,
+                          inherited::configuration_->allocatorConfiguration->defaultBufferSize,
                           &signalInfoOut_,
                           &encodingInfoOut_,
                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
@@ -780,17 +776,13 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXResampler_T::extractBuffer"));
 
   // sanity check(s)
-  //ACE_ASSERT (inherited::configuration_);
-  //ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (buffer_);
   ACE_ASSERT (!buffer_->cont ());
   ACE_ASSERT (outputBuffer_in);
   ACE_ASSERT (outputBuffer_in->fp);
   ACE_ASSERT (outputBuffer_in->tell_off);
-
-  size_t buffer_size_i =
-    // inherited::configuration_->allocatorConfiguration->defaultBufferSize;
-    STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE;
 
   // step1: rewind file
   FILE* file_p = reinterpret_cast<FILE*> (outputBuffer_in->fp);
@@ -814,13 +806,13 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
       break;
 
     message_block_2 =
-      inherited::allocateMessage (static_cast<unsigned int> (buffer_size_i));
+      inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (unlikely (!message_block_2))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: allocateMessage(%Q) failed: \"%m\", returning\n"),
+                  ACE_TEXT ("%s: allocateMessage(%u) failed: \"%m\", returning\n"),
                   inherited::mod_->name (),
-                  buffer_size_i));
+                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       return;
     } // end IF
 
