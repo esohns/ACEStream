@@ -60,9 +60,17 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WhisperCppDecoder_T::Stream_Decoder_WhisperCppDecoder_T"));
 
   parameters_ = whisper_context_default_params ();
-  parameters_.use_gpu = false;
+  //parameters_.use_gpu = false;
   parameters2_ = whisper_full_default_params (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SAMPLING_STRATEGY);
-  parameters2_.no_context = false;
+  parameters2_.n_threads = Common_Tools::getNumberOfCPUs (true) / 2;
+  //parameters2_.n_max_text_ctx = 16;
+  //parameters2_.no_context = false;
+  parameters2_.no_timestamps = true;
+  parameters2_.single_segment = true;
+  parameters2_.print_progress = false;
+  parameters2_.print_timestamps = false;
+  parameters2_.temperature_inc = -1.0f;
+  parameters2_.greedy.best_of = 1;
 }
 
 template <ACE_SYNCH_DECL,
@@ -191,6 +199,9 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
 
   number_of_samples_i =
     static_cast<unsigned int> (buffer_->length () / sampleSize_);
+  parameters2_.duration_ms = bufferedMs_;
+  parameters2_.max_tokens =
+    static_cast<int> (4.0f * (int)number_of_samples_i / (float)WHISPER_SAMPLE_RATE);
   if (whisper_full (context_,
                     parameters2_,
                     reinterpret_cast<float*> (buffer_->rd_ptr ()),
