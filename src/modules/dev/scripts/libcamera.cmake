@@ -28,22 +28,22 @@ elseif (WIN32)
    set (LIBCAMERA_LIB_DIR ${VCPKG_LIB_DIR}/bin)
   endif (libcamera_FOUND)
  endif (VCPKG_USE)
- if (NOT LIBCAMERA_FOUND)
-  find_library (LIBCAMERA_LIBRARY libcamera.lib
-                PATHS $ENV{LIB_ROOT}/libcamera
-                PATH_SUFFIXES lib
-                DOC "searching for libcamera.lib"
-                NO_DEFAULT_PATH)
-  if (NOT LIBCAMERA_LIBRARY)
-   message (WARNING "could not find libcamera.lib, continuing")
-  else ()
-   message (STATUS "Found libcamera.lib library \"${LIBCAMERA_LIBRARY}\"")
-   set (LIBCAMERA_FOUND TRUE)
-   set (LIBCAMERA_INCLUDE_DIRS "$ENV{LIB_ROOT}/libcamera/include")
-   set (LIBCAMERA_LIBRARIES "${LIBCAMERA_LIBRARY}")
-   set (LIBCAMERA_LIB_DIR "$ENV{LIB_ROOT}/libcamera/bin")
-  endif (NOT LIBCAMERA_LIBRARY)
- endif (NOT LIBCAMERA_FOUND)
+# if (NOT LIBCAMERA_FOUND)
+#  find_library (LIBCAMERA_LIBRARY libcamera.lib
+#                PATHS $ENV{LIB_ROOT}/libcamera/build/src
+#                PATH_SUFFIXES libcamera
+#                DOC "searching for libcamera.lib"
+#                NO_DEFAULT_PATH)
+#  if (NOT LIBCAMERA_LIBRARY)
+#   message (WARNING "could not find libcamera.lib, continuing")
+#  else ()
+#   message (STATUS "Found libcamera.lib library \"${LIBCAMERA_LIBRARY}\"")
+#   set (LIBCAMERA_FOUND TRUE)
+#   set (LIBCAMERA_INCLUDE_DIRS "$ENV{LIB_ROOT}/libcamera/include")
+#   set (LIBCAMERA_LIBRARIES "${LIBCAMERA_LIBRARY}")
+#   set (LIBCAMERA_LIB_DIR "$ENV{LIB_ROOT}/libcamera/build/src/libcamera")
+#  endif (NOT LIBCAMERA_LIBRARY)
+# endif (NOT LIBCAMERA_FOUND)
 endif ()
 if (LIBCAMERA_FOUND)
  option (LIBCAMERA_SUPPORT "enable libcamera support" ${LIBCAMERA_SUPPORT_DEFAULT})

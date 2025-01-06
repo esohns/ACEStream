@@ -185,10 +185,14 @@ elseif (WIN32)
   endif (FLITE_FOUND)
  endif (VCPKG_SUPPORT)
  if (NOT FLITE_FOUND)
+  set (PATH_SUFFIX "Release")
+  if (DEFINED CMAKE_BUILD_TYPE)
+   set (PATH_SUFFIX ${CMAKE_BUILD_TYPE})
+  endif (DEFINED CMAKE_BUILD_TYPE)
   set (FLITE_LIB_FILE "libflite.lib")
   find_library (FLITE_LIBRARY ${FLITE_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/flite/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}
-                PATH_SUFFIXES Debug
+                PATH_SUFFIXES ${PATH_SUFFIX}
                 DOC "searching for ${FLITE_LIB_FILE}")
   if (NOT FLITE_LIBRARY)
    message (WARNING "could not find ${FLITE_LIB_FILE}, continuing")
@@ -196,7 +200,7 @@ elseif (WIN32)
   set (CMU_LEX_LIB_FILE "libflite_cmulex.lib")
   find_library (CMU_LEX_LIBRARY ${CMU_LEX_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/flite/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}
-                PATH_SUFFIXES Debug
+                PATH_SUFFIXES ${PATH_SUFFIX}
                 DOC "searching for ${CMU_LEX_LIB_FILE}")
   if (NOT CMU_LEX_LIBRARY)
    message (WARNING "could not find ${CMU_LEX_LIB_FILE}, continuing")
@@ -204,7 +208,7 @@ elseif (WIN32)
   set (USENGLISH_LIB_FILE "libflite_usenglish.lib")
   find_library (USENGLISH_LIBRARY ${USENGLISH_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/flite/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}
-                PATH_SUFFIXES Debug
+                PATH_SUFFIXES ${PATH_SUFFIX}
                 DOC "searching for ${USENGLISH_LIB_FILE}")
   if (NOT USENGLISH_LIBRARY)
    message (WARNING "could not find ${USENGLISH_LIB_FILE}, continuing")
@@ -212,7 +216,7 @@ elseif (WIN32)
   set (CMU_GRAPHEME_LANG_LIB_FILE "libflite_cmu_grapheme_lang.lib")
   find_library (CMU_GRAPHEME_LANG_LIBRARY ${CMU_GRAPHEME_LANG_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/flite/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}
-                PATH_SUFFIXES Debug
+                PATH_SUFFIXES ${PATH_SUFFIX}
                 DOC "searching for ${CMU_GRAPHEME_LANG_LIB_FILE}")
   if (NOT CMU_GRAPHEME_LANG_LIBRARY)
    message (WARNING "could not find ${CMU_GRAPHEME_LANG_LIB_FILE}, continuing")
@@ -220,7 +224,7 @@ elseif (WIN32)
   set (CMU_GRAPHEME_LEX_LIB_FILE "libflite_cmu_grapheme_lex.lib")
   find_library (CMU_GRAPHEME_LEX_LIBRARY ${CMU_GRAPHEME_LEX_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/flite/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}
-                PATH_SUFFIXES Debug
+                PATH_SUFFIXES ${PATH_SUFFIX}
                 DOC "searching for ${CMU_GRAPHEME_LEX_LIB_FILE}")
   if (NOT CMU_GRAPHEME_LEX_LIBRARY)
    message (WARNING "could not find ${CMU_GRAPHEME_LEX_LIB_FILE}, continuing")

@@ -18,10 +18,13 @@ elseif (WIN32)
   endif (sox_FOUND)
  endif (VCPKG_USE)
  if (NOT SOX_FOUND)
-#  set (CMAKE_FIND_LIBRARY_SUFFIXES .lib .dll.a)
+  set (PATH_SUFFIX "Release")
+  if (DEFINED CMAKE_BUILD_TYPE)
+   set (PATH_SUFFIX ${CMAKE_BUILD_TYPE})
+  endif (DEFINED CMAKE_BUILD_TYPE)
   find_library (SOX_LIBRARY libsox.lib
                 PATHS $ENV{LIB_ROOT}/sox/build/src
-                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                PATH_SUFFIXES ${PATH_SUFFIX}
                 DOC "searching for libsox.lib"
                 NO_DEFAULT_PATH)
   if (NOT SOX_LIBRARY)
@@ -31,7 +34,7 @@ elseif (WIN32)
    set (SOX_FOUND TRUE)
    set (SOX_INCLUDE_DIRS "$ENV{LIB_ROOT}/sox/src")
    set (SOX_LIBRARIES "${SOX_LIBRARY}")
-   set (SOX_LIB_DIR "$ENV{LIB_ROOT}/sox/build/src/${CMAKE_BUILD_TYPE}")
+   set (SOX_LIB_DIR "$ENV{LIB_ROOT}/sox/build/src/${PATH_SUFFIX}")
   endif (NOT SOX_LIBRARY)
  endif (NOT SOX_FOUND)
 endif ()

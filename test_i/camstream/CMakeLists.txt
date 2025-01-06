@@ -334,7 +334,7 @@ elseif (WIN32)
                            ${WXWIDGETS_PATH}
                            ${SSL_PATH}
                            ${ACE_PATH})
- string (REPLACE "/" "\\\\" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/camstream) 
+ string (REPLACE "/" "\\\\" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif ()
 create_target_launcher (${EXECUTABLE_SOURCE}
                         COMMAND ${COMMAND}
@@ -413,12 +413,16 @@ if (WIN32)
           LIBRARY DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib
           RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib)
 
- file (TO_NATIVE_PATH "${PROJECT_BINARY_DIR}/test_i/camstream/${CMAKE_BUILD_TYPE}/${LIBRARY_DS}.dll" TARGET_PATH_NATIVE)
+ set (PATH_SUFFIX "Release")
+ if (DEFINED CMAKE_BUILD_TYPE)
+  set (PATH_SUFFIX ${CMAKE_BUILD_TYPE})
+ endif (DEFINED CMAKE_BUILD_TYPE)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${PATH_SUFFIX}/${LIBRARY_DS}.dll" TARGET_PATH_NATIVE)
  string (REPLACE "\\" "\\\\" TARGET_PATH_NATIVE ${TARGET_PATH_NATIVE})
  file (TO_NATIVE_PATH "${ACE_LIB_DIR}" ACE_LIB_PATH_NATIVE)
  string (REPLACE "\\" "\\\\" ACE_LIB_PATH_NATIVE ${ACE_LIB_PATH_NATIVE})
  create_generic_launcher (regsvr32_directshow
-                          COMMAND regsvr32.exe ${TARGET_PATH_NATIVE}
+                          COMMAND "regsvr32.exe ${TARGET_PATH_NATIVE}"
                           RUNTIME_LIBRARY_DIRS ${ACE_LIB_PATH_NATIVE}
                           WORKING_DIRECTORY ${WORKING_DIRECTORY}
                           ENVIRONMENT ${ENVIRONMENT})
@@ -480,10 +484,10 @@ endif (FFMPEG_SUPPORT)
           LIBRARY DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib
           RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib)
 
- file (TO_NATIVE_PATH "${PROJECT_BINARY_DIR}/test_i/camstream/${CMAKE_BUILD_TYPE}/${LIBRARY_MF}.dll" TARGET_PATH_NATIVE)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${PATH_SUFFIX}/${LIBRARY_MF}.dll" TARGET_PATH_NATIVE)
  string (REPLACE "\\" "\\\\" TARGET_PATH_NATIVE ${TARGET_PATH_NATIVE})
  create_generic_launcher (regsvr32_mediafoundation
-                          COMMAND regsvr32.exe ${TARGET_PATH_NATIVE}
+                          COMMAND "regsvr32.exe ${TARGET_PATH_NATIVE}"
                           RUNTIME_LIBRARY_DIRS ${ACE_LIB_PATH_NATIVE}
                           WORKING_DIRECTORY ${WORKING_DIRECTORY}
                           ENVIRONMENT ${ENVIRONMENT})

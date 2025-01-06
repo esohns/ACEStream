@@ -24,10 +24,14 @@ elseif (WIN32)
   endif (ZLIB_LIBRARY)
  endif (VCPKG_USE)
  if (NOT ZLIB_FOUND)
+  set (PATH_SUFFIX "Release")
+  if (DEFINED CMAKE_BUILD_TYPE)
+   set (PATH_SUFFIX ${CMAKE_BUILD_TYPE})
+  endif (DEFINED CMAKE_BUILD_TYPE)
   set (ZLIB_LIB_FILE "zlib${LIB_FILE_SUFFIX}.lib")
   find_library (ZLIB_LIBRARY ${ZLIB_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/zlib/build
-                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                PATH_SUFFIXES ${PATH_SUFFIX}
                 DOC "searching for ${ZLIB_LIB_FILE}"
                 NO_DEFAULT_PATH)
   if (NOT ZLIB_LIBRARY)
@@ -37,7 +41,7 @@ elseif (WIN32)
    set (ZLIB_FOUND TRUE)
    set (ZLIB_INCLUDE_DIRS "$ENV{LIB_ROOT}/zlib;$ENV{LIB_ROOT}/zlib/build")
    set (ZLIB_LIBRARIES "${ZLIB_LIBRARY}")
-   set (ZLIB_LIB_DIR "$ENV{LIB_ROOT}/zlib/build/${CMAKE_BUILD_TYPE}")
+   set (ZLIB_LIB_DIR "$ENV{LIB_ROOT}/zlib/build/${PATH_SUFFIX}")
   endif (NOT ZLIB_LIBRARY)
  endif (NOT ZLIB_FOUND)
 endif ()
