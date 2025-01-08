@@ -126,7 +126,7 @@ cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executa
 set (ui_definition_file "")
 if (GUI_SUPPORT)
  if (GTK_USE)
-  if (GTK3_USE)
+  if (GTK4_USE OR GTK3_USE)
    set (ui_definition_file etc/${EXECUTABLE}.gtk3)
   elseif (GTK2_USE)
    set (ui_definition_file etc/${EXECUTABLE}.gtk2)
