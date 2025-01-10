@@ -118,13 +118,13 @@ jobs:
      if: ${{ matrix.os=='ubuntu-latest' }}
      run: |
           cd modules/Common
-          cmake -B ${{github.workspace}}/modules/Common/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          cmake -B ${{github.workspace}}/modules/Common/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUI_FRAMEWORK=gtk
 
    - name: Configure CMake (Common) [Win32]
      if: ${{ matrix.os=='windows-latest' }}
      run: |
           cd modules/Common
-          cmake -B ${{github.workspace}}/modules/Common/build -DVCPKG_USE=ON -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          cmake -B ${{github.workspace}}/modules/Common/build -DVCPKG_USE=ON -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUI_FRAMEWORK=gtk
      shell: cmd
 
    - name: Build (Common) [UNIX]
