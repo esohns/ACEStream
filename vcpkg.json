@@ -11,6 +11,7 @@
     "ffmpeg",
     "freeglut",
     "glew",
+    "glfw3",
     "glm",
     "gtk",
     "libiconv",
@@ -19,6 +20,7 @@
     "mpg123",
     "opencv",
     "pdcurses",
+    "stb",
     "zlib"
   ]
 }
