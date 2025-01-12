@@ -402,8 +402,16 @@ next:
       if (compute_fft_b)
       {
         // initialize the FFT working set buffer, transform to complex
+#if defined (FFTW_SUPPORT)
+        for (unsigned int j = 0; j < inherited2::slots_; ++j)
+        {
+          inherited2::X_[i][j][0] = inherited2::buffer_[i][j];
+          inherited2::X_[i][j][1] = 0.0f;
+        } // end FOR
+#else
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
           inherited2::X_[i][inherited2::bitReverseMap_[j]] = std::complex<ValueType> (inherited2::buffer_[i][j], 0.0);
+#endif // FFTW_SUPPORT
 
 //        if (bufferedSamples_ >= inherited2::slots_)
 //        {

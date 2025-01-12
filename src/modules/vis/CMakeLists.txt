@@ -6,6 +6,9 @@ include (glew)
 include (glm)
 include (glut)
 
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/math/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/math/scripts")
+include (fftw)
+
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts")
 include (PreUIFramework)
 include (SetUIFramework)
@@ -65,6 +68,11 @@ if (IMAGEMAGICK_SUPPORT)
  target_link_options (${PROJECT_NAME}_Visualization PUBLIC
                       ${MAGICK_LD_FLAGS})
 endif (IMAGEMAGICK_SUPPORT)
+
+if (FFTW_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             "$<BUILD_INTERFACE:${FFTW_INCLUDE_DIRS}>")
+endif (FFTW_SUPPORT)
 
 if (GLUT_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -314,6 +322,9 @@ add_dependencies (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 if (OPENGL_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${OPENGL_LIBRARIES})
 endif (OPENGL_SUPPORT)
+if (FFTW_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${FFTW_LIBRARIES})
+endif (FFTW_SUPPORT)
 if (FFMPEG_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)

@@ -31,7 +31,11 @@
 #include "common_iget.h"
 #include "common_inotify.h"
 
+#if defined (FFTW_SUPPORT)
+#include "common_math_fftw.h"
+#else
 #include "common_math_fft.h"
+#endif // FFTW_SUPPORT
 
 #include "common_timer_resetcounterhandler.h"
 
@@ -113,8 +117,12 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
                                          DataMessageType,
                                          SessionMessageType,
                                          MediaType>
+#if defined (FFTW_SUPPORT)
+ , public Common_Math_FFTW_T<ValueType>
+#else
  , public Common_Math_FFT_T<ValueType>
- //, public Common_ICounter
+#endif // FFTW_SUPPORT
+  //, public Common_ICounter
  , public Common_IDispatch
 #if GTK_CHECK_VERSION (4,0,0)
  , public Common_ISetP_T<GdkSurface>
@@ -129,7 +137,11 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
                                          DataMessageType,
                                          SessionMessageType,
                                          MediaType> inherited;
+#if defined (FFTW_SUPPORT)
+  typedef Common_Math_FFTW_T<ValueType> inherited2;
+#else
   typedef Common_Math_FFT_T<ValueType> inherited2;
+#endif // FFTW_SUPPORT
 
  public:
   Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (typename inherited::ISTREAM_T*); // stream handle
@@ -192,7 +204,11 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   int                                                height_;
   int                                                width_;
 
+#if defined (FFTW_SUPPORT)
+  Common_Math_FFTW_SampleIterator_T<ValueType>       sampleIterator_;
+#else
   Common_Math_FFT_SampleIterator_T<ValueType>        sampleIterator_;
+#endif // FFTW_SUPPORT
 };
 
 // include template definition
