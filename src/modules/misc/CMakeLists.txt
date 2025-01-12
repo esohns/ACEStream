@@ -1,29 +1,34 @@
-set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts")
-include (PreUIFramework)
-include (SetUIFramework)
-if (GTK_SUPPORT) # *NOTE*: _SUPPORT, not _USE !
- include (SetGTKVersion)
-endif (GTK_SUPPORT)
+if (UNIX)
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts")
+ include (PreUIFramework)
+ include (SetUIFramework)
+ if (GTK_SUPPORT) # *NOTE*: _SUPPORT, not _USE !
+  include (SetGTKVersion)
+ endif (GTK_SUPPORT)
+endif (UNIX)
 
 add_library (${PROJECT_NAME}_Miscellaneous STATIC "")
 
-if (FFMPEG_SUPPORT)
- target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                             $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
-endif (FFMPEG_SUPPORT)
-if (GTK_SUPPORT)
- target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                             "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
- if (GTKGL_SUPPORT)
-  if (GTKGLAREA_SUPPORT)
+if (UNIX)
+ if (FFMPEG_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                              $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
+ endif (FFMPEG_SUPPORT)
+ if (GTK_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                              "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
+  if (GTKGL_SUPPORT)
+   if (GTKGLAREA_SUPPORT)
 # *NOTE*: check out the 'master' branch for gtk3-based applications
 # *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
 # *TODO*: verify automatically
-   target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                               $<BUILD_INTERFACE:$ENV{LIB_ROOT}/gtkglarea>)
-  endif (GTKGLAREA_SUPPORT)
- endif (GTKGL_SUPPORT)
-endif (GTK_SUPPORT)
+    target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                                $<BUILD_INTERFACE:$ENV{LIB_ROOT}/gtkglarea>)
+   endif (GTKGLAREA_SUPPORT)
+  endif (GTKGL_SUPPORT)
+ endif (GTK_SUPPORT)
+endif (UNIX)
+
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
@@ -125,7 +130,7 @@ set (source_files
      stream_misc_window_source.inl)
 
 # Include dir for installed targets
-set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+#set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
 unset (absolute_source_files)
 foreach (source_file ${source_files})
@@ -147,9 +152,11 @@ set_property (TARGET ${PROJECT_NAME}_Miscellaneous PROPERTY FOLDER "modules")
 add_dependencies (${PROJECT_NAME}_Miscellaneous Common)
 add_dependencies (${PROJECT_NAME}_Miscellaneous ${PROJECT_NAME})
 
-if (FFMPEG_SUPPORT)
- target_link_libraries (${PROJECT_NAME}_Miscellaneous PUBLIC ${ffmpeg_LIBRARIES})
-endif (FFMPEG_SUPPORT)
+if (UNIX)
+ if (FFMPEG_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Miscellaneous PUBLIC ${ffmpeg_LIBRARIES})
+ endif (FFMPEG_SUPPORT)
+endif (UNIX)
 
 target_link_libraries (${PROJECT_NAME}_Miscellaneous PUBLIC ${ACE_LIBRARY})
 

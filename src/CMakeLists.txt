@@ -34,6 +34,11 @@ endif (UNIX)
 
 add_library (${PROJECT_NAME} STATIC "")
 
+if (FFMPEG_SUPPORT)
+ target_include_directories (${PROJECT_NAME} PUBLIC
+                             $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
+endif (FFMPEG_SUPPORT)
+
 target_include_directories (${PROJECT_NAME} PUBLIC
                             $<BUILD_INTERFACE:${ACE_INCLUDE_DIR}>)
 
@@ -198,7 +203,7 @@ if (WIN32)
 endif (WIN32)
 
 # Include dir for installed targets
-set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+#set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
 #set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
@@ -227,8 +232,8 @@ if (WIN32)
 #  message (STATUS "MSVC_VERSION: ${MSVC_VERSION}")
   if (MSVC_VERSION GREATER 1600)
 #  if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-   target_link_libraries (${PROJECT_NAME} vcruntime${LIB_FILE_SUFFIX}.lib ucrt${LIB_FILE_SUFFIX}.lib)
-  endif ()
+#   target_link_libraries (${PROJECT_NAME} vcruntime${LIB_FILE_SUFFIX}.lib ucrt${LIB_FILE_SUFFIX}.lib)
+  endif (MSVC_VERSION GREATER 1600)
  endif (MSVC)
 # endif ()
 

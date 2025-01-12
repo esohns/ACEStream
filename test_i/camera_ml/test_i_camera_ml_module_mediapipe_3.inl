@@ -81,6 +81,7 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 
   b2Vec2 gravity (0.0f, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_GRAVITY);
   world_ = new b2World (gravity);
+  world_->SetAllowSleeping (true);
   world_->SetDebugDraw (this);
 }
 
@@ -704,13 +705,13 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::OnUserDestroy"));
 
+  ACE_ASSERT (world_);
+  world_->DestroyJoint (bridgeRope_); bridgeRope_ = NULL;
   for (std::vector<b2Body*>::iterator iterator = bridge_.begin ();
         iterator != bridge_.end ();
         ++iterator)
     (*iterator)->GetWorld ()->DestroyBody (*iterator);
   bridge_.clear ();
-  ACE_ASSERT (world_);
-  world_->DestroyJoint (bridgeRope_); bridgeRope_ = NULL;
   for (std::vector<ball*>::iterator iterator = balls_.begin ();
        iterator != balls_.end ();
        ++iterator)

@@ -340,8 +340,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->spectrumAnalyzerConfiguration);
 
   // step1: process inbound samples
-  // *NOTE*: a 'data sample' consists of #channel 'sound sample's, which may
-  //         arrive interleaved (i.e. (16 bit resolution) LLRRLLRRLLRR...), or
+  // *NOTE*: a 'data sample' consists of #channels 'sound sample's, which may
+  //         arrive interleaved (e.g. (16 bit resolution) LLRRLLRRLLRR...), or
   //         'chunked' (i.e. LL...LLRR...RR...|LL...LLRR...RR...|...) at some
   //         interval. Note how 'chunked' data may need to be split/assembled
   //         before processing
@@ -383,29 +383,27 @@ next:
       // make space for inbound samples at the end of the buffer,
       // shifting previous samples towards the beginning
       tail_slot = inherited2::slots_ - samples_to_write;
-      ACE_OS::memmove (&(inherited2::buffer_[i][0]),
-                       &(inherited2::buffer_[i][samples_to_write]),
+      ACE_OS::memmove (&(inherited2::buffer_[i][0]), &(inherited2::buffer_[i][samples_to_write]),
                        tail_slot * sizeof (ValueType));
 
       // copy the sample data to the tail end of the buffer as ValueType
       for (unsigned int j = 0; j < samples_to_write; ++j)
         inherited2::buffer_[i][tail_slot + j] = sampleIterator_.get (j, i);
 
-      // apply window function ?
+      // step1b: apply window function ?
       if (unlikely (inherited::configuration_->spectrumAnalyzerConfiguration->applyWindowFunction))
         for (unsigned int j = 0; j < samples_to_write; ++j)
         { // --> 'Hamming'-window
-          ValueType factor =
+          inherited2::buffer_[i][tail_slot + j] *=
             (0.54 - 0.46 * std::cos ((2.0 * M_PI * (tail_slot + j)) / static_cast<ValueType> (inherited2::slots_)));
-          inherited2::buffer_[i][tail_slot + j] *= factor;
         } // end FOR
 
-      // step1b: process sample data ?
+      // step1c: process sample data ?
       if (compute_fft_b)
       {
         // initialize the FFT working set buffer, transform to complex
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
-          inherited2::X_[i][inherited2::bitReverseMap_[j]] = std::complex<ValueType> (inherited2::buffer_[i][j], 0);
+          inherited2::X_[i][inherited2::bitReverseMap_[j]] = std::complex<ValueType> (inherited2::buffer_[i][j], 0.0);
 
 //        if (bufferedSamples_ >= inherited2::slots_)
 //        {
@@ -419,10 +417,10 @@ next:
 
     offset += (sampleIterator_.dataSampleSize_ * samples_to_write);
     number_of_samples -= samples_to_write;
-    if (!number_of_samples)
+    if (likely (!number_of_samples))
     {
       message_block_p = message_block_p->cont ();
-      if (message_block_p)
+      if (unlikely (message_block_p))
       {
         offset = 0;
         goto next;
