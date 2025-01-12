@@ -89,8 +89,8 @@ class Test_I_CameraML_Module_MediaPipe_3
       body_def.type = b2_dynamicBody;
       body_def.position.Set (Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_X_OFFSET, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_X_OFFSET),
                              -halfDimension_in + 20.0f);
-      //body_def.angularVelocity =
-      //  Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL);
+      body_def.angularVelocity =
+        Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL);
       body_def.linearVelocity.Set (Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL),
                                    Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL));
       body_ = world_in->CreateBody (&body_def);
@@ -173,6 +173,7 @@ class Test_I_CameraML_Module_MediaPipe_3
   b2World*                  world_;
   float                     halfDimension_; // *NOTE*: box2d coords go from [-halfDimension_, halfDimension_]
   std::vector<b2Body*>      bridge_;
+  b2Joint*                  bridgeRope_;
   std::vector<ball*>        balls_;
   b2Vec2                    positionThumb_;
   b2Vec2                    positionIndex_;

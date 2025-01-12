@@ -62,6 +62,9 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
  , graph_ (NULL)
  , world_ (NULL)
  , halfDimension_ (0.0f)
+ , bridge_ ()
+ , bridgeRope_ (NULL)
+ , balls_ ()
  , positionThumb_ (b2Vec2_zero)
  , positionIndex_ (b2Vec2_zero)
 {
@@ -76,8 +79,7 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   // flags += b2Draw::e_particleBit;
   b2Draw::SetFlags (flags);
 
-  b2Vec2 gravity;
-  gravity.Set (0.0f, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_GRAVITY);
+  b2Vec2 gravity (0.0f, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_GRAVITY);
   world_ = new b2World (gravity);
   world_->SetDebugDraw (this);
 }
@@ -707,6 +709,8 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
         ++iterator)
     (*iterator)->GetWorld ()->DestroyBody (*iterator);
   bridge_.clear ();
+  ACE_ASSERT (world_);
+  world_->DestroyJoint (bridgeRope_); bridgeRope_ = NULL;
   for (std::vector<ball*>::iterator iterator = balls_.begin ();
        iterator != balls_.end ();
        ++iterator)
@@ -928,7 +932,8 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 
   b2BodyDef bodyDef;
   //bodyDef.allowSleep = false;
-  bodyDef.type = b2_staticBody;
+  bodyDef.type = b2_dynamicBody;
+  //bodyDef.type = b2_staticBody;
   b2FixtureDef fixtureDef;
   fixtureDef.density =
     TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_DENSITY;
@@ -942,12 +947,12 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 
 #if defined (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_REVOLUTE_JOINTS)
   b2RevoluteJointDef jointDef;
-  jointDef.collideConnected = true;
+  //jointDef.collideConnected = false;
   jointDef.localAnchorA.Set (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
   jointDef.localAnchorB.Set (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
 #elif defined (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_DISTANCE_JOINTS)
    b2DistanceJointDef jointDef;
-   jointDef.collideConnected = true;
+   jointDef.collideConnected = false;
   //jointDef.localAnchorA.Set (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
   //jointDef.localAnchorB.Set (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
    jointDef.length =
@@ -958,22 +963,22 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
      TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_FREQ_HZ;
 #else
   b2RopeJointDef jointDef;
-  jointDef.localAnchorA.Set (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
-  jointDef.localAnchorB.Set (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
-  jointDef.collideConnected = true;
+  jointDef.localAnchorA.SetZero ();
+  jointDef.localAnchorB.SetZero ();
+  //jointDef.collideConnected = false;
   jointDef.maxLength = 0.1f;
 #endif
 
   b2Body* link = world_->CreateBody (&bodyDef);
   ACE_ASSERT (link);
-  bodyDef.type = b2_dynamicBody;
+  //bodyDef.type = b2_dynamicBody;
 
   link->CreateFixture (&fixtureDef);
   bridge_.push_back (link);
   for (int i = 0; i < TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS - 1; i++)
   {
-    if (i == TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS - 2)
-      bodyDef.type = b2_staticBody;
+    //if (i == TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS - 2)
+    //  bodyDef.type = b2_staticBody;
     bodyDef.position.Set (static_cast<float> (i + 1) * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH, 0.0f);
     b2Body* newLink = world_->CreateBody (&bodyDef);
     ACE_ASSERT (newLink);
@@ -986,4 +991,14 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
     link = newLink; // prepare for next iteration
     bridge_.push_back (link);
   } // end FOR
+
+  b2RopeJointDef jointDef_2;
+  jointDef_2.bodyA = *bridge_.begin ();
+  jointDef_2.bodyB = link;
+  jointDef_2.localAnchorA.SetZero ();
+  jointDef_2.localAnchorB.SetZero ();
+  //jointDef_2.collideConnected = false;
+  jointDef_2.maxLength = (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS - 1) * (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS * 2.0f);
+  bridgeRope_ = world_->CreateJoint (&jointDef_2);
+  ACE_ASSERT (bridgeRope_);
 }

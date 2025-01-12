@@ -129,7 +129,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&faadAudioDecode_, branch_p, index_i);
 #endif // FAAD_SUPPORT
 #if defined (SOX_SUPPORT)
-  layout_in->append (&SOXResample_, branch_p, index_i);
+  //layout_in->append (&SOXResample_, branch_p, index_i);
 #endif // SOX_SUPPORT
   layout_in->append (&WASAPISound_, branch_p, index_i);
 
