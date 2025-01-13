@@ -435,7 +435,9 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
    , dispatch (NULL)
    , effect ()
    , effectOptions ()
+#if defined (DEEPSPEECH_SUPPORT)
    , hotWords ()
+#endif // DEEPSPEECH_SUPPORT
    , manageSoX (false)
    , modelFile ()
    , mute (false)
@@ -466,7 +468,9 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
   Stream_Statistic_IDispatch_t*                     dispatch;
   std::string                                       effect;
   std::vector<std::string>                          effectOptions;
+#if defined (DEEPSPEECH_SUPPORT)
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
+#endif // DEEPSPEECH_SUPPORT
   bool                                              manageSoX;
   std::string                                       modelFile;
   bool                                              mute;

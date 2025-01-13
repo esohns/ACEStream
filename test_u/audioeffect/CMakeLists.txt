@@ -10,7 +10,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../m
 include (png)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/math/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/math/scripts")
-#include (fftw)
+include (fftw)
 
 include (ffmpeg)
 include (ImageMagick)
@@ -188,6 +188,9 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
+if (FFTW_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${FFTW_LIBRARIES})
+endif (FFTW_SUPPORT)
 if (MPG123_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${MPG123_LIBRARY})
 endif (MPG123_SUPPORT)

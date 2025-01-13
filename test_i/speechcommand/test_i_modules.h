@@ -672,6 +672,17 @@ typedef Stream_Decoder_DeepSpeechDecoder_T<ACE_MT_SYNCH,
                                            struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_DeepSpeechDecoder;
 #endif // DEEPSPEECH_SUPPORT
 
+#if defined (WHISPERCPP_SUPPORT)
+typedef Stream_Decoder_WhisperCppDecoder_T<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t,
+                                           struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
+                                           Stream_ControlMessage_t,
+                                           Test_I_Message,
+                                           Test_I_ALSA_SessionMessage_t,
+                                           Test_I_SpeechCommand_ALSA_SessionData_t,
+                                           struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_WhisperCppDecoder;
+#endif // WHISPERCPP_SUPPORT
+
 //////////////////////////////////////////
 
 typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
@@ -1084,6 +1095,15 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,            
                               Stream_INotify_t,                                              // stream notification interface type
                               Test_I_ALSA_DeepSpeechDecoder);                                // writer type
 #endif // DEEPSPEECH_SUPPORT
+
+#if defined (WHISPERCPP_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_whisper_decoder_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_I_ALSA_WhisperCppDecoder);                              // writer type
+#endif // WHISPERCPP_SUPPORT
 
 //////////////////////////////////////////
 

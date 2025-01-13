@@ -33,6 +33,10 @@
 #include <iostream>
 #include <string>
 
+#if defined (VALGRIND_SUPPORT)
+#include "valgrind/valgrind.h"
+#endif // VALGRIND_SUPPORT
+
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/Init_ACE.h"
@@ -568,12 +572,12 @@ do_initializeSignals (ACE_Sig_Set& signals_out,
   // *NOTE* don't care about SIGPIPE
   signals_out.sig_del (SIGPIPE);           // 12      /* Broken pipe: write to pipe with no readers */
 
-#if defined (VALGRIND_USE)
+#if defined (VALGRIND_SUPPORT)
   // *NOTE*: valgrind uses SIGRT32 (--> SIGRTMAX ?) and apparently will not work
   // if the application installs its own handler (see documentation)
   if (RUNNING_ON_VALGRIND)
     signals_out.sig_del (SIGRTMAX);        // 64
-#endif // VALGRIND_USE
+#endif // VALGRIND_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 }
 

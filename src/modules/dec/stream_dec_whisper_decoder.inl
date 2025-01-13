@@ -24,6 +24,8 @@
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
+#include "common_tools.h"
+
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -175,6 +177,8 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WhisperCppDecoder_T::handleDataMessage"));
 
+  int result = -1;
+
   // this module may (!) buffer data...
   passMessageDownstream_out = false;
 
@@ -190,6 +194,9 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
       Stream_Tools::append (buffer_, message_inout);
     return;
   } // end IF
+
+  typename DataMessageType::DATA_T* data_p = NULL;
+  int n_segments;
 
   ACE_Message_Block* message_block_p = buffer_;
   Stream_Tools::crunch (message_block_p,
@@ -213,20 +220,19 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  typename DataMessageType::DATA_T& data_r =
-    const_cast<typename DataMessageType::DATA_T&> (buffer_->getR ());
-  int n_segments = whisper_full_n_segments (context_);
+  data_p = &const_cast<typename DataMessageType::DATA_T&> (buffer_->getR ());
+  n_segments = whisper_full_n_segments (context_);
   for (int i = 0; i < n_segments; ++i)
   {
     int n_tokens = whisper_full_n_tokens (context_, i);
     for (int j = 0; j < n_tokens; ++j)
     {
       const char* text_p = whisper_full_get_token_text (context_, i, j);
-      data_r.words.push_back (text_p);
+      data_p->words.push_back (text_p);
     } // end FOR
   } // end FOR
 
-  int result = inherited::put_next (buffer_, NULL);
+  result = inherited::put_next (buffer_, NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -342,7 +348,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid sample format (expected \"%s\"; was: \"%s\"), aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (snd_pcm_format_name (SND_PCM_FORMAT_F32)), ACE_TEXT (snd_pcm_format_name (media_type_s.format))));
+                    ACE_TEXT (snd_pcm_format_name (SND_PCM_FORMAT_FLOAT)), ACE_TEXT (snd_pcm_format_name (media_type_s.format))));
         goto error;
       } // end IF
       if (unlikely (media_type_s.rate != WHISPER_SAMPLE_RATE))

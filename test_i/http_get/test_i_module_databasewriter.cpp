@@ -49,8 +49,6 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_DataBaseWriter::handleSessionMessage"));
 
-  int result = -1;
-
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 

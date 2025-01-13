@@ -1000,7 +1000,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   modulehandler_configuration.labelFile += ACE_DIRECTORY_SEPARATOR_CHAR;
   modulehandler_configuration.labelFile +=
       ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LABEL_FILE);
-  modulehandler_configuration.modelFile = modelFile_in;
+  modulehandler_configuration.model = modelFile_in;
 //  modulehandler_configuration.display = displayDevice_in;
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;

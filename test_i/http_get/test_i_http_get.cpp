@@ -20,7 +20,7 @@
 #include "stdafx.h"
 
 #if defined (SSL_SUPPORT)
-#include "openssl/ssl.h";
+#include "openssl/ssl.h"
 #endif // SSL_SUPPORT
 
 #include <iostream>

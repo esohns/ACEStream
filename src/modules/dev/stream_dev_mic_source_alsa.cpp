@@ -92,7 +92,7 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
     frames_to_read = message_block_p->space () / data_p->frameSize;
     frames_to_read =
       (frames_to_read > static_cast<snd_pcm_uframes_t> (available_frames) ? available_frames
-                                                                            : frames_to_read);
+                                                                          : frames_to_read);
     frames_read = snd_pcm_readi (handle_p,
                                  message_block_p->wr_ptr (),
                                  frames_to_read);

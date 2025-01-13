@@ -1977,15 +1977,41 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
     module_p = NULL;
   } // end IF
 
-#if defined (DEEPSPEECH_SUPPORT)
   ++index_i;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_ALSA_DeepSpeechDecoder_Module (this,
-                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_DEEPSPEECH_DECODER_DEFAULT_NAME_STRING)),
-                  false);
+
+  switch (inherited::configuration_->configuration_->STTBackend)
+  {
+    case STT_DEEPSPEECH:
+    {
+#if defined (DEEPSPEECH_SUPPORT)
+      ACE_NEW_RETURN (module_p,
+                      Test_I_ALSA_DeepSpeechDecoder_Module (this,
+                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_DEEPSPEECH_DECODER_DEFAULT_NAME_STRING)),
+                      false);
+#endif // DEEPSPEECH_SUPPORT
+      break;
+    }
+    case STT_WHISPERCPP:
+    {
+#if defined (WHISPERCPP_SUPPORT)
+      ACE_NEW_RETURN (module_p,
+                      Test_I_ALSA_WhisperCppDecoder_Module (this,
+                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_NAME_STRING)),
+                      false);
+#endif // WHISPERCPP_SUPPORT
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown STT backend type (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->STTBackend));
+      return false;
+    }
+  } // end SWITCH
   layout_in->append (module_p, branch_p, index_i);
   module_p = NULL;
-#endif // DEEPSPEECH_SUPPORT
 
   return true;
 }
