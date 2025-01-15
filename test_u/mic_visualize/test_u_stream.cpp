@@ -58,6 +58,10 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
 #if defined (GTKGL_SUPPORT)
  , inherited2 ()
 #endif // GTKGL_SUPPORT
+#if defined (GTK_USE)
+ , spectrumAnalyzer_ (this,
+                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING))
+#endif // GTK_USE
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_DirectShow_Stream::Test_U_DirectShow_Stream"));
 
@@ -199,7 +203,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   module_p = NULL;
   //ACE_NEW_RETURN (module_p,
   //                Test_U_MicVisualize_DirectShow_StatisticReport_Module (this,
-  //                                                                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+  //                                                                       ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
   //                false);
   //ACE_ASSERT (module_p);
   //layout_in->append (module_p, NULL, 0);
@@ -260,7 +264,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_MicVisualize_DirectShow_Source_Module (this,
-                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_SOURCE_DEFAULT_NAME_STRING)),
+                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_SOURCE_DEFAULT_NAME_STRING)),
                     false);
     ACE_ASSERT (module_p);
     layout_in->append (module_p, NULL, 0);
@@ -275,7 +279,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_MicVisualize_DirectShow_Distributor_Module (this,
-                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
+                                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
                     false);
     ACE_ASSERT (module_p);
     branch_p = module_p;
@@ -311,7 +315,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     {
       ACE_NEW_RETURN (module_p,
                       Test_U_MicVisualize_DirectShow_Delay_Module (this,
-                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
+                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
                       false);
       ACE_ASSERT (module_p);
       layout_in->append (module_p, branch_p, index_i);
@@ -332,7 +336,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
       {
         ACE_NEW_RETURN (module_p,
                         Test_U_MicVisualize_DirectShow_WASAPIOut_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING)),
+                                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING)),
                         false);
         break;
       }
@@ -358,24 +362,18 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   {
     if (add_renderer_branch_b)
       ++index_i;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
     ACE_NEW_RETURN (module_p,
                     Test_U_MicVisualize_DirectShow_StatisticAnalysis_Module (this,
-                                                                            ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+                                                                             ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
                     false);
     ACE_ASSERT (module_p);
     layout_in->append (module_p, branch_p, index_i);
-    module_p = NULL;
-    ACE_NEW_RETURN (module_p,
-                    Test_U_MicVisualize_DirectShow_Vis_SpectrumAnalyzer_Module (this,
-                                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
+#if defined (GTK_USE)
+    module_p = &spectrumAnalyzer_;
     ACE_ASSERT (module_p);
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   } // end IF
 
   if (add_save_branch_b)
@@ -384,7 +382,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
       ++index_i;
     ACE_NEW_RETURN (module_p,
                     Test_U_MicVisualize_DirectShow_WAVEncoder_Module (this,
-                                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
+                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
                     false);
     ACE_ASSERT (module_p);
     layout_in->append (module_p, branch_p, index_i);
@@ -392,7 +390,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
     ACE_NEW_RETURN (module_p,
                     Test_U_MicVisualize_DirectShow_FileWriter_Module (this,
-                                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
+                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
                     false);
     ACE_ASSERT (module_p);
     layout_in->append (module_p, branch_p, index_i);
@@ -845,6 +843,10 @@ Test_U_MediaFoundation_Stream::Test_U_MediaFoundation_Stream ()
                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
  , mediaFoundationSource_ (this,
                            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_SOURCE_DEFAULT_NAME_STRING))
+#if defined (GTK_USE)
+ , spectrumAnalyzer_ (this,
+                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING))
+#endif // GTK_USE
  //, mediaFoundationTarget_ (this,
  //                          ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING))
  , referenceCount_ (0)
@@ -1028,8 +1030,8 @@ error:
 
 void
 Test_U_MediaFoundation_Stream::stop (bool waitForCompletion_in,
-                                                 bool recurseUpstream_in,
-                                                 bool highPriority_in)
+                                     bool recurseUpstream_in,
+                                     bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_MediaFoundation_Stream::stop"));
 
@@ -1259,7 +1261,7 @@ Test_U_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_MicVisualize_MediaFoundation_Distributor_Module (this,
-                                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
+                                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
                     false);
     ACE_ASSERT (module_p);
     branch_p = module_p;
@@ -1280,7 +1282,7 @@ Test_U_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
 #if defined (SOX_SUPPORT)
       ACE_NEW_RETURN (module_p,
                       Test_U_MicVisualize_MediaFoundation_SoXResampler_Module (this,
-                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
+                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
                       false);
       layout_in->append (module_p, branch_p, index_i);
       module_p = NULL;
@@ -1291,30 +1293,24 @@ Test_U_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
     {
       ACE_NEW_RETURN (module_p,
                       Test_U_MicVisualize_MediaFoundation_Delay_Module (this,
-                                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
+                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
                       false);
       layout_in->append (module_p, branch_p, index_i);
       module_p = NULL;
     } // end IF
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
     ACE_NEW_RETURN (module_p,
                     Test_U_MicVisualize_MediaFoundation_StatisticAnalysis_Module (this,
-                                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+                                                                                  ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
                     false);
     ACE_ASSERT (module_p);
     layout_in->append (module_p, branch_p, index_i);
-    module_p = NULL;
-    ACE_NEW_RETURN (module_p,
-                    Test_U_MicVisualize_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
-                                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
+#if defined (GTK_USE)
+    module_p = &spectrumAnalyzer_;
     ACE_ASSERT (module_p);
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
     switch (inherited::configuration_->configuration_->renderer)
     {
@@ -1322,7 +1318,7 @@ Test_U_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
       {
         ACE_NEW_RETURN (module_p,
                         Test_U_MicVisualize_MediaFoundation_WavOut_Module (this,
-                                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING)),
+                                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING)),
                         false);
         break;
       }
@@ -1330,7 +1326,7 @@ Test_U_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
       {
         ACE_NEW_RETURN (module_p,
                         Test_U_MicVisualize_MediaFoundation_WASAPIOut_Module (this,
-                                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING)),
+                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING)),
                         false);
         break;
       }
@@ -1367,7 +1363,7 @@ Test_U_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_MicVisualize_MediaFoundation_WAVEncoder_Module (this,
-                                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
+                                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
                     false);
     ACE_ASSERT (module_p);
     layout_in->append (module_p, branch_p, index_i);
@@ -1375,7 +1371,7 @@ Test_U_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
 
     ACE_NEW_RETURN (module_p,
                     Test_U_MicVisualize_MediaFoundation_FileWriter_Module (this,
-                                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
+                                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
                     false);
     ACE_ASSERT (module_p);
     layout_in->append (module_p, branch_p, index_i);
@@ -2127,6 +2123,10 @@ Test_U_ALSA_Stream::Test_U_ALSA_Stream ()
 #if defined (GTKGL_SUPPORT)
  , inherited2 ()
 #endif // GTKGL_SUPPORT
+#if defined (GTK_USE)
+ , spectrumAnalyzer_ (this,
+                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING))
+#endif // GTK_USE
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_ALSA_Stream::Test_U_ALSA_Stream"));
 
@@ -2304,16 +2304,12 @@ Test_U_ALSA_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-    ACE_NEW_RETURN (module_p,
-                    Test_U_MicVisualize_Vis_SpectrumAnalyzer_Module (this,
-                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
+    module_p = &spectrumAnalyzer_;
+    ACE_ASSERT (module_p);
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   } // end IF
 
   delete_out = true;

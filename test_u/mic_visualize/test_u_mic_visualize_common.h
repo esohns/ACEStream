@@ -779,7 +779,11 @@ typedef Common_ISubscribe_T<Test_U_MicVisualize_ISessionNotify_t> Test_U_MicVisu
 struct Test_U_GLUT_CBData
 {
   // canvas
+#if defined (FFTW_SUPPORT)
+  Common_Math_FFTW_T<float>*        fft;
+#else
   Common_Math_FFT_T<float>*         fft;
+#endif // 
 
   // menu
   bool                              wireframe;

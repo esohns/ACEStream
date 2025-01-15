@@ -145,9 +145,17 @@ test_u_glut_timer (int v)
 void
 test_u_glut_draw (void)
 {
+  static int frame_count_i = 1;
+  float x1, y1, z1;
+  int i = 0;
+  float r, g, b;
+  std::vector<float> spectrum_a;
+
   struct Test_U_GLUT_CBData* cb_data_p =
     static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
+  if (!cb_data_p->fft) // stream currently not running ?
+    goto continue_;
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -173,19 +181,10 @@ test_u_glut_draw (void)
 
   //glColor3f (1.0f, 1.0f, 1.0f);
 
-  static int frame_count_i = 1;
-
   glTranslatef (0.0f, -250.0f, 0.0f);
   glRotatef (static_cast<float> (M_PI_4) * (180.0f / static_cast<float> (M_PI)), 1.0f, 0.0f, 0.0f);
   glRotatef (frame_count_i / 10.0f * (180.0f / static_cast<float> (M_PI)), 0.0f, 0.0f, 1.0f);
 
-  float x1, y1, z1;
-  int i = 0;
-  float r, g, b;
-  std::vector<float> spectrum_a;
-
-  if (!cb_data_p->fft)
-    goto continue_;
   spectrum_a = cb_data_p->fft->Spectrum ();
   for (int k = 0; k < TEST_U_GLUT_DEFAULT_LAYERS; k++)
   {

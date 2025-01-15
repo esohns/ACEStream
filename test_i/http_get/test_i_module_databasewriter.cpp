@@ -49,6 +49,8 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_DataBaseWriter::handleSessionMessage"));
 
+  int result = -1;
+
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
@@ -179,12 +181,10 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       //                    ACE_TEXT (mysql_error (&mysql))));
       //        goto error;
       //      } // end IF
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: opened database connection to %s\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Net_Common_Tools::IPAddressToString (inherited::configuration_->loginOptions.host).c_str ())));
-#endif // _DEBUG
       result =
         mysql_set_character_set (inherited::state_,
                                  ACE_TEXT_ALWAYS_CHAR (MODULE_DB_MYSQL_DEFAULT_CHARACTER_SET));

@@ -622,7 +622,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_MediaFoundation_SessionData,  
                               Stream_INotify_t,                                                     // stream notification interface type
                               Test_U_MicVisualize_MediaFoundation_Delay);                            // writer type
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_TimePolicy_t,
@@ -659,7 +658,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_MediaFoundation_SessionData,  
                               Stream_INotify_t,                                                     // stream notification interface type
                               Test_U_MicVisualize_MediaFoundation_Vis_SpectrumAnalyzer);             // writer type
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #if defined (SOX_SUPPORT)
 typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,

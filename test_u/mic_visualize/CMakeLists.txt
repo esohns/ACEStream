@@ -1,11 +1,17 @@
 include (OpenGL)
+
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/gl/scripts")
 include (glut)
 include (glew)
 include (glm)
 include (assimp)
+
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/image/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image/scripts")
 include (png)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/math/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/math/scripts")
+include (fftw)
+
 include (ffmpeg)
 include (ImageMagick)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
@@ -180,6 +186,9 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
+if (FFTW_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${FFTW_LIBRARIES})
+endif (FFTW_SUPPORT)
 if (MPG123_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${MPG123_LIBRARY})
 endif (MPG123_SUPPORT)
@@ -357,9 +366,11 @@ elseif (WIN32)
   file (TO_CMAKE_PATH "${GLEW_LIB_DIR}" GLEW_PATH)
  endif (GLEW_SUPPORT)
  if (GLUT_SUPPORT)
-  message (STATUS "GLUT_LIB_DIR: \"${GLUT_LIB_DIR}\"")
   file (TO_CMAKE_PATH "${GLUT_LIB_DIR}" GLUT_PATH)
  endif (GLUT_SUPPORT)
+ if (FFTW_SUPPORT)
+  file (TO_CMAKE_PATH "${FFTW_LIB_DIR}" FFTW_PATH)
+ endif (FFTW_SUPPORT)
  # *NOTE*: ffmpeg was built with "vcpkg-libpng" support, so now there is a new dependency to zlib1.dll, liblzma.dll, iconv-2.dll :-(
  file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
@@ -381,6 +392,7 @@ elseif (WIN32)
  set (RUNTIME_LIBRARY_DIR ${ASSIMP_PATH}
                           ${GLEW_PATH}
                           ${GLUT_PATH}
+                          ${FFTW_PATH}
                           ${VCPKG_PATH}
                           ${FFMPEG_PATH}
                           ${IMAGEMAGICK_PATH}

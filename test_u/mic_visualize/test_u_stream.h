@@ -96,6 +96,10 @@ class Test_U_DirectShow_Stream
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_DirectShow_Stream (const Test_U_DirectShow_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_DirectShow_Stream& operator= (const Test_U_DirectShow_Stream&))
+
+#if defined (GTK_USE)
+  Test_U_MicVisualize_DirectShow_Vis_SpectrumAnalyzer_Module spectrumAnalyzer_;
+#endif // GTK_USE
 };
 
 //////////////////////////////////////////
@@ -179,15 +183,18 @@ class Test_U_MediaFoundation_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_U_MediaFoundation_Stream (const Test_U_MediaFoundation_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_MediaFoundation_Stream& operator= (const Test_U_MediaFoundation_Stream&))
 
-  ACE_SYNCH_CONDITION                              condition_;
+  ACE_SYNCH_CONDITION                                             condition_;
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
-  IMFMediaSession*                                 mediaSession_;
+  IMFMediaSession*                                                mediaSession_;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
-  Test_U_Dev_Mic_Source_MediaFoundation_Module     frameworkSource_;
-  Test_U_MicVisualize_MediaFoundation_Source_Module mediaFoundationSource_;
+  Test_U_Dev_Mic_Source_MediaFoundation_Module                    frameworkSource_;
+  Test_U_MicVisualize_MediaFoundation_Source_Module               mediaFoundationSource_;
+#if defined (GTK_USE)
+  Test_U_MicVisualize_MediaFoundation_Vis_SpectrumAnalyzer_Module spectrumAnalyzer_;
+#endif // GTK_USE
   //Test_U_MicVisualize_MediaFoundation_MediaFoundationTarget_Module mediaFoundationTarget_;
-  ULONG                                            referenceCount_;
-  bool                                             topologyIsReady_;
+  ULONG                                                           referenceCount_;
+  bool                                                            topologyIsReady_;
 };
 #else
 class Test_U_ALSA_Stream
@@ -243,6 +250,10 @@ class Test_U_ALSA_Stream
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_ALSA_Stream (const Test_U_ALSA_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_ALSA_Stream& operator= (const Test_U_ALSA_Stream&))
+
+#if defined (GTK_USE)
+  Test_U_MicVisualize_Vis_SpectrumAnalyzer_Module spectrumAnalyzer_;
+#endif // GTK_USE
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
