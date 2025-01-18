@@ -44,8 +44,8 @@ elseif (WIN32)
   endif (EXISTS $ENV{MEDIAPIPE_ROOT})
   file (TO_CMAKE_PATH "${MEDIAPIPE_ROOT}" MEDIAPIPE_ROOT)
   find_library (MEDIAPIPE_LIBRARY libmp.dll.if.lib
-                PATHS ${MEDIAPIPE_ROOT}
-                PATH_SUFFIXES bazel-bin/mediapipe/examples/desktop/libmp
+                PATHS C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin/mediapipe/examples/desktop
+                PATH_SUFFIXES libmp
                 DOC "searching for libmp.dll.if.lib"
                 NO_DEFAULT_PATH)
   if (NOT MEDIAPIPE_LIBRARY)
@@ -56,8 +56,8 @@ elseif (WIN32)
   if (MEDIAPIPE_LIBRARY)
    set (MEDIAPIPE_FOUND TRUE)
    set (MEDIAPIPE_LIBRARIES "${MEDIAPIPE_LIBRARY}")
-   set (MEDIAPIPE_INCLUDE_DIRS "${MEDIAPIPE_ROOT}/bazel-mediapipe/external/com_google_protobuf/src;${MEDIAPIPE_ROOT}/bazel-bin;${MEDIAPIPE_ROOT}/mediapipe/examples/desktop/libmp")
-   set (MEDIAPIPE_LIB_DIR "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/examples/desktop/libmp")
+   set (MEDIAPIPE_INCLUDE_DIRS "C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/external/com_google_protobuf/src;C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin;${MEDIAPIPE_ROOT}/mediapipe/examples/desktop/libmp")
+   set (MEDIAPIPE_LIB_DIR "C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin/mediapipe/examples/desktop/libmp")
   endif (MEDIAPIPE_LIBRARY)
  endif (NOT MEDIAPIPE_FOUND)
 endif ()
