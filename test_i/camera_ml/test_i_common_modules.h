@@ -69,7 +69,7 @@
 #include "stream_vis_target_mediafoundation.h"
 #else
 #include "stream_vis_wayland_window.h"
-#include "stream_vis_x11_window.h"
+// #include "stream_vis_x11_window.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "test_i_camera_ml_common.h"
@@ -433,14 +433,14 @@ typedef Stream_Module_Vis_Wayland_Window_T<ACE_MT_SYNCH,
                                            Stream_CameraML_SessionMessage_t,
                                            Stream_CameraML_V4L_SessionData_t,
                                            struct Stream_MediaFramework_V4L_MediaType> Stream_CameraML_Wayland_Display;
-typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
-                                       Common_TimePolicy_t,
-                                       struct Stream_CameraML_V4L_ModuleHandlerConfiguration,
-                                       Stream_ControlMessage_t,
-                                       Stream_CameraML_Message_t,
-                                       Stream_CameraML_SessionMessage_t,
-                                       Stream_CameraML_V4L_SessionData_t,
-                                       struct Stream_MediaFramework_V4L_MediaType> Stream_CameraML_X11_Display;
+// typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
+//                                        Common_TimePolicy_t,
+//                                        struct Stream_CameraML_V4L_ModuleHandlerConfiguration,
+//                                        Stream_ControlMessage_t,
+//                                        Stream_CameraML_Message_t,
+//                                        Stream_CameraML_SessionMessage_t,
+//                                        Stream_CameraML_V4L_SessionData_t,
+//                                        struct Stream_MediaFramework_V4L_MediaType> Stream_CameraML_X11_Display;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -754,12 +754,12 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                  
                               libacestream_default_vis_wayland_window_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CameraML_Wayland_Display);                          // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CameraML_V4L_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_x11_window_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CameraML_X11_Display);                          // writer type
+// DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                   // session data type
+//                               enum Stream_SessionMessageType,                   // session event type
+//                               struct Stream_CameraML_V4L_ModuleHandlerConfiguration, // module handler configuration type
+//                               libacestream_default_vis_x11_window_module_name_string,
+//                               Stream_INotify_t,                                 // stream notification interface type
+//                               Stream_CameraML_X11_Display);                          // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -263,7 +263,7 @@ class Stream_CameraML_Stream_3
 #endif // GTK_SUPPORT
   Stream_CameraML_LibAVConvert_Module    convert_2; // --> BGRA (X11|Wayland)
   Stream_CameraML_Wayland_Display_Module WaylandDisplay_;
-  Stream_CameraML_X11_Display_Module     X11Display_;
+  // Stream_CameraML_X11_Display_Module     X11Display_;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

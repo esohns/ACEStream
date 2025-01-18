@@ -26,7 +26,15 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #endif // OPENCV_SUPPORT
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#undef Status
+#endif // ACE_WIN32 || ACE_WIN64
 #include "mediapipe/framework/formats/image_format.pb.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#define Status int
+#endif // ACE_WIN32 || ACE_WIN64
 #include "mediapipe/framework/formats/landmark.pb.h"
 
 #include "ace/Log_Msg.h"
@@ -667,7 +675,7 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   // handle balls
   if (Common_Tools::testRandomProbability (0.1f))
     balls_.push_back (new ball (world_, halfDimension_));
-  for (std::vector<ball*>::iterator iterator = balls_.begin ();
+  for (typename std::vector<ball*>::iterator iterator = balls_.begin ();
        iterator != balls_.end ();
        )
   {
@@ -712,7 +720,7 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
         ++iterator)
     (*iterator)->GetWorld ()->DestroyBody (*iterator);
   bridge_.clear ();
-  for (std::vector<ball*>::iterator iterator = balls_.begin ();
+  for (typename std::vector<ball*>::iterator iterator = balls_.begin ();
        iterator != balls_.end ();
        ++iterator)
     delete *iterator;

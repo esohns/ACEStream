@@ -7,21 +7,22 @@ if (UNIX)
   set (MEDIAPIPE_INCLUDE_DIRS "${PKG_MEDIAPIPE_INCLUDE_DIRS}")
   set (MEDIAPIPE_LIBRARIES "${PKG_MEDIAPIPE_LIBRARIES}")
  else ()
-  find_library (MEDIAPIPE_LIBRARY libmediapipe.so
-                PATHS /usr/local
-                PATH_SUFFIXES lib
-                DOC "searching for libmediapipe.so"
+  set (MEDIAPIPE_ROOT $ENV{LIB_ROOT}/mediapipe)
+  find_library (MEDIAPIPE_LIBRARY libmp.so
+                PATHS ${MEDIAPIPE_ROOT}
+                PATH_SUFFIXES bazel-bin/mediapipe/examples/desktop/libmp
+                DOC "searching for libmp.so"
                 NO_DEFAULT_PATH)
   if (NOT MEDIAPIPE_LIBRARY)
-   message (WARNING "could not find libmediapipe.so, continuing")
+   message (WARNING "could not find libmp.so, continuing")
   else ()
-   message (STATUS "Found libmediapipe.so library \"${MEDIAPIPE_LIBRARY}\"")
+   message (STATUS "Found libmp.so library \"${MEDIAPIPE_LIBRARY}\"")
   endif (NOT MEDIAPIPE_LIBRARY)
   if (MEDIAPIPE_LIBRARY)
    set (MEDIAPIPE_FOUND TRUE)
    set (MEDIAPIPE_LIBRARIES "${MEDIAPIPE_LIBRARY}")
-   set (MEDIAPIPE_INCLUDE_DIRS "/usr/local/include")
-   set (MEDIAPIPE_LIB_DIR "/usr/local/lib")
+   set (MEDIAPIPE_INCLUDE_DIRS "${MEDIAPIPE_ROOT}/bazel-mediapipe/external/com_google_protobuf/src;${MEDIAPIPE_ROOT}/bazel-bin;${MEDIAPIPE_ROOT}/mediapipe/examples/desktop/libmp")
+#   set (MEDIAPIPE_LIB_DIR "/usr/local/lib")
   endif (MEDIAPIPE_LIBRARY)
  endif (PKG_MEDIAPIPE_FOUND)
 elseif (WIN32)

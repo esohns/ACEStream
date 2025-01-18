@@ -42,6 +42,8 @@
 
 #include "stream_lib_mediatype_converter.h"
 
+#include "test_i_camera_ml_defines.h"
+
 extern const char libacestream_default_ml_mediapipe_3_module_name_string[];
 
 template <typename ConfigurationType,

@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#undef Status
 #include "test_i_camera_ml_module_mediapipe.h"
 
 #include "test_i_camera_ml_defines.h"

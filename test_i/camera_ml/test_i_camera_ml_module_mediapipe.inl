@@ -26,7 +26,15 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #endif // OPENCV_SUPPORT
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#undef Status
+#endif // ACE_WIN32 || ACE_WIN64
 #include "mediapipe/framework/formats/image_format.pb.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#define Status int
+#endif // ACE_WIN32 || ACE_WIN64
 #include "mediapipe/framework/formats/landmark.pb.h"
 
 #include "ace/Log_Msg.h"

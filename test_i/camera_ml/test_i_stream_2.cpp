@@ -1238,8 +1238,8 @@ Stream_CameraML_Stream_2::Stream_CameraML_Stream_2 ()
               ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
  , WaylandDisplay_ (this,
                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING))
- , X11Display_ (this,
-                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
+ // , X11Display_ (this,
+ //                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraML_Stream_2::Stream_CameraML_Stream_2"));
 
@@ -1279,7 +1279,7 @@ Stream_CameraML_Stream_2::load (Stream_ILayout* layout_in,
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
     {
       layout_in->append (&convert_2, NULL, 0);
-      layout_in->append (&X11Display_, NULL, 0);
+      // layout_in->append (&X11Display_, NULL, 0);
       break;
     }
     default:

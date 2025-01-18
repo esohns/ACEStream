@@ -24,7 +24,7 @@
 #include "ace/Log_Msg.h"
 
 #include "common_ui_defines.h"
-#include "common_ui_tools.h"
+#include "common_ui_x11_tools.h"
 
 #include "stream_macros.h"
 
@@ -193,10 +193,10 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 //  else
   {
     std::string x11_display_name =
-      Common_UI_Tools::getX11DisplayName (configuration_in.display.device);
+      Common_UI_X11_Tools::getX11DisplayName (configuration_in.display.device);
     if (unlikely (x11_display_name.empty ()))
       ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: failed to Common_UI_Tools::getX11DisplayName(\"%s\"): using default, continuing\n"),
+                  ACE_TEXT ("%s: failed to Common_UI_X11_Tools::getX11DisplayName(\"%s\"): using default, continuing\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (configuration_in.display.device.c_str ())));
     const char* display_name_p =
@@ -246,8 +246,8 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: passive mode (display: %@, window: %u)\n"),
                 inherited::mod_->name (),
                 display_, window_));
-    XWindowAttributes attributes_s = Common_UI_Tools::get (*display_,
-                                                           window_);
+    XWindowAttributes attributes_s = Common_UI_X11_Tools::get (*display_,
+                                                               window_);
     depth_ = attributes_s.depth;
 
     if (!XMatchVisualInfo (display_, DefaultScreen (display_),
@@ -563,14 +563,14 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
       // sanity check(s)
       unsigned int depth_i =
           Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_2.format.pixelformat);
-      XWindowAttributes attributes_s = Common_UI_Tools::get (*display_,
-                                                             window_);
+      XWindowAttributes attributes_s = Common_UI_X11_Tools::get (*display_,
+                                                                  window_);
       // *NOTE*: otherwise there will be 'BadMatch' errors
       ACE_ASSERT (depth_i == static_cast<unsigned int> (attributes_s.depth));
       // *NOTE*: make sure the data fits inside the window
       Common_UI_Resolution_t resolution_s =
-          Common_UI_Tools::toResolution (*display_,
-                                         window_);
+          Common_UI_X11_Tools::toResolution (*display_,
+                                             window_);
       ACE_ASSERT (resolution_s.width >= resolution_.width && resolution_s.height >= resolution_.height);
       ACE_ASSERT (!pixmap_);
 

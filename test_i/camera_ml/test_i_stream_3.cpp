@@ -1238,8 +1238,8 @@ Stream_CameraML_Stream_3::Stream_CameraML_Stream_3 ()
               ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
  , WaylandDisplay_ (this,
                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING))
- , X11Display_ (this,
-                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
+ // , X11Display_ (this,
+ //                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraML_Stream_3::Stream_CameraML_Stream_3"));
 

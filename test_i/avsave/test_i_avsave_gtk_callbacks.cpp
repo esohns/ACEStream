@@ -66,6 +66,7 @@
 #include "common_timer_manager.h"
 
 #include "common_ui_ifullscreen.h"
+#include "common_ui_tools.h"
 
 #include "common_ui_gtk_common.h"
 #include "common_ui_gtk_defines.h"

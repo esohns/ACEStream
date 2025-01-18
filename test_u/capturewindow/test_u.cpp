@@ -70,6 +70,11 @@ extern "C"
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "common_ui_x11_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
@@ -538,7 +543,7 @@ do_initialize (Window windowHandle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to XGetGeometry(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_UI_Tools::toString (*display_p, result).c_str ())));
+                ACE_TEXT (Common_UI_X11_Tools::toString (*display_p, result).c_str ())));
     result = XCloseDisplay (display_p); display_p = NULL;
     ACE_ASSERT (result == Success);
     return false;

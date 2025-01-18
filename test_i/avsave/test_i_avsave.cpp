@@ -64,7 +64,7 @@
 
 #if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
-//#include "common_ui_tools.h"
+#include "common_ui_tools.h"
 #if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
