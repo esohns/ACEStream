@@ -84,6 +84,8 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
  , GLUTDisplay_3 (this,
                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , GLUTDisplay_4 (this,
+                  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
 #endif // GLUT_SUPPORT
 #if defined (JC_VORONOI_SUPPORT)
  , weightedVoronoiStippleFilter_ (this,
@@ -152,6 +154,12 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     case TEST_U_MODE_GLUT_3:
     {
       layout_in->append (&GLUTDisplay_3, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+    case TEST_U_MODE_GLUT_4:
+    {
+      layout_in->append (&GLUTDisplay_4, NULL, 0);
       add_renderer_b = false;
       break;
     }

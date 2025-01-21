@@ -564,7 +564,8 @@ enum Test_U_CameraFilter_Mode
   TEST_U_MODE_WEIGHTED_VORONOI_STIPPLE,
   TEST_U_MODE_GLUT,
   TEST_U_MODE_GLUT_2,
-  TEST_U_MODE_GLUT_3
+  TEST_U_MODE_GLUT_3,
+  TEST_U_MODE_GLUT_4
 };
 
 struct Test_U_CameraFilter_StreamConfiguration
