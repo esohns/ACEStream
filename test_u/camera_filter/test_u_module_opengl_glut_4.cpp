@@ -124,10 +124,6 @@ Test_U_CameraFilter_OpenGL_GLUT_4::handleSessionMessage (Test_U_SessionMessage_t
         inherited::sessionData_->getR ();
       ACE_ASSERT (!session_data_r.formats.empty ());
 
-      GLuint vertex_shader_id = -1, fragment_shader_id = -1;
-      GLint success = 0;
-      //GLuint VBO; //, EBO;
-
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
                                 CBData_.mediaType);
@@ -215,150 +211,67 @@ Test_U_CameraFilter_OpenGL_GLUT_4::handleSessionMessage (Test_U_SessionMessage_t
       //glCullFace (GL_BACK);
       glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      COMMON_GL_ASSERT;
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      COMMON_GL_ASSERT;
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-      COMMON_GL_ASSERT;
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-      COMMON_GL_ASSERT;
-
-      glGenTextures (1, &CBData_.textureId);
-      COMMON_GL_ASSERT;
-
-      // CBData_.scaleFactor = TEST_U_CANVAS_SCALE_FACTOR;
-      // CBData_.columns = CBData_.resolution.cx / CBData_.scaleFactor;
-      // CBData_.rows = CBData_.resolution.cy / CBData_.scaleFactor;
-
-      if (!Common_GL_Tools::loadAndCompileShaderFile (ACE_TEXT_ALWAYS_CHAR (TEST_U_VERTEX_SHADER_4_FILENAME),
-                                                      GL_VERTEX_SHADER,
-                                                      vertex_shader_id))
+      if (!CBData_.shader.loadFromFile (ACE_TEXT_ALWAYS_CHAR (TEST_U_VERTEX_SHADER_4_FILENAME),
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_FRAGMENT_SHADER_4_FILENAME)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to load GL shader, aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      if (!Common_GL_Tools::loadAndCompileShaderFile (ACE_TEXT_ALWAYS_CHAR (TEST_U_FRAGMENT_SHADER_4_FILENAME),
-                                                      GL_FRAGMENT_SHADER,
-                                                      fragment_shader_id))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to load GL shader, aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
-
-      CBData_.programId = glCreateProgram ();
-      glAttachShader (CBData_.programId, vertex_shader_id);
-      glAttachShader (CBData_.programId, fragment_shader_id);
-      glLinkProgram (CBData_.programId);
-      glGetProgramiv (CBData_.programId, GL_LINK_STATUS, &success);
-      if (success == GL_FALSE)
-      {
-        GLchar info_log_a[BUFSIZ * 4];
-        GLsizei buf_size_i = 0;
-        glGetProgramInfoLog (CBData_.programId,
-                             sizeof (GLchar) * BUFSIZ * 4,
-                             &buf_size_i,
-                             info_log_a);
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to link GL program: \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (info_log_a)));
-
-        glDetachShader (CBData_.programId, vertex_shader_id);
-        glDetachShader (CBData_.programId, fragment_shader_id);
-        glDeleteShader (vertex_shader_id);
-        glDeleteShader (fragment_shader_id);
-        glDeleteProgram (CBData_.programId); CBData_.programId = -1;
-        goto error;
-      } // end IF
-      glDetachShader (CBData_.programId, vertex_shader_id);
-      glDetachShader (CBData_.programId, fragment_shader_id);
-      glDeleteShader (vertex_shader_id);
-      glDeleteShader (fragment_shader_id);
-
-      glValidateProgram (CBData_.programId);
-      glGetProgramiv (CBData_.programId, GL_VALIDATE_STATUS, &success);
-      if (success == GL_FALSE)
-      {
-        GLchar info_log_a[BUFSIZ * 4];
-        GLsizei buf_size_i = 0;
-        glGetProgramInfoLog (CBData_.programId,
-                             sizeof (GLchar) * BUFSIZ * 4,
-                             &buf_size_i,
-                             info_log_a);
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to validate GL program: \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (info_log_a)));
-        glDeleteProgram (CBData_.programId); CBData_.programId = -1;
-        goto error;
-      } // end IF
-
-      //glEnableVertexAttribArray (0);
-      //glEnableVertexAttribArray (1);
-      //glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 3 * 4, 0);
-      //glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, 2 * 4, reinterpret_cast<void*> (12));
-      //glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, sizeof (float) * 2, (void*)(sizeof(float)*2));
-      //glEnableVertexAttribArray (1);
-
-      glUseProgram (CBData_.programId);
+      CBData_.shader.use ();
 
       CBData_.textureLoc =
-        glGetUniformLocation (CBData_.programId, ACE_TEXT_ALWAYS_CHAR ("videoTexture"));
+        glGetUniformLocation (CBData_.shader.id_, ACE_TEXT_ALWAYS_CHAR ("videoTexture"));
       ACE_ASSERT (CBData_.textureLoc != -1);
       CBData_.brightnessLoc =
-        glGetUniformLocation (CBData_.programId, ACE_TEXT_ALWAYS_CHAR ("brightness"));
+        glGetUniformLocation (CBData_.shader.id_, ACE_TEXT_ALWAYS_CHAR ("brightness"));
       ACE_ASSERT (CBData_.brightnessLoc != -1);
       CBData_.contrastLoc =
-        glGetUniformLocation (CBData_.programId, ACE_TEXT_ALWAYS_CHAR ("contrast"));
+        glGetUniformLocation (CBData_.shader.id_, ACE_TEXT_ALWAYS_CHAR ("contrast"));
       ACE_ASSERT (CBData_.contrastLoc != -1);
 
-      //GLfloat vertices[] = {
-      //  // positions        // texture coords
-      //  -1.0f,  1.0f, 0.0f, 0.0f, 1.0f, // left top
-      //  -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, // left bottom
-      //   1.0f,  1.0f, 0.0f, 1.0f, 1.0f, // right top
-
-      //   1.0f,  1.0f, 0.0f, 1.0f, 1.0f  // right top
-      //  -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, // left bottom
-      //   1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // right bottom
-
-      //   0.0f,   0.75f, 0.0f, 0.5f, 1.0f,  // middle top ... 0
-      //  -0.75f, -0.75f, 0.0f, 0.0f, 0.0f,  // left bottom ... 1
-      //   0.75f, -0.75f, 0.0f, 1.0f, 0.0f  // right bottom .. 2		 
-      //};
-      //unsigned int indices[] = {
-      //  0, 1, 3, // first triangle
-      //  1, 2, 3  // second triangle
-      //};
       glGenVertexArrays (1, &CBData_.VAOId);
+      ACE_ASSERT (CBData_.VAOId);
       glGenBuffers (1, &CBData_.VBOId);
-      //glGenElementArryBuffers (1, &EBO);
+      ACE_ASSERT (CBData_.VBOId);
 
-      //glBindVertexArray (CBData_.VAOId);
-      //glBindBuffer (GL_ARRAY_BUFFER, CBData_.VBOId);
-      //glBufferData (GL_ARRAY_BUFFER, sizeof (vertices), vertices, GL_STATIC_DRAW);
+      glBindVertexArray (CBData_.VAOId);
+      static GLfloat vertices_a[] = // (Typically type: GLfloat is used)
+      {
+        // Note:  "Being able to store the vertex attributes for that vertex only once is very economical, as a vertex's attribute...
+        // data is generally around 32 bytes, while indices are usually 2-4 bytes in size." (Hence, the next tutorial uses: glDrawElements())
+    
+        // Rectangle vertices (Texture Coordinates: 0,0 = bottom left... 1,1 = top right)
+        //-------------------------
+        -1.0f ,  1.0f, 0.0f,  0.0f, 1.0f, // left top ......... 0 // Draw this rectangle's six vertices 1st.
+        -1.0f , -1.0f, 0.0f,  0.0f, 0.0f, // left bottom ... 1 // Use NDC coordinates [-1, +1] to completely fill the display window.
+         1.0f ,  1.0f, 0.0f,  1.0f, 1.0f, // right top ....... 2
+ 
+         1.0f ,  1.0f, 0.0f,  1.0f, 1.0f, // right top ........ 3
+        -1.0f , -1.0f, 0.0f,  0.0f, 0.0f, // left bottom ..... 4
+         1.0f , -1.0f, 0.0f,  1.0f, 0.0f, // right bottom ... 5
+ 
+         // Triangle vertices (Drawing this 2nd allows some of the rectangle's fragment colour to be added to this triangle via transparency)
+         // ----------------------
+        // 0.0f,   0.75f, 0.0f,  0.5f, 1.0f, // middle top ... 0
+        //-0.75f, -0.75f, 0.0f,  0.0f, 0.0f, // left bottom ... 1
+        // 0.75f, -0.75f, 0.0f,  1.0f, 0.0f  // right bottom .. 2
+      };
+      glBindBuffer (GL_ARRAY_BUFFER, CBData_.VBOId);
+      glBufferData (GL_ARRAY_BUFFER, sizeof (vertices_a), vertices_a, GL_STATIC_DRAW);
 
-      //glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, EBO);
-      //glBufferData (GL_ELEMENT_ARRAY_BUFFER, sizeof (indices), indices, GL_STATIC_DRAW);
+      glEnableVertexAttribArray (0);
+      glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof (float), (void*)0);
+      //// color attribute
+      //glVertexAttribPointer (2, 3, GL_FLOAT, GL_FALSE, 5 * sizeof (float), (void*)(3 * sizeof (float)));
+      //glEnableVertexAttribArray (2);
+      // texture coord attribute
+      glEnableVertexAttribArray (1);
+      glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof (float), (void*)(3 * sizeof (float)));
 
-      // position attribute
-      //glEnableVertexAttribArray (0);
-      //glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof (float),
-      //                       (void*)0);
-      ////// color attribute
-      ////glVertexAttribPointer (2, 3, GL_FLOAT, GL_FALSE, 5 * sizeof (float), (void*)(3 * sizeof (float)));
-      ////glEnableVertexAttribArray (2);
-      //// texture coord attribute
-      //glEnableVertexAttribArray (1);
-      //glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof (float), (void*)(3 * sizeof (float)));
-
-      // START TIMING
-      //CBData_.tp1 = std::chrono::high_resolution_clock::now ();
+      glBindBuffer (GL_ARRAY_BUFFER, 0);
+      glBindVertexArray (0);
 
       glutCloseFunc (camera_filter_glut_4_close);
       glutDisplayFunc (camera_filter_glut_4_draw);
@@ -559,103 +472,45 @@ camera_filter_glut_4_draw (void)
     return;
   } // end IF
 
-  Common_GL_Tools::loadTexture (data_p,
+  Common_Image_Resolution_t resolution_s =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                cb_data_p->resolution.cx,
-                                cb_data_p->resolution.cy,
+    cb_data_p->resolution;
 #else
-                                cb_data_p->mediaType.resolution.width,
-                                cb_data_p->mediaType.resolution.height,
+    cb_data_p->mediaType.resolution;
 #endif // ACE_WIN32 || ACE_WIN64
-                                cb_data_p->depth,
-                                cb_data_p->textureId,
-                                frame_count_i == 1);
+  if (unlikely (!cb_data_p->texture.load (data_p,
+                                          resolution_s,
+                                          cb_data_p->depth,
+                                          frame_count_i > 1)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to load/update texture, returning\n")));
+    return;
+  } // end IF
   message_block_p->release ();
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  //COMMON_GL_ASSERT;
 
   glMatrixMode (GL_MODELVIEW);
   glLoadIdentity (); // Reset the transformation matrix.
-  //COMMON_GL_ASSERT;
 
-  // set the camera
-  gluLookAt (0.0, 0.0, 700.0,
-             0.0, 0.0, 0.0,
-             0.0, 1.0, 0.0);
-
-  glBindTexture (GL_TEXTURE_2D, cb_data_p->textureId);
+  cb_data_p->texture.bind ();
   glBindVertexArray (cb_data_p->VAOId);
-  static GLfloat vertices[] = // (Typically type: GLfloat is used)
-  {
-    // Note:  "Being able to store the vertex attributes for that vertex only once is very economical, as a vertex's attribute...
-    // data is generally around 32 bytes, while indices are usually 2-4 bytes in size." (Hence, the next tutorial uses: glDrawElements())
-    
-    // Rectangle vertices (Texture Coordinates: 0,0 = bottom left... 1,1 = top right)
-    //-------------------------
-    -1.0f ,  1.0f, 0.0f,  0.0f, 1.0f, // left top ......... 0 // Draw this rectangle's six vertices 1st.
-    -1.0f , -1.0f, 0.0f,  0.0f, 0.0f, // left bottom ... 1 // Use NDC coordinates [-1, +1] to completely fill the display window.
-     1.0f ,  1.0f, 0.0f,  1.0f, 1.0f, // right top ....... 2
- 
-     1.0f ,  1.0f, 0.0f,  1.0f, 1.0f, // right top ........ 3
-    -1.0f , -1.0f, 0.0f,  0.0f, 0.0f, // left bottom ..... 4
-     1.0f , -1.0f, 0.0f,  1.0f, 0.0f, // right bottom ... 5
- 
-     // Triangle vertices (Drawing this 2nd allows some of the rectangle's fragment colour to be added to this triangle via transparency)
-     // ----------------------
-    // 0.0f,   0.75f, 0.0f,  0.5f, 1.0f, // middle top ... 0
-    //-0.75f, -0.75f, 0.0f,  0.0f, 0.0f, // left bottom ... 1
-    // 0.75f, -0.75f, 0.0f,  1.0f, 0.0f  // right bottom .. 2
-  };
-  glBindBuffer (GL_ARRAY_BUFFER, cb_data_p->VBOId);
-  glBufferData (GL_ARRAY_BUFFER, sizeof (vertices), vertices, GL_STATIC_DRAW);
-
-  glEnableVertexAttribArray (0);
-  glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof (float), (void*)0);
-  //// color attribute
-  //glVertexAttribPointer (2, 3, GL_FLOAT, GL_FALSE, 5 * sizeof (float), (void*)(3 * sizeof (float)));
-  //glEnableVertexAttribArray (2);
-  // texture coord attribute
-  glEnableVertexAttribArray (1);
-  glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof (float), (void*)(3 * sizeof (float)));
-
-  //glBegin (GL_LINES);
-  //glColor3f (1.0f, 0.0f, 0.0f); glVertex3i (0, 0, 0); glVertex3i (100, 0, 0);
-  //glColor3f (0.0f, 1.0f, 0.0f); glVertex3i (0, 0, 0); glVertex3i (0, 100, 0);
-  //glColor3f (0.0f, 0.0f, 1.0f); glVertex3i (0, 0, 0); glVertex3i (0, 0, 100);
-  //glEnd ();
 
   // update uniforms
-  glProgramUniform1i (cb_data_p->programId, cb_data_p->textureLoc,
-                      0);
+  glProgramUniform1i (cb_data_p->shader.id_, cb_data_p->textureLoc,
+                      0); // -unit, not -id !!!
 
-  glProgramUniform1f (cb_data_p->programId, cb_data_p->brightnessLoc,
+  glProgramUniform1f (cb_data_p->shader.id_, cb_data_p->brightnessLoc,
                       static_cast<GLfloat> (Common_GL_Tools::map (static_cast<float> (cb_data_p->mouseX), 0.0f, static_cast<float> (cb_data_p->resolution.cx), 0.0f, 2.0f)));
 
-  glProgramUniform1f (cb_data_p->programId, cb_data_p->contrastLoc,
+  glProgramUniform1f (cb_data_p->shader.id_, cb_data_p->contrastLoc,
                       static_cast<GLfloat> (Common_GL_Tools::map (static_cast<float> (cb_data_p->mouseY), 0.0f, static_cast<float> (cb_data_p->resolution.cy), 0.0f, 2.0f)));
 
-  //glColor3f (1.0f, 1.0f, 1.0f);
-
-  glDrawArrays (GL_TRIANGLES, 0, sizeof (vertices) / sizeof (vertices[0]));
-
-  //glTranslatef (static_cast<GLfloat> (-cb_data_p->resolution.cx / 2.0f),
-  //              static_cast<GLfloat> ( cb_data_p->resolution.cy / 2.0f),
-  //              0.0f);
-
-  //for (int y = 0; y < cb_data_p->rows - 1; ++y)
-  //{
-  //  glBegin (GL_TRIANGLE_STRIP);
-  //  for (int x = 0; x < cb_data_p->columns; ++x)
-  //  {
-  //    glVertex2f (static_cast<float> (x * cb_data_p->scaleFactor), -static_cast<float> ( y      * cb_data_p->scaleFactor));
-  //    glVertex2f (static_cast<float> (x * cb_data_p->scaleFactor), -static_cast<float> ((y + 1) * cb_data_p->scaleFactor));
-  //  } // end FOR
-  //  glEnd ();
-  //} // end FOR
+  glDrawArrays (GL_TRIANGLES, 0, 6);
 
   glBindVertexArray (0);
-  glBindTexture (GL_TEXTURE_2D, 0);
+  cb_data_p->texture.unbind ();
 
   glutSwapBuffers ();
 

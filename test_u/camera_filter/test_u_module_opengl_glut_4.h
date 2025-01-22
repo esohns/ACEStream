@@ -24,6 +24,9 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_gl_shader.h"
+#include "common_gl_texture.h"
+
 #include "stream_control_message.h"
 #include "stream_streammodule_base.h"
 #include "stream_task_base_asynch.h"
@@ -81,8 +84,8 @@ struct Test_U_CameraFilter_OpenGL_GLUT_4_WindowData
   int                                                mouseY;
 
   // shader
-  GLuint                                             programId;
-  GLuint                                             textureId;
+  Common_GL_Shader                                   shader;
+  Common_GL_Texture                                  texture;
   GLuint                                             VAOId;
   GLuint                                             VBOId;
 
