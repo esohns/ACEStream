@@ -429,6 +429,12 @@ camera_filter_glut_4_key (unsigned char key_in, int x_in, int y_in)
     {
       glutLeaveMainLoop ();
 
+      // clean up GL resources
+      cb_data_p->shader.reset ();
+      cb_data_p->texture.reset ();
+      glDeleteBuffers (1, &cb_data_p->VBOId); cb_data_p->VBOId = 0;
+      glDeleteVertexArrays (1, &cb_data_p->VAOId); cb_data_p->VAOId = 0;
+
       ACE_ASSERT (cb_data_p->stream);
       cb_data_p->stream->stop (false,  // wait for completion ?
                                false,  // recurse upstream ?
@@ -472,14 +478,8 @@ camera_filter_glut_4_draw (void)
     return;
   } // end IF
 
-  Common_Image_Resolution_t resolution_s =
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    cb_data_p->resolution;
-#else
-    cb_data_p->mediaType.resolution;
-#endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!cb_data_p->texture.load (data_p,
-                                          resolution_s,
+                                          cb_data_p->resolution,
                                           cb_data_p->depth,
                                           frame_count_i > 1)))
   {
@@ -491,9 +491,6 @@ camera_filter_glut_4_draw (void)
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glMatrixMode (GL_MODELVIEW);
-  glLoadIdentity (); // Reset the transformation matrix.
-
   cb_data_p->texture.bind ();
   glBindVertexArray (cb_data_p->VAOId);
 
@@ -502,12 +499,20 @@ camera_filter_glut_4_draw (void)
                       0); // -unit, not -id !!!
 
   glProgramUniform1f (cb_data_p->shader.id_, cb_data_p->brightnessLoc,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                       static_cast<GLfloat> (Common_GL_Tools::map (static_cast<float> (cb_data_p->mouseX), 0.0f, static_cast<float> (cb_data_p->resolution.cx), 0.0f, 2.0f)));
+#else
+                      static_cast<GLfloat> (Common_GL_Tools::map (static_cast<float> (cb_data_p->mouseX), 0.0f, static_cast<float> (cb_data_p->resolution.width), 0.0f, 2.0f)));
+#endif // ACE_WIN32 || ACE_WIN64
 
   glProgramUniform1f (cb_data_p->shader.id_, cb_data_p->contrastLoc,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                       static_cast<GLfloat> (Common_GL_Tools::map (static_cast<float> (cb_data_p->mouseY), 0.0f, static_cast<float> (cb_data_p->resolution.cy), 0.0f, 2.0f)));
+#else
+                      static_cast<GLfloat> (Common_GL_Tools::map (static_cast<float> (cb_data_p->mouseY), 0.0f, static_cast<float> (cb_data_p->resolution.height), 0.0f, 2.0f)));
+#endif // ACE_WIN32 || ACE_WIN64
 
-  glDrawArrays (GL_TRIANGLES, 0, 6);
+  glDrawArrays (GL_TRIANGLES, 0, 6); // 2 triangles --> 6 vertices (see also: above)
 
   glBindVertexArray (0);
   cb_data_p->texture.unbind ();
