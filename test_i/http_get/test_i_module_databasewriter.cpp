@@ -49,7 +49,9 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_DataBaseWriter::handleSessionMessage"));
 
+#if defined (MYSQL_SUPPORT)
   int result = -1;
+#endif // MYSQL_SUPPORT
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -57,10 +59,12 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
 
+#if defined (MYSQL_SUPPORT)
   const Test_I_Stream_SessionData_t& session_data_container_r =
     message_inout->getR ();
   struct Test_I_Stream_SessionData& session_data_r =
     const_cast<struct Test_I_Stream_SessionData&> (session_data_container_r.getR ());
+#endif // MYSQL_SUPPORT
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -218,7 +222,9 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
 
       break;
 
+#if defined (MYSQL_SUPPORT)
 error:
+#endif // MYSQL_SUPPORT
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
       return;

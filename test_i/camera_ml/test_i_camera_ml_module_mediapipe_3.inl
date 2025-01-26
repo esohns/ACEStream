@@ -370,18 +370,18 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::handleDataMessage"));
 
-  static int nFrames = 30;
-  static int iFrame = 0;
-  static float fps = 0.0f;
-  static time_t start = time (NULL);
-  static time_t end;
-  if (nFrames % (iFrame + 1) == 0)
-  {
-    time (&end);
-    fps = nFrames / (float)difftime (end, start);
-    time (&start);
-  } // end IF
-  iFrame++;
+  // static int nFrames = 30;
+  // static int iFrame = 0;
+  // static float fps = 0.0f;
+  // static time_t start = time (NULL);
+  // static time_t end;
+  // if (nFrames % (iFrame + 1) == 0)
+  // {
+  //   time (&end);
+  //   fps = nFrames / (float)difftime (end, start);
+  //   time (&start);
+  // } // end IF
+  // iFrame++;
 
   // step0: convert image frame to matrix
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -397,7 +397,7 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 
   // step1: run the graph on the image frame
   // start inference clock
-  auto t0 = std::chrono::high_resolution_clock::now ();
+  // auto t0 = std::chrono::high_resolution_clock::now ();
 
   // feed RGB frame into MP graph (image data is COPIED internally by LibMP)
   if (unlikely (!graph_->Process (frame_matrix.data,
@@ -420,16 +420,17 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   } // end IF
 
   // stop inference clock
-  auto t1 = std::chrono::high_resolution_clock::now ();
-  int inference_time_ms =
-    std::chrono::duration_cast<std::chrono::milliseconds> (t1 - t0).count ();
+  // auto t1 = std::chrono::high_resolution_clock::now ();
+  // int inference_time_ms =
+  //   std::chrono::duration_cast<std::chrono::milliseconds> (t1 - t0).count ();
+  // ACE_UNUSED_ARG (inference_time_ms);
 
   // get landmark coordinates in custom data structure using helper function
   std::vector<std::vector<std::array<float, 3> > > normalized_landmarks =
     getLandmarks (graph_);
 
   size_t num_objs = normalized_landmarks.size ();
-  for (int i = 0; i < num_objs; i++)
+  for (int i = 0; i < static_cast<int> (num_objs); i++)
   {
     float x_translated_f, y_translated_f;
     int j = 0;

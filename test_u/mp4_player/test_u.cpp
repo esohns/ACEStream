@@ -866,7 +866,9 @@ do_work (int argc_in,
 #if defined (FFMPEG_SUPPORT)
   modulehandler_configuration.codecConfiguration = &codec_configuration;
 #endif // FFMPEG_SUPPORT
+#if defined (_DEBUG)
   modulehandler_configuration.debug = debug_in;
+#endif // _DEBUG
   modulehandler_configuration.delayConfiguration = &delay_configuration;
   //  modulehandler_configuration.display = displayDevice_in;
   modulehandler_configuration.fileIdentifier.identifier = inputFilePath_in;

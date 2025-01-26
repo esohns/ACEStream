@@ -5734,7 +5734,9 @@ continue_2:
 
   gl_context_p = gtk_gl_area_get_context ((*opengl_contexts_iterator).first);
   ACE_ASSERT (gl_context_p);
+#if defined (_DEBUG)
   Common_UI_GTK_Tools::dumpGtkOpenGLInfo (gl_context_p);
+#endif // _DEBUG
 #else
 #if defined (_DEBUG)
 #if defined(GTKGLAREA_SUPPORT)

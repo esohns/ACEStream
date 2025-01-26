@@ -23,9 +23,11 @@
 
 #if defined (GTK2_USE)
 #define TEST_U_STREAM_FILECOPY_DEFAULT_GLADE_FILE            "filecopy.gtk2"
-#elif defined (GTK3_USE)
+#elif defined (GTK3_USE) || defined (GTK4_USE)
 #define TEST_U_STREAM_FILECOPY_DEFAULT_GLADE_FILE            "filecopy.gtk3"
-#endif // GTK2_USE || GTK3_USE
+#else
+#define TEST_U_STREAM_FILECOPY_DEFAULT_GLADE_FILE            ""
+#endif // GTK2_USE || GTK3_USE || GTK4_USE
 #define TEST_U_STREAM_FILECOPY_DEFAULT_OUTPUT_FILE           "output.tmp"
 
 #define TEST_U_STREAM_FILECOPY_DEFAULT_BUFFER_SIZE           4096 // bytes

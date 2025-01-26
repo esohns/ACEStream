@@ -216,7 +216,7 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
 
   // For each object, draw a circle at each landmark's position
   size_t num_objs = normalized_landmarks.size ();
-  for (int i = 0; i < num_objs; i++)
+  for (int i = 0; i < static_cast<int> (num_objs); i++)
     for (const std::array<float, 3>& norm_xyz : normalized_landmarks[i])
     {
       int x = static_cast<int> (norm_xyz[0] * frame_matrix.cols);

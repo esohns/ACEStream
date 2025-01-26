@@ -1119,7 +1119,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         //         have any idea how to decompress the data. The exact table
         //         necessary is given in the OpenDML spec. ..."
         case AV_PIX_FMT_YUVJ422P:
-//        case V4L2_PIX_FMT_MJPEG:
           codec_id = AV_CODEC_ID_MJPEG;
           break;
         default:

@@ -790,29 +790,47 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
               ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()), captureFormat_out.format.pixelformat,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
-//  if (!Stream_MediaFramework_Tools::isRGB (captureFormat_out.format.pixelformat))
-//  {
-//    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("\"%s\" (%d): setting RGB24 capture format\n"),
-//                ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor));
-//    Common_Image_Resolution_t resolution_s;
-//    resolution_s.height = captureFormat_out.format.height;
-//    resolution_s.width = captureFormat_out.format.width;
-//    struct v4l2_pix_format format_s =
-//        Stream_Device_Tools::getVideoCaptureFormat (deviceIdentifier_out.fileDescriptor,
-//                                                    V4L2_PIX_FMT_RGB24,
-//                                                    resolution_s,
-//                                                    captureFormat_out.frameRate);
-//    ACE_ASSERT (format_s.pixelformat == V4L2_PIX_FMT_RGB24);
-//    if (!Stream_Device_Tools::setFormat (deviceIdentifier_out.fileDescriptor,
-//                                         format_s))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
-//      return false;
-//    } // end IF
-//    captureFormat_out.format = format_s;
-//  } // end IF
+  if (!Stream_MediaFramework_Tools::isRGB (captureFormat_out.format.pixelformat))
+  {
+    __u32 pixel_format_i = 0;
+    Stream_MediaFramework_V4L_CaptureFormats_t formats_a =
+      Stream_Device_Tools::getCaptureSubFormats (deviceIdentifier_out.fileDescriptor);
+    for (Stream_MediaFramework_V4L_CaptureFormatsIterator_t iterator = formats_a.begin ();
+         iterator != formats_a.end ();
+         ++iterator)
+    {
+      pixel_format_i = (*iterator).first;
+      enum AVCodecID codec_id_e =
+        Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (pixel_format_i);
+      if (codec_id_e == AV_CODEC_ID_NONE)
+        break;
+    } // end FOR
+    if (pixel_format_i)
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("\"%s\" (%d): setting \"%s\" capture format\n"),
+                  ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor,
+                  ACE_TEXT (Stream_MediaFramework_Tools::v4lFormatToString (pixel_format_i).c_str ())));
+      Common_Image_Resolution_t resolution_s;
+      resolution_s.height = captureFormat_out.format.height;
+      resolution_s.width = captureFormat_out.format.width;
+      struct v4l2_fract frame_rate_s = { 0, 1 }; // don't care
+      struct v4l2_pix_format format_s =
+        Stream_Device_Tools::getVideoCaptureFormat (deviceIdentifier_out.fileDescriptor,
+                                                    pixel_format_i,
+                                                    resolution_s,
+                                                    frame_rate_s);
+      ACE_ASSERT (format_s.pixelformat == pixel_format_i);
+      if (!Stream_Device_Tools::setFormat (deviceIdentifier_out.fileDescriptor,
+                                           format_s))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
+        return false;
+      } // end IF
+      captureFormat_out.format = format_s;
+    } // end IF
+  } // end IF
 
   // *NOTE*: Gtk 2 expects RGB24
   // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
