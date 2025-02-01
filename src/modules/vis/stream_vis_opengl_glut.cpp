@@ -131,6 +131,8 @@ libacestream_glut_key (unsigned char key_in, int x_in, int y_in)
 void
 libacestream_glut_draw (void)
 {
+  static int frame_count_i = 1;
+
   struct OpenGL_GLUT_WindowData* cb_data_p =
     static_cast<struct OpenGL_GLUT_WindowData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
@@ -151,10 +153,15 @@ libacestream_glut_draw (void)
                                    NULL);
   ACE_ASSERT (message_block_p);
 
-  //glDeleteTextures (1, &cb_data_p->textureId);
-  //COMMON_GL_PRINT_ERROR;
-  //glGenTextures (1, &cb_data_p->textureId);
-  //COMMON_GL_ASSERT;
+  if (frame_count_i == 1)
+  {
+    glActiveTexture (GL_TEXTURE0);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glGenerateMipmap (GL_TEXTURE_2D);
+  } // end IF
 
   Common_GL_Tools::loadTexture (reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -165,28 +172,21 @@ libacestream_glut_draw (void)
 #endif // ACE_WIN32 || ACE_WIN64
                                 depth_i,
                                 cb_data_p->textureId,
-                                true); // update
+                                frame_count_i == 1); // update ?
   message_block_p->release ();
 
+  glBindTexture (GL_TEXTURE_2D, cb_data_p->textureId);
+
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  // *TODO*: find out why this reports GL_INVALID_OPERATION
-  //COMMON_GL_PRINT_ERROR;
 
   glLoadIdentity (); // Reset the transformation matrix.
-  //COMMON_GL_ASSERT;
 
   glTranslatef (0.0f, 0.0f, -5.0f); // Move back into the screen 7
-  //COMMON_GL_ASSERT;
 
   static GLfloat cube_rotation = 0.0f;
   glRotatef (cube_rotation, 1.0f, 1.0f, 1.0f); // Rotate The Cube On X, Y, and Z
-  //COMMON_GL_ASSERT;
-
-  glBindTexture (GL_TEXTURE_2D, cb_data_p->textureId);
-  //COMMON_GL_ASSERT;
 
   glBegin (GL_QUADS);
-  //COMMON_GL_ASSERT;
 
   // Front Face
   glTexCoord2f (0.0f, 0.0f); glVertex3f (-1.0f, -1.0f, 1.0f); // Bottom Left Of The Texture and Quad
@@ -234,6 +234,8 @@ libacestream_glut_draw (void)
   //COMMON_GL_ASSERT;
 
   glutSwapBuffers ();
+
+  ++frame_count_i;
 }
 
 void

@@ -215,14 +215,16 @@ Test_U_CameraFilter_OpenGL_GLUT_2::handleSessionMessage (Test_U_SessionMessage_t
       //glCullFace (GL_BACK);
       glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      COMMON_GL_ASSERT;
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      COMMON_GL_ASSERT;
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-      COMMON_GL_ASSERT;
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-      COMMON_GL_ASSERT;
+      //glActiveTexture (GL_TEXTURE0);
+      //glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      //COMMON_GL_ASSERT;
+      //glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      //COMMON_GL_ASSERT;
+      //glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+      //COMMON_GL_ASSERT;
+      //glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+      //COMMON_GL_ASSERT;
+      //glGenerateMipmap (GL_TEXTURE_2D);
 
       glGenTextures (1, &CBData_.textureId);
       COMMON_GL_ASSERT;
@@ -548,6 +550,16 @@ camera_filter_glut_2_draw (void)
   { // most likely a session message (*TODO*: should not happen)
     cb_data_p->queue->enqueue_tail (message_block_p, NULL);
     return;
+  } // end IF
+
+  if (frame_count_i == 1)
+  {
+    glActiveTexture (GL_TEXTURE0);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glGenerateMipmap (GL_TEXTURE_2D);
   } // end IF
 
   Common_GL_Tools::loadTexture (data_p,

@@ -550,6 +550,16 @@ camera_filter_glut_3_draw (void)
     return;
   } // end IF
 
+  if (frame_count_i == 1)
+  {
+    glActiveTexture (GL_TEXTURE0);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glGenerateMipmap (GL_TEXTURE_2D);
+  } // end IF
+
   Common_GL_Tools::loadTexture (data_p,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                 cb_data_p->resolution.cx,
