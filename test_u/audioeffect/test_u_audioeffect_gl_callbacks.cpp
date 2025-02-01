@@ -327,6 +327,10 @@ glarea_realize_cb (GtkWidget* widget_in,
   // load texture
   if (!*texture_id_p)
   {
+    glActiveTexture (GL_TEXTURE0);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
     std::string filename =
       Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
                                                         ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
@@ -334,7 +338,7 @@ glarea_realize_cb (GtkWidget* widget_in,
     filename += ACE_DIRECTORY_SEPARATOR_CHAR;
     filename +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_OPENGL_DEFAULT_TEXTURE_FILE);
-    *texture_id_p = Common_GL_Tools::loadTexture (filename);
+    *texture_id_p = Common_GL_Tools::loadTexture (filename, true);
     if (!*texture_id_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -345,6 +349,13 @@ glarea_realize_cb (GtkWidget* widget_in,
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("OpenGL texture id: %u\n"),
                 *texture_id_p));
+
+    glBindTexture (GL_TEXTURE_2D, *texture_id_p);
+
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                     GL_LINEAR_MIPMAP_LINEAR);
+    glGenerateMipmap (GL_TEXTURE_2D);
   } // end IF
 
   // initialize perspective
@@ -1245,13 +1256,10 @@ glarea_expose_event_cb (GtkWidget* widget_in,
     return FALSE;
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
   glBindVertexArray (*VAO_p);
-  COMMON_GL_ASSERT;
 
   glBindTexture (GL_TEXTURE_2D, *texture_id_p);
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
 #if defined (GLM_SUPPORT)
   glm::mat4 model_matrix = glm::mat4 (1.0f); // make sure to initialize matrix to identity matrix first
@@ -1283,23 +1291,16 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   shader_p->setInt (ACE_TEXT_ALWAYS_CHAR ("texture1"), 0); // *IMPORTANT NOTE*: <-- texture unit (!) not -id
 
   glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, *EBO_p);
-  COMMON_GL_ASSERT;
 
   glDisable (GL_DEPTH_TEST);
-  COMMON_GL_ASSERT;
   glDrawElements (GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_BYTE, (void*)0); // see: cube_indices
-  COMMON_GL_ASSERT;
   glEnable (GL_DEPTH_TEST);
-  COMMON_GL_ASSERT;
 
   glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
-  COMMON_GL_ASSERT;
 
   glBindTexture (GL_TEXTURE_2D, 0);
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
   glBindVertexArray (0);
-  COMMON_GL_ASSERT;
 
   //ui_cb_data_base_p->objectRotation += ui_cb_data_base_p->objectRotationStep;
 
@@ -1308,7 +1309,6 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   ggla_area_swap_buffers (GGLA_AREA (widget_in));
 
   glUseProgram (0);
-  COMMON_GL_ASSERT;
 
   return TRUE;
 }
