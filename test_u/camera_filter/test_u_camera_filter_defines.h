@@ -29,6 +29,8 @@
 #define TEST_U_FRAGMENT_SHADER_3_FILENAME "shader_3.frag"
 #define TEST_U_VERTEX_SHADER_4_FILENAME   "shader_4.vert"
 #define TEST_U_FRAGMENT_SHADER_4_FILENAME "shader_4.frag"
+#define TEST_U_VERTEX_SHADER_5_FILENAME   "shader_5.vert"
+#define TEST_U_FRAGMENT_SHADER_5_FILENAME "shader_5.frag"
 
 //#define TEST_U_CANVAS_SCALE_FACTOR        30
 

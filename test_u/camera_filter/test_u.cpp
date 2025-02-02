@@ -654,25 +654,25 @@ do_finalize_directshow (IAMStreamConfig*& streamConfiguration_inout)
 bool
 do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                HWND windowHandle_in,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                                IMFMediaSession*& IMFMediaSession_out,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                                bool loadDevice_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_mediafoundation"));
 
   HRESULT result = E_FAIL;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
 #else
   IMFMediaSource* media_source_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   IMFTopology* topology_p = NULL;
 
   // sanity check(s)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (!IMFMediaSession_out);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   result = MFStartup (MF_VERSION,
                       MFSTARTUP_LITE);
@@ -729,7 +729,7 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
 
 continue_2:
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   IMFAttributes* attributes_p = NULL;
   result = MFCreateAttributes (&attributes_p, 4);
   if (FAILED (result))
@@ -745,10 +745,10 @@ continue_2:
   ACE_ASSERT (SUCCEEDED (result));
   //result = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
   //ACE_ASSERT (SUCCEEDED (result));
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   result = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
   ACE_ASSERT (SUCCEEDED (result));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   result = MFCreateMediaSession (attributes_p,
                                  &IMFMediaSession_out);
   if (FAILED (result))
@@ -774,7 +774,7 @@ continue_2:
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   topology_p->Release (); topology_p = NULL;
 
 //continue_3:
@@ -1351,8 +1351,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       delete media_type_p; media_type_p = NULL;
 
       // *NOTE*: need to set this for RGB-capture (!) formats ONLY !
-      //directshow_modulehandler_configuration_2.flipImage =
-      //  Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.outputFormat);
+      directshow_modulehandler_configuration_2.flipImage =
+        Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.outputFormat);
       if (directshow_modulehandler_configuration_2.flipImage)
         directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                                std::make_pair (&module_configuration,
