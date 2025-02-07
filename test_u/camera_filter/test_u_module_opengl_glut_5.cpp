@@ -504,6 +504,7 @@ camera_filter_glut_5_draw (void)
     return;
   } // end IF
 
+  glActiveTexture (GL_TEXTURE0);
   if (unlikely (!cb_data_p->texture.load (data_p,
                                           cb_data_p->resolution,
                                           cb_data_p->depth,
@@ -517,7 +518,7 @@ camera_filter_glut_5_draw (void)
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  cb_data_p->texture.bind (0);
+  cb_data_p->texture.bind ();
   glBindVertexArray (cb_data_p->VAOId);
 
   // update uniforms
