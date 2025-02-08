@@ -143,7 +143,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     case TEST_U_MODE_GLUT:
     {
       //layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-      layout_in->append (&OpenGLDisplay_, NULL, 0);
+      layout_in->append (&GLUTDisplay_, NULL, 0);
       add_renderer_b = false;
       break;
     }

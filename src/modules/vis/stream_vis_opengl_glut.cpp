@@ -156,11 +156,13 @@ libacestream_glut_draw (void)
   if (frame_count_i == 1)
   {
     glActiveTexture (GL_TEXTURE0);
+    glBindTexture (GL_TEXTURE_2D, cb_data_p->textureId);
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     glGenerateMipmap (GL_TEXTURE_2D);
+    glBindTexture (GL_TEXTURE_2D, 0);
   } // end IF
 
   Common_GL_Tools::loadTexture (reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),

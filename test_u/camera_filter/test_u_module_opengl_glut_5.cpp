@@ -214,6 +214,9 @@ Test_U_CameraFilter_OpenGL_GLUT_5::handleSessionMessage (Test_U_SessionMessage_t
       //glCullFace (GL_BACK);
       glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
+      glGenTextures (1, &CBData_.texture.id_);
+      ACE_ASSERT (CBData_.texture.id_);
+
       if (!CBData_.shader.loadFromFile (ACE_TEXT_ALWAYS_CHAR (TEST_U_VERTEX_SHADER_5_FILENAME),
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_FRAGMENT_SHADER_5_FILENAME)))
       {
@@ -504,7 +507,18 @@ camera_filter_glut_5_draw (void)
     return;
   } // end IF
 
-  glActiveTexture (GL_TEXTURE0);
+  if (frame_count_i == 1)
+  {
+    glActiveTexture (GL_TEXTURE0);
+    glBindTexture (GL_TEXTURE_2D, cb_data_p->texture.id_);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glGenerateMipmap (GL_TEXTURE_2D);
+    glBindTexture (GL_TEXTURE_2D, 0);
+  } // end IF
+
   if (unlikely (!cb_data_p->texture.load (data_p,
                                           cb_data_p->resolution,
                                           cb_data_p->depth,
