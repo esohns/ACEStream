@@ -5,7 +5,7 @@ uniform vec2 iResolution;
 uniform float iTime;
 uniform vec4 iMouse;
 
-//varying vec2 vTexCoord;
+varying vec2 vTexCoord;
 
 #define S(a, b, t) smoothstep (a, b, t)
 //#define CHEAP_NORMALS
@@ -119,7 +119,7 @@ void
 main ()
 {
   vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
-  vec2 UV = gl_FragCoord.xy / iResolution.xy;
+  vec2 UV = vTexCoord;//gl_FragCoord.xy / iResolution.xy;
   vec3 M = vec3 ((iMouse.xy / iResolution.xy).xy, iMouse.z);
   float T = iTime + M.x * 2.0;
 
