@@ -259,7 +259,7 @@ Test_U_CameraFilter_OpenGL_GLUT_6::handleSessionMessage (Test_U_SessionMessage_t
       ACE_ASSERT (CBData_.textureS3.id_);
       CBData_.textureS3.bind ();
       // *IMPORTANT NOTE*: generate a floating point-format texture to contain
-      //                   the result of shader2
+      //                   the result of shader3
       glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA32F, CBData_.resolution.cx, CBData_.resolution.cy, 0, GL_RGBA, GL_FLOAT, initial_values_a.data ());
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
@@ -272,7 +272,7 @@ Test_U_CameraFilter_OpenGL_GLUT_6::handleSessionMessage (Test_U_SessionMessage_t
       ACE_ASSERT (CBData_.textureS4.id_);
       CBData_.textureS4.bind ();
       // *IMPORTANT NOTE*: generate a floating point-format texture to contain
-      //                   the result of shader2
+      //                   the result of shader4
       glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA32F, CBData_.resolution.cx, CBData_.resolution.cy, 0, GL_RGBA, GL_FLOAT, initial_values_a.data ());
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
@@ -707,18 +707,14 @@ camera_filter_glut_6_draw (void)
     return;
   } // end IF
 
-  if (frame_count_i == 1)
+  if (unlikely (frame_count_i == 1))
   {
     glActiveTexture (GL_TEXTURE0);
-    glBindTexture (GL_TEXTURE_2D, cb_data_p->texture0.id_);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    cb_data_p->texture0.bind ();
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glGenerateMipmap (GL_TEXTURE_2D);
-    glBindTexture (GL_TEXTURE_2D, 0);
+    cb_data_p->texture0.unbind ();
   } // end IF
-
   if (unlikely (!cb_data_p->texture0.load (data_p,
                                            cb_data_p->resolution,
                                            cb_data_p->depth,
@@ -729,11 +725,15 @@ camera_filter_glut_6_draw (void)
     return;
   } // end IF
   message_block_p->release ();
+  cb_data_p->texture0.bind ();
+  if (unlikely (frame_count_i == 1))
+  {
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glGenerateMipmap (GL_TEXTURE_2D);
+  } // end IF
 
   //glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glActiveTexture (GL_TEXTURE0);
-  cb_data_p->texture0.bind ();
 
   // compute elapsed time
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
