@@ -1,0 +1,78 @@
+#define size iResolution.xy
+#define pixel(a, p) texture(a, p/vec2(textureSize(a,0)))
+#define texel(a, p) texelFetch(a, ivec2(p), 0)
+#define ch0 iChannel0
+#define ch1 iChannel1
+#define ch2 iChannel2
+#define ch3 iChannel3
+#define PI 3.14159265
+
+#define dt 0.4
+#define prop 0.5
+
+ivec2 N;
+int tot_n;
+
+float hash11(float p)
+{
+    p = fract(p * 15.1031);
+    p *= p + 33.33;
+    p *= p + p;
+    return fract(p) - 0.5;
+}
+
+float hash12(vec2 p)
+{
+	vec3 p3  = fract(vec3(p.xyx) * .1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
+
+
+vec2 hash21(float p)
+{
+	vec3 p3 = fract(vec3(p) * vec3(.1031, .1030, .0973));
+	p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.xx+p3.yz)*p3.zy);
+
+}
+
+vec2 hash22(vec2 p)
+{
+	vec3 p3 = fract(vec3(p.xyx) * vec3(.1031, .1030, .0973));
+    p3 += dot(p3, p3.yzx+33.33);
+    return fract((p3.xx+p3.yz)*p3.zy);
+}
+
+const int k = 1664525;  
+
+ivec4 hash( ivec4 x )
+{
+    x = ((x>>8)^x.wxyz)*k;
+    x = ((x>>8)^x.wxyz)*k;
+    x = ((x>>8)^x.wxyz)*k;
+    x = ((x>>8)^x.wxyz)*k;
+    return ivec4(x);
+}
+
+ivec2 i2xy(int id)
+{
+    return ivec2(id%N.x, id/N.x);
+}
+
+int xy2i(ivec2 p)
+{
+    return p.x + p.y*N.x;
+}
+
+ivec2 cross_distribution(int i)
+{
+    return (1<<(i/4)) * ivec2( ((i&2)/2)^1, (i&2)/2 ) * ( 2*(i%2) - 1 );
+}
+
+float sdSegment( in vec2 p, in vec2 a, in vec2 b )
+{
+    vec2 pa = p-a, ba = b-a;
+    float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+    return length( pa - ba*h );
+}

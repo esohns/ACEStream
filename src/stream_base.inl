@@ -1038,12 +1038,11 @@ Stream_Base_T<ACE_SYNCH_USE,
 continue_:
   // delegate to the head module, skip over ACE_Stream_Head
   result = inherited::top (module_p);
-  if (unlikely ((result == -1) ||
-                !module_p))
+  if (unlikely (result == -1 || !module_p))
   { // already close()d/never open()ed ?
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: no head module found: \"%m\", returning\n"),
-                ACE_TEXT (name_.c_str ())));
+    //ACE_DEBUG ((LM_WARNING,
+    //            ACE_TEXT ("%s: no head module found: \"%m\", returning\n"),
+    //            ACE_TEXT (name_.c_str ())));
     return;
   } // end IF
   istreamcontrol_p =

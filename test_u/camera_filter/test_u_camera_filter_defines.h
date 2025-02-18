@@ -23,15 +23,28 @@
 
 #define TEST_U_VERTEX_SHADER_FILENAME     "shader.vert"
 #define TEST_U_FRAGMENT_SHADER_FILENAME   "shader.frag"
+
 #define TEST_U_VERTEX_SHADER_2_FILENAME   "shader_2.vert"
 #define TEST_U_FRAGMENT_SHADER_2_FILENAME "shader_2.frag"
+
 #define TEST_U_VERTEX_SHADER_3_FILENAME   "shader_3.vert"
 #define TEST_U_FRAGMENT_SHADER_3_FILENAME "shader_3.frag"
+
 #define TEST_U_VERTEX_SHADER_4_FILENAME   "shader_4.vert"
 #define TEST_U_FRAGMENT_SHADER_4_FILENAME "shader_4.frag"
+
 #define TEST_U_VERTEX_SHADER_5_FILENAME   "shader_5.vert"
 #define TEST_U_FRAGMENT_SHADER_5_FILENAME "shader_5.frag"
 
-//#define TEST_U_CANVAS_SCALE_FACTOR        30
+#define TEST_U_VERTEX_SHADER_6_1_FILENAME   "shader_6.vert"
+#define TEST_U_FRAGMENT_SHADER_6_1_FILENAME "shader_6.frag"
+#define TEST_U_VERTEX_SHADER_6_2_FILENAME   "shader_6.vert"
+#define TEST_U_FRAGMENT_SHADER_6_2_FILENAME "shader_6.frag_2"
+#define TEST_U_VERTEX_SHADER_6_3_FILENAME   "shader_6.vert"
+#define TEST_U_FRAGMENT_SHADER_6_3_FILENAME "shader_6.frag_3"
+#define TEST_U_VERTEX_SHADER_6_4_FILENAME   "shader_6.vert"
+#define TEST_U_FRAGMENT_SHADER_6_4_FILENAME "shader_6.frag_4"
+#define TEST_U_VERTEX_SHADER_6_5_FILENAME   "shader_6.vert"
+#define TEST_U_FRAGMENT_SHADER_6_5_FILENAME "shader_6.frag_5"
 
 #endif
