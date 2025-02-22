@@ -87,108 +87,113 @@ uniform sampler2D iChannel0;
 uniform sampler2D iChannel1;
 uniform sampler2D iChannel2;
 
-//particle buffer
-
 int cid;
 
-ivec4 get(int id)
+ivec4
+get (int id)
 {
-    return ivec4(texel(ch0, i2xy(id)));
+  return ivec4 (texel (ch0, i2xy (id)));
 }
 
-vec4 getParticle(int id)
+vec4
+getParticle (int id)
 {
-    return texel(ch1, i2xy(id));
+  return texel (ch1, i2xy (id));
 }
 
-float F(float d)
+float
+F (float d)
 {
-    return (0.15*exp(-0.1*d) - 2.*exp(-0.2*d));
+  return (0.15 * exp (-0.1 * d) - 2.0 * exp (-0.2 * d));
 }
 
-float imageV(vec2 p)
+float
+imageV (vec2 p)
 {
-    return 1.-2.*texture(ch2, vec2(1., 1.)*p/size).x;
+  return 1.0 - 2.0 * texture (ch2, vec2 (1.0, 1.0) * p / size).x;
 }
 
-vec2 imageF(vec2 p)
+vec2
+imageF (vec2 p)
 {
-    vec3 d = vec3(-1,0,1);
-    return vec2(imageV(p+d.zy) - imageV(p+d.xy), imageV(p+d.yz) - imageV(p+d.yx));
+  vec3 d = vec3 (-1.0, 0.0, 1.0);
+  return vec2 (imageV (p + d.zy) - imageV (p + d.xy), imageV (p + d.yz) - imageV (p + d.yx));
 }
 
-vec2 Fv(vec4 p0, int pid)
+vec2
+Fv (vec4 p0, int pid)
 {
-    if(pid < 0 || pid >= tot_n || pid == cid) return vec2(0); 
-    vec4 p1 = getParticle(pid);
-    float d= distance(p0.xy, p1.xy);
-    vec2 dv = (p1.zw - p0.zw);
-    float dotv = dot(normalize(p1.xy-p0.xy), normalize(dv)); //divergence correction
-    vec2 antidivergence = 0.*dv*abs(dotv)*exp(-0.5*d);
-    vec2 viscosity = 0.25*dv*exp(-0.1*d);
-    vec2 pressure = normalize(p1.xy-p0.xy)*F(d);
-    return viscosity + pressure + antidivergence;
+  if (pid < 0 || pid >= tot_n || pid == cid)
+    return vec2 (0.0);
+  vec4 p1 = getParticle (pid);
+  float d= distance (p0.xy, p1.xy);
+  vec2 dv = (p1.zw - p0.zw);
+  float dotv = dot (normalize (p1.xy - p0.xy), normalize (dv));
+  vec2 antidivergence = 0.0 * dv * abs (dotv) * exp (-0.5 * d);
+  vec2 viscosity = 0.25 * dv * exp (-0.1 * d);
+  vec2 pressure = normalize (p1.xy - p0.xy) * F (d);
+  return viscosity + pressure + antidivergence;
 }
 
 float irad;
-
-vec2 Fspring(vec4 p0, int pid)
+vec2
+Fspring(vec4 p0, int pid)
 {
-    if(pid < 0 || pid >= tot_n || pid == cid) return vec2(0); 
-    vec4 p1 = getParticle(pid);
-    vec2 interaction = normalize(p1.xy-p0.xy)*(distance(p1.xy,p0.xy)- 2.*PI*irad/float(tot_n) - 4.*tanh(0.1*iTime));
-    return interaction;
+  if (pid < 0 || pid >= tot_n || pid == cid)
+    return vec2 (0.0);
+  vec4 p1 = getParticle (pid);
+  vec2 interaction = normalize (p1.xy - p0.xy) * (distance (p1.xy, p0.xy) - 2.0 * PI * irad / float (tot_n) - 4.0 * tanh (0.1 * iTime));
+  return interaction;
 }
 
 void
 main ()
 {
-    ivec2 p = ivec2(gl_FragCoord.xy);
-    N = ivec2(prop*iResolution.xy);
-    tot_n = N.x*N.y;
-    if(p.x < N.x && p.y < N.y)
+  ivec2 p = ivec2 (gl_FragCoord.xy);
+  N = ivec2 (prop * iResolution.xy);
+  tot_n = N.x * N.y;
+  if (p.x < N.x && p.y < N.y)
+  {
+    irad = 0.3 * size.y;
+    vec2 pos = floor (gl_FragCoord.xy);
+    gl_FragColor = texel (ch1, pos);
+    int id = xy2i (p);
+    cid = id;
+
+    if (iFrame < 10)
     {
-        irad = 0.3*size.y;
-        vec2 pos = floor(gl_FragCoord.xy);
-        //this pixel value
-        gl_FragColor = texel(ch1, pos);
-        int id = xy2i(p);
-        cid = id;
-        
-        //this pixel value
-        if(iFrame<10)
-        {
-            float t = 2.*PI*float(id)/float(tot_n);
-            gl_FragColor.xy = size*hash22(3.14159*pos);
-            gl_FragColor.zw = 1.*(hash22(3.14159*pos) - 0.5);
-          return;
-        }
-        
-        //neighbors
-      ivec4 cp = get(id);
-      
-        vec2 F = Fv(gl_FragColor, cp.x) +
-               Fv(gl_FragColor, cp.y) +
-               Fv(gl_FragColor, cp.z) +
-                 Fv(gl_FragColor, cp.w) +
-               -20.*imageF(gl_FragColor.xy);
-        
-        if(iMouse.z > 0.) 
-        {
-            float d = distance(iMouse.xy, gl_FragColor.xy);
-            F += 2.*normalize(iMouse.xy - gl_FragColor.xy)/(sqrt(d)+2.);
-        }
-        
-        gl_FragColor.zw = 15.*tanh((F*dt + gl_FragColor.zw)/15.) ;
-        gl_FragColor.xy += gl_FragColor.zw*dt;
-        
-        //border conditions
-        if(size.x - gl_FragColor.x < 2.) gl_FragColor.z = -abs(gl_FragColor.z);
-        if(gl_FragColor.x < 2.) gl_FragColor.z = abs(gl_FragColor.z);
-        if(size.y - gl_FragColor.y < 2.) gl_FragColor.w = -abs(gl_FragColor.w);
-        if(gl_FragColor.y < 2.) gl_FragColor.w = abs(gl_FragColor.w);
- 
-        
+      float t = 2.0 * PI * float (id) / float (tot_n);
+      gl_FragColor.xy = size * hash22 (3.14159 * pos);
+      gl_FragColor.zw = 1.0 * (hash22 (3.14159 * pos) - 0.5);
+      return;
     }
-    else discard;
+
+    ivec4 cp = get (id);
+
+    vec2 F = Fv (gl_FragColor, cp.x) +
+             Fv (gl_FragColor, cp.y) +
+             Fv (gl_FragColor, cp.z) +
+             Fv (gl_FragColor, cp.w) +
+             -20.0 * imageF (gl_FragColor.xy);
+
+    if (iMouse.z > 0.) 
+    {
+      float d = distance (iMouse.xy, gl_FragColor.xy);
+      F += 2.0 * normalize (iMouse.xy - gl_FragColor.xy) / (sqrt (d) + 2.0);
+    }
+
+    gl_FragColor.zw = 15.0 * tanh ((F * dt + gl_FragColor.zw) / 15.0);
+    gl_FragColor.xy += gl_FragColor.zw * dt;
+
+    if (size.x - gl_FragColor.x < 2.0)
+      gl_FragColor.z = -abs (gl_FragColor.z);
+    if (gl_FragColor.x < 2.0)
+      gl_FragColor.z = abs (gl_FragColor.z);
+    if (size.y - gl_FragColor.y < 2.0)
+      gl_FragColor.w = -abs (gl_FragColor.w);
+    if (gl_FragColor.y < 2.0)
+      gl_FragColor.w = abs (gl_FragColor.w);
+  }
+  else
+    discard;
 }

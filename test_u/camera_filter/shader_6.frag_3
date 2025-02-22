@@ -150,29 +150,22 @@ void sortpos(ivec2 p)
 void
 main ()
 {
-    pos = gl_FragCoord.xy;
-     N = ivec2(prop*iResolution.xy);
-    tot_n = N.x*N.y;
-    ivec2 p = ivec2(pos);
-     
-    u = ivec4(-1); d = vec4(1e10); 
-   
-    //jump flood sorting 
-    sortpos(p); //resort this position
-    for(int i = 0; i < 8; i++)
-    {
-        sortpos(p+cross_distribution(i)); 
-    }
-    
-    for(int i = 0; i < 4; i++)
-    {
-        sort(hash(ivec4(p, iFrame, i)).x%tot_n); //random sort    
-    }
-    
-    if( any(lessThan(u, ivec4(-1))) || any(greaterThan(u, ivec4(tot_n))) )
-    {
-        u = ivec4(0);
-    }
-    
-    gl_FragColor = save(u);
+  pos = gl_FragCoord.xy;
+  N = ivec2 (prop * iResolution.xy);
+  tot_n = N.x * N.y;
+  ivec2 p = ivec2 (pos);
+
+  u = ivec4 (-1); d = vec4 (1e10); 
+
+  sortpos (p);
+  for (int i = 0; i < 8; i++)
+    sortpos (p + cross_distribution (i)); 
+
+  for (int i = 0; i < 4; i++)
+    sort (hash (ivec4 (p, iFrame, i)).x % tot_n);
+
+  if (any (lessThan (u, ivec4 (-1))) || any (greaterThan (u, ivec4 (tot_n))))
+    u = ivec4 (0);
+
+  gl_FragColor = save (u);
 }

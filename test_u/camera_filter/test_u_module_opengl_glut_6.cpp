@@ -174,46 +174,7 @@ Test_U_CameraFilter_OpenGL_GLUT_6::handleSessionMessage (Test_U_SessionMessage_t
 
       //glClearColor (0.0F, 0.0F, 0.0F, 1.0F); // Black Background
       glClearColor (0.0F, 0.0F, 0.0F, 0.0F); // Black Background
-      COMMON_GL_ASSERT;
-      //glClearDepth (1.0);                                 // Depth Buffer Setup
-      //COMMON_GL_ASSERT;
-      /* speedups */
-      //glEnable (GL_CULL_FACE);
-      //glFrontFace (GL_CCW);
-      //glCullFace (GL_BACK);
-      //  glEnable (GL_DITHER);
-      //  glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-      //  glHint (GL_POLYGON_SMOOTH_HINT, GL_FASTEST);
-      //COMMON_GL_ASSERT;
-      //glColorMaterial (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-      //COMMON_GL_ASSERT;
-      //glEnable (GL_COLOR_MATERIAL);
-      //COMMON_GL_ASSERT;
-      //glEnable (GL_LIGHTING);
-      //COMMON_GL_ASSERT;
-      //glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective
-      //COMMON_GL_ASSERT;
-      //glDepthFunc (GL_LESS);                              // The Type Of Depth Testing To Do
-      //COMMON_GL_ASSERT;
-      //glDepthMask (GL_TRUE);
-      //COMMON_GL_ASSERT;
-      //glEnable (GL_TEXTURE_2D);                           // Enable Texture Mapping
-      //COMMON_GL_ASSERT;
-      //glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
-      //COMMON_GL_ASSERT;
-      //glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-      //COMMON_GL_ASSERT;
-      //glEnable (GL_BLEND);                                // Enable Semi-Transparency
-      //COMMON_GL_ASSERT;
-      //glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      //glBlendFunc (GL_ONE_MINUS_DST_ALPHA, GL_ONE);
-      //COMMON_GL_ASSERT;
-      //glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
-      //COMMON_GL_ASSERT;
 
-      //glDisable (GL_CULL_FACE);
-      //glEnable (GL_CULL_FACE);
-      //glCullFace (GL_BACK);
       glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
       glActiveTexture (GL_TEXTURE0);
@@ -506,6 +467,10 @@ error:
       inherited::stop (false,  // wait for completion ?
                        false); // high priority ?
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      Stream_MediaFramework_DirectShow_Tools::free (CBData_.mediaType);
+#endif // ACE_WIN32 || ACE_WIN64
+
       break;
     }
     default:
@@ -529,8 +494,10 @@ Test_U_CameraFilter_OpenGL_GLUT_6::svc (void)
 
   char* myargv[1];
   int myargc = 1;
-  myargv[0] = ACE_OS::strdup ("Myappname");
+  myargv[0] = ACE_OS::strdup (ACE_TEXT_ALWAYS_CHAR ("Test_U_CameraFilter_OpenGL_GLUT_6"));
+  ACE_ASSERT (myargv[0]);
   glutInit (&myargc, myargv);
+  ACE_OS::free (myargv[0]);
 
   glutSetOption (GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 
