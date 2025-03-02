@@ -357,6 +357,7 @@ Stream_Visualization_LibAVResize_T<TaskType,
                                   reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
                                   inherited::frame_->linesize);
       ACE_ASSERT (result >= 0);
+      ACE_UNUSED_ARG (result);
 
       break;
 
@@ -507,6 +508,7 @@ error:
                                   reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
                                   inherited::frame_->linesize);
       ACE_ASSERT (result >= 0);
+      ACE_UNUSED_ARG (result);
 
       ACE_OS::memset (&media_type_s, 0, sizeof (MediaType));
       ACE_ASSERT (session_data_r.lock);

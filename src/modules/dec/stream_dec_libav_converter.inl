@@ -360,6 +360,7 @@ Stream_Decoder_LibAVConverter_T<TaskType,
                                   reinterpret_cast<uint8_t*> (buffer_->wr_ptr ()),
                                   frame_->linesize);
       ACE_ASSERT (result >= 0);
+      ACE_UNUSED_ARG (result);
 
 continue_:
       if (inputFormat_ != media_type_3.format)

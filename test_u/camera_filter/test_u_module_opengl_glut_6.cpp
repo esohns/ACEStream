@@ -157,7 +157,11 @@ Test_U_CameraFilter_OpenGL_GLUT_6::handleSessionMessage (Test_U_SessionMessage_t
       glutSetWindow (window_);
       glutSetWindowData (&CBData_);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       std::vector<GLfloat> initial_values_a (CBData_.resolution.cx * CBData_.resolution.cy * 4, 0.0f);
+#else
+      std::vector<GLfloat> initial_values_a (CBData_.resolution.width * CBData_.resolution.height * 4, 0.0f);
+#endif // ACE_WIN32 || ACE_WIN64
 
       // initialize GLEW
       GLenum err = glewInit ();
@@ -195,7 +199,11 @@ Test_U_CameraFilter_OpenGL_GLUT_6::handleSessionMessage (Test_U_SessionMessage_t
       CBData_.textureS1.bind ();
       // *IMPORTANT NOTE*: generate a floating point-format texture to contain
       //                   the result of shader1
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA32F, CBData_.resolution.cx, CBData_.resolution.cy, 0, GL_RGBA, GL_FLOAT, initial_values_a.data ());
+#else
+      glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA32F, CBData_.resolution.width, CBData_.resolution.height, 0, GL_RGBA, GL_FLOAT, initial_values_a.data ());
+#endif // ACE_WIN32 || ACE_WIN64
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
       glGenerateMipmap (GL_TEXTURE_2D);
@@ -208,7 +216,11 @@ Test_U_CameraFilter_OpenGL_GLUT_6::handleSessionMessage (Test_U_SessionMessage_t
       CBData_.textureS2.bind ();
       // *IMPORTANT NOTE*: generate a floating point-format texture to contain
       //                   the result of shader2
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA32F, CBData_.resolution.cx, CBData_.resolution.cy, 0, GL_RGBA, GL_FLOAT, initial_values_a.data ());
+#else
+      glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA32F, CBData_.resolution.width, CBData_.resolution.height, 0, GL_RGBA, GL_FLOAT, initial_values_a.data ());
+#endif // ACE_WIN32 || ACE_WIN64
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
       glGenerateMipmap (GL_TEXTURE_2D);
@@ -221,7 +233,11 @@ Test_U_CameraFilter_OpenGL_GLUT_6::handleSessionMessage (Test_U_SessionMessage_t
       CBData_.textureS3.bind ();
       // *IMPORTANT NOTE*: generate a floating point-format texture to contain
       //                   the result of shader3
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA32F, CBData_.resolution.cx, CBData_.resolution.cy, 0, GL_RGBA, GL_FLOAT, initial_values_a.data ());
+#else
+      glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA32F, CBData_.resolution.width, CBData_.resolution.height, 0, GL_RGBA, GL_FLOAT, initial_values_a.data ());
+#endif // ACE_WIN32 || ACE_WIN64
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
       glGenerateMipmap (GL_TEXTURE_2D);
@@ -234,7 +250,11 @@ Test_U_CameraFilter_OpenGL_GLUT_6::handleSessionMessage (Test_U_SessionMessage_t
       CBData_.textureS4.bind ();
       // *IMPORTANT NOTE*: generate a floating point-format texture to contain
       //                   the result of shader4
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA32F, CBData_.resolution.cx, CBData_.resolution.cy, 0, GL_RGBA, GL_FLOAT, initial_values_a.data ());
+#else
+      glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA32F, CBData_.resolution.width, CBData_.resolution.height, 0, GL_RGBA, GL_FLOAT, initial_values_a.data ());
+#endif // ACE_WIN32 || ACE_WIN64
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
       glGenerateMipmap (GL_TEXTURE_2D);
