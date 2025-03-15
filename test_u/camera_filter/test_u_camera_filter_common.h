@@ -567,7 +567,8 @@ enum Test_U_CameraFilter_Mode
   TEST_U_MODE_GLUT_3,
   TEST_U_MODE_GLUT_4,
   TEST_U_MODE_GLUT_5,
-  TEST_U_MODE_GLUT_6
+  TEST_U_MODE_GLUT_6,
+  TEST_U_MODE_GLUT_7
 };
 
 struct Test_U_CameraFilter_StreamConfiguration
