@@ -148,7 +148,9 @@ if (GLUT_SUPPORT)
       test_u_module_opengl_glut_7.cpp
       test_u_module_opengl_glut_7.h
       test_u_module_opengl_glut_8.cpp
-      test_u_module_opengl_glut_8.h)
+      test_u_module_opengl_glut_8.h
+      test_u_module_opengl_glut_9.cpp
+      test_u_module_opengl_glut_9.h)
 endif (GLUT_SUPPORT)
 
 if (JC_VORONOI_SUPPORT)
