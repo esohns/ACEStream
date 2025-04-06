@@ -156,7 +156,11 @@ if (GLUT_SUPPORT)
       test_u_module_opengl_glut_11.cpp
       test_u_module_opengl_glut_11.h
       test_u_module_opengl_glut_12.cpp
-      test_u_module_opengl_glut_12.h)
+      test_u_module_opengl_glut_12.h
+      test_u_module_opengl_glut_13.cpp
+      test_u_module_opengl_glut_13.h
+      test_u_module_opengl_glut_14.cpp
+      test_u_module_opengl_glut_14.h)
 endif (GLUT_SUPPORT)
 
 if (JC_VORONOI_SUPPORT)
