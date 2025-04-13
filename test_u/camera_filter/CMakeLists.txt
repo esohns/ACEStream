@@ -164,7 +164,13 @@ if (GLUT_SUPPORT)
       test_u_module_opengl_glut_15.cpp
       test_u_module_opengl_glut_15.h
       test_u_module_opengl_glut_16.cpp
-      test_u_module_opengl_glut_16.h)
+      test_u_module_opengl_glut_16.h
+      test_u_module_opengl_glut_17.cpp
+      test_u_module_opengl_glut_17.h
+      test_u_module_opengl_glut_18.cpp
+      test_u_module_opengl_glut_18.h
+      test_u_module_opengl_glut_19.cpp
+      test_u_module_opengl_glut_19.h)
 endif (GLUT_SUPPORT)
 
 if (JC_VORONOI_SUPPORT)
@@ -266,6 +272,58 @@ target_precompile_headers (${EXECUTABLE}
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
+install (FILES
+         "shader.frag"
+         "shader.vert"
+         "shader_2.frag"
+         "shader_2.vert"
+         "shader_3.frag"
+         "shader_3.vert"
+         "shader_4.frag"
+         "shader_4.vert"
+         "shader_5.frag"
+         "shader_5.vert"
+         "shader_6.frag"
+         "shader_6.frag_2"
+         "shader_6.frag_3"
+         "shader_6.frag_4"
+         "shader_6.frag_5"
+         "shader_6.vert"
+         "shader_6_common.glsl"
+         "shader_7.frag"
+         "shader_7.vert"
+         "shader_7_channel1.png"
+         "shader_7_channel2.png"
+         "shader_8.frag"
+         "shader_8.vert"
+         "shader_9.frag"
+         "shader_9.vert"
+         "shader_10.frag"
+         "shader_10.vert"
+         "shader_11.frag"
+         "shader_11.vert"
+         "shader_12.frag"
+         "shader_12.vert"
+         "shader_13.frag"
+         "shader_13.vert"
+         "shader_14.frag"
+         "shader_14.frag_2"
+         "shader_14.vert"
+         "shader_15.frag"
+         "shader_15.vert"
+         "shader_16.frag"
+         "shader_16.vert"
+         "shader_16_channel1.png"
+         "shader_17.frag"
+         "shader_17.vert"
+         "shader_18.frag"
+         "shader_18.frag_2"
+         "shader_18.frag_3"
+         "shader_18.vert"
+         "shader_19.frag"
+         "shader_19.vert"
+         DESTINATION ${INSTALL_BIN_DIR}
+         COMPONENT config)
 if (UNIX)
 # install (FILES etc/${ui_definition_file}
 #          DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)

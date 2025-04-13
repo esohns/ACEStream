@@ -455,13 +455,22 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   {
     case TEST_U_MODE_WEIGHTED_VORONOI_STIPPLE:
     {
-      // *NOTE*: the default size (i.e. 640x480) is too slow for this filter...
+      // *NOTE*: the default size is too slow for this filter...
       Common_Image_Resolution_t resolution_s;
       resolution_s.cx = 320;
       resolution_s.cy = 240;
       Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                              captureFormat_inout);
-
+      break;
+    }
+    case TEST_U_MODE_GLUT_18:
+    {
+      // *NOTE*: the default size is too slow for this filter...
+      Common_Image_Resolution_t resolution_s;
+      resolution_s.cx = 320;
+      resolution_s.cy = 240;
+      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                             captureFormat_inout);
       break;
     }
     default:
@@ -1365,6 +1374,9 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         case TEST_U_MODE_GLUT_14:
         case TEST_U_MODE_GLUT_15:
         case TEST_U_MODE_GLUT_16:
+        case TEST_U_MODE_GLUT_17:
+        case TEST_U_MODE_GLUT_18:
+        case TEST_U_MODE_GLUT_19:
           directshow_modulehandler_configuration_2.flipImage = true;
           break;
         default:

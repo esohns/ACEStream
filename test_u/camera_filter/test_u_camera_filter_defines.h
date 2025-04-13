@@ -79,4 +79,17 @@
 #define TEST_U_VERTEX_SHADER_16_FILENAME   "shader_16.vert"
 #define TEST_U_FRAGMENT_SHADER_16_FILENAME "shader_16.frag"
 
+#define TEST_U_VERTEX_SHADER_17_FILENAME   "shader_17.vert"
+#define TEST_U_FRAGMENT_SHADER_17_FILENAME "shader_17.frag"
+
+#define TEST_U_VERTEX_SHADER_18_1_FILENAME   "shader_18.vert"
+#define TEST_U_FRAGMENT_SHADER_18_1_FILENAME "shader_18.frag"
+#define TEST_U_VERTEX_SHADER_18_2_FILENAME   "shader_18.vert"
+#define TEST_U_FRAGMENT_SHADER_18_2_FILENAME "shader_18.frag_2"
+#define TEST_U_VERTEX_SHADER_18_3_FILENAME   "shader_18.vert"
+#define TEST_U_FRAGMENT_SHADER_18_3_FILENAME "shader_18.frag_3"
+
+#define TEST_U_VERTEX_SHADER_19_FILENAME   "shader_19.vert"
+#define TEST_U_FRAGMENT_SHADER_19_FILENAME "shader_19.frag"
+
 #endif

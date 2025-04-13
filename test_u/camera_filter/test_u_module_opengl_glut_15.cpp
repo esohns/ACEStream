@@ -557,7 +557,7 @@ camera_filter_glut_15_draw (void)
 #endif // ACE_WIN32 || ACE_WIN64 || ACE_LINUX
   std::chrono::duration<float> elapsed_time = tp2 - cb_data_p->tp1;
   glProgramUniform1f (cb_data_p->shader.id_, cb_data_p->timeLoc,
-                      static_cast<GLfloat> (elapsed_time.count () * 0.001f));
+                      static_cast<GLfloat> (elapsed_time.count ()));
 
   glProgramUniform1i (cb_data_p->shader.id_, cb_data_p->textureLoc,
                       0); // -unit, not -id !!!

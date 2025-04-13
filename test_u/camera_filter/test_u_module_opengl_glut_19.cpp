@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_u_module_opengl_glut_16.h"
+#include "test_u_module_opengl_glut_19.h"
 
 #include "GL/freeglut.h"
 
@@ -32,13 +32,13 @@
 
 #include "test_u_camera_filter_defines.h"
 
-const char libacestream_default_module_opengl_glut_16_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR ("OpenGL_GLUT 16");
+const char libacestream_default_module_opengl_glut_19_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR ("OpenGL_GLUT 19");
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_U_CameraFilter_OpenGL_GLUT_16::Test_U_CameraFilter_OpenGL_GLUT_16 (ISTREAM_T* stream_in)
+Test_U_CameraFilter_OpenGL_GLUT_19::Test_U_CameraFilter_OpenGL_GLUT_19 (ISTREAM_T* stream_in)
 #else
-Test_U_CameraFilter_OpenGL_GLUT_16::Test_U_CameraFilter_OpenGL_GLUT_16 (typename inherited::ISTREAM_T* stream_in)
+Test_U_CameraFilter_OpenGL_GLUT_19::Test_U_CameraFilter_OpenGL_GLUT_19 (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , CBData_ ()
@@ -46,7 +46,7 @@ Test_U_CameraFilter_OpenGL_GLUT_16::Test_U_CameraFilter_OpenGL_GLUT_16 (typename
  , leftGLUTMainLoop_ (false)
  , window_ (0)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_OpenGL_GLUT_16::Test_U_CameraFilter_OpenGL_GLUT_16"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_OpenGL_GLUT_19::Test_U_CameraFilter_OpenGL_GLUT_19"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::memset (&CBData_.mediaType, 0, sizeof (struct _AMMediaType));
@@ -62,13 +62,13 @@ Test_U_CameraFilter_OpenGL_GLUT_16::Test_U_CameraFilter_OpenGL_GLUT_16 (typename
 
 bool
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_U_CameraFilter_OpenGL_GLUT_16::initialize (const struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration& configuration_in,
+Test_U_CameraFilter_OpenGL_GLUT_19::initialize (const struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration& configuration_in,
 #else
-Test_U_CameraFilter_OpenGL_GLUT_16::initialize (const struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration& configuration_in,
+Test_U_CameraFilter_OpenGL_GLUT_19::initialize (const struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration& configuration_in,
 #endif // ACE_WIN32 || ACE_WIN64
                                                Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_OpenGL_GLUT_16::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_OpenGL_GLUT_19::initialize"));
 
   if (inherited::isInitialized_)
   {
@@ -87,25 +87,25 @@ Test_U_CameraFilter_OpenGL_GLUT_16::initialize (const struct Test_U_CameraFilter
 
 void
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_U_CameraFilter_OpenGL_GLUT_16::handleDataMessage (Test_U_DirectShow_Message_t*& message_inout,
+Test_U_CameraFilter_OpenGL_GLUT_19::handleDataMessage (Test_U_DirectShow_Message_t*& message_inout,
 #else
-Test_U_CameraFilter_OpenGL_GLUT_16::handleDataMessage (Test_U_Message_t*& message_inout,
+Test_U_CameraFilter_OpenGL_GLUT_19::handleDataMessage (Test_U_Message_t*& message_inout,
 #endif // ACE_WIN32 || ACE_WIN64
                                                       bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_OpenGL_GLUT_16::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_OpenGL_GLUT_19::handleDataMessage"));
 
 }
 
 void
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_U_CameraFilter_OpenGL_GLUT_16::handleSessionMessage (Test_U_DirectShow_SessionMessage_t*& message_inout,
+Test_U_CameraFilter_OpenGL_GLUT_19::handleSessionMessage (Test_U_DirectShow_SessionMessage_t*& message_inout,
 #else
-Test_U_CameraFilter_OpenGL_GLUT_16::handleSessionMessage (Test_U_SessionMessage_t*& message_inout,
+Test_U_CameraFilter_OpenGL_GLUT_19::handleSessionMessage (Test_U_SessionMessage_t*& message_inout,
 #endif // ACE_WIN32 || ACE_WIN64
                                                          bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_OpenGL_GLUT_16::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_OpenGL_GLUT_19::handleSessionMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -153,7 +153,7 @@ Test_U_CameraFilter_OpenGL_GLUT_16::handleSessionMessage (Test_U_SessionMessage_
       glutInitWindowSize (CBData_.resolution.width, CBData_.resolution.height);
 #endif // ACE_WIN32 || ACE_WIN64
 
-      window_ = glutCreateWindow ("OpenGL GLUT 16");
+      window_ = glutCreateWindow ("OpenGL GLUT 19");
       glutSetWindow (window_);
       glutSetWindowData (&CBData_);
 
@@ -218,22 +218,8 @@ Test_U_CameraFilter_OpenGL_GLUT_16::handleSessionMessage (Test_U_SessionMessage_
       glGenTextures (1, &CBData_.texture0.id_);
       ACE_ASSERT (CBData_.texture0.id_);
 
-      glActiveTexture (GL_TEXTURE1);
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-      if (!CBData_.texture1.load (ACE_TEXT_ALWAYS_CHAR ("shader_16_channel1.png")))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to load texture, aborting\n")));
-        goto error;
-      } // end IF
-      CBData_.texture1.bind ();
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-      glGenerateMipmap (GL_TEXTURE_2D);
-
-      if (!CBData_.shader.loadFromFile (ACE_TEXT_ALWAYS_CHAR (TEST_U_VERTEX_SHADER_16_FILENAME),
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_FRAGMENT_SHADER_16_FILENAME)))
+      if (!CBData_.shader.loadFromFile (ACE_TEXT_ALWAYS_CHAR (TEST_U_VERTEX_SHADER_19_FILENAME),
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_FRAGMENT_SHADER_19_FILENAME)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to load GL shader, aborting\n"),
@@ -245,12 +231,12 @@ Test_U_CameraFilter_OpenGL_GLUT_16::handleSessionMessage (Test_U_SessionMessage_
       CBData_.resolutionLoc =
         glGetUniformLocation (CBData_.shader.id_, ACE_TEXT_ALWAYS_CHAR ("iResolution"));
       ACE_ASSERT (CBData_.resolutionLoc != -1);
+      //CBData_.timeLoc =
+      //  glGetUniformLocation (CBData_.shader.id_, ACE_TEXT_ALWAYS_CHAR ("iTime"));
+      //ACE_ASSERT (CBData_.timeLoc != -1);
       CBData_.channel0Loc =
         glGetUniformLocation (CBData_.shader.id_, ACE_TEXT_ALWAYS_CHAR ("iChannel0"));
       ACE_ASSERT (CBData_.channel0Loc != -1);
-      CBData_.channel1Loc =
-        glGetUniformLocation (CBData_.shader.id_, ACE_TEXT_ALWAYS_CHAR ("iChannel1"));
-      ACE_ASSERT (CBData_.channel1Loc != -1);
 
       glGenVertexArrays (1, &CBData_.VAOId);
       ACE_ASSERT (CBData_.VAOId);
@@ -294,15 +280,15 @@ Test_U_CameraFilter_OpenGL_GLUT_16::handleSessionMessage (Test_U_SessionMessage_
       glBindBuffer (GL_ARRAY_BUFFER, 0);
       glBindVertexArray (0);
 
-      glutCloseFunc (camera_filter_glut_16_close);
-      glutDisplayFunc (camera_filter_glut_16_draw);
-      glutReshapeFunc (camera_filter_glut_16_reshape);
-      glutVisibilityFunc (camera_filter_glut_16_visible);
-      glutKeyboardFunc (camera_filter_glut_16_key);
-      glutMouseFunc (camera_filter_glut_16_mouse_button);
-      glutMotionFunc (camera_filter_glut_16_mouse_move);
-      glutPassiveMotionFunc (camera_filter_glut_16_mouse_move);
-      glutTimerFunc (100, camera_filter_glut_16_timer, 0);
+      glutCloseFunc (camera_filter_glut_19_close);
+      glutDisplayFunc (camera_filter_glut_19_draw);
+      glutReshapeFunc (camera_filter_glut_19_reshape);
+      glutVisibilityFunc (camera_filter_glut_19_visible);
+      glutKeyboardFunc (camera_filter_glut_19_key);
+      glutMouseFunc (camera_filter_glut_19_mouse_button);
+      glutMotionFunc (camera_filter_glut_19_mouse_move);
+      glutPassiveMotionFunc (camera_filter_glut_19_mouse_move);
+      glutTimerFunc (100, camera_filter_glut_19_timer, 0);
 
       ACE_ASSERT (!inSession_);
       inSession_ = true;
@@ -341,9 +327,9 @@ error:
 }
 
 int
-Test_U_CameraFilter_OpenGL_GLUT_16::svc (void)
+Test_U_CameraFilter_OpenGL_GLUT_19::svc (void)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_OpenGL_GLUT_16::svc"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_OpenGL_GLUT_19::svc"));
 
   int result = -1;
   int result_2 = -1;
@@ -419,7 +405,7 @@ Test_U_CameraFilter_OpenGL_GLUT_16::svc (void)
 //////////////////////////////////////////
 
 void
-camera_filter_glut_16_reshape (int width_in, int height_in)
+camera_filter_glut_19_reshape (int width_in, int height_in)
 {
   glViewport (0, 0,
               static_cast<GLsizei> (width_in), static_cast<GLsizei> (height_in));
@@ -442,10 +428,10 @@ camera_filter_glut_16_reshape (int width_in, int height_in)
 }
 
 void
-camera_filter_glut_16_key (unsigned char key_in, int x_in, int y_in)
+camera_filter_glut_19_key (unsigned char key_in, int x_in, int y_in)
 {
-  struct Test_U_CameraFilter_OpenGL_GLUT_16_WindowData* cb_data_p =
-    static_cast<struct Test_U_CameraFilter_OpenGL_GLUT_16_WindowData*> (glutGetWindowData ());
+  struct Test_U_CameraFilter_OpenGL_GLUT_19_WindowData* cb_data_p =
+    static_cast<struct Test_U_CameraFilter_OpenGL_GLUT_19_WindowData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
 
   switch (key_in)
@@ -457,7 +443,6 @@ camera_filter_glut_16_key (unsigned char key_in, int x_in, int y_in)
       // clean up GL resources
       cb_data_p->shader.reset ();
       cb_data_p->texture0.reset ();
-      cb_data_p->texture1.reset ();
       glDeleteBuffers (1, &cb_data_p->VBOId);
       cb_data_p->VBOId = 0;
       glDeleteVertexArrays (1, &cb_data_p->VAOId); cb_data_p->VAOId = 0;
@@ -473,10 +458,10 @@ camera_filter_glut_16_key (unsigned char key_in, int x_in, int y_in)
 }
 
 void
-camera_filter_glut_16_mouse_button (int button, int state, int x, int y)
+camera_filter_glut_19_mouse_button (int button, int state, int x, int y)
 {
-  struct Test_U_CameraFilter_OpenGL_GLUT_16_WindowData* cb_data_p =
-    static_cast<struct Test_U_CameraFilter_OpenGL_GLUT_16_WindowData*> (glutGetWindowData ());
+  struct Test_U_CameraFilter_OpenGL_GLUT_19_WindowData* cb_data_p =
+    static_cast<struct Test_U_CameraFilter_OpenGL_GLUT_19_WindowData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
 
   switch (button)
@@ -492,10 +477,10 @@ camera_filter_glut_16_mouse_button (int button, int state, int x, int y)
 }
 
 void
-camera_filter_glut_16_mouse_move (int x, int y)
+camera_filter_glut_19_mouse_move (int x, int y)
 {
-  struct Test_U_CameraFilter_OpenGL_GLUT_16_WindowData* cb_data_p =
-    static_cast<struct Test_U_CameraFilter_OpenGL_GLUT_16_WindowData*> (glutGetWindowData ());
+  struct Test_U_CameraFilter_OpenGL_GLUT_19_WindowData* cb_data_p =
+    static_cast<struct Test_U_CameraFilter_OpenGL_GLUT_19_WindowData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
 
   cb_data_p->mouseX = x;
@@ -503,12 +488,12 @@ camera_filter_glut_16_mouse_move (int x, int y)
 }
 
 void
-camera_filter_glut_16_draw (void)
+camera_filter_glut_19_draw (void)
 {
   static int frame_count_i = 1;
 
-  struct Test_U_CameraFilter_OpenGL_GLUT_16_WindowData* cb_data_p =
-    static_cast<struct Test_U_CameraFilter_OpenGL_GLUT_16_WindowData*> (glutGetWindowData ());
+  struct Test_U_CameraFilter_OpenGL_GLUT_19_WindowData* cb_data_p =
+    static_cast<struct Test_U_CameraFilter_OpenGL_GLUT_19_WindowData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->queue);
   ACE_Message_Block* message_block_p = NULL;
@@ -527,7 +512,7 @@ camera_filter_glut_16_draw (void)
   if (unlikely (frame_count_i == 1))
   {
     glActiveTexture (GL_TEXTURE0);
-    glBindTexture (GL_TEXTURE_2D, cb_data_p->texture0.id_);
+    cb_data_p->texture0.bind ();
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
@@ -579,8 +564,6 @@ camera_filter_glut_16_draw (void)
 
   glProgramUniform1i (cb_data_p->shader.id_, cb_data_p->channel0Loc,
                       0);
-  glProgramUniform1i (cb_data_p->shader.id_, cb_data_p->channel1Loc,
-                      1);
 
   glDrawArrays (GL_TRIANGLES, 0, 6); // 2 triangles --> 6 vertices (see also: above)
 
@@ -593,34 +576,34 @@ camera_filter_glut_16_draw (void)
 }
 
 void
-camera_filter_glut_16_idle (void)
+camera_filter_glut_19_idle (void)
 {
   //glutPostRedisplay ();
 }
 
 void
-camera_filter_glut_16_close ()
+camera_filter_glut_19_close ()
 { // pressing the 'x' is the same as hitting 'Escape'
-  camera_filter_glut_16_key (27, 0, 0);
+  camera_filter_glut_19_key (27, 0, 0);
 }
 
 void
-camera_filter_glut_16_visible (int vis)
+camera_filter_glut_19_visible (int vis)
 {
   if (vis == GLUT_VISIBLE)
-    glutIdleFunc (camera_filter_glut_16_idle);
+    glutIdleFunc (camera_filter_glut_19_idle);
   else
     glutIdleFunc (NULL);
 }
 
 void
-camera_filter_glut_16_timer (int v)
+camera_filter_glut_19_timer (int v)
 {
-  struct Test_U_CameraFilter_OpenGL_GLUT_16_WindowData* cb_data_p =
-    static_cast<struct Test_U_CameraFilter_OpenGL_GLUT_16_WindowData*> (glutGetWindowData ());
+  struct Test_U_CameraFilter_OpenGL_GLUT_19_WindowData* cb_data_p =
+    static_cast<struct Test_U_CameraFilter_OpenGL_GLUT_19_WindowData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
 
   glutPostRedisplay ();
 
-  glutTimerFunc (1000 / 60, camera_filter_glut_16_timer, v);
+  glutTimerFunc (1000 / 60, camera_filter_glut_19_timer, v);
 }
