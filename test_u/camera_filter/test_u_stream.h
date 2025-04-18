@@ -332,10 +332,23 @@ class Test_U_Stream
   Test_U_CameraFilter_OpenGL_GLUT_2_Module          GLUTDisplay_2;
   Test_U_CameraFilter_OpenGL_GLUT_3_Module          GLUTDisplay_3;
   Test_U_CameraFilter_OpenGL_GLUT_4_Module          GLUTDisplay_4;
-  Test_U_CameraFilter_OpenGL_GLUT_4_Module          GLUTDisplay_5;
+  Test_U_CameraFilter_OpenGL_GLUT_5_Module          GLUTDisplay_5;
   Test_U_CameraFilter_OpenGL_GLUT_6_Module          GLUTDisplay_6;
   Test_U_CameraFilter_OpenGL_GLUT_7_Module          GLUTDisplay_7;
   Test_U_CameraFilter_OpenGL_GLUT_8_Module          GLUTDisplay_8;
+  Test_U_CameraFilter_OpenGL_GLUT_9_Module          GLUTDisplay_9;
+  Test_U_CameraFilter_OpenGL_GLUT_10_Module         GLUTDisplay_10;
+  Test_U_CameraFilter_OpenGL_GLUT_11_Module         GLUTDisplay_11;
+  Test_U_CameraFilter_OpenGL_GLUT_12_Module         GLUTDisplay_12;
+  Test_U_CameraFilter_OpenGL_GLUT_13_Module         GLUTDisplay_13;
+  Test_U_CameraFilter_OpenGL_GLUT_14_Module         GLUTDisplay_14;
+  Test_U_CameraFilter_OpenGL_GLUT_15_Module         GLUTDisplay_15;
+  Test_U_CameraFilter_OpenGL_GLUT_16_Module         GLUTDisplay_16;
+  Test_U_CameraFilter_OpenGL_GLUT_17_Module         GLUTDisplay_17;
+  Test_U_CameraFilter_OpenGL_GLUT_18_Module         GLUTDisplay_18;
+  Test_U_CameraFilter_OpenGL_GLUT_19_Module         GLUTDisplay_19;
+  Test_U_CameraFilter_OpenGL_GLUT_20_Module         GLUTDisplay_20;
+  Test_U_CameraFilter_OpenGL_GLUT_21_Module         GLUTDisplay_21;
 #endif // GLUT_SUPPORT
 #if defined (JC_VORONOI_SUPPORT)
   Test_U_CameraFilter_WeightedVoronoiStipple_Filter_Module weightedVoronoiStippleFilter_;

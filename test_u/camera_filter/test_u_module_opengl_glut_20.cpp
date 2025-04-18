@@ -553,7 +553,7 @@ camera_filter_glut_20_draw (void)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                       static_cast<GLfloat> (Common_GL_Tools::map (cb_data_p->mouseY, 0, static_cast<int> (cb_data_p->resolution.cy) - 1, static_cast<int> (cb_data_p->resolution.cy) - 1, 0)),
 #else
-                      static_cast<GLfloat> (Common_GL_Tools::map (cb_data_p->mouseY, 0, cb_data_p->resolution.height - 1, cb_data_p->resolution.height - 1, 0)),
+                      static_cast<GLfloat> (Common_GL_Tools::map (cb_data_p->mouseY, 0, static_cast<int> (cb_data_p->resolution.height) - 1, static_cast<int> (cb_data_p->resolution.height) - 1, 0)),
 #endif // ACE_WIN32 || ACE_WIN64 || ACE_LINUX
                       static_cast<GLfloat> (cb_data_p->mouse_LMB_pressed ? 1.0f : 0.0f),
                       0.0f);

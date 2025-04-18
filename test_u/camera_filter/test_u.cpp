@@ -877,12 +877,23 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
               ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()), captureFormat_out.format.pixelformat,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
+
   switch (mode_in)
   {
     case TEST_U_MODE_WEIGHTED_VORONOI_STIPPLE:
+    {
+      // *NOTE*: the default size is too slow for this filter...
       captureFormat_out.format.width = 320;
       captureFormat_out.format.height = 240;
       break;
+    }
+    case TEST_U_MODE_GLUT_18:
+    {
+      // *NOTE*: the default size is too slow for this filter...
+      captureFormat_out.format.width = 320;
+      captureFormat_out.format.height = 240;
+      break;
+    }
     default:
       captureFormat_out.format.width = 1280;
       captureFormat_out.format.height = 720;
@@ -1457,12 +1468,26 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       break;
 #if defined (GLUT_SUPPORT)
     case TEST_U_MODE_GLUT:
-      add_renderer_b = false;
-      break;
     case TEST_U_MODE_GLUT_2:
-      add_renderer_b = false;
-      break;
     case TEST_U_MODE_GLUT_3:
+    case TEST_U_MODE_GLUT_4:
+    case TEST_U_MODE_GLUT_5:
+    case TEST_U_MODE_GLUT_6:
+    case TEST_U_MODE_GLUT_7:
+    case TEST_U_MODE_GLUT_8:
+    case TEST_U_MODE_GLUT_9:
+    case TEST_U_MODE_GLUT_10:
+    case TEST_U_MODE_GLUT_11:
+    case TEST_U_MODE_GLUT_12:
+    case TEST_U_MODE_GLUT_13:
+    case TEST_U_MODE_GLUT_14:
+    case TEST_U_MODE_GLUT_15:
+    case TEST_U_MODE_GLUT_16:
+    case TEST_U_MODE_GLUT_17:
+    case TEST_U_MODE_GLUT_18:
+    case TEST_U_MODE_GLUT_19:
+    case TEST_U_MODE_GLUT_20:
+    case TEST_U_MODE_GLUT_21:
       add_renderer_b = false;
       break;
 #endif // GLUT_SUPPORT
@@ -1477,6 +1502,31 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.outputFormat.format.pixelformat =
     V4L2_PIX_FMT_RGBA32;
+
+  // *NOTE*: need to set this for RGB-capture (!) formats ONLY !
+  switch (mode_in)
+  {
+    case TEST_U_MODE_GLUT_6:
+    case TEST_U_MODE_GLUT_7:
+    case TEST_U_MODE_GLUT_8:
+    case TEST_U_MODE_GLUT_9:
+    case TEST_U_MODE_GLUT_10:
+    case TEST_U_MODE_GLUT_11:
+    case TEST_U_MODE_GLUT_12:
+    case TEST_U_MODE_GLUT_13:
+    case TEST_U_MODE_GLUT_14:
+    case TEST_U_MODE_GLUT_15:
+    case TEST_U_MODE_GLUT_16:
+    case TEST_U_MODE_GLUT_17:
+    case TEST_U_MODE_GLUT_18:
+    case TEST_U_MODE_GLUT_19:
+    case TEST_U_MODE_GLUT_20:
+    case TEST_U_MODE_GLUT_21:
+      modulehandler_configuration_2.flipImage = true;
+      break;
+    default:
+      break;
+  } // end SWITCH
 
   if (!add_renderer_b)
     goto continue_;

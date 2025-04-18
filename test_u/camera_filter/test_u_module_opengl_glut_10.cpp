@@ -567,7 +567,7 @@ camera_filter_glut_10_draw (void)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                       static_cast<GLfloat> (Common_GL_Tools::map (static_cast<float> (cb_data_p->mouseY), 0.0f, static_cast<float> (cb_data_p->resolution.cy - 1), static_cast<float> (cb_data_p->resolution.cy - 1), 0.0f)),
 #else
-                      static_cast<GLfloat> (Common_GL_Tools::map (static_cast<float> (cb_data_p->mouseY), 0.0f, static_cast<float> (cb_data_p->resolution.width - 1), static_cast<float> (cb_data_p->resolution.width - 1), 0.0f)),
+                      static_cast<GLfloat> (Common_GL_Tools::map (static_cast<float> (cb_data_p->mouseY), 0.0f, static_cast<float> (cb_data_p->resolution.height - 1), static_cast<float> (cb_data_p->resolution.height - 1), 0.0f)),
 #endif // ACE_WIN32 || ACE_WIN64
                       static_cast<GLfloat> (cb_data_p->mouse_LMB_pressed ? 1.0f : 0.0f),
                       0.0f);

@@ -153,7 +153,7 @@ Test_U_CameraFilter_OpenGL_GLUT_15::handleSessionMessage (Test_U_SessionMessage_
       glutInitWindowSize (CBData_.resolution.width, CBData_.resolution.height);
 #endif // ACE_WIN32 || ACE_WIN64
 
-      window_ = glutCreateWindow ("OpenGL GLUT 12");
+      window_ = glutCreateWindow ("OpenGL GLUT 15");
       glutSetWindow (window_);
       glutSetWindowData (&CBData_);
 
@@ -232,7 +232,7 @@ Test_U_CameraFilter_OpenGL_GLUT_15::handleSessionMessage (Test_U_SessionMessage_
       ACE_ASSERT (CBData_.resolutionLoc != -1);
       CBData_.timeLoc =
         glGetUniformLocation (CBData_.shader.id_, ACE_TEXT_ALWAYS_CHAR ("iTime"));
-      ACE_ASSERT (CBData_.timeLoc != -1);
+      //ACE_ASSERT (CBData_.timeLoc != -1);
       CBData_.textureLoc =
         glGetUniformLocation (CBData_.shader.id_, ACE_TEXT_ALWAYS_CHAR ("iChannel0"));
       ACE_ASSERT (CBData_.textureLoc != -1);

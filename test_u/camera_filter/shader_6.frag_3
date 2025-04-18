@@ -1,3 +1,5 @@
+#version 130
+
 // shader_6_common.glsl
 #define size iResolution.xy
 #define pixel(a, p) texture(a, p/vec2(textureSize(a,0)))

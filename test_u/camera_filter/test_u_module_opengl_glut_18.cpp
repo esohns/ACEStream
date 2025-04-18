@@ -267,7 +267,7 @@ Test_U_CameraFilter_OpenGL_GLUT_18::handleSessionMessage (Test_U_SessionMessage_
       CBData_.shader1.use ();
       CBData_.S1timeLoc =
         glGetUniformLocation (CBData_.shader1.id_, ACE_TEXT_ALWAYS_CHAR ("iTime"));
-      ACE_ASSERT (CBData_.S1timeLoc != -1);
+      //ACE_ASSERT (CBData_.S1timeLoc != -1);
       CBData_.S1channel0Loc =
         glGetUniformLocation (CBData_.shader1.id_, ACE_TEXT_ALWAYS_CHAR ("iChannel0"));
       ACE_ASSERT (CBData_.S1channel0Loc != -1);
