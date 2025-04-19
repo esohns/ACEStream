@@ -75,6 +75,7 @@
 #include "test_u_module_opengl_glut_21.h"
 #include "test_u_module_opengl_glut_22.h"
 #include "test_u_module_opengl_glut_23.h"
+#include "test_u_module_opengl_glut_24.h"
 #endif // GLUT_SUPPORT
 #if defined (JC_VORONOI_SUPPORT)
 #include "test_u_module_weightedvoronoistipple_filter.h"
@@ -177,6 +178,7 @@ class Test_U_DirectShow_Stream
   Test_U_CameraFilter_OpenGL_GLUT_21_Module         GLUTDisplay_21;
   Test_U_CameraFilter_OpenGL_GLUT_22_Module         GLUTDisplay_22;
   Test_U_CameraFilter_OpenGL_GLUT_23_Module         GLUTDisplay_23;
+  Test_U_CameraFilter_OpenGL_GLUT_24_Module         GLUTDisplay_24;
 #endif // GLUT_SUPPORT
 #if defined (JC_VORONOI_SUPPORT)
   Test_U_CameraFilter_WeightedVoronoiStipple_Filter_Module weightedVoronoiStippleFilter_;
@@ -260,10 +262,10 @@ class Test_U_MediaFoundation_Stream
 //#endif // GTK_USE
 //#endif // GUI_SUPPORT
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   // media session
   IMFMediaSession*                                           mediaSession_;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   ULONG                                                      referenceCount_;
 };
 #else

@@ -178,7 +178,9 @@ if (GLUT_SUPPORT)
       test_u_module_opengl_glut_22.cpp
       test_u_module_opengl_glut_22.h
       test_u_module_opengl_glut_23.cpp
-      test_u_module_opengl_glut_23.h)
+      test_u_module_opengl_glut_23.h
+      test_u_module_opengl_glut_24.cpp
+      test_u_module_opengl_glut_24.h)
 endif (GLUT_SUPPORT)
 
 if (JC_VORONOI_SUPPORT)
@@ -338,6 +340,8 @@ install (FILES
          "shader_22.vert"
          "shader_23.frag"
          "shader_23.vert"
+         "shader_24.frag"
+         "shader_24.vert"
          DESTINATION ${INSTALL_BIN_DIR}
          COMPONENT config)
 if (UNIX)

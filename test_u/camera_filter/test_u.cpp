@@ -473,6 +473,16 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
                                                              captureFormat_inout);
       break;
     }
+    case TEST_U_MODE_GLUT_24:
+    {
+      // *NOTE*: the default size is too slow for this filter...
+      Common_Image_Resolution_t resolution_s;
+      resolution_s.cx = 320;
+      resolution_s.cy = 240;
+      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                             captureFormat_inout);
+      break;
+    }
     default:
       break;
   } // end SWITCH
@@ -1392,6 +1402,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         case TEST_U_MODE_GLUT_21:
         case TEST_U_MODE_GLUT_22:
         case TEST_U_MODE_GLUT_23:
+        case TEST_U_MODE_GLUT_24:
           directshow_modulehandler_configuration_2.flipImage = true;
           break;
         default:
