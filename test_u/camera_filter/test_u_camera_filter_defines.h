@@ -110,4 +110,12 @@
 #define TEST_U_VERTEX_SHADER_25_FILENAME   "shader_25.vert"
 #define TEST_U_FRAGMENT_SHADER_25_FILENAME "shader_25.frag"
 
+#define TEST_U_VERTEX_SHADER_26_1_FILENAME   "shader_26.vert"
+#define TEST_U_FRAGMENT_SHADER_26_1_FILENAME "shader_26.frag"
+#define TEST_U_VERTEX_SHADER_26_2_FILENAME   "shader_26.vert"
+#define TEST_U_FRAGMENT_SHADER_26_2_FILENAME "shader_26.frag_2"
+
+#define TEST_U_VERTEX_SHADER_27_FILENAME   "shader_27.vert"
+#define TEST_U_FRAGMENT_SHADER_27_FILENAME "shader_27.frag"
+
 #endif
