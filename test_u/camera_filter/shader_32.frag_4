@@ -1,0 +1,31 @@
+#version 130
+
+// shader_32_common.glsl
+const int NumPasses = 13;
+// shader_32_common.glsl
+
+uniform vec2 iResolution;
+uniform int iFrame;
+uniform sampler2D iChannel2;
+uniform sampler2D iChannel3;
+
+#define iPassIndex (iFrame%NumPasses)
+
+#define Res (iResolution.xy)
+#define Res0 vec2(textureSize(iChannel0,0))
+#define Res1 vec2(textureSize(iChannel1,0))
+#define Res2 vec2(textureSize(iChannel2,0))
+#define Res3 vec2(textureSize(iChannel3,0))
+#define Res4 vec2(textureSize(iChannel4,0))
+
+void
+main ()
+{
+  if (iPassIndex!=NumPasses-1) 
+  {
+    gl_FragColor=texture(iChannel3,gl_FragCoord.xy/Res);
+    return;
+  }
+
+  gl_FragColor=texture(iChannel2,gl_FragCoord.xy/Res);
+}

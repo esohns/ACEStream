@@ -1,0 +1,332 @@
+#version 130
+
+// shader_32_common.glsl
+const int NumPasses = 13;
+// shader_32_common.glsl
+
+uniform vec2 iResolution;
+uniform float iTime;
+uniform vec4 iMouse;
+uniform sampler2D iChannel0;
+uniform sampler2D iChannel1;
+uniform sampler2D iChannel2;
+uniform samplerCube iChannel3;
+
+//#define USE_CUBEMAP
+
+#define Res (iResolution.xy)
+#define Res0 vec2(textureSize(iChannel0,0))
+#define Res1 vec2(textureSize(iChannel1,0))
+#define Res2 vec2(textureSize(iChannel2,0))
+#define Res3 vec2(textureSize(iChannel3,0))
+#define Res4 vec2(textureSize(iChannel4,0))
+
+#define ColorTex iChannel2
+
+vec4
+getCol (vec2 uv)
+{
+#define DRes Res
+#define SRes vec2(textureSize(ColorTex,0))
+  uv=(uv-.5)*DRes*min(SRes.x/DRes.x,SRes.y/DRes.y)/SRes+.5;
+  return texture(ColorTex,uv);
+}
+
+#define PI2 6.28318530718
+#define PI 3.14159265359
+    
+#ifndef RandTex
+#define RandTex iChannel1
+#endif
+
+vec2
+uvSmooth (vec2 uv,vec2 res)
+{
+  return uv+.6*sin(uv*res*PI2)/PI2/res;
+}
+
+vec4
+getRandSm (vec2 pos)
+{
+  vec2 tres=vec2(textureSize(RandTex,0));
+  vec2 uv=pos/tres.xy;
+  uv=uvSmooth(uv,tres);
+  return textureLod(RandTex,uv,0.);
+}
+
+float
+getValH (vec2 pos, float lod)
+{
+  return abs(getRandSm(pos*.1).x-getRandSm(pos*.1+vec2(17.5,13.5)).x);
+}
+
+vec2
+getGradH (vec2 pos,float eps)
+{
+  vec2 d=vec2(eps,0);
+  return vec2(
+      getValH(pos+d.xy,0.)-getValH(pos-d.xy,0.),
+      getValH(pos+d.yx,0.)-getValH(pos-d.yx,0.)
+    )/eps/2.;
+}
+
+vec3
+getGlassNormal (vec2 pos)
+{
+  vec3 n = normalize(vec3(-getGradH(pos,1.4),.5));
+  return n;
+}
+
+vec4
+getRand (vec2 coord)
+{
+  vec4 c=vec4(0);
+  c+=texture(iChannel1,coord+.003*iTime);
+  c+=texture(iChannel1,coord/2.+.003*iTime)*2.;
+  c+=texture(iChannel1,coord/4.+.003*iTime)*4.;
+  c+=texture(iChannel1,coord/8.+.003*iTime)*8.;
+  return c/(1.+2.+4.+8.);
+}
+
+#define FloorZ -4.
+
+vec4
+myenv_ (vec3 pos, vec3 dir, float period)
+{
+  vec3 colHor=vec3(.3,.4,.5)+.3;
+  vec3 colSky=mix(vec3(1.5,.75,0.)*3.,vec3(.8,.9,1)*1.2,clamp(7.*dir.z,0.,1.));
+  vec3 skyPos=pos+dir/abs(dir.z)*(20.-pos.z);
+  float cloudPat=(1.+.4*(getRand(skyPos.xy*.001).x-.5));
+  colSky*=mix(1.,cloudPat,step(0.,dir.z));
+  vec3 colFloor=vec3(.3,.4,.5)*1.5;
+  vec3 colScale=vec3(1,1,1);
+  vec3 floorPos=pos-dir/dir.z*(pos.z-FloorZ);
+  vec2 s;
+  float scale=1.;
+  s=sin(floorPos.xy*PI2*.5/10.*period);
+  scale*=(1.-exp(-s.x*s.x/.03))*(1.-exp(-s.y*s.y/.03));
+  colFloor=mix(colFloor,colScale,1.-1.*scale)/**(1.+.4*(getRand(floorPos.xy*.001).x-.5))*/;
+  vec3 sun = normalize(vec3(.2,-1.,.15));
+  colFloor*=.5+1.*clamp(dot(normalize(texture(iChannel1,floorPos.xy*.3).xyz-.5+vec3(0,0,.5)),sun),0.,1.);
+  vec3 col=mix(colSky,colFloor,1.-smoothstep(-.01,.01,dir.z));
+  col=mix(colHor,col,clamp(abs(dir.z*6.)-.1,0.,1.));
+  float ang=atan(length(cross(dir,sun)),dot(dir,sun));
+  col*=.6+.4*(PI-ang)/PI;
+  col+=(1.-smoothstep(.0,.7,ang))*.2;
+  col+=(1.-smoothstep(.02,.025,ang))*.8;
+  return vec4(col,1);
+}
+
+float
+getVal (vec2 pos,float lod)
+{
+  vec4 c=textureLod(iChannel0,pos/Res,lod);
+  float d=c.z;
+  float sc=c.w;
+  return (1.-pow(7.5*d*d/sc,1.));
+}
+
+vec2
+getGrad (vec2 pos,float eps)
+{
+  vec2 d=vec2(eps,0);
+  return vec2(
+      getVal(pos+d.xy,0.)-getVal(pos-d.xy,0.),
+      getVal(pos+d.yx,0.)-getVal(pos-d.yx,0.)
+    )/eps/2.;
+}
+
+float
+getDistBox (vec3 p, vec3 b)
+{
+  vec3 d = abs(p) - b;
+  return length(max(d,0.0)) + min(max(d.x,max(d.y,d.z)),0.0);
+}
+
+float
+getDistLead (vec3 pos)
+{
+  vec2 uv=(pos.xy*Res.x+Res)*.5/Res;
+  vec4 c=textureLod(iChannel0,uv,0.);
+  float d=c.z/Res.x*2.;
+  float sc=textureLod(iChannel0,uv,2.5).w/Res.x;
+  d=sqrt(d*d+pos.z*pos.z)-sqrt(sc)/60.;
+  d=max(d,getDistBox(pos,vec3(Res/Res.x,0.01)));
+  return d; 
+}
+
+#define FRAME_D 0.06
+
+float
+getDistGlass (vec3 pos)
+{
+  return getDistBox(pos,vec3(Res/Res.x+FRAME_D*2.,0));
+}
+
+float
+getDistFrame (vec3 pos)
+{
+  vec2 asp=Res/Res.x;
+  float d=1000.; float d1=1000.;
+  d=min(d,abs(getDistBox(pos,vec3(asp+FRAME_D*2.,10000.))));
+  d1=min(d1,sqrt(d*d+pos.z*pos.z)-.01);
+  d=abs(getDistBox(pos,vec3(asp,10000.)));
+  vec3 s; vec2 o1;
+  o1 = asp+vec2(-.3333, FRAME_D); s=vec3(.3333,FRAME_D,10000.);
+  d=min(d,abs(getDistBox(pos+vec3( o1*vec2( 1, 1),0),s)));
+  d=min(d,abs(getDistBox(pos+vec3( o1*vec2(-1, 1),0),s)));
+  d=min(d,abs(getDistBox(pos+vec3( o1*vec2( 1,-1),0),s)));
+  d=min(d,abs(getDistBox(pos+vec3( o1*vec2(-1,-1),0),s)));
+  o1 = asp+vec2( FRAME_D,-.5*asp.y); s=vec3(FRAME_D,.5*asp.y,10000.);
+  d=min(d,abs(getDistBox(pos+vec3( o1*vec2( 1, 1),0),s)));
+  d=min(d,abs(getDistBox(pos+vec3( o1*vec2( 1,-1),0),s)));
+  d=min(d,abs(getDistBox(pos+vec3( o1*vec2(-1, 1),0),s)));
+  d=min(d,abs(getDistBox(pos+vec3( o1*vec2(-1,-1),0),s)));
+  d1=min(d1,sqrt(d*d+pos.z*pos.z)-.0055);
+  return d1;
+}
+
+vec2
+getDistM (vec3 pos)
+{
+  float m=-1.;
+  float d=10000.;
+  float dp;
+  vec3 rpos=pos+.005*(getRandSm(pos.xy*20.).xyz-.5);
+  dp=d; d=min(d,getDistGlass(pos)); m=(d<dp)?0.:m;
+  dp=d; d=min(d,getDistLead(pos));  m=(d<dp)?1.:m;
+  dp=d; d=min(d,getDistFrame(rpos)); m=(d<dp)?1.:m;
+  return vec2(d,m);
+}
+
+float
+getDist (vec3 pos)
+{
+  return getDistM(pos).x;
+}
+
+vec3
+getGradDist (vec3 pos,float eps)
+{
+  vec3 d=vec3(eps,0,0);
+  return vec3(
+      getDist(pos+d.xyz)-getDist(pos-d.xyz),
+      getDist(pos+d.zxy)-getDist(pos-d.zxy),
+      getDist(pos+d.yzx)-getDist(pos-d.yzx)
+    )/eps/2.;
+}
+
+float
+march (inout vec3 pos, inout vec3 dir)
+{
+  float eps = .0001;
+  float mat=-1.;
+  for(int i=0;i<50;i++)
+  {
+    vec2 dm=getDistM(pos);
+    float d=dm.x;
+    pos+=dir*d*.9;
+    if(d<eps) { mat=dm.y; break; }
+  }
+
+  return mat;
+}
+
+vec4
+getEnv (vec3 dir)
+{
+#ifdef USE_CUBEMAP
+  return pow(texture(iChannel3,dir.zyx),vec4(1.5))*2.5;
+#endif
+  return pow(myenv_(vec3(0),dir.xzy,2.),vec4(1.25)); 
+}
+
+void
+main ()
+{
+  vec2 fragCoord0=gl_FragCoord.xy;
+  vec2 ang=(iMouse.xy-Res*.5)/Res*PI2*2.;
+  if (iMouse.z<1.) ang=vec2(0.15,0.2);
+  ang+=.02*sin(iTime*vec2(1.3,.7));
+  vec2 cs1=sin(vec2(PI*.5,0)+ang.x);
+  vec2 cs2=sin(vec2(PI*.5,0)+ang.y);
+  mat3 rot = mat3(cs1.xyy*vec3(1,0,1),vec3(0,1,0),cs1.yxx*vec3(-1,0,1)) * mat3(vec3(1,0,0),cs2.xxy*vec3(0,1,1),cs2.xyx*vec3(0,-1,1));
+
+  float SC=Res.x/600.;
+  float SSC=sqrt(SC);
+    
+  float vdist=2.;
+  vdist*=1.3;
+
+  vec2 scr=(gl_FragCoord.xy*2.-Res.xy)/Res.x;
+  vec3 vdir=normalize(vec3(scr,-2.));
+
+  vec3 vpos = vec3(0,0,vdist);
+  vdir = rot*vdir;
+  vpos = rot*vpos;
+
+  vpos=vpos-vdir*((vpos.z*.95)/vdir.z);
+
+  vec3 vpos1=vpos-vdir*(vpos.z/vdir.z)+vec3(0,0,.02);
+  vec3 vpos2=vpos-vdir*(vpos.z/vdir.z)-vec3(0,0,.02);
+  float mat = -1.0;
+  if (   (abs(vpos1.x)<1.01+2.*FRAME_D || abs(vpos2.x)<1.01+2.*FRAME_D) 
+      && (abs(vpos1.y)<Res.y/Res.x*1.01+2.*FRAME_D || abs(vpos2.y)<Res.y/Res.x*1.01+2.*FRAME_D) ) 
+    mat = march(vpos,vdir);
+
+  vec3 n=normalize(getGradDist(vpos,1./Res.x*1.5));
+
+  gl_FragColor.xyz=n*.5+.5;
+  gl_FragColor.w=1.;
+
+  vec2 fragCoord = (vpos.xy*Res.x+Res.xy)*.5;
+  vec2 uv=fragCoord/Res;
+  bool isFrame = abs(uv-.5).x>.5 || abs(uv-.5).y>.5 ;
+
+  vec4 col = texture(iChannel0,fragCoord/Res);
+  float leadH = getVal(fragCoord,0.);
+  float d = col.z;
+  float sc = isFrame?30.:col.w;
+
+  vec3 ng=getGlassNormal(fragCoord*3./SSC*10./sqrt(sc));
+  ng.z *= (dot(ng,vdir)>0.)?-1.:1.;
+  ng=isFrame?normalize(ng*vec3(1,1,10.)):normalize(ng*vec3(1,1,1.5));
+
+  vec3 backlight=getEnv(refract(refract(vdir,ng,.8),vec3(0,0,ng.z>0.?1.:-1.),1./.8)).xyz;
+  vec3 refl     =getEnv(reflect(vdir,ng)).xyz;
+  vec3 leadrefl =getEnv(reflect(vdir,n)).xyz;
+
+  col.xyz = getCol(col.xy).xyz;
+  float br=dot(col.xyz,vec3(.3333));
+  col.xyz=clamp((col.xyz-br)*1.3+br*.9+.1,0.,1.);
+  col=isFrame?vec4(.8,.9,1,1):col;
+
+  vec3 leadcol=leadrefl*.55;
+  leadcol*=clamp(abs(vpos.z)*Res.x+.3,0.,1.);
+
+  vec4 col2=texture(iChannel0,((fragCoord+0.*vec2(-1,1)*SC+SC*0.*sin(iTime*vec2(2,3)))/Res-.5)*1.+.5,2.7+log2(SC));
+  float d2=col2.z;
+  backlight*=1.;
+
+  float ao=1.;
+  ao*=1.5-.5*clamp(d/(4.*SC),0.,1.);
+  ao*= .5+.5*clamp(d/(2.*SC),0.,1.);
+
+  float fres=abs(dot(ng,-vdir));
+  fres=1.-fres;
+  fres=fres*.8+.2;
+
+  gl_FragColor.xyz = mix(mix(col.xyz*backlight,refl,fres),leadcol,clamp(mat,0.,1.));
+  if(mat<0.)
+    gl_FragColor.xyz = getEnv(vdir).xyz;
+
+  fragCoord=fragCoord0;
+  vec2 scc=(fragCoord-.5*iResolution.xy)/iResolution.x;
+  float vign = 1.-.7*dot(scc,scc);
+  vign*=1.-.7*exp(-sin(fragCoord.x/iResolution.x*3.1416)*20.);
+  vign*=1.-.7*exp(-sin(fragCoord.y/iResolution.y*3.1416)*10.);
+  gl_FragColor.xyz *= vign;
+
+  gl_FragColor.xyz=pow(gl_FragColor.xyz,vec3(1.35));
+  gl_FragColor.w=1.;
+}
