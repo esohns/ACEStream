@@ -21,11 +21,12 @@ uniform sampler2D iChannel3;
 void
 main ()
 {
+  vec2 fragCoord = gl_FragCoord.xy;
+
   if (iPassIndex!=NumPasses-1) 
   {
-    gl_FragColor=texture(iChannel3,gl_FragCoord.xy/Res);
+    gl_FragColor=texture(iChannel3,fragCoord/Res);
     return;
   }
-
-  gl_FragColor=texture(iChannel2,gl_FragCoord.xy/Res);
+  gl_FragColor=texture(iChannel2,fragCoord/Res);
 }

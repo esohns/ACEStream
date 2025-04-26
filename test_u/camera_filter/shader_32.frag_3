@@ -14,9 +14,8 @@ uniform sampler2D iChannel3;
 
 #define iPassIndex (iFrame%NumPasses)
 
-//#define ResMap (vec2(512,256))
-//#define ResMap min(pow(vec2(2.),floor(log2(iResolution.xy))),vec2(512,256))
-#define ResMap vec2(1280, 720)
+//#define ResMap (vec2(1280,720))
+#define ResMap min(pow(vec2(2.),floor(log2(iResolution.xy))),vec2(512,256))
 #define PI2 6.28318530718
 
 #define Res iResolution.xy
@@ -65,16 +64,17 @@ getCenterScaleColor (vec2 fragCoord, inout vec2 c, inout vec2 s, inout vec4 col)
   c=(floor(fragCoord/s)+.5)*s;
   for(int i=11;i>=0;i--)
   {
-      vec4 coordMinMax=textureLod(iChannel1,getLevelCoords(fragCoord/iResolution.xy,i,frameCoord)*Res1/Res,0.);
-      vec4 mi = getCol(coordMinMax.xy/Res1);
-      vec4 ma = getCol(coordMinMax.zw/Res1);
-      col=mix(mi,ma,1.);
-      float detail=(iMouse.x>=1.)?1./(1.+25.*iMouse.x/iResolution.x):.3/sqrt(Res.x/600.);
-      detail=.3/sqrt(Res.x/600.);
-      vec2 dir=((i&1)==1)?vec2(1,0):vec2(0,1);
-      s *= ((i&1)==0)?vec2(1,.5):vec2(.5,1);
-      c+=s*(step(vec2(0),fragCoord-c)*2.-vec2(1))*dir*.5;
-      if( abs(colDist(mi,ma))<detail /**float(i+10)/30.*/ ) break;
+    vec4 coordMinMax=textureLod(iChannel1,getLevelCoords(fragCoord/iResolution.xy,i,frameCoord)*Res1/Res,0.);
+    vec4 mi = getCol(coordMinMax.xy/Res1);
+    vec4 ma = getCol(coordMinMax.zw/Res1);
+    col=mix(mi,ma,1.);
+    float detail=(iMouse.x>=1.)?1./(1.+25.*iMouse.x/iResolution.x):.3/sqrt(Res.x/600.);
+    detail=.3/sqrt(Res.x/600.);
+    vec2 dir=((i&1)==1)?vec2(1,0):vec2(0,1);
+    s *= ((i&1)==0)?vec2(1,.5):vec2(.5,1);
+    c+=s*(step(vec2(0),fragCoord-c)*2.-vec2(1))*dir*.5;
+    if( abs(colDist(mi,ma))<detail)
+      break;
   }
 }
 
@@ -110,11 +110,11 @@ main ()
     gl_FragColor=texture(iChannel3,fragCoord/Res);
     return;
   }
-
+    
   vec4 r = getRand(fragCoord*1.2/sqrt(sc))-getRand(fragCoord*1.2/sqrt(sc)+vec2(1,-1)*1.5);
   fragCoord+=3.1*sqrt(sc)*(getRand(fragCoord*.035).xy-.5+.5*(getRand(fragCoord*.1).xy-.5));
   vec4 coords=texelFetch(iChannel1,ivec2(fragCoord.xy),0);
-  //gl_FragColor = vec4(0);
+  gl_FragColor = vec4(0);
   float sum=0.;
 
   vec2 c,s,c2,s2;

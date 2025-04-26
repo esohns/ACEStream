@@ -204,9 +204,9 @@ Test_U_CameraFilter_OpenGL_GLUT_6::handleSessionMessage (Test_U_SessionMessage_t
 #else
       glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA32F, CBData_.resolution.width, CBData_.resolution.height, 0, GL_RGBA, GL_FLOAT, initial_values_a.data ());
 #endif // ACE_WIN32 || ACE_WIN64
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-      glGenerateMipmap (GL_TEXTURE_2D);
+      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      //glGenerateMipmap (GL_TEXTURE_2D);
 
       glActiveTexture (GL_TEXTURE2);
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -221,9 +221,9 @@ Test_U_CameraFilter_OpenGL_GLUT_6::handleSessionMessage (Test_U_SessionMessage_t
 #else
       glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA32F, CBData_.resolution.width, CBData_.resolution.height, 0, GL_RGBA, GL_FLOAT, initial_values_a.data ());
 #endif // ACE_WIN32 || ACE_WIN64
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-      glGenerateMipmap (GL_TEXTURE_2D);
+      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      //glGenerateMipmap (GL_TEXTURE_2D);
 
       glActiveTexture (GL_TEXTURE3);
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -238,9 +238,9 @@ Test_U_CameraFilter_OpenGL_GLUT_6::handleSessionMessage (Test_U_SessionMessage_t
 #else
       glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA32F, CBData_.resolution.width, CBData_.resolution.height, 0, GL_RGBA, GL_FLOAT, initial_values_a.data ());
 #endif // ACE_WIN32 || ACE_WIN64
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-      glGenerateMipmap (GL_TEXTURE_2D);
+      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      //glGenerateMipmap (GL_TEXTURE_2D);
 
       glActiveTexture (GL_TEXTURE4);
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -255,9 +255,9 @@ Test_U_CameraFilter_OpenGL_GLUT_6::handleSessionMessage (Test_U_SessionMessage_t
 #else
       glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA32F, CBData_.resolution.width, CBData_.resolution.height, 0, GL_RGBA, GL_FLOAT, initial_values_a.data ());
 #endif // ACE_WIN32 || ACE_WIN64
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-      glGenerateMipmap (GL_TEXTURE_2D);
+      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      //glGenerateMipmap (GL_TEXTURE_2D);
 
       if (!CBData_.shader1.loadFromFile (ACE_TEXT_ALWAYS_CHAR (TEST_U_VERTEX_SHADER_6_1_FILENAME),
                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_FRAGMENT_SHADER_6_1_FILENAME)))
@@ -715,9 +715,9 @@ camera_filter_glut_6_draw (void)
   cb_data_p->texture0.bind ();
   if (unlikely (frame_count_i == 1))
   {
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glGenerateMipmap (GL_TEXTURE_2D);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //glGenerateMipmap (GL_TEXTURE_2D);
   } // end IF
 
   //glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -753,14 +753,14 @@ camera_filter_glut_6_draw (void)
                       static_cast<GLfloat> (elapsed_time.count ()));
 
   glProgramUniform1i (cb_data_p->shader1.id_, cb_data_p->S1frameLoc,
-                      static_cast<GLint> (frame_count_i));
+                      static_cast<GLint> (frame_count_i - 1));
 
   glProgramUniform4f (cb_data_p->shader1.id_, cb_data_p->S1mouseLoc,
                       static_cast<GLfloat> (cb_data_p->mouseX),
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                       static_cast<GLfloat> (Common_GL_Tools::map (static_cast<float> (cb_data_p->mouseY), 0.0f, static_cast<float> (cb_data_p->resolution.cy - 1), static_cast<float> (cb_data_p->resolution.cy - 1), 0.0f)),
 #else
-                      static_cast<GLfloat> (Common_GL_Tools::map (static_cast<float> (cb_data_p->mouseY), 0.0f, static_cast<float> (cb_data_p->resolution.width - 1), static_cast<float> (cb_data_p->resolution.width - 1), 0.0f)),
+                      static_cast<GLfloat> (Common_GL_Tools::map (static_cast<float> (cb_data_p->mouseY), 0.0f, static_cast<float> (cb_data_p->resolution.height - 1), static_cast<float> (cb_data_p->resolution.height - 1), 0.0f)),
 #endif // ACE_WIN32 || ACE_WIN64
                       static_cast<GLfloat> (cb_data_p->mouse_LMB_pressed ? 1.0f : 0.0f),
                       0.0f);
@@ -792,7 +792,7 @@ camera_filter_glut_6_draw (void)
 #endif // ACE_WIN32 || ACE_WIN64
 
   glProgramUniform1i (cb_data_p->shader2.id_, cb_data_p->S2frameLoc,
-                      static_cast<GLint> (frame_count_i));
+                      static_cast<GLint> (frame_count_i - 1));
 
   glProgramUniform1i (cb_data_p->shader2.id_, cb_data_p->S2channel0Loc,
                       2);
@@ -819,7 +819,7 @@ camera_filter_glut_6_draw (void)
 #endif // ACE_WIN32 || ACE_WIN64
 
   glProgramUniform1i (cb_data_p->shader3.id_, cb_data_p->S3frameLoc,
-                      static_cast<GLint> (frame_count_i));
+                      static_cast<GLint> (frame_count_i - 1));
 
   glProgramUniform1i (cb_data_p->shader3.id_, cb_data_p->S3channel0Loc,
                       3);

@@ -11,7 +11,7 @@ uniform sampler2D iChannel1;
 
 #define iPassIndex (iFrame%NumPasses)
 
-//#define ResMap (vec2(512,256))
+//#define ResMap (vec2(1280,720))
 #define ResMap min(pow(vec2(2.),floor(log2(iResolution.xy))),vec2(512,256))
 
 #define Res iResolution.xy
@@ -88,33 +88,28 @@ getCol (vec2 coord)
 void
 main ()
 {
-  if( gl_FragCoord.x>Res1.x || gl_FragCoord.y>Res1.y )
-    discard;
-  if(iPassIndex==0)
-  {
-    vec2 coord=gl_FragCoord.xy;
-    gl_FragColor=vec4(coord,coord);
-    return;
-  }
+  vec2 fragCoord = gl_FragCoord.xy;
+
+  if( fragCoord.x>Res1.x || fragCoord.y>Res1.y ) discard;
+  if(iPassIndex==0) {vec2 coord=fragCoord; gl_FragColor=vec4(coord,coord); return; }
 
   int isVert = (iPassIndex+1)&1;
   ivec2 dir = (ivec2(0,1)+iPassIndex+1)&1;
 
-  ivec2 coord=ivec2(gl_FragCoord.xy);
+  ivec2 coord=ivec2(fragCoord);
 
   gl_FragColor=texelFetch(iChannel1,coord,0);
 
   ivec2 pos1, pos2;
-  if (!getNBPixPos(coord,iPassIndex-1,pos1,pos2))
-    return;
-
+  if (!getNBPixPos(coord,iPassIndex-1,pos1,pos2)) { return; }
+    
   vec4 coordMinMax1 = texelFetch(iChannel1,pos1,0);
   vec4 coordMinMax2 = texelFetch(iChannel1,pos2,0);
   vec4 cmin1=getCol(coordMinMax1.xy);
   vec4 cmin2=getCol(coordMinMax2.xy);
   vec4 cmax1=getCol(coordMinMax1.zw);
   vec4 cmax2=getCol(coordMinMax2.zw);
-
+    
   gl_FragColor.xy = isBigger(cmin2,cmin1)?coordMinMax1.xy:coordMinMax2.xy;
   gl_FragColor.zw = isBigger(cmax1,cmax2)?coordMinMax1.zw:coordMinMax2.zw;
 }
