@@ -141,4 +141,18 @@
 #define TEST_U_VERTEX_SHADER_32_5_FILENAME   "shader_32.vert"
 #define TEST_U_FRAGMENT_SHADER_32_5_FILENAME "shader_32.frag_5"
 
+#define TEST_U_VERTEX_SHADER_33_FILENAME   "shader_33.vert"
+#define TEST_U_FRAGMENT_SHADER_33_FILENAME "shader_33.frag"
+
+#define TEST_U_VERTEX_SHADER_34_FILENAME   "shader_34.vert"
+#define TEST_U_FRAGMENT_SHADER_34_FILENAME "shader_34.frag"
+
+#define TEST_U_VERTEX_SHADER_35_FILENAME   "shader_35.vert"
+#define TEST_U_FRAGMENT_SHADER_35_FILENAME "shader_35.frag"
+
+#define TEST_U_VERTEX_SHADER_36_1_FILENAME   "shader_36.vert"
+#define TEST_U_FRAGMENT_SHADER_36_1_FILENAME "shader_36.frag"
+#define TEST_U_VERTEX_SHADER_36_2_FILENAME   "shader_36.vert"
+#define TEST_U_FRAGMENT_SHADER_36_2_FILENAME "shader_36.frag_2"
+
 #endif

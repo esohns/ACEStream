@@ -1,0 +1,29 @@
+#version 130
+
+uniform vec2 iResolution;
+uniform float iTime;
+uniform sampler2D iChannel0;
+
+void
+main ()
+{
+  vec2 uv = gl_FragCoord.xy / iResolution.xy;
+
+  float c = 1. - texture(iChannel0, uv).y;
+  float c2 = 1. - texture(iChannel0, uv + .5 / iResolution.xy).y;
+
+  float pattern = -cos(uv.x * 0.75 * 3.14159 - 0.9) * cos(uv.y * 1.5 * 3.14159 - 0.75) * 0.5 + 0.5;
+
+  vec3 col = vec3(c * 1.5, pow(c, 2.25), pow(c, 6.));
+  col = mix(col, col.zyx, clamp(pattern - .2, 0., 1.));
+  //vec3 col = mix(vec3(c*1.2, pow(c, 8.), pow(c, 2.)), vec3(c*1.3, pow(c, 2.), pow(c, 10.)), pattern );
+  //vec3 col = mix(vec3(c*1.3, c*c, pow(c, 10.)), vec3(c*c*c, c*sqrt(c), c), pattern );
+
+  col += vec3(.6, .85, 1.) * max(c2 * c2 - c * c, 0.) * 12.;
+
+  col *= pow(16.0 * uv.x * uv.y * (1.0 - uv.x) * (1.0 - uv.y), .125) * 1.15;
+
+  col *= smoothstep(0., 1., iTime / 2.);
+
+  gl_FragColor = vec4(min(col, 1.), 1.);
+}

@@ -84,6 +84,10 @@
 #include "test_u_module_opengl_glut_30.h"
 #include "test_u_module_opengl_glut_31.h"
 #include "test_u_module_opengl_glut_32.h"
+#include "test_u_module_opengl_glut_33.h"
+#include "test_u_module_opengl_glut_34.h"
+#include "test_u_module_opengl_glut_35.h"
+#include "test_u_module_opengl_glut_36.h"
 #endif // GLUT_SUPPORT
 #if defined (JC_VORONOI_SUPPORT)
 #include "test_u_module_weightedvoronoistipple_filter.h"
@@ -195,6 +199,10 @@ class Test_U_DirectShow_Stream
   Test_U_CameraFilter_OpenGL_GLUT_30_Module         GLUTDisplay_30;
   Test_U_CameraFilter_OpenGL_GLUT_31_Module         GLUTDisplay_31;
   Test_U_CameraFilter_OpenGL_GLUT_32_Module         GLUTDisplay_32;
+  Test_U_CameraFilter_OpenGL_GLUT_33_Module         GLUTDisplay_33;
+  Test_U_CameraFilter_OpenGL_GLUT_34_Module         GLUTDisplay_34;
+  Test_U_CameraFilter_OpenGL_GLUT_35_Module         GLUTDisplay_35;
+  Test_U_CameraFilter_OpenGL_GLUT_36_Module         GLUTDisplay_36;
 #endif // GLUT_SUPPORT
 #if defined (JC_VORONOI_SUPPORT)
   Test_U_CameraFilter_WeightedVoronoiStipple_Filter_Module weightedVoronoiStippleFilter_;
