@@ -1,0 +1,48 @@
+#version 130
+
+uniform vec2 iResolution;
+uniform float iTime;
+uniform sampler2D iChannel0;
+
+#define OP T(1.,3.)                  // op 1:   0: neutral  1: dilatation   2 : erosion
+#define r 8.
+#define B T(9.,5.)                   // brush:  0: disk 1:  star  2: diamond  3: square
+#define p .3
+
+#define T(l,n) int(mod(iTime/l,n))
+
+bool
+brush (vec2 d)
+{
+  d = abs(d);
+  return B == 0 ? dot(d, d) <= r * r
+       : B == 1 ? pow(d.x, p) + pow(d.y, p) <= pow(r, p)
+       : B == 2 ? d.x + d.y < r
+       : B == 3 ? max(d.x, d.x * .5 + d.y * .87) < r
+       : true;
+}
+
+void
+main ()
+{
+  vec4 O;
+  vec2 U = gl_FragCoord.xy;
+
+  vec2 R = iResolution.xy, d;
+
+  vec4 m = vec4(1e9), M = -m;
+  for (float y = -r; y <= r; y++)
+    for (float x = -r; x <= r; x++)
+      if (brush(d = vec2(x, y)))
+      {
+        vec4 t = texture(iChannel0, (U + d) / R);
+        m = min(m, t);
+        M = max(M, t);
+      }
+
+  O = OP == 1 ? M
+    : OP == 2 ? m
+    : texture(iChannel0, U / R);
+
+  gl_FragColor = O;
+}
