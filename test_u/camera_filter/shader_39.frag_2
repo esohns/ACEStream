@@ -1,0 +1,47 @@
+#version 130
+
+uniform vec2 iResolution;
+uniform vec4 iMouse;
+uniform sampler2D iChannel0; // buffer A
+
+#define Xnum 4
+#define Ynum 4
+
+float
+getVal (vec2 uv)
+{
+  return length(texture(iChannel0, uv).xyz);
+}
+    
+vec2
+getGrad (vec2 uv, float delta)
+{
+  vec2 d = vec2(delta, 0);
+  return vec2(
+    getVal(uv + d.xy) - getVal(uv - d.xy),
+    getVal(uv + d.yx) - getVal(uv - d.yx)
+  ) / delta;
+}
+
+vec2
+getFrameUV (vec2 uv, float frameDelay)
+{
+  vec2 uv2 = uv + vec2(mod(frameDelay, float(Xnum)), floor(frameDelay / float(Xnum)));
+  uv2 /= vec2(Xnum, Ynum);
+  return uv2;
+}
+
+void
+main ()
+{
+  vec2 uv = gl_FragCoord.xy / iResolution.xy;
+  float strength = clamp(iResolution.x / 1900., 0., .99);
+  if (iMouse.x >= 2.)
+    strength = iMouse.x / iResolution.x;
+  float frameDelay = strength * float(Xnum * Ynum - 1);
+  gl_FragColor = mix(
+    texture(iChannel0, getFrameUV(uv, floor(frameDelay))),
+    texture(iChannel0, getFrameUV(uv, ceil(frameDelay))),
+    fract(frameDelay)
+  );
+}

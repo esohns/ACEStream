@@ -208,7 +208,11 @@ if (GLUT_SUPPORT)
       test_u_module_opengl_glut_37.cpp
       test_u_module_opengl_glut_37.h
       test_u_module_opengl_glut_38.cpp
-      test_u_module_opengl_glut_38.h)
+      test_u_module_opengl_glut_38.h
+      test_u_module_opengl_glut_39.cpp
+      test_u_module_opengl_glut_39.h
+      test_u_module_opengl_glut_40.cpp
+      test_u_module_opengl_glut_40.h)
 endif (GLUT_SUPPORT)
 
 if (JC_VORONOI_SUPPORT)
@@ -408,6 +412,12 @@ install (FILES
          "shader_37.vert"
          "shader_38.frag"
          "shader_38.vert"
+         "shader_39.frag"
+         "shader_39.frag_2"
+         "shader_39.frag_3"
+         "shader_39.vert"
+         "shader_40.frag"
+         "shader_40.vert"
          DESTINATION ${INSTALL_BIN_DIR}
          COMPONENT config)
 if (UNIX)
