@@ -6685,18 +6685,18 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = GUID_NULL;
 #endif // ACE_WIN32 || ACE_WIN64
-#if GTK_CHECK_VERSION(2,30,0)
-  GValue value = G_VALUE_INIT;
-#else
-  GValue value;
-  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-#endif // GTK_CHECK_VERSION (2,30,0)
-#if GTK_CHECK_VERSION(2,30,0)
-  GValue value_2 = G_VALUE_INIT;
-#else
-  GValue value_2;
-  ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
-#endif // GTK_CHECK_VERSION (2,30,0)
+// #if GTK_CHECK_VERSION (2,30,0)
+//   GValue value = G_VALUE_INIT;
+// #else
+//   GValue value;
+//   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+// #endif // GTK_CHECK_VERSION (2,30,0)
+// #if GTK_CHECK_VERSION (2,30,0)
+//   GValue value_2 = G_VALUE_INIT;
+// #else
+//   GValue value_2;
+//   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
+// #endif // GTK_CHECK_VERSION (2,30,0)
   Stream_IStreamControlBase* stream_p = NULL;
   bool is_file_source_b = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
