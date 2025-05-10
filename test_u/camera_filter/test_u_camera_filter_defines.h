@@ -177,4 +177,30 @@
 #define TEST_U_VERTEX_SHADER_40_FILENAME   "shader_40.vert"
 #define TEST_U_FRAGMENT_SHADER_40_FILENAME "shader_40.frag"
 
+#define TEST_U_VERTEX_SHADER_41_FILENAME   "shader_41.vert"
+#define TEST_U_FRAGMENT_SHADER_41_FILENAME "shader_41.frag"
+
+#define TEST_U_VERTEX_SHADER_42_1_FILENAME   "shader_42.vert"
+#define TEST_U_FRAGMENT_SHADER_42_1_FILENAME "shader_42.frag"
+#define TEST_U_VERTEX_SHADER_42_2_FILENAME   "shader_42.vert"
+#define TEST_U_FRAGMENT_SHADER_42_2_FILENAME "shader_42.frag_2"
+
+#define TEST_U_VERTEX_SHADER_43_1_FILENAME   "shader_43.vert"
+#define TEST_U_FRAGMENT_SHADER_43_1_FILENAME "shader_43.frag"
+#define TEST_U_VERTEX_SHADER_43_2_FILENAME   "shader_43.vert"
+#define TEST_U_FRAGMENT_SHADER_43_2_FILENAME "shader_43.frag_2"
+#define TEST_U_VERTEX_SHADER_43_3_FILENAME   "shader_43.vert"
+#define TEST_U_FRAGMENT_SHADER_43_3_FILENAME "shader_43.frag_3"
+
+#define TEST_U_VERTEX_SHADER_44_1_FILENAME   "shader_44.vert"
+#define TEST_U_FRAGMENT_SHADER_44_1_FILENAME "shader_44.frag"
+#define TEST_U_VERTEX_SHADER_44_2_FILENAME   "shader_44.vert"
+#define TEST_U_FRAGMENT_SHADER_44_2_FILENAME "shader_44.frag_2"
+#define TEST_U_VERTEX_SHADER_44_3_FILENAME   "shader_44.vert"
+#define TEST_U_FRAGMENT_SHADER_44_3_FILENAME "shader_44.frag_3"
+#define TEST_U_VERTEX_SHADER_44_4_FILENAME   "shader_44.vert"
+#define TEST_U_FRAGMENT_SHADER_44_4_FILENAME "shader_44.frag_4"
+#define TEST_U_VERTEX_SHADER_44_5_FILENAME   "shader_44.vert"
+#define TEST_U_FRAGMENT_SHADER_44_5_FILENAME "shader_44.frag_5"
+
 #endif

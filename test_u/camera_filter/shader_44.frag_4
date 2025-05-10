@@ -1,0 +1,201 @@
+#version 130
+
+// shader_44_common.glsl
+//#define CLIP_BG
+
+const int NumPasses = 13;
+
+#define ResMap min(exp2(floor(log2(iResolution.xy))),vec2(256,128))
+#define iPassIndex (iFrame%NumPasses)
+#define PI2 6.28318530718
+// shader_44_common.glsl
+
+uniform vec2 iResolution;
+uniform float iTime;
+uniform int iFrame;
+uniform vec4 iMouse;
+uniform sampler2D iChannel0;
+uniform sampler2D iChannel1;
+uniform samplerCube iChannel2;
+uniform sampler2D iChannel3;
+
+#define Res iResolution.xy
+#define Res0 vec2(textureSize(iChannel0,0))
+#define Res1 vec2(textureSize(iChannel1,0))
+
+int LevNum = 11;
+vec3 Grid = vec3(1, 1, 1);
+
+vec4
+getCol (vec3 pos, float lev)
+{
+  return textureLod(iChannel0, (pos.xy + ResMap.xy * .5) / iResolution.xy, lev);
+}
+
+vec4
+getCol (vec3 pos)
+{
+  return getCol(pos, 0.);
+}
+
+bool
+checkSolid (vec3 pos)
+{
+  float h = getCol(floor(pos) + .5).w * float(LevNum);
+  vec3 c = getCol(floor(pos) + .5).xyz;
+  if (dot(c.xyz, vec3(-1, 2, -1)) > .3)
+    return false;
+  return abs(pos.z) < h &&
+         abs(pos.x) < ResMap.x * .49 &&
+         abs(pos.y) < ResMap.y * .49;
+}
+
+bool
+gridStep (inout vec3 pos, inout vec3 n, vec3 grid, vec3 dir)
+{
+  float l, lmin = 10000.;
+  vec3 s = sign(dir);
+
+  vec3 next = floor(pos / grid + s * (.5 + .00001) + .5) * grid;
+  l = (next.x - pos.x) / dir.x;
+  if (l > 0. && l < lmin)
+  {
+    lmin = l;
+    n = -vec3(1, 0, 0) * s;
+  }
+  l = (next.y - pos.y) / dir.y;
+  if (l > 0. && l < lmin)
+  {
+    lmin = l;
+    n = -vec3(0, 1, 0) * s;
+  }
+  l = (next.z - pos.z) / dir.z;
+  if (l > 0. && l < lmin)
+  {
+    lmin = l;
+    n = -vec3(0, 0, 1) * s;
+  }
+    
+  pos += dir * lmin;
+  return checkSolid(pos - .5 * n * grid);
+}
+
+float
+march (inout vec3 pos, inout vec3 n, vec3 dir)
+{
+  for (int i = 0; i < 150; i++)
+    if (gridStep(pos, n, Grid, dir))
+      return 1.0;
+  return 0.0;
+}
+
+void
+ROT2 (float ang, inout vec2 v)
+{
+  vec2 cs = cos(ang - vec2(0, 1.57));
+  v = mat2(cs, cs.yx * vec2(-1, 1)) * v;
+}
+
+vec4
+myenv (vec3 pos, vec3 dir, float s)
+{
+  return texture(iChannel2, dir.xzy) * 1.5;
+}
+
+#define RandTex iChannel3
+
+vec4
+getRand (vec2 pos)
+{
+  vec2 tres = vec2(textureSize(RandTex, 0));
+  pos *= tres;
+  vec2 fr = fract(pos - .5);
+  vec2 uv = (pos - .7 * sin(fr * PI2) / PI2) / tres.xy;
+  return textureLod(RandTex, uv, 0.);
+}
+
+void
+getPhiThetaDist (inout float ph, inout float th, inout float dist)
+{
+  ph = (iMouse.x - .5 * Res.x) / Res.x * 12.6;
+  th = (Res.y - iMouse.y - .5 * Res.y) / Res.y * 13.6;
+  dist = 260.;
+  if (iMouse.x == 0.)
+  {
+    vec4 r = getRand(iTime * .02 * vec2(1, .001)) - getRand(iTime * .02 * vec2(1, .001) + 10.5);
+    ph += .3 * cos((iTime + 15.) * .37) + (r.x * .0013);
+    th -= .7 * cos((iTime + 15.) * .15) + (r.y * .0026);
+    dist += -100. * cos(iTime * .1);
+  }
+}
+
+void
+transform (inout vec3 v)
+{
+  float ph, th, dist;
+  getPhiThetaDist(ph, th, dist);
+
+  ROT2(th, v.yz);
+  ROT2(ph, v.xy);
+}
+
+void
+main ()
+{
+  float ph, th, dist;
+  getPhiThetaDist(ph, th, dist);
+  vec4 r = getRand(iTime * .007 * vec2(.002, 1)) - getRand(iTime * .007 * vec2(.003, 1) + 10.7);
+
+  vec3 pos = vec3(0, 0, dist) + r.xyz * 1.;
+  vec3 dir = vec3(0, 0, -1);
+  vec3 n = vec3(0, 0, 1);
+  dir.xy += (gl_FragCoord.xy - iResolution.xy * .5) / iResolution.x;
+  dir = normalize(dir);
+
+  transform(pos);
+  transform(dir);
+
+  vec3 eye = pos;
+
+  float h0 = 12.;
+  pos = pos + dir / abs(dir.z) * (abs(pos.z) - h0);
+
+  float m = march(pos, n, dir);
+
+  vec4 c = getCol(floor(pos) + .5);
+
+  float ao = 1.;
+  for (int i = 0; i < 7; i++)
+  {
+    float fi = float(i);
+    float l = fi * .7;
+    vec4 c2 = getCol(pos, l) * vec4(1, 1, 1, LevNum);
+    float d = c2.w - abs(pos.z);
+    float s = (1. - sqrt(fi) * .1) * .12;
+
+    ao *= 1. - (step(0., d)) * d * s;
+    ao *= 1. - .2 * (step(0., -d)) * d * s;
+  }
+  vec2 v = smoothstep(ResMap * .48, ResMap * .49, abs(pos.xy));
+  ao = mix(ao, max(ao, 1.), max(v.x, v.y));
+  ao = mix(ao, sqrt(abs(ao)), .5) * .8;
+
+  vec3 R = reflect(normalize(pos - eye), n);
+  float fres = abs(dot(R, n));
+  fres = 1. - fres;
+  fres *= fres * sqrt(abs(fres));
+  fres = fres * .93 + .07;
+
+  vec3 env = myenv(vec3(pos * .02), R, 1.).xyz;
+
+  gl_FragColor.xyz = vec3(1.);
+
+  gl_FragColor.xyz = mix(gl_FragColor.xyz, env, fres);
+  gl_FragColor.xyz *= c.xyz * ao + .05 * n;
+
+  if (m < 1.)
+    gl_FragColor.xyz = myenv(vec3(0), dir, 1.).xyz;
+
+  gl_FragColor *= .9;
+  gl_FragColor.w = 1.;
+}

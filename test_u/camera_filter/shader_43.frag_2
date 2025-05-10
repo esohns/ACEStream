@@ -1,0 +1,26 @@
+#version 130
+
+uniform vec2 iResolution;
+uniform sampler2D iChannel0;
+uniform sampler2D iChannel1;
+
+float spread = 0.75;
+float decay = 0.04;
+
+void
+main ()
+{
+  vec2 res = iResolution.xy;
+  vec2 step = spread / res;
+  vec2 uv = gl_FragCoord.xy / res;
+  vec4 sum = texture(iChannel0, uv);
+
+  for (int y = -7; y <= 7; y++)
+    for (int x = -7; x <= 7; x++)
+    {
+      vec4 color = texture(iChannel1, uv + vec2(x, y) * step);
+      sum = max(color, sum);
+    }
+
+  gl_FragColor = sum - decay;
+}

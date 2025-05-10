@@ -1,0 +1,114 @@
+#version 130
+
+// shader_44_common.glsl
+//#define CLIP_BG
+
+const int NumPasses = 13;
+
+#define ResMap min(exp2(floor(log2(iResolution.xy))),vec2(256,128))
+#define iPassIndex (iFrame%NumPasses)
+#define PI2 6.28318530718
+// shader_44_common.glsl
+
+uniform vec2 iResolution;
+uniform int iFrame;
+uniform sampler2D iChannel0;
+uniform sampler2D iChannel1;
+uniform sampler2D iChannel2;
+uniform sampler2D iChannel3;
+
+#define Res ResMap
+#define Res0 vec2(textureSize(iChannel0,0))
+#define Res1 ResMap
+#define Res2 vec2(textureSize(iChannel2,0))
+
+vec2
+getLevelCoords (vec2 coord, int level, inout vec2 frameCoord)
+{
+  ivec2 dir = ivec2(1, 0);
+  ivec2 s = ivec2(Res1) / (dir + 1);
+  ivec2 sp = s;
+  ivec2 o = ivec2(0);
+  ivec2 op = o;
+  for (int i = 0; i < level; i++)
+  {
+    op = o;
+    o += s * dir;
+    dir = (dir + 1) & 1;
+    sp = s;
+    s /= dir + 1;
+  }
+
+  vec2 c = coord * vec2(s) + vec2(o);
+  frameCoord = fract(c);
+  return (floor(c) + .5) / Res1;
+}
+
+vec4
+getCol (vec2 uv)
+{
+  return texture(iChannel0, uv);
+}
+
+float
+colDist (vec4 c1, vec4 c2)
+{
+  return dot(c1.xyz - c2.xyz, vec3(.3333));
+}
+
+void
+getCenterScaleColor (vec2 fragCoord, inout vec2 c, inout vec2 s, inout vec4 col)
+{
+  vec2 frameCoord;
+  vec2 fact = ResMap / vec2(512, 256);
+  float detail = .2;
+  for (int i = 11; i >= 0; i--)
+  {
+    vec4 coordMinMax = textureLod(iChannel1, getLevelCoords(fragCoord / Res, i, frameCoord) * Res1 / iResolution.xy, 0.);
+    vec4 mi = getCol(coordMinMax.xy / Res1);
+    vec4 ma = getCol(coordMinMax.zw / Res1);
+    col = mix(mi, ma, 1.) * .95 + .15;
+    col.w = float(i) / 11.;
+    if (abs(colDist(mi, ma)) < detail)
+      break;
+  }
+}
+
+vec4
+getPixRandS (vec2 pos)
+{
+  return textureLod(iChannel2, (floor(pos) + .5) / Res2, 0.) - .5;
+}
+
+float randness = 0.5;
+
+vec2
+uvSmooth (vec2 uv, vec2 res)
+{
+  return uv + .6 * sin(uv * res * PI2) / PI2 / res;
+}
+
+vec4
+getRand (vec2 pos)
+{
+  return textureLod(iChannel2, uvSmooth(pos / Res2, Res2), 0.);
+}
+
+#define sc (iResolution.x/600.)
+
+void
+main ()
+{
+  if (gl_FragCoord.x > ResMap.x || gl_FragCoord.y > ResMap.y)
+    discard;
+  if (iPassIndex != NumPasses - 1)
+  {
+    gl_FragColor = texture(iChannel3, gl_FragCoord.xy / iResolution.xy);
+    return;
+  }
+    
+  vec2 c, s;
+  vec4 color = vec4(0);
+  getCenterScaleColor(gl_FragCoord.xy, c, s, color);
+  gl_FragColor = color;
+}

@@ -1,0 +1,82 @@
+#version 130
+
+// shader_44_common.glsl
+//#define CLIP_BG
+
+const int NumPasses = 13;
+
+#define ResMap min(exp2(floor(log2(iResolution.xy))),vec2(256,128))
+#define iPassIndex (iFrame%NumPasses)
+#define PI2 6.28318530718
+// shader_44_common.glsl
+
+uniform vec2 iResolution;
+uniform float iTime;
+uniform vec4 iMouse;
+uniform sampler2D iChannel2;
+uniform sampler2D iChannel3;
+
+#define VIGNETTE
+
+#define Res iResolution.xy
+#define Res0 vec2(textureSize(iChannel0,0))
+#define Res1 vec2(textureSize(iChannel1,0))
+
+#define RandTex iChannel2
+
+vec4
+getRand (vec2 pos)
+{
+  vec2 tres = vec2(textureSize(RandTex, 0));
+  pos *= tres;
+  vec2 fr = fract(pos - .5);
+  vec2 uv = (pos - .7 * sin(fr * PI2) / PI2) / tres.xy;
+  return textureLod(RandTex, uv, 0.);
+}
+
+void
+getPhiThetaDist (inout float ph, inout float th, inout float dist)
+{
+  ph = (iMouse.x - .5 * Res.x) / Res.x * 12.6;
+  th = (Res.y - iMouse.y - .5 * Res.y) / Res.y * 13.6;
+  dist = 260.;
+  if (iMouse.x == 0.)
+  {
+    vec4 r = getRand(iTime * .02 * vec2(1, .001)) - getRand(iTime * .02 * vec2(1, .001) + 10.5);
+    ph += .3 * cos((iTime + 15.) * .37) + (r.x * .0013);
+    th -= .7 * cos((iTime + 15.) * .15) + (r.y * .0026);
+    dist += -100. * cos(iTime * .1);
+  }
+}
+
+void
+main ()
+{
+  float ph, th, dist;
+  getPhiThetaDist(ph, th, dist);
+
+  float mipOffs = 1.2 * abs((gl_FragCoord.y - Res.y * .5) / Res.y) * (log2(Res.x) - 5.) * abs(sin(th));
+  vec4 col = texture(iChannel3, gl_FragCoord.xy / Res, .4 + mipOffs);
+  gl_FragColor = col * .8;
+
+  vec4 c;
+  c = texture(iChannel3, gl_FragCoord.xy / Res, 1.7 + mipOffs);
+  gl_FragColor += (c * 1.5 - .5) * .3 * .5;
+  c = texture(iChannel3, gl_FragCoord.xy / Res, 3.7 + mipOffs);
+  gl_FragColor += (c * 1.5 - .5) * .3 * .5;
+  c = texture(iChannel3, gl_FragCoord.xy / Res, 4.7 + mipOffs);
+  gl_FragColor += (c * 1.5 - .5) * .3 * .5;
+
+  float br = dot(gl_FragColor.xyz, vec3(.3333));
+  gl_FragColor.xyz = clamp((gl_FragColor.xyz - br) * 1.7 + br, 0., 1.);
+
+#ifdef VIGNETTE
+  vec2 scc = (gl_FragCoord.xy - .5 * iResolution.xy) / iResolution.x;
+  float vign = 1.1 - 1. * dot(scc, scc);
+  vign *= 1. - .5 * exp(-sin(gl_FragCoord.x / iResolution.x * 3.1416) * 20.);
+  vign *= 1. - .5 * exp(-sin(gl_FragCoord.y / iResolution.y * 3.1416) * 10.);
+  gl_FragColor.xyz *= vign;
+#endif
+
+  gl_FragColor.w = 1.;
+}
