@@ -294,6 +294,9 @@ if (BUILD_TEST_I)
  add_subdirectory (camera_msa)
  add_subdirectory (commandspeech)
  add_subdirectory (extract_stream)
+ add_subdirectory (imagesave)
+ add_subdirectory (mp3player)
+ add_subdirectory (speechcommand)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
  add_subdirectory (camstream)
@@ -303,11 +306,15 @@ if (BUILD_TEST_I)
  add_subdirectory (pop_receive)
  add_subdirectory (smtp_send)
 # *IMPORTANT NOTE* /END
- add_subdirectory (imagesave)
- add_subdirectory (mp3player)
- add_subdirectory (speechcommand)
 
- add_dependencies (test_i avsave camera_ar camera_ml camera_ml_2 camera_ml_3 camera_msa commandspeech extract_stream imagesave mp3player speechcommand)
+ add_dependencies (test_i avsave camera_ar camera_ml camera_msa commandspeech extract_stream imagesave mp3player speechcommand)
+ if (MEDIAPIPE_SUPPORT)
+  add_dependencies (test_i camera_ml_2)
+  if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+   add_dependencies (test_i camera_ml_3)
+  endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+ endif (MEDIAPIPE_SUPPORT)
+
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
  add_dependencies (test_i camsource camtarget filesource filetarget HTTP_get_1 HTTP_get_2 POP_receive SMTP_send)
