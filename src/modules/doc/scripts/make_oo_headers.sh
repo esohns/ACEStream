@@ -10,16 +10,23 @@
 
 # sanity check(s)
 command -v basename >/dev/null 2>&1 || { echo "basename is not installed, aborting" >&2; exit 1; }
+command -v cut >/dev/null 2>&1 || { echo "cut is not installed, aborting" >&2; exit 1; }
+command -v lsb_release >/dev/null 2>&1 || { echo "lsb_release is not installed, aborting" >&2; exit 1; }
 
 OO_SDK_HOME=/usr/lib64/libreoffice/sdk # Fedora
-#OO_SDK_HOME=/usr/lib/libreoffice/sdk # Ubuntu
+OO_SDK_INCLUDE=${OO_SDK_HOME}/include # Fedora
+
+DISTRIBUTION=$(lsb_release -si)
+if [ "$DISTRIBUTION" = "Ubuntu" ]; then
+ OO_SDK_HOME=/usr/lib/libreoffice/sdk
+ OO_SDK_INCLUDE=/usr/include/libreoffice
+fi
+# sanity check(s)
 if [ ! -d ${OO_SDK_HOME} ]
 then
  echo "invalid OO SDK directory (was: \"${OO_SDK_HOME}\"), exiting"
  exit
 fi
-OO_SDK_INCLUDE=${OO_SDK_HOME}/include
-#OO_SDK_INCLUDE=/usr/include/libreoffice
 if [ ! -d ${OO_SDK_INCLUDE} ]
 then
  echo "invalid OO SDK include directory (was: \"${OO_SDK_INCLUDE}\"), exiting"
