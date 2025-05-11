@@ -18,7 +18,19 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+#include "wand/wand_api.h"
+#else
+#if defined (ACE_LINUX)
+#if defined (IS_UBUNTU_LINUX) // *NOTE*: github "*-latest" runners lag behind:
+#include "wand/MagickWand.h" //          - Ubuntu 'noble' still is on ImageMagick-6
+#else
 #include "MagickWand/MagickWand.h"
+#endif // IS_UBUNTU_LINUX
+#else
+#include "MagickWand/MagickWand.h"
+#endif // ACE_LINUX
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
 
 #include "ace/Log_Msg.h"
 
@@ -53,6 +65,7 @@ Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , sourceResolution_ ()
+ , targetResolution_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_ImageMagickResize_T::Stream_Visualization_ImageMagickResize_T"));
 
@@ -78,80 +91,164 @@ Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_ImageMagickResize_T::handleDataMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  if (unlikely (!inherited::context_))
-    return; // nothing to do
+  ACE_ASSERT (inherited::context_);
 
   // initialize return value(s)
   passMessageDownstream_out = false;
 
-  int result = -1;
-
-  try {
-    message_inout->defragment ();
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), returning\n"),
-                inherited::mod_->name ()));
-    goto error;
-  }
-  ACE_ASSERT (!message_inout->cont ());
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::buffer_);
-//  ACE_ASSERT (inherited::buffer_->capacity () >= inherited::frameSize_);
-
-//  if (unlikely (!Stream_Module_Decoder_Tools::convert (inherited::context_,
-//                                                       sourceResolution_.width, sourceResolution_.height, inherited::inputFormat_,
-//                                                       data_a,
-//                                                       inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height, inherited::inputFormat_,
-//                                                       inherited::frame_->data)))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
-//                inherited::mod_->name ()));
-//    goto error;
-//  } // end IF
-  inherited::buffer_->wr_ptr (inherited::frameSize_);
-  inherited::buffer_->initialize (message_inout->sessionId (),
-                                  NULL);
-  inherited::buffer_->set (message_inout->type ());
-  message_inout->release (); message_inout = NULL;
-
-//#if defined (_DEBUG)
-//    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
-//    if (!Common_File_Tools::store (filename_string,
-//                                   data[0],
-//                                   inherited::decodeFrameSize_))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
-//                  ACE_TEXT (filename_string.c_str ())));
-//      goto error;
-//    } // end IF
-//#endif
-
-  // forward the converted frame
-  result = inherited::put_next (inherited::buffer_, NULL);
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
-    goto error;
-  } // end IF
-  inherited::buffer_ = NULL;
+  unsigned int result = MagickTrue;
+  unsigned char* data_p = NULL;
+  size_t size_i = 0;
+  int result_2 = -1;
+  Stream_SessionId_t session_id = message_inout->sessionId ();
+  DataMessageType* message_p = NULL;
+  typename DataMessageType::DATA_T message_data_s;
+  //message_data_s.format = message_data_r.format;
 
   // allocate a message buffer for the next frame
-  inherited::buffer_ = inherited::allocateMessage (inherited::frameSize_);
-  if (unlikely (!inherited::buffer_))
+  message_p = inherited::allocateMessage (1);
+  if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
                 inherited::mod_->name (),
-                inherited::frameSize_));
+                1));
     goto error;
   } // end IF
+  // sanity check(s)
+
+  result = MagickSetSize (inherited::context_,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                          sourceResolution_.cx, sourceResolution_.cy);
+#else
+                          sourceResolution_.width, sourceResolution_.height);
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (result == MagickTrue);
+  result =
+    MagickSetFormat (inherited::context_,
+                     ACE_TEXT_ALWAYS_CHAR ("RGBA")); // *TODO*: make this configurable !
+  ACE_ASSERT (result == MagickTrue);
+
+  result = MagickReadImage (inherited::context_,
+                            ACE_TEXT_ALWAYS_CHAR ("xc:black"));
+  ACE_ASSERT (result == MagickTrue);
+//  result =
+//    MagickNewImage (inherited::context_,
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//                    resolution_s.cx, resolution_s.cy,
+//#else
+//                    message_data_r.format.resolution.width, message_data_r.format.resolution.height,
+//#endif // ACE_WIN32 || ACE_WIN64
+//                    pixelContext_);
+//  ACE_ASSERT (result == MagickTrue);
+
+  //result =
+  //  MagickReadImageBlob (inherited::context_,
+  //                       reinterpret_cast<unsigned char*> (message_inout->rd_ptr ()),
+  //                       message_inout->length ());
+  result =
+    MagickImportImagePixels (inherited::context_,
+                             0, 0,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                             sourceResolution_.cx, sourceResolution_.cy,
+#else
+                             sourceResolution_.width, sourceResolution_.height,
+#endif // ACE_WIN32 || ACE_WIN64
+                             ACE_TEXT_ALWAYS_CHAR ("RGBA"), // *TODO*: make this configurable !
+                             CharPixel,
+                             message_inout->rd_ptr ());
+  if (unlikely (result != MagickTrue))
+  {
+     ACE_DEBUG ((LM_ERROR,
+                 ACE_TEXT ("%s: failed to MagickImportImagePixels(): \"%s\", returning\n"),
+                 inherited::mod_->name (),
+                 ACE_TEXT (Common_Image_Tools::errorToString (inherited::context_).c_str ())));
+     goto error;
+  } // end IF
+
+  message_inout->release (); message_inout = NULL;
+
+  //result =
+  //  MagickSetImageFormat (inherited::context_,
+  //                        ACE_TEXT_ALWAYS_CHAR ("RGBA")); // *TODO*: make this configurable !
+  //ACE_ASSERT (result == MagickTrue);
+
+  result =
+#if (MagickLibVersion >= 0x700)
+    MagickResizeImage (inherited::context_,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                       targetResolution_.cx, targetResolution_.cy,
+#else
+                       targetResolution_.width, targetResolution_.height,
+#endif // ACE_WIN32 || ACE_WIN64
+                       CubicFilter);
+#else
+    MagickResizeImage (inherited::context_,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                       targetResolution_.cx, targetResolution_.cy,
+#else
+                       targetResolution_.width, targetResolution_.height,
+#endif // ACE_WIN32 || ACE_WIN64
+                       CubicFilter,
+                       1.0); // do not blur
+#endif // MagickLibVersion >= 0x700
+  ACE_ASSERT (result == MagickTrue);
+
+  // *IMPORTANT NOTE*: "...Set the image depth to 8. If you are using the Q16
+  //                   version of ImageMagick, the image depth is promoted from
+  //                   8 to 16 when the image is resized. ..."
+  result = MagickSetImageDepth (inherited::context_, 8);
+  ACE_ASSERT (result == MagickTrue);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  ACE_ASSERT (Common_Image_Tools::stringToCodecId (MagickGetImageFormat (inherited::context_)) == AV_CODEC_ID_NONE);
+#endif // ACE_WIN32 || ACE_WIN64
+
+  data_p = MagickGetImageBlob (inherited::context_, // was: MagickWriteImageBlob
+                               &size_i);
+  if (unlikely (!data_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to MagickGetImageBlob(): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Image_Tools::errorToString (inherited::context_).c_str ())));
+    goto error;
+  } // end IF
+  // *TODO*: crashes in release()...(needs MagickRelinquishMemory())
+  message_p->base (reinterpret_cast<char*> (data_p),
+                   size_i,
+                   ACE_Message_Block::DONT_DELETE); // own image data, but relinquish() in dtor
+  message_p->wr_ptr (size_i);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_MediaFramework_DirectShow_Tools::setResolution (targetResolution_,
+                                                         message_data_2.format);
+#else
+  message_data_s.format.resolution = targetResolution_;
+#endif // ACE_WIN32 || ACE_WIN64
+  message_data_s.relinquishMemory = data_p;
+  message_p->initialize (message_data_s,
+                         session_id,
+                         NULL);
+
+//#if defined (_DEBUG)
+//  Common_File_Tools::store (ACE_TEXT_ALWAYS_CHAR ("output.rgb"),
+//                            reinterpret_cast<uint8_t*> (data_p),
+//                            size_i);
+//#endif // _DEBUG
+
+  // forward the converted frame
+  result_2 = inherited::put_next (message_p, NULL);
+  if (unlikely (result_2 == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    message_p->release (); message_p = NULL;
+    goto error;
+  } // end IF
+  message_p = NULL;
 
   return;
 
@@ -204,9 +301,7 @@ Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
 
-//      int flags_i = 0;
       MediaType media_type_s;
-//      int result = -1;
       Common_Image_Resolution_t resolution_s;
 
       // stash input format
@@ -249,13 +344,9 @@ Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      resolution_s.cx = inherited::configuration_->outputFormat.resolution.cx;
-      resolution_s.cy = inherited::configuration_->outputFormat.resolution.cy;
+      targetResolution_ = inherited::configuration_->outputFormat.resolution;
 #else
-      resolution_s.width =
-          inherited::configuration_->outputFormat.resolution.width;
-      resolution_s.height =
-          inherited::configuration_->outputFormat.resolution.height;
+      targetResolution_ = inherited::configuration_->outputFormat.resolution;
 #endif // ACE_WIN32 || ACE_WIN64
       media_type_s = media_type_r;
       inherited::setResolution (resolution_s,
@@ -274,10 +365,6 @@ error:
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
-      // sanity check(s)
-      if (!inherited::context_)
-        break; // nothing to do
-
       int result = -1;
       int flags_i = 0;
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
@@ -297,72 +384,7 @@ error:
                   media_type_2.resolution.width, media_type_2.resolution.height,
                   inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height));
 #endif // ACE_WIN32 || ACE_WIN64
-
-      // initialize conversion context
-      ACE_ASSERT (inherited::context_);
-      sws_freeContext (inherited::context_); inherited::context_ = NULL;
-      flags_i =
-          (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-           SWS_FAST_BILINEAR);
-      inherited::context_ =
-          sws_getCachedContext (NULL,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                media_type_2.resolution.cx, media_type_2.resolution.cy, inherited::inputFormat_,
-#else
-                                media_type_2.resolution.width, media_type_2.resolution.height, inherited::inputFormat_,
-#endif // ACE_WIN32 || ACE_WIN64
-                                inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height, inherited::inputFormat_,
-                                flags_i,                      // flags
-                                NULL, NULL,
-                                0);                           // parameters
-      if (unlikely (!inherited::context_))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to sws_getCachedContext(): \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
-        goto error_2;
-      } // end IF
-
-      // initialize frame buffer
-      if (inherited::buffer_)
-      {
-        inherited::buffer_->release (); inherited::buffer_ = NULL;
-      } // end IF
-      ACE_ASSERT (inherited::frame_);
-      //  frame_->format = session_data_r.format;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      inherited::frame_->height = media_type_2.resolution.cy;
-      inherited::frame_->width = media_type_2.resolution.cx;
-#else
-      inherited::frame_->height = media_type_2.resolution.height;
-      inherited::frame_->width = media_type_2.resolution.width;
-#endif // ACE_WIN32 || ACE_WIN64
-      inherited::frameSize_ =
-        av_image_get_buffer_size (inherited::inputFormat_,
-                                  inherited::frame_->width, inherited::frame_->height,
-                                  1); // *TODO*: linesize alignment
-
-      inherited::buffer_ = inherited::allocateMessage (inherited::frameSize_);
-      if (!inherited::buffer_)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
-                    inherited::mod_->name (),
-                    inherited::frameSize_));
-        goto error_2;
-      } // end IF
-      result =
-          av_image_fill_linesizes (inherited::frame_->linesize,
-                                   inherited::inputFormat_,
-                                   static_cast<int> (inherited::frame_->width));
-      ACE_ASSERT (result >= 0);
-      result =
-          av_image_fill_pointers (inherited::frame_->data,
-                                  inherited::inputFormat_,
-                                  static_cast<int> (inherited::frame_->height),
-                                  reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
-                                  inherited::frame_->linesize);
-      ACE_ASSERT (result >= 0);
+      sourceResolution_ = media_type_2.resolution;
 
       break;
 
@@ -372,19 +394,7 @@ error_2:
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
-    {
-      if (inherited::buffer_)
-      {
-        inherited::buffer_->release (); inherited::buffer_ = NULL;
-      } // end IF
-
-      if (inherited::context_)
-      {
-        sws_freeContext (inherited::context_); inherited::context_ = NULL;
-      } // end IF
-
       break;
-    }
     default:
       break;
   } // end SWITCH
@@ -411,31 +421,10 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
                                           MediaType>::Stream_Visualization_ImageMagickResize1_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
- , pixelContext_ (NULL)
+ , targetResolution_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_ImageMagickResize1_T::Stream_Visualization_ImageMagickResize1_T"));
 
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename MediaType>
-Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          MediaType>::~Stream_Visualization_ImageMagickResize1_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_ImageMagickResize1_T::~Stream_Visualization_ImageMagickResize1_T"));
-
-  if (pixelContext_)
-    DestroyPixelWand (pixelContext_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -468,11 +457,6 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::context_);
-
-  pixelContext_ = NewPixelWand ();
-  ACE_ASSERT (pixelContext_);
-  PixelSetColor (pixelContext_,
-                 ACE_TEXT_ALWAYS_CHAR ("WHITE"));
 
   return true;
 }
@@ -518,23 +502,12 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   struct Stream_MediaFramework_V4L_MediaType media_type_s;
 #endif // ACE_WIN32 || ACE_WIN64
 
-  //try {
-  //  message_inout->defragment ();
-  //} catch (...) {
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), returning\n"),
-  //              inherited::mod_->name ()));
-  //  goto error;
-  //}
-  //ACE_ASSERT (!message_inout->cont ());
-
   //#if defined (_DEBUG)
   //  Common_File_Tools::store (ACE_TEXT_ALWAYS_CHAR ("input.rgb"),
   //                            reinterpret_cast<uint8_t*>
   //                            (message_inout->rd_ptr ()),
   //                            message_inout->length ());
   //#endif // _DEBUG
-
 
   // allocate a message buffer for the next frame
   message_p = inherited::allocateMessage (1);
@@ -555,13 +528,11 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
                            media_type_s);
   Common_Image_Resolution_t resolution_s =
     Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
-  Common_Image_Resolution_t resolution_2 =
-    Stream_MediaFramework_DirectShow_Tools::toResolution (inherited::configuration_->outputFormat);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
               inherited::mod_->name (),
               resolution_s.cx, resolution_s.cy,
-              resolution_2.cx, resolution_2.cy));
+              targetResolution_.cx, targetResolution_.cy));
 
   ACE_ASSERT (Stream_MediaFramework_Tools::isRGB32 (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW));
 #else
@@ -639,19 +610,19 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 #if (MagickLibVersion >= 0x700)
     MagickResizeImage (inherited::context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                       resolution_2.cx, resolution_2.cy,
+                       targetResolution_.cx, targetResolution_.cy,
 #else
-                       media_type_s.format.width, media_type_s.format.height,
+                       targetResolution_.width, targetResolution_.height,
 #endif // ACE_WIN32 || ACE_WIN64
-                       LanczosFilter);
+                       CubicFilter);
 #else
     MagickResizeImage (inherited::context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                       resolution_2.cx, resolution_2.cy,
+                       targetResolution_.cx, targetResolution_.cy,
 #else
-                       media_type_s.format.width, media_type_s.format.height,
+                       targetResolution_.width, targetResolution_.height,
 #endif // ACE_WIN32 || ACE_WIN64
-                       LanczosFilter,
+                       CubicFilter,
                        1.0); // do not blur
 #endif // MagickLibVersion >= 0x700
   ACE_ASSERT (result == MagickTrue);
@@ -684,13 +655,12 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   message_p->wr_ptr (size_i);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_2,
+  Stream_MediaFramework_DirectShow_Tools::setResolution (targetResolution_,
                                                          message_data_2.format);
 #else
-  message_data_2.format.resolution.width = media_type_s.format.width;
-  message_data_2.format.resolution.height = media_type_s.format.height;
+  message_data_2.format.resolution.width = targetResolution_.width;
+  message_data_2.format.resolution.height = targetResolution_.height;
 #endif // ACE_WIN32 || ACE_WIN64
-  //message_data_2.format.resolution.cx = -message_data_2.format.resolution.cx;
   message_data_2.relinquishMemory = data_p;
   message_p->initialize (message_data_2,
                          session_id,
@@ -764,16 +734,14 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
                                STREAM_MEDIATYPE_VIDEO,
                                media_type_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      Common_Image_Resolution_t resolution_s =
+      targetResolution_ =
         Stream_MediaFramework_DirectShow_Tools::toResolution (inherited::configuration_->outputFormat);
-      inherited::setResolution (resolution_s,
 #else
-      Common_Image_Resolution_t resolution_s =
+      targetResolution_ =
         inherited::getResolution (inherited::configuration_->outputFormat);
-      inherited::setResolution (resolution_s,
 #endif // ACE_WIN32 || ACE_WIN64
+      inherited::setResolution (targetResolution_,
                                 media_type_s);
-      //media_type_s.resolution.cx = -media_type_s.resolution.cx;
       session_data_r.formats.push_back (media_type_s);
 
       break;

@@ -83,6 +83,7 @@ class Stream_Visualization_ImageMagickResize_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_ImageMagickResize_T& operator= (const Stream_Visualization_ImageMagickResize_T&))
 
   Common_Image_Resolution_t sourceResolution_;
+  Common_Image_Resolution_t targetResolution_;
 };
 
 //////////////////////////////////////////
@@ -121,7 +122,7 @@ class Stream_Visualization_ImageMagickResize1_T
 #else
   Stream_Visualization_ImageMagickResize1_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  virtual ~Stream_Visualization_ImageMagickResize1_T ();
+  inline virtual ~Stream_Visualization_ImageMagickResize1_T () {}
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -138,7 +139,7 @@ class Stream_Visualization_ImageMagickResize1_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_ImageMagickResize1_T (const Stream_Visualization_ImageMagickResize1_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_ImageMagickResize1_T& operator= (const Stream_Visualization_ImageMagickResize1_T&))
 
-  PixelWand* pixelContext_;
+  Common_Image_Resolution_t targetResolution_;
 };
 
 //////////////////////////////////////////
