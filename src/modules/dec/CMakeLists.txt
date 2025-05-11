@@ -1,6 +1,8 @@
-if (WIN32)
+if (UNIX)
+ include (OS) # *TODO*: why is this necessary ?
+elseif (WIN32)
  include (directxsdk)
-endif (WIN32)
+endif ()
 include (ffmpeg)
 include (ImageMagick)
 include (libnoise)

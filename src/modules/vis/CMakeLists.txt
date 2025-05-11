@@ -1,10 +1,14 @@
+if (UNIX)
+ include (OS) # *TODO*: why is this necessary ?
+endif (UNIX)
+
 include (ffmpeg)
 include (ImageMagick)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/gl/scripts")
+include (glut)
 include (glew)
 include (glm)
-include (glut)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/math/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/math/scripts")
 include (fftw)
