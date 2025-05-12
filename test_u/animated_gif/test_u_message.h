@@ -70,12 +70,10 @@ struct Test_U_MessageData
 
 class Test_U_Message
  : public Stream_DataMessageBase_T<struct Test_U_MessageData,
-//                                   struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t>
 {
   typedef Stream_DataMessageBase_T<struct Test_U_MessageData,
-//                                   struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t> inherited;
 
