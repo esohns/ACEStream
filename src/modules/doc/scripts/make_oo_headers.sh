@@ -17,11 +17,20 @@ OO_SDK_HOME=/usr/lib64/libreoffice/sdk # Fedora
 OO_SDK_INCLUDE=${OO_SDK_HOME}/include # Fedora
 
 DISTRIBUTION=$(lsb_release -si)
-if [ "${DISTRIBUTION}" == "Ubuntu" ]
-then
- OO_SDK_HOME=/usr/lib/libreoffice/sdk
- OO_SDK_INCLUDE=/usr/include/libreoffice
-fi
+case ${DISTRIBUTION} in
+ "Fedora")
+  echo "running on Fedora..."
+ ;;
+ "Ubuntu")
+  echo "running on Ubuntu..."
+  OO_SDK_HOME=/usr/lib/libreoffice/sdk
+  OO_SDK_INCLUDE=/usr/include/libreoffice
+ ;;
+ *)
+  echo "running on ${DISTRIBUTION}..."
+ ;;
+esac
+
 # sanity check(s)
 if [ ! -d ${OO_SDK_HOME} ]
 then
