@@ -17,7 +17,8 @@ OO_SDK_HOME=/usr/lib64/libreoffice/sdk # Fedora
 OO_SDK_INCLUDE=${OO_SDK_HOME}/include # Fedora
 
 DISTRIBUTION=$(lsb_release -si)
-if [ "$DISTRIBUTION" = "Ubuntu" ]; then
+if [ "${DISTRIBUTION}" == "Ubuntu" ]
+then
  OO_SDK_HOME=/usr/lib/libreoffice/sdk
  OO_SDK_INCLUDE=/usr/include/libreoffice
 fi
