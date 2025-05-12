@@ -217,11 +217,9 @@ elseif (WIN32)
  # *WARNING*: linking BaseClasses(d) requires "/FORCE:MULTIPLE"
  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
 endif ()
-if (GTKGL_SUPPORT)
- if (GLUT_SUPPORT)
-  target_link_libraries (${EXECUTABLE} PUBLIC ${GLUT_LIBRARIES})
- endif (GLUT_SUPPORT)
-endif (GTKGL_SUPPORT)
+if (GLUT_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${GLUT_LIBRARIES})
+endif (GLUT_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
