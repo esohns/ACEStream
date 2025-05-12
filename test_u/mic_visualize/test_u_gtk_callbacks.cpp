@@ -9327,7 +9327,9 @@ togglebutton_3d_toggled_cb (GtkToggleButton* toggleButton_in,
 #endif // GTKGL_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (GTKGL_SUPPORT)
   ui_cb_data_base_p->render3d = is_active;
+#endif // GTKGL_SUPPORT
 } // togglebutton_3d_toggled_cb
 
 // -----------------------------------------------------------------------------
