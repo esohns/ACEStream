@@ -1,3 +1,7 @@
+if (UNIX)
+ include (OS) # *TODO*: why is this necessary ?
+endif (UNIX)
+
 include (ffmpeg)
 include (ImageMagick)
 
