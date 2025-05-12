@@ -1,3 +1,7 @@
+if (UNIX)
+ include (OS) # *TODO*: why is this necessary ?
+endif (UNIX)
+
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/image/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image/scripts")
 include (png)
 include (ffmpeg)
