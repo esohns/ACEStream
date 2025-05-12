@@ -45,7 +45,9 @@
 #include "test_u_camera_filter_common.h"
 #include "test_u_common_modules.h"
 #include "test_u_message.h"
+#if defined (OLC_PGE_SUPPORT)
 #include "test_u_module_marchingsquares_filter.h"
+#endif // OLC_PGE_SUPPORT
 #include "test_u_module_sobel_filter.h"
 #if defined (LIBNOISE_SUPPORT)
 #define OPENSIMPLEXNOISE_STATIC_CONSTANTS
@@ -97,9 +99,9 @@
 #include "test_u_module_opengl_glut_43.h"
 #include "test_u_module_opengl_glut_44.h"
 #endif // GLUT_SUPPORT
-#if defined (JC_VORONOI_SUPPORT)
+#if defined (JC_VORONOI_SUPPORT) && defined (OLC_PGE_SUPPORT)
 #include "test_u_module_weightedvoronoistipple_filter.h"
-#endif // JC_VORONOI_SUPPORT
+#endif // JC_VORONOI_SUPPORT && OLC_PGE_SUPPORT
 #include "test_u_session_message.h"
 
 // forward declarations
@@ -162,7 +164,9 @@ class Test_U_DirectShow_Stream
   Test_U_DirectShow_LibAVConvert_Module             convert_; // RGB
   Test_U_DirectShow_LibAVResize_Module              resize_; // --> window size/fullscreen
   Test_U_CameraFilter_Sobel_Filter_Module           sobelFilter_;
+#if defined (OLC_PGE_SUPPORT)
   Test_U_CameraFilter_MarchingSquares_Filter_Module marchingSquaresFilter_;
+#endif // OLC_PGE_SUPPORT
 #if defined (LIBNOISE_SUPPORT)
   Test_U_CameraFilter_PerlinNoise_Filter_Module     perlinNoiseFilter_;
 #endif // LIBNOISE_SUPPORT
@@ -220,9 +224,9 @@ class Test_U_DirectShow_Stream
   Test_U_CameraFilter_OpenGL_GLUT_43_Module         GLUTDisplay_43;
   Test_U_CameraFilter_OpenGL_GLUT_44_Module         GLUTDisplay_44;
 #endif // GLUT_SUPPORT
-#if defined (JC_VORONOI_SUPPORT)
+#if defined (JC_VORONOI_SUPPORT) && defined (OLC_PGE_SUPPORT)
   Test_U_CameraFilter_WeightedVoronoiStipple_Filter_Module weightedVoronoiStippleFilter_;
-#endif // JC_VORONOI_SUPPORT
+#endif // JC_VORONOI_SUPPORT && OLC_PGE_SUPPORT
 };
 
 class Test_U_MediaFoundation_Stream
@@ -363,7 +367,9 @@ class Test_U_Stream
   Test_U_LibAVConvert_Module                        convert_; // --> BGRA (Xlib)
   Test_U_LibAVResize_Module                         resize_; // --> window size/fullscreen
   Test_U_CameraFilter_Sobel_Filter_Module           sobelFilter_;
+#if defined (OLC_PGE_SUPPORT)
   Test_U_CameraFilter_MarchingSquares_Filter_Module marchingSquaresFilter_;
+#endif // OLC_PGE_SUPPORT
 #if defined (LIBNOISE_SUPPORT)
   Test_U_CameraFilter_PerlinNoise_Filter_Module     perlinNoiseFilter_;
 #endif // LIBNOISE_SUPPORT
@@ -415,9 +421,9 @@ class Test_U_Stream
   Test_U_CameraFilter_OpenGL_GLUT_39_Module         GLUTDisplay_39;
   Test_U_CameraFilter_OpenGL_GLUT_40_Module         GLUTDisplay_40;
 #endif // GLUT_SUPPORT
-#if defined (JC_VORONOI_SUPPORT)
+#if defined (JC_VORONOI_SUPPORT) && defined (OLC_PGE_SUPPORT)
   Test_U_CameraFilter_WeightedVoronoiStipple_Filter_Module weightedVoronoiStippleFilter_;
-#endif // JC_VORONOI_SUPPORT
+#endif // JC_VORONOI_SUPPORT && OLC_PGE_SUPPORT
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

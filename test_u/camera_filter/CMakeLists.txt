@@ -111,8 +111,6 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_message.cpp
      test_u_message.h
      test_u_message.inl
-     test_u_module_marchingsquares_filter.cpp
-     test_u_module_marchingsquares_filter.h
      test_u_module_sobel_filter.cpp
      test_u_module_sobel_filter.h
      test_u_session_message.cpp
@@ -122,6 +120,13 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_signalhandler.h
      test_u_stream.cpp
      test_u_stream.h)
+
+if (OLC_PGE_SUPPORT)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
+      test_u_module_marchingsquares_filter.cpp
+      test_u_module_marchingsquares_filter.h)
+endif (OLC_PGE_SUPPORT)
 
 if (LIBNOISE_SUPPORT)
  set (${EXECUTABLE}_EXE_SRCS
@@ -223,12 +228,12 @@ if (GLUT_SUPPORT)
       test_u_module_opengl_glut_44.h)
 endif (GLUT_SUPPORT)
 
-if (JC_VORONOI_SUPPORT)
+if (JC_VORONOI_SUPPORT AND OLC_PGE_SUPPORT)
  set (${EXECUTABLE}_EXE_SRCS
       ${${EXECUTABLE}_EXE_SRCS}
       test_u_module_weightedvoronoistipple_filter.cpp
       test_u_module_weightedvoronoistipple_filter.h)
-endif (JC_VORONOI_SUPPORT)
+endif (JC_VORONOI_SUPPORT AND OLC_PGE_SUPPORT)
 
 if (WIN32)
  # *NOTE*: DirectShow uses 'DEBUG'

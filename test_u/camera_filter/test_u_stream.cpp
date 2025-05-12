@@ -57,8 +57,10 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
  , sobelFilter_ (this,
                  ACE_TEXT_ALWAYS_CHAR ("SobelFilter"))
+#if defined (OLC_PGE_SUPPORT)
  , marchingSquaresFilter_ (this,
                            ACE_TEXT_ALWAYS_CHAR ("MarchingSquaresFilter"))
+#endif // OLC_PGE_SUPPORT
 #if defined (LIBNOISE_SUPPORT)
  , perlinNoiseFilter_ (this,
                        ACE_TEXT_ALWAYS_CHAR ("PerlinNoiseFilter"))
@@ -167,10 +169,10 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
  , GLUTDisplay_44 (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
 #endif // GLUT_SUPPORT
-#if defined (JC_VORONOI_SUPPORT)
+#if defined (JC_VORONOI_SUPPORT) && defined (OLC_PGE_SUPPORT)
  , weightedVoronoiStippleFilter_ (this,
                                   ACE_TEXT_ALWAYS_CHAR ("WeightedVoronoiStippleFilter"))
-#endif // JC_VORONOI_SUPPORT
+#endif // JC_VORONOI_SUPPORT && OLC_PGE_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_DirectShow_Stream::Test_U_DirectShow_Stream"));
 
@@ -200,23 +202,29 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&sobelFilter_, NULL, 0);
       break;
     }
+#if defined (LIBNOISE_SUPPORT)
     case TEST_U_MODE_PERLIN_NOISE:
     {
       layout_in->append (&perlinNoiseFilter_, NULL, 0);
       break;
     }
+#endif // LIBNOISE_SUPPORT
+#if defined (OLC_PGE_SUPPORT)
     case TEST_U_MODE_MARCHING_SQUARES:
     {
       layout_in->append (&marchingSquaresFilter_, NULL, 0);
       add_renderer_b = false;
       break;
     }
+#endif // OLC_PGE_SUPPORT
+#if defined (JC_VORONOI_SUPPORT) && defined (OLC_PGE_SUPPORT)
     case TEST_U_MODE_WEIGHTED_VORONOI_STIPPLE:
     {
       layout_in->append (&weightedVoronoiStippleFilter_, NULL, 0);
       add_renderer_b = false;
       break;
     }
+#endif // JC_VORONOI_SUPPORT && OLC_PGE_SUPPORT
 #if defined (GLUT_SUPPORT)
     case TEST_U_MODE_GLUT:
     {
@@ -1623,8 +1631,10 @@ Test_U_Stream::Test_U_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
  , sobelFilter_ (this,
                  ACE_TEXT_ALWAYS_CHAR ("SobelFilter"))
+#if defined (OLC_PGE_SUPPORT)
  , marchingSquaresFilter_ (this,
                            ACE_TEXT_ALWAYS_CHAR ("MarchingSquaresFilter"))
+#endif // OLC_PGE_SUPPORT
 #if defined (LIBNOISE_SUPPORT)
  , perlinNoiseFilter_ (this,
                        ACE_TEXT_ALWAYS_CHAR ("PerlinNoiseFilter"))
@@ -1755,23 +1765,29 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&sobelFilter_, NULL, 0);
       break;
     }
+#if defined (LIBNOISE_SUPPORT)
     case TEST_U_MODE_PERLIN_NOISE:
     {
       layout_in->append (&perlinNoiseFilter_, NULL, 0);
       break;
     }
+#endif // LIBNOISE_SUPPORT
+#if defined (OLC_PGE_SUPPORT)
     case TEST_U_MODE_MARCHING_SQUARES:
     {
       layout_in->append (&marchingSquaresFilter_, NULL, 0);
       add_renderer_b = false;
       break;
     }
+#endif // OLC_PGE_SUPPORT
+#if defined (JC_VORONOI_SUPPORT) && defined (OLC_PGE_SUPPORT)
     case TEST_U_MODE_WEIGHTED_VORONOI_STIPPLE:
     {
       layout_in->append (&weightedVoronoiStippleFilter_, NULL, 0);
       add_renderer_b = false;
       break;
     }
+#endif // JC_VORONOI_SUPPORT && OLC_PGE_SUPPORT
 #if defined (GLUT_SUPPORT)
     case TEST_U_MODE_GLUT:
     {

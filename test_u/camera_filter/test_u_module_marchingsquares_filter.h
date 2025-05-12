@@ -26,10 +26,8 @@
 #if defined (GLEW_SUPPORT)
 #include "GL/glew.h"
 #endif // GLEW_SUPPORT
-#undef OK
-#if defined (OLC_PGE_SUPPORT)
+#undef OK // *NOTE*: conflict with curses.h on win32
 #include "olcPixelGameEngine.h"
-#endif // OLC_PGE_SUPPORT
 
 #include "ace/Basic_Types.h"
 #include "ace/Synch_Traits.h"

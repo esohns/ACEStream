@@ -25,9 +25,7 @@
 #include "GL/glew.h"
 #endif // GLEW_SUPPORT
 #undef OK
-#if defined (OLC_PGE_SUPPORT)
 #include "olcPixelGameEngine.h"
-#endif // OLC_PGE_SUPPORT
 #include "jc_voronoi.h"
 
 #include "ace/Basic_Types.h"
@@ -48,7 +46,7 @@
 //////////////////////////////////////////
 
 #define ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS 500
-#define ACESTREAM_WVS_FILTER_DEFAULT_ALPHA_DECAY 15
+#define ACESTREAM_WVS_FILTER_DEFAULT_ALPHA_DECAY      15
 
 //////////////////////////////////////////
 

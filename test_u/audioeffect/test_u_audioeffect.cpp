@@ -1808,8 +1808,8 @@ do_work (
   if (!UIDefinitionFile_in.empty ())
   {
 #if defined (GTK_USE)
-    Common_UI_GTK_Manager_t* gtk_manager_p =
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+    //Common_UI_GTK_Manager_t* gtk_manager_p =
+    //  COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
     Common_UI_GTK_State_t& state_r =
       const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 #endif // GTK_USE
