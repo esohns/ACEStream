@@ -98,12 +98,14 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   {
     case TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY:
     {
+#if defined (FAAD_SUPPORT)
       if ((*iterator).second.second->codecConfiguration->codecId == AV_CODEC_ID_AAC)
         ACE_NEW_RETURN (module_p,
                         Test_I_AACDecoder_Module (this,
                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FAAD_DEFAULT_NAME_STRING)),
                         false);
       else
+#endif // FAAD_SUPPORT
         ACE_NEW_RETURN (module_p,
                         Test_I_LibAVAudioDecoder_Module (this,
                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING)),
@@ -113,12 +115,14 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
 
       if (inherited::configuration_->configuration_->slowDown != -1)
       {
+#if defined (SOX_SUPPORT)
         ACE_NEW_RETURN (module_p,
                         Test_I_AudioEffect_Module (this,
                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
                         false);
         layout_in->append (module_p, NULL, 0);
         module_p = NULL;
+#endif // SOX_SUPPORT
 
         (*iterator).second.second->effectOptions.clear ();
         (*iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-m")); // optimize for music

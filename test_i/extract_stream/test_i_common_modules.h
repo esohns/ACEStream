@@ -160,6 +160,7 @@ typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                STREAM_MEDIATYPE_VIDEO,
                                struct Stream_UserData> Test_I_VideoTagger;
 
+#if defined (SOX_SUPPORT)
 typedef Stream_Decoder_SoXEffect_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    struct Test_I_ExtractStream_ModuleHandlerConfiguration,
@@ -169,6 +170,7 @@ typedef Stream_Decoder_SoXEffect_T<ACE_MT_SYNCH,
                                    Test_I_ExtractStream_SessionData_t,
                                    Test_I_ExtractStream_SessionData,
                                    struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_AudioEffect;
+#endif // SOX_SUPPORT
 
 typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
@@ -279,12 +281,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                 
                               Test_I_AACDecoder);                                 // writer type
 #endif // FAAD_SUPPORT
 
+#if defined (SOX_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Test_I_ExtractStream_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_sox_effect_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
                               Test_I_AudioEffect);                                    // writer type
+#endif // SOX_SUPPORT
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                         // session data type
                               enum Stream_SessionMessageType,                           // session event type
