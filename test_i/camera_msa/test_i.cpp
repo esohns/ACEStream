@@ -1119,8 +1119,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (OLC_PGE_SUPPORT)
   Test_I_PGE_Module PGE (&stream,
                          ACE_TEXT_ALWAYS_CHAR (STREAM_PGE_DEFAULT_NAME_STRING));
-#endif // OLC_PGE_SUPPORT
   Test_I_PGE* pge_p = NULL;
+#endif // OLC_PGE_SUPPORT
 
   stream_configuration.messageAllocator = &message_allocator;
 #if defined (OLC_PGE_SUPPORT)
@@ -1295,13 +1295,11 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         goto clean;
       } // end IF
 
-#if defined (GUI_SUPPORT)
 #if defined (OLC_PGE_SUPPORT)
       Test_I_DirectShow_PGE* pge_p =
         static_cast<Test_I_DirectShow_PGE*> (directshow_PGE.writer ());
       UI_CBData_in.solver = &pge_p->getSolver ();
 #endif // OLC_PGE_SUPPORT
-#endif // GUI_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1313,13 +1311,11 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         goto clean;
       } // end IF
 
-#if defined (GUI_SUPPORT)
 #if defined (OLC_PGE_SUPPORT)
       Test_I_MediaFoundation_PGE* pge_p =
         static_cast<Test_I_MediaFoundation_PGE*> (mediafoundation_PGE.writer ());
       UI_CBData_in.solver = &pge_p->getSolver ();
 #endif // OLC_PGE_SUPPORT
-#endif // GUI_SUPPORT
       break;
     }
     default:
@@ -1338,12 +1334,10 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     goto clean;
   } // end IF
 
-#if defined (GUI_SUPPORT)
 #if defined (OLC_PGE_SUPPORT)
   pge_p = static_cast<Test_I_PGE*> (PGE.writer ());
   UI_CBData_in.solver = &pge_p->getSolver ();
 #endif // OLC_PGE_SUPPORT
-#endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
   stream_p->start ();
