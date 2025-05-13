@@ -768,7 +768,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 
   ACE_UNUSED_ARG (type_in);
 
-  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
+  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_ALSA_MediaType));
 
   mediaType_out.format =
       Stream_MediaFramework_Tools::ffmpegFormatToALSAFormat (mediaType_in.format);

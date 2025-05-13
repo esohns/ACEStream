@@ -378,11 +378,13 @@ do_processArguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
         break;
       }
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       case 'f':
       {
         sourceFileName_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
       case 'g':
