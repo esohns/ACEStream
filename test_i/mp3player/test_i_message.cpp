@@ -25,48 +25,6 @@
 
 #include "stream_macros.h"
 
-#include "stream_dec_common.h"
-
-#include "http_tools.h"
-
-//Test_I_Stream_MessageData::Test_I_Stream_MessageData ()
-// : inherited ()
-//{
-//  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_MessageData::Test_I_Stream_MessageData"));
-//
-//}
-//
-//Test_I_Stream_MessageData::Test_I_Stream_MessageData (struct Test_I_MessageData*& messageData_in,
-//                                                      bool delete_in)
-// : inherited (messageData_in,
-//              delete_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_MessageData::Test_I_Stream_MessageData"));
-//
-//}
-
-//void
-//Test_I_Stream_MessageData::setPR (struct HTTP_Record*& record_inout)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_MessageData::setPR"));
-//
-//  Test_I_MessageData* data_p = NULL;
-//  ACE_NEW_NORETURN (data_p,
-//                    Test_I_MessageData ());
-//  if (!data_p)
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to allocate Test_I_MessageData: \"%m\", returning\n")));
-//    return;
-//  } // end IF
-//  data_p->HTTPRecord = record_inout;
-//  record_inout = NULL;
-//
-//  inherited::setPR (data_p);
-//}
-
-//////////////////////////////////////////
-
 Test_I_Stream_Message::Test_I_Stream_Message (Stream_SessionId_t sessionId_in,
                                               unsigned int size_in)
  : inherited (sessionId_in,
@@ -160,19 +118,3 @@ Test_I_Stream_Message::duplicate (void) const
 
   return message_p;
 }
-
-//HTTP_Method_t
-//Test_I_Stream_Message::command () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Message::command"));
-//
-//  // sanity check(s)
-//  if (!inherited::isInitialized_)
-//    return HTTP_Codes::HTTP_METHOD_INVALID;
-//  ACE_ASSERT (inherited::data_);
-//
-//  const Test_I_MessageData& data_r = inherited::data_->getR ();
-//
-//  return (data_r.HTTPRecord ? data_r.HTTPRecord->method
-//                            : HTTP_Codes::HTTP_METHOD_INVALID);
-//}
