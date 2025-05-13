@@ -289,7 +289,9 @@ do_processArguments (int argc_in,
     Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                      SND_PCM_STREAM_PLAYBACK);
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   sourceFileName_out.clear ();
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -2160,7 +2162,9 @@ ACE_TMAIN (int argc_in,
     Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                      SND_PCM_STREAM_PLAYBACK);
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   std::string source_filename;
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -2277,9 +2281,11 @@ ACE_TMAIN (int argc_in,
   if (
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       !Common_File_Tools::isDirectory (voice_directory)
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
       || (!source_filename.empty () &&
-          !Common_File_Tools::isReadable (source_filename))
+          !Common_File_Tools::isReadable (source_filename)) 
+#else
+      false
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
       || (!UI_definition_file.empty () &&
           !Common_File_Tools::isReadable (UI_definition_file))
@@ -2505,7 +2511,9 @@ ACE_TMAIN (int argc_in,
 #else
            device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
            source_filename,
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
            UI_definition_file,
 #endif // GUI_SUPPORT
