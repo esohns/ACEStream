@@ -242,7 +242,7 @@ elseif (WIN32)
    file (TO_NATIVE_PATH "${ui_definition_file}" ui_definition_file)
 #  message (STATUS "ui_definition_file: ${ui_definition_file}")
    string (REGEX REPLACE "\\\\" "\\\\\\\\" ui_definition_file "${ui_definition_file}")
-   message (STATUS "ui_definition_file: ${ui_definition_file}")
+#  message (STATUS "ui_definition_file: ${ui_definition_file}")
    set (ARGS " ${ARGS} -g.\\\\${ui_definition_file}")
   endif (NOT ${ui_definition_file} STREQUAL "")
 

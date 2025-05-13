@@ -1267,8 +1267,10 @@ do_work (
       directshow_modulehandler_configuration.spectrumAnalyzerConfiguration =
         &spectrumanalyzer_configuration;
 #endif // GUI_SUPPORT
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       directshow_modulehandler_configuration.fileIdentifier.identifier =
         sourceFileName_in;
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
       directshow_modulehandler_configuration.filterConfiguration =
@@ -1368,8 +1370,10 @@ do_work (
       mediafoundation_modulehandler_configuration.spectrumAnalyzerConfiguration =
         &spectrumanalyzer_configuration;
 #endif // GUI_SUPPORT
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       mediafoundation_modulehandler_configuration.fileIdentifier.identifier =
         sourceFileName_in;
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
       mediafoundation_modulehandler_configuration.mediaFoundationConfiguration =
@@ -1500,7 +1504,9 @@ do_work (
     goto error;
   } // end IF
 
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   modulehandler_configuration.fileIdentifier.identifier = sourceFileName_in;
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
   modulehandler_configuration.messageAllocator = &message_allocator;
   modulehandler_configuration.statisticReportingInterval =
     ACE_Time_Value (statisticReportingInterval_in, 0);
@@ -2231,7 +2237,9 @@ ACE_TMAIN (int argc_in,
 #else
                             device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
                             source_filename,
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
                             UI_definition_file,
 #if defined (GTK_SUPPORT)
