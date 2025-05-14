@@ -15,6 +15,19 @@
 
 struct RIFF_chunk_meta
 {
+  RIFF_chunk_meta ()
+   : identifier (0)
+   , size (0)
+   , riff_list_identifier (0)
+   , offset (0)
+  {}
+
+  bool operator== (const RIFF_chunk_meta& rhs_in) const
+  {
+    return ((identifier == rhs_in.identifier) ||
+            (riff_list_identifier == rhs_in.riff_list_identifier));
+  }
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   DWORD        identifier;
 #else
@@ -34,12 +47,6 @@ struct RIFF_chunk_meta
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_UINT64   offset;
-
-  bool operator== (const RIFF_chunk_meta& rhs_in) const
-  {
-    return ((identifier == rhs_in.identifier) ||
-            (riff_list_identifier == rhs_in.riff_list_identifier));
-  }
 };
 
 //struct less_RIFF_chunk_meta

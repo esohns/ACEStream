@@ -18,11 +18,11 @@ index 64c6b1c6..7616f470 100644
  1 file changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/test_i/CMakeLists.txt b/test_i/CMakeLists.txt
-index 37a0cb38..e6ab78d4 100644
+index 86a13ba4..ce9e20de 100644
 --- a/test_i/CMakeLists.txt
 +++ b/test_i/CMakeLists.txt
-@@ -296,12 +296,12 @@ if (BUILD_TEST_I)
-  add_subdirectory (extract_stream)
+@@ -299,12 +299,12 @@ if (BUILD_TEST_I)
+  add_subdirectory (speechcommand)
  # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
  #                   interdependencies
 - add_subdirectory (camstream)
@@ -38,10 +38,10 @@ index 37a0cb38..e6ab78d4 100644
 +# add_subdirectory (pop_receive)
 +# add_subdirectory (smtp_send)
  # *IMPORTANT NOTE* /END
-  add_subdirectory (imagesave)
-  add_subdirectory (mp3player)
-@@ -310,10 +310,10 @@ if (BUILD_TEST_I)
+ 
   add_dependencies (test_i avsave camera_ar camera_ml camera_msa commandspeech extract_stream imagesave mp3player speechcommand)
+@@ -317,10 +317,10 @@ if (BUILD_TEST_I)
+ 
  # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
  #                   interdependencies
 - add_dependencies (test_i camsource camtarget filesource filetarget HTTP_get_1 HTTP_get_2 POP_receive SMTP_send)
@@ -59,7 +59,7 @@ index 37a0cb38..e6ab78d4 100644
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/test_u/CMakeLists.txt b/test_u/CMakeLists.txt
-index 8facd4e0..5f8a15bf 100644
+index 857a779a..2249c0fa 100644
 --- a/test_u/CMakeLists.txt
 +++ b/test_u/CMakeLists.txt
 @@ -316,7 +316,7 @@ if (BUILD_TEST_U)
