@@ -59,7 +59,7 @@
 #define YYLTYPE AVI_LTYPE
 /* Substitute the variable and function names.  */
 #define yyparse avi_parse
-#define yylex   avi_lex
+//#define yylex   avi_lex
 #define yyerror avi_error
 #define yydebug avi_debug
 
@@ -679,8 +679,31 @@ typedef struct yySemanticOption yySemanticOption;
 typedef union yyGLRStackItem yyGLRStackItem;
 typedef struct yyGLRStack yyGLRStack;
 
+union yysemantics_t
+{
+  yysemantics_t ()
+   : yyfirstVal (YY_NULLPTR)
+  {}
+
+  /** First in a chain of alternative reductions producing the
+   *  nonterminal corresponding to this state, threaded through
+   *  yynext.  */
+  yySemanticOption* yyfirstVal;
+  /** Semantic value for this state.  */
+  YYSTYPE yyval;
+};
+
 struct yyGLRState
 {
+  yyGLRState ()
+   : yyisState (yytrue)
+   , yyresolved (yyfalse)
+   , yylrState (YYPACT_NINF)
+   , yypred (YY_NULLPTR)
+   , yyposn (0)
+   , yysemantics ()
+  {}
+
   /** Type tag: always true.  */
   yybool yyisState;
   /** Type tag for yysemantics.  If true, yyval applies, otherwise
@@ -692,14 +715,7 @@ struct yyGLRState
   yyGLRState* yypred;
   /** Source position of the last token produced by my symbol */
   YYPTRDIFF_T yyposn;
-  union {
-    /** First in a chain of alternative reductions producing the
-     *  nonterminal corresponding to this state, threaded through
-     *  yynext.  */
-    yySemanticOption* yyfirstVal;
-    /** Semantic value for this state.  */
-    YYSTYPE yyval;
-  } yysemantics;
+  union yysemantics_t yysemantics;
   /** Source location for this state.  */
   YYLTYPE yyloc;
 };
@@ -736,6 +752,10 @@ struct yySemanticOption
 /** Type of the items in the GLR stack.  The yyisState field
  *  indicates which item of the union is valid.  */
 union yyGLRStackItem {
+  yyGLRStackItem ()
+   : yystate ()
+  {}
+
   yyGLRState yystate;
   yySemanticOption yyoption;
 };
@@ -3151,7 +3171,7 @@ yypdumpstack (yyGLRStack* yystackp)
 
 /* Substitute the variable and function names.  */
 #define yyparse avi_parse
-#define yylex   avi_lex
+//#define yylex   avi_lex
 #define yyerror avi_error
 #define yylval  avi_lval
 #define yychar  avi_char

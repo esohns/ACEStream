@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <vector>
 
-#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
 #include "minwindef.h"
@@ -13,14 +12,17 @@
 #endif // _WIN32_WINNT && (_WIN32_WINNT >= 0x0602)
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "ace/Basic_Types.h"
+
 struct RIFF_chunk_meta
 {
-  RIFF_chunk_meta ()
-   : identifier (0)
-   , size (0)
-   , riff_list_identifier (0)
-   , offset (0)
-  {}
+  // *TODO*: will not compile with gcc (non-trivial union member ctor)
+  //RIFF_chunk_meta ()
+  // : identifier (0)
+  // , size (0)
+  // , riff_list_identifier (0)
+  // , offset (0)
+  //{}
 
   bool operator== (const RIFF_chunk_meta& rhs_in) const
   {
