@@ -7,7 +7,6 @@
     },
     "assimp",
     "directxsdk",
-    "faad2",
     "ffmpeg",
     "freeglut",
     "glew",
@@ -15,12 +14,15 @@
     "glm",
     "gtk",
     "libiconv",
-    "libnoise",
     "libxml2",
-    "mpg123",
-    "opencv",
     "pdcurses",
     "stb",
+    "vulkan",
+    "vulkan-utility-libraries",
+    "faad2",
+    "libnoise",
+    "mpg123",
+    "opencv",
     "zlib"
   ]
 }
