@@ -1775,7 +1775,7 @@ error:
 #if defined (FFMPEG_SUPPORT)
         directshow_modulehandler_configuration_4.outputFormat;
 #else
-        directshow_modulehandler_configuration.outputFormat;
+        directshow_modulehandler_configuration.outputFormat; // *TODO*: this probably leaks memory
 #endif // FFMPEG_SUPPORT
       struct _AMMediaType& media_type_2 =
         directshow_modulehandler_configuration.outputFormat;
@@ -1804,11 +1804,6 @@ error:
       directshow_modulehandler_configuration_2.outputFormat = *media_type_p;
 #endif // FFMPEG_SUPPORT
       delete media_type_p; media_type_p = NULL;
-
-      // *NOTE*: need to set this for RGB-capture formats ONLY !
-      // *TODO*: MJPG is transformed inside the DirectShow pipeline to RGB32, so requires flípping as well... :-(
-      directshow_modulehandler_configuration.flipImage =
-        Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
 
       break;
     }

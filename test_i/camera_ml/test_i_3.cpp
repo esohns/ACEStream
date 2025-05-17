@@ -465,13 +465,6 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
               ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (deviceIdentifier_in.identifier._string).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (captureFormat_inout, true).c_str ())));
 
-#if defined (_DEBUG)
-  // *NOTE*: the default capture format may be too large to achieve adequate
-  //         frame rates on some systems
-  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-                                                         captureFormat_inout);
-#endif // _DEBUG
-
   media_type_p =
     Stream_MediaFramework_DirectShow_Tools::copy (captureFormat_inout);
   if (!media_type_p)
@@ -547,6 +540,13 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
                 ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (outputFormat_inout.formattype).c_str ())));
     goto error;
   } // end ELSE
+
+#if defined (_DEBUG)
+  // *NOTE*: the default capture format may be too large to achieve adequate
+  //         frame rates on some systems
+  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                         outputFormat_inout);
+#endif // _DEBUG
 
   IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
   IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
