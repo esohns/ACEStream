@@ -20,11 +20,13 @@
     "stb",
     "vulkan",
     "vulkan-utility-libraries",
-    "wxwidgets",
+    "box2d",
+    "directx-headers",
     "faad2",
     "libnoise",
     "mpg123",
     "opencv",
+    "soci",
     "zlib"
   ]
 }
