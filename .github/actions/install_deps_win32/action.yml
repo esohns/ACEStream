@@ -7,13 +7,13 @@ inputs:
 runs:
  using: "composite"
  steps:
-  - uses: lukka/run-vcpkg@v11
+  - uses: lukka/run-vcpkg@v11.5
     with:
      vcpkgDirectory: '${{ env.VCPKG_ROOT }}'
-     vcpkgGitCommitId: '099fb9250d916511782bf5215f01f2e7141beb3a'
+     vcpkgGitCommitId: 'ca846b21276c9a3171074ac8d2b4f6516894a7d0'
      runVcpkgInstall: true
      vcpkgJsonGlob: '**/vcpkg.json'
-     appendedCacheKey: vcpkginstall
+     doNotCache: false
 
   - run: choco install libreoffice-fresh
     shell: cmd
