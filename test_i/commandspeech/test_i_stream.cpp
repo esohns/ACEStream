@@ -157,7 +157,6 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
       break;
     }
     case STREAM_DEVICE_RENDERER_DIRECTSHOW:
-      break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -168,6 +167,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
   } // end SWITCH
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   if ((!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW)) ||
       (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW) && !device_can_render_format_b))
   {
@@ -179,6 +179,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
   } // end IF
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
@@ -221,7 +222,6 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
         break;
       }
       case STREAM_DEVICE_RENDERER_DIRECTSHOW:
-        break;
       default:
       {
         ACE_DEBUG ((LM_ERROR,

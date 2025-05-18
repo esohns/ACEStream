@@ -123,7 +123,9 @@ class Stream_CameraML_DirectShow_Stream
   Stream_CameraML_DirectShow_Direct2D_Display_Module   Direct2DDisplay_;
   Stream_CameraML_DirectShow_Direct3D_Display_Module   Direct3DDisplay_;
   Stream_CameraML_DirectShow_Direct3D11_Display_Module Direct3D11Display_;
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   Stream_CameraML_DirectShow_Display_Module            DirectShowDisplay_;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 };
 
 class Stream_CameraML_MediaFoundation_Stream

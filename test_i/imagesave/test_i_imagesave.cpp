@@ -17,15 +17,23 @@
 *   Free Software Foundation, Inc.,                                       *
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
-#include "libavutil/pixfmt.h"
 #include "stdafx.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define INITGUID // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
 #include "mfapi.h"
-#undef NANOSECONDS
-#include "reftime.h"
 #endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (FFMPEG_SUPPORT)
+#ifdef __cplusplus
+extern "C"
+{
+#endif // __cplusplus
+#include "libavutil/pixfmt.h"
+#ifdef __cplusplus
+}
+#endif // __cplusplus
+#endif // FFMPEG_SUPPORT
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)

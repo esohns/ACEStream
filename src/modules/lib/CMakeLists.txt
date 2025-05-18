@@ -23,8 +23,7 @@ endif ()
 if (WIN32)
  if (${CMAKE_SYSTEM_VERSION} LESS 5.1)      # < Windows XP (see: <sdkddkver.h>)
  elseif (${CMAKE_SYSTEM_VERSION} LESS 6.0)  # < Windows Vista
-  option (VMR9_SUPPORT "prefer DirectShow Video Mixing Renderer 9 (VMR-9) over VMR-7"
-          OFF)
+  option (VMR9_SUPPORT "prefer DirectShow Video Mixing Renderer 9 (VMR-9) over VMR-7" OFF)
  else ()                                    # Some other Windows
  endif ()
 

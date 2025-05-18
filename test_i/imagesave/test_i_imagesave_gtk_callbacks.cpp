@@ -23,8 +23,6 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "strmif.h"
-#undef NANOSECONDS
-#include "reftime.h"
 #include "dvdmedia.h"
 #include "mferror.h"
 #undef GetObject

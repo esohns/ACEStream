@@ -406,8 +406,13 @@ next:
                             ACE_TEXT_ALWAYS_CHAR ("RGBA"));
     ACE_ASSERT (result_3 == MagickTrue);
 
-    data_p = MagickGetImageBlob (context_, // was: MagickWriteImageBlob
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+    data_p = MagickWriteImageBlob (context_,
+                                   &file_size_i);
+#else
+    data_p = MagickGetImageBlob (context_,
                                  &file_size_i);
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
     ACE_ASSERT (data_p);
 
 //#if defined (_DEBUG)

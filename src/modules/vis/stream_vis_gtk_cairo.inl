@@ -605,7 +605,7 @@ error:
                                                  resolution_s.width,
                                                  resolution_s.height,
 #endif // ACE_WIN32 || ACE_WIN64
-                                                 1.0);
+                                                 0); // 0: use window scale
       if (unlikely (!surface_))
       {
         ACE_DEBUG ((LM_ERROR,

@@ -23,8 +23,10 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "strmif.h"
-#undef NANOSECONDS
-#include "reftime.h"
+//#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
+//#undef NANOSECONDS
+//#include "reftime.h"
+//#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 #include "dvdmedia.h"
 #include "mferror.h"
 #undef GetObject
@@ -1005,7 +1007,7 @@ load_rates (IAMStreamConfig* IAMStreamConfig_in,
       Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       continue;
     } // end IF
-    frame_rates.insert (std::make_pair ((UNITS / frame_duration), 1));
+    frame_rates.insert (std::make_pair ((10000000 / frame_duration), 1));
     Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
   } // end WHILE
 
@@ -1663,7 +1665,7 @@ set_capture_format (struct Stream_AVSave_UI_CBData* CBData_in)
         ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
         video_info_header_p->dwBitRate =
           (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
-          (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+          (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
         directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.lSampleSize =
           video_info_header_p->bmiHeader.biSizeImage;
       } // end IF
@@ -1678,8 +1680,8 @@ set_capture_format (struct Stream_AVSave_UI_CBData* CBData_in)
           DIBSIZE (video_info_header_p->bmiHeader);
         ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
         video_info_header_p->dwBitRate =
-          (video_info_header_p->bmiHeader.biSizeImage * 8) *                   // bits / frame
-          (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+          (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
+          (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
 
         directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.lSampleSize =
           video_info_header_p->bmiHeader.biSizeImage;

@@ -44,10 +44,12 @@
 #include "stream_dev_target_wasapi.h"
 #include "stream_dev_target_wavout.h"
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 #include "stream_lib_directshow_asynch_source_filter.h"
-#include "stream_lib_directshow_source.h"
 #include "stream_lib_directshow_source_filter.h"
 #include "stream_lib_directshow_target.h"
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
+#include "stream_lib_directshow_source.h"
 
 #include "stream_lib_mediafoundation_mediasource.h"
 #include "stream_lib_mediafoundation_source.h"
@@ -798,6 +800,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                   
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Test_U_AudioEffect_DirectShow_Message,
                                                          struct Test_U_AudioEffect_DirectShow_FilterConfiguration,
                                                          struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Test_U_AudioEffect_DirectShowFilter_t;
@@ -823,6 +826,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,        
                               libacestream_default_lib_directshow_target_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_AudioEffect_DirectShow_Target);                           // writer type
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 typedef Stream_MediaFramework_DirectShow_Source_T<ACE_MT_SYNCH,
                                                   Common_TimePolicy_t,

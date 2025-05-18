@@ -42,9 +42,6 @@
 #include "amfilter.h"
 #include "source.h"
 
-//#undef NANOSECONDS
-//#include "streams.h"
-
 #include "ace/Global_Macros.h"
 #include "ace/Message_Queue.h"
 

@@ -373,14 +373,14 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (RIFF_list_p->cb)
                                            : RIFF_list_p->cb);
   value_i +=
-    (writer_p->lastIndex1FrameOffsetIndex_ ? (writer_p->lastIndex1FrameOffsetIndex_ * (sizeof (struct _riffchunk) + writer_p->videoFrameSize_))
-                                           : (writer_p->frameOffsets_.size ()       * (sizeof (struct _riffchunk) + writer_p->videoFrameSize_))); // see: #1568
+    (writer_p->lastIndex1FrameOffsetIndex_ ? (writer_p->lastIndex1FrameOffsetIndex_                     * (sizeof (struct _riffchunk) + writer_p->videoFrameSize_))
+                                           : (static_cast<ACE_UINT32> (writer_p->frameOffsets_.size ()) * (sizeof (struct _riffchunk) + writer_p->videoFrameSize_))); // see: #1568
   value_i +=
     (writer_p->lastIndex1AudioFrames_ ? writer_p->lastIndex1AudioFrames_ * sizeof (struct _riffchunk)
                                       : writer_p->audioFrames_ * sizeof (struct _riffchunk));
   value_i +=
-    (writer_p->lastIndex1AudioSamples_ ? writer_p->lastIndex1AudioSamples_ * writer_p->audioFrameSize_
-                                       : (writer_p->audioSamples_ * writer_p->audioFrameSize_));
+    (writer_p->lastIndex1AudioSamples_ ? static_cast<ACE_UINT32> (writer_p->lastIndex1AudioSamples_) * writer_p->audioFrameSize_
+                                       : static_cast<ACE_UINT32> (writer_p->audioSamples_)           * writer_p->audioFrameSize_);
   RIFF_list_p->cb =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);

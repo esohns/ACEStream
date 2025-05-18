@@ -25,7 +25,7 @@
 
 template <typename DataType>
 Test_I_Message_T<DataType>::Test_I_Message_T (Stream_SessionId_t sessionId_in,
-                                              unsigned int size_in)
+                                              size_t size_in)
  : inherited (sessionId_in,
               size_in)
  , mediaType_ (STREAM_MEDIATYPE_INVALID)

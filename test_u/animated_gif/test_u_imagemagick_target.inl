@@ -197,9 +197,15 @@ Test_U_ImageMagick_Target_T<ACE_SYNCH_USE,
   ACE_ASSERT (media_type_s.codecId == AV_CODEC_ID_NONE);
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-  MagickBooleanType result =
-    MagickSetFormat (context_, ACE_TEXT_ALWAYS_CHAR ("RGBA"));
+
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+  unsigned int result = 0;
+#else
+  MagickBooleanType result = MagickFalse;
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
+  result = MagickSetFormat (context_, ACE_TEXT_ALWAYS_CHAR ("RGBA"));
   ACE_ASSERT (result == MagickTrue);
+
   result = MagickSetSize (context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                           resolution_s.cx, resolution_s.cy);
@@ -275,8 +281,13 @@ Test_U_ImageMagick_Target_T<ACE_SYNCH_USE,
 
       //MagickBooleanType result = MagickSetImageDepth (context_, 8);
       //ACE_ASSERT (result == MagickTrue);
-      MagickBooleanType result =
-        MagickSetImageFormat (context_, ACE_TEXT_ALWAYS_CHAR ("GIF"));
+
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+      unsigned int result = 0;
+#else
+      MagickBooleanType result = MagickFalse;
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
+      result = MagickSetImageFormat (context_, ACE_TEXT_ALWAYS_CHAR ("GIF"));
       ACE_ASSERT (result == MagickTrue);
       result = MagickSetImageIterations (context_, 0); // loop forever
       ACE_ASSERT (result == MagickTrue);

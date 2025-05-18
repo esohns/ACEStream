@@ -81,7 +81,7 @@ class Stream_AVSave_Message_T
 
  public:
   Stream_AVSave_Message_T (Stream_SessionId_t, // session id
-                           unsigned int);      // size
+                           size_t);            // size
   virtual ~Stream_AVSave_Message_T ();
 
   // overrides from ACE_Message_Block

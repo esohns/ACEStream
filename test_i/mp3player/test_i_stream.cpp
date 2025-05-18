@@ -22,7 +22,6 @@
 #include "test_i_stream.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "mtype.h"
 #else
 #define ALSA_PCM_NEW_HW_PARAMS_API
 extern "C"

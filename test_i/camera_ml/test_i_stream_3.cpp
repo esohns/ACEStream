@@ -77,8 +77,10 @@ Stream_CameraML_DirectShow_Stream_3::Stream_CameraML_DirectShow_Stream_3 ()
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
  , Direct3D11Display_ (this,
                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_11_DEFAULT_NAME_STRING))
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
  , DirectShowDisplay_ (this,
                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraML_DirectShow_Stream_3::Stream_CameraML_DirectShow_Stream_3"));
 

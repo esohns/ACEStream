@@ -83,8 +83,10 @@ Stream_CameraML_DirectShow_Stream::Stream_CameraML_DirectShow_Stream ()
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
  , Direct3D11Display_ (this,
                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_11_DEFAULT_NAME_STRING))
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
  , DirectShowDisplay_ (this,
                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraML_DirectShow_Stream::Stream_CameraML_DirectShow_Stream"));
 
@@ -144,9 +146,13 @@ Stream_CameraML_DirectShow_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&Direct3D11Display_, NULL, 0);
       break;
     }
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
+    {
       layout_in->append (&DirectShowDisplay_, NULL, 0);
       break;
+    }
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
     default:
     {
       ACE_DEBUG ((LM_ERROR,

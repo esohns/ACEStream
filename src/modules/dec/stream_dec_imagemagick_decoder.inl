@@ -254,14 +254,19 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (media_type_s.codecId == AV_CODEC_ID_NONE);
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-  MagickBooleanType result = MagickSetFormat (context_, ACE_TEXT_ALWAYS_CHAR ("RGB"));
+
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+  unsigned int result = 0;
+#else
+  MagickBooleanType result = MagickFalse;
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
+  result = MagickSetFormat (context_, ACE_TEXT_ALWAYS_CHAR ("RGB"));
   ACE_ASSERT (result == MagickTrue);
   result = MagickSetSize (context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                           resolution_s.cx, resolution_s.cy);
 #else
-                          media_type_s.resolution.width,
-                          media_type_s.resolution.height);
+                          media_type_s.resolution.width, media_type_s.resolution.height);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result == MagickTrue);
 
@@ -286,10 +291,16 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
 //                                       ActivateAlphaChannel);
 //  ACE_ASSERT (result == MagickTrue);
 
-  data_p = MagickGetImageBlob (context_, // was: MagickWriteImageBlob
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+  data_p = MagickWriteImageBlob (context_,
+                                 &size_2);
+#else
+  data_p = MagickGetImageBlob (context_,
                                &size_2);
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
   ACE_ASSERT (data_p);
   ACE_ASSERT (size_i <= size_2);
+
   // *IMPORTANT NOTE*: crashes in release()...(needs MagickRelinquishMemory())
   message_p->base (reinterpret_cast<char*> (data_p),
                    size_2,

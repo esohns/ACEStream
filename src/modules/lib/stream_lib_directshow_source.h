@@ -21,11 +21,11 @@
 #ifndef STREAM_LIB_DIRECTSHOW_SOURCE_H
 #define STREAM_LIB_DIRECTSHOW_SOURCE_H
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
 #include "minwindef.h"
 #else
 #include "windef.h"
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
 #include "basetyps.h"
 #include "Unknwnbase.h"
 #include "strmif.h"

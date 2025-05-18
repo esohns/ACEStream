@@ -5,6 +5,9 @@ include (ffmpeg)
 include (ImageMagick)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
+if (WIN32)
+ include (DirectXBaseClasses)
+endif (WIN32)
 include (sox)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")

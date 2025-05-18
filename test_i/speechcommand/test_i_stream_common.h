@@ -302,7 +302,9 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
    , effect ()
    , effectOptions ()
    , filtersDescription ()
+#if defined (DEEPSPEECH_SUPPORT)
    , hotWords ()
+#endif // DEEPSPEECH_SUPPORT
    , manageSoX (false)
    , modelFile ()
    , mute (false)
@@ -334,8 +336,10 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
   std::string                                       effect;
   std::vector<std::string>                          effectOptions;
   std::string                                       filtersDescription;
+#if defined (DEEPSPEECH_SUPPORT)
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
-  bool                                              manageSoX;
+#endif // DEEPSPEECH_SUPPORT
+  bool manageSoX;
   std::string                                       modelFile;
   bool                                              mute;
   std::string                                       scorerFile;

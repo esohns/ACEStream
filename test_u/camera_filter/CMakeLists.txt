@@ -11,6 +11,11 @@ include (png)
 include (ffmpeg)
 include (ImageMagick)
 
+if (WIN32)
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
+ include (DirectXBaseClasses)
+endif (WIN32)
+
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev/scripts")
 include (libcamera)
 

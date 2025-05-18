@@ -240,6 +240,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
   } // end SWITCH
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   if ((inherited::configuration_->configuration_->capturer != STREAM_DEVICE_CAPTURER_DIRECTSHOW) &&
       (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) ||
        (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW)))
@@ -252,6 +253,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
   } // end IF
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
   has_directshow_source_b =
     (inherited::configuration_->configuration_->capturer != STREAM_DEVICE_CAPTURER_DIRECTSHOW) &&

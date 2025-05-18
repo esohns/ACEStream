@@ -18,6 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
+#include "mtype.h"
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
+
 #include "cmulex/cmu_lex.h"
 #include "usenglish/usenglish.h"
 
@@ -364,6 +368,7 @@ Stream_Decoder_FliteDecoder_T<ACE_SYNCH_USE,
       waveformatex_s.nAvgBytesPerSec =
         (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
       // waveformatex_s.cbSize = 0;
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
       HRESULT result = CreateAudioMediaType (&waveformatex_s,
                                              &media_type_2,
                                              TRUE); // set format ?
@@ -375,6 +380,7 @@ Stream_Decoder_FliteDecoder_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
       ACE_OS::memset (&media_type, 0, sizeof (MediaType));
 #else
       struct Stream_MediaFramework_ALSA_MediaType media_type_2;

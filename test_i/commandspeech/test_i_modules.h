@@ -43,9 +43,11 @@
 #include "stream_dev_target_wasapi.h"
 #include "stream_dev_target_wavout.h"
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 #include "stream_lib_directshow_asynch_source_filter.h"
-#include "stream_lib_directshow_source.h"
 #include "stream_lib_directshow_source_filter.h"
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
+#include "stream_lib_directshow_source.h"
 #include "stream_lib_directshow_target.h"
 
 #include "stream_lib_mediafoundation_mediasource.h"
@@ -264,6 +266,7 @@ typedef Stream_Decoder_SoXEffect_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Test_I_DirectShow_Message,
                                                          struct Stream_MediaFramework_DirectShow_FilterConfiguration,
                                                          struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Test_I_DirectShowFilter_t;
@@ -283,6 +286,7 @@ typedef Stream_MediaFramework_DirectShow_Target_T<Stream_TaskBaseSynch_T<ACE_MT_
                                                   struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
                                                   struct _AMMediaType,
                                                   Test_I_DirectShowFilter_t> Test_I_DirectShow_Target;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 typedef Stream_MediaFramework_DirectShow_Source_T<ACE_MT_SYNCH,
                                                   Common_TimePolicy_t,
                                                   struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration,
@@ -773,12 +777,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_MediaFoundation_SessionData, 
 
 //////////////////////////////////////////
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_DirectShow_SessionData,                                 // session data type
                               enum Stream_SessionMessageType,                                // session event type
                               struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration,           // module handler configuration type
                               libacestream_default_lib_directshow_target_module_name_string,
                               Stream_INotify_t,                                              // stream notification interface type
                               Test_I_DirectShow_Target);                                     // writer type
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_DirectShow_SessionData,                                 // session data type
                               enum Stream_SessionMessageType,                                // session event type
                               struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration,           // module handler configuration type

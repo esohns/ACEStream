@@ -75,8 +75,10 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT2D_DEFAULT_NAME_STRING))
  , Direct3DDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
  , DirectShowDisplay_ (this,
                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 #if defined (GLUT_SUPPORT)
  , OpenGLDisplay_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
@@ -537,15 +539,16 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&Direct3DDisplay_, NULL, 0);
       break;
     }
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
     {
       layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
       layout_in->append (&DirectShowDisplay_, NULL, 0);
       break;
     }
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 #if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
-      break;
 #endif // GLUT_SUPPORT
     default:
     {

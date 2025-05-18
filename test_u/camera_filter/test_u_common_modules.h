@@ -42,10 +42,10 @@
 #include "stream_dec_libav_converter.h"
 #endif // FFMPEG_SUPPORT
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 #include "stream_lib_directshow_asynch_source_filter.h"
 #include "stream_lib_directshow_source_filter.h"
-#endif // ACE_WIN32 || ACE_WIN64
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 #include "stream_misc_defines.h"
 #include "stream_misc_distributor.h"
@@ -283,6 +283,7 @@ struct Test_U_DirectShow_FilterConfiguration
   Stream_Module_t*                                                module; // handle
   struct Stream_MediaFramework_DirectShow_FilterPinConfiguration* pinConfiguration; // handle
 };
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Test_U_DirectShow_Message_t,
                                                          struct Test_U_DirectShow_FilterConfiguration,
                                                          struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Test_U_DirectShowFilter_t;
@@ -301,6 +302,7 @@ typedef Stream_Vis_Target_DirectShow_T<ACE_MT_SYNCH,
                                        struct Test_U_DirectShow_PinConfiguration,
                                        Test_U_DirectShowFilter_t,
                                        struct _AMMediaType> Test_U_DirectShow_Display;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 #if defined (GLUT_SUPPORT)
 typedef Stream_Visualization_OpenGL_GLUT_T<ACE_MT_SYNCH,
@@ -550,12 +552,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_CameraFilter_DirectShow_SessionData,       
                               Stream_INotify_t,                                                 // stream notification interface type
                               Test_U_DirectShow_Direct3D_Display);                 // writer type
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_CameraFilter_DirectShow_SessionData,                // session data type
-                              enum Stream_SessionMessageType,                   // session event type
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_CameraFilter_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                   // session event type
                               struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_directshow_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Test_U_DirectShow_Display);     // writer type
+                              Stream_INotify_t,                                                 // stream notification interface type
+                              Test_U_DirectShow_Display);                                       // writer type
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 #if defined (GLUT_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_CameraFilter_DirectShow_SessionData,       // session data type

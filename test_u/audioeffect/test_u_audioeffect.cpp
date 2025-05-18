@@ -20,7 +20,9 @@
 #include "stdafx.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 #include "mtype.h"
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
@@ -599,7 +601,9 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   Stream_MediaFramework_DirectShow_Graph_t graph_layout;
   Stream_MediaFramework_DirectShow_GraphConfiguration_t graph_configuration;
   IMediaFilter* media_filter_p = NULL;
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   Test_U_AudioEffect_DirectShowFilter_t* filter_p = NULL;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
   IBaseFilter* filter_2 = NULL;
   std::wstring filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L;
   struct tWAVEFORMATEX waveformatex_s;
@@ -624,6 +628,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
   //waveformatex_s.cbSize = 0;
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   result = CreateAudioMediaType (&waveformatex_s,
                                  &captureMediaType_out,
                                  TRUE);
@@ -634,6 +639,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
   if (!useDirectShowSource_in)
     goto continue_3;
@@ -670,6 +676,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     goto error;
   } // end IF
   ACE_ASSERT (IGraphBuilder_out);
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   ACE_NEW_NORETURN (filter_p,
                     Test_U_AudioEffect_DirectShowFilter_t ());
   if (!filter_p)
@@ -715,6 +722,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   } // end IF
   filter_2->Release (); filter_2 = NULL;
   graph_layout.push_back (filter_name);
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 continue_3:
   if (!useDirectShowSource_in)

@@ -142,10 +142,12 @@ Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
 //                    pixelContext_);
 //  ACE_ASSERT (result == MagickTrue);
 
-  //result =
-  //  MagickReadImageBlob (inherited::context_,
-  //                       reinterpret_cast<unsigned char*> (message_inout->rd_ptr ()),
-  //                       message_inout->length ());
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+  result =
+    MagickReadImageBlob (inherited::context_,
+                         reinterpret_cast<unsigned char*> (message_inout->rd_ptr ()),
+                         message_inout->length ());
+#else
   result =
     MagickImportImagePixels (inherited::context_,
                              0, 0,
@@ -157,6 +159,7 @@ Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
                              ACE_TEXT_ALWAYS_CHAR ("RGBA"), // *TODO*: make this configurable !
                              CharPixel,
                              message_inout->rd_ptr ());
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
   if (unlikely (result != MagickTrue))
   {
      ACE_DEBUG ((LM_ERROR,
@@ -168,11 +171,16 @@ Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
 
   message_inout->release (); message_inout = NULL;
 
-  //result =
-  //  MagickSetImageFormat (inherited::context_,
-  //                        ACE_TEXT_ALWAYS_CHAR ("RGBA")); // *TODO*: make this configurable !
-  //ACE_ASSERT (result == MagickTrue);
-
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+  result = MagickResizeImage (inherited::context_,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                              targetResolution_.cx, targetResolution_.cy,
+#else
+                              targetResolution_.width, targetResolution_.height,
+#endif // ACE_WIN32 || ACE_WIN64
+                              CubicFilter,
+                              1.0); // blur
+#else
   result =
 #if (MagickLibVersion >= 0x700)
     MagickResizeImage (inherited::context_,
@@ -192,6 +200,7 @@ Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
                        CubicFilter,
                        1.0); // do not blur
 #endif // MagickLibVersion >= 0x700
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
   ACE_ASSERT (result == MagickTrue);
 
   // *IMPORTANT NOTE*: "...Set the image depth to 8. If you are using the Q16
@@ -575,10 +584,12 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 //                    pixelContext_);
 //  ACE_ASSERT (result == MagickTrue);
 
-  //result =
-  //  MagickReadImageBlob (inherited::context_,
-  //                       reinterpret_cast<unsigned char*> (message_inout->rd_ptr ()),
-  //                       message_inout->length ());
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+  result =
+    MagickReadImageBlob (inherited::context_,
+                         reinterpret_cast<unsigned char*> (message_inout->rd_ptr ()),
+                         message_inout->length ());
+#else
   result =
     MagickImportImagePixels (inherited::context_,
                              0, 0,
@@ -590,6 +601,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
                              ACE_TEXT_ALWAYS_CHAR ("RGBA"), // *TODO*: make this configurable !
                              CharPixel,
                              message_inout->rd_ptr ());
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
   if (unlikely (result != MagickTrue))
   {
      ACE_DEBUG ((LM_ERROR,
@@ -601,11 +613,16 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 
   message_inout->release (); message_inout = NULL;
 
-  //result =
-  //  MagickSetImageFormat (inherited::context_,
-  //                        ACE_TEXT_ALWAYS_CHAR ("RGBA")); // *TODO*: make this configurable !
-  //ACE_ASSERT (result == MagickTrue);
-
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+  result = MagickResizeImage (inherited::context_,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                              targetResolution_.cx, targetResolution_.cy,
+#else
+                              targetResolution_.width, targetResolution_.height,
+#endif // ACE_WIN32 || ACE_WIN64
+                              CubicFilter,
+                              1.0); // blur
+#else
   result =
 #if (MagickLibVersion >= 0x700)
     MagickResizeImage (inherited::context_,
@@ -625,6 +642,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
                        CubicFilter,
                        1.0); // do not blur
 #endif // MagickLibVersion >= 0x700
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
   ACE_ASSERT (result == MagickTrue);
 
   // *IMPORTANT NOTE*: "...Set the image depth to 8. If you are using the Q16
