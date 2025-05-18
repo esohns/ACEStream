@@ -55,7 +55,7 @@ jobs:
    - name: Bootstrap vcpkg [Win32]
      if: ${{ matrix.os=='windows-latest' }}
      shell: pwsh
-     run: ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.bat
+     run: ${{ env.VCPKG_ROOT }}/bootstrap-vcpkg.bat
 
    - name: Add NuGet sources [Win32]
      if: ${{ matrix.os=='windows-latest' }}
