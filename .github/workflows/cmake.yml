@@ -12,6 +12,11 @@ env:
  # set vcpkg root/installed directories
  VCPKG_ROOT: C:/vcpkg
  VCPKG_INSTALLED_DIR: C:/vcpkg/installed
+ # vcpkg binary cache
+ USERNAME: esohns
+ VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
+ FEED_URL: https://nuget.pkg.github.com/esohns/index.json
+ VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/esohns/index.json,readwrite"
 
 jobs:
 
@@ -46,6 +51,26 @@ jobs:
      uses: ./.github/actions/install_deps
      with:
       os: ${{matrix.os}}
+
+   - name: Bootstrap vcpkg [Win32]
+     if: ${{ matrix.os=='windows-latest' }}
+     shell: pwsh
+     run: ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.bat
+
+   - name: Add NuGet sources [Win32]
+     if: ${{ matrix.os=='windows-latest' }}
+     shell: pwsh
+     run: |
+      .$(${{ env.VCPKG_EXE }} fetch nuget) `
+        sources add `
+        -Source "${{ env.FEED_URL }}" `
+        -StorePasswordInClearText `
+        -Name GitHubPackages `
+        -UserName "${{ env.USERNAME }}" `
+        -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
+      .$(${{ env.VCPKG_EXE }} fetch nuget) `
+        setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" `
+        -Source "${{ env.FEED_URL }}"
 
    - name: Install dependencies (packages) [Win32]
      if: ${{ matrix.os=='windows-latest' }}
