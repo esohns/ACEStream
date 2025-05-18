@@ -40,7 +40,12 @@ find_package (Common
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
 endif ()
-add_definitions (-DCOMMON_HAS_DLL)
+#add_definitions (-DCOMMON_HAS_DLL)
+
+if (FFMPEG_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                             $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
+endif (FFMPEG_SUPPORT)
 
 if (GUI_SUPPORT)
  if (CURSES_SUPPORT)
@@ -161,9 +166,6 @@ if (UNIX)
 endif (UNIX)
 target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/lib>)
-
-#get_target_property (debug ${PROJECT_NAME}_Test_U INTERFACE_INCLUDE_DIRECTORIES)
-#message (STATUS "${PROJECT_NAME}_Test_U INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
 
 if (GUI_SUPPORT)
  if (GTK_SUPPORT)

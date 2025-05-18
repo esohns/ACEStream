@@ -40,7 +40,12 @@ find_package (Common
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
 endif ()
-add_definitions (-DCOMMON_HAS_DLL)
+#add_definitions (-DCOMMON_HAS_DLL)
+
+if (FFMPEG_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                             $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
+endif (FFMPEG_SUPPORT)
 
 if (GUI_SUPPORT)
  if (CURSES_SUPPORT)
