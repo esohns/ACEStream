@@ -1,5 +1,12 @@
 include (Threads)
 
+if (VCPKG_USE)
+ include (ImageMagick)
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/gl/scripts")
+ include (glew)
+endif (VCPKG_USE)
+include (ffmpeg)
+
 include (ACE)
 
 option (BUILD_TEST_U "build test_u" OFF)
