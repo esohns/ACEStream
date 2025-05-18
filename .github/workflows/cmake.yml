@@ -14,7 +14,7 @@ env:
  VCPKG_INSTALLED_DIR: C:/vcpkg/installed
  # vcpkg binary cache
  USERNAME: esohns
- VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
+ VCPKG_EXE: C:/vcpkg/vcpkg.exe
  FEED_URL: https://nuget.pkg.github.com/esohns/index.json
  VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/esohns/index.json,readwrite"
 
