@@ -368,7 +368,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
   {
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
-      float current_bytes = 0.0F;
+      ACE_UINT64 current_bytes = 0;
 
       // sanity check(s)
       if (!sessionData_)

@@ -20,7 +20,6 @@
 #include "stdafx.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "mtype.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
@@ -572,7 +571,9 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   Stream_MediaFramework_DirectShow_Graph_t graph_layout;
   Stream_MediaFramework_DirectShow_GraphConfiguration_t graph_configuration;
   IMediaFilter* media_filter_p = NULL;
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   Test_I_DirectShowFilter_t* filter_p = NULL;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
   IBaseFilter* filter_2 = NULL;
   std::wstring filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L;
   struct tWAVEFORMATEX waveformatex_s;
@@ -608,14 +609,11 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   waveformatex_s.nAvgBytesPerSec =
     (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
   //waveformatex_s.cbSize = 0;
-  result = CreateAudioMediaType (&waveformatex_s,
-                                 &captureMediaType_out,
-                                 TRUE); // set format ?
-  if (unlikely (FAILED (result)))
+  if (unlikely (!Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (waveformatex_s,
+                                                                           captureMediaType_out)))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx(), aborting\n")));
     goto error;
   } // end IF
 
@@ -636,14 +634,11 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   waveformatex_s.nAvgBytesPerSec =
     (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
   // waveformatex_s.cbSize = 0;
-  result = CreateAudioMediaType (&waveformatex_s,
-                                 &targetMediaType_out,
-                                 TRUE); // set format ?
-  if (unlikely (FAILED (result)))
+  if (unlikely (!Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (waveformatex_s,
+                                                                           targetMediaType_out)))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx(), aborting\n")));
     goto error;
   } // end IF
 
@@ -682,6 +677,7 @@ continue_2:
     goto error;
   } // end IF
   ACE_ASSERT (IGraphBuilder_out);
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   ACE_NEW_NORETURN (filter_p,
                     Test_I_DirectShowFilter_t ());
   if (unlikely (!filter_p))
@@ -726,6 +722,7 @@ continue_2:
   } // end IF
   filter_2->Release (); filter_2 = NULL;
   graph_layout.push_back (filter_name);
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 continue_3:
   if (!useDirectShowSource_in)

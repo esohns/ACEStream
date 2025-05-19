@@ -447,8 +447,8 @@ Test_I_DirectShow_Stream::initialize (const CONFIGURATION_T& configuration_in)
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
   IAMGraphStreams* graph_streams_p = NULL;
-  REFERENCE_TIME max_latency_i =
-    MILLISECONDS_TO_100NS_UNITS (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS);
+  REFERENCE_TIME max_latency_i = Int32x32To64 (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS, 10000);
+    //MILLISECONDS_TO_100NS_UNITS (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS);
   bool use_framework_renderer_b = false;
   int render_device_id_i = -1;
   //bool has_directshow_source_filter_b = false;

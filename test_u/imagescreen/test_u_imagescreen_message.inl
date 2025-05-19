@@ -41,7 +41,7 @@
 
 template <typename SessionDataType>
 Stream_ImageScreen_Message_T<SessionDataType>::Stream_ImageScreen_Message_T (Stream_SessionId_t sessionId_in,
-                                                                             unsigned int size_in)
+                                                                             size_t size_in)
  : inherited (sessionId_in,
               size_in)
 {

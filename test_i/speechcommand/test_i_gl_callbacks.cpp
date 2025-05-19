@@ -800,7 +800,7 @@ glarea_resize_cb (GtkGLArea* GLArea_in,
 
 #if defined (GLU_SUPPORT)
   gluPerspective (TEST_I_UI_OPENGL_PERSPECTIVE_FOVY_D,
-                  allocation.width / (GLdouble)allocation.height,
+                  width_in / (GLdouble)height_in,
                   TEST_I_UI_OPENGL_PERSPECTIVE_ZNEAR_D,
                   TEST_I_UI_OPENGL_PERSPECTIVE_ZFAR_D); // Calculate The Aspect
                                                         // Ratio Of The Window

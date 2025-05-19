@@ -213,7 +213,13 @@ Test_U_ImageMagick_Target_T<ACE_SYNCH_USE,
                           media_type_s.resolution.width, media_type_s.resolution.height);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result == MagickTrue);
+
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+  // *NOTE*: see also: http://www.graphicsmagick.org/wand/magick_wand.html#magicksetdepth
+  result = MagickSetImageDepth (context_, 8); // *TODO*: does this work ?
+#else
   result = MagickSetDepth (context_, 8);
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
   ACE_ASSERT (result == MagickTrue);
 
   result =
