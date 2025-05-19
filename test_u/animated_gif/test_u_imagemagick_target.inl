@@ -210,8 +210,7 @@ Test_U_ImageMagick_Target_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                           resolution_s.cx, resolution_s.cy);
 #else
-                          media_type_s.resolution.width,
-                          media_type_s.resolution.height);
+                          media_type_s.resolution.width, media_type_s.resolution.height);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result == MagickTrue);
   result = MagickSetDepth (context_, 8);

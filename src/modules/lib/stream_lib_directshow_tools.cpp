@@ -3840,6 +3840,8 @@ Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (const struct tWAVEFORM
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
   else
     result = true;
+
+  goto continue_;
 #endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
   mediaType_inout.majortype = MEDIATYPE_Audio;

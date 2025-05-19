@@ -244,6 +244,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
   } // end SWITCH
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   if ((inherited::configuration_->configuration_->capturer != STREAM_DEVICE_CAPTURER_DIRECTSHOW) &&
       (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) ||
        (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW)))
@@ -256,6 +257,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
   } // end IF
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
   has_directshow_source_b =
     (inherited::configuration_->configuration_->capturer != STREAM_DEVICE_CAPTURER_DIRECTSHOW) &&
@@ -490,8 +492,8 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
   IAMGraphStreams* graph_streams_p = NULL;
-  REFERENCE_TIME max_latency_i =
-    MILLISECONDS_TO_100NS_UNITS (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS);
+  REFERENCE_TIME max_latency_i = Int32x32To64 (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS, 10000);
+    //MILLISECONDS_TO_100NS_UNITS (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS);
   bool use_framework_renderer_b = false;
   int render_device_id_i = -1;
   bool has_directshow_source_filter_b = false;
@@ -509,8 +511,8 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
     } // end IF
     ACE_ASSERT (!(*iterator).second.second->builder);
 
-    Test_U_MicVisualize_DirectShowFilter_t* filter_p = NULL;
-    IBaseFilter* filter_2 = NULL;
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
+    Test_U_MicVisualize_DirectShowFilter_t* filter_2 = NULL;
     std::wstring filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L;
 
     result_2 =
@@ -525,9 +527,9 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
       goto error;
     } // end IF
     ACE_ASSERT ((*iterator).second.second->builder);
-    ACE_NEW_NORETURN (filter_p,
+    ACE_NEW_NORETURN (filter_2,
                       Test_U_MicVisualize_DirectShowFilter_t ());
-    if (!filter_p)
+    if (!filter_2)
     {
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate memory, aborting\n")));
@@ -535,38 +537,40 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
     } // end IF
 
     ACE_ASSERT ((*iterator).second.second->filterConfiguration);
-    if (!filter_p->initialize (*(*iterator).second.second->filterConfiguration))
+    if (!filter_2->initialize (*(*iterator).second.second->filterConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Source_Filter_T::initialize(), aborting\n")));
-      delete filter_p; filter_p = NULL;
+      delete filter_2; filter_2 = NULL;
       goto error;
     } // end IF
-    result_2 = filter_p->NonDelegatingQueryInterface (IID_PPV_ARGS (&filter_2));
+    result_2 = filter_2->NonDelegatingQueryInterface (IID_PPV_ARGS (&filter_p));
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to NonDelegatingQueryInterface(IID_IBaseFilter): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
-      delete filter_p; filter_p = NULL;
+      delete filter_2; filter_2 = NULL;
       goto error;
     } // end IF
     // *WARNING*: invokes IBaseFilter::GetBuffer
     result_2 =
-      (*iterator).second.second->builder->AddFilter (filter_2,
+      (*iterator).second.second->builder->AddFilter (filter_p,
                                                      filter_name.c_str ());
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
-      filter_2->Release (); filter_2 = NULL;
-      delete filter_p; filter_p = NULL;
+      filter_p->Release (); filter_p = NULL;
+      delete filter_2; filter_2 = NULL;
       goto error;
     } // end IF
-    filter_2->Release (); filter_2 = NULL;
+    // *NOTE*: release one reference; filter should be "owned" by the graph now
+    // *TODO*: check that this is indeed the case !
+    filter_p->Release (); filter_p = NULL; filter_2 = NULL;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
   } // end IF
-  //ACE_ASSERT ((*iterator).second.second->builder);
 
   grab_samples_b =
     (inherited::configuration_->configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW) ||
@@ -581,15 +585,8 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
         //ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
         //Stream_MediaFramework_DirectSound_Tools::getBestFormat ((*iterator_3).second.second->deviceIdentifier.identifier._id,
         //                                                        waveformatex_s);
-        struct tWAVEFORMATEX* waveformatex_p =
-          Stream_MediaFramework_DirectShow_Tools::toWaveFormatEx (configuration_in.configuration_->format);
-        ACE_ASSERT (waveformatex_p);
-        result_2 = CreateAudioMediaType (//&waveformatex_s,
-                                          waveformatex_p,
-                                          &media_type_s,
-                                          TRUE);
-        ACE_ASSERT (SUCCEEDED (result_2));
-        CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+        Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format,
+                                                      media_type_s);
         break;
       }
       case STREAM_DEVICE_RENDERER_WASAPI:
@@ -600,11 +597,8 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
         ACE_ASSERT (waveformatex_p);
         struct tWAVEFORMATEX basic_wave_format_ex_s =
           Stream_MediaFramework_DirectSound_Tools::extensibleTo (*waveformatex_p);
-        CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
-        result_2 = CreateAudioMediaType (&basic_wave_format_ex_s,
-                                         &media_type_s,
-                                         TRUE);
-        ACE_ASSERT (SUCCEEDED (result_2));
+        Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (basic_wave_format_ex_s,
+                                                                  media_type_s);
         break;
       }
       case STREAM_DEVICE_RENDERER_DIRECTSHOW:
@@ -693,6 +687,7 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
                                                                PINDIR_OUTPUT,
                                                                0);
     ACE_ASSERT (pin_p);
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
     typename Test_U_MicVisualize_DirectShowFilter_t::OUTPUT_PIN_T* pin_2 =
       dynamic_cast<typename Test_U_MicVisualize_DirectShowFilter_t::OUTPUT_PIN_T*> (pin_p);
     ACE_ASSERT (pin_2);
@@ -706,7 +701,9 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
       filter_p->Release (); filter_p = NULL;
       goto error;
     } // end IF
-    pin_p->Release (); pin_p = NULL;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
+    pin_p->Release ();
+    pin_p = NULL;
     filter_p->Release (); filter_p = NULL;
   } // end IF
 

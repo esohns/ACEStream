@@ -348,15 +348,12 @@ continue_:
                     ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*audio_info_p, true).c_str ())));
         struct _AMMediaType media_type_2;
         ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
-        result_2 = CreateAudioMediaType (audio_info_2,
-                                         &media_type_2,
-                                         TRUE);
-        if (unlikely (FAILED (result_2)))
+        if (unlikely (!Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (*audio_info_2,
+                                                                                 media_type_2)))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to CreateAudioMediaType(): \"%s\", aborting\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx(), aborting\n"),
+                      inherited::mod_->name ()));
           device_p->Release (); device_p = NULL;
           CoTaskMemFree (audio_info_2); audio_info_2 = NULL;
           goto error;

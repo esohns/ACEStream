@@ -69,8 +69,10 @@ Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
  , direct3D11Display_ (this,
                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_11_DEFAULT_NAME_STRING))
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
  , directShowDisplay_ (this,
                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 #if (GTK_SUPPORT)
  , GTKPixbufDisplay_ (this,
                       ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
@@ -199,9 +201,11 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
         case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11:
           layout_in->append (&direct3D11Display_, branch_p, index_i);
           break;
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
         case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
           layout_in->append (&directShowDisplay_, branch_p, index_i);
           break;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
         default:
         {
           ACE_DEBUG ((LM_ERROR,

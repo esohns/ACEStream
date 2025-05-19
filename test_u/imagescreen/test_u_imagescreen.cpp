@@ -614,7 +614,10 @@ ACE_TMAIN (int argc_in,
   ACE_Profile_Timer process_profile;
   process_profile.start ();
 
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+#else
   MagickWandGenesis ();
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Common_Tools::initialize (true,   // COM ?
                             false); // RNG ?
@@ -795,7 +798,10 @@ clean:
                                  previous_signal_mask);
   Common_Log_Tools::finalize ();
   Common_Tools::finalize ();
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+#else
   MagickWandTerminus ();
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
 
   // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -126,7 +126,9 @@ class Test_U_DirectShow_Stream
   Test_U_DirectShow_GDI_Display_Module      GDIDisplay_;
   Test_U_DirectShow_Direct2D_Display_Module Direct2DDisplay_;
   Test_U_DirectShow_Direct3D_Display_Module Direct3DDisplay_;
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   Test_U_DirectShow_Display_Module          DirectShowDisplay_;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 };
 
 class Test_U_MediaFoundation_Stream

@@ -123,8 +123,10 @@ class Stream_CameraScreen_DirectShow_Stream
   Stream_CameraScreen_DirectShow_Direct3D_Display_Module    Direct3DDisplay_;
   Stream_CameraScreen_DirectShow_Direct3D_11_Display_Module Direct3D11Display_;
   Stream_CameraScreen_DirectShow_Direct3D_12_Display_Module Direct3D12Display_;
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   Stream_CameraScreen_DirectShow_Display_Module             DirectShowDisplay_;
-#if defined (GLUT_SUPPORT)
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
+#if defined(GLUT_SUPPORT)
   Stream_CameraScreen_DirectShow_OpenGL_Display_Module      OpenGLDisplay_;
 #endif // GLUT_SUPPORT
 };

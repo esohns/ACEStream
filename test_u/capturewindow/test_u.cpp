@@ -21,8 +21,8 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "amvideo.h"
-#undef NANOSECONDS
-#include "reftime.h"
+//#undef NANOSECONDS
+//#include "reftime.h"
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
@@ -362,10 +362,10 @@ do_initialize_directshow (HWND windowHandle_in,
   ////video_info_header_p->bmiHeader.biYPelsPerMeter;
   ////video_info_header_p->bmiHeader.biClrUsed;
   ////video_info_header_p->bmiHeader.biClrImportant;
-  video_info_header_p->AvgTimePerFrame = UNITS / 30;
+  video_info_header_p->AvgTimePerFrame = 10000000 / 30;
   video_info_header_p->dwBitRate =
-    (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
-    (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+    (video_info_header_p->bmiHeader.biSizeImage * 8) *                        // bits / frame
+    (1000000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
 
   outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
 

@@ -20,9 +20,6 @@
 #include "stdafx.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
-#include "mtype.h"
-#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
@@ -627,19 +624,13 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   waveformatex_s.nAvgBytesPerSec =
     (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
   //waveformatex_s.cbSize = 0;
-
-#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
-  result = CreateAudioMediaType (&waveformatex_s,
-                                 &captureMediaType_out,
-                                 TRUE);
-  if (FAILED (result))
+  if (!Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (waveformatex_s,
+                                                                 captureMediaType_out))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx(), aborting\n")));
     goto error;
   } // end IF
-#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
   if (!useDirectShowSource_in)
     goto continue_3;

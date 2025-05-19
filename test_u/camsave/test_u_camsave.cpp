@@ -589,8 +589,8 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
       video_info_header_p->AvgTimePerFrame =
         /*UNITS*/ 10000000 / STREAM_DEV_CAM_DEFAULT_CAPTURE_FRAME_RATE;
       video_info_header_p->dwBitRate =
-        (video_info_header_p->bmiHeader.biSizeImage * 8) *                    // bits / frame
-         (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+        (video_info_header_p->bmiHeader.biSizeImage * 8) *                                 // bits / frame
+         (/*UNITS*/ 10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
       goto continue_;
     }
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
@@ -677,8 +677,8 @@ continue_:
     ////video_info_header_p->bmiHeader.biClrImportant;
     ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
     video_info_header_p->dwBitRate =
-      (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
-      (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+      (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
+      (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
     saveFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
   else if (InlineIsEqualGUID (saveFormat_inout.formattype, FORMAT_VideoInfo2))
@@ -698,8 +698,8 @@ continue_:
     ////video_info_header_p->bmiHeader.biClrImportant;
     ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
     video_info_header_p->dwBitRate =
-      (video_info_header_p->bmiHeader.biSizeImage * 8) *                   // bits / frame
-      (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+      (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
+      (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
     saveFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
   else

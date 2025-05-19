@@ -656,8 +656,13 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   ACE_ASSERT (Common_Image_Tools::stringToCodecId (MagickGetImageFormat (inherited::context_)) == AV_CODEC_ID_NONE);
 #endif // ACE_WIN32 || ACE_WIN64
 
-  data_p = MagickGetImageBlob (inherited::context_, // was: MagickWriteImageBlob
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+  data_p = MagickWriteImageBlob (inherited::context_,
+                                 &size_i);
+#else
+  data_p = MagickGetImageBlob (inherited::context_,
                                &size_i);
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
   if (unlikely (!data_p))
   {
     ACE_DEBUG ((LM_ERROR,

@@ -21,13 +21,12 @@
 #ifndef TEST_U_CAMSAVE_STREAM_H
 #define TEST_U_CAMSAVE_STREAM_H
 
-#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
 #include "minwindef.h"
 #else
 #include "windef.h"
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
 #include "guiddef.h"
 #undef GetObject
 #include "mfidl.h"
@@ -117,7 +116,9 @@ class Stream_CamSave_DirectShow_Stream
 #if defined (GUI_SUPPORT)
   Stream_CamSave_DirectShow_Direct3DDisplay_Module   direct3DDisplay_;
   Stream_CamSave_DirectShow_Direct3D11Display_Module direct3D11Display_;
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   Stream_CamSave_DirectShow_DirectShowDisplay_Module directShowDisplay_;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 #if (GTK_SUPPORT)
   Stream_CamSave_DirectShow_GTKPixbufDisplay_Module  GTKPixbufDisplay_;
   Stream_CamSave_DirectShow_GTKCairoDisplay_Module   GTKCairoDisplay_;

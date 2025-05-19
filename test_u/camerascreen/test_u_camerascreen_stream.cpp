@@ -77,8 +77,10 @@ Stream_CameraScreen_DirectShow_Stream::Stream_CameraScreen_DirectShow_Stream ()
                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_11_DEFAULT_NAME_STRING))
  , Direct3D12Display_ (this,
                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_12_DEFAULT_NAME_STRING))
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
  , DirectShowDisplay_ (this,
                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
  , OpenGLDisplay_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
 {
@@ -150,11 +152,13 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&Direct3D12Display_, NULL, 0);
       break;
     }
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
     {
       layout_in->append (&DirectShowDisplay_, NULL, 0);
       break;
     }
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 #if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
     {
