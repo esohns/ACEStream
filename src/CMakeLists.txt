@@ -239,13 +239,11 @@ if (WIN32)
 # endif ()
 
  target_link_libraries (${PROJECT_NAME} ${ACE_LIBRARY})
-endif ()
-target_link_libraries (${PROJECT_NAME} Common)
-target_link_libraries (${PROJECT_NAME} ${PROJECT_NAME}_Miscellaneous)
+endif (WIN32)
 
-# add PCH
-#set_target_properties (${PROJECT_NAME} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${PROJECT_NAME})
+target_link_libraries (${PROJECT_NAME} Common)
+
+target_link_libraries (${PROJECT_NAME} ${PROJECT_NAME}_Miscellaneous)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}

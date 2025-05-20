@@ -3616,9 +3616,9 @@ idle_update_progress_cb (gpointer userData_in)
   ACE_Time_Value elapsed_time = now - data_p->timeStamp;
   data_p->timeStamp = now;
   unsigned long milliseconds_i = elapsed_time.msec ();
-  unsigned long delta_audio_frames =
+  ACE_UINT64 delta_audio_frames =
     data_p->statistic.audioFrames - data_p->lastStatistic.audioFrames;
-  unsigned long delta_video_frames =
+  ACE_UINT32 delta_video_frames =
     data_p->statistic.totalFrames - data_p->lastStatistic.totalFrames;
   data_p->lastStatistic = data_p->statistic;
   unsigned int audio_frames_per_second =

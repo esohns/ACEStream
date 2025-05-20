@@ -567,16 +567,16 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   waveformatex_s.nAvgBytesPerSec =
     (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
   //waveformatex_s.cbSize = 0;
-  result = CreateAudioMediaType (&waveformatex_s,
-                                 &audioCaptureFormat_inout,
-                                 TRUE);
-  if (FAILED (result))
+  if (!Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (waveformatex_s,
+                                                                 audioCaptureFormat_inout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx(), aborting\n")));
     goto error;
   } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("default audio capture format: %s\n"),
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (audioCaptureFormat_inout, true).c_str ())));
 
   if (!Stream_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder_out,
                                                          CLSID_VideoInputDeviceCategory,
@@ -587,7 +587,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     goto error;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("\"%s\": default capture format: %s\n"),
+              ACE_TEXT ("\"%s\": default video capture format: %s\n"),
               ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (deviceIdentifier_in.identifier._string).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (videoCaptureFormat_inout, true).c_str ())));
   media_type_p =
@@ -631,8 +631,8 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     ////video_info_header_p->bmiHeader.biClrImportant;
     ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
     video_info_header_p->dwBitRate =
-      (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
-      (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+      (video_info_header_p->bmiHeader.biSizeImage * 8) *                                // bits / frame
+      (/*UNITS*/ 10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
     outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
   else if (InlineIsEqualGUID (outputFormat_inout.formattype, FORMAT_VideoInfo2))
@@ -652,8 +652,8 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     ////video_info_header_p->bmiHeader.biClrImportant;
     ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
     video_info_header_p->dwBitRate =
-      (video_info_header_p->bmiHeader.biSizeImage * 8) *                   // bits / frame
-      (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+      (video_info_header_p->bmiHeader.biSizeImage * 8) *                                // bits / frame
+      (/*UNITS*/ 10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
     outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
   else
