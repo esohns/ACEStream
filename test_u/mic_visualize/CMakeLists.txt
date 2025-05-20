@@ -210,7 +210,7 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} PUBLIC strmiids.lib)
 
  #link_directories ("${DIRECTX_SDK_DIRECTORY}/Lib/x86")
- target_link_libraries (${EXECUTABLE} PUBLIC "$ENV{LIB_ROOT}/DXSDK/Lib/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}/dxguid.lib")
+# target_link_libraries (${EXECUTABLE} PUBLIC "$ENV{LIB_ROOT}/DXSDK/Lib/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}/dxguid.lib")
 
  if (GTKGL_SUPPORT)
   target_link_libraries (${EXECUTABLE} PUBLIC OpenGL32.lib)
