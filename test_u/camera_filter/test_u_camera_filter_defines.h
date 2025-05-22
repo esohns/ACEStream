@@ -206,4 +206,7 @@
 #define TEST_U_VERTEX_SHADER_45_FILENAME   "shader_45.vert"
 #define TEST_U_FRAGMENT_SHADER_45_FILENAME "shader_45.frag"
 
+#define TEST_U_VERTEX_SHADER_46_FILENAME   "shader_46.vert"
+#define TEST_U_FRAGMENT_SHADER_46_FILENAME "shader_46.frag"
+
 #endif
