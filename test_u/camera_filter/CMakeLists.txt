@@ -234,7 +234,9 @@ if (GLUT_SUPPORT)
       test_u_module_opengl_glut_45.cpp
       test_u_module_opengl_glut_45.h
       test_u_module_opengl_glut_46.cpp
-      test_u_module_opengl_glut_46.h)
+      test_u_module_opengl_glut_46.h
+      test_u_module_opengl_glut_47.cpp
+      test_u_module_opengl_glut_47.h)
 endif (GLUT_SUPPORT)
 
 if (JC_VORONOI_SUPPORT AND OLC_PGE_SUPPORT)
@@ -459,6 +461,8 @@ install (FILES
          "shader_45.vert"
          "shader_46.frag"
          "shader_46.vert"
+         "shader_47.frag"
+         "shader_47.vert"
          DESTINATION ${INSTALL_BIN_DIR}
          COMPONENT config)
 if (UNIX)
