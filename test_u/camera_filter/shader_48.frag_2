@@ -1,0 +1,43 @@
+#version 130
+
+uniform vec2 iResolution;
+uniform float iTime;
+uniform sampler2D iChannel0;
+
+const float LineRatio = 0.18;
+const float Hardness  = 0.5;
+const float Width     = 2.5;
+const float Mode      = 0.;
+const float Speed     = -0.01;
+
+const int 	nbSample  = 15; // Odd number only
+
+void
+main ()
+{
+  vec2	uv = gl_FragCoord.xy / iResolution.xy;
+
+  float	tex = texture(iChannel0, uv).g;
+  float width = Mode < .5 ? Width : 1. + tex;
+
+  vec2 p[nbSample];
+  for(int i = 0 ; i < nbSample ; ++i)
+  {
+    float v = texture(iChannel0, uv.xy + vec2(float(i - (nbSample / 2 - 1)) / iResolution.x, 0.)).r;
+    v += fract(iTime * Speed);
+    p[i] = vec2(floor(v * LineRatio * iResolution.x),fract(v * LineRatio * iResolution.x)); 
+  }
+
+  float c = 0.;
+  for(int i = 0 ; i < nbSample - 1 ; ++i)
+  {
+    if( p[i+1].x - p[i].x > 0.5 )
+    {
+      float v = float(i - (nbSample / 2 - 1)) + (1. - p[i].y) / ((1. - p[i].y) + p[i + 1].y);
+      c += max(0.,1.-abs(v/width));
+    }
+  }
+  
+  vec3 color = mix(vec3(0),vec3(tex),pow(c,Hardness));
+  gl_FragColor = vec4(color,1);
+}
