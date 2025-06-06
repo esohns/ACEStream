@@ -1428,6 +1428,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         case TEST_U_MODE_GLUT_47:
         case TEST_U_MODE_GLUT_48:
         case TEST_U_MODE_GLUT_49:
+        case TEST_U_MODE_GLUT_50:
           directshow_modulehandler_configuration_2.flipImage = true;
           break;
         default:

@@ -240,7 +240,9 @@ if (GLUT_SUPPORT)
       test_u_module_opengl_glut_48.cpp
       test_u_module_opengl_glut_48.h
       test_u_module_opengl_glut_49.cpp
-      test_u_module_opengl_glut_49.h)
+      test_u_module_opengl_glut_49.h
+      test_u_module_opengl_glut_50.cpp
+      test_u_module_opengl_glut_50.h)
 endif (GLUT_SUPPORT)
 
 if (JC_VORONOI_SUPPORT AND OLC_PGE_SUPPORT)
@@ -476,6 +478,8 @@ install (FILES
          "shader_49.frag_4"
          "shader_49.frag_5"
          "shader_49.vert"
+         "shader_50.frag"
+         "shader_50.vert"
          DESTINATION ${INSTALL_BIN_DIR}
          COMPONENT config)
 if (UNIX)
