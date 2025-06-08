@@ -97,7 +97,7 @@ if (FAAD_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${faad_LIBRARIES})
 endif (FAAD_SUPPORT)
 if (MPG123_SUPPORT)
- target_link_libraries (${EXECUTABLE} PUBLIC ${MPG123_LIBRARY})
+ target_link_libraries (${EXECUTABLE} PUBLIC ${MPG123_LIBRARIES})
 endif (MPG123_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
