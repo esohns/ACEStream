@@ -224,7 +224,7 @@ Stream_MediaFramework_DirectShow_MessageBase_T<MessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_MessageBase_T::GetActualDataLength"));
 
-  return inherited::length ();
+  return static_cast<long> (inherited::length ());
 }
 
 template <typename MessageType,
@@ -687,7 +687,7 @@ Stream_MediaFramework_DirectShow_DataMessageBase_T<DataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_DataMessageBase_T::GetActualDataLength"));
 
-  return inherited::length ();
+  return static_cast<long> (inherited::length ());
 }
 
 template <typename DataType,
