@@ -466,7 +466,7 @@ template <typename DataType,
 Stream_MediaFramework_DirectShow_DataMessageBase_T<DataType,
                                                    MessageType,
                                                    CommandType>::Stream_MediaFramework_DirectShow_DataMessageBase_T (Stream_SessionId_t sessionId_in,
-                                                                                                                     unsigned int requestedSize_in)
+                                                                                                                     size_t requestedSize_in)
  : inherited (sessionId_in,
               requestedSize_in)
  , timeStamp_ (0.0)

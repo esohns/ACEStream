@@ -59,7 +59,7 @@ class CClassFactory
 // Function pointer for creating COM objects. (Used by the class factory.)
 typedef HRESULT (*CreateInstanceFn)(IUnknown*, REFIID, void**);
 
-// Structure to associate CLSID with object creation function.
+// Structure to associate CLSID with object creation function
 struct ClassFactoryData
 {
   const GUID*      pclsid;
@@ -67,15 +67,15 @@ struct ClassFactoryData
 };
 
 // ClassFactory:
-// Implements a class factory for COM objects.
+// Implements a class factory for COM objects
 class ClassFactory
  : public IClassFactory
 {
  private:
-  volatile long        m_refCount;     // Reference count.
+  volatile long        m_refCount;     // Reference count
   static volatile long m_serverLocks;  // Number of server locks
 
-  CreateInstanceFn     m_pfnCreation;  // Function to create an instance of the object.
+  CreateInstanceFn     m_pfnCreation;  // Function to create an instance of the object
 
  public:
   ClassFactory (CreateInstanceFn pfnCreation)
@@ -95,8 +95,7 @@ class ClassFactory
     if (uCount == 0)
       delete this;
 
-    // Return the temporary variable, not the member
-    // variable, for thread safety.
+    // Return the temporary variable, not the member variable, for thread safety
     return uCount;
   }
   STDMETHODIMP QueryInterface (REFIID riid, void **ppv)
@@ -137,7 +136,7 @@ class ClassFactory
 
 // BaseObjects
 // All COM objects that are implemented in the server (DLL) must derive from BaseObject
-// so that the server is not unlocked while objects are still active.
+// so that the server is not unlocked while objects are still active
 class BaseObject
 {
  public:
@@ -152,11 +151,11 @@ class BaseObject
 };
 
 // RefCountedObject
-// You can use this when implementing IUnknown or any object that uses reference counting.
+// You can use this when implementing IUnknown or any object that uses reference counting
 class RefCountedObject
 {
  protected:
-  volatile long   m_refCount;
+  volatile long m_refCount;
 
  public:
   RefCountedObject ()
