@@ -40,6 +40,7 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
 
  message (STATUS "ACENetwork_DIR: \"${ACENetwork_DIR}\"")
+ message (STATUS "BUILD_PATH_SUFFIX: \"${BUILD_PATH_SUFFIX}\"")
  string (REGEX MATCHALL "/" SLASHES ${BUILD_PATH_SUFFIX})
  set (ACENetwork_ROOT "${ACENetwork_DIR}")
  foreach (SLASH SLASHES)
