@@ -1,3 +1,6 @@
+# configure C/C++ exceptions
+include (SetCppExceptions)
+
 include (Threads)
 
 if (VCPKG_USE)
