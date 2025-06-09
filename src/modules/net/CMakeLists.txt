@@ -44,9 +44,9 @@ elseif (WIN32)
  string (REGEX MATCHALL "/" SLASHES ${BUILD_PATH_SUFFIX})
  message (STATUS "SLASHES: \"${SLASHES}\"")
  set (ACENetwork_ROOT "${ACENetwork_DIR}")
- foreach (SLASH SLASHES)
+ foreach (SLASH IN LISTS SLASHES)
   string (APPEND ACENetwork_ROOT "/..")
- endforeach (SLASH SLASHES)
+ endforeach ()
  string (APPEND ACENetwork_ROOT "/..") # *TODO*: this currently assumes in-tree builds...
  message (STATUS "ACENetwork_ROOT: \"${ACENetwork_ROOT}\"")
 
