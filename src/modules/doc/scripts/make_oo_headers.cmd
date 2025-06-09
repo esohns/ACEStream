@@ -43,8 +43,9 @@ if NOT exist "%OO_SDK_HOME%" (
  goto Failed
 )
 if NOT exist "%UNO_PATH%" (
- echo invalid directory UNO_PATH ^(was: "%UNO_PATH%"^)^, exiting
- goto Failed
+ echo invalid directory UNO_PATH ^(was: "%UNO_PATH%"^)^, continuing
+ set UNO_PATH=%OO_SDK_HOME%\..\program
+@rem goto Failed
 )
 
 @rem step1: copy sal3.dll, salhelper3msc.dll, unoiddlo.dll, uwinapi.dll and
@@ -81,12 +82,12 @@ if NOT exist "%SERVICES_RDB%" (
  echo invalid .rdb file ^(was: "%SERVICES_RDB%"^)^, exiting
  goto Failed
 )
-set OOAPI_RDB=%OO_SDK_HOME%\..\program\types\offapi.rdb
+set OOAPI_RDB=%UNO_PATH%\types\offapi.rdb
 if NOT exist "%OOAPI_RDB%" (
  echo invalid .rdb file ^(was: "%OOAPI_RDB%"^)^, exiting
  goto Failed
 )
-set OOVBAAPI_RDB=%OO_SDK_HOME%\..\program\types\oovbaapi.rdb
+set OOVBAAPI_RDB=%UNO_PATH%\types\oovbaapi.rdb
 if NOT exist "%OOVBAAPI_RDB%" (
  echo invalid .rdb file ^(was: "%OOVBAAPI_RDB%"^)^, exiting
  goto Failed
