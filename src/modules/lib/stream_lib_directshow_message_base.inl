@@ -21,7 +21,6 @@
 #include <limits>
 
 #include "ace/Assert.h"
-#include "ace/config-lite.h"
 #include "ace/Log_Msg.h"
 #include "ace/OS_Memory.h"
 
@@ -118,7 +117,7 @@ Stream_MediaFramework_DirectShow_MessageBase_T<MessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_MessageBase_T::GetSize"));
 
-  return inherited::capacity ();
+  return static_cast<long> (inherited::capacity ());
 }
 
 template <typename MessageType,
@@ -365,6 +364,8 @@ Stream_MediaFramework_DirectShow_MessageBase_T<MessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_MessageBase_T::AddRef"));
 
+  // *NOTE*: this may leak memory, because the return value of the next call is
+  //         never released(); check carefully
   ACE_Message_Block::duplicate ();
 
   return inherited::reference_count ();
@@ -565,7 +566,7 @@ Stream_MediaFramework_DirectShow_DataMessageBase_T<DataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_DataMessageBase_T::GetSize"));
 
-  return inherited::capacity ();
+  return static_cast<long> (inherited::capacity ());
 }
 
 template <typename DataType,
@@ -844,6 +845,8 @@ Stream_MediaFramework_DirectShow_DataMessageBase_T<DataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_DataMessageBase_T::AddRef"));
 
+  // *NOTE*: this may leak memory, because the return value of the next call is
+  //         never released(); check carefully
   ACE_Message_Block::duplicate ();
 
   return inherited::reference_count ();
