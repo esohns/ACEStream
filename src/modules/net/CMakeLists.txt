@@ -5,7 +5,6 @@ add_library (${PROJECT_NAME}_Network STATIC "")
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
-#message (STATUS "BUILD_PATH_SUFFIX: ${BUILD_PATH_SUFFIX}")
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
@@ -40,12 +39,21 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
 
+ message (STATUS "ACENetwork_DIR: \"${ACENetwork_DIR}\"")
+ string (REGEX MATCHALL "/" SLASHES ${BUILD_PATH_SUFFIX})
+ set (ACENetwork_ROOT "${ACENetwork_DIR}")
+ foreach (SLASH SLASHES)
+  string (APPEND ACENetwork_ROOT "/..")
+ endforeach (SLASH SLASHES)
+ string (APPEND ACENetwork_ROOT "/..") # *TODO*: this currently assumes in-tree builds...
+ message (STATUS "ACENetwork_ROOT: \"${ACENetwork_ROOT}\"")
+
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/${BUILD_PATH_SUFFIX}>)
+                             $<BUILD_INTERFACE:${ACENetwork_DIR}>)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
+                             $<BUILD_INTERFACE:${ACENetwork_ROOT}/src>)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src/client_server>)
+                             $<BUILD_INTERFACE:${ACENetwork_ROOT}/src/client_server>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Network PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../../..>)
