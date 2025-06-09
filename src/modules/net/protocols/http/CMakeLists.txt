@@ -23,9 +23,9 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../Common/src/timer>)
 
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../ACENetwork/src>)
+                             $<BUILD_INTERFACE:${ACENetwork_ROOT}/src>)
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../ACENetwork/src/protocol/http>)
+                             $<BUILD_INTERFACE:${ACENetwork_ROOT}/src/protocol/http>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../../../../..>)

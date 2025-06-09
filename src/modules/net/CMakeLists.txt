@@ -39,16 +39,16 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
 
- message (STATUS "ACENetwork_DIR: \"${ACENetwork_DIR}\"")
- message (STATUS "BUILD_PATH_SUFFIX: \"${BUILD_PATH_SUFFIX}\"")
+ #message (STATUS "ACENetwork_DIR: \"${ACENetwork_DIR}\"")
+ #message (STATUS "BUILD_PATH_SUFFIX: \"${BUILD_PATH_SUFFIX}\"")
  string (REGEX MATCHALL "/" SLASHES ${BUILD_PATH_SUFFIX})
- message (STATUS "SLASHES: \"${SLASHES}\"")
+ #message (STATUS "SLASHES: \"${SLASHES}\"")
  set (ACENetwork_ROOT "${ACENetwork_DIR}")
  foreach (SLASH IN LISTS SLASHES)
   string (APPEND ACENetwork_ROOT "/..")
  endforeach ()
  string (APPEND ACENetwork_ROOT "/..") # *TODO*: this currently assumes in-tree builds...
- message (STATUS "ACENetwork_ROOT: \"${ACENetwork_ROOT}\"")
+# message (STATUS "ACENetwork_ROOT: \"${ACENetwork_ROOT}\"")
 
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
                              $<BUILD_INTERFACE:${ACENetwork_DIR}>)
