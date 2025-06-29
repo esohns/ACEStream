@@ -834,8 +834,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
                                 std::numeric_limits<int>::max ());
 
   bool activate_source_b = true, activate_display_b = true;
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -999,8 +999,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.audioStream);
   ACE_ASSERT (cbdata_r.videoStream);
   bool finished_b = false;
@@ -1023,8 +1023,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.audioStream);
   ACE_ASSERT (cbdata_r.videoStream);
 
@@ -1143,8 +1143,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   ACE_ASSERT (application_);
 
   // --> user pressed play/pause/stop
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1308,7 +1308,7 @@ continue_:
   ACE_Thread_ID thread_id_2;
   bool result =
     Test_I_Tools::spawn<struct Stream_AVSave_UI_ThreadData,
-                        Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T> (ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_THREAD_NAME),
+                        Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T> (ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_THREAD_NAME),
                                                                               ::stream_processing_thread,
                                                                               COMMON_EVENT_REACTOR_THREAD_GROUP_ID + 1,
                                                                               cbdata_r,
@@ -1348,8 +1348,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.videoStream);
 
   cbdata_r.videoStream->control (STREAM_CONTROL_STEP_2);
@@ -1380,8 +1380,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1487,8 +1487,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1504,8 +1504,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1581,8 +1581,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1650,8 +1650,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1703,8 +1703,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1799,8 +1799,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (cbdata_r.configuration->videoStreamConfiguration.configuration_->renderer).c_str ()));
@@ -1872,8 +1872,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (cbdata_r.configuration->videoStreamConfiguration.configuration_->renderer).c_str ()));
@@ -1963,8 +1963,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (cbdata_r.configuration->videoStreamConfiguration.configuration_->renderer).c_str ()));
@@ -2132,8 +2132,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 
   // step1: make sure the stream has stopped
   Stream_IStreamControlBase* stream_p = NULL, *stream_2 = NULL;
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   stream_p = cbdata_r.audioStream;
   stream_2 = cbdata_r.videoStream;
   ACE_ASSERT (stream_p && stream_2);
