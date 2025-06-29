@@ -104,8 +104,6 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_FAAD_T::initialize"));
 
-  int result = -1;
-
   if (inherited::isInitialized_)
   {
     if (likely (context_))

@@ -109,8 +109,8 @@ Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
   inherited::button_report->Show (false);
 #endif // _DEBUG
   bool activate_source = true;
-  typename InterfaceType::CBDATA_T& cb_data_r =
-    const_cast<typename InterfaceType::CBDATA_T&> (application_->getR_2 ());
+  typename InterfaceType::CALLBACKDATA_T& cb_data_r =
+    const_cast<typename InterfaceType::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
   typename StreamType::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -231,8 +231,8 @@ Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  typename InterfaceType::CBDATA_T& cb_data_r =
-    const_cast<typename InterfaceType::CBDATA_T&> (application_->getR_2 ());
+  typename InterfaceType::CALLBACKDATA_T& cb_data_r =
+    const_cast<typename InterfaceType::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.stream);
 
   if (cb_data_r.stream->isRunning ())
@@ -252,8 +252,8 @@ Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  typename InterfaceType::CBDATA_T& cb_data_r =
-    const_cast<typename InterfaceType::CBDATA_T&> (application_->getR_2 ());
+  typename InterfaceType::CALLBACKDATA_T& cb_data_r =
+    const_cast<typename InterfaceType::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.stream);
 }
 
@@ -283,8 +283,8 @@ Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  typename InterfaceType::CBDATA_T& cb_data_r =
-    const_cast<typename InterfaceType::CBDATA_T&> (application_->getR_2 ());
+  typename InterfaceType::CALLBACKDATA_T& cb_data_r =
+    const_cast<typename InterfaceType::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.stream);
 
   cb_data_r.stream->control (STREAM_CONTROL_STEP_2);
@@ -324,8 +324,8 @@ Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  typename InterfaceType::CBDATA_T& cb_data_r =
-    const_cast<typename InterfaceType::CBDATA_T&> (application_->getR_2 ());
+  typename InterfaceType::CALLBACKDATA_T& cb_data_r =
+    const_cast<typename InterfaceType::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
 #if defined (ACE_WIN64) || defined (ACE_WIN32)
   ACE_ASSERT (false);
@@ -502,8 +502,8 @@ Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  typename InterfaceType::CBDATA_T& cb_data_r =
-    const_cast<typename InterfaceType::CBDATA_T&> (application_->getR_2 ());
+  typename InterfaceType::CALLBACKDATA_T& cb_data_r =
+    const_cast<typename InterfaceType::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
 #if defined (ACE_WIN64) || defined (ACE_WIN32)
   ACE_ASSERT (false);
@@ -542,8 +542,8 @@ Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
 
   // step1: make sure the stream has stopped
   StreamType* stream_p = NULL;
-  typename InterfaceType::CBDATA_T& cb_data_r =
-    const_cast<typename InterfaceType::CBDATA_T&> (application_->getR_2 ());
+  typename InterfaceType::CALLBACKDATA_T& cb_data_r =
+    const_cast<typename InterfaceType::CALLBACKDATA_T&> (application_->getR_2 ());
   stream_p = cb_data_r.stream;
   ACE_ASSERT (stream_p);
   const enum Stream_StateMachine_ControlState& status_r =
@@ -647,8 +647,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
                               std::numeric_limits<int>::max ());
 
   bool activate_source_b = true, activate_display_b = true;
-  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
   Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -808,8 +808,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.stream);
   bool finished_b = false;
 
@@ -831,8 +831,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.stream);
 
   switch (event_in.GetKeyCode ())
@@ -935,8 +935,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   ACE_ASSERT (application_);
 
   // --> user pressed play/pause/stop
-  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
   Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1172,7 +1172,7 @@ continue_2:
   ACE_Thread_ID thread_id_2;
   bool result =
     Test_U_Tools::spawn<struct Stream_CamSave_UI_ThreadData,
-                        Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T> (ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_THREAD_NAME),
+                        Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T> (ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_THREAD_NAME),
                                                                                       ::stream_processing_thread,
                                                                                       COMMON_EVENT_REACTOR_THREAD_GROUP_ID + 1,
                                                                                       cb_data_r,
@@ -1213,8 +1213,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.stream);
 
   cb_data_r.stream->control (STREAM_CONTROL_STEP_2);
@@ -1248,8 +1248,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
   Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1334,8 +1334,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
   Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1426,8 +1426,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
   Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1483,8 +1483,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
   Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1556,8 +1556,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
   Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1619,8 +1619,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
   Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1731,8 +1731,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
   Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cb_data_r.configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D));
@@ -1820,8 +1820,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
   Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cb_data_r.configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D));
@@ -1930,8 +1930,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
   Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cb_data_r.configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D));
@@ -2094,8 +2094,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
 
   // step1: make sure the stream has stopped
   Stream_CamSave_DirectShow_Stream* stream_p = NULL;
-  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   stream_p = cb_data_r.stream;
   ACE_ASSERT (stream_p);
   const enum Stream_StateMachine_ControlState& status_r =
@@ -2185,8 +2185,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   button_report->Show (false);
 #endif // _DEBUG
   bool activate_source = true;
-  Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
   Stream_CamSave_MediaFoundation_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -2251,8 +2251,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.stream);
 
   if (cb_data_r.stream->isRunning ())
@@ -2269,8 +2269,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.stream);
 }
 
@@ -2330,8 +2330,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.configuration);
   ACE_ASSERT (cb_data_r.stream);
   Stream_CamSave_MediaFoundation_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
@@ -2589,8 +2589,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
 
   // step1: make sure the stream has stopped
   Stream_CamSave_MediaFoundation_Stream* stream_p = NULL;
-  Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
-    const_cast<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CALLBACKDATA_T& cb_data_r =
+    const_cast<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   stream_p = cb_data_r.stream;
   ACE_ASSERT (stream_p);
   const enum Stream_StateMachine_ControlState& status_r =

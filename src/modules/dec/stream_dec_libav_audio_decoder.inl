@@ -735,15 +735,16 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (frame_);
   ACE_ASSERT (frameSize_);
 
+retry:
   int result = avcodec_send_packet (context_,
                                     &packet_in);
   if (unlikely (result))
   { // *NOTE*: most likely cause: some spurious AAC decoding error
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", retrying\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-    return false;
+    goto retry;
   } // end IF
 
   // pixel format/resolution may have changed
