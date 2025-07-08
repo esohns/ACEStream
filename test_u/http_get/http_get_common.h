@@ -21,11 +21,9 @@
 #ifndef HTTP_GET_COMMON_H
 #define HTTP_GET_COMMON_H
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
 #include "ace/Synch_Traits.h"
 
@@ -34,13 +32,11 @@
 
 #include "common_parser_common.h"
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -52,11 +48,9 @@
 #include "http_get_stream_common.h"
 
 #include "test_u_common.h"
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_u_gtk_common.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
 // forward declarations
 class HTTPGet_Message;
@@ -82,26 +76,18 @@ struct HTTPGet_SignalHandlerConfiguration
 };
 
 struct HTTPGet_Configuration
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  : Test_U_GTK_Configuration
 #else
  : Test_U_Configuration
 #endif // GTK_USE
-#else
- : Test_U_Configuration
-#endif // GUI_SUPPORT
 {
   HTTPGet_Configuration ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    : Test_U_GTK_Configuration ()
 #else
    : Test_U_Configuration ()
 #endif // GTK_USE
-#else
-   : Test_U_Configuration ()
-#endif // GUI_SUPPORT
    , allocatorConfiguration ()
    , signalHandlerConfiguration ()
    , connectionConfigurations ()
@@ -123,7 +109,6 @@ struct HTTPGet_Configuration
 
 //////////////////////////////////////////
 
-#if defined (GUI_SUPPORT)
 struct HTTPGet_ProgressData
 #if defined (GTK_USE)
  : Test_U_GTK_ProgressData
@@ -191,6 +176,5 @@ struct HTTPGet_UI_ThreadData
 
   struct HTTPGet_UI_CBData* CBData;
 };
-#endif // GTK_SUPPORT
 
 #endif

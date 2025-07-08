@@ -25,10 +25,8 @@
 #include <map>
 #include <string>
 
-#if defined(GUI_SUPPORT)
-#if defined(GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#endif // GTK_USE
 #endif // GTK_SUPPORT
 
 #include "ace/Singleton.h"

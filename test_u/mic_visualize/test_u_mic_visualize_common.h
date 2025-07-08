@@ -51,7 +51,6 @@ extern "C"
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
 #if defined (GTKGL_SUPPORT)
 #if defined (GLEW_SUPPORT)
 #include "GL/glew.h"
@@ -62,9 +61,7 @@ extern "C"
 #include "GL/gl.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GTKGL_SUPPORT
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
 #if defined (GTKGL_SUPPORT)
@@ -84,7 +81,6 @@ extern "C"
 #endif // GTK_CHECK_VERSION (3,0,0)
 #endif // GTKGL_SUPPORT
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
@@ -101,13 +97,11 @@ extern "C"
 #include "common_gl_camera.h"
 #include "common_gl_shader.h"
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_gl_common.h"
 #include "common_ui_gtk_manager_common.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -138,19 +132,15 @@ extern "C"
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "test_u_common.h"
 #include "test_u_defines.h"
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "test_u_gtk_common.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "test_u_mic_visualize_defines.h"
 
@@ -362,7 +352,6 @@ struct Test_U_MicVisualize_ModuleHandlerConfiguration
    , manageSoX (false)
 #endif // SOX_SUPPORT
    , mute (false)
-#if defined (GUI_SUPPORT)
    , spectrumAnalyzerConfiguration (NULL)
 #if defined (GTKGL_SUPPORT)
    , OpenGLTextureId (0)
@@ -375,7 +364,6 @@ struct Test_U_MicVisualize_ModuleHandlerConfiguration
 #if defined (GTK_SUPPORT)
    , window (NULL)
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   {}
 
   unsigned int                                              bufferSize; // statistic analysis
@@ -388,7 +376,6 @@ struct Test_U_MicVisualize_ModuleHandlerConfiguration
   bool                                                      manageSoX;
 #endif // SOX_SUPPORT
   bool                                                      mute;
-#if defined (GUI_SUPPORT)
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
 #if defined (GTKGL_SUPPORT)
   GLuint                                                    OpenGLTextureId;
@@ -401,7 +388,6 @@ struct Test_U_MicVisualize_ModuleHandlerConfiguration
 #if defined (GTK_SUPPORT)
   GdkWindow*                                                window;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //extern const char stream_name_string_[];
@@ -633,26 +619,18 @@ struct Test_U_MicVisualize_SignalHandlerConfiguration
 };
 
 struct Test_U_MicVisualize_Configuration
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  : Test_U_GTK_Configuration
 #else
  : Test_U_Configuration
 #endif // GTK_USE
-#else
- : Test_U_Configuration
-#endif // GUI_SUPPORT
 {
   Test_U_MicVisualize_Configuration ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    : Test_U_GTK_Configuration ()
 #else
    : Test_U_Configuration ()
 #endif // GTK_USE
-#else
-   : Test_U_Configuration ()
-#endif // GUI_SUPPORT
    , delayConfiguration ()
    , generatorConfiguration ()
    , signalHandlerConfiguration ()
@@ -798,7 +776,6 @@ struct Test_U_GLUT_CBData
 };
 #endif // GLUT_SUPPORT
 
-#if defined (GUI_SUPPORT)
 struct Test_U_MicVisualize_ProgressData
  : Test_U_UI_ProgressData
 {
@@ -968,5 +945,4 @@ struct Test_U_MicVisualize_ThreadData
   struct Test_U_MicVisualize_UI_CBData* CBData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
 #endif

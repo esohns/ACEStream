@@ -67,13 +67,11 @@
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
 
-#if defined (GUI_SUPPORT)
 #include "common_ui_tools.h"
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
@@ -99,11 +97,9 @@
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "test_i_gtk_callbacks.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #include "test_i_session_message.h"
 #include "test_i_speechcommand_common.h"
 #include "test_i_speechcommand_defines.h"
@@ -164,7 +160,6 @@ do_printUsage (const std::string& programName_in)
             << model_file
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -183,7 +178,6 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> default}")
             << std::endl;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -240,12 +234,10 @@ do_processArguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
                      double& gain_out,
                      std::string& modelFile_out,
-#if defined (GUI_SUPPORT)
                      std::string& UIFile_out,
 #if defined (GTK_SUPPORT)
                      std::string& UICSSFile_out,
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
                      bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      enum Stream_MediaFramework_Type& mediaFramework_out,
@@ -284,14 +276,12 @@ do_processArguments (int argc_in,
   modelFile_out = configuration_path;
   modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
-#if defined (GUI_SUPPORT)
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
 #if defined (GTK_SUPPORT)
   UICSSFile_out.clear ();
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -311,14 +301,12 @@ do_processArguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("c:d:e:f:lo::s:tuv");
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("g::");
 #endif // GTK_SUPPORT || WXWIDGETS_SUPPORT
 #if defined (GTK_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("i::");
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("mxy");
 #endif // ACE_WIN32 || ACE_WIN64
@@ -376,7 +364,6 @@ do_processArguments (int argc_in,
         modelFile_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
       case 'g':
       {
@@ -406,7 +393,6 @@ do_processArguments (int argc_in,
         break;
       }
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
       case 'l':
       {
         logToFile_out = true;
@@ -824,11 +810,11 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
   HRESULT result = E_FAIL;
   struct tWAVEFORMATEX waveformatex_s;
   ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
 #else
   IMFMediaSource* media_source_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   IMFTopology* topology_p = NULL;
   TOPOID sample_grabber_id = 0, renderer_id = 0;
   IMFAttributes* attributes_p = NULL;
@@ -1027,15 +1013,15 @@ continue_3:
   ACE_ASSERT (SUCCEEDED (result));
   //result_2 = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
   //ACE_ASSERT (SUCCEEDED (result_2));
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   result = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
   ACE_ASSERT (SUCCEEDED (result));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   if (unlikely (session_out))
   {
     session_out->Release (); session_out = NULL;
   } // end IF
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateMediaSession (attributes_p,
                                  &session_out);
   if (unlikely (FAILED (result)))
@@ -1045,11 +1031,11 @@ continue_3:
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   ACE_ASSERT (session_out);
   attributes_p->Release (); attributes_p = NULL;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (unlikely (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                            session_out,
                                                                            false,  // is partial ?
@@ -1060,7 +1046,7 @@ continue_3:
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   topology_p->Release (); topology_p = NULL;
 
 continue_4:
@@ -1154,9 +1140,7 @@ do_work (const std::string& scorerFile_in,
 #endif // ACE_WIN32 || ACE_WIN64
          double gain_in,
          const std::string& modelFile_in,
-#if defined (GUI_SUPPORT)
          const std::string& UIDefinitionFile_in,
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1168,14 +1152,12 @@ do_work (const std::string& scorerFile_in,
          bool useFrameworkSource_in,
          bool useFrameworkRenderer_in,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Test_I_DirectShow_UI_CBData& directShowCBData_in,
          struct Test_I_MediaFoundation_UI_CBData& mediaFoundationCBData_in,
 #else
          struct Test_I_ALSA_UI_CBData& CBData_in,
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Test_I_DirectShow_Configuration& directShowConfiguration_in,
          struct Test_I_MediaFoundation_Configuration& mediaFoundationConfiguration_in,
@@ -1189,9 +1171,7 @@ do_work (const std::string& scorerFile_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
-#if defined (GUI_SUPPORT)
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration spectrumanalyzer_configuration;
-#endif // GUI_SUPPORT
   struct Stream_AllocatorConfiguration allocator_configuration;
   struct Stream_AllocatorConfiguration* allocator_configuration_p = NULL;
   Common_TimerConfiguration timer_configuration;
@@ -1284,18 +1264,14 @@ do_work (const std::string& scorerFile_in,
   istream_2 = &stream_2_r;
 
   ACE_Time_Value one_second (1, 0);
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-#if defined (GTKGL_SUPPORT)
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-#endif // GTKGL_SUPPORT
   int result_2 = -1;
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
+#endif // GTK_USE
   //  const Stream_Module_t* module_p = NULL;
   //  Test_I_IDispatch_t* idispatch_p = NULL;
   struct Stream_ModuleConfiguration module_configuration;
@@ -1306,45 +1282,33 @@ do_work (const std::string& scorerFile_in,
 
   struct Stream_Input_ModuleHandlerConfiguration modulehandler_configuration_i; // input-
   struct Stream_Configuration stream_configuration_2; // input-
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_DirectShow_EventHandler_t directshow_ui_event_handler (
-#if defined (GUI_SUPPORT)
                                                                 (UIDefinitionFile_in.empty () ? NULL : &directShowCBData_in)
-#endif // GUI_SUPPORT
                                                                 );
   Test_I_DirectShow_MessageHandler_Module directshow_event_handler (istream_p,
                                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_InputHandler_t directshow_input_handler (
-#if defined (GUI_SUPPORT)
                                                   (UIDefinitionFile_in.empty () ? NULL : &directShowCBData_in)
-#endif // GUI_SUPPORT
                                                  );
   Test_I_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (
-#if defined (GUI_SUPPORT)
                                                                           (UIDefinitionFile_in.empty () ? NULL : &mediaFoundationCBData_in)
-#endif // GUI_SUPPORT
                                                                           );
   Test_I_MediaFoundation_MessageHandler_Module mediafoundation_event_handler (istream_p,
                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_InputHandler_t mediafoundation_input_handler (
-#if defined (GUI_SUPPORT)
                                                        (UIDefinitionFile_in.empty () ? NULL : &mediaFoundationCBData_in)
-#endif // GUI_SUPPORT
                                                       );
   Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
 #else
   Test_I_ALSA_EventHandler_t event_handler (
-#if defined (GUI_SUPPORT)
                                             (UIDefinitionFile_in.empty () ? NULL : &CBData_in)
-#endif // GUI_SUPPORT
                                            );
   Test_I_ALSA_MessageHandler_Module event_handler_module (istream_p,
                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_InputHandler_t input_handler (
-#if defined (GUI_SUPPORT)
                                        (UIDefinitionFile_in.empty () ? NULL : &CBData_in)
-#endif // GUI_SUPPORT
                                       );
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Test_I_ALSA_StreamConfiguration stream_configuration;
@@ -1385,10 +1349,8 @@ do_work (const std::string& scorerFile_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-#if defined (GUI_SUPPORT)
       directshow_modulehandler_configuration.spectrumAnalyzerConfiguration =
         &spectrumanalyzer_configuration;
-#endif // GUI_SUPPORT
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
       directshow_modulehandler_configuration.scorerFile =
@@ -1475,7 +1437,6 @@ do_work (const std::string& scorerFile_in,
         &directshow_message_allocator;
       directshow_modulehandler_configuration.mute = mute_in;
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
       directshow_modulehandler_configuration.OpenGLInstructions =
@@ -1484,7 +1445,6 @@ do_work (const std::string& scorerFile_in,
         &state_r.lock;
 #endif // GTKGL_SUPPORT
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
       //directshow_modulehandler_configuration.printProgressDot =
       //  UIDefinitionFile_in.empty ();
@@ -1567,10 +1527,8 @@ do_work (const std::string& scorerFile_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-#if defined (GUI_SUPPORT)
       mediafoundation_modulehandler_configuration.spectrumAnalyzerConfiguration =
         &spectrumanalyzer_configuration;
-#endif // GUI_SUPPORT
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
       mediafoundation_modulehandler_configuration.scorerFile =
@@ -1654,7 +1612,6 @@ do_work (const std::string& scorerFile_in,
         &mediaFoundationConfiguration_in.mediaFoundationConfiguration;
       mediafoundation_modulehandler_configuration.mute = mute_in;
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
       mediafoundation_modulehandler_configuration.OpenGLInstructions =
@@ -1663,7 +1620,6 @@ do_work (const std::string& scorerFile_in,
         &state_r.lock;
 #endif // GTKGL_SUPPORT
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
       //mediafoundation_modulehandler_configuration.printProgressDot =
       //  UIDefinitionFile_in.empty ();
@@ -1754,10 +1710,8 @@ do_work (const std::string& scorerFile_in,
     }
   } // end SWITCH
 #else
-#if defined (GUI_SUPPORT)
   modulehandler_configuration.spectrumAnalyzerConfiguration =
     &spectrumanalyzer_configuration;
-#endif // GUI_SUPPORT
   modulehandler_configuration.allocatorConfiguration =
     allocator_configuration_p;
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
@@ -1790,7 +1744,6 @@ do_work (const std::string& scorerFile_in,
   modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;
   modulehandler_configuration.messageAllocator = &message_allocator;
   modulehandler_configuration.mute = mute_in;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
   modulehandler_configuration.OpenGLInstructions =
@@ -1798,7 +1751,6 @@ do_work (const std::string& scorerFile_in,
   modulehandler_configuration.OpenGLInstructionsLock = &state_r.lock;
 #endif // GTKGL_SUPPORT
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   //modulehandler_configuration.printProgressDot = UIDefinitionFile_in.empty ();
   modulehandler_configuration.statisticReportingInterval =
     ACE_Time_Value (statisticReportingInterval_in, 0);
@@ -2126,15 +2078,14 @@ do_work (const std::string& scorerFile_in,
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
   // step1a: start ui event loop ?
   if (!UIDefinitionFile_in.empty ())
   {
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
     ACE_ASSERT (gtk_manager_p);
     Common_UI_GTK_State_t& state_r =
       const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     switch (mediaFramework_in)
     {
@@ -2204,7 +2155,6 @@ do_work (const std::string& scorerFile_in,
   } // end IF
   else
   {
-#endif // GUI_SUPPORT
     // pre-initialize processing stream
     if (unlikely (!input_manager_p->start ()))
     {
@@ -2257,9 +2207,7 @@ do_work (const std::string& scorerFile_in,
     istream_control_p->wait (true,   // wait for thread(s) ?
                              false,  // wait for upstream ?
                              false); // wait for downstream ?
-#if defined (GUI_SUPPORT)
   } // end ELSE
-#endif // GUI_SUPPORT
 
   // step3: clean up
   input_manager_p->stop (true,   // wait ?
@@ -2341,11 +2289,9 @@ error:
   stream_2_r.remove (&input_handler_module,
                      true,   // lock ?
                      false); // reset ?
-#if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty () && itask_p)
     itask_p->stop (true,  // wait ?
                    true); // high priority ?
-#endif // GUI_SUPPORT
   if (timer_manager_p)
     timer_manager_p->stop ();
   Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
@@ -2452,14 +2398,12 @@ ACE_TMAIN (int argc_in,
   std::string model_file = path;
   model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
-#if defined (GUI_SUPPORT)
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
 #if defined (GTK_SUPPORT)
   std::string UI_CSS_file;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
@@ -2496,18 +2440,13 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_Configuration directshow_configuration;
   struct Test_I_MediaFoundation_Configuration mediafoundation_configuration;
-#if defined (GUI_SUPPORT)
   struct Test_I_DirectShow_UI_CBData directshow_ui_cb_data;
   struct Test_I_MediaFoundation_UI_CBData mediafoundation_ui_cb_data;
-#endif // GUI_SUPPORT
 #else
   struct Test_I_ALSA_Configuration configuration;
-#if defined (GUI_SUPPORT)
   struct Test_I_ALSA_UI_CBData ui_cb_data;
-#endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined(GUI_SUPPORT)
 #if defined(GTK_SUPPORT)
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
 #if defined(GTKGL_SUPPORT)
@@ -2519,7 +2458,6 @@ ACE_TMAIN (int argc_in,
   Common_UI_GTK_State_t* state_p = NULL;
 #endif // GTK_SUPPORT
   struct Test_I_UI_CBData* cb_data_base_p = NULL;
-#endif // GUI_SUPPORT
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -2532,12 +2470,10 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
                             gain_d,
                             model_file,
-#if defined (GUI_SUPPORT)
                             UI_definition_file,
 #if defined (GTK_SUPPORT)
                             UI_CSS_file,
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
                             log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             media_framework_e,
@@ -2566,7 +2502,6 @@ ACE_TMAIN (int argc_in,
   if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
-#if defined (GUI_SUPPORT)
   if (!Common_File_Tools::isReadable (scorer_file)
       || !Common_File_Tools::isReadable (model_file)
       || (!UI_definition_file.empty () &&
@@ -2576,7 +2511,6 @@ ACE_TMAIN (int argc_in,
           !Common_File_Tools::isReadable (UI_CSS_file))
 #endif // GTK_SUPPORT
       )
-#endif // GUI_SUPPORT
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -2585,12 +2519,8 @@ ACE_TMAIN (int argc_in,
     goto error;
   } // end IF
 
-#if defined (GUI_SUPPORT)
   Common_UI_Tools::initialize ();
 #if defined (GTK_SUPPORT)
-#if defined (GTKGL_SUPPORT)
-#else
-#endif // GTKGL_SUPPORT
   gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -2615,7 +2545,7 @@ ACE_TMAIN (int argc_in,
       directshow_configuration.GTKConfiguration.eventHooks.initHook =
         idle_initialize_UI_cb;
       directshow_configuration.GTKConfiguration.definition = &gtk_ui_definition;
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
       if (!UI_CSS_file.empty ())
         directshow_configuration.GTKConfiguration.CSSProviders[UI_CSS_file] =
           NULL;
@@ -2643,7 +2573,7 @@ ACE_TMAIN (int argc_in,
         idle_initialize_UI_cb;
       mediafoundation_configuration.GTKConfiguration.definition =
         &gtk_ui_definition;
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
       if (!UI_CSS_file.empty ())
         mediafoundation_configuration.GTKConfiguration.CSSProviders[UI_CSS_file] =
           NULL;
@@ -2677,22 +2607,19 @@ ACE_TMAIN (int argc_in,
   configuration.GTKConfiguration.eventHooks.initHook =
     idle_initialize_UI_cb;
   configuration.GTKConfiguration.definition = &gtk_ui_definition;
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
   if (!UI_CSS_file.empty ())
     configuration.GTKConfiguration.CSSProviders[UI_CSS_file] = NULL;
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
   gtk_configuration_p = &configuration.GTKConfiguration;
 #endif // GTK_SUPPORT
   cb_data_base_p = &ui_cb_data;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (cb_data_base_p);
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   cb_data_base_p->UIState = state_p;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
   // step1d: initialize logging and/or tracing
   if (unlikely (!logger.initialize (&state_p->logQueue,
@@ -2766,7 +2693,6 @@ ACE_TMAIN (int argc_in,
     goto error;
   } // end IF
 
-#if defined (GUI_SUPPORT)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
 #if defined (GTK_SUPPORT)
   ACE_ASSERT (gtk_manager_p);
@@ -2779,7 +2705,6 @@ ACE_TMAIN (int argc_in,
     goto error;
   } // end IF
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
   timer.start ();
   // step2: do actual work
@@ -2791,9 +2716,7 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
            gain_d,
            model_file,
-#if defined (GUI_SUPPORT)
            UI_definition_file,
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2805,14 +2728,12 @@ ACE_TMAIN (int argc_in,
            use_framework_source,
            use_framework_renderer,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_ui_cb_data,
            mediafoundation_ui_cb_data,
 #else
            ui_cb_data,
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_configuration,
            mediafoundation_configuration,
@@ -2851,7 +2772,6 @@ ACE_TMAIN (int argc_in,
   user_time.set (elapsed_rusage.ru_utime);
   system_time.set (elapsed_rusage.ru_stime);
 
-  // debug info
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
@@ -2889,7 +2809,7 @@ ACE_TMAIN (int argc_in,
                                  previous_signal_mask);
   Common_Log_Tools::finalize ();
   Common_Tools::finalize ();
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *PORTABILITY*: on Windows, finalize ACE...
   result = ACE::fini ();
   if (unlikely (result == -1))

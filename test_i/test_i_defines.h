@@ -38,7 +38,6 @@
 
 //---------------------------------------
 
-#if defined (GUI_SUPPORT)
 #define TEST_I_UI_CSS_FILE                             "test_i.css"
 #if defined (GTK_USE)
 #if defined (GTK3_USE)
@@ -58,6 +57,5 @@
 #define TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME       "dialog_main"
 #define TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME "wxDialog"
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
 
 #endif

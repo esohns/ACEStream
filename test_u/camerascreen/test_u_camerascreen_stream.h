@@ -202,11 +202,9 @@ class Stream_CameraScreen_MediaFoundation_Stream
   //Stream_CameraScreen_MediaFoundation_Direct3DDisplay_Module direct3DDisplay_;
   Stream_CameraScreen_MediaFoundation_Display_Module         display_;
   //Stream_CameraScreen_MediaFoundation_DisplayNull_Module     mediaFoundationDisplayNull_;
-//#if defined (GUI_SUPPORT)
 //#if defined (GTK_USE)
 //  Stream_CameraScreen_MediaFoundation_GTKCairoDisplay_Module            GTKCairoDisplay_;
 //#endif // GTK_USE
-//#endif // GUI_SUPPORT
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   // media session

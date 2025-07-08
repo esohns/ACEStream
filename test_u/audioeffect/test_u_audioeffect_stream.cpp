@@ -360,7 +360,6 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   {
     if (add_renderer_branch_b)
       ++index_i;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
@@ -377,7 +376,6 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   } // end IF
 
   if (add_save_branch_b)
@@ -1293,7 +1291,6 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
       module_p = NULL;
     } // end IF
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_MediaFoundation_StatisticAnalysis_Module (this,
@@ -1310,7 +1307,6 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
     switch (inherited::configuration_->configuration_->renderer)
     {
@@ -2300,7 +2296,6 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_Vis_SpectrumAnalyzer_Module (this,
@@ -2309,7 +2304,6 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   } // end IF
 
   delete_out = true;

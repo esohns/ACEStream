@@ -186,7 +186,7 @@ class Stream_Vis_Target_MediaFoundation_T
   IMFPresentationDescriptor* presentationDescriptor_;
   long                       referenceCount_;
   //IMFStreamSink*             streamSink_;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   //IMFVideoDisplayControl2*   videoDisplayControl_;
 #else
   //IMFVideoDisplayControl*    videoDisplayControl_;

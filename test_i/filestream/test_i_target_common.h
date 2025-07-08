@@ -24,19 +24,15 @@
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
 #include "common_isubscribe.h"
 
@@ -50,11 +46,9 @@
 #include "net_ilistener.h"
 
 #include "test_i_configuration.h"
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_gtk_common.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
 #include "test_i_connection_manager_common.h"
 #include "test_i_filestream_defines.h"
@@ -182,26 +176,18 @@ struct Test_I_Target_StreamConfiguration
 };
 
 struct Test_I_Target_Configuration
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  : Test_I_GTK_Configuration
 #else
  : Test_I_Configuration
 #endif // GTK_USE
-#else
- : Test_I_Configuration
-#endif // GUI_SUPPORT
 {
   Test_I_Target_Configuration ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    : Test_I_GTK_Configuration ()
 #else
    : Test_I_Configuration ()
 #endif // GTK_USE
-#else
-   : Test_I_Configuration ()
-#endif // GUI_SUPPORT
    , connectionConfigurations ()
    , handle (ACE_INVALID_HANDLE)
    //, listener (NULL)
@@ -230,7 +216,6 @@ typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubsc
 
 //////////////////////////////////////////
 
-#if defined (GUI_SUPPORT)
 //struct Test_I_Target_GTK_ProgressData
 // : Test_I_GTK_ProgressData
 //{
@@ -262,6 +247,5 @@ struct Test_I_Target_UI_CBData
   struct Test_I_Target_Configuration* configuration;
   Test_I_Target_Subscribers_t         subscribers;
 };
-#endif // GUI_SUPPORT
 
 #endif

@@ -19,18 +19,15 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#include <iostream>
+#include <string>
+
+#if defined (GTK_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "gdk/gdkwin32.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #include "gtk/gtk.h"
-#elif defined (WXWIDGETS_USE)
-#endif
-#endif // GUI_SUPPORT
-
-#include <iostream>
-#include <string>
+#endif // GTK_SUPPORT
 
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -59,17 +56,16 @@
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
 
-#if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
 #include "common_ui_tools.h"
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "common_ui_wxwidgets_application.h"
 #include "common_ui_wxwidgets_tools.h"
-#endif
-#endif // GUI_SUPPORT
+#endif // WXWIDGETS_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
@@ -88,27 +84,24 @@
 
 #include "test_i_smtp_send_defines.h"
 #include "test_i_smtp_send_eventhandler.h"
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_smtp_send_gtk_callbacks.h"
-#elif defined (WXWIDGETS_USE)
-#include "test_u_smtp_send_ui.h"
-#endif
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
+//#include "test_u_smtp_send_ui.h"
+#endif // WXWIDGETS_SUPPORT
 #include "test_i_smtp_send_common_modules.h"
 #include "test_i_smtp_send_signalhandler.h"
 #include "test_i_smtp_send_stream.h"
 #include "test_i_smtp_send_stream_common.h"
 
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("SMTPSend_Stream");
-#if defined (GUI_SUPPORT)
-#if defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_SUPPORT)
 const char toplevel_widget_classname_string_[] =
-  ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME);
+  ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME);
 const char toplevel_widget_name_string_[] =
-  ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME);
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
+  ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME);
+#endif // WXWIDGETS_SUPPORT
 
 void
 do_printUsage (const std::string& programName_in)
@@ -135,7 +128,6 @@ do_printUsage (const std::string& programName_in)
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : source address")
             << std::endl;
-#if defined (GUI_SUPPORT)
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
@@ -143,7 +135,6 @@ do_printUsage (const std::string& programName_in)
             << UI_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
             << std::endl;
-#endif // GUI_SUPPORT
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-h [STRING] : server host")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-i [VALUE]  : server port")
@@ -183,9 +174,7 @@ do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
                      std::string& destinationAddress_out,
                      std::string& sourceAddress_out,
-#if defined (GUI_SUPPORT)
                      std::string& UIFile_out,
-#endif // GUI_SUPPORT
                      ACE_INET_Addr& address_out,
                      std::string& hostName_out,
                      bool& logToFile_out,
@@ -212,11 +201,9 @@ do_processArguments (int argc_in,
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-#if defined (GUI_SUPPORT)
   UIFile_out = path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
-#endif // GUI_SUPPORT
   address_out.set (0,
                    ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST),
                    AF_INET);
@@ -233,9 +220,7 @@ do_processArguments (int argc_in,
 #endif // _DEBUG
 
   std::string option_string = ACE_TEXT_ALWAYS_CHAR ("d:f:h:i:lm:p:rs:tu:v");
-#if defined (GUI_SUPPORT)
   option_string += ACE_TEXT_ALWAYS_CHAR ("g::");
-#endif // GUI_SUPPORT
 #if defined (_DEBUG)
   option_string += ACE_TEXT_ALWAYS_CHAR ("z");
 #endif // _DEBUG
@@ -265,7 +250,6 @@ do_processArguments (int argc_in,
           ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         break;
       }
-#if defined (GUI_SUPPORT)
       case 'g':
       {
         ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
@@ -275,7 +259,6 @@ do_processArguments (int argc_in,
           UIFile_out.clear ();
         break;
       }
-#endif // GUI_SUPPORT
       case 'h':
       {
         hostName_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
@@ -430,13 +413,11 @@ do_initializeSignals (ACE_Sig_Set& signals_out,
 
 void
 do_work (
-#if defined (GUI_SUPPORT)
          const std::string& UIDefinitionFilename_in,
          struct Stream_SMTPSend_UI_CBData& CBData_in,
 #if defined (WXWIDGETS_USE)
          Common_UI_wxWidgets_IApplicationBase_t* iapplication_in,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
          bool useReactor_in,
          unsigned int statisticReportingInterval_in,
          struct Stream_SMTPSend_Configuration& configuration_in,
@@ -447,7 +428,6 @@ do_work (
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -459,7 +439,6 @@ do_work (
     state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   // ********************** module configuration data **************************
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
@@ -476,13 +455,11 @@ do_work (
   struct Stream_SMTPSend_ModuleHandlerConfiguration modulehandler_configuration;
   struct Stream_SMTPSend_ModuleHandlerConfiguration modulehandler_configuration_2;
   Stream_SMTPSend_EventHandler_t ui_event_handler (
-#if defined (GUI_SUPPORT)
                                                    &CBData_in
 #if defined (GTK_USE)
 #elif defined (WXWIDGETS_USE)
                                                    ,iapplication_in
 #endif
-#endif // GUI_SUPPORT
                                                    );
 
   Stream_SMTPSend_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
@@ -544,16 +521,14 @@ do_work (
                                               modulehandler_configuration_2,
                                               stream_configuration_2);
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   int result = -1;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   // retrieve external address
   ACE_INET_Addr interface_address, gateway_address;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   struct _GUID interface_identifier =
     Net_Common_Tools::getDefaultInterface_2 (NET_LINKLAYER_802_3 | NET_LINKLAYER_802_11 | NET_LINKLAYER_PPP);
 #else
@@ -565,7 +540,7 @@ do_work (
     Net_Common_Tools::getDefaultInterface (NET_LINKLAYER_802_3 | NET_LINKLAYER_802_11 | NET_LINKLAYER_PPP);;
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (InlineIsEqualGUID (interface_identifier, GUID_NULL))
 #else
   if (interface_identifier.empty ())
@@ -582,7 +557,7 @@ do_work (
                                                        configuration_in.domain))
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Net_Common_Tools::interfaceToExternalIPAddress(\"%s\"), returning\n"),
                 ACE_TEXT (Net_Common_Tools::interfaceToString (interface_identifier).c_str ())));
@@ -657,7 +632,6 @@ do_work (
     goto clean;
   } // end IF
 
-#if defined (GUI_SUPPORT)
   CBData_in.configuration = &configuration_in;
   // step1a: start UI event loop ?
   if (!UIDefinitionFilename_in.empty ())
@@ -701,7 +675,6 @@ do_work (
   } // end IF
   else
   {
-#endif // GUI_SUPPORT
     Stream_IStreamControlBase* stream_p = NULL;
     if (!stream.initialize (configuration_in.streamConfiguration))
     {
@@ -719,17 +692,13 @@ do_work (
 //      return;
 //    } // end IF
     stream_p->wait (true, false, false);
-#if defined (GUI_SUPPORT)
   } // end ELSE
-#endif // GUI_SUPPORT
 
   // step3: clean up
 clean:
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   gtk_manager_p->stop (true, true);
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   connection_manager_p->stop (false, true);
   connection_manager_p->abort ();
   connection_manager_p->wait ();
@@ -743,7 +712,7 @@ clean:
               ACE_TEXT ("finished working...\n")));
 }
 
-COMMON_DEFINE_PRINTVERSION_FUNCTION(do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
+COMMON_DEFINE_PRINTVERSION_FUNCTION (do_printVersion, STREAM_MAKE_VERSION_STRING_VARIABLE (programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
 
 int
 ACE_TMAIN (int argc_in,
@@ -779,7 +748,6 @@ ACE_TMAIN (int argc_in,
 #else
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   if (!Common_UI_GTK_Tools::initialize (argc_in,
                                         argv_in))
@@ -812,7 +780,6 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
 
   // step1a set defaults
   std::string configuration_path = Common_File_Tools::getWorkingDirectory ();
@@ -821,12 +788,10 @@ ACE_TMAIN (int argc_in,
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-#if defined (GUI_SUPPORT)
   std::string UI_definition_filename = path;
   UI_definition_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_filename +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
-#endif // GUI_SUPPORT
   bool log_to_file = false;
   bool use_reactor =
     (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
@@ -836,20 +801,16 @@ ACE_TMAIN (int argc_in,
   enum Stream_SMTPSend_ProgramMode program_mode_e =
       STREAM_SMTPSEND_PROGRAMMODE_NORMAL;
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   bool result_2 = false;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
                             argv_in,
                             configuration.to,
                             configuration.from,
-#if defined (GUI_SUPPORT)
                             UI_definition_filename,
-#endif // GUI_SUPPORT
                             configuration.address,
                             configuration.hostname,
                             log_to_file,
@@ -888,15 +849,12 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to a deadlock --> ensure the streaming elements are sufficiently efficient in this regard\n")));
   if (
-#if defined (GUI_SUPPORT)
       (!UI_definition_filename.empty () &&
        !Common_File_Tools::isReadable (UI_definition_filename)) ||
-#else
-      configuration.to.empty () ||
-      configuration.from.empty () ||
-      configuration.password.empty () ||
-      configuration.username.empty () ||
-#endif // GUI_SUPPORT
+      //configuration.to.empty () ||
+      //configuration.from.empty () ||
+      //configuration.password.empty () ||
+      //configuration.username.empty () ||
      false)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -914,7 +872,6 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1d: initialize logging and/or tracing
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -926,7 +883,6 @@ ACE_TMAIN (int argc_in,
   logger.initialize (&state_r.logQueue,
                      &state_r.logQueueLock);
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
@@ -937,7 +893,6 @@ ACE_TMAIN (int argc_in,
                                      false,                                        // log to syslog ?
                                      false,                                        // trace messages ?
                                      trace_information,                            // debug messages ?
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                                      NULL))                                        // (ui) logger ?
 //                                            (UI_definition_filename.empty () ? NULL
@@ -949,9 +904,6 @@ ACE_TMAIN (int argc_in,
 #else
                                      NULL))                                        // (ui) logger ?
 #endif
-#else
-                                     NULL))                                        // (ui) logger ?
-#endif // GUI_SUPPORT
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Log_Tools::initialize(), aborting\n")));
@@ -1002,7 +954,6 @@ ACE_TMAIN (int argc_in,
     }
   } // end SWITCH
 
-#if defined (GUI_SUPPORT)
 //  struct Stream_SMTPSend_UI_CBData* ui_cb_data_p = NULL;
   struct Stream_SMTPSend_UI_CBData ui_cb_data;
   ui_cb_data.configuration = &configuration;
@@ -1019,10 +970,8 @@ ACE_TMAIN (int argc_in,
   ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
 #endif // GTK_USE
 //  ACE_ASSERT (ui_cb_data_p);
-#endif // GUI_SUPPORT
 
   // step1h: initialize UI framework
-#if defined (GUI_SUPPORT)
 //  struct Common_UI_State* ui_state_p = NULL;
 #if defined (GTK_USE)
 //  ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
@@ -1118,7 +1067,6 @@ ACE_TMAIN (int argc_in,
   } // end IF
 #endif
 //  ACE_ASSERT (ui_state_p);
-#endif // GUI_SUPPORT
 
   // step1e: pre-initialize signal handling
   ACE_Sig_Set signal_set (false);
@@ -1149,11 +1097,9 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 //  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 //  lock_2 = &state_r.subscribersLock;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   Stream_SMTPSend_SignalHandler signal_handler;
 
   // step1g: set process resource limits
@@ -1180,7 +1126,6 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
-#if defined (GUI_SUPPORT)
   if (!UI_definition_filename.empty ())
   {
 #if defined (GTK_USE)
@@ -1208,19 +1153,16 @@ ACE_TMAIN (int argc_in,
     } // end IF
 #endif // GTK_USE
   } // end IF
-#endif // GUI_SUPPORT
 
   ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work
   do_work (
-#if defined (GUI_SUPPORT)
            UI_definition_filename,
            ui_cb_data,
 #if defined (WXWIDGETS_USE)
            iapplication_p,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
            use_reactor,
            statistic_reporting_interval,
            configuration,
@@ -1277,7 +1219,6 @@ ACE_TMAIN (int argc_in,
   user_time_string = Common_Timer_Tools::periodToString (user_time);
   system_time_string = Common_Timer_Tools::periodToString (system_time);
 
-  // debug info
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),

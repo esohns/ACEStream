@@ -36,11 +36,7 @@ class Test_U_EventHandler
  : public Test_U_Notification_t
 {
  public:
-  Test_U_EventHandler (
-//#if defined (GUI_SUPPORT)
-//                       struct Branch_UI_CBData*, // UI state
-//#endif // GUI_SUPPORT
-                       bool = false);             // console mode ?
+  Test_U_EventHandler (bool = false); // console mode ?
   inline virtual ~Test_U_EventHandler () {}
 
   // implement Stream_ISessionDataNotify_T
@@ -61,9 +57,7 @@ class Test_U_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_U_EventHandler& operator= (const Test_U_EventHandler&))
 
   bool                      consoleMode_;
-//#if defined (GUI_SUPPORT)
 //  struct Branch_UI_CBData* CBData_;
-//#endif // GUI_SUPPORT
 };
 
 #endif

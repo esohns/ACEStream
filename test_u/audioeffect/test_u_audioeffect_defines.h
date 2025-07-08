@@ -27,7 +27,6 @@
 
 #define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_ANALYZER_RESOLUTION  256 // STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #if defined (GTK2_USE)
 #define TEST_U_STREAM_AUDIOEFFECT_GLADE_FILE                   "audioeffect.gtk2"
@@ -37,7 +36,6 @@
 #elif defined (WXWIDGETS_USE)
 #define TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE           "audioeffect.xrc"
 #endif
-#endif // GUI_SUPPORT
 
 // defaults
 // *TODO*: remove these ASAP
@@ -61,7 +59,6 @@
 
 //----------------------------------------
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 // GTK widget names
 #define TEST_U_STREAM_UI_GTK_BUTTON_CUT_NAME                   "button_cut"
@@ -150,7 +147,6 @@
 #define TEST_U_STREAM_UI_GTK_VBOX_NOISE_NAME                   "vbox_noise"
 #define TEST_U_STREAM_UI_GTK_VBOX_NOISE_OPTIONS_NAME           "vbox_noise_options"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 //----------------------------------------
 

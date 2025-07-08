@@ -43,13 +43,11 @@
 #include "stream_macros.h"
 
 #include "test_u_common.h"
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "test_u_gtk_common.h"
 #endif // GTK_SUPPORT
 #if defined (WXWIDGETS_SUPPORT)
 #include "test_u_wxwidgets_common.h"
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "test_u_filecopy_common.h"

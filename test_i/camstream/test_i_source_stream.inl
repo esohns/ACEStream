@@ -169,7 +169,6 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   layout_out->append (module_p, branch_p, index_i);
   module_p = NULL;
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_DirectShow_GTK_Cairo_Module (this,
@@ -178,7 +177,6 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   layout_out->append (module_p, branch_p, index_i);
   module_p = NULL;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   // continue main branch
   ACE_NEW_RETURN (module_p,
@@ -1368,7 +1366,6 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
                   false);
   layout_inout->append (module_p, NULL, 0);
   module_p = NULL;
-#if defined (GUI_SUPPORT)
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_V4L_Distributor_Module (this,
                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
@@ -1388,15 +1385,14 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
                   false);
   layout_inout->append (module_p, branch_p, 0);
   module_p = NULL;
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_V4L_Display_Module (this,
                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
                   false);
   layout_inout->append (module_p, branch_p, 0);
   module_p = NULL;
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
+#endif // GTK_USE
 
   delete_out = true;
 

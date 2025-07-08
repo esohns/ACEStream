@@ -62,7 +62,6 @@ Test_I_Stream::Test_I_Stream ()
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
 #endif // FFMPEG_SUPPORT
-#if defined(GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , Direct3D_ (this,
               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
@@ -74,7 +73,6 @@ Test_I_Stream::Test_I_Stream ()
  , GTKCairo_ (this,
               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream::Test_I_Stream"));
 
@@ -134,13 +132,11 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
 
   //layout_in->append (&report_, NULL, 0);
   layout_in->append (&resize_, branch_p, index_i);
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   layout_in->append (&GTKCairo_, branch_p, index_i);
 #else
   layout_in->append (&X11_, branch_p, index_i);
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
+#endif // GTK_USE
 
   ++index_i;
 

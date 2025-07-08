@@ -21,11 +21,8 @@
 #ifndef TEST_U_CAMSAVE_DEFINES_H
 #define TEST_U_CAMSAVE_DEFINES_H
 
-#include "gtk/gtk.h"
-
 #define TEST_U_DEFAULT_OUTPUT_FILE             "output.avi"
 
-#if defined (GUI_SUPPORT)
 #undef TEST_U_UI_DEFINITION_FILE
 #if defined (GTK_USE)
 #if defined (GTK3_USE)
@@ -41,7 +38,7 @@
 #define TEST_U_UI_DEFINITION_FILE              ""
 #endif // WXWIDGETS_USE
 #undef TEST_U_UI_CSS_FILE
-#define TEST_U_UI_CSS_FILE "camsave.css"
+#define TEST_U_UI_CSS_FILE                     "camsave.css"
 
 //---------------------------------------
 #if defined (GTK_SUPPORT)
@@ -88,10 +85,10 @@
 #define TEST_U_UI_GTK_TOGGLEBUTTON_SAVE_NAME           "togglebutton_save"
 #define TEST_U_UI_GTK_WINDOW_FULLSCREEN                "window_fullscreen"
 #endif // GTK_SUPPORT
+
 #if defined (WXWIDGETS_SUPPORT)
 #define TEST_U_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME       "dialog_main"
 #define TEST_U_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME "wxDialog"
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
 
 #endif

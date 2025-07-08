@@ -59,7 +59,6 @@
 
 //#include "stream_stat_statistic_report.h"
 
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_vis_target_direct3d.h"
 #include "stream_vis_target_directshow.h"
@@ -75,7 +74,6 @@
 #include "stream_vis_gtk_cairo.h"
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "test_i_avsave_common.h"
 #include "test_i_avsave_encoder.h"
@@ -487,8 +485,7 @@ typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
                                             Stream_AVSave_MediaFoundation_SessionData_t,
                                             struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat> Stream_AVSave_MediaFoundation_MediaFoundationDisplayNull;
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_TimePolicy_t,
                                                           struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
@@ -519,8 +516,7 @@ typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                       Stream_AVSave_MediaFoundation_SessionData,
                                       Stream_AVSave_MediaFoundation_SessionData_t,
                                       Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_MediaFoundation_GTKCairoDisplay;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 #else
 typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_TimePolicy_t,

@@ -121,36 +121,32 @@ set (${EXECUTABLE_SOURCE}_EXE_SRCS
      test_i_target_stream.cpp
      test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
-if (GUI_SUPPORT)
- if (GTK_SUPPORT)
-  set (${EXECUTABLE_SOURCE}_EXE_SRCS
-       ${${EXECUTABLE_SOURCE}_EXE_SRCS}
-       test_i_callbacks.cpp
-       test_i_callbacks.h)
+if (GTK_SUPPORT)
+ set (${EXECUTABLE_SOURCE}_EXE_SRCS
+      ${${EXECUTABLE_SOURCE}_EXE_SRCS}
+      test_i_callbacks.cpp
+      test_i_callbacks.h)
 # elseif (WXWIDGETS_USE)
 #  set (${EXECUTABLE_TARGET}_EXE_SRCS
 #       ${${EXECUTABLE_TARGET}_EXE_SRCS})
- endif (GTK_SUPPORT)
-endif (GUI_SUPPORT)
+endif (GTK_SUPPORT)
 
 set (ui_definition_file "")
-if (GUI_SUPPORT)
- if (GTK_USE)
-  if (GTK3_USE)
-   set (ui_definition_file etc/source.gtk3)
-   set (ui_definition_file_2 etc/target.gtk3)
-  elseif (GTK2_USE)
-   set (ui_definition_file etc/source.gtk2)
-   set (ui_definition_file_2 etc/target.gtk2)
-  endif ()
- elseif (WXWIDGETS_USE)
-  if (WIN32)
-#   add_definitions(-DUNICODE -D_UNICODE)
-   endif (WIN32)
-  set (ui_definition_file etc/source.xrc)
-  set (ui_definition_file_2 etc/target.xrc)
+if (GTK_USE)
+ if (GTK3_USE)
+  set (ui_definition_file etc/source.gtk3)
+  set (ui_definition_file_2 etc/target.gtk3)
+ elseif (GTK2_USE)
+  set (ui_definition_file etc/source.gtk2)
+  set (ui_definition_file_2 etc/target.gtk2)
  endif ()
-endif (GUI_SUPPORT)
+elseif (WXWIDGETS_USE)
+ if (WIN32)
+#   add_definitions(-DUNICODE -D_UNICODE)
+  endif (WIN32)
+ set (ui_definition_file etc/source.xrc)
+ set (ui_definition_file_2 etc/target.xrc)
+endif ()
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE_SOURCE}
@@ -211,14 +207,12 @@ target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC CommonImage)
 target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC CommonLog)
 target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC CommonSignal)
 target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC CommonTimer)
-if (GUI_SUPPORT)
- target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC CommonUI)
- if (GTK_USE)
-  target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC CommonUI_GTK)
- elseif (WXWIDGETS_USE)
-  target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC CommonUI_wxWidgets)
- endif ()
-endif (GUI_SUPPORT)
+target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC CommonUI)
+if (GTK_USE)
+ target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC CommonUI_GTK)
+elseif (WXWIDGETS_USE)
+ target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC CommonUI_wxWidgets)
+endif ()
 
 target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${PROJECT_NAME}_Decoder)
@@ -301,14 +295,14 @@ if (UNIX)
 elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_SOURCE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
- if (GUI_SUPPORT)
+ if (GTK_USE OR WXWIDGETS_USE)
   file (TO_NATIVE_PATH "${ui_definition_file}" ui_definition_file)
   string (REGEX REPLACE "\\\\" "/" ui_definition_file "${ui_definition_file}")
   set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
   set (ARGS "${ARGS} -l -t")
  else ()
   set (ARGS "-c -g -l -t")
- endif (GUI_SUPPORT)
+ endif (GTK_USE OR WXWIDGETS_USE)
  # *NOTE*: ffmpeg was built with (vcpkg-)"libpng" support, so now there is a new dependency to zlib1.dll, liblzma.dll, iconv-2.dll :-(
  file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  if (FFMPEG_SUPPORT)
@@ -522,17 +516,15 @@ set (${EXECUTABLE_TARGET}_EXE_SRCS
      test_i_target_stream.cpp
      test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
-if (GUI_SUPPORT)
- if (GTK_SUPPORT)
-  set (${EXECUTABLE_TARGET}_EXE_SRCS
-       ${${EXECUTABLE_TARGET}_EXE_SRCS}
-       test_i_callbacks.cpp
-       test_i_callbacks.h)
+if (GTK_SUPPORT)
+ set (${EXECUTABLE_TARGET}_EXE_SRCS
+      ${${EXECUTABLE_TARGET}_EXE_SRCS}
+      test_i_callbacks.cpp
+      test_i_callbacks.h)
 # elseif (WXWIDGETS_USE)
 #  set (${EXECUTABLE_TARGET}_EXE_SRCS
 #       ${${EXECUTABLE_TARGET}_EXE_SRCS})
- endif (GTK_SUPPORT)
-endif (GUI_SUPPORT)
+endif (GTK_SUPPORT)
 
 add_executable (${EXECUTABLE_TARGET}
                 EXCLUDE_FROM_ALL
@@ -628,14 +620,14 @@ if (UNIX)
 elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_TARGET}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
- if (GUI_SUPPORT)
+ if (GTK_USE OR WXWIDGETS_USE)
   file (TO_NATIVE_PATH "${ui_definition_file_2}" ui_definition_file_2)
   string (REGEX REPLACE "\\\\" "/" ui_definition_file_2 "${ui_definition_file_2}")
   set (ARGS "-g.\\\\${ui_definition_file_2} ${ARGS}")
   set (ARGS "${ARGS} -l -o -t")
  else ()
   set (ARGS "-c -g -l -o -t")
- endif (GUI_SUPPORT)
+ endif (GTK_USE OR WXWIDGETS_USE)
  string (REPLACE "\\" "\\\\" WORKING_DIRECTORY ${WORKING_DIRECTORY})
 endif ()
 create_target_launcher (${EXECUTABLE_TARGET}

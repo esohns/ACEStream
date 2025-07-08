@@ -26,24 +26,19 @@
 #include "stream_common.h"
 
 // forward declarations
-#if defined (GUI_SUPPORT)
 struct Test_I_ExtractStream_UI_CBData;
-#endif // GUI_SUPPORT
 
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType, // implements Common_UI_wxWidgets_IApplicationBase_T
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 class Test_I_EventHandler_T
  : public NotificationType
 {
  public:
-#if defined (GUI_SUPPORT)
   Test_I_EventHandler_T (struct Test_I_ExtractStream_UI_CBData* // UI callback data
 #if defined (GTK_USE)
                         );
@@ -54,9 +49,6 @@ class Test_I_EventHandler_T
 #else
                         );
 #endif
-#else
-  Test_I_EventHandler_T ();
-#endif // GUI_SUPPORT
   inline virtual ~Test_I_EventHandler_T () {}
 
   // implement Stream_ISessionDataNotify_T
@@ -72,18 +64,14 @@ class Test_I_EventHandler_T
                        const SessionMessageType&);
 
  private:
-#if defined (GUI_SUPPORT)
   ACE_UNIMPLEMENTED_FUNC (Test_I_EventHandler_T ())
-#endif // GUI_SUPPORT
   ACE_UNIMPLEMENTED_FUNC (Test_I_EventHandler_T (const Test_I_EventHandler_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_EventHandler_T& operator= (const Test_I_EventHandler_T&))
 
-#if defined (GUI_SUPPORT)
   struct Test_I_ExtractStream_UI_CBData*       CBData_;
 #if defined (WXWIDGETS_USE)
   InterfaceType*                               interface_;
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
   typename SessionMessageType::DATA_T::DATA_T* sessionData_;
 };
 

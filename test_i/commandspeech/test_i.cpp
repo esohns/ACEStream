@@ -70,13 +70,11 @@
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
 
-#if defined (GUI_SUPPORT)
 #include "common_ui_tools.h"
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
@@ -103,11 +101,9 @@
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "test_i_gtk_callbacks.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #include "test_i_session_message.h"
 #include "test_i_commandspeech_common.h"
 #include "test_i_commandspeech_defines.h"
@@ -168,7 +164,6 @@ do_printUsage (const std::string& programName_in)
 #endif // ACE_WIN32 || ACE_WIN64
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : text file {\"\" --> stdin}")
             << std::endl;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -187,7 +182,6 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> default}")
             << std::endl;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -248,12 +242,10 @@ do_processArguments (int argc_in,
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
                      std::string& sourceFileName_out,
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
-#if defined (GUI_SUPPORT)
                      std::string& UIFile_out,
 #if defined (GTK_SUPPORT)
                      std::string& UICSSFile_out,
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
                      bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      enum Stream_MediaFramework_Type& mediaFramework_out,
@@ -294,14 +286,12 @@ do_processArguments (int argc_in,
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   sourceFileName_out.clear ();
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
-#if defined (GUI_SUPPORT)
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
 #if defined (GTK_SUPPORT)
   UICSSFile_out.clear ();
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -321,14 +311,12 @@ do_processArguments (int argc_in,
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("b:c:");
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("g::");
 #endif // GTK_SUPPORT || WXWIDGETS_SUPPORT
 #if defined (GTK_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("i::");
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("mxy");
 #endif // ACE_WIN32 || ACE_WIN64
@@ -387,7 +375,6 @@ do_processArguments (int argc_in,
         break;
       }
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
       case 'g':
       {
@@ -417,7 +404,6 @@ do_processArguments (int argc_in,
         break;
       }
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
       case 'l':
       {
         logToFile_out = true;
@@ -1068,9 +1054,7 @@ do_work (
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
          const std::string& sourceFileName_in,
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
-#if defined (GUI_SUPPORT)
          const std::string& UIDefinitionFile_in,
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1080,14 +1064,12 @@ do_work (
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool useFrameworkRenderer_in,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Test_I_DirectShow_UI_CBData& directShowCBData_in,
          struct Test_I_MediaFoundation_UI_CBData& mediaFoundationCBData_in,
 #else
          struct Test_I_ALSA_UI_CBData& CBData_in,
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Test_I_DirectShow_Configuration& directShowConfiguration_in,
          struct Test_I_MediaFoundation_Configuration& mediaFoundationConfiguration_in,
@@ -1101,9 +1083,7 @@ do_work (
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
-#if defined (GUI_SUPPORT)
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration spectrumanalyzer_configuration;
-#endif // GUI_SUPPORT
   struct Stream_AllocatorConfiguration allocator_configuration;
   struct Stream_AllocatorConfiguration* allocator_configuration_p = NULL;
   Common_TimerConfiguration timer_configuration;
@@ -1186,7 +1166,6 @@ do_work (
   ACE_ASSERT (input_manager_p);
 
   ACE_Time_Value one_second (1, 0);
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -1197,7 +1176,6 @@ do_work (
 //#endif // GTKGL_SUPPORT
   int result_2 = -1;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   //  const Stream_Module_t* module_p = NULL;
   //  Test_I_IDispatch_t* idispatch_p = NULL;
   struct Stream_ModuleConfiguration module_configuration;
@@ -1208,38 +1186,28 @@ do_work (
 
 //  struct Stream_Input_ModuleHandlerConfiguration modulehandler_configuration_i; // input-
 //  struct Stream_Configuration stream_configuration_2; // input-
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_DirectShow_EventHandler_t directshow_ui_event_handler (
-#if defined (GUI_SUPPORT)
                                                                 (UIDefinitionFile_in.empty () ? NULL : &directShowCBData_in)
-#endif // GUI_SUPPORT
                                                                 );
   Test_I_DirectShow_MessageHandler_Module directshow_event_handler (istream_p,
                                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 //  Test_I_InputHandler_t directshow_input_handler (
-//#if defined (GUI_SUPPORT)
 //                                                  (UIDefinitionFile_in.empty () ? NULL : &directShowCBData_in)
-//#endif // GUI_SUPPORT
 //                                                 );
   Test_I_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (
-#if defined (GUI_SUPPORT)
                                                                           (UIDefinitionFile_in.empty () ? NULL : &mediaFoundationCBData_in)
-#endif // GUI_SUPPORT
                                                                           );
   Test_I_MediaFoundation_MessageHandler_Module mediafoundation_event_handler (istream_p,
                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 //  Test_I_InputHandler_t mediafoundation_input_handler (
-//#if defined (GUI_SUPPORT)
 //                                                       (UIDefinitionFile_in.empty () ? NULL : &mediaFoundationCBData_in)
-//#endif // GUI_SUPPORT
 //                                                      );
   Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
 #else
   Test_I_ALSA_EventHandler_t event_handler (
-#if defined (GUI_SUPPORT)
                                             (UIDefinitionFile_in.empty () ? NULL : &CBData_in)
-#endif // GUI_SUPPORT
                                            );
   Test_I_ALSA_MessageHandler_Module event_handler_module (istream_p,
                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
@@ -1274,10 +1242,8 @@ do_work (
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-#if defined (GUI_SUPPORT)
       directshow_modulehandler_configuration.spectrumAnalyzerConfiguration =
         &spectrumanalyzer_configuration;
-#endif // GUI_SUPPORT
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       directshow_modulehandler_configuration.fileIdentifier.identifier =
         sourceFileName_in;
@@ -1377,10 +1343,8 @@ do_work (
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-#if defined (GUI_SUPPORT)
       mediafoundation_modulehandler_configuration.spectrumAnalyzerConfiguration =
         &spectrumanalyzer_configuration;
-#endif // GUI_SUPPORT
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       mediafoundation_modulehandler_configuration.fileIdentifier.identifier =
         sourceFileName_in;
@@ -1484,10 +1448,8 @@ do_work (
     }
   } // end SWITCH
 #else
-#if defined (GUI_SUPPORT)
   modulehandler_configuration.spectrumAnalyzerConfiguration =
     &spectrumanalyzer_configuration;
-#endif // GUI_SUPPORT
   modulehandler_configuration.allocatorConfiguration =
     allocator_configuration_p;
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
@@ -1833,7 +1795,6 @@ do_work (
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
   // step1a: start ui event loop ?
   if (!UIDefinitionFile_in.empty ())
   {
@@ -1923,7 +1884,6 @@ do_work (
   } // end IF
   else
   {
-#endif // GUI_SUPPORT
     // pre-initialize processing stream
     if (unlikely (!input_manager_p->start ()))
     {
@@ -1976,9 +1936,7 @@ do_work (
     istream_control_p->wait (true,   // wait for thread(s) ?
                              false,  // wait for upstream ?
                              false); // wait for downstream ?
-#if defined (GUI_SUPPORT)
   } // end ELSE
-#endif // GUI_SUPPORT
 
   // step3: clean up
   input_manager_p->stop (true,   // wait for completion ?
@@ -2060,11 +2018,9 @@ error:
 //  stream_2_r.remove (&input_handler_module,
 //                     true,   // lock ?
 //                     false); // reset ?
-#if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty () && itask_p)
     itask_p->stop (true,  // wait ?
                    true); // high priority ?
-#endif // GUI_SUPPORT
   if (timer_manager_p)
     timer_manager_p->stop ();
   Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
@@ -2174,14 +2130,12 @@ ACE_TMAIN (int argc_in,
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   std::string source_filename;
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
-#if defined (GUI_SUPPORT)
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
 #if defined (GTK_SUPPORT)
   std::string UI_CSS_file;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
@@ -2213,21 +2167,16 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_Configuration directshow_configuration;
   struct Test_I_MediaFoundation_Configuration mediafoundation_configuration;
-#if defined (GUI_SUPPORT)
   struct Test_I_DirectShow_UI_CBData directshow_ui_cb_data;
   struct Test_I_MediaFoundation_UI_CBData mediafoundation_ui_cb_data;
-#endif // GUI_SUPPORT
 #else
   struct Test_I_ALSA_Configuration configuration;
-#if defined (GUI_SUPPORT)
   struct Test_I_ALSA_UI_CBData ui_cb_data;
-#endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined(GUI_SUPPORT)
-#if defined(GTK_SUPPORT)
+#if defined (GTK_SUPPORT)
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
-#if defined(GTKGL_SUPPORT)
+#if defined (GTKGL_SUPPORT)
   struct Common_UI_GTK_GLConfiguration* gtk_configuration_p = NULL;
 #else
   struct Common_UI_GTK_Configuration* gtk_configuration_p = NULL;
@@ -2236,7 +2185,6 @@ ACE_TMAIN (int argc_in,
   Common_UI_GTK_State_t* state_p = NULL;
 #endif // GTK_SUPPORT
   struct Test_I_UI_CBData* cb_data_base_p = NULL;
-#endif // GUI_SUPPORT
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -2253,12 +2201,10 @@ ACE_TMAIN (int argc_in,
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
                             source_filename,
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
-#if defined (GUI_SUPPORT)
                             UI_definition_file,
 #if defined (GTK_SUPPORT)
                             UI_CSS_file,
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
                             log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             media_framework_e,
@@ -2295,14 +2241,12 @@ ACE_TMAIN (int argc_in,
 #else
       false
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
-#if defined (GUI_SUPPORT)
       || (!UI_definition_file.empty () &&
           !Common_File_Tools::isReadable (UI_definition_file))
 #if defined (GTK_SUPPORT)
       || (!UI_CSS_file.empty () &&
           !Common_File_Tools::isReadable (UI_CSS_file))
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
       )
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2312,7 +2256,6 @@ ACE_TMAIN (int argc_in,
     goto error;
   } // end IF
 
-#if defined (GUI_SUPPORT)
   Common_UI_Tools::initialize ();
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
@@ -2413,13 +2356,10 @@ ACE_TMAIN (int argc_in,
   cb_data_base_p = &ui_cb_data;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (cb_data_base_p);
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   cb_data_base_p->UIState = state_p;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
   // step1d: initialize logging and/or tracing
   if (unlikely (!logger.initialize (&state_p->logQueue,
@@ -2493,7 +2433,6 @@ ACE_TMAIN (int argc_in,
     goto error;
   } // end IF
 
-#if defined (GUI_SUPPORT)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
 #if defined (GTK_SUPPORT)
   ACE_ASSERT (gtk_manager_p);
@@ -2506,7 +2445,6 @@ ACE_TMAIN (int argc_in,
     goto error;
   } // end IF
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
   timer.start ();
   // step2: do actual work
@@ -2523,9 +2461,7 @@ ACE_TMAIN (int argc_in,
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
            source_filename,
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
-#if defined (GUI_SUPPORT)
            UI_definition_file,
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2535,14 +2471,12 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            use_framework_renderer,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_ui_cb_data,
            mediafoundation_ui_cb_data,
 #else
            ui_cb_data,
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_configuration,
            mediafoundation_configuration,

@@ -24,17 +24,16 @@
 #include "mfapi.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "gdk/gdkwin32.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #include "gtk/gtk.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "gdk/gdk.h"
 #include "gtk/gtk.h"
-#endif
-#endif // GUI_SUPPORT
+#endif // WXWIDGETS_SUPPORT
 
 #include <iostream>
 #include <string>
@@ -62,17 +61,16 @@
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
 
-#if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
 #include "common_ui_tools.h"
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "common_ui_wxwidgets_application.h"
 #include "common_ui_wxwidgets_tools.h"
-#endif
-#endif // GUI_SUPPORT
+#endif // WXWIDGETS_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
@@ -99,26 +97,23 @@
 
 #include "test_i_avsave_defines.h"
 #include "test_i_avsave_eventhandler.h"
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_avsave_gtk_callbacks.h"
-#elif defined (WXWIDGETS_USE)
-#include "test_u_camsave_ui.h"
-#endif
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
+#include "test_i_avsave_ui.h"
+#endif // WXWIDGETS_SUPPORT
 #include "test_i_avsave_signalhandler.h"
 #include "test_i_avsave_stream.h"
 
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("AVSave_Video_Stream");
 const char stream_name_string_2[] = ACE_TEXT_ALWAYS_CHAR ("AVSave_Audio_Stream");
-#if defined (GUI_SUPPORT)
-#if defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_SUPPORT)
 const char toplevel_widget_classname_string_[] =
-  ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME);
+  ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME);
 const char toplevel_widget_name_string_[] =
-  ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME);
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
+  ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME);
+#endif // WXWIDGETS_SUPPORT
 
 void
 do_printUsage (const std::string& programName_in)
@@ -202,7 +197,6 @@ do_printUsage (const std::string& programName_in)
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-#if defined (GUI_SUPPORT)
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
@@ -210,7 +204,6 @@ do_printUsage (const std::string& programName_in)
             << UI_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
             << std::endl;
-#endif // GUI_SUPPORT
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -257,9 +250,7 @@ do_processArguments (int argc_in,
                      bool& showConsole_out,
 #endif // ACE_WIN32 || ACE_WIN64
                      std::string& targetFileName_out,
-#if defined (GUI_SUPPORT)
                      std::string& UIFile_out,
-#endif // GUI_SUPPORT
                      bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      enum Stream_MediaFramework_Type& mediaFramework_out,
@@ -292,11 +283,9 @@ do_processArguments (int argc_in,
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-#if defined (GUI_SUPPORT)
   UIFile_out = path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
-#endif // GUI_SUPPORT
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -309,19 +298,11 @@ do_processArguments (int argc_in,
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                               ACE_TEXT ("cd:f::g::hlmo:s:tvx"),
 #else
                               ACE_TEXT ("d:f::g::hlo:s:tvx"),
 #endif // ACE_WIN32 || ACE_WIN64
-#else
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("cd:f::hlmo:s:tvx"),
-#else
-                              ACE_TEXT ("d:f::hlo:s:tvx"),
-#endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
@@ -361,7 +342,6 @@ do_processArguments (int argc_in,
           targetFileName_out.clear ();
         break;
       }
-#if defined (GUI_SUPPORT)
       case 'g':
       {
         ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
@@ -371,7 +351,6 @@ do_processArguments (int argc_in,
           UIFile_out.clear ();
         break;
       }
-#endif // GUI_SUPPORT
       case 'l':
       {
         logToFile_out = true;
@@ -958,13 +937,11 @@ do_initialize_ALSA_V4L (const std::string& audioDeviceIdentifier_in,
   // *TODO*: determine color depth of selected (default) screen (i.e.'Display'
   //         ":0")
   outputFormat_out.format.pixelformat = V4L2_PIX_FMT_RGB32;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #if defined (GTK2_USE)
   outputFormat_out.format.pixelformat = V4L2_PIX_FMT_RGB24;
 #endif // GTK2_USE
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   Stream_MediaFramework_ALSA_Tools::getDefaultFormat (audioDeviceIdentifier_in,
                                                       true, // capture
@@ -1024,7 +1001,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #else
          struct Stream_AVSave_Configuration& configuration_in,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GUI_SUPPORT)
          const std::string& UIDefinitionFilename_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Stream_AVSave_DirectShow_UI_CBData& directShowCBData_in,
@@ -1035,7 +1011,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (WXWIDGETS_USE)
          Common_UI_wxWidgets_IApplicationBase_t* iapplication_in,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
@@ -1043,7 +1018,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Stream_AVSave_UI_GTK_Manager_t* gtk_manager_p =
     STREAM_AVSAVE_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -1055,7 +1029,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   // ********************** module configuration data **************************
 #if defined (FFMPEG_SUPPORT)
@@ -1078,9 +1051,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     return;
   } // end IF
 
-#if defined (GUI_SUPPORT)
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration spectrum_analyzer_configuration;
-#endif // GUI_SUPPORT
 
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1095,28 +1066,20 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_video_modulehandler_configuration_4; // window --> display
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_video_modulehandler_configuration_5; // converter --> encoder
   struct Stream_AVSave_DirectShow_StreamConfiguration directshow_video_stream_configuration;
-#if defined (GUI_SUPPORT)
   Stream_AVSave_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in
 #if defined (GTK_USE)
                                                                        );
 #elif defined (WXWIDGETS_USE)
                                                                         ,iapplication_in);
 #endif
-#else
-  Stream_AVSave_DirectShow_EventHandler_t directshow_ui_event_handler;
-#endif // GUI_SUPPORT
   struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
   struct Stream_AVSave_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
-#if defined (GUI_SUPPORT)
   Stream_AVSave_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in
 #if defined (GTK_USE)
                                                                                  );
 #elif defined (WXWIDGETS_USE)
                                                                                   ,iapplication_in);
 #endif
-#else
-  Stream_AVSave_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler;
-#endif // GUI_SUPPORT
 #else
   struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration audio_modulehandler_configuration;
   struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration audio_modulehandler_configuration_2; // analyzer --> display
@@ -1127,13 +1090,11 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration video_modulehandler_configuration_4; // converter_2 --> encoder
   struct Stream_AVSave_ALSA_V4L_StreamConfiguration video_stream_configuration;
   Stream_AVSave_ALSA_V4L_EventHandler_t ui_event_handler (
-#if defined (GUI_SUPPORT)
                                                           &CBData_in
 #if defined (GTK_USE)
 #elif defined (WXWIDGETS_USE)
                                                           ,iapplication_in
 #endif
-#endif // GUI_SUPPORT
                                                          );
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1225,11 +1186,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   video_modulehandler_configuration.buffers =
     STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
   video_modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 //  modulehandler_configuration.pixelBufferLock = &state_r.lock;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
 //  if (statisticReportingInterval_in)
@@ -1239,9 +1198,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 //    video_modulehandler_configuration.statisticReportingInterval =
 //      statisticReportingInterval_in;
 //  } // end IF
-#if defined (GUI_SUPPORT)
   video_modulehandler_configuration.subscriber = &ui_event_handler;
-#endif // GUI_SUPPORT
   video_modulehandler_configuration.targetFileName = targetFilename_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1487,11 +1444,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         *media_type_p;
       delete media_type_p; media_type_p = NULL;
 
-#if defined (GUI_SUPPORT)
       directShowCBData_in.progressData.audioFrameSize =
         (Stream_MediaFramework_DirectShow_Tools::toFrameBits (directshow_audio_stream_configuration.format.audio) / 8) *
         Stream_MediaFramework_DirectShow_Tools::toChannels (directshow_audio_stream_configuration.format.audio);
-#endif // GUI_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1512,7 +1467,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration.session);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
-#if defined (GUI_SUPPORT)
       UINT32 bits_per_sample_i = 0;
       HRESULT result =
         mediafoundation_stream_configuration.format.audio->GetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
@@ -1525,7 +1479,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       ACE_ASSERT (SUCCEEDED (result) && number_of_channels_i);
       mediaFoundationCBData_in.progressData.audioFrameSize =
         (bits_per_sample_i / 8) * number_of_channels_i;
-#endif // GUI_SUPPORT
       break;
     }
     default:
@@ -1547,11 +1500,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                 ACE_TEXT ("failed to ::do_initialize_v4l(), returning\n")));
     return;
   } // end IF
-#if defined (GUI_SUPPORT)
   CBData_in.progressData.audioFrameSize =
     (snd_pcm_format_width (video_stream_configuration.format.audio.format) / 8) *
       video_stream_configuration.format.audio.channels;
-#endif // GUI_SUPPORT
 
   configuration_in.audioStreamConfiguration.initialize (module_configuration,
                                                         audio_modulehandler_configuration,
@@ -1602,7 +1553,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 //  ACE_ASSERT (v4l_stream_iterator != configuration_in.videoStreamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Common_Image_Resolution_t resolution_s;
   switch (mediaFramework_in)
@@ -1656,15 +1606,12 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   //  reset_token = 0;
   //} // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
 
   struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   int result = -1;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   // step0e: initialize signal handling
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1720,7 +1667,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   // - catch SIGINT/SIGQUIT/SIGTERM/... signals (connect / perform orderly shutdown)
   // [- signal timer expiration to perform server queries] (see above)
 
-#if defined (GUI_SUPPORT)
   // step1a: start UI event loop ?
   if (!UIDefinitionFilename_in.empty ())
   {
@@ -1827,7 +1773,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   } // end IF
   else
   {
-#endif // GUI_SUPPORT
     Stream_IStreamControlBase* stream_p = NULL, *stream_2 = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     switch (mediaFramework_in)
@@ -1869,12 +1814,10 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       }
     } // end SWITCH
 #else
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     Common_UI_GTK_Tools::initialize (CBData_in.configuration->GTKConfiguration.argc,
                                      CBData_in.configuration->GTKConfiguration.argv);
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
     if (!video_stream.initialize (configuration_in.videoStreamConfiguration))
     {
@@ -1902,9 +1845,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 //      return;
 //    } // end IF
     stream_p->wait (true, false, false); stream_2->wait (true, false, false);
-#if defined (GUI_SUPPORT)
   } // end ELSE
-#endif // GUI_SUPPORT
 
   // step3: clean up
 clean:
@@ -1915,13 +1856,11 @@ clean:
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
       do_finalize_directshow (directShowCBData_in.streamConfiguration);
 #elif defined (WXWIDGETS_USE)
       do_finalize_directshow (stream_config_p);
 #endif
-#endif // GUI_SUPPORT
 
       result = directshow_audio_stream.remove (&directshow_message_handler,
                                                true,   // lock ?
@@ -2141,7 +2080,6 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_MediaFramework_Tools::initialize (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_USE)
   if (!Common_UI_WxWidgets_Tools::initialize (argc_in,
                                               argv_in))
@@ -2160,7 +2098,6 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
 
   // step1a set defaults
   std::string configuration_path = Common_File_Tools::getWorkingDirectory ();
@@ -2181,12 +2118,10 @@ ACE_TMAIN (int argc_in,
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-#if defined (GUI_SUPPORT)
   std::string UI_definition_filename = path;
   UI_definition_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_filename +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
-#endif // GUI_SUPPORT
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
@@ -2200,11 +2135,9 @@ ACE_TMAIN (int argc_in,
   enum Stream_AVSave_ProgramMode program_mode_e =
       STREAM_AVSAVE_PROGRAMMODE_NORMAL;
   //bool run_stress_test = false;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   bool result_2 = false;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -2214,9 +2147,7 @@ ACE_TMAIN (int argc_in,
                             show_console,
 #endif // ACE_WIN32 || ACE_WIN64
                             target_filename,
-#if defined (GUI_SUPPORT)
                             UI_definition_filename,
-#endif // GUI_SUPPORT
                             log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             media_framework_e,
@@ -2280,11 +2211,8 @@ ACE_TMAIN (int argc_in,
   if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to a deadlock --> ensure the streaming elements are sufficiently efficient in this regard\n")));
-  if (
-#if defined (GUI_SUPPORT)
-      (!UI_definition_filename.empty () &&
+  if ((!UI_definition_filename.empty () &&
        !Common_File_Tools::isReadable (UI_definition_filename)) ||
-#endif // GUI_SUPPORT
       device_identifier.empty ()
      )
   {
@@ -2304,7 +2232,6 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1d: initialize logging and/or tracing
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -2313,7 +2240,6 @@ ACE_TMAIN (int argc_in,
 //  Common_UI_GTK_State_t& state_r =
 //    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
@@ -2324,7 +2250,6 @@ ACE_TMAIN (int argc_in,
                                      false,                                        // log to syslog ?
                                      false,                                        // trace messages ?
                                      trace_information,                            // debug messages ?
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                                      NULL))                                        // (ui) logger ?
 #elif defined (QT_USE)
@@ -2334,9 +2259,6 @@ ACE_TMAIN (int argc_in,
 #else
                                      NULL))                                        // (ui) logger ?
 #endif
-#else
-                                     NULL))                                        // (ui) logger ?
-#endif // GUI_SUPPORT
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Log_Tools::initialize(), aborting\n")));
@@ -2405,7 +2327,6 @@ ACE_TMAIN (int argc_in,
   Stream_Visualization_Tools::initialize (STREAM_VIS_FRAMEWORK_DEFAULT);
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
   struct Stream_AVSave_UI_CBData* ui_cb_data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_Configuration directshow_configuration;
@@ -2483,10 +2404,8 @@ ACE_TMAIN (int argc_in,
 #endif // GTK_USE
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (ui_cb_data_p);
-#endif // GUI_SUPPORT
 
   // step1h: initialize UI framework
-#if defined (GUI_SUPPORT)
   struct Common_UI_State* ui_state_p = NULL;
 #if defined (GTK_USE)
   ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
@@ -2647,7 +2566,6 @@ ACE_TMAIN (int argc_in,
   } // end IF
 #endif
   ACE_ASSERT (ui_state_p);
-#endif // GUI_SUPPORT
 
   // step1e: pre-initialize signal handling
   ACE_Sig_Set signal_set (false);
@@ -2681,11 +2599,9 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 //  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 //  lock_2 = &state_r.subscribersLock;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   Stream_AVSave_SignalHandler signal_handler;
 
   // step1g: set process resource limits
@@ -2712,7 +2628,6 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
-#if defined (GUI_SUPPORT)
   if (!UI_definition_filename.empty ())
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2783,7 +2698,6 @@ ACE_TMAIN (int argc_in,
     } // end IF
 #endif // GTK_USE
   } // end IF
-#endif // GUI_SUPPORT
 
   ACE_High_Res_Timer timer;
   timer.start ();
@@ -2804,7 +2718,6 @@ ACE_TMAIN (int argc_in,
 #else
            configuration,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GUI_SUPPORT)
            UI_definition_filename,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_ui_cb_data,
@@ -2815,7 +2728,6 @@ ACE_TMAIN (int argc_in,
 #if defined (WXWIDGETS_USE)
            iapplication_p,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
            signal_set,
            ignored_signal_set,
            previous_signal_actions,

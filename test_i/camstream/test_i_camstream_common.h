@@ -46,11 +46,9 @@ extern "C"
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "common.h"
 #include "common_inotify.h"
@@ -61,9 +59,7 @@ extern "C"
 
 #include "common_time_common.h"
 
-#if defined (GUI_SUPPORT)
 #include "common_ui_common.h"
-#endif // GUI_SUPPORT
 
 #include "stream_base.h"
 #include "stream_common.h"
@@ -92,11 +88,9 @@ extern "C"
 //#include "test_i_connection_common.h"
 //#include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_gtk_common.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
 #include "test_i_camstream_defines.h"
 
@@ -202,22 +196,18 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
   Test_I_CamStream_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
    , configuration (NULL)
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    , contextId (0)
 #endif // GTK_USE
-#endif // GUI_SUPPORT
    , deviceIdentifier ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DConfiguration (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
    , display ()
    , fullScreen (false)
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    , window (NULL)
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     deviceIdentifier.identifier._guid = GUID_NULL;
@@ -229,45 +219,33 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
   }
 
   struct Test_I_CamStream_Configuration*               configuration;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   guint                                                contextId;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   struct Stream_Device_Identifier                      deviceIdentifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Common_UI_DisplayDevice                       display;
   bool                                                 fullScreen;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   GdkWindow*                                           window;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 };
 
 struct Test_I_CamStream_Configuration
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  : Test_I_GTK_Configuration
 #else
  : Test_I_Configuration
 #endif // GTK_USE
-#else
- : Test_I_Configuration
-#endif // GUI_SUPPORT
 {
   Test_I_CamStream_Configuration ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    : Test_I_GTK_Configuration ()
 #else
    : Test_I_Configuration ()
 #endif // GTK_USE
-#else
-   : Test_I_Configuration ()
-#endif // GUI_SUPPORT
    , allocatorConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DConfiguration ()
@@ -285,7 +263,6 @@ struct Test_I_CamStream_Configuration
 
 //////////////////////////////////////////
 
-#if defined (GUI_SUPPORT)
 struct Test_I_CamStream_UI_ProgressData
  : Test_I_UI_ProgressData
 {
@@ -328,6 +305,5 @@ struct Test_I_CamStream_ThreadData
 
   struct Test_I_CamStream_UI_CBData* CBData;
 };
-#endif // GUI_SUPPORT
 
 #endif

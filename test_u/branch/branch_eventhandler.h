@@ -29,18 +29,13 @@
 #include "branch_session_message.h"
 
 // forward declarations
-//struct Branch_UI_CBData;
 struct Branch_SessionData;
 
 class Branch_EventHandler
  : public Branch_Notification_t
 {
  public:
-  Branch_EventHandler (
-//#if defined (GUI_SUPPORT)
-//                       struct Branch_UI_CBData*, // UI state
-//#endif // GUI_SUPPORT
-                       bool = false);             // console mode ?
+  Branch_EventHandler (bool = false); // console mode ?
   inline virtual ~Branch_EventHandler () {}
 
   // implement Stream_ISessionDataNotify_T
@@ -60,10 +55,7 @@ class Branch_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Branch_EventHandler (const Branch_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Branch_EventHandler& operator= (const Branch_EventHandler&))
 
-  bool                      consoleMode_;
-//#if defined (GUI_SUPPORT)
-//  struct Branch_UI_CBData* CBData_;
-//#endif // GUI_SUPPORT
+  bool consoleMode_;
 };
 
 #endif

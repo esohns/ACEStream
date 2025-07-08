@@ -21,7 +21,6 @@
 #ifndef TEST_I_SMTPSEND_DEFINES_H
 #define TEST_I_SMTPSEND_DEFINES_H
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #if defined (GTK3_USE)
 #define TEST_I_UI_DEFINITION_FILE              "test_i.gtk3"
@@ -38,7 +37,7 @@
 #define TEST_I_UI_CSS_FILE                     "test_i.css"
 
 //---------------------------------------
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #define TEST_I_UI_GTK_ACTION_SEND_NAME                 "action_send"
 #define TEST_I_UI_GTK_SCROLLEDWINDOW_ADJUSTMENT_V_NAME "adjustment_sw_v"
 #define TEST_I_UI_GTK_BUTTON_ABOUT_NAME                "about"
@@ -65,10 +64,11 @@
 #define TEST_I_UI_GTK_STATUSBAR_NAME                   "statusbar"
 #define TEST_I_UI_GTK_TEXTBUFFER_NAME                  "textbuffer"
 #define TEST_I_UI_GTK_TEXTVIEW_NAME                    "textview"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+
+#if defined (WXWIDGETS_SUPPORT)
 #define TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME       "dialog_main"
 #define TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME "wxDialog"
-#endif
-#endif // GUI_SUPPORT
+#endif // WXWIDGETS_SUPPORT
 
 #endif

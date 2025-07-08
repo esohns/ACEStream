@@ -37,7 +37,6 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -49,17 +48,13 @@
 #include "common_event_tools.h"
 
 #include "common_log_tools.h"
-#if defined (GUI_SUPPORT)
 #include "common_logger_queue.h"
-#endif // GUI_SUPPORT
 
 #include "common_signal_tools.h"
 
 #include "common_timer_tools.h"
 
-#if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
-#endif // GUI_SUPPORT
 
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"
@@ -76,11 +71,9 @@
 
 #include "test_u_defines.h"
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "http_get_callbacks.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 #include "http_get_common.h"
 #include "http_get_connection_manager_common.h"
 #include "http_get_defines.h"
@@ -181,7 +174,7 @@ do_processArguments (int argc_in,
                      unsigned int& bufferSize_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      bool& showConsole_out,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                      bool& debugParser_out,
                      std::string& outputFileName_out,
                      std::string& interfaceDefinitionFile_out,
@@ -211,7 +204,7 @@ do_processArguments (int argc_in,
   bufferSize_out = NET_STREAM_DEFAULT_MESSAGE_DATA_BUFFER_SIZE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   showConsole_out = false;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   debugParser_out = COMMON_PARSER_DEFAULT_YACC_TRACE;
   outputFileName_out = temp_directory;
   outputFileName_out += ACE_DIRECTORY_SEPARATOR_STR_A;
@@ -251,7 +244,7 @@ do_processArguments (int argc_in,
                                ACE_TEXT ("b:cdf:g::lrs:tu:vx:z"),
 #else
                                ACE_TEXT ("b:df:g::lrs:tu:vx:z"),
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                                1,                         // skip command name
                                1,                         // report parsing errors
                                ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -277,7 +270,7 @@ do_processArguments (int argc_in,
         showConsole_out = true;
         break;
       }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       case 'd':
       {
         debugParser_out = true;
@@ -506,7 +499,7 @@ do_initializeSignals (bool useReactor_in,
     if (proactor_impl_p->get_impl_type () == ACE_POSIX_Proactor::PROACTOR_SIG)
       signals_out.sig_del (COMMON_EVENT_PROACTOR_SIG_RT_SIGNAL);
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 void
@@ -655,11 +648,9 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (timer_manager_p);
   struct Common_TimerConfiguration timer_configuration;
 //  int group_id = -1;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   // step0b: initialize event dispatch
   CBData_in.configuration->dispatchConfiguration.dispatch =
     (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR : COMMON_EVENT_DISPATCH_PROACTOR);
@@ -737,7 +728,6 @@ do_work (unsigned int bufferSize_in,
   // step1a: start UI event loop ?
   if (!interfaceDefinitionFile_in.empty ())
   {
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     gtk_manager_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
     ACE_ASSERT (gtk_manager_p);
@@ -756,7 +746,6 @@ do_work (unsigned int bufferSize_in,
       goto clean;
     } // end IF
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     HWND window_p = GetConsoleWindow ();
@@ -827,13 +816,11 @@ do_work (unsigned int bufferSize_in,
                           false); // wait for downstream (if any) ?
   } // end IF
   else
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     gtk_manager_p->wait (false);
 #else
     ;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   // step3: clean up
   connection_manager_p->stop (false, true);
@@ -861,13 +848,11 @@ clean:
                                              true); // wait ?
   timer_manager_p->stop ();
   if (!interfaceDefinitionFile_in.empty ())
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true, true);
 #else
     ;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 }
 
 COMMON_DEFINE_PRINTVERSION_FUNCTION(do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
@@ -905,13 +890,11 @@ ACE_TMAIN (int argc_in,
   ACE_Sig_Set previous_signal_mask (false); // fill ?
   std::string log_file_name;
   struct HTTPGet_UI_CBData ui_cb_data;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
   Common_UI_GTK_State_t* state_p = NULL;
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   struct HTTPGet_Configuration configuration;
   HTTPGet_SignalHandler signal_handler;
   ACE_Profile_Timer process_profile;
@@ -961,7 +944,6 @@ ACE_TMAIN (int argc_in,
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -969,7 +951,6 @@ ACE_TMAIN (int argc_in,
   state_p =
     &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   ui_cb_data.configuration = &configuration;
   working_directory = Common_File_Tools::getWorkingDirectory ();
   temp_directory = Common_File_Tools::getTempDirectory ();
@@ -1118,7 +1099,6 @@ ACE_TMAIN (int argc_in,
   if (UI_file_path.empty ())
     goto continue_;
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   ui_cb_data.progressData.state = state_p;
 
@@ -1134,7 +1114,6 @@ ACE_TMAIN (int argc_in,
     std::make_pair (UI_file_path, static_cast<GtkBuilder*> (NULL));
   COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (ui_cb_data.configuration->GTKConfiguration);
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
 continue_:
   timer.start ();

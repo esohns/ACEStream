@@ -80,18 +80,16 @@ set (${EXECUTABLE_SOURCE}_EXE_SRCS
      test_i_target_stream.cpp
      test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
-if (GUI_SUPPORT)
- if (GTK_SUPPORT)
-  set (${EXECUTABLE_SOURCE}_EXE_SRCS
-       ${${EXECUTABLE_SOURCE}_EXE_SRCS}
-       test_i_callbacks.cpp
-       test_i_callbacks.h)
- endif (GTK_SUPPORT)
- if (WXWIDGETS_SUPPORT)
+if (GTK_SUPPORT)
+ set (${EXECUTABLE_SOURCE}_EXE_SRCS
+      ${${EXECUTABLE_SOURCE}_EXE_SRCS}
+      test_i_callbacks.cpp
+      test_i_callbacks.h)
+endif (GTK_SUPPORT)
+if (WXWIDGETS_SUPPORT)
 #  set (${EXECUTABLE_SOURCE}_EXE_SRCS
 #       ${${EXECUTABLE_SOURCE}_EXE_SRCS})
- endif (WXWIDGETS_SUPPORT)
-endif (GUI_SUPPORT)
+endif (WXWIDGETS_SUPPORT)
 
 #set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
 
@@ -238,18 +236,16 @@ set (${EXECUTABLE_TARGET}_EXE_SRCS
      test_i_target_stream.cpp
      test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
-if (GUI_SUPPORT)
- if (GTK_SUPPORT)
-  set (${EXECUTABLE_TARGET}_EXE_SRCS
-       ${${EXECUTABLE_TARGET}_EXE_SRCS}
-       test_i_callbacks.cpp
-       test_i_callbacks.h)
- endif (GTK_SUPPORT)
- if (WXWIDGETS_SUPPORT)
+if (GTK_SUPPORT)
+ set (${EXECUTABLE_TARGET}_EXE_SRCS
+      ${${EXECUTABLE_TARGET}_EXE_SRCS}
+      test_i_callbacks.cpp
+      test_i_callbacks.h)
+endif (GTK_SUPPORT)
+if (WXWIDGETS_SUPPORT)
 #  set (${EXECUTABLE_TARGET}_EXE_SRCS
 #       ${${EXECUTABLE_TARGET}_EXE_SRCS})
- endif (WXWIDGETS_SUPPORT)
-endif (GUI_SUPPORT)
+endif (WXWIDGETS_SUPPORT)
 
 add_executable (${EXECUTABLE_TARGET}
                 EXCLUDE_FROM_ALL

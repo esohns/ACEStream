@@ -66,13 +66,11 @@
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
 
-#if defined (GUI_SUPPORT)
 #include "common_ui_tools.h"
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
@@ -105,11 +103,9 @@
 #include "test_u_mic_visualize_common.h"
 #include "test_u_mic_visualize_defines.h"
 #include "test_u_stream.h"
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "test_u_gtk_callbacks.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #if defined (GLUT_SUPPORT)
 #include "test_u_glut_callbacks.h"
 #endif // GLUT_SUPPORT
@@ -155,7 +151,6 @@ do_print_usage (const std::string& programName_in)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : source filename")
             << std::endl;
   std::string path = configuration_path;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -181,7 +176,6 @@ do_print_usage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> default}")
             << std::endl;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -246,12 +240,10 @@ do_process_arguments (int argc_in,
                       std::string& effect_out,
 #endif // ACE_WIN32 || ACE_WIN64
                       std::string& sourceFileName_out,
-#if defined (GUI_SUPPORT)
                       std::string& UIFile_out,
 #if defined (GTK_SUPPORT)
                       std::string& UICSSFile_out,
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
                       bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                       enum Stream_MediaFramework_Type& mediaFramework_out,
@@ -290,7 +282,6 @@ do_process_arguments (int argc_in,
   effect_out.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
   sourceFileName_out.clear ();
-#if defined (GUI_SUPPORT)
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out +=
@@ -302,7 +293,6 @@ do_process_arguments (int argc_in,
 #if defined (GTK_SUPPORT)
   UICSSFile_out.clear ();
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -328,14 +318,12 @@ do_process_arguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("flo::s:tuv");
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   options_string += ACE_TEXT_ALWAYS_CHAR ("g::");
 #endif // GTK_USE || WXWIDGETS_USE
 #if defined (GTK_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("i::");
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("cmxy");
 #else
@@ -394,7 +382,6 @@ do_process_arguments (int argc_in,
         sourceFileName_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
       case 'g':
       {
@@ -424,7 +411,6 @@ do_process_arguments (int argc_in,
         break;
       }
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
       case 'l':
       {
         logToFile_out = true;
@@ -1073,9 +1059,7 @@ do_work (int argc_in,
          const std::string& effectName_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const std::string& sourceFilename_in,
-#if defined (GUI_SUPPORT)
          const std::string& UIDefinitionFile_in,
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1086,14 +1070,12 @@ do_work (int argc_in,
          bool useFrameworkSource_in,
          bool useFrameworkRenderer_in,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Test_U_MicVisualize_DirectShow_UI_CBData& directShowCBData_in,
          struct Test_U_MicVisualize_MediaFoundation_UI_CBData& mediaFoundationCBData_in,
 #else
          struct Test_U_MicVisualize_UI_CBData& CBData_in,
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Test_U_MicVisualize_DirectShow_Configuration& directShowConfiguration_in,
          struct Test_U_MicVisualize_MediaFoundation_Configuration& mediaFoundationConfiguration_in,
@@ -1217,14 +1199,12 @@ do_work (int argc_in,
 #endif // GLUT_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Time_Value one_second (1, 0);
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   Common_UI_GTK_Manager_t* gtk_manager_p =
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   int result_2 = -1;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 //  const Stream_Module_t* module_p = NULL;
 //  Test_U_MicVisualize_IDispatch_t* idispatch_p = NULL;
   struct Stream_ModuleConfiguration module_configuration;
@@ -1235,16 +1215,12 @@ do_work (int argc_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_DirectShow_EventHandler directshow_ui_event_handler (
-#if defined (GUI_SUPPORT)
                                                               &directShowCBData_in
-#endif // GUI_SUPPORT
                                                              );
   Test_U_DirectShow_MessageHandler_Module directshow_event_handler (istream_p,
                                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_U_MediaFoundation_EventHandler mediafoundation_ui_event_handler (
-#if defined (GUI_SUPPORT)
                                                                         &mediaFoundationCBData_in
-#endif // GUI_SUPPORT
                                                                        );
   Test_U_MediaFoundation_MessageHandler_Module mediafoundation_event_handler (istream_p,
                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
@@ -1252,9 +1228,7 @@ do_work (int argc_in,
   Test_U_MicVisualize_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
 #else
   Test_U_EventHandler ui_event_handler (
-#if defined (GUI_SUPPORT)
                                         &CBData_in
-#endif // GUI_SUPPORT
                                        );
   Test_U_ALSA_MessageHandler_Module event_handler (istream_p,
                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
@@ -1355,10 +1329,8 @@ do_work (int argc_in,
       if (!sourceFilename_in.empty ())
         directshow_modulehandler_configuration.fileIdentifier.identifier =
           sourceFilename_in;
-#if defined (GUI_SUPPORT)
       directshow_modulehandler_configuration.spectrumAnalyzerConfiguration =
         &spectrumanalyzer_configuration;
-#endif // GUI_SUPPORT
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
@@ -1501,10 +1473,8 @@ do_work (int argc_in,
       if (!sourceFilename_in.empty ())
         mediafoundation_modulehandler_configuration.fileIdentifier.identifier =
           sourceFilename_in;
-#if defined (GUI_SUPPORT)
       mediafoundation_modulehandler_configuration.spectrumAnalyzerConfiguration =
         &spectrumanalyzer_configuration;
-#endif // GUI_SUPPORT
 
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
@@ -1623,10 +1593,8 @@ do_work (int argc_in,
   if (!sourceFilename_in.empty ())
     modulehandler_configuration.fileIdentifier.identifier =
       sourceFilename_in;
-#if defined (GUI_SUPPORT)
   modulehandler_configuration.spectrumAnalyzerConfiguration =
     &spectrumanalyzer_configuration;
-#endif // GUI_SUPPORT
 
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
@@ -1821,7 +1789,6 @@ do_work (int argc_in,
     goto error;
   } // end IF
 
-#if defined (GUI_SUPPORT)
   // step1a: start ui event loop ?
   if (!UIDefinitionFile_in.empty ())
   {
@@ -1981,7 +1948,6 @@ do_work (int argc_in,
   } // end IF
   else
   {
-#endif // GUI_SUPPORT
     // pre-initialize processing stream
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     bool success_b = false;
@@ -2028,9 +1994,7 @@ do_work (int argc_in,
     istream_control_p->wait (true,
                              false,
                              false);
-#if defined (GUI_SUPPORT)
   } // end ELSE
-#endif // GUI_SUPPORT
 
   // step3: clean up
   timer_manager_p->stop ();
@@ -2076,11 +2040,9 @@ do_work (int argc_in,
   return;
 
 error:
-#if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty () && itask_p)
     itask_p->stop (true,  // wait ?
                    true); // high priority ?
-#endif // GUI_SUPPORT
   timer_manager_p->stop ();
 }
 
@@ -2184,7 +2146,6 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path;
   std::string source_filename;
-#if defined (GUI_SUPPORT)
   path = configuration_path;
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -2196,7 +2157,6 @@ ACE_TMAIN (int argc_in,
 #if defined (GTK_USE)
   std::string UI_CSS_file;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
@@ -2233,12 +2193,10 @@ ACE_TMAIN (int argc_in,
                              effect_name,
 #endif // ACE_WIN32 || ACE_WIN64
                              source_filename,
-#if defined (GUI_SUPPORT)
                              UI_definition_file,
 #if defined (GTK_SUPPORT)
                              UI_CSS_file,
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
                              log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                              media_framework_e,
@@ -2280,7 +2238,6 @@ ACE_TMAIN (int argc_in,
   if (TEST_U_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
-#if defined (GUI_SUPPORT)
   if ((!UI_definition_file.empty () &&
        !Common_File_Tools::isReadable (UI_definition_file))
 #if defined (GTK_USE)
@@ -2289,7 +2246,6 @@ ACE_TMAIN (int argc_in,
 #else
      )
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -2309,7 +2265,6 @@ ACE_TMAIN (int argc_in,
   //if (run_stress_test)
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
-#if defined (GUI_SUPPORT)
   Common_UI_Tools::initialize ();
 #if defined (GTK_SUPPORT)
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
@@ -2475,13 +2430,10 @@ ACE_TMAIN (int argc_in,
   cb_data_base_p = &ui_cb_data;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (cb_data_base_p);
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   cb_data_base_p->UIState = &state_r;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
   // step1d: initialize logging and/or tracing
 //  Common_Logger_Queue_t logger;
@@ -2543,11 +2495,9 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 //  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 //  lock_2 = &state_r.subscribersLock;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   Test_U_SignalHandler signal_handler;
 
   // step1f: handle specific program modes
@@ -2594,14 +2544,12 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
-#if defined (GUI_SUPPORT)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
 #if defined (GTK_SUPPORT)
   ACE_ASSERT (gtk_configuration_p);
   if (!UI_definition_file.empty ())
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (*gtk_configuration_p);
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
   ACE_High_Res_Timer timer;
   timer.start ();
@@ -2615,9 +2563,7 @@ ACE_TMAIN (int argc_in,
            effect_name,
 #endif // ACE_WIN32 || ACE_WIN64
            source_filename,
-#if defined (GUI_SUPPORT)
            UI_definition_file,
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2628,14 +2574,12 @@ ACE_TMAIN (int argc_in,
            use_framework_source,
            use_framework_renderer,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_ui_cb_data,
            mediafoundation_ui_cb_data,
 #else
            ui_cb_data,
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_configuration,
            mediafoundation_configuration,
@@ -2648,12 +2592,10 @@ ACE_TMAIN (int argc_in,
            signal_handler);
   timer.stop ();
 
-  // debug info
   std::string working_time_string;
   ACE_Time_Value working_time;
   timer.elapsed_time (working_time);
   working_time_string = Common_Timer_Tools::periodToString (working_time);
-
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"\n"),
               ACE_TEXT (working_time_string.c_str ())));
@@ -2695,7 +2637,6 @@ ACE_TMAIN (int argc_in,
   user_time_string = Common_Timer_Tools::periodToString (user_time);
   system_time_string = Common_Timer_Tools::periodToString (system_time);
 
-  // debug info
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),

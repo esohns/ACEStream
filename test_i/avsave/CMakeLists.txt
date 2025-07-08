@@ -42,11 +42,9 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
- if (GUI_SUPPORT)
-  if (QT_USE)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui/qt)
-  endif (QT_USE)
- endif (GUI_SUPPORT)
+ if (QT_SUPPORT)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui/qt)
+ endif (QT_SUPPORT)
 
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/test_i)
 elseif (WIN32)
@@ -102,25 +100,23 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_avsave_signalhandler.h
      test_i_avsave_stream.cpp
      test_i_avsave_stream.h)
-if (GUI_SUPPORT)
- if (GTK_SUPPORT)
-  set (${EXECUTABLE}_EXE_SRCS
-       ${${EXECUTABLE}_EXE_SRCS}
-       test_i_avsave_gtk_callbacks.cpp
-       test_i_avsave_gtk_callbacks.h)
- endif (GTK_SUPPORT)
- if (WXWIDGETS_SUPPORT)
-  set (${EXECUTABLE}_EXE_SRCS
-       ${${EXECUTABLE}_EXE_SRCS}
-       test_i_avsave_ui.cpp
-       test_i_avsave_ui.h
-       test_i_avsave_ui.inl
-       avsave_wxwidgets_ui.cpp
-       avsave_wxwidgets_ui.h)
+if (GTK_SUPPORT)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
+      test_i_avsave_gtk_callbacks.cpp
+      test_i_avsave_gtk_callbacks.h)
+endif (GTK_SUPPORT)
+if (WXWIDGETS_SUPPORT)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
+      test_i_avsave_ui.cpp
+      test_i_avsave_ui.h
+      test_i_avsave_ui.inl
+      avsave_wxwidgets_ui.cpp
+      avsave_wxwidgets_ui.h)
 #       test_i_avsave_ui_base.cpp
 #       test_i_avsave_ui_base.h)
- endif (WXWIDGETS_SUPPORT)
-endif (GUI_SUPPORT)
+endif (WXWIDGETS_SUPPORT)
 
 if (UNIX)
 elseif (WIN32)
@@ -134,20 +130,18 @@ endif ()
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 
 set (ui_definition_file "")
-if (GUI_SUPPORT)
- if (GTK_USE)
-  if (GTK3_USE)
-   set (ui_definition_file etc/${EXECUTABLE}.gtk3)
-  elseif (GTK2_USE)
-   set (ui_definition_file etc/${EXECUTABLE}.gtk2)
-  endif ()
- elseif (WXWIDGETS_USE)
-  if (WIN32)
-   add_definitions(-DUNICODE -D_UNICODE)
-  endif (WIN32)
-  set (ui_definition_file etc/${EXECUTABLE}.xrc)
+if (GTK_USE)
+ if (GTK3_USE)
+  set (ui_definition_file etc/${EXECUTABLE}.gtk3)
+ elseif (GTK2_USE)
+  set (ui_definition_file etc/${EXECUTABLE}.gtk2)
  endif ()
-endif (GUI_SUPPORT)
+elseif (WXWIDGETS_USE)
+ if (WIN32)
+  add_definitions(-DUNICODE -D_UNICODE)
+ endif (WIN32)
+ set (ui_definition_file etc/${EXECUTABLE}.xrc)
+endif ()
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS}
@@ -182,8 +176,9 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_V4L2_LIBRARIES})
 elseif (WIN32)
  if (MSVC)
-  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
-  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcpmt.lib\"")
+#  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
+#  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcpmt.lib\"")
+  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
  endif (MSVC)
 # target_link_libraries (${EXECUTABLE} dxguid.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
@@ -197,14 +192,13 @@ target_link_libraries (${EXECUTABLE} PUBLIC CommonMath)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonSignal)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonTask)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonTimer)
-if (GUI_SUPPORT)
- target_link_libraries (${EXECUTABLE} PUBLIC CommonUI)
- if (GTK_USE)
-  target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_GTK)
- elseif (WXWIDGETS_USE)
-  target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_wxWidgets)
- endif ()
-endif (GUI_SUPPORT)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonUI)
+if (GTK_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_GTK)
+endif (GTK_SUPPORT)
+if (WXWIDGETS_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_wxWidgets)
+endif (WXWIDGETS_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC CommonXML)
 endif (UNIX)
@@ -277,47 +271,45 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 if (UNIX)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
- if (GUI_SUPPORT)
-  if (GTK_USE)
-   set (ARGS "-g./${ui_definition_file} ${ARGS}")
-  elseif (WXWIDGETS_USE)
-   set (ENVIRONMENT "DISPLAY=:0")
-  endif ()
+ if (GTK_USE)
+  set (ARGS "-g./${ui_definition_file} ${ARGS}")
+ elseif (WXWIDGETS_USE)
+  set (ENVIRONMENT "DISPLAY=:0")
  else ()
   set (ARGS "-g ${ARGS}")
- endif (GUI_SUPPORT)
+ endif ()
 
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
 # set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
- if (GUI_SUPPORT)
-  file (TO_NATIVE_PATH "${ui_definition_file}" ui_definition_file)
+ file (TO_NATIVE_PATH "${ui_definition_file}" ui_definition_file)
 #  message (STATUS "ui_definition_file: ${ui_definition_file}")
-  string (REGEX REPLACE "\\\\" "\\\\\\\\" ui_definition_file "${ui_definition_file}")
+ string (REGEX REPLACE "\\\\" "\\\\\\\\" ui_definition_file "${ui_definition_file}")
 #  message (STATUS "ui_definition_file: ${ui_definition_file}")
 
-  if (GTK_SUPPORT)
-   if (GTK_USE)
-    set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
-   endif (GTK_USE)
+ if (GTK_SUPPORT)
+  if (GTK_USE)
+   set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
+  endif (GTK_USE)
 
-   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
-   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                             ${GTK_PATH})
-  endif (GTK_SUPPORT)
-  if (WXWIDGETS_SUPPORT)
-   if (WXWIDGETS_USE)
-    set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
-   endif (WXWIDGETS_USE)
+  file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${GTK_PATH})
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
+  if (WXWIDGETS_USE)
+   set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
+  endif (WXWIDGETS_USE)
 
-   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                             ${wxWidgets_LIB_DIR})
-  endif (WXWIDGETS_SUPPORT)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${wxWidgets_LIB_DIR})
+ endif (WXWIDGETS_SUPPORT)
+ if (GTK_USE OR WXWIDGETS_USE)
  else ()
   set (ARGS "-g ${ARGS}")
- endif (GUI_SUPPORT)
+ endif (GTK_USE OR WXWIDGETS_USE)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
  # *NOTE*: ffmpeg was built with (vcpkg-)"libpng" support, so now there is a new dependency to zlib1.dll, liblzma.dll, iconv-2.dll :-(
  file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)

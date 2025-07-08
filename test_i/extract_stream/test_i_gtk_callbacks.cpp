@@ -2308,11 +2308,11 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 //    cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
 //  ACE_ASSERT (iterator_2 != cb_data_p->configuration->audioStreamConfiguration.end ());
 //  Test_I_ExtractStream_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-//#if defined (GUI_SUPPORT)
+//#if defined (GTK_USE)
 //    cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
 //#else
 //    cb_data_p->configuration->audioStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
-//#endif // GUI_SUPPORT
+//#endif // GTK_USE
 //  ACE_ASSERT (iterator_3 != cb_data_p->configuration->audioStreamConfiguration.end ());
 //
 //  //  (*iterator_2).second.second->outputFormat.resolution.height =
@@ -2508,11 +2508,11 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 //    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
 //  ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
 //  Test_I_ExtractStream_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-//#if defined (GUI_SUPPORT)
+//#if defined (GTK_USE)
 //    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
 //#else
 //    cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
-//#endif // GUI_SUPPORT
+//#endif // GTK_USE
 //  ACE_ASSERT (iterator_3 != cb_data_p->configuration->streamConfiguration.end ());
 //
 ////  (*iterator_2).second.second->outputFormat.resolution.height =

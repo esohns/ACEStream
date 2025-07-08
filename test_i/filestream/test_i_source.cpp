@@ -49,13 +49,11 @@
 
 #include "common_timer_tools.h"
 
-#if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
@@ -66,11 +64,9 @@
 
 #include "stream_misc_defines.h"
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "test_i_callbacks.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #include "test_i_common.h"
 
 #include "test_i_filestream_defines.h"
@@ -441,7 +437,6 @@ do_work (unsigned int bufferSize_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -449,7 +444,6 @@ do_work (unsigned int bufferSize_in,
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   // step0a: initialize event dispatch
   if (useReactor_in)
@@ -577,13 +571,11 @@ do_work (unsigned int bufferSize_in,
   //modulehandler_configuration.stream =
   //  ((configuration.protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
   //                                                      : CBData_in.UDPStream);
-#if defined (GUI_SUPPORT)
   modulehandler_configuration.subscriber = &ui_event_handler;
 #if defined (GTK_USE)
   modulehandler_configuration.subscribers = &CBData_in.subscribers;
   modulehandler_configuration.lock = &state_r.subscribersLock;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   // ********************* (sub-)stream configuration data *********************
   struct Test_I_Source_StreamConfiguration stream_configuration;
@@ -689,7 +681,6 @@ do_work (unsigned int bufferSize_in,
   // [GTK events:]
   // - dispatch UI events (if any)
 
-#if defined (GUI_SUPPORT)
   // step1a: start GTK event loop ?
   if (!UIDefinitionFile_in.empty ())
   {
@@ -738,7 +729,6 @@ do_work (unsigned int bufferSize_in,
     ACE_UNUSED_ARG (was_visible_b);
 #endif
   } // end IF
-#endif // GUI_SUPPORT
 
   // step1b: initialize worker(s)
 //  int group_id = -1;
@@ -755,24 +745,20 @@ do_work (unsigned int bufferSize_in,
     //				g_source_remove(*iterator);
     //		} // end lock scope
 
-#if defined (GUI_SUPPORT)
     if (!UIDefinitionFile_in.empty ())
 #if defined (GTK_USE)
       gtk_manager_p->stop (true, true);
 #else
       ;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
     timer_manager_p->stop ();
     delete CBData_in.stream; CBData_in.stream = NULL;
     delete CBData_in.UDPStream; CBData_in.UDPStream = NULL;
     return;
   } // end IF
 
-#if defined (GUI_SUPPORT)
   if (UIDefinitionFile_in.empty ())
   {
-#endif // GUI_SUPPORT
     Test_I_StreamBase_t* stream_p =
       ((CBData_in.configuration->protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
                                                           : CBData_in.UDPStream);
@@ -823,21 +809,17 @@ loop:
     iconnection_manager_p->wait ();
     Common_Event_Tools::finalizeEventDispatch (event_dispatch_state_s,
                                                true); // wait ?
-#if defined (GUI_SUPPORT)
   } // end IF
   else
     Common_Event_Tools::dispatchEvents (event_dispatch_state_s);
-#endif // GUI_SUPPORT
 
   // step3: clean up
-#if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty ())
 #if defined (GTK_USE)
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true, true);
 #else
     ;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   timer_manager_p->stop ();
 
   //		{ // synch access
@@ -1010,7 +992,6 @@ ACE_TMAIN (int argc_in,
 //  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
   struct Test_I_Source_Configuration configuration;
 
-#if defined (GUI_SUPPORT)
   struct Test_I_Source_UI_CBData ui_cb_data;
   ui_cb_data.configuration = &configuration;
   ui_cb_data.loop = loop;
@@ -1026,7 +1007,6 @@ ACE_TMAIN (int argc_in,
   Common_Logger_Queue_t logger;
   logger.initialize (&state_r.logQueue,
                      &state_r.logQueueLock);
-#endif // GUI_SUPPORT
   // step1d: initialize logging and/or tracing
   std::string log_file_name;
   if (log_to_file)
@@ -1129,7 +1109,6 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
-#if defined (GUI_SUPPORT)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
 #if defined (GTK_USE)
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
@@ -1163,7 +1142,6 @@ ACE_TMAIN (int argc_in,
       return EXIT_FAILURE;
     } // end IF
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   ACE_High_Res_Timer timer;
   timer.start ();

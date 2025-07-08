@@ -18,31 +18,30 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_ui_common.h"
 
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_manager_common.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "common_ui_wxwidgets_application.h"
 #include "common_ui_wxwidgets_tools.h"
-#endif
+#endif // WXWIDGETS_SUPPORT
 
 #include "stream_macros.h"
 
 #include "test_u_imagescreen_common.h"
 #include "test_u_imagescreen_defines.h"
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_u_imagescreen_gtk_callbacks.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
 template <typename NotificationType,
           typename DataMessageType,

@@ -38,13 +38,12 @@
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "wx/window.h"
-#endif
-#endif // GUI_SUPPORT
+#endif // WXWIDGETS_SUPPORT
 
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
@@ -52,13 +51,11 @@
 
 #include "common_statistic_handler.h"
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
 #include "stream_control_message.h"
 #include "stream_data_base.h"
@@ -290,18 +287,14 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
 {
   Test_I_Source_DirectShow_ModuleHandlerConfiguration ()
    : Test_I_CamStream_ModuleHandlerConfiguration ()
-#if defined (GUI_SUPPORT)
    , area ()
-#endif // GUI_SUPPORT
    , builder (NULL)
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    , contextId (0)
 #endif // GTK_USE
-#endif // GUI_SUPPORT
    , filterConfiguration (NULL)
    , filterCLSID (GUID_NULL)
    , outputFormat ()
@@ -310,10 +303,8 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
-#if defined (GUI_SUPPORT)
    , windowController (NULL)
    , windowController2 (NULL)
-#endif // GUI_SUPPORT
   {
     //finishOnDisconnect = true;
 
@@ -347,7 +338,7 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
     filterCLSID = rhs_in.filterCLSID;
     Stream_MediaFramework_DirectShow_Tools::free (outputFormat);
     struct _AMMediaType* media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy (rhs_in.outputFormat);
+      Stream_MediaFramework_DirectShow_Tools::copy (rhs_in.outputFormat);
     if (!media_type_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -393,18 +384,14 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
     return *this;
   }
 
-#if defined (GUI_SUPPORT)
   struct tagRECT                                       area; // visualization module
-#endif // GUI_SUPPORT
   IGraphBuilder*                                       builder;
   Net_IINETConnection_t*                               connection; // TCP target/IO module
   Net_ConnectionConfigurations_t*                      connectionConfigurations;
   Test_I_Source_DirectShow_TCPConnectionManager_t*     connectionManager; // TCP IO module
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   guint                                                contextId;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   struct Test_I_Source_DirectShow_FilterConfiguration* filterConfiguration;
   CLSID                                                filterCLSID;
   struct _AMMediaType                                  outputFormat; // display module
@@ -413,10 +400,8 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
   Test_I_Source_DirectShow_StreamConfiguration_t*      streamConfiguration;
   Test_I_Source_DirectShow_ISessionNotify_t*           subscriber;
   Test_I_Source_DirectShow_Subscribers_t*              subscribers;
-#if defined (GUI_SUPPORT)
   IVideoWindow*                                        windowController; // visualization module
   IMFVideoDisplayControl*                              windowController2; // visualization module (EVR)
-#endif // GUI_SUPPORT
 };
 
 typedef Stream_ISessionDataNotify_T<Test_I_Source_MediaFoundation_SessionData,
@@ -458,7 +443,7 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
   Net_IINETConnection_t*                                    connection; // TCP target/IO module
   Net_ConnectionConfigurations_t*                           connectionConfigurations;
   Test_I_Source_MediaFoundation_TCPConnectionManager_t*     connectionManager; // TCP IO module
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx*                                         mediaSource;
 #else
   IMFMediaSource*                                           mediaSource;
@@ -485,9 +470,7 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
 {
   Test_I_Source_V4L_ModuleHandlerConfiguration ()
    : Test_I_CamStream_ModuleHandlerConfiguration ()
-#if defined (GUI_SUPPORT)
    , area ()
-#endif // GUI_SUPPORT
    , buffers (STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS)
    , connection (NULL)
    , connectionConfigurations (NULL)
@@ -502,18 +485,12 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
    , streamConfiguration (NULL)
    , subscriber (NULL)
 //   , subscribers (NULL)
-#if defined (GUI_SUPPORT)
    , window (NULL)
-#endif // GUI_SUPPORT
   {
-#if defined (GUI_SUPPORT)
     ACE_OS::memset (&area, 0, sizeof (struct v4l2_rect));
-#endif // GUI_SUPPORT
   }
 
-#if defined (GUI_SUPPORT)
   struct v4l2_rect                                   area;
-#endif // GUI_SUPPORT
   __u32                                              buffers; // v4l device buffers
   Net_IINETConnection_t*                             connection; // TCP target/IO module
   Net_ConnectionConfigurations_t*                    connectionConfigurations;
@@ -528,7 +505,6 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
   // *TODO*: remove this ASAP
   Test_I_Source_V4L_StreamConfiguration_t*           streamConfiguration;
   Test_I_Source_V4L_ISessionNotify_t*                subscriber;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   GdkWindow*                                         window;
 #elif defined (WXWIDGETS_USE)
@@ -538,7 +514,6 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
 #else
   void*                                              window;
 #endif // GTK_USE || WXWIDGETS_USE || QT_USE
-#endif // GUI_SUPPORT
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -809,7 +784,6 @@ typedef Common_ISubscribe_T<Test_I_Source_V4L_ISessionNotify_t> Test_I_Source_V4
 
 //////////////////////////////////////////
 
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_UI_CBData
  : Test_I_CamStream_UI_CBData
@@ -912,6 +886,5 @@ struct Test_I_Source_V4L_ThreadData
   struct Test_I_Source_V4L_UI_CBData* CBData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
 
 #endif

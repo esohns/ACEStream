@@ -18,49 +18,38 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
-#if defined (GUI_SUPPORT)
-#include "common_ui_common.h"
-#endif // GUI_SUPPORT
-
 #include "common_image_tools.h"
+
+#include "common_ui_common.h"
 
 #include "stream_macros.h"
 
 #include "test_i_imagesave_common.h"
 #include "test_i_imagesave_defines.h"
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_imagesave_gtk_callbacks.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 Test_I_EventHandler_T<NotificationType,
                       DataMessageType,
-#if defined (GUI_SUPPORT)
                       UIStateType,
 #if defined (WXWIDGETS_USE)
                       InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
-#if defined (GUI_SUPPORT)
                       SessionMessageType>::Test_I_EventHandler_T (struct Test_I_ImageSave_UI_CBData* CBData_in
 #if defined (GTK_USE)
                                                                   )
@@ -71,15 +60,10 @@ Test_I_EventHandler_T<NotificationType,
 #else
                                                                   )
 #endif
-#else
-                              SessionMessageType>::Test_I_EventHandler_T ()
-#endif // GUI_SUPPORT
-#if defined (GUI_SUPPORT)
  : CBData_ (CBData_in)
 #if defined (WXWIDGETS_USE)
  , interface_ (interface_in)
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
  , numberOfFrames_ (0)
  , sessionData_ (NULL)
  , format_ (AV_PIX_FMT_NONE)
@@ -91,29 +75,24 @@ Test_I_EventHandler_T<NotificationType,
 
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 void
 Test_I_EventHandler_T<NotificationType,
                       DataMessageType,
-#if defined (GUI_SUPPORT)
                       UIStateType,
 #if defined (WXWIDGETS_USE)
                       InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
                       SessionMessageType>::start (Stream_SessionId_t sessionId_in,
                                                   const typename SessionMessageType::DATA_T::DATA_T& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_EventHandler_T::start"));
 
   // sanity check(s)
-#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -122,10 +101,8 @@ Test_I_EventHandler_T<NotificationType,
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
 #endif
-#endif // GUI_SUPPORT
   ACE_ASSERT (!sessionData_);
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR ());
@@ -133,7 +110,6 @@ Test_I_EventHandler_T<NotificationType,
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   //numberOfFrames_ = 0;
   sessionData_ =
@@ -146,33 +122,27 @@ Test_I_EventHandler_T<NotificationType,
   format_ = media_type_r.video.format;
   resolution_ = media_type_r.video.resolution;
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (COMMON_UI_EVENT_STARTED);
   } // end lock scope
 #endif // GTK_USE || WXWIDGETS_USE
-#endif // GUI_SUPPORT
 }
 
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 void
 Test_I_EventHandler_T<NotificationType,
                       DataMessageType,
-#if defined (GUI_SUPPORT)
                       UIStateType,
 #if defined (WXWIDGETS_USE)
                       InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
                       SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
                                                    const enum Stream_SessionMessageType& sessionEvent_in,
                                                    bool expedite_in)
@@ -191,22 +161,18 @@ Test_I_EventHandler_T<NotificationType,
 
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 void
 Test_I_EventHandler_T<NotificationType,
                       DataMessageType,
-#if defined (GUI_SUPPORT)
                       UIStateType,
 #if defined (WXWIDGETS_USE)
                       InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
                       SessionMessageType>::end (Stream_SessionId_t sessionId_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_EventHandler_T::end"));
@@ -214,7 +180,6 @@ Test_I_EventHandler_T<NotificationType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
-#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -223,9 +188,7 @@ Test_I_EventHandler_T<NotificationType,
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR ());
@@ -233,14 +196,10 @@ Test_I_EventHandler_T<NotificationType,
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   guint event_source_id = 0;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
 #if defined (GTK_USE)
@@ -264,7 +223,6 @@ Test_I_EventHandler_T<NotificationType,
     state_r.eventStack.push (COMMON_UI_EVENT_FINISHED);
   } // end lock scope
 #endif // GTK_USE || WXWIDGETS_USE
-#endif // GUI_SUPPORT
 
   numberOfFrames_ = 0;
   sessionData_ = NULL;
@@ -272,22 +230,18 @@ Test_I_EventHandler_T<NotificationType,
 
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 void
 Test_I_EventHandler_T<NotificationType,
                       DataMessageType,
-#if defined (GUI_SUPPORT)
                       UIStateType,
 #if defined (WXWIDGETS_USE)
                       InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
                       SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
                                                    const DataMessageType& message_in)
 {
@@ -296,7 +250,6 @@ Test_I_EventHandler_T<NotificationType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
-#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
   ACE_ASSERT (CBData_->configuration);
 #if defined(GTK_USE)
@@ -306,11 +259,9 @@ Test_I_EventHandler_T<NotificationType,
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
 #endif
-#endif // GUI_SUPPORT
 
   numberOfFrames_++;
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR ());
@@ -318,9 +269,7 @@ Test_I_EventHandler_T<NotificationType,
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator =
     CBData_->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -351,27 +300,22 @@ Test_I_EventHandler_T<NotificationType,
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
 #endif // GTK_USE || WXWIDGETS_USE
-#endif // GUI_SUPPORT
 }
 
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 void
 Test_I_EventHandler_T<NotificationType,
                       DataMessageType,
-#if defined (GUI_SUPPORT)
                       UIStateType,
 #if defined (WXWIDGETS_USE)
                       InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
                       SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
                                                    const SessionMessageType& sessionMessage_in)
 {
@@ -380,7 +324,6 @@ Test_I_EventHandler_T<NotificationType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
-#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -389,9 +332,7 @@ Test_I_EventHandler_T<NotificationType,
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR ());
@@ -399,12 +340,9 @@ Test_I_EventHandler_T<NotificationType,
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   int result = -1;
-#if defined (GUI_SUPPORT)
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
-#endif // GUI_SUPPORT
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_STATISTIC:
@@ -415,7 +353,6 @@ Test_I_EventHandler_T<NotificationType,
       if (!sessionData_)
         goto continue_;
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
 #endif // GTK_USE || WXWIDGETS_USE
@@ -443,19 +380,15 @@ Test_I_EventHandler_T<NotificationType,
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
       } // end lock scope
 #endif // GTK_USE || WXWIDGETS_USE
-#endif // GUI_SUPPORT
 
 continue_:
-#if defined (GUI_SUPPORT)
       event_e = COMMON_UI_EVENT_STATISTIC;
-#endif // GUI_SUPPORT
       break;
     }
     default:
       return;
   } // end SWITCH
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (event_e);
@@ -463,5 +396,4 @@ continue_:
 #else
   ACE_UNUSED_ARG (event_e);
 #endif // GTK_USE || WXWIDGETS_USE
-#endif // GUI_SUPPORT
 }

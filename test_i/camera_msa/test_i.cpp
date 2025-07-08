@@ -63,13 +63,11 @@
 
 #include "common_ui_tools.h"
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_common.h"
 #include "common_ui_gtk_manager_common.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
@@ -98,11 +96,9 @@
 #include "test_i_camera_msa_defines.h"
 #include "test_i_eventhandler.h"
 #include "test_i_stream.h"
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "test_i_gtk_callbacks.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CameraMSAStream");
 
@@ -169,7 +165,6 @@ do_print_usage (const std::string& programName_in)
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-#if defined (GUI_SUPPORT)
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
@@ -177,7 +172,6 @@ do_print_usage (const std::string& programName_in)
             << UI_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
             << std::endl;
-#endif // GUI_SUPPORT
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -208,9 +202,7 @@ bool
 do_process_arguments (int argc_in,
                       ACE_TCHAR** argv_in, // cannot be const...
                       struct Stream_Device_Identifier& deviceIdentifier_out,
-#if defined (GUI_SUPPORT)
                       std::string& UIFile_out,
-#endif // GUI_SUPPORT
                       bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                       enum Stream_MediaFramework_Type& mediaFramework_out,
@@ -230,11 +222,9 @@ do_process_arguments (int argc_in,
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-#if defined(GUI_SUPPORT)
   UIFile_out = path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -243,9 +233,7 @@ do_process_arguments (int argc_in,
   mode_out = TEST_I_PROGRAMMODE_NORMAL;
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:lo:tv");
-#if defined (GUI_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("g::");
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("m");
 #endif // ACE_WIN32 || ACE_WIN64
@@ -278,7 +266,6 @@ do_process_arguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
         break;
       }
-#if defined (GUI_SUPPORT)
       case 'g':
       {
         ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
@@ -288,7 +275,6 @@ do_process_arguments (int argc_in,
           UIFile_out.clear ();
         break;
       }
-#endif // GUI_SUPPORT
       case 'l':
       {
         logToFile_out = true;
@@ -894,17 +880,14 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #else
          struct Test_I_V4L_Configuration& configuration_in
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GUI_SUPPORT)
          , const std::string& UIDefinitionFilename_in
 #if defined (GTK_USE)
          , struct Test_I_UI_GTK_CBData& UI_CBData_in
 #endif // GTK_USE
-#endif // GUI_SUPPORT
         )
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -918,7 +901,6 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
   UI_CBData_in.UIState = &state_r;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   // ********************** module configuration data **************************
 #if defined (FFMPEG_SUPPORT)
@@ -1491,11 +1473,9 @@ ACE_TMAIN (int argc_in,
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-#if defined(GUI_SUPPORT)
   std::string UI_definition_filename = path;
   UI_definition_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_filename += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
-#endif // GUI_SUPPORT
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
@@ -1510,9 +1490,7 @@ ACE_TMAIN (int argc_in,
   if (!do_process_arguments (argc_in,
                              argv_in,
                              device_identifier,
-#if defined (GUI_SUPPORT)
                              UI_definition_filename,
-#endif // GUI_SUPPORT
                              log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                              media_framework_e,
@@ -1542,10 +1520,8 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to a deadlock --> ensure the streaming elements are sufficiently efficient in this regard\n")));
   if (
-#if defined(GUI_SUPPORT)
       (!UI_definition_filename.empty () &&
        !Common_File_Tools::isReadable (UI_definition_filename)) ||
-#endif // GUI_SUPPORT
       device_identifier.empty ()
      )
   {
@@ -1565,7 +1541,6 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1d: initialize logging and/or tracing
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -1574,7 +1549,6 @@ ACE_TMAIN (int argc_in,
 //  Common_UI_GTK_State_t& state_r =
 //    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
@@ -1650,7 +1624,6 @@ ACE_TMAIN (int argc_in,
   struct Test_I_V4L_Configuration configuration;
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
   struct Common_UI_CBData* ui_cb_data_p = NULL;
 
 #if defined (GTK_USE)
@@ -1720,18 +1693,14 @@ ACE_TMAIN (int argc_in,
 #endif // GTK_USE
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (ui_cb_data_p);
-#endif // GUI_SUPPORT
 
   // step1h: initialize UI framework
-#if defined (GUI_SUPPORT)
   struct Common_UI_State* ui_state_p = NULL;
 #if defined (GTK_USE)
   ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 #endif // GTK_USE
   ACE_ASSERT (ui_state_p);
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
   bool result_2 = false;
   if (!UI_definition_filename.empty ())
   {
@@ -1797,7 +1766,6 @@ ACE_TMAIN (int argc_in,
     } // end IF
 #endif // GTK_USE
   } // end IF
-#endif // GUI_SUPPORT
 
   ACE_High_Res_Timer timer;
   timer.start ();
@@ -1813,12 +1781,10 @@ ACE_TMAIN (int argc_in,
 #else
            configuration
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GUI_SUPPORT)
            , UI_definition_filename
 #if defined (GTK_USE)
            , ui_cb_data
 #endif // GTK_USE
-#endif // GUI_SUPPORT
           );
   timer.stop ();
 

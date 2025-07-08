@@ -39,9 +39,7 @@ class Parser_EventHandler
 {
  public:
   Parser_EventHandler (
-//#if defined (GUI_SUPPORT)
 //                       struct Parser_UI_CBData*, // UI state
-//#endif // GUI_SUPPORT
                        bool = false);             // console mode ?
   inline virtual ~Parser_EventHandler () {}
 
@@ -63,9 +61,7 @@ class Parser_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Parser_EventHandler& operator= (const Parser_EventHandler&))
 
   bool                      consoleMode_;
-//#if defined (GUI_SUPPORT)
 //  struct Parser_UI_CBData* CBData_;
-//#endif // GUI_SUPPORT
 };
 
 #endif

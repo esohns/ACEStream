@@ -64,7 +64,6 @@ if (WIN32)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${ACE_LIB_PATH})
 
-# if (GUI_SUPPORT)
 #  if (GTK_SUPPORT)
 #   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
 #   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
@@ -75,7 +74,6 @@ if (WIN32)
 #   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
 #                             ${WXWIDGETS_PATH})
 #  endif (WXWIDGETS_SUPPORT)
-# endif (GUI_SUPPORT)
 endif (WIN32)
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}

@@ -12,13 +12,26 @@
 
 // Windows Header Files
 #include "windows.h"
-//#if defined (UUIDS_H)
-//#else
-//#define UUIDS_H
-//#include "uuids.h"
-//#endif // UUIDS_H
+#undef GetObject
 
-//#include "streams.h"
+// #include "strmif.h"
+// #undef NANOSECONDS
+// #include "reftime.h"
+#if defined (DEBUG)
+//// *NOTE*: wxWidgets may have #defined __WXDEBUG__
+// #if defined (__WXDEBUG__)
+// #undef __WXDEBUG__
+// #endif // __WXDEBUG__
+// #include "wxdebug.h"
+#endif // DEBUG
+// *NOTE*: uuids.h doesn't have double include protection
+// #if defined (UUIDS_H)
+// #else
+// #define UUIDS_H
+// #include "uuids.h"
+// #endif // UUIDS_H
+
+// #include <streams.h>
 #endif // _MSC_VER
 
 // C RunTime Header Files
@@ -57,10 +70,8 @@
 #include "net_macros.h"
 
 #include "test_i_common.h"
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "test_i_gtk_common.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "test_i_camstream_common.h"

@@ -37,23 +37,19 @@
 #undef CursorShape
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_SUPPORT)
 #undef DrawText
 #undef SIZEOF_SIZE_T
 #include "wx/wx.h"
 #include "wx/apptrait.h"
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "common_isubscribe.h"
 
-#if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_SUPPORT)
 #include "common_ui_wxwidgets_application.h"
 #include "common_ui_wxwidgets_xrc_definition.h"
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "stream_common.h"
 #include "stream_isessionnotify.h"
@@ -74,14 +70,12 @@
 #include "stream_vis_defines.h"
 
 #include "test_u_common.h"
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "test_u_gtk_common.h"
 #endif // GTK_SUPPORT
 #if defined (QT_SUPPORT)
 #include "test_u_qt_common.h"
 #endif // QT_SUPPORT
-#endif // GUI_SUPPORT
 
 // forward declarations
 template <typename NotificationType,
@@ -267,7 +261,6 @@ typedef Common_ISubscribe_T<Stream_ImageScreen_ISessionNotify_t> Stream_ImageScr
 
 typedef Stream_ImageScreen_EventHandler_T<Stream_ImageScreen_ISessionNotify_t,
                                           Stream_ImageScreen_Message_t,
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                                           Common_UI_GTK_State_t,
 #elif defined (WXWIDGETS_USE)
@@ -278,12 +271,10 @@ typedef Stream_ImageScreen_EventHandler_T<Stream_ImageScreen_ISessionNotify_t,
 #else
                                           struct Common_UI_State,
 #endif // GTK_USE || WXWIDGETS_USE || QT_USE
-#endif // GUI_SUPPORT
                                           Stream_ImageScreen_SessionMessage_t> Stream_ImageScreen_EventHandler_t;
 
 //////////////////////////////////////////
 
-#if defined (GUI_SUPPORT)
 struct Stream_ImageScreen_ProgressData
  : Test_U_UI_ProgressData
 {
@@ -331,6 +322,5 @@ struct Stream_ImageScreen_UI_ThreadData
 
   struct Stream_ImageScreen_UI_CBData* CBData;
 };
-#endif // GUI_SUPPORT
 
 #endif

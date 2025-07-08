@@ -94,17 +94,12 @@ set (${EXECUTABLE}_EXE_SRCS
      http_get_stream.inl
      http_get_stream_common.h)
 #  test_i_template_instantiations.cpp
-if (GUI_SUPPORT)
- if (GTK_USE)
-  set (${EXECUTABLE}_EXE_SRCS
-       ${${EXECUTABLE}_EXE_SRCS}
-       http_get_callbacks.cpp
-       http_get_callbacks.h)
-# elseif (WXWIDGETS_USE)
-#  set (${EXECUTABLE}_EXE_SRCS
-#       ${${EXECUTABLE}_EXE_SRCS})
- endif (GTK_USE)
-endif (GUI_SUPPORT)
+if (GTK_SUPPORT)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
+      http_get_callbacks.cpp
+      http_get_callbacks.h)
+endif (GTK_SUPPORT)
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
@@ -165,12 +160,10 @@ target_link_libraries (${EXECUTABLE} PUBLIC CommonImage)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonLog)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonSignal)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonTimer)
-if (GUI_SUPPORT)
- target_link_libraries (${EXECUTABLE} PUBLIC CommonUI)
- if (GTK_SUPPORT)
-  target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_GTK)
- endif (GTK_SUPPORT)
-endif (GUI_SUPPORT)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonUI)
+if (GTK_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_GTK)
+endif (GTK_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME})
 #target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Device)

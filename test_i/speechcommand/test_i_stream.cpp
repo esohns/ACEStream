@@ -278,7 +278,6 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //  //} // end IF
   //}
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   //ACE_NEW_RETURN (module_2,
   //                Test_I_DirectShow_StatisticAnalysis_Module (this,
@@ -295,7 +294,6 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_2, branch_p, index_i);
   module_2 = NULL;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   ++index_i;
 
@@ -1098,7 +1096,6 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   //ACE_NEW_RETURN (module_p,
   //                Test_I_MediaFoundation_StatisticAnalysis_Module (this,
@@ -1115,7 +1112,6 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, branch_p, index_i);
   module_p = NULL;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   ++index_i;
   if (!(*iterator_3).second.second->fileIdentifier.empty ())
@@ -1953,7 +1949,6 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
 //                  false);
 //  layout_in->append (module_p, branch_p, index_i);
 //  module_p = NULL;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
                   Test_I_ALSA_Vis_SpectrumAnalyzer_Module (this,
@@ -1963,7 +1958,6 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, branch_p, index_i);
   module_p = NULL;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   ++index_i;
   if (!(*iterator_3).second.second->fileIdentifier.empty ())

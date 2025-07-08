@@ -1383,7 +1383,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (topology_node_p);
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = topology_node_p->GetObject (&unknown_p);
   ACE_ASSERT (SUCCEEDED (result) && unknown_p);
 #else

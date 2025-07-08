@@ -18,47 +18,36 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
-#if defined (GUI_SUPPORT)
 #include "common_ui_common.h"
-#endif // GUI_SUPPORT
 
 #include "stream_macros.h"
 
 #include "test_i_avsave_common.h"
 #include "test_i_avsave_defines.h"
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_avsave_gtk_callbacks.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 Stream_AVSave_EventHandler_T<NotificationType,
                               DataMessageType,
-#if defined (GUI_SUPPORT)
                               UIStateType,
 #if defined (WXWIDGETS_USE)
                               InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
-#if defined (GUI_SUPPORT)
                               SessionMessageType>::Stream_AVSave_EventHandler_T (struct Stream_AVSave_UI_CBData* CBData_in
 #if defined (GTK_USE)
                                                                                  )
@@ -69,15 +58,10 @@ Stream_AVSave_EventHandler_T<NotificationType,
 #else
                                                                                  )
 #endif // GTK_USE
-#else
-                              SessionMessageType>::Stream_AVSave_EventHandler_T ()
-#endif // GUI_SUPPORT
-#if defined (GUI_SUPPORT)
  : CBData_ (CBData_in)
 #if defined (WXWIDGETS_USE)
  , interface_ (interface_in)
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
  , sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_EventHandler_T::Stream_AVSave_EventHandler_T"));
@@ -86,29 +70,24 @@ Stream_AVSave_EventHandler_T<NotificationType,
 
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 void
 Stream_AVSave_EventHandler_T<NotificationType,
                               DataMessageType,
-#if defined (GUI_SUPPORT)
                               UIStateType,
 #if defined (WXWIDGETS_USE)
                               InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
                               SessionMessageType>::start (Stream_SessionId_t sessionId_in,
                                                           const typename SessionMessageType::DATA_T::DATA_T& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_EventHandler_T::start"));
 
   // sanity check(s)
-#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
   Stream_AVSave_UI_GTK_Manager_t* gtk_manager_p =
@@ -117,10 +96,8 @@ Stream_AVSave_EventHandler_T<NotificationType,
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
 #endif
-#endif // GUI_SUPPORT
 //  ACE_ASSERT (!sessionData_);
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR ());
@@ -128,38 +105,31 @@ Stream_AVSave_EventHandler_T<NotificationType,
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   sessionData_ =
     &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_in);
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (static_cast<enum Stream_AVSave_UI_EventType> (COMMON_UI_EVENT_STARTED));
   } // end lock scope
 #endif // GTK_USE || WXWIDGETS_USE
-#endif // GUI_SUPPORT
 }
 
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 void
 Stream_AVSave_EventHandler_T<NotificationType,
                               DataMessageType,
-#if defined (GUI_SUPPORT)
                               UIStateType,
 #if defined (WXWIDGETS_USE)
                               InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
                               SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
                                                            const enum Stream_SessionMessageType& sessionEvent_in,
                                                            bool expedite_in)
@@ -178,22 +148,18 @@ Stream_AVSave_EventHandler_T<NotificationType,
 
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 void
 Stream_AVSave_EventHandler_T<NotificationType,
                               DataMessageType,
-#if defined (GUI_SUPPORT)
                               UIStateType,
 #if defined (WXWIDGETS_USE)
                               InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
                               SessionMessageType>::end (Stream_SessionId_t sessionId_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_EventHandler_T::end"));
@@ -201,7 +167,6 @@ Stream_AVSave_EventHandler_T<NotificationType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
-#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
   Stream_AVSave_UI_GTK_Manager_t* gtk_manager_p =
@@ -210,9 +175,7 @@ Stream_AVSave_EventHandler_T<NotificationType,
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR ());
@@ -220,14 +183,10 @@ Stream_AVSave_EventHandler_T<NotificationType,
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   guint event_source_id = 0;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
 #if defined (GTK_USE)
@@ -242,7 +201,6 @@ Stream_AVSave_EventHandler_T<NotificationType,
     state_r.eventStack.push (static_cast<enum Stream_AVSave_UI_EventType> (COMMON_UI_EVENT_FINISHED));
   } // end lock scope
 #endif // GTK_USE || WXWIDGETS_USE
-#endif // GUI_SUPPORT
 
   if (sessionData_)
     sessionData_ = NULL;
@@ -250,22 +208,18 @@ Stream_AVSave_EventHandler_T<NotificationType,
 
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 void
 Stream_AVSave_EventHandler_T<NotificationType,
                               DataMessageType,
-#if defined (GUI_SUPPORT)
                               UIStateType,
 #if defined (WXWIDGETS_USE)
                               InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
                               SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
                                                            const DataMessageType& message_in)
 {
@@ -274,7 +228,6 @@ Stream_AVSave_EventHandler_T<NotificationType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
-#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
   Stream_AVSave_UI_GTK_Manager_t* gtk_manager_p =
@@ -283,9 +236,7 @@ Stream_AVSave_EventHandler_T<NotificationType,
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
 #endif
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
   enum Stream_AVSave_UI_EventType event_e = STREAM_AV_UI_EVENT_INVALID;
 #if defined (GTK_USE)
   UIStateType& state_r =
@@ -294,9 +245,7 @@ Stream_AVSave_EventHandler_T<NotificationType,
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     switch (message_in.getMediaType ())
     {
@@ -324,27 +273,22 @@ Stream_AVSave_EventHandler_T<NotificationType,
     CBData_->progressData.statistic.bytes += message_in.total_length ();
     state_r.eventStack.push (event_e);
   } // end lock scope
-#endif // GUI_SUPPORT
 }
 
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 void
 Stream_AVSave_EventHandler_T<NotificationType,
                               DataMessageType,
-#if defined (GUI_SUPPORT)
                               UIStateType,
 #if defined (WXWIDGETS_USE)
                               InterfaceType,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
                               SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
                                                            const SessionMessageType& sessionMessage_in)
 {
@@ -353,7 +297,6 @@ Stream_AVSave_EventHandler_T<NotificationType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
-#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
   Stream_AVSave_UI_GTK_Manager_t* gtk_manager_p =
@@ -362,9 +305,7 @@ Stream_AVSave_EventHandler_T<NotificationType,
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR ());
@@ -372,23 +313,16 @@ Stream_AVSave_EventHandler_T<NotificationType,
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   int result = -1;
-#if defined (GUI_SUPPORT)
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
-#endif // GUI_SUPPORT
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
-#if defined (GUI_SUPPORT)
       event_e = COMMON_UI_EVENT_ABORT;
-#endif // GUI_SUPPORT
       break;
     case STREAM_SESSION_MESSAGE_RESIZE:
-#if defined (GUI_SUPPORT)
       event_e = COMMON_UI_EVENT_RESIZE;
-#endif // GUI_SUPPORT
       break;
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
@@ -398,7 +332,6 @@ Stream_AVSave_EventHandler_T<NotificationType,
       if (!sessionData_)
         goto continue_;
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
 #endif // GTK_USE || WXWIDGETS_USE
@@ -426,19 +359,15 @@ Stream_AVSave_EventHandler_T<NotificationType,
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
       } // end lock scope
 #endif // GTK_USE || WXWIDGETS_USE
-#endif // GUI_SUPPORT
 
 continue_:
-#if defined (GUI_SUPPORT)
       event_e = COMMON_UI_EVENT_STATISTIC;
-#endif // GUI_SUPPORT
       break;
     }
     default:
       return;
   } // end SWITCH
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (static_cast<enum Stream_AVSave_UI_EventType> (event_e));
@@ -446,5 +375,4 @@ continue_:
 #else
   ACE_UNUSED_ARG (event_e);
 #endif // GTK_USE || WXWIDGETS_USE
-#endif // GUI_SUPPORT
 }

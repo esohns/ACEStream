@@ -606,22 +606,18 @@ typedef Stream_IStreamControl_T<enum Stream_ControlType,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_DirectShow_Configuration
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  : Test_I_GTK_Configuration
-#endif // GTK_USE
 #else
  : Test_I_Configuration
-#endif // GUI_SUPPORT
+#endif // GTK_USE
 {
   Test_I_DirectShow_Configuration ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    : Test_I_GTK_Configuration ()
-#endif // GTK_USE
 #else
    : Test_I_Configuration ()
-#endif // GUI_SUPPORT
+#endif // GTK_USE
    , direct3DConfiguration ()
    , streamConfiguration ()
   {}
@@ -632,22 +628,18 @@ struct Test_I_DirectShow_Configuration
 };
 
 struct Test_I_MediaFoundation_Configuration
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  : Test_I_GTK_Configuration
-#endif // GTK_USE
 #else
  : Test_I_Configuration
-#endif // GUI_SUPPORT
+#endif // GTK_USE
 {
   Test_I_MediaFoundation_Configuration ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    : Test_I_GTK_Configuration ()
-#endif // GTK_USE
 #else
    : Test_I_Configuration ()
-#endif // GUI_SUPPORT
+#endif // GTK_USE
    , direct3DConfiguration ()
    , streamConfiguration ()
   {}
@@ -658,22 +650,18 @@ struct Test_I_MediaFoundation_Configuration
 };
 #else
 struct Test_I_V4L_Configuration
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  : Test_I_GTK_Configuration
-#endif // GTK_USE
 #else
  : Test_I_Configuration
-#endif // GUI_SUPPORT
+#endif // GTK_USE
 {
   Test_I_V4L_Configuration ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    : Test_I_GTK_Configuration ()
-#endif // GTK_USE
 #else
    : Test_I_Configuration ()
-#endif // GUI_SUPPORT
+#endif // GTK_USE
    , streamConfiguration ()
   {}
 
@@ -721,7 +709,6 @@ typedef Test_I_EventHandler_T<Test_I_ISessionNotify_t,
 
 //////////////////////////////////////////
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 class MSAFluidSolver2D;
 struct Test_I_UI_GTK_CBData
@@ -734,6 +721,5 @@ struct Test_I_UI_GTK_CBData
   MSAFluidSolver2D* solver;
 };
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #endif // TEST_I_CAMERA_MSA_COMMON_H

@@ -23,7 +23,6 @@
 
 #define TEST_I_DEFAULT_OUTPUT_FILE             "output.bmp"
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #undef TEST_I_UI_DEFINITION_FILE
 #if defined (GTK3_USE)
@@ -42,7 +41,7 @@
 #define TEST_I_UI_CSS_FILE                     "imagesave.css"
 
 //---------------------------------------
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #define TEST_I_UI_GTK_ADJUSTMENT_SW_V_NAME             "scrolledwindow_vadjustment"
 #define TEST_I_UI_GTK_ADJUSTMENT_SCALE_NAME            "adjustment_scale"
 #define TEST_I_UI_GTK_BUTTON_ABOUT_NAME                "about"
@@ -80,12 +79,12 @@
 #define TEST_I_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME  "spinbutton_session_messages"
 #define TEST_I_UI_GTK_STATUSBAR_NAME                   "statusbar"
 //#define TEST_I_UI_GTK_TOGGLEBUTTON_DISPLAY_NAME        "togglebutton_display"
-#define TEST_I_UI_GTK_TOGGLEBUTTON_PROCESS_NAME         "togglebutton_process"
+#define TEST_I_UI_GTK_TOGGLEBUTTON_PROCESS_NAME        "togglebutton_process"
 //#define TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME           "togglebutton_save"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #define TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME       "dialog_main"
 #define TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME "wxDialog"
-#endif // GTK_USE || WXWIDGETS_USE
-#endif // GUI_SUPPORT
+#endif // WXWIDGETS_SUPPORT
 
 #endif

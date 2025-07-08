@@ -26,9 +26,7 @@
 #include "stream_common.h"
 
 // forward declarations
-#if defined (GUI_SUPPORT)
 struct Test_U_MP4Player_UI_CBData;
-#endif // GUI_SUPPORT
 
 template <typename NotificationType,
           typename DataMessageType,

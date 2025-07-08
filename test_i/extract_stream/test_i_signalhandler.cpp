@@ -21,21 +21,17 @@
 
 #include "test_i_signalhandler.h"
 
-#if defined (GUI_SUPPORT)
-#if defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_SUPPORT)
 #undef DrawText
 #undef SIZEOF_SIZE_T
 #include "wx/wx.h"
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
+#endif // WXWIDGETS_SUPPORT
 
 #include "ace/Log_Msg.h"
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
 #include "stream_macros.h"
 
@@ -143,7 +139,6 @@ Test_I_SignalHandler::handle (const struct Common_Signal& signal_in)
     // step1: stop UI event processing ?
     // *TODO*: triggering UI shutdown from a widget callback is more consistent,
     //         compared to doing it here
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     TEST_I_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?
                                                      true);  // high priority ?
@@ -152,6 +147,5 @@ Test_I_SignalHandler::handle (const struct Common_Signal& signal_in)
     ACE_ASSERT (app_p);
     app_p->ExitMainLoop ();
 #endif
-#endif // GUI_SUPPORT
   } // end IF
 }

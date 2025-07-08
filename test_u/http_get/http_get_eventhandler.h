@@ -38,10 +38,7 @@ class HTTPGet_EventHandler
  : public HTTPGet_Notification_t
 {
  public:
-  HTTPGet_EventHandler (
-#if defined (GUI_SUPPORT)
-                        struct HTTPGet_UI_CBData*, // UI state
-#endif // GUI_SUPPORT
+  HTTPGet_EventHandler (struct HTTPGet_UI_CBData*, // UI state
                         bool = false);             // console mode ?
   inline virtual ~HTTPGet_EventHandler () {}
 
@@ -66,9 +63,7 @@ class HTTPGet_EventHandler
   void endSession ();
 
   bool                      consoleMode_;
-#if defined (GUI_SUPPORT)
   struct HTTPGet_UI_CBData* CBData_;
-#endif // GUI_SUPPORT
 };
 
 #endif

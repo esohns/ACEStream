@@ -21,9 +21,6 @@
 #ifndef TEST_I_CAMSTREAM_DEFINES_H
 #define TEST_I_CAMSTREAM_DEFINES_H
 
-#include "ace/config-lite.h"
-
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #define TEST_I_DEFAULT_GTK_RC_FILE                                "resources.rc"
 #if defined (GTK2_USE)
@@ -34,7 +31,6 @@
 #define TEST_I_DEFAULT_TARGET_GLADE_FILE                          "target.gtk3"
 #endif // GTKx_USE
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #define TEST_I_DEFAULT_OUTPUT_FILE                                "output.tmp"
 
 // *NOTE*: 640x480 RGB(A) --> 307200 * 1+1+1(+1) = 921600 (1228800)

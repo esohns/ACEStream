@@ -68,12 +68,10 @@ Stream_AVSave_DirectShow_Stream::Stream_AVSave_DirectShow_Stream ()
                  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
  , resizer_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
  , GTKCairoDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
  , converter_2 (this,
                 ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
  , tagger_ (this,
@@ -144,7 +142,6 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
       //            native endianness)
       layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 //      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
 //        layout_in->append (&display_, branch_p, 0);
@@ -154,10 +151,6 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #elif defined (WXWIDGETS_USE)
       layout_in->append (&display_, branch_p, index_i);
 #endif // GTK_USE || WXWIDGETS_USE
-#else
-      ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
-      ACE_ASSERT (false); // *TODO*
-#endif // GUI_SUPPORT
       ++index_i;
     } // end IF
     if (save_to_file_b)
@@ -1474,18 +1467,16 @@ Stream_AVSave_V4L_Stream::Stream_AVSave_V4L_Stream ()
                  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
  , resizer_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
  , GTKCairoDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
 // , display_ (this,
 //             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
 // , display_2_ (this,
 //               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
-#endif // GTK_USE
+#endif // GTK_SUPPORT
  , X11Display_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
-#endif // GUI_SUPPORT
  , converter_2 (this,
                 ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
  , tagger_ (this,
@@ -1516,11 +1507,11 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (iterator != configuration_->end ());
   bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
-#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
     configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
 #else
-      configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
-#endif // GUI_SUPPORT
+    configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+#endif // GTK_USE
   ACE_ASSERT (iterator_2 != configuration_->end ());
   bool display_b = !(*iterator_2).second.second->display.device.empty ();
   Stream_Branches_t branches_a;
@@ -1558,7 +1549,6 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
       //            native endianness)
       layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 //      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
 //        layout_in->append (&display_, branch_p, 0);
@@ -1568,10 +1558,6 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
 #elif defined (WXWIDGETS_USE)
       layout_in->append (&display_, branch_p, index_i);
 #endif // GTK_USE || WXWIDGETS_USE
-#else
-      ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
-      ACE_ASSERT (false); // *TODO*
-#endif // GUI_SUPPORT
       ++index_i;
     } // end IF
     if (save_to_file_b)

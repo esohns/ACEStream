@@ -43,7 +43,6 @@
 #include "stream_lib_directshow_target.h"
 #include "stream_lib_mediafoundation_target.h"
 
-#if defined (GUI_SUPPORT)
 #include "stream_vis_target_direct3d.h"
 #include "stream_vis_target_directshow.h"
 #include "stream_vis_target_mediafoundation.h"
@@ -51,17 +50,14 @@
 #if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_cairo.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #else
 #include "stream_dev_cam_source_v4l.h"
 
 #include "stream_lib_v4l_common.h"
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_pixbuf.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (FFMPEG_SUPPORT)
@@ -548,7 +544,6 @@ typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
                                                       Test_I_Source_MediaFoundation_SessionMessage,
                                                       Test_I_Source_MediaFoundation_SessionData> Test_I_Source_MediaFoundation_Distributor;
 
-#if defined (GUI_SUPPORT)
 //typedef Stream_Vis_DirectShow_Target_Direct3D_T<ACE_MT_SYNCH,
 //                                                Common_TimePolicy_t,
 //                                                struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
@@ -612,9 +607,7 @@ typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                        Test_I_Source_DirectShow_SessionData_t,
                                        struct _AMMediaType> Test_I_Source_DirectShow_GTK_Cairo;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #else
-#if defined (GUI_SUPPORT)
 typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Test_I_Source_V4L_ModuleHandlerConfiguration,
@@ -640,7 +633,6 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Test_I_Source_V4L_SessionData_t,
                                        struct Stream_MediaFramework_V4L_MediaType> Test_I_Source_V4L_Display;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (FFMPEG_SUPPORT)
@@ -829,8 +821,7 @@ typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
 //                                            Test_I_Target_MediaFoundation_SessionData,
 //                                            Test_I_Target_MediaFoundation_SessionData_t> Test_I_Target_Stream_DisplayNull;
 #else
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Visualization_LibAVResize_T<Test_I_Target_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_I_Target_Resize;
@@ -843,8 +834,7 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Test_I_Target_SessionMessage,
                                        Test_I_Target_SessionData_t,
                                        struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_I_Target_Display;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1026,8 +1016,7 @@ DATASTREAM_MODULE_DUPLEX (Test_I_Source_DirectShow_SessionData,                 
 //                              Stream_INotify_t,                                                // stream notification interface type
 //                              Test_I_Source_MediaFoundation_Display);                          // writer type
 #else
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 DATASTREAM_MODULE_DUPLEX (Test_I_Source_V4L_SessionData,                          // session data type
                           enum Stream_SessionMessageType,                         // session event type
                           struct Test_I_Source_V4L_ModuleHandlerConfiguration,    // module handler configuration type
@@ -1043,8 +1032,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L_SessionData,                  //
                               libacestream_default_vis_gtk_pixbuf_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
                               Test_I_Source_V4L_Display);                            // writer type
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (FFMPEG_SUPPORT)
@@ -1106,7 +1094,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L_SessionData,                  //
 #endif // FFMPEG_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                             // session event type
@@ -1115,7 +1102,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_DirectShow_SessionData,             
                               Stream_INotify_t,                                           // stream notification interface type
                               Test_I_Source_DirectShow_GTK_Cairo);                        // writer type
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                             // session event type
@@ -1185,7 +1171,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_MediaFoundation_SessionData,        
                               libacestream_default_vis_mediafoundation_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_I_Target_MediaFoundation_Display);                          // writer type
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                             // session event type
@@ -1194,10 +1179,8 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_DirectShow_SessionData,             
                               Stream_INotify_t,                                           // stream notification interface type
                               Test_I_Target_DirectShow_GTK_Cairo);                        // writer type
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #else
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                  // session data type
                               enum Stream_SessionMessageType,                         // session event type
@@ -1212,8 +1195,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                       /
                               libacestream_default_vis_gtk_pixbuf_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
                               Test_I_Target_Display);                                 // writer type
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

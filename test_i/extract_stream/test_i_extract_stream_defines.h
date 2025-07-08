@@ -21,12 +21,9 @@
 #ifndef TEST_I_EXTRACT_STREAM_DEFINES_H
 #define TEST_I_EXTRACT_STREAM_DEFINES_H
 
-#include "gtk/gtk.h"
-
 #define TEST_I_DEFAULT_OUTPUT_AUDIO_FILE       "output.wav"
 #define TEST_I_DEFAULT_OUTPUT_AUDIO_VIDEO_FILE "output.avi"
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #undef TEST_I_UI_DEFINITION_FILE
 #if defined (GTK3_USE)
@@ -45,7 +42,7 @@
 #define TEST_I_UI_CSS_FILE                     "test_i.css"
 
 //---------------------------------------
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #define TEST_I_UI_GTK_ADJUSTMENT_NAME                  "scrolledwindow_vadjustment"
 #define TEST_I_UI_GTK_BUTTON_ABOUT_NAME                "button_about"
 //#define TEST_I_UI_GTK_BUTTON_CLEAR_NAME                "clear"
@@ -86,10 +83,10 @@
 #define TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME           "togglebutton_save"
 #define TEST_I_UI_GTK_TOGGLEBUTTON_SLOW_NAME           "togglebutton_slow"
 #define TEST_I_UI_GTK_WINDOW_FULLSCREEN                "window_fullscreen"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #define TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME       "dialog_main"
 #define TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME "wxDialog"
-#endif
-#endif // GUI_SUPPORT
+#endif // WXWIDGETS_SUPPORT
 
 #endif

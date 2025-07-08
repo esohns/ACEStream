@@ -12,6 +12,7 @@
 
 // Windows Header Files
 #include "windows.h"
+#undef GetObject
 
 //#include "strmif.h"
 //#undef NANOSECONDS

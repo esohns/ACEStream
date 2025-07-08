@@ -77,11 +77,9 @@
 #include "stream_dec_whisper_decoder.h"
 #endif // WHISPERCPP_SUPPORT
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "test_i_message.h"
 #include "test_i_speechcommand_common.h"
@@ -387,7 +385,6 @@ typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_TimePolicy_t,
@@ -413,7 +410,6 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           IMFMediaType*,
                                                           double> Test_I_MediaFoundation_Vis_SpectrumAnalyzer;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 //////////////////////////////////////////
 
@@ -647,7 +643,6 @@ typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_TimePolicy_t,
@@ -661,7 +656,6 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           struct Stream_MediaFramework_ALSA_MediaType,
                                                           double> Test_I_ALSA_Vis_SpectrumAnalyzer;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 //////////////////////////////////////////
 
@@ -907,7 +901,6 @@ DATASTREAM_MODULE_DUPLEX (Test_I_SpeechCommand_MediaFoundation_SessionData,     
 
 //////////////////////////////////////////
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_DirectShow_SessionData,                                 // session data type
                               enum Stream_SessionMessageType,                                // session event type
@@ -922,7 +915,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData, 
                               Stream_INotify_t,                                              // stream notification interface type
                               Test_I_MediaFoundation_Vis_SpectrumAnalyzer);                  // writer type
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 //////////////////////////////////////////
 
@@ -1080,7 +1072,6 @@ DATASTREAM_MODULE_DUPLEX (Test_I_SpeechCommand_ALSA_SessionData,                
 
 //////////////////////////////////////////
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,                                       // session data type
                               enum Stream_SessionMessageType,                                // session event type
@@ -1089,7 +1080,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,            
                               Stream_INotify_t,                                              // stream notification interface type
                               Test_I_ALSA_Vis_SpectrumAnalyzer);                             // writer type
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 //////////////////////////////////////////
 

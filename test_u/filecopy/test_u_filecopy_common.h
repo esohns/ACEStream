@@ -28,20 +28,16 @@
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#endif // GTK_USE
 #endif // GTK_SUPPORT
 
 #include "common_isubscribe.h"
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_USE
 #endif // GTK_SUPPORT
 
 #include "stream_common.h"
@@ -52,10 +48,8 @@
 #include "stream_session_data.h"
 
 #include "test_u_common.h"
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_u_gtk_common.h"
-#endif // GTK_USE
 #endif // GTK_SUPPORT
 
 // forward declarations
@@ -135,26 +129,18 @@ struct Stream_Filecopy_SignalHandlerConfiguration
 };
 
 struct Stream_Filecopy_Configuration
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  : Test_U_GTK_Configuration
 #else
  : Test_U_Configuration
 #endif // GTK_USE
-#else
- : Test_U_Configuration
-#endif // GUI_SUPPORT
 {
   Stream_Filecopy_Configuration ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    : Test_U_GTK_Configuration ()
 #else
    : Test_U_Configuration ()
 #endif // GTK_USE
-#else
-   : Test_U_Configuration ()
-#endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
    , streamConfiguration ()
   {}
@@ -179,18 +165,10 @@ typedef Common_ISubscribe_T<Stream_Filecopy_ISessionNotify_t> Stream_Filecopy_IS
 //////////////////////////////////////////
 
 struct Stream_Filecopy_ProgressData
-#if defined (GUI_SUPPORT)
  : Test_U_UI_ProgressData
-#else
- : Test_U_ProgressData
-#endif // GUI_SUPPORT
 {
   Stream_Filecopy_ProgressData ()
-#if defined (GUI_SUPPORT)
    : Test_U_UI_ProgressData ()
-#else
-   : Test_U_ProgressData ()
-#endif // GUI_SUPPORT
    , copied (0)
    , size (0)
   {}
@@ -200,18 +178,10 @@ struct Stream_Filecopy_ProgressData
 };
 
 struct Stream_Filecopy_UI_CBData
-#if defined (GUI_SUPPORT)
  : Test_U_UI_CBData
-#else
- : Test_U_CBData
-#endif // GUI_SUPPORT
 {
   Stream_Filecopy_UI_CBData ()
-#if defined (GUI_SUPPORT)
    : Test_U_UI_CBData ()
-#else
-   : Test_U_CBData ()
-#endif // GUI_SUPPORT
    , configuration (NULL)
    , progressData ()
    , stream (NULL)
@@ -225,24 +195,14 @@ struct Stream_Filecopy_UI_CBData
 };
 
 struct Stream_Filecopy_ThreadData
-#if defined (GUI_SUPPORT)
  : Test_U_UI_ThreadData
-#else
- : Test_U_ThreadData
-#endif // GUI_SUPPORT
 {
   Stream_Filecopy_ThreadData ()
-#if defined (GUI_SUPPORT)
    : Test_U_UI_ThreadData ()
    , CBData (NULL)
-#else
-   : Test_U_ThreadData ()
-#endif // GUI_SUPPORT
   {}
 
-#if defined (GUI_SUPPORT)
   struct Stream_Filecopy_UI_CBData* CBData;
-#endif // GUI_SUPPORT
 };
 
 #endif

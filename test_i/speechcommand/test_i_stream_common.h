@@ -23,7 +23,6 @@
 
 #include <list>
 
-#if defined (GUI_SUPPORT)
 #if defined (OPENGL_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "gl/GL.h"
@@ -31,13 +30,10 @@
 #include "GL/gl.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // OPENGL_SUPPORT
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "stream_common.h"
 #include "stream_configuration.h"
@@ -52,11 +48,9 @@
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_common.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "test_i_common.h"
 #include "test_i_configuration.h"
@@ -309,7 +303,6 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
    , modelFile ()
    , mute (false)
    , scorerFile ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
    , OpenGLInstructions (NULL)
@@ -318,14 +311,11 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
 #endif /* GTKGL_SUPPORT */
 #endif // GTK_SUPPORT
    , spectrumAnalyzerConfiguration (NULL)
-#endif // GUI_SUPPORT
    , subscriber (NULL)
    , subscribers (NULL)
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
    , window (NULL)
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
@@ -343,7 +333,6 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
   std::string                                       modelFile;
   bool                                              mute;
   std::string                                       scorerFile;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
   Stream_Visualization_GTKGL_Instructions_t*        OpenGLInstructions;
@@ -352,14 +341,11 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
 #endif /* GTKGL_SUPPORT */
 #endif // GTK_SUPPORT
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
-#endif // GUI_SUPPORT
   Test_I_DirectShow_ISessionNotify_t*               subscriber;
   Test_I_DirectShow_Subscribers_t*                  subscribers;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   GdkWindow*                                        window;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 };
 
 struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
@@ -380,7 +366,6 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
    , modelFile ()
    , mute (false)
    , scorerFile ()
-#if defined(GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
    , OpenGLInstructions (NULL)
@@ -389,14 +374,11 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
 #endif /* GTKGL_SUPPORT */
 #endif // GTK_SUPPORT
    , spectrumAnalyzerConfiguration (NULL)
-#endif // GUI_SUPPORT
    , subscriber (NULL)
    , subscribers (NULL)
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
    , window (NULL)
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
@@ -414,7 +396,6 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
   std::string                                       modelFile;
   bool                                              mute;
   std::string                                       scorerFile;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
   Stream_Visualization_GTKGL_Instructions_t*        OpenGLInstructions;
@@ -423,14 +404,11 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
 #endif /* GTKGL_SUPPORT */
 #endif // GTK_SUPPORT
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
-#endif // GUI_SUPPORT
   Test_I_MediaFoundation_ISessionNotify_t*          subscriber;
   Test_I_MediaFoundation_Subscribers_t*             subscribers;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   GdkWindow*                                        window;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 };
 #else
 struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
@@ -450,7 +428,6 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
    , modelFile ()
    , mute (false)
    , scorerFile ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
    , OpenGLInstructions (NULL)
@@ -459,14 +436,11 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
 #endif /* GTKGL_SUPPORT */
 #endif // GTK_SUPPORT
    , spectrumAnalyzerConfiguration (NULL)
-#endif // GUI_SUPPORT
    , subscriber (NULL)
    , subscribers (NULL)
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
    , window (NULL)
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
@@ -483,7 +457,6 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
   std::string                                       modelFile;
   bool                                              mute;
   std::string                                       scorerFile;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
   Stream_Visualization_GTKGL_Instructions_t*        OpenGLInstructions;
@@ -492,14 +465,11 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
 #endif /* GTKGL_SUPPORT */
 #endif // GTK_SUPPORT
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
-#endif // GUI_SUPPORT
   Test_I_ALSA_ISessionNotify_t*                     subscriber;
   Test_I_ALSA_Subscribers_t*                        subscribers;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   GdkWindow*                                        window;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

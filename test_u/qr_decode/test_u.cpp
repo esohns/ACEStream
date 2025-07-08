@@ -808,14 +808,12 @@ do_initialize_libcamera (struct Stream_Device_Identifier& deviceIdentifier_out,
   //         ":0")
   outputFormat_out.format =
     libcamera::PixelFormat (FOURCC ('R', 'G', 'B', 'A'), 0);
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #if defined (GTK2_USE)
   outputFormat_out.format =
     libcamera::PixelFormat (FOURCC ('r', 'a', 'w', ' '), 0);
 #endif // GTK2_USE
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   outputFormat_out.frameRateNumerator = 30;
   outputFormat_out.frameRateDenominator = 1;
   outputFormat_out.resolution = captureFormat_out.resolution;

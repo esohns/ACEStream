@@ -36,7 +36,6 @@
 
 //---------------------------------------
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
 #define TEST_I_UI_OPENGL_DEFAULT_TEXTURE_FILE          "image.png"
@@ -94,6 +93,5 @@
 #define TEST_I_UI_GTK_TEXTBUFFER_NAME                  "textbuffer"
 #define TEST_I_UI_GTK_TEXTVIEW_NAME                    "textview"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #endif

@@ -229,7 +229,6 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (module_p, branch_p, index_i);
       module_p = NULL;
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
       ACE_NEW_RETURN (module_p,
                       Test_I_Vis_GTK_Cairo_Module (this,
@@ -239,10 +238,8 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
       module_p = NULL;
 #elif defined (WXWIDGETS_USE)
 #endif // GTK_USE || WXWIDGETS_USE
-#else
-      ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
-      ACE_ASSERT (false); // *TODO*
-#endif // GUI_SUPPORT
+      //ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
+      //ACE_ASSERT (false); // *TODO*
       ++index_i;
 
       ACE_NEW_RETURN (module_p,

@@ -21,11 +21,9 @@
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "stream_macros.h"
 
@@ -47,12 +45,8 @@ Test_I_Target_EventHandler_T<SessionDataType,
                              MessageType,
                              SessionMessageType,
                              CallbackDataType>::Test_I_Target_EventHandler_T (CallbackDataType* CBData_in)
-#if defined (GUI_SUPPORT)
  : CBData_ (CBData_in)
  , sessionData_ (NULL)
-#else
- : sessionData_ (NULL)
-#endif // GUI_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler_T::Test_I_Target_EventHandler_T"));
 
@@ -76,25 +70,20 @@ Test_I_Target_EventHandler_T<SessionDataType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
-#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
-#endif // GUI_SUPPORT
   ACE_ASSERT (!sessionData_);
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
+#endif // GTK_USE
 
   sessionData_ = &const_cast<SessionDataType&> (sessionData_in);
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   CBData_->progressData.transferred = 0;
 
   ACE_ASSERT (!sessionData_->connectionStates.empty ());
@@ -141,8 +130,7 @@ Test_I_Target_EventHandler_T<SessionDataType,
       state_r.eventSourceIds.insert (event_source_id);
     state_r.eventStack.push (COMMON_UI_EVENT_STARTED);
   } // end lock scope
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
+#endif // GTK_USE
 }
 
 template <typename SessionDataType,
@@ -162,22 +150,17 @@ Test_I_Target_EventHandler_T<SessionDataType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
-#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
+#endif // GTK_USE
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   CBData_->dispatch = NULL;
 
   guint event_source_id = 0;
@@ -191,8 +174,7 @@ Test_I_Target_EventHandler_T<SessionDataType,
       state_r.eventSourceIds.insert (event_source_id);
     state_r.eventStack.push (COMMON_UI_EVENT_STOPPED);
   } // end lock scope
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
+#endif // GTK_USE
 
   if (sessionData_)
     sessionData_ = NULL;
@@ -216,22 +198,17 @@ Test_I_Target_EventHandler_T<SessionDataType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
-#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
+#endif // GTK_USE
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   guint event_source_id = 0;
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     CBData_->progressData.transferred += message_in.total_length ();
@@ -244,8 +221,7 @@ Test_I_Target_EventHandler_T<SessionDataType,
     //  CBData_->UIState.eventSourceIds.insert (event_source_id);
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
+#endif // GTK_USE
 }
 
 template <typename SessionDataType,
@@ -266,24 +242,18 @@ Test_I_Target_EventHandler_T<SessionDataType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
-#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
+#endif // GTK_USE
 
   int result = -1;
-#if defined (GUI_SUPPORT)
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_SESSION;
-#endif // GUI_SUPPORT
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
@@ -304,15 +274,13 @@ Test_I_Target_EventHandler_T<SessionDataType,
                       ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
       } // end IF
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
 #endif // GTK_USE
         CBData_->progressData.statistic = sessionData_->statistic;
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
       } // end lock scope
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
       if (sessionData_->lock)
       {
@@ -323,9 +291,7 @@ Test_I_Target_EventHandler_T<SessionDataType,
       } // end IF
 
 continue_:
-#if defined (GUI_SUPPORT)
       event_e = COMMON_UI_EVENT_STATISTIC;
-#endif // GUI_SUPPORT
       break;
     }
     default:
@@ -337,11 +303,9 @@ continue_:
     }
   } // end SWITCH
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (event_e);
   } // end lock scope
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
+#endif // GTK_USE
 }

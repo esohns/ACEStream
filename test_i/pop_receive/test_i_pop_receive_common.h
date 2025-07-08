@@ -23,31 +23,30 @@
 
 #include <list>
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+
+#if defined (WXWIDGETS_SUPPORT)
 #include "wx/apptrait.h"
 #include "wx/window.h"
-#endif
-#endif // GUI_SUPPORT
+#endif // WXWIDGETS_SUPPORT
 
 #include "common_isubscribe.h"
 #include "common_tools.h"
 
-#if defined (GUI_SUPPORT)
 #include "common_ui_common.h"
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_common.h"
 #include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "common_ui_wxwidgets_application.h"
 #include "common_ui_wxwidgets_common.h"
 #include "common_ui_wxwidgets_xrc_definition.h"
-#endif
-#endif // GUI_SUPPORT
+#endif // WXWIDGETS_SUPPORT
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -67,37 +66,34 @@
 
 #include "test_i_common.h"
 #include "test_i_configuration.h"
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_gtk_common.h"
-#elif defined (QT_USE)
+#endif // GTK_SUPPORT
+#if defined (QT_SUPPORT)
 #include "test_i_qt_common.h"
-#elif defined (WXWIDGETS_USE)
+#endif // QT_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "test_i_wxwidgets_common.h"
-#endif
-#endif // GUI_SUPPORT
+#endif // WXWIDGETS_SUPPORT
+
 #include "test_i_pop_receive_stream_common.h"
 
 // forward declarations
 class Stream_IAllocator;
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType, // implements Common_UI_wxWidgets_IApplicationBase_T
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 class Stream_POPReceive_EventHandler_T;
-#if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_USE)
 template <typename WidgetBaseClassType,
           typename InterfaceType,
           typename StreamType>
 class Stream_POPReceive_WxWidgetsDialog_T;
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
 
 enum Stream_POPReceive_ProgramMode
 {
@@ -146,26 +142,18 @@ struct Stream_POPReceive_ModuleHandlerConfiguration
 };
 
 struct Stream_POPReceive_Configuration
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  : Test_I_GTK_Configuration
 #else
  : Test_I_Configuration
 #endif // GTK_USE
-#else
- : Test_I_Configuration
-#endif // GUI_SUPPORT
 {
   Stream_POPReceive_Configuration ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    : Test_I_GTK_Configuration ()
 #else
    : Test_I_Configuration ()
 #endif // GTK_USE
-#else
-   : Test_I_Configuration ()
-#endif // GUI_SUPPORT
    , allocatorConfiguration ()
    , protocolConfiguration ()
    , signalHandlerConfiguration ()
@@ -205,33 +193,28 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           POP_Message_t,
                                           POP_SessionMessage_t> Stream_POPReceive_MessageAllocator_t;
 
-#if defined (GUI_SUPPORT)
-#if defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_SUPPORT)
 struct Stream_POPReceive_UI_CBData;
 typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
                                            struct Stream_POPReceive_UI_CBData> Stream_POPReceive_WxWidgetsIApplication_t;
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
+#endif // WXWIDGETS_SUPPORT
 
 typedef Stream_POPReceive_EventHandler_T<POP_ISessionNotify_t,
-                                       POP_Message_t,
-#if defined (GUI_SUPPORT)
+                                         POP_Message_t,
 #if defined (GTK_USE)
-                                       Common_UI_GTK_State_t,
+                                         Common_UI_GTK_State_t,
 #elif defined (WXWIDGETS_USE)
-                                       struct Common_UI_wxWidgets_State,
-                                       Common_UI_wxWidgets_IApplicationBase_t,
+                                         struct Common_UI_wxWidgets_State,
+                                         Common_UI_wxWidgets_IApplicationBase_t,
 #elif defined (QT_USE)
-                                       struct Common_UI_Qt_State,
+                                         struct Common_UI_Qt_State,
 #else
-                                       struct Common_UI_State,
+                                         struct Common_UI_State,
 #endif
-#endif // GUI_SUPPORT
-                                       POP_SessionMessage_t> Stream_POPReceive_EventHandler_t;
+                                         POP_SessionMessage_t> Stream_POPReceive_EventHandler_t;
 
 //////////////////////////////////////////
 
-#if defined (GUI_SUPPORT)
 struct Stream_POPReceive_ProgressData
  : Test_I_UI_ProgressData
 {
@@ -276,19 +259,18 @@ struct Stream_POPReceive_UI_ThreadData
   struct Stream_POPReceive_UI_CBData* CBData;
 };
 
-#if defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_SUPPORT)
 extern const char toplevel_widget_classname_string_[];
 typedef Common_UI_WxWidgetsXRCDefinition_T<struct Common_UI_wxWidgets_State,
                                            toplevel_widget_classname_string_> Stream_POPReceive_WxWidgetsXRCDefinition_t;
-typedef Stream_POPReceive_WxWidgetsDialog_T<wxDialog_main,
-                                         Stream_POPReceive_WxWidgetsIApplication_t,
-                                         Stream_POPReceive_Stream> Stream_POPReceive_WxWidgetsDialog_t;
-typedef Comon_UI_WxWidgets_Application_T<Stream_POPReceive_WxWidgetsXRCDefinition_t,
-                                         struct Common_UI_wxWidgets_State,
-                                         struct Stream_POPReceive_UI_CBData,
-                                         Stream_POPReceive_WxWidgetsDialog_t,
-                                         wxGUIAppTraits> Stream_POPReceive_WxWidgetsApplication_t;
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
+//typedef Stream_POPReceive_WxWidgetsDialog_T<wxDialog_main,
+//                                            Stream_POPReceive_WxWidgetsIApplication_t,
+//                                            Stream_POPReceive_Stream> Stream_POPReceive_WxWidgetsDialog_t;
+//typedef Comon_UI_WxWidgets_Application_T<Stream_POPReceive_WxWidgetsXRCDefinition_t,
+//                                         struct Common_UI_wxWidgets_State,
+//                                         struct Stream_POPReceive_UI_CBData,
+//                                         Stream_POPReceive_WxWidgetsDialog_t,
+//                                         wxGUIAppTraits> Stream_POPReceive_WxWidgetsApplication_t;
+#endif // WXWIDGETS_SUPPORT
 
 #endif

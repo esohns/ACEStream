@@ -233,7 +233,6 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     } // end SWITCH
   if (module_p)
   {
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     layout_in->append (module_2, branch_p, index_i);
     module_2 = NULL;
@@ -245,7 +244,6 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_2, branch_p, index_i);
     module_2 = NULL;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
     layout_in->append (module_p, branch_p, index_i);
     ++index_i;
@@ -550,7 +548,6 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
                   Test_I_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
@@ -560,7 +557,6 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, branch_p, index_i);
   module_p = NULL;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   ACE_NEW_RETURN (module_p,
                   Test_I_MediaFoundation_Target_WASAPI_Module (this,
                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING)),
@@ -669,7 +665,6 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
   // ---------------------------------------------------------------------------
 
   // ********************** Spectrum Analyzer *****************
-//#if defined (GUI_SUPPORT)
 //#if defined (GTK_USE)
 //  Stream_Module_t* module_p =
 //    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
@@ -679,7 +674,6 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
 //  ACE_ASSERT (idispatch_p);
 //  (*iterator).second.second->dispatch = idispatch_p;
 //#endif // GTK_USE
-//#endif // GUI_SUPPORT
 
   bool graph_loaded = false;
   HRESULT result_2 = E_FAIL;
@@ -1380,7 +1374,6 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
 
-//#if defined (GUI_SUPPORT)
 //#if defined (GTK_USE)
 //  ACE_NEW_RETURN (module_p,
 //                  Test_I_ALSA_Vis_SpectrumAnalyzer_Module (this,
@@ -1390,7 +1383,6 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
 //  layout_in->append (module_p, branch_p, index_i);
 //  module_p = NULL;
 //#endif // GTK_USE
-//#endif // GUI_SUPPORT
 
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_ALSA_Module (this,

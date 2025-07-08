@@ -49,7 +49,6 @@
 #include "stream_lib_ffmpeg_common.h"
 #endif // FFMPEG_SUPPORT
 
-#if defined (GUI_SUPPORT)
 #if defined (FFMPEG_SUPPORT)
 #include "stream_vis_libav_resize.h"
 #endif // FFMPEG_SUPPORT
@@ -59,10 +58,9 @@
 #else
 #include "stream_vis_x11_window.h"
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined(GTK_SUPPORT)
+#if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_cairo.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "test_i_imagesave_common.h"
 #include "test_i_imagesave_message.h"
@@ -172,7 +170,6 @@ typedef Stream_Visualization_LibAVResize_T<Test_I_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_LibAVResize;
 #endif // FFMPEG_SUPPORT
 
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
@@ -219,7 +216,6 @@ typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                       Test_I_ImageSave_SessionData_t,
                                       struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_GTKCairo;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
@@ -302,7 +298,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                     
 //                          Test_I_DirectShow_Statistic_WriterTask_t, // writer type
 //                          Test_I_DirectShow_StatisticReport);       // name
 
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                         // session data type
                               enum Stream_SessionMessageType,                       // session event type
@@ -338,7 +333,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                     
                               Stream_INotify_t,                                     // stream notification interface type
                               Test_I_GTKCairo);                                     // writer type
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                                // session data type
                               enum Stream_SessionMessageType,                              // session event type

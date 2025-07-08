@@ -22,11 +22,11 @@
 #define TEST_I_COMMON_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "mfidl.h"
 #include "mfobjects.h"
 #include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-#include "ace/config-lite.h"
 #include "ace/Synch_Traits.h"
 
 #include "common.h"
@@ -36,9 +36,7 @@
 #include "common_statistic_handler.h"
 #include "common_time_common.h"
 
-#if defined (GUI_SUPPORT)
 #include "common_ui_common.h"
-#endif // GUI_SUPPORT
 
 #include "stream_common.h"
 #include "stream_data_base.h"
@@ -51,7 +49,6 @@
 #include "stream_lib_v4l_defines.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "test_i_gtk_common.h"
 #endif // GTK_SUPPORT
@@ -61,7 +58,6 @@
 #if defined (WXWIDGETS_SUPPORT)
 #include "test_i_wxwidgets_common.h"
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
 
 enum Test_I_ProgramMode
 {
@@ -385,7 +381,6 @@ struct Test_I_ThreadData
 #endif // ACE_WIN32 || ACE_WIN64
 };
 
-#if defined (GUI_SUPPORT)
 struct Test_I_UI_ProgressData
 #if defined (GTK_USE)
  : Test_I_GTK_ProgressData
@@ -484,6 +479,5 @@ struct Test_I_UI_ThreadData
   enum Stream_MediaFramework_Type mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
 };
-#endif // GUI_SUPPORT
 
 #endif

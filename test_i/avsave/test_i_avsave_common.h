@@ -54,7 +54,6 @@
 //#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
 #endif // GTK_SUPPORT
@@ -63,7 +62,6 @@
 #include "wx/apptrait.h"
 #include "wx/window.h"
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
@@ -72,7 +70,6 @@
 #include "common_isubscribe.h"
 #include "common_tools.h"
 
-#if defined (GUI_SUPPORT)
 #include "common_ui_common.h"
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
@@ -85,7 +82,6 @@
 #include "common_ui_wxwidgets_common.h"
 #include "common_ui_wxwidgets_xrc_definition.h"
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -119,7 +115,6 @@
 
 #include "test_i_common.h"
 #include "test_i_configuration.h"
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "test_i_gtk_common.h"
 #endif // GTK_SUPPORT
@@ -131,7 +126,6 @@
 
 #include "avsave_wxwidgets_ui.h"
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "test_i_avsave_session_message.h"
 
@@ -142,22 +136,18 @@ struct ISampleGrabber;
 class Stream_IAllocator;
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType, // implements Common_UI_wxWidgets_IApplicationBase_T
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 class Stream_AVSave_EventHandler_T;
-#if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_SUPPORT)
 template <typename WidgetBaseClassType,
           typename InterfaceType,
           typename StreamType>
 class Stream_AVSave_WxWidgetsDialog_T;
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
 
 enum Stream_AVSave_ProgramMode
 {
@@ -420,13 +410,9 @@ struct Stream_AVSave_ModuleHandlerConfiguration
    , fullScreen (false)
    , sinus (false) // N/A
    , sinusFrequency (0.0) // N/A
-#if defined (GUI_SUPPORT)
    , spectrumAnalyzerConfiguration (NULL)
-#endif // GUI_SUPPORT
    , targetFileName ()
-#if defined (GUI_SUPPORT)
    , window (NULL)
-#endif // GUI_SUPPORT
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
@@ -443,21 +429,15 @@ struct Stream_AVSave_ModuleHandlerConfiguration
   bool                                              fullScreen;
   bool                                              sinus; // N/A
   double                                            sinusFrequency; // N/A
-#if defined (GUI_SUPPORT)
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
-#endif // GUI_SUPPORT
   std::string                                       targetFileName;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   GdkWindow*                                        window;
-#endif // GTK_USE
+#elif defined (ACE_WIN32) || defined (ACE_WIN64)
+  HWND                                              window;
 #else
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                            window;
-#else
-  Window                          window;
-#endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
+  Window                                            window;
+#endif // GTK_USE || ACE_WIN32 || ACE_WIN64
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -596,9 +576,7 @@ struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration
   Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration ()
    : Stream_AVSave_ModuleHandlerConfiguration ()
    , ALSAConfiguration (NULL)
-#if defined (GUI_SUPPORT)
    , area ()
-#endif // GUI_SUPPORT
    , buffers (STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS)
    , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
@@ -608,9 +586,7 @@ struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration
    , subscriber (NULL)
    , subscribers (NULL)
   {
-#if defined (GUI_SUPPORT)
     ACE_OS::memset (&area, 0, sizeof (struct v4l2_rect));
-#endif // GUI_SUPPORT
 
 //    deviceIdentifier.identifier =
 //      ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
@@ -620,9 +596,7 @@ struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration
   }
 
   struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
-#if defined (GUI_SUPPORT)
   struct v4l2_rect                                 area;
-#endif // GUI_SUPPORT
   __u32                                            buffers; // v4l device buffers
   enum AVPixelFormat                               codecFormat; // preferred output-
   enum AVCodecID                                   codecId;
@@ -745,22 +719,18 @@ typedef Stream_IStreamControl_T<enum Stream_ControlType,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_AVSave_DirectShow_Configuration
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  : Test_I_GTK_Configuration
 #else
  : Test_I_Configuration
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 {
   Stream_AVSave_DirectShow_Configuration ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    : Test_I_GTK_Configuration ()
 #else
    : Test_I_Configuration ()
 #endif // GTK_USE
-#endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
    , direct3DConfiguration ()
    , audioStreamConfiguration ()
@@ -779,22 +749,18 @@ struct Stream_AVSave_DirectShow_Configuration
 };
 
 struct Stream_AVSave_MediaFoundation_Configuration
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  : Test_I_GTK_Configuration
 #else
  : Test_I_Configuration
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 {
   Stream_AVSave_MediaFoundation_Configuration ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    : Test_I_GTK_Configuration ()
 #else
    : Test_I_Configuration ()
 #endif // GTK_USE
-#endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
    , direct3DConfiguration ()
    , audioStreamConfiguration ()
@@ -813,26 +779,18 @@ struct Stream_AVSave_MediaFoundation_Configuration
 };
 #else
 struct Stream_AVSave_Configuration
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  : Test_I_GTK_Configuration
 #else
  : Test_I_Configuration
 #endif // GTK_USE
-#else
- : Test_I_Configuration
-#endif // GUI_SUPPORT
 {
   Stream_AVSave_Configuration ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    : Test_I_GTK_Configuration ()
 #else
    : Test_I_Configuration ()
 #endif // GTK_USE
-#else
-   : Test_I_Configuration ()
-#endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
    , ALSAConfiguration ()
    , audioStreamConfiguration ()
@@ -871,7 +829,6 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Stream_AVSave_ALSA_V4L_SessionMessage_t> Stream_AVSave_ALSA_V4L_MessageAllocator_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_AVSave_DirectShow_UI_CBData;
@@ -886,7 +843,6 @@ typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
                                            struct Stream_AVSave_V4L_UI_CBData> Stream_AVSave_V4L_WxWidgetsIApplication_t;
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
 struct Stream_AVSave_UI_State;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Common_ISubscribe_T<Stream_AVSave_DirectShow_ISessionNotify_t> Stream_AVSave_DirectShow_ISubscribe_t;
@@ -894,32 +850,27 @@ typedef Common_ISubscribe_T<Stream_AVSave_MediaFoundation_ISessionNotify_t> Stre
 
 typedef Stream_AVSave_EventHandler_T<Stream_AVSave_DirectShow_ISessionNotify_t,
                                       Stream_AVSave_DirectShow_Message_t,
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                                       struct Stream_AVSave_UI_State,
 #elif defined (WXWIDGETS_USE)
                                       struct Common_UI_wxWidgets_State,
                                       Common_UI_wxWidgets_IApplicationBase_t,
 #endif
-#endif // GUI_SUPPORT
                                       Stream_AVSave_DirectShow_SessionMessage_t> Stream_AVSave_DirectShow_EventHandler_t;
 typedef Stream_AVSave_EventHandler_T<Stream_AVSave_MediaFoundation_ISessionNotify_t,
                                       Stream_AVSave_MediaFoundation_Message_t,
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                                       struct Stream_AVSave_UI_State,
 #elif defined (WXWIDGETS_USE)
                                       struct Common_UI_wxWidgets_State,
                                       Common_UI_wxWidgets_IApplicationBase_t,
 #endif
-#endif // GUI_SUPPORT
                                       Stream_AVSave_MediaFoundation_SessionMessage_t> Stream_AVSave_MediaFoundation_EventHandler_t;
 #else
 typedef Common_ISubscribe_T<Stream_AVSave_ALSA_V4L_ISessionNotify_t> Stream_AVSave_ALSA_V4L_ISubscribe_t;
 
 typedef Stream_AVSave_EventHandler_T<Stream_AVSave_ALSA_V4L_ISessionNotify_t,
                                      Stream_AVSave_Message_t,
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                                       struct Stream_AVSave_UI_State,
 #elif defined (WXWIDGETS_USE)
@@ -930,13 +881,11 @@ typedef Stream_AVSave_EventHandler_T<Stream_AVSave_ALSA_V4L_ISessionNotify_t,
 #else
                                       struct Common_UI_State,
 #endif
-#endif // GUI_SUPPORT
                                       Stream_AVSave_ALSA_V4L_SessionMessage_t> Stream_AVSave_ALSA_V4L_EventHandler_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
-#if defined (GUI_SUPPORT)
 enum Stream_AVSave_UI_EventType
 {
   STREAM_AV_UI_EVENT_INVALID = COMMON_UI_EVENT_OTHER_USER_BASE,
@@ -1095,6 +1044,7 @@ typedef Comon_UI_WxWidgets_Application_T<Stream_AVSave_WxWidgetsXRCDefinition_t,
                                          struct Stream_AVSave_DirectShow_UI_CBData,
                                          Stream_AVSave_DirectShow_WxWidgetsDialog_t,
                                          wxGUIAppTraits> Stream_AVSave_DirectShow_WxWidgetsApplication_t;
+
 typedef Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
                                         Stream_AVSave_MediaFoundation_WxWidgetsIApplication_t,
                                         Stream_AVSave_MediaFoundation_Stream> Stream_AVSave_MediaFoundation_WxWidgetsDialog_t;
@@ -1114,6 +1064,5 @@ typedef Comon_UI_WxWidgets_Application_T<Stream_AVSave_WxWidgetsXRCDefinition_t,
                                          wxGUIAppTraits> Stream_AVSave_V4L_WxWidgetsApplication_t;
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
 
 #endif

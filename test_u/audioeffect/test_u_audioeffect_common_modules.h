@@ -62,11 +62,9 @@
 #include "stream_dev_mic_source_alsa.h"
 #include "stream_dev_target_alsa.h"
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 //#include "stream_vis_gtk_cairo.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_misc_asynch.h"
 #include "stream_misc_delay.h"
@@ -77,11 +75,9 @@
 #include "stream_stat_statistic_analysis.h"
 #include "stream_stat_statistic_report.h"
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "test_u_audioeffect_common.h"
 #include "test_u_audioeffect_message.h"
@@ -623,7 +619,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
                               Stream_INotify_t,                                                     // stream notification interface type
                               Test_U_AudioEffect_MediaFoundation_Delay);                            // writer type
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_TimePolicy_t,
@@ -660,7 +655,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
                               Stream_INotify_t,                                                     // stream notification interface type
                               Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer);             // writer type
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #if defined (SOX_SUPPORT)
 typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
@@ -760,7 +754,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                   
                               libacestream_default_dev_target_alsa_module_name_string,
                               Stream_INotify_t,                                        // stream notification interface type
                               Test_U_AudioEffect_Target_ALSA);                         // writer type
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_TimePolicy_t,
@@ -780,7 +773,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                   
                               Stream_INotify_t,                                              // stream notification interface type
                               Test_U_AudioEffect_Vis_SpectrumAnalyzer);                      // writer type
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,

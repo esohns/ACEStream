@@ -27,7 +27,6 @@
 #include "endpointvolume.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
 #endif // GTK_SUPPORT
@@ -35,14 +34,12 @@
 #include "wx/apptrait.h"
 #include "wx/window.h"
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "common_isubscribe.h"
 #include "common_tools.h"
 
 #include "common_input_manager.h"
 
-#if defined (GUI_SUPPORT)
 #include "common_ui_common.h"
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
@@ -55,7 +52,6 @@
 #include "common_ui_wxwidgets_common.h"
 #include "common_ui_wxwidgets_xrc_definition.h"
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -85,54 +81,40 @@
 // forward declarations
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType, // implements Common_UI_wxWidgets_IApplicationBase_T
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 class Test_I_EventHandler_T;
 //template <typename NotificationType,
 //          typename DataMessageType,
-//#if defined (GUI_SUPPORT)
 //          typename UIStateType,
 //#if defined (WXWIDGETS_USE)
 //          typename InterfaceType, // implements Common_UI_wxWidgets_IApplicationBase_T
 //#endif // WXWIDGETS_USE
-//#endif // GUI_SUPPORT
 //          typename SessionMessageType>
 //class Test_I_InputHandler_T;
-#if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_SUPPORT)
 template <typename WidgetBaseClassType,
           typename InterfaceType,
           typename StreamType>
 class Test_I_WxWidgetsDialog_T;
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
 
 struct Test_I_CommandSpeech_Configuration
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  : Test_I_GTK_Configuration
 #else
  : Test_I_Configuration
 #endif // GTK_USE
-#else
- : Test_I_Configuration
-#endif // GUI_SUPPORT
 {
   Test_I_CommandSpeech_Configuration ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    : Test_I_GTK_Configuration ()
 #else
    : Test_I_Configuration ()
 #endif // GTK_USE
-#else
-   : Test_I_Configuration ()
-#endif // GUI_SUPPORT
    , inputConfiguration ()
    , inputManagerConfiguration ()
   {
@@ -223,18 +205,15 @@ struct Test_I_ALSA_Configuration
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_SUPPORT)
 struct Test_I_CommandSpeech_UI_CBData;
 typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
                                            struct Test_I_CommandSpeech_UI_CBData> Test_I_WxWidgetsIApplication_t;
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Test_I_EventHandler_T<Test_I_DirectShow_ISessionNotify_t,
                               Test_I_DirectShow_Message,
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                               Common_UI_GTK_State_t,
 #elif defined (WXWIDGETS_USE)
@@ -245,11 +224,9 @@ typedef Test_I_EventHandler_T<Test_I_DirectShow_ISessionNotify_t,
 #else
                               struct Common_UI_State,
 #endif // GTK_USE || WXWIDGETS_USE || QT_USE
-#endif // GUI_SUPPORT
                               Test_I_DirectShow_SessionMessage_t> Test_I_DirectShow_EventHandler_t;
 typedef Test_I_EventHandler_T<Test_I_MediaFoundation_ISessionNotify_t,
                               Test_I_MediaFoundation_Message,
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                               Common_UI_GTK_State_t,
 #elif defined (WXWIDGETS_USE)
@@ -260,12 +237,10 @@ typedef Test_I_EventHandler_T<Test_I_MediaFoundation_ISessionNotify_t,
 #else
                               struct Common_UI_State,
 #endif // GTK_USE || WXWIDGETS_USE || QT_USE
-#endif // GUI_SUPPORT
                               Test_I_MediaFoundation_SessionMessage_t> Test_I_MediaFoundation_EventHandler_t;
 #else
 typedef Test_I_EventHandler_T<Test_I_ALSA_ISessionNotify_t,
                               Test_I_Message,
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                               Common_UI_GTK_State_t,
 #elif defined (WXWIDGETS_USE)
@@ -276,12 +251,10 @@ typedef Test_I_EventHandler_T<Test_I_ALSA_ISessionNotify_t,
 #else
                               struct Common_UI_State,
 #endif // GTK_USE || WXWIDGETS_USE || QT_USE
-#endif // GUI_SUPPORT
                               Test_I_ALSA_SessionMessage_t> Test_I_ALSA_EventHandler_t;
 #endif // ACE_WIN32 || ACE_WIN64
 //typedef Test_I_InputHandler_T<Stream_IInputSessionNotify_t,
 //                              ACE_Message_Block,
-//#if defined (GUI_SUPPORT)
 //#if defined (GTK_USE)
 //                              Common_UI_GTK_State_t,
 //#elif defined (WXWIDGETS_USE)
@@ -292,7 +265,6 @@ typedef Test_I_EventHandler_T<Test_I_ALSA_ISessionNotify_t,
 //#else
 //                              struct Common_UI_State,
 //#endif // GTK_USE || WXWIDGETS_USE || QT_USE
-//#endif // GUI_SUPPORT
 //                              Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
 //                                                          Stream_SessionData_T<struct Stream_SessionData>,
 //                                                          struct Stream_UserData> > Test_I_InputHandler_t;
@@ -332,7 +304,6 @@ typedef Common_Input_Manager_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
-#if defined (GUI_SUPPORT)
 struct Test_I_CommandSpeech_UI_ProgressData
  : Test_I_UI_ProgressData
 {
@@ -381,12 +352,16 @@ struct Test_I_CommandSpeech_UI_ThreadData
 {
   Test_I_CommandSpeech_UI_ThreadData ()
    : Test_I_UI_ThreadData ()
+#if defined (GTK_USE)
    , displayEventSourceId (-1)
    , infoEventSourceId (-1)
+#endif // GTK_USE
   {}
 
+#if defined (GTK_USE)
   guint displayEventSourceId;
   guint infoEventSourceId;
+#endif // GTK_USE
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_DirectShow_UI_CBData
@@ -479,6 +454,5 @@ typedef Comon_UI_WxWidgets_Application_T<Test_I_WxWidgetsXRCDefinition_t,
                                          Test_I_WxWidgetsDialog_t,
                                          wxGUIAppTraits> Test_I_WxWidgetsApplication_t;
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
 
 #endif

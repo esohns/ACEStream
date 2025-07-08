@@ -28,22 +28,18 @@
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
 #include "common_file_common.h"
 #include "common_isubscribe.h"
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
 
 #include "stream_common.h"
 #include "stream_configuration.h"
@@ -55,11 +51,9 @@
 #include "net_configuration.h"
 
 #include "test_i_configuration.h"
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "test_i_gtk_common.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "test_i_connection_manager_common.h"
 #include "test_i_filestream_defines.h"
@@ -180,26 +174,18 @@ struct Test_I_Source_SignalHandlerConfiguration
 };
 
 struct Test_I_Source_Configuration
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  : Test_I_GTK_Configuration
 #else
  : Test_I_Configuration
 #endif // GTK_USE
-#else
- : Test_I_Configuration
-#endif // GUI_SUPPORT
 {
   Test_I_Source_Configuration ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    : Test_I_GTK_Configuration ()
 #else
    : Test_I_Configuration ()
 #endif // GTK_USE
-#else
-   : Test_I_Configuration ()
-#endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
    , connectionConfigurations ()
    , streamConfiguration ()
@@ -226,7 +212,6 @@ typedef Common_ISubscribe_T<Test_I_Source_ISessionNotify_t> Test_I_Source_ISubsc
 
 //////////////////////////////////////////
 
-#if defined (GUI_SUPPORT)
 struct Test_I_Source_ProgressData
 #if defined (GTK_USE)
  : Test_I_GTK_ProgressData
@@ -295,6 +280,5 @@ struct Test_I_Source_UI_ThreadData
 
   struct Test_I_Source_UI_CBData* CBData;
 };
-#endif // GUI_SUPPORT
 
 #endif

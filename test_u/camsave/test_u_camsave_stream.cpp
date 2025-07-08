@@ -184,7 +184,6 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
 #endif // FFMPEG_SUPPORT
-#if defined (GUI_SUPPORT)
       switch (inherited::configuration_->configuration_->renderer)
       {
 #if defined (GTK_USE)
@@ -214,10 +213,8 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
           return false;        
         }
       } // end SWITCH
-#else
-      ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
-      ACE_ASSERT (false); // *TODO*
-#endif // GUI_SUPPORT
+      //ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
+      //ACE_ASSERT (false); // *TODO*
       ++index_i;
     } // end IF
     if (save_to_file_b)
@@ -1356,7 +1353,6 @@ Stream_CamSave_LibCamera_Stream::Stream_CamSave_LibCamera_Stream ()
                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resizer_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 // , GTKCairoDisplay_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
@@ -1367,7 +1363,6 @@ Stream_CamSave_LibCamera_Stream::Stream_CamSave_LibCamera_Stream ()
 #endif // GTK_USE
  , display_2_ (this,
                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
-#endif // GUI_SUPPORT
  , converter_2 (this,
                 ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
  , encoder_ (this,
@@ -1428,7 +1423,6 @@ Stream_CamSave_LibCamera_Stream::load (Stream_ILayout* layout_in,
       //            native endianness)
       layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 //      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
 //        layout_in->append (&display_, branch_p, 0);
@@ -1438,10 +1432,8 @@ Stream_CamSave_LibCamera_Stream::load (Stream_ILayout* layout_in,
 #elif defined (WXWIDGETS_USE)
       layout_in->append (&display_, branch_p, index_i);
 #endif
-#else
-      ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
-      ACE_ASSERT (false); // *TODO*
-#endif // GUI_SUPPORT
+      //ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
+      //ACE_ASSERT (false); // *TODO*
       ++index_i;
     } // end IF
     if (save_to_file_b)
@@ -1573,7 +1565,6 @@ Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resizer_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) && defined (GTK_USE)
  , GTKCairoDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
@@ -1584,7 +1575,6 @@ Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
 #endif // GTK_SUPPORT && defined (GTK_USE)
 // , X11Display_ (this,
 //                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
-#endif // GUI_SUPPORT
  , converter_2 (this,
                 ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
  , encoder_ (this,
@@ -1649,7 +1639,6 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
       if ((*iterator).second.second->codecConfiguration->codecId == AV_CODEC_ID_NONE)
         layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 //      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
 //        layout_in->append (&display_, branch_p, index_i);
@@ -1659,10 +1648,8 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
 #elif defined (WXWIDGETS_USE)
       layout_in->append (&display_, branch_p, index_i);
 #endif
-#else
-      ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
-      ACE_ASSERT (false); // *TODO*
-#endif // GUI_SUPPORT
+      //ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
+      //ACE_ASSERT (false); // *TODO*
       ++index_i;
     } // end IF
     if (save_to_file_b)

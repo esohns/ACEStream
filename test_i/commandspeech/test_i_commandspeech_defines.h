@@ -29,7 +29,6 @@
 
 //----------------------------------------
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #define TEST_I_UI_GTK_ACTION_RECORD_NAME               "action_record"
 #define TEST_I_UI_GTK_SCROLLEDWINDOW_ADJUSTMENT_V_NAME "adjustment_sw_v"
@@ -86,6 +85,5 @@
 #define TEST_I_UI_GTK_TEXTBUFFER_NAME                  "textbuffer"
 #define TEST_I_UI_GTK_TEXTVIEW_NAME                    "textview"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #endif

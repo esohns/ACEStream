@@ -419,10 +419,8 @@ stream_processing_thread (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("::stream_processing_thread"));
 
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("stream processing thread (id: %t) starting\n")));
-#endif // _DEBUG
 
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

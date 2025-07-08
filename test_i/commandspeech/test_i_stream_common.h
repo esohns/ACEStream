@@ -23,11 +23,9 @@
 
 #include <list>
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "stream_common.h"
 #include "stream_configuration.h"
@@ -42,11 +40,9 @@
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_common.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "test_i_common.h"
 #include "test_i_configuration.h"
@@ -255,18 +251,14 @@ struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration
    , manageSoX (false)
    , mute (false)
    , queue (NULL)
-#if defined (GUI_SUPPORT)
    , spectrumAnalyzerConfiguration (NULL)
-#endif // GUI_SUPPORT
    , subscriber (NULL)
    , subscribers (NULL)
    , voice ()
    , voiceDirectory ()
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
    , window (NULL)
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
@@ -278,18 +270,14 @@ struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration
   bool                                              manageSoX;
   bool                                              mute;
   ACE_Message_Queue_Base*                           queue;
-#if defined (GUI_SUPPORT)
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
-#endif // GUI_SUPPORT
   Test_I_DirectShow_ISessionNotify_t*               subscriber;
   Test_I_DirectShow_Subscribers_t*                  subscribers;
   std::string                                       voice;
   std::string                                       voiceDirectory;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   GdkWindow*                                        window;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 };
 
 struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
@@ -304,18 +292,14 @@ struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
    , manageSoX (false)
    , mute (false)
    , queue (NULL)
-#if defined(GUI_SUPPORT)
    , spectrumAnalyzerConfiguration (NULL)
-#endif // GUI_SUPPORT
    , subscriber (NULL)
    , subscribers (NULL)
    , voice ()
    , voiceDirectory ()
-#if defined(GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
    , window (NULL)
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
@@ -327,18 +311,14 @@ struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
   bool                                              manageSoX;
   bool                                              mute;
   ACE_Message_Queue_Base*                           queue;
-#if defined (GUI_SUPPORT)
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
-#endif // GUI_SUPPORT
   Test_I_MediaFoundation_ISessionNotify_t*          subscriber;
   Test_I_MediaFoundation_Subscribers_t*             subscribers;
   std::string                                       voice;
   std::string                                       voiceDirectory;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   GdkWindow*                                        window;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 };
 #else
 struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
@@ -353,18 +333,14 @@ struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
    , manageSoX (false)
    , mute (false)
    , queue (NULL)
-#if defined (GUI_SUPPORT)
    , spectrumAnalyzerConfiguration (NULL)
-#endif // GUI_SUPPORT
    , subscriber (NULL)
    , subscribers (NULL)
    , voice ()
    , voiceDirectory ()
-#if defined(GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
    , window (NULL)
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
@@ -376,18 +352,14 @@ struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
   bool                                              manageSoX;
   bool                                              mute;
   ACE_Message_Queue_Base*                           queue;
-#if defined (GUI_SUPPORT)
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
-#endif // GUI_SUPPORT
   Test_I_ALSA_ISessionNotify_t*                     subscriber;
   Test_I_ALSA_Subscribers_t*                        subscribers;
   std::string                                       voice;
   std::string                                       voiceDirectory;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   GdkWindow*                                        window;
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

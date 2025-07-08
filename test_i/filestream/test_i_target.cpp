@@ -48,13 +48,11 @@
 
 #include "common_timer_tools.h"
 
-#if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
@@ -64,11 +62,9 @@
 
 #include "stream_misc_defines.h"
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "test_i_callbacks.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
@@ -502,7 +498,6 @@ do_work (unsigned int bufferSize_in,
     TEST_I_TARGET_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -510,7 +505,6 @@ do_work (unsigned int bufferSize_in,
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   // ********************** connection configuration data **********************
   Test_I_Target_TCPConnectionConfiguration_t tcp_connection_configuration;
@@ -569,13 +563,11 @@ do_work (unsigned int bufferSize_in,
       ACE_Time_Value (statisticReportingInterval_in, 0);
   modulehandler_configuration.streamConfiguration =
       &CBData_in.configuration->streamConfiguration;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   modulehandler_configuration.subscriber = &ui_event_handler;
   modulehandler_configuration.subscribers = &CBData_in.subscribers;
   modulehandler_configuration.lock = &state_r.subscribersLock;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   modulehandler_configuration.fileIdentifier.identifier = fileName_in;
 
   // ******************** (sub-)stream configuration data *********************
@@ -699,7 +691,6 @@ do_work (unsigned int bufferSize_in,
   // [GTK events:]
   // - dispatch UI events (if any)
 
-#if defined (GUI_SUPPORT)
   // step1a: start UI event loop ?
   if (!UIDefinitionFile_in.empty ())
   {
@@ -742,7 +733,6 @@ do_work (unsigned int bufferSize_in,
     ACE_UNUSED_ARG (was_visible_b);
 #endif // ACE_WIN32 || ACE_WIN64
   } // end IF
-#endif // GUI_SUPPORT
 
   // step1b: initialize worker(s)
 //  int group_id = -1;
@@ -759,12 +749,10 @@ do_work (unsigned int bufferSize_in,
     //					 iterator++)
     //				g_source_remove(*iterator);
     //		} // end lock scope
-#if defined (GUI_SUPPORT)
     if (!UIDefinitionFile_in.empty ())
 #if defined (GTK_USE)
       gtk_manager_p->stop (true, true);
 #endif // GTK_USE
-#endif // GUI_SUPPORT
     timer_manager_p->stop ();
     return;
   } // end IF
@@ -799,12 +787,10 @@ do_work (unsigned int bufferSize_in,
         //					 iterator++)
         //				g_source_remove(*iterator);
         //		} // end lock scope
-#if defined (GUI_SUPPORT)
         if (!UIDefinitionFile_in.empty ())
 #if defined (GTK_USE)
           gtk_manager_p->stop (true, true);
 #endif // GTK_USE
-#endif // GUI_SUPPORT
         timer_manager_p->stop ();
         return;
       } // end IF
@@ -824,12 +810,10 @@ do_work (unsigned int bufferSize_in,
         //					 iterator++)
         //				g_source_remove(*iterator);
         //		} // end lock scope
-#if defined (GUI_SUPPORT)
         if (!UIDefinitionFile_in.empty ())
 #if defined (GTK_USE)
           gtk_manager_p->stop (true, true);
 #endif // GTK_USE
-#endif // GUI_SUPPORT
         timer_manager_p->stop ();
         delete connector_p; connector_p = NULL;
         return;
@@ -884,12 +868,10 @@ do_work (unsigned int bufferSize_in,
         //					 iterator++)
         //				g_source_remove(*iterator);
         //		} // end lock scope
-#if defined (GUI_SUPPORT)
         if (!UIDefinitionFile_in.empty ())
 #if defined (GTK_USE)
           gtk_manager_p->stop (true, true);
 #endif // GTK_USE
-#endif // GUI_SUPPORT
         timer_manager_p->stop ();
         delete connector_p; connector_p = NULL;
         return;
@@ -917,12 +899,10 @@ do_work (unsigned int bufferSize_in,
         //					 iterator++)
         //				g_source_remove(*iterator);
         //		} // end lock scope
-#if defined (GUI_SUPPORT)
         if (!UIDefinitionFile_in.empty ())
 #if defined (GTK_USE)
           gtk_manager_p->stop (true, true);
 #endif // GTK_USE
-#endif // GUI_SUPPORT
         timer_manager_p->stop ();
         return;
       } // end IF
@@ -944,12 +924,10 @@ do_work (unsigned int bufferSize_in,
 //        //					 iterator++)
 //        //				g_source_remove(*iterator);
 //        //		} // end lock scope
-//#if defined (GUI_SUPPORT)
 //        if (!UIDefinitionFile_in.empty ())
 //#if defined (GTK_USE)
 //          gtk_manager_p->stop (true, true, true);
 //#endif // GTK_USE
-//#endif // GUI_SUPPORT
 //        timer_manager_p->stop ();
 //        return;
 //      } // end IF
@@ -969,13 +947,11 @@ do_work (unsigned int bufferSize_in,
   //					 iterator++)
   //				g_source_remove(*iterator);
   //		} // end lock scope
-#if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty ())
   {
 #if defined (GTK_USE)
     gtk_manager_p->wait (false);
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   } // end IF
   else
     Common_Event_Tools::dispatchEvents (event_dispatch_state_s);
@@ -1149,7 +1125,6 @@ ACE_TMAIN (int argc_in,
 
 //  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
   struct Test_I_Target_Configuration configuration;
-#if defined (GUI_SUPPORT)
 //  struct Common_UI_CBData* ui_cb_data_p = NULL;
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -1163,7 +1138,6 @@ ACE_TMAIN (int argc_in,
   ui_cb_data.configuration = &configuration;
   //ui_cb_data.progressData.state = &ui_cb_data;
   ui_cb_data.UIState = &state_r;
-#endif // GUI_SUPPORT
 
   // step1d: initialize logging and/or tracing
   Common_Logger_Queue_t logger;
@@ -1271,7 +1245,6 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
   //Common_UI_GladeDefinition ui_definition (argc_in,
@@ -1307,7 +1280,6 @@ ACE_TMAIN (int argc_in,
       return EXIT_FAILURE;
     } // end IF
 #endif // GTK_USE
-#endif // GUI_SUPPORT
 
   ACE_High_Res_Timer timer;
   timer.start ();
@@ -1377,7 +1349,6 @@ ACE_TMAIN (int argc_in,
   user_time_string = Common_Timer_Tools::periodToString (user_time);
   system_time_string = Common_Timer_Tools::periodToString (system_time);
 
-  // debug info
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),

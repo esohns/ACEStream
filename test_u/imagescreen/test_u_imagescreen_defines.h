@@ -38,6 +38,7 @@
 
 //---------------------------------------
 
+#if defined (GTK_SUPPORT)
 #define TEST_U_UI_GTK_BUTTON_ABOUT_NAME                "about"
 #define TEST_U_UI_GTK_BUTTON_QUIT_NAME                 "quit"
 #define TEST_U_UI_GTK_COMBOBOX_ADAPTER_NAME            "combobox_adapter"
@@ -53,5 +54,12 @@
 #define TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME     "togglebutton_fullscreen"
 #define TEST_U_UI_GTK_TOGGLEBUTTON_PLAY_NAME           "togglebutton_start"
 #define TEST_U_UI_GTK_WINDOW_FULLSCREEN                "window_fullscreen"
+#endif // GTK_SUPPORT
+
+#if defined (WXWIDGETS_SUPPORT)
+#define TEST_U_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME       "dialog_main"
+#define TEST_U_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME "wxDialog"
+#endif // WXWIDGETS_SUPPORT
+
 
 #endif

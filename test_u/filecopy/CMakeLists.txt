@@ -72,23 +72,22 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_filecopy_signalhandler.h
      test_u_filecopy_stream.cpp
      test_u_filecopy_stream.h)
-if (GUI_SUPPORT)
- if (GTK_USE)
-  set (${EXECUTABLE}_EXE_SRCS
-       ${${EXECUTABLE}_EXE_SRCS}
-       test_u_filecopy_callbacks.cpp
-       test_u_filecopy_callbacks.h)
- elseif (WXWIDGETS_USE)
-  set (${EXECUTABLE}_EXE_SRCS
-       ${${EXECUTABLE}_EXE_SRCS}
+if (GTK_SUPPORT)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
+      test_u_filecopy_callbacks.cpp
+      test_u_filecopy_callbacks.h)
+endif (GTK_SUPPORT)
+if (WXWIDGETS_SUPPORT)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
 #       test_u_filecopy_ui.cpp
 #       test_u_filecopy_ui.h
 #       test_u_filecopy_ui.inl
 #       test_u_filecopy_ui_base.cpp
 #       test_u_filecopy_ui_base.h)
       )
- endif ()
-endif (GUI_SUPPORT)
+endif (WXWIDGETS_SUPPORT)
 
 #if (UNIX)
 # add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
@@ -137,14 +136,12 @@ target_link_libraries (${EXECUTABLE} PUBLIC Common)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonLog)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonSignal)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonTimer)
-if (GUI_SUPPORT)
- if (GTK_SUPPORT)
-  target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_GTK)
-  if (GTKGL_SUPPORT)
-   target_link_libraries (${EXECUTABLE} PUBLIC CommonOpenGL)
-  endif (GTKGL_SUPPORT)
- endif (GTK_SUPPORT)
-endif (GUI_SUPPORT)
+if (GTK_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_GTK)
+ if (GTKGL_SUPPORT)
+  target_link_libraries (${EXECUTABLE} PUBLIC CommonOpenGL)
+ endif (GTKGL_SUPPORT)
+endif (GTK_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_File)

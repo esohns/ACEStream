@@ -43,7 +43,6 @@
 #include "stream_macros.h"
 
 #include "test_u_common.h"
-#if defined (GUI_SUPPORT)
 #if defined (CURSES_SUPPORT)
 #include "test_u_curses_common.h"
 #endif // CURSES_SUPPORT
@@ -56,4 +55,3 @@
 #if defined (WXWIDGETS_SUPPORT)
 #include "test_u_wxwidgets_common.h"
 #endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT

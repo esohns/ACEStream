@@ -29,12 +29,10 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
-#if defined (GUI_SUPPORT)
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_converter.h"
 #include "stream_dec_libav_decoder.h"
 #endif // FFMPEG_SUPPORT
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dec_avi_encoder.h"
 #else
@@ -69,7 +67,6 @@
 
 #include "stream_stat_statistic_report.h"
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_cairo.h"
 #include "stream_vis_gtk_pixbuf.h"
@@ -85,7 +82,6 @@
 #if defined (FFMPEG_SUPPORT)
 #include "stream_vis_libav_resize.h"
 #endif // FFMPEG_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "test_u_camsave_common.h"
 #include "test_u_camsave_message.h"

@@ -115,11 +115,9 @@ class Stream_AVSave_DirectShow_Stream
   Stream_AVSave_DirectShow_Distributor_Module     distributor_; // (sub-)branch ?
   Stream_AVSave_DirectShow_LibAVResize_Module     resizer_; // --> window size/fullscreen
 #endif // FFMPEG_SUPPORT
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   Stream_AVSave_DirectShow_GTKCairoDisplay_Module GTKCairoDisplay_;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
   ////////////////////////////////////////
 #if defined (FFMPEG_SUPPORT)
   Stream_AVSave_DirectShow_LibAVConverter_Module  converter_2; // --> 32-bit RGB (AVI format)
@@ -380,14 +378,12 @@ class Stream_AVSave_V4L_Stream
   Stream_AVSave_Distributor_Module      distributor_; // (sub-)branch ?
   Stream_AVSave_LibAVResize_Module      resizer_; // --> window size/fullscreen
 #endif // FFMPEG_SUPPORT
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   Stream_AVSave_GTKCairo_Display_Module GTKCairoDisplay_;
 //  Stream_AVSave_Display_2_Module       display_2_;
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 //  Stream_AVSave_Display_2_Module       display_2_;
   Stream_AVSave_X11_Display_Module      X11Display_;
-#endif // GUI_SUPPORT
   ////////////////////////////////////////
 #if defined (FFMPEG_SUPPORT)
   Stream_AVSave_LibAVConverter_Module   converter_2; // --> 32-bit RGB (AVI format)
