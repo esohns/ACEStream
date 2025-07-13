@@ -628,8 +628,8 @@ end:
       else if (inherited::thr_count_ > 0)
       {
         if (high_priority_b)
-          queue_.flush (false);
-        stop (true,             // wait ?
+          queue_.flush (false); // flush all data messages
+        stop (false,            // wait ?
               high_priority_b); // high priority ?
       } // end ELSE IF
 
