@@ -33,6 +33,6 @@
 #cmakedefine ACEStream_PACKAGE_TARNAME "@PACKAGE_TARNAME@"
 
 /****************************************/
-#cmakedefine TRACING
+/* #cmakedefine TRACING */
 
-#cmakedefine VALGRIND_SUPPORT
+/* #cmakedefine VALGRIND_SUPPORT */
