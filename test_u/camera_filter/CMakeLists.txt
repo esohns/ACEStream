@@ -104,8 +104,6 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 set (EXECUTABLE camera_filter)
 set (${EXECUTABLE}_EXE_SRCS
      stdafx.h
-     ../test_u_common.h
-     ../test_u_defines.h
      test_u.cpp
      test_u_camera_filter_common.h
      test_u_camera_filter_defines.h

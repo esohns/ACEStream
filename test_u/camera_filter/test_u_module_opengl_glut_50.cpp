@@ -256,7 +256,7 @@ Test_U_CameraFilter_OpenGL_GLUT_50::handleSessionMessage (Test_U_SessionMessage_
       ACE_ASSERT (CBData_.channel0Loc != -1);
       CBData_.channel1Loc =
         glGetUniformLocation (CBData_.shader.id_, ACE_TEXT_ALWAYS_CHAR ("iChannel1"));
-      ACE_ASSERT (CBData_.channel1Loc != -1);
+      //ACE_ASSERT (CBData_.channel1Loc != -1);
 
       glGenVertexArrays (1, &CBData_.VAOId);
       ACE_ASSERT (CBData_.VAOId);

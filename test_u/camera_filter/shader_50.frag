@@ -21,17 +21,18 @@ uniform sampler2D iChannel1;
 vec4
 getRand (int idx)
 {
-  return texelFetch(iChannel1, ivec2(idx % 1024, (idx / 1024) % 1024), 0);
+  ivec2 texSize = textureSize (iChannel1, 0);
+  return texelFetch(iChannel1, ivec2(idx % texSize.x, (idx / texSize.y) % texSize.y), 0);
 }
 
 mat2
 getHilbTrans (int idx)
 {
-    float a=float( (((idx/2)&1)*2-1)*(((idx+3)/2)&1) );
-    float mir=-abs(a)*2.+1.;
-    float ang=a*PIH;
-    vec2 cs=cos(ang-vec2(0,PIH));
-    return mat2(cs,cs.yx*vec2(-1,1))*mat2(mir,0,0,1);
+  float a=float( (((idx/2)&1)*2-1)*(((idx+3)/2)&1) );
+  float mir=-abs(a)*2.+1.;
+  float ang=a*PIH;
+  vec2 cs=cos(ang-vec2(0,PIH));
+  return mat2(cs,cs.yx*vec2(-1,1))*mat2(mir,0,0,1);
 }
 
 vec2
@@ -203,7 +204,7 @@ main ()
   float fitRes=min(Res.x,Res.y);
   vec2 sc=(gl_FragCoord.xy-Res*.5)/fitRes*2.;
   sc=ROT(PatternRot)*sc;
-    
+
   float br=getVal(gl_FragCoord.xy);
   br=clamp(br,0.,1.);
   br=mix(br,1.-br,Inverse);
@@ -223,5 +224,4 @@ main ()
   p=mix(p,1.-p,Inverse);
   gl_FragColor.xyz = vec3(0) + p;
   gl_FragColor.w = 1.;
-
 }

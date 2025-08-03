@@ -646,7 +646,8 @@ do_initializeSignals (ACE_Sig_Set& signals_out)
   signals_out.sig_del (SIGSEGV);           // 11      /* Segmentation fault: Invalid memory reference */
   // *NOTE* don't care about SIGPIPE
   signals_out.sig_del (SIGPIPE);           // 12      /* Broken pipe: write to pipe with no readers */
-  signals_out.sig_del (SIGSTOP);           // 19      /* Stop process */
+  // signals_out.sig_del (SIGSTOP);           // 19      /* Stop process */
+  // signals_out.sig_del (SIGTSTP);           // 20      /* Stop */
 
   // *IMPORTANT NOTE*: "...NPTL makes internal use of the first two real-time
   //                   signals (see also signal(7)); these signals cannot be
@@ -719,8 +720,8 @@ do_work (int argc_in,
   } // end IF
   if (!Common_Signal_Tools::preInitialize (handled_signals,
                                            COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                           false,
-                                           false,
+                                           false, // use networking ?
+                                           false, // use asynch timers ?
                                            previous_actions_a,
                                            previous_mask))
   {
@@ -1083,6 +1084,7 @@ do_work (int argc_in,
   modulehandler_configuration_audio.outputFormat.audio.format =
     AV_SAMPLE_FMT_FLT;
   modulehandler_configuration_audio.outputFormat.audio.sampleRate = 48000;
+  modulehandler_configuration_audio.waitForDataOnEnd = true;
 
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
@@ -1093,9 +1095,6 @@ do_work (int argc_in,
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_audio)));
-  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
-                                                               std::make_pair (&module_configuration,
-                                                                               &modulehandler_configuration_2)));
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 
@@ -1314,6 +1313,7 @@ do_work (int argc_in,
       configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                    std::make_pair (&module_configuration,
                                                                                    &modulehandler_configuration_2)));
+
       configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
                                                                    std::make_pair (&module_configuration,
                                                                                    &modulehandler_configuration_2b)));
@@ -1674,7 +1674,6 @@ ACE_TMAIN (int argc_in,
   ACE_Time_Value user_time (elapsed_rusage.ru_utime);
   ACE_Time_Value system_time (elapsed_rusage.ru_stime);
 
-  // debug info
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),

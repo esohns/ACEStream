@@ -619,6 +619,7 @@ error:
 end:
       ACE_ASSERT (inherited::configuration_);
       ACE_ASSERT (inherited::configuration_->ALSAConfiguration);
+
       if (inherited::configuration_->ALSAConfiguration->asynch)
       {
         if (unlikely (high_priority_b))
@@ -629,8 +630,8 @@ end:
       {
         if (high_priority_b)
           queue_.flush (false); // flush all data messages
-        stop (false,            // wait ?
-              high_priority_b); // high priority ?
+        stop (inherited::configuration_->waitForDataOnEnd, // wait ?
+              high_priority_b);                            // high priority ?
       } // end ELSE IF
 
       if (likely (deviceHandle_))
@@ -987,7 +988,7 @@ recover:
   if (unlikely (head_p))
   {
     head_p->release (); head_p = NULL;
-  }
+  } // end IF
 
   return result;
 }

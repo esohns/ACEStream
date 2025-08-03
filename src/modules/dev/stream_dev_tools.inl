@@ -72,8 +72,6 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
     return false;
   } // end IF
   ACE_ASSERT (format.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
-  unsigned int buffer_size_i =
-      format.fmt.pix.sizeimage + allocatorConfiguration_in->paddingBytes;
 
   switch (method_in)
   {
@@ -90,11 +88,11 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         {
           try {
             message_block_p =
-                static_cast<ACE_Message_Block*> (allocator_in->malloc (buffer_size_i));
+              static_cast<ACE_Message_Block*> (allocator_in->malloc (format.fmt.pix.sizeimage));
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-                        buffer_size_i));
+                        format.fmt.pix.sizeimage));
             message_block_p = NULL;
           }
         } // end IF
@@ -178,18 +176,18 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         {
           try {
             message_block_p =
-                static_cast<ACE_Message_Block*> (allocator_in->malloc (buffer_size_i));
+                static_cast<ACE_Message_Block*> (allocator_in->malloc (format.fmt.pix.sizeimage));
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-                        buffer_size_i));
+                        format.fmt.pix.sizeimage));
             message_block_p = NULL;
           }
         } // end IF
         else
           ACE_NEW_NORETURN (message_block_p,
-                            MessageType (0,               // session id
-                                         buffer_size_i)); // size
+                            MessageType (0,                          // session id
+                                         format.fmt.pix.sizeimage)); // size
         if (!message_block_p)
         {
           ACE_DEBUG ((LM_CRITICAL,

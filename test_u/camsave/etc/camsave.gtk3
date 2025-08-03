@@ -1108,10 +1108,10 @@
   <object class="GtkTextBuffer" id="textview_textbuffer"/>
   <object class="GtkWindow" id="window_fullscreen">
     <property name="visible">True</property>
-    <property name="can-focus">False</property>
+    <property name="can-focus">True</property>
     <property name="events">GDK_EXPOSURE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
     <property name="no-show-all">True</property>
-    <property name="resizable">False</property>
+    <property name="resizable">True</property>
     <property name="hide-titlebar-when-maximized">True</property>
     <property name="decorated">False</property>
     <property name="deletable">False</property>
@@ -1125,7 +1125,7 @@
         <property name="can-default">True</property>
         <property name="has-default">True</property>
         <property name="receives-default">True</property>
-        <property name="events">GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
+        <property name="events">GDK_EXPOSURE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
         <property name="double-buffered">False</property>
         <signal name="draw" handler="drawingarea_draw_cb" swapped="no"/>
         <signal name="key-press-event" handler="drawingarea_key_press_event_cb" swapped="no"/>

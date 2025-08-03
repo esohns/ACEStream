@@ -4674,7 +4674,11 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO)));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->v4l_streamConfiguration.end ());
-//  (*iterator_2).second.second->fullScreen = is_active_b;
+  (*iterator_2).second.second->fullScreen = is_active_b;
+  (*iterator_2).second.second->window =
+    (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
+                 : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
+  ACE_ASSERT ((*iterator_2).second.second->window);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_base_p);
 
@@ -4686,13 +4690,12 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   if (is_active_b)
   {
     gtk_widget_show (GTK_WIDGET (window_p));
-    // gtk_window_fullscreen (window_p);
-    // gtk_window_deiconify (window_p);
     gtk_window_maximize (window_p);
+    gtk_window_fullscreen (window_p);
   } // end IF
   else
   {
-    // gtk_window_unfullscreen (window_p);
+    gtk_window_unfullscreen (window_p);
     gtk_window_unmaximize (window_p);
     gtk_widget_hide (GTK_WIDGET (window_p));
   } // end ELSE
@@ -4724,11 +4727,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end SWITCH
 #else
   module_p =
-      stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
-  (*iterator_2).second.second->window =
-    (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
-                 : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
-  ACE_ASSERT ((*iterator_2).second.second->window);
+    stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
 #endif // ACE_WIN32 || ACE_WIN64
   if (!module_p)
   {

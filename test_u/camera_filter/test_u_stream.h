@@ -432,6 +432,16 @@ class Test_U_Stream
   Test_U_CameraFilter_OpenGL_GLUT_38_Module         GLUTDisplay_38;
   Test_U_CameraFilter_OpenGL_GLUT_39_Module         GLUTDisplay_39;
   Test_U_CameraFilter_OpenGL_GLUT_40_Module         GLUTDisplay_40;
+  Test_U_CameraFilter_OpenGL_GLUT_41_Module         GLUTDisplay_41;
+  Test_U_CameraFilter_OpenGL_GLUT_42_Module         GLUTDisplay_42;
+  Test_U_CameraFilter_OpenGL_GLUT_43_Module         GLUTDisplay_43;
+  Test_U_CameraFilter_OpenGL_GLUT_44_Module         GLUTDisplay_44;
+  Test_U_CameraFilter_OpenGL_GLUT_45_Module         GLUTDisplay_45;
+  Test_U_CameraFilter_OpenGL_GLUT_46_Module         GLUTDisplay_46;
+  Test_U_CameraFilter_OpenGL_GLUT_47_Module         GLUTDisplay_47;
+  Test_U_CameraFilter_OpenGL_GLUT_48_Module         GLUTDisplay_48;
+  Test_U_CameraFilter_OpenGL_GLUT_49_Module         GLUTDisplay_49;
+  Test_U_CameraFilter_OpenGL_GLUT_50_Module         GLUTDisplay_50;
 #endif // GLUT_SUPPORT
 #if defined (JC_VORONOI_SUPPORT) && defined (OLC_PGE_SUPPORT)
   Test_U_CameraFilter_WeightedVoronoiStipple_Filter_Module weightedVoronoiStippleFilter_;

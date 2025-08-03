@@ -81,6 +81,7 @@ class Stream_SessionDataMediaBase_T
 #endif // ACE_WIN32 || ACE_WIN64
   StreamStateType*                                                 state;
   StatisticType                                                    statistic;
+  std::string                                                      sourceFileName;
   std::string                                                      targetFileName;
 
   UserDataType*                                                    userData;

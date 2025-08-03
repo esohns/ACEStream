@@ -906,7 +906,7 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
 
   // save branch
   layout_in->append (&convert_2, branch_p, index_i);
-  layout_in->append (&resize_, branch_p, index_i);
+  // layout_in->append (&resize_, branch_p, index_i);
   layout_in->append (&encode_, branch_p, index_i);
 
   return true;

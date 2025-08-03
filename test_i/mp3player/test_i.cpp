@@ -379,6 +379,7 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.allocatorConfiguration =
     &configuration.allocatorConfiguration;
   modulehandler_configuration.fileIdentifier.identifier = inputFileName_in;
+  modulehandler_configuration.waitForDataOnEnd = true; // playback application
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
     allocator_configuration.defaultBufferSize = bufferSize_in;

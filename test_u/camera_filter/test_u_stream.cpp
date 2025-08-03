@@ -1781,6 +1781,26 @@ Test_U_Stream::Test_U_Stream ()
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
  , GLUTDisplay_40 (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , GLUTDisplay_41 (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , GLUTDisplay_42 (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , GLUTDisplay_43 (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , GLUTDisplay_44 (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , GLUTDisplay_45 (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , GLUTDisplay_46 (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , GLUTDisplay_47 (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , GLUTDisplay_48 (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , GLUTDisplay_49 (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
+ , GLUTDisplay_50 (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
 #endif // GLUT_SUPPORT
 #if defined (JC_VORONOI_SUPPORT)
  , weightedVoronoiStippleFilter_ (this,
@@ -2078,6 +2098,66 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
     case TEST_U_MODE_GLUT_40:
     {
       layout_in->append (&GLUTDisplay_40, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+    case TEST_U_MODE_GLUT_41:
+    {
+      layout_in->append (&GLUTDisplay_41, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+    case TEST_U_MODE_GLUT_42:
+    {
+      layout_in->append (&GLUTDisplay_42, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+    case TEST_U_MODE_GLUT_43:
+    {
+      layout_in->append (&GLUTDisplay_43, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+    case TEST_U_MODE_GLUT_44:
+    {
+      layout_in->append (&GLUTDisplay_44, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+    case TEST_U_MODE_GLUT_45:
+    {
+      layout_in->append (&GLUTDisplay_45, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+    case TEST_U_MODE_GLUT_46:
+    {
+      layout_in->append (&GLUTDisplay_46, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+    case TEST_U_MODE_GLUT_47:
+    {
+      layout_in->append (&GLUTDisplay_47, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+    case TEST_U_MODE_GLUT_48:
+    {
+      layout_in->append (&GLUTDisplay_48, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+    case TEST_U_MODE_GLUT_49:
+    {
+      layout_in->append (&GLUTDisplay_49, NULL, 0);
+      add_renderer_b = false;
+      break;
+    }
+    case TEST_U_MODE_GLUT_50:
+    {
+      layout_in->append (&GLUTDisplay_50, NULL, 0);
       add_renderer_b = false;
       break;
     }

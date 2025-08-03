@@ -558,7 +558,7 @@ do_initialize (Window windowHandle_in,
   // *NOTE*: X11 expects RGB32
   // *TODO*: auto-determine color depth of selected (default) screen (i.e.
   //         'Display' ":0")
-  outputFormat_out.format = AV_PIX_FMT_RGB24;
+  outputFormat_out.format = AV_PIX_FMT_RGBA;
   outputFormat_out.resolution.width = width;
   outputFormat_out.resolution.height = height;
   outputFormat_out.codecId = AV_CODEC_ID_NONE;
@@ -1043,7 +1043,9 @@ do_work (
 
       modulehandler_configuration_3 = modulehandler_configuration;
       modulehandler_configuration_3.outputFormat.format =
-        AV_PIX_FMT_NV12; // *NOTE*: required by H264
+        AV_PIX_FMT_YUV420P; // *NOTE*: required by H264
+      // modulehandler_configuration_3.outputFormat.resolution.width = 640;
+      // modulehandler_configuration_3.outputFormat.resolution.height = 480;
 
       modulehandler_configuration_4 = modulehandler_configuration;
       modulehandler_configuration_4.window = 0;

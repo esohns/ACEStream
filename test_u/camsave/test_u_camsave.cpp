@@ -1407,7 +1407,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
       // *NOTE*: need to set this for RGB-capture formats ONLY !
-      // *TODO*: MJPG is transformed inside the DirectShow pipeline to RGB32, and requires flípping as well... :-(
+      // *TODO*: MJPG is transformed inside the DirectShow pipeline to RGB32, and requires flï¿½pping as well... :-(
       directshow_modulehandler_configuration.flipImage = true;
       directshow_modulehandler_configuration.handleResize = false; // there is a resize module downstream that handles resize messages
       directshow_modulehandler_configuration.lock = &state_r.subscribersLock;
@@ -1619,7 +1619,7 @@ error:
 #if defined (FFMPEG_SUPPORT)
       directshow_modulehandler_configuration_4 = directshow_modulehandler_configuration;
       // *NOTE*: need to set this for RGB-capture formats ONLY !
-      // *TODO*: MJPG is transformed inside the DirectShow pipeline to RGB32, and requires flípping as well... :-(
+      // *TODO*: MJPG is transformed inside the DirectShow pipeline to RGB32, and requires flï¿½pping as well... :-(
       directshow_modulehandler_configuration_4.flipImage = true;
       directshow_modulehandler_configuration_4.handleResize = false; // write as-is
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),

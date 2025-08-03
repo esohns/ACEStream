@@ -50,6 +50,8 @@ Stream_SessionDataMediaBase_T<BaseType,
 #endif // ACE_WIN32 || ACE_WIN64
  , state (NULL)
  , statistic ()
+ , sourceFileName ()
+ , targetFileName ()
  , userData (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::Stream_SessionDataMediaBase_T"));
@@ -76,6 +78,7 @@ Stream_SessionDataMediaBase_T<BaseType,
 #endif // ACE_WIN32 || ACE_WIN64
  , state (data_in.state)
  , statistic (data_in.statistic)
+ , sourceFileName (data_in.sourceFileName)
  , targetFileName (data_in.targetFileName)
  , userData (data_in.userData)
 {
@@ -100,9 +103,7 @@ Stream_SessionDataMediaBase_T<BaseType,
   for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::const_iterator iterator = codecConfiguration.begin ();
        iterator != codecConfiguration.end ();
        ++iterator)
-  {
     delete [] (*iterator).second.data;
-  } // end IF
 #endif // FFMPEG_SUPPORT
 }
 
@@ -167,6 +168,7 @@ Stream_SessionDataMediaBase_T<BaseType,
   statistic =
       ((statistic.timeStamp >= rhs_in.statistic.timeStamp) ? statistic
                                                            : rhs_in.statistic);
+  sourceFileName = rhs_in.sourceFileName;
   targetFileName = rhs_in.targetFileName;
   userData = (userData ? userData : rhs_in.userData);
 
@@ -229,6 +231,7 @@ Stream_SessionDataMediaBase_T<BaseType,
 #endif // ACE_WIN32 || ACE_WIN64
   state = rhs_in.state;
   statistic = rhs_in.statistic;
+  sourceFileName = rhs_in.sourceFileName;
   targetFileName = rhs_in.targetFileName;
   userData = (userData ? userData : rhs_in.userData);
 

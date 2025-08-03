@@ -24,7 +24,7 @@ uniform sampler2D iChannel0;
 // [ -1 -1 -1 ]
 
 // set the convolution filter 0(none) - 5(blur)
-#define FILTER 1
+#define FILTER 5
 
 // adjust the distance used in the filter convolution
 #define STEP .005
@@ -36,7 +36,7 @@ uniform sampler2D iChannel0;
 void
 main ()
 {
-  vec2 uv = gl_FragCoord.xy/iResolution.xy;
+  vec2 uv = gl_FragCoord.xy/iResolution;
     
   gl_FragColor = 
 #if FILTER==0

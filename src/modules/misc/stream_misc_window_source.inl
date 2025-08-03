@@ -582,7 +582,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
   data_p =
     gdk_pixbuf_get_pixels_with_length (pixel_buffer_p,
                                        &length_i);
-  ACE_ASSERT (data_p && length_i == frameSize_);
+  ACE_ASSERT (data_p && (length_i == frameSize_));
   result = message_block_p->copy (reinterpret_cast<char*> (data_p),
                                   frameSize_);
   if (unlikely (result == -1))

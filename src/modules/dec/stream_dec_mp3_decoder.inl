@@ -164,7 +164,8 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (!handle_);
 
   error_i = MPG123_ERR;
-  handle_ = mpg123_new (NULL, &error_i);
+  handle_ = mpg123_new (NULL,
+                        &error_i);
   if (!handle_              ||
       (error_i != MPG123_OK))
   {
@@ -174,8 +175,24 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (mpg123_plain_strerror (error_i))));
     return false;
   } // end IF
-  mpg123_param (handle_, MPG123_VERBOSE, 0, 0.0);
-  mpg123_param (handle_, MPG123_ADD_FLAGS, MPG123_QUIET, 0.0);
+
+  // set parameter(s)
+  error_i = mpg123_param (handle_, MPG123_FLAGS, MPG123_FUZZY | MPG123_SEEKBUFFER | MPG123_GAPLESS, 0.0);
+  ACE_ASSERT (error_i == MPG123_OK);
+  error_i = mpg123_param (handle_, MPG123_FORCE_SEEKABLE, 1, 0.0);
+  //ACE_ASSERT (error_i == MPG123_OK);
+  error_i = mpg123_param(handle_, MPG123_INDEX_SIZE, -1, 0);
+  ACE_ASSERT (error_i == MPG123_OK);
+#if defined (_DEBUG)
+  error_i = mpg123_param (handle_, MPG123_VERBOSE, 2, 0.0);
+  ACE_ASSERT (error_i == MPG123_OK);
+#else
+  error_i = mpg123_param (handle_, MPG123_VERBOSE, 0, 0.0);
+  ACE_ASSERT (error_i == MPG123_OK);
+  error_i = mpg123_param (handle_, MPG123_ADD_FLAGS, MPG123_QUIET, 0.0);
+  ACE_ASSERT (error_i == MPG123_OK);
+#endif // _DEBUG
+
   bufferSize_ = mpg123_outblock (handle_);
 
   return inherited::initialize (configuration_in,
@@ -227,6 +244,9 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   int encoding_i = 0, channels_i = 0;
   long rate_l = 0;
   int error_i = MPG123_ERR;
+  mpg123_id3v1* v1_p = NULL;
+  mpg123_id3v2* v2_p = NULL;
+  int meta_i = 0;
   size_t done_u = 0;
   MediaType media_type_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -253,7 +273,8 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
               inherited::mod_->name (),
               ACE_TEXT (file_path_string.c_str ()),
               Common_File_Tools::size (file_path_string)));
-  error_i = mpg123_open (handle_, file_path_string.c_str ());
+  error_i = mpg123_open (handle_,
+                         file_path_string.c_str ());
   if (unlikely (error_i != MPG123_OK))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -261,6 +282,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                 inherited::mod_->name (),
                 ACE_TEXT (file_path_string.c_str ()),
                 ACE_TEXT (mpg123_plain_strerror (error_i))));
+    inherited::change (STREAM_STATE_SESSION_STOPPING);
     return -1;
   } // end IF
   error_i = mpg123_getformat (handle_,
@@ -274,6 +296,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                 inherited::mod_->name (),
                 ACE_TEXT (file_path_string.c_str ()),
                 ACE_TEXT (mpg123_plain_strerror (error_i))));
+    inherited::change (STREAM_STATE_SESSION_STOPPING);
     goto continue_;
   } // end IF
 
@@ -294,6 +317,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx(), aborting\n"),
                 inherited::mod_->name ()));
+    inherited::change (STREAM_STATE_SESSION_STOPPING);
     goto continue_;
   } // end IF
 #else
@@ -306,6 +330,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                             STREAM_MEDIATYPE_AUDIO,
                             media_type_s);
   session_data_r.formats.push_back (media_type_s);
+  session_data_r.sourceFileName = file_path_string;
   session_data_container_p = inherited::sessionData_->clone ();
   ACE_ASSERT (session_data_container_p);
   if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_STEP,
@@ -317,8 +342,43 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), aborting\n"),
                 inherited::mod_->name (),
                 STREAM_SESSION_MESSAGE_STEP));
+    inherited::change (STREAM_STATE_SESSION_STOPPING);
     goto continue_;
   } // end IF
+
+#if defined (_DEBUG)
+  // print id3 tag(s)
+  error_i = mpg123_scan (handle_);
+  ACE_ASSERT (error_i == MPG123_OK);
+  meta_i = mpg123_meta_check (handle_);
+  if (meta_i & MPG123_ID3)
+  {
+    error_i = mpg123_id3 (handle_, &v1_p, &v2_p);
+    ACE_ASSERT (error_i == MPG123_OK);
+    if (v2_p != NULL)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: playing \"%s\":\n\tTitle: \"%s\"\n\tArtist: \"%s\"\n\tAlbum: \"%s\"\n\tYear: %s\n\tComment: \"%s\"\n\tGenre: \"%s\"\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_File_Tools::basename (file_path_string, false).c_str ()),
+                  (v2_p->title ? ACE_TEXT (v2_p->title->p) : ACE_TEXT ("")),
+                  (v2_p->artist ? ACE_TEXT (v2_p->artist->p) : ACE_TEXT ("")),
+                  (v2_p->album ? ACE_TEXT (v2_p->album->p) : ACE_TEXT ("")),
+                  (v2_p->year ? ACE_TEXT (v2_p->year->p) : ACE_TEXT ("")),
+                  (v2_p->comment ? ACE_TEXT (v2_p->comment->p) : ACE_TEXT ("")),
+                  (v2_p->genre ? ACE_TEXT (v2_p->genre->p) : ACE_TEXT (""))));
+    else if (v1_p != NULL)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: playing \"%s\":\n\tTitle: \"%s\"\n\tArtist: \"%s\"\n\tAlbum: \"%s\"\n\tYear: %s\n\tComment: \"%s\"\n\tGenre: %d\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_File_Tools::basename (file_path_string, false).c_str ()),
+                  ACE_TEXT (v1_p->title),
+                  ACE_TEXT (v1_p->artist),
+                  ACE_TEXT (v1_p->album),
+                  ACE_TEXT (v1_p->year),
+                  ACE_TEXT (v1_p->comment),
+                  v1_p->genre));
+  } // end IF
+#endif // _DEBUG
 
   do
   {
@@ -435,9 +495,9 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                       inherited::mod_->name (),
                       session_data_r.sessionId));
           inherited::change (STREAM_STATE_SESSION_STOPPING);
-          continue;
         } // end IF
       } // end lock scope
+      continue;
     } // end IF
 
     // *TODO*: remove type inference
@@ -461,9 +521,28 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
     switch (error_i)
     {
       case MPG123_DONE:
-      { ACE_ASSERT (!done_u);
-        message_p->release (); message_p = NULL;
-        result = 0;
+      {
+        if (done_u == 0)
+        {
+          message_p->release (); message_p = NULL;
+          result = 0;
+        } // end IF
+        else
+        {
+          message_p->wr_ptr (done_u);
+          result_2 = inherited::put_next (message_p, NULL);
+          if (unlikely (result_2 == -1))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
+                        inherited::mod_->name ()));
+            message_p->release (); message_p = NULL;
+            inherited::change (STREAM_STATE_SESSION_STOPPING);
+            continue;
+          } // end IF
+          message_p = NULL;
+          result = 0;
+        } // end ELSE
 
         inherited::change (STREAM_STATE_SESSION_STOPPING);
         continue;
@@ -500,7 +579,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
 
 continue_:
   error_i = mpg123_close (handle_);
-  if (error_i != MPG123_OK)
+  if (unlikely (error_i != MPG123_OK))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to mpg123_close(): \"%s\", continuing\n"),
                 inherited::mod_->name (),

@@ -395,44 +395,42 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       //              FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
       int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_BUGS;
       Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMapIterator_t iterator;
+      enum AVCodecID codec_id_e = media_type_s.codecId;
 
-      if (inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_NONE)
+      if (codec_id_e == AV_CODEC_ID_NONE)
       {
-        if (media_type_s.codecId == AV_CODEC_ID_NONE)
+        if (inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_NONE)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: no codec specified in either configuration or inbound media type, aborting\n"),
                       inherited::mod_->name ()));
           goto error;
         } // end IF
-        inherited::configuration_->codecConfiguration->codecId = media_type_s.codecId;
+        codec_id_e = inherited::configuration_->codecConfiguration->codecId;
       } // end IF
+      inherited::configuration_->codecConfiguration->codecId = codec_id_e;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: using codec \"%s\" (id: %d)\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)), inherited::configuration_->codecConfiguration->codecId));
+                  ACE_TEXT (avcodec_get_name (codec_id_e)), codec_id_e));
 
-      codec_p =
-        avcodec_find_decoder (inherited::configuration_->codecConfiguration->codecId);
+      codec_p = avcodec_find_decoder (codec_id_e);
       if (unlikely (!codec_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_find_decoder(%d) failed: \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    inherited::configuration_->codecConfiguration->codecId));
+                    codec_id_e));
         goto error;
       } // end IF
 
       ACE_ASSERT (!parserContext_);
-      parserContext_ =
-        av_parser_init (inherited::configuration_->codecConfiguration->codecId);
-      if (!parserContext_)
-      {
+      parserContext_ = av_parser_init (codec_id_e);
+      if (unlikely (!parserContext_))
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: av_parser_init(\"%s\"[%d]) failed: \"%m\", continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)), inherited::configuration_->codecConfiguration->codecId));
-      } // end IF
+                    ACE_TEXT (avcodec_get_name (codec_id_e)), codec_id_e));
       else
       {
         parserContext_->flags = inherited::configuration_->codecConfiguration->parserFlags;
@@ -546,7 +544,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       context_->flags2 = inherited::configuration_->codecConfiguration->flags2;
       context_->flags2 |= flags2;
       iterator =
-        session_data_r.codecConfiguration.find (inherited::configuration_->codecConfiguration->codecId);
+        session_data_r.codecConfiguration.find (codec_id_e);
       if (iterator != session_data_r.codecConfiguration.end ())
       { ACE_ASSERT ((*iterator).second.size);
         ACE_ASSERT (!context_->extradata);
@@ -581,7 +579,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_open2(%d) failed: \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    inherited::configuration_->codecConfiguration->codecId,
+                    codec_id_e,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         av_dict_free (&dictionary_p); dictionary_p = NULL;
         goto error;
@@ -590,7 +588,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: initialized codec %s; decoded sample format: %s\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)),
+                  ACE_TEXT (avcodec_get_name (codec_id_e)),
                   ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (context_->sample_fmt).c_str ())));
 
       if (context_->sample_fmt != outputFormat_)
@@ -741,8 +739,10 @@ retry:
                                     &packet_in);
   if (unlikely (result))
   { // *NOTE*: most likely cause: some spurious AAC decoding error
+    if (inherited::configuration_->codecConfiguration->codecId != AV_CODEC_ID_AAC)
+      retries_i = 1; // do not retry in general
     --retries_i;
-    ACE_DEBUG ((LM_WARNING,
+    ACE_DEBUG (((retries_i ? LM_WARNING : LM_ERROR),
                 ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", %s\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ()),

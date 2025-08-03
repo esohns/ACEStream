@@ -25,6 +25,7 @@ extern "C"
 #include "libavutil/channel_layout.h"
 #include "libavutil/frame.h"
 #include "libavutil/imgutils.h"
+#include "libavutil/opt.h"
 #include "libswscale/swscale.h"
 }
 #endif /* __cplusplus */
@@ -237,12 +238,6 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
                                                              bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVEncoder_T::handleDataMessage"));
-
-  // sanity check(s)
-  //if (unlikely (!headerWritten_))
-  //  return; // --> not fully initialized (yet)
-  //if (unlikely (!formatContext_))
-  //  return; // --> disregard 'late' messages
 
   int result = -1;
   ACE_Message_Block* message_block_p = message_inout;
@@ -639,7 +634,8 @@ video:
       videoStream_->avg_frame_rate.den = video_media_type_s.frameRate.den;
 
       videoCodecContext_->bit_rate =
-          videoFrameSize_ * video_media_type_s.frameRate.num * 8;
+        videoFrameSize_ * video_media_type_s.frameRate.num * 8;
+
       /* Resolution must be a multiple of two. */
       videoCodecContext_->width    = videoFrame_->width;
       videoCodecContext_->height   = videoFrame_->height;
@@ -651,6 +647,20 @@ video:
       videoCodecContext_->time_base.num = 1;
       videoCodecContext_->time_base.den = video_media_type_s.frameRate.num;
       //videoCodecContext_->pkt_timebase = videoStream_->time_base;
+
+      // openh264-specfic
+      switch (video_codec_id)
+      {
+        case AV_CODEC_ID_H264:
+        {
+          videoCodecContext_->profile = FF_PROFILE_H264_CONSTRAINED_BASELINE;
+          videoCodecContext_->bit_rate /= 3;
+          videoCodecContext_->rc_max_rate = videoCodecContext_->bit_rate * 2;
+          break;
+        }
+        default:
+          break;
+      } // end SWITCH
 
       result = avcodec_open2 (videoCodecContext_,
                               videoCodecContext_->codec,

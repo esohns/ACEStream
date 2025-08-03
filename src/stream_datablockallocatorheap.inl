@@ -94,12 +94,19 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::malloc"));
 
+  // sanity check(s)
+  ACE_ASSERT (heapAllocator_);
+  ACE_ASSERT (heapAllocator_->configuration_);
+
+  size_t bytes_to_allocate_i =
+    (bytes_in ? bytes_in + heapAllocator_->configuration_->paddingBytes : 9);
+
   ACE_Data_Block* data_block_p = NULL;
   try {
     // *TODO*: use the heap allocator to allocate the instance
     ACE_NEW_MALLOC_NORETURN (data_block_p,
                              static_cast<ACE_Data_Block*> (inherited::malloc (sizeof (ACE_Data_Block))),
-                             ACE_Data_Block (bytes_in,                                 // size of data chunk
+                             ACE_Data_Block (bytes_to_allocate_i,                      // size of data chunk
                                              (bytes_in ? STREAM_MESSAGE_DATA : STREAM_MESSAGE_SESSION),
                                              NULL,                                     // data --> use allocator !
                                              (bytes_in ? heapAllocator_ : NULL),       // heap allocator
@@ -118,7 +125,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
                 bytes_in));
     return NULL;
   } // end IF
-  ACE_ASSERT (data_block_p->size () == bytes_in);
+  ACE_ASSERT (data_block_p->size () == bytes_to_allocate_i);
 
   // increment running counter
 //   poolSize_ += data_block->capacity ();

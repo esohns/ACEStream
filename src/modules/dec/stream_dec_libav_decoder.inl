@@ -256,10 +256,10 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
          message_block_p = message_block_p->cont ())
       if (likely ((message_block_p->capacity () - message_block_p->length ()) >= AV_INPUT_BUFFER_PADDING_SIZE))
         ACE_OS::memset (message_block_p->wr_ptr (), 0, AV_INPUT_BUFFER_PADDING_SIZE);
-      else
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: cannot pad input buffer, continuing\n"),
-                    inherited::mod_->name ()));
+      // else
+      //   ACE_DEBUG ((LM_WARNING,
+      //               ACE_TEXT ("%s: cannot pad input buffer, continuing\n"),
+      //               inherited::mod_->name ()));
   } // end IF
 
   message_block_p = message_inout;

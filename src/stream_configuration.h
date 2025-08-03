@@ -138,6 +138,7 @@ struct Stream_ModuleHandlerConfiguration
    , statisticReportingInterval (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S, 0)
    , stopOnUnlink (false)
    , timerManager (NULL)
+   , waitForDataOnEnd (false)
   {}
 
   struct Common_AllocatorConfiguration*       allocatorConfiguration;
@@ -207,6 +208,10 @@ struct Stream_ModuleHandlerConfiguration
   ACE_Time_Value                              statisticReportingInterval;           // [ACE_Time_Value::zero: off]
   bool                                        stopOnUnlink;                         // (downstream) head module(s)
   Common_ITimerCB_t*                          timerManager;
+  // *NOTE*: wait for data/idle state upon receiving end ? Necessary for
+  //         playback to complete if e.g. the source module slurps the whole
+  //         file and completes sending the data early
+  bool                                        waitForDataOnEnd;                     // ALSA target module
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_DirectShow_ModuleHandlerConfiguration

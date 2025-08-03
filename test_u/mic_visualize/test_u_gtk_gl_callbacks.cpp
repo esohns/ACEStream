@@ -43,6 +43,27 @@
 
 #include "test_u_mic_visualize_common.h"
 
+bool
+hasRotateInstruction (struct Test_U_MicVisualize_UI_CBDataBase* CBDataBase_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::hasRotateInstruction"));
+
+  // sanity check(s)
+  ACE_ASSERT (CBDataBase_in);
+  ACE_ASSERT (CBDataBase_in->OpenGLInstructions);
+  ACE_ASSERT (CBDataBase_in->OpenGLInstructionsLock);
+
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *CBDataBase_in->OpenGLInstructionsLock, false);
+
+  for (Stream_Visualization_GTKGL_InstructionsIterator_t iterator = CBDataBase_in->OpenGLInstructions->begin ();
+       iterator != CBDataBase_in->OpenGLInstructions->end ();
+       ++iterator)
+    if ((*iterator).type == STREAM_VISUALIZATION_INSTRUCTION_ROTATE)
+      return true;
+
+  return false;
+}
+
 void
 processInstructions (struct Test_U_MicVisualize_UI_CBDataBase* CBDataBase_in)
 {
@@ -902,8 +923,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
     glEnable (GL_TEXTURE_2D);                           // Enable Texture Mapping
     // glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
     // glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-    glDisable (GL_BLEND);
-    // glEnable (GL_BLEND);                                // Enable Semi-Transparency
+    glEnable (GL_BLEND);                                // Enable Semi-Transparency
     // glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 //    glBlendFunc (GL_ONE, GL_ZERO);
 //    glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -953,12 +973,14 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   shader_p->use ();
 
 #if defined (GLM_SUPPORT)
+  static glm::vec3 rotation_s (0.0f, 0.0f, 1.0f);
+
   glm::mat4 model_matrix = glm::mat4 (1.0f); // make sure to initialize matrix to identity matrix first
   model_matrix = glm::translate (model_matrix,
                                  glm::vec3 (0.0f, 0.0f, -3.0f));
   model_matrix = glm::rotate (model_matrix,
                               glm::radians (ui_cb_data_base_p->objectRotation),
-                              glm::vec3 (1.0f, 1.0f, 1.0f));
+                              rotation_s);
   glm::mat4 view_matrix = glm::lookAt (glm::vec3 (0.0f, 0.0f, 0.0f),
                                        glm::vec3 (0.0f, 0.0f, -1.0f),
                                        glm::vec3 (0.0f, 1.0f, 0.0f));
@@ -972,6 +994,29 @@ glarea_render_cb (GtkGLArea* GLArea_in,
 #else
 #error this program requires glm, aborting compilation
 #endif // GLM_SUPPORT
+
+  // compute elapsed time
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::chrono::steady_clock::time_point tp2 =
+    std::chrono::high_resolution_clock::now ();
+#elif defined (ACE_LINUX)
+  std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> tp2 =
+    std::chrono::high_resolution_clock::now ();
+#else
+#error missing implementation, aborting
+#endif // ACE_WIN32 || ACE_WIN64 || ACE_LINUX
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  static std::chrono::steady_clock::time_point tp_last = tp2;
+#elif defined (ACE_LINUX)
+  static std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> tp_last = tp2;
+#else
+#error missing implementation, aborting
+#endif // ACE_WIN32 || ACE_WIN64 || ACE_LINUX
+  std::chrono::duration<float> elapsed_time_2 = tp2 - tp_last;
+  static float duration_f = 0.0f;
+  duration_f += elapsed_time_2.count ();
+  tp_last = tp2;
 
 #if defined (GLM_SUPPORT)
   shader_p->setMat4 (ACE_TEXT_ALWAYS_CHAR ("model"), model_matrix);
@@ -990,7 +1035,30 @@ glarea_render_cb (GtkGLArea* GLArea_in,
 
   glBindTexture (GL_TEXTURE_2D, 0);
 
+  bool has_rotations_b = hasRotateInstruction (ui_cb_data_base_p);
   processInstructions (ui_cb_data_base_p);
+
+  // "smooth" (random-) rotation
+#if defined (GLM_SUPPORT)
+#define TRANSITION_DURATION_F 2.0f // second(s)
+  ACE_ASSERT (TRANSITION_DURATION_F != 0.0f); // would divide by 0 (see below)
+  static glm::vec3 rotation_from = rotation_s;
+  static glm::vec3 rotation_to (1.0f, 1.0f, 1.0f);
+  if (duration_f >= TRANSITION_DURATION_F)
+  {
+    duration_f -= TRANSITION_DURATION_F;
+
+    rotation_from = rotation_s;
+    if (has_rotations_b)
+    {
+      rotation_to.x = Common_Tools::getRandomNumber (0.0f, 1.0f);
+      rotation_to.y = Common_Tools::getRandomNumber (0.0f, 1.0f);
+      rotation_to.z = Common_Tools::getRandomNumber (0.0f, 1.0f);
+      rotation_to = glm::normalize (rotation_to);
+    } // end IF
+  } // end IF
+  rotation_s = glm::mix (rotation_from, rotation_to, duration_f / TRANSITION_DURATION_F);
+#endif // GLM_SUPPORT
 
   shader_p->unuse ();
 

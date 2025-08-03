@@ -1527,6 +1527,35 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     case TEST_U_MODE_GLUT_19:
     case TEST_U_MODE_GLUT_20:
     case TEST_U_MODE_GLUT_21:
+    case TEST_U_MODE_GLUT_22:
+    case TEST_U_MODE_GLUT_23:
+    case TEST_U_MODE_GLUT_24:
+    case TEST_U_MODE_GLUT_25:
+    case TEST_U_MODE_GLUT_26:
+    case TEST_U_MODE_GLUT_27:
+    case TEST_U_MODE_GLUT_28:
+    case TEST_U_MODE_GLUT_29:
+    case TEST_U_MODE_GLUT_30:
+    case TEST_U_MODE_GLUT_31:
+    case TEST_U_MODE_GLUT_32:
+    case TEST_U_MODE_GLUT_33:
+    case TEST_U_MODE_GLUT_34:
+    case TEST_U_MODE_GLUT_35:
+    case TEST_U_MODE_GLUT_36:
+    case TEST_U_MODE_GLUT_37:
+    case TEST_U_MODE_GLUT_38:
+    case TEST_U_MODE_GLUT_39:
+    case TEST_U_MODE_GLUT_40:
+    case TEST_U_MODE_GLUT_41:
+    case TEST_U_MODE_GLUT_42:
+    case TEST_U_MODE_GLUT_43:
+    case TEST_U_MODE_GLUT_44:
+    case TEST_U_MODE_GLUT_45:
+    case TEST_U_MODE_GLUT_46:
+    case TEST_U_MODE_GLUT_47:
+    case TEST_U_MODE_GLUT_48:
+    case TEST_U_MODE_GLUT_49:
+    case TEST_U_MODE_GLUT_50:
       add_renderer_b = false;
       break;
 #endif // GLUT_SUPPORT
@@ -1561,6 +1590,35 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     case TEST_U_MODE_GLUT_19:
     case TEST_U_MODE_GLUT_20:
     case TEST_U_MODE_GLUT_21:
+    case TEST_U_MODE_GLUT_22:
+    case TEST_U_MODE_GLUT_23:
+    case TEST_U_MODE_GLUT_24:
+    case TEST_U_MODE_GLUT_25:
+    case TEST_U_MODE_GLUT_26:
+    case TEST_U_MODE_GLUT_27:
+    case TEST_U_MODE_GLUT_28:
+    case TEST_U_MODE_GLUT_29:
+    case TEST_U_MODE_GLUT_30:
+    case TEST_U_MODE_GLUT_31:
+    case TEST_U_MODE_GLUT_32:
+    case TEST_U_MODE_GLUT_33:
+    case TEST_U_MODE_GLUT_34:
+    case TEST_U_MODE_GLUT_35:
+    case TEST_U_MODE_GLUT_36:
+    case TEST_U_MODE_GLUT_37:
+    case TEST_U_MODE_GLUT_38:
+    case TEST_U_MODE_GLUT_39:
+    case TEST_U_MODE_GLUT_40:
+    case TEST_U_MODE_GLUT_41:
+    case TEST_U_MODE_GLUT_42:
+    case TEST_U_MODE_GLUT_43:
+    case TEST_U_MODE_GLUT_44:
+    case TEST_U_MODE_GLUT_45:
+    case TEST_U_MODE_GLUT_46:
+    case TEST_U_MODE_GLUT_47:
+    case TEST_U_MODE_GLUT_48:
+    case TEST_U_MODE_GLUT_49:
+    case TEST_U_MODE_GLUT_50:
       modulehandler_configuration_2.flipImage = true;
       break;
     default:

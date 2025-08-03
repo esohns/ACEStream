@@ -277,7 +277,7 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
         } // end IF
         media_type_s.audio.codecId = context_->streams[i]->codecpar->codec_id;
         if (context_->streams[i]->codecpar->extradata_size)
-        { 
+        {
           codec_configuration_s.size =
             context_->streams[i]->codecpar->extradata_size;
           ACE_NEW_NORETURN (codec_configuration_s.data,
@@ -505,7 +505,6 @@ skip:
       inherited::stop (false, false, false);
       continue;
     } // end IF
-    //message_p->wr_ptr (packet_s.size);
     message_p->setMediaType (streamIndexToMessageMediaType_[packet_s.stream_index]);
     av_packet_unref (&packet_s);
 
