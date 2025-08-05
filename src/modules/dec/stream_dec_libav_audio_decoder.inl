@@ -629,10 +629,14 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
           context_->ch_layout.nb_channels != static_cast<int> (outputChannels_))
       {
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: converting inbound sample format %s to %s\n"),
+                    ACE_TEXT ("%s: converting sample format %s @ %d, %d channel(s) to %s @ %u, %u channel(s)\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (context_->sample_fmt).c_str ()),
-                    ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (outputFormat_).c_str ())));
+                    context_->sample_rate,
+                    context_->ch_layout.nb_channels,
+                    ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (outputFormat_).c_str ()),
+                    outputSampleRate_,
+                    outputChannels_));
 
         AVChannelLayout channel_layout_out_s;
         result =
@@ -648,14 +652,14 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
 
         result =
           swr_alloc_set_opts2 (&transformContext_,
-                               &channel_layout_out_s,   // out_ch_layout
-                               outputFormat_,           // out_sample_fmt
-                               outputSampleRate_,       // out_sample_rate
-                               &channel_layout_in_s,    // in_ch_layout
-                               media_type_s.format,     // in_sample_fmt
-                               media_type_s.sampleRate, // in_sample_rate
-                               0,                       // log_offset
-                               NULL);                   // log_ctx
+                               &channel_layout_out_s, // out_ch_layout
+                               outputFormat_,         // out_sample_fmt
+                               outputSampleRate_,     // out_sample_rate
+                               &channel_layout_in_s,  // in_ch_layout
+                               context_->sample_fmt,  // in_sample_fmt
+                               context_->sample_rate, // in_sample_rate
+                               0,                     // log_offset
+                               NULL);                 // log_ctx
         if (unlikely (result || !transformContext_))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -790,12 +794,14 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
     } // end IF
 
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: reinit occurred; converting decoded sample format \"%s\" (@ %u Hz) to \"%s\" (@ %u Hz)\n"),
+                ACE_TEXT ("%s: reinit occurred: converting sample format %s @ %d, %d channel(s) to %s @ %u, %u channel(s)\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (context_->sample_fmt).c_str ()),
                 context_->sample_rate,
+                context_->ch_layout.nb_channels,
                 ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (outputFormat_).c_str ()),
-                outputSampleRate_));
+                outputSampleRate_,
+                outputChannels_));
 
     AVChannelLayout channel_layout_out_s;
     result =
