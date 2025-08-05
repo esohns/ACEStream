@@ -60,6 +60,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
  , sampleRate_ (0)
  , frame_ (NULL)
  , frameSize_ (0)
+ , numberOfChannels_ (0)
  , outputFormat_ (AV_SAMPLE_FMT_NONE)
  , outputFrameSize_ (0)
  , outputSampleRate_ (0)
@@ -140,6 +141,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       av_frame_free (&frame_); ACE_ASSERT (!frame_);
     } // end IF
     frameSize_ = 0;
+    numberOfChannels_ = 0;
     outputFormat_ = STREAM_DEC_DEFAULT_LIBAV_OUTPUT_SAMPLE_FORMAT;
     outputFrameSize_ = 0;
     outputSampleRate_ = 0;
@@ -396,6 +398,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_BUGS;
       Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMapIterator_t iterator;
       enum AVCodecID codec_id_e = media_type_s.codecId;
+      AVChannelLayout channel_layout_in_s;
 
       if (codec_id_e == AV_CODEC_ID_NONE)
       {
@@ -543,8 +546,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       context_->flags |= flags;
       context_->flags2 = inherited::configuration_->codecConfiguration->flags2;
       context_->flags2 |= flags2;
-      iterator =
-        session_data_r.codecConfiguration.find (codec_id_e);
+      iterator = session_data_r.codecConfiguration.find (codec_id_e);
       if (iterator != session_data_r.codecConfiguration.end ())
       { ACE_ASSERT ((*iterator).second.size);
         ACE_ASSERT (!context_->extradata);
@@ -563,6 +565,36 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                         (*iterator).second.size);
         context_->extradata_size = (*iterator).second.size;
       } // end IF
+
+      context_->sample_fmt = media_type_s.format;
+      context_->sample_rate = media_type_s.sampleRate;
+      result =
+        av_channel_layout_from_mask (&channel_layout_in_s,
+                                     Stream_Module_Decoder_Tools::channelsToMask (media_type_s.channels));
+      if (unlikely (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to av_channel_layout_from_mask(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+        goto error;
+      } // end IF
+      context_->ch_layout = channel_layout_in_s;
+      context_->time_base.num = 1;
+      context_->time_base.den = context_->sample_rate;
+      context_->strict_std_compliance = FF_COMPLIANCE_NORMAL;
+
+      switch (codec_id_e)
+      {
+        case AV_CODEC_ID_AAC:
+        {
+          // context_->profile = FF_PROFILE_AAC_MAIN;
+          context_->profile = FF_PROFILE_AAC_LOW;
+          break;
+        }
+        default:
+          break;
+      } // end SWITCH
+
 //      result = av_dict_set (&dictionary_p,
 //                            NULL, NULL,
 //                            0);
@@ -571,6 +603,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                             0);
       ACE_ASSERT (result >= 0);
       ACE_ASSERT (dictionary_p);
+
       result = avcodec_open2 (context_,
                               context_->codec,
                               &dictionary_p);
@@ -591,10 +624,12 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                   ACE_TEXT (avcodec_get_name (codec_id_e)),
                   ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (context_->sample_fmt).c_str ())));
 
-      if (context_->sample_fmt != outputFormat_)
+      if (context_->sample_fmt != outputFormat_ ||
+          context_->sample_rate != static_cast<int> (outputSampleRate_) ||
+          context_->ch_layout.nb_channels != static_cast<int> (outputChannels_))
       {
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: converting decoded sample format %s to %s\n"),
+                    ACE_TEXT ("%s: converting inbound sample format %s to %s\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (context_->sample_fmt).c_str ()),
                     ACE_TEXT (Stream_MediaFramework_Tools::sampleFormatToString (outputFormat_).c_str ())));
@@ -610,28 +645,17 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                       ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
           goto error;
         } // end IF
-        AVChannelLayout channel_layout_in_s;
-        result =
-          av_channel_layout_from_mask (&channel_layout_in_s,
-                                       Stream_Module_Decoder_Tools::channelsToMask (outputChannels_)); // *TODO* should be input-
-        if (unlikely (result))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to av_channel_layout_from_mask(): \"%s\", aborting\n"),
-                      ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-          goto error;
-        } // end IF
 
         result =
           swr_alloc_set_opts2 (&transformContext_,
-                               &channel_layout_out_s, // out_ch_layout
-                               outputFormat_,         // out_sample_fmt
-                               outputSampleRate_,     // out_sample_rate
-                               &channel_layout_in_s,  // in_ch_layout
-                               context_->sample_fmt,  // in_sample_fmt
-                               outputSampleRate_,     // in_sample_rate
-                               0,                     // log_offset
-                               NULL);                 // log_ctx
+                               &channel_layout_out_s,   // out_ch_layout
+                               outputFormat_,           // out_sample_fmt
+                               outputSampleRate_,       // out_sample_rate
+                               &channel_layout_in_s,    // in_ch_layout
+                               media_type_s.format,     // in_sample_fmt
+                               media_type_s.sampleRate, // in_sample_rate
+                               0,                       // log_offset
+                               NULL);                   // log_ctx
         if (unlikely (result || !transformContext_))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -652,7 +676,8 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       format_ = context_->sample_fmt;
       sampleRate_ = context_->sample_rate;
       frameSize_ =
-        av_get_bytes_per_sample (context_->sample_fmt) * outputChannels_;
+        av_get_bytes_per_sample (context_->sample_fmt) * context_->ch_layout.nb_channels;
+      numberOfChannels_ = context_->ch_layout.nb_channels;
 
       ACE_ASSERT (!frame_);
       frame_ = av_frame_alloc ();
@@ -663,7 +688,9 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
 
-      if (outputFormat_ != media_type_s.format)
+      if (outputFormat_ != media_type_s.format ||
+          outputSampleRate_ != media_type_s.sampleRate ||
+          outputChannels_ != media_type_s.channels)
       { ACE_ASSERT (session_data_r.lock);
         inherited2::setFormat (outputFormat_,
                                media_type_2);
@@ -731,30 +758,31 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (!message_inout);
   ACE_ASSERT (context_);
   ACE_ASSERT (frame_);
-  ACE_ASSERT (frameSize_);
 
-  unsigned int retries_i = 3;
-retry:
+//   unsigned int retries_i = 3;
+// retry:
   int result = avcodec_send_packet (context_,
                                     &packet_in);
   if (unlikely (result))
   { // *NOTE*: most likely cause: some spurious AAC decoding error
-    if (inherited::configuration_->codecConfiguration->codecId != AV_CODEC_ID_AAC)
-      retries_i = 1; // do not retry in general
-    --retries_i;
-    ACE_DEBUG (((retries_i ? LM_WARNING : LM_ERROR),
+    // if (inherited::configuration_->codecConfiguration->codecId != AV_CODEC_ID_AAC)
+    //   retries_i = 1; // do not retry in general
+    // --retries_i;
+    // ACE_DEBUG (((retries_i ? LM_WARNING : LM_ERROR),
+    ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", %s\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ()),
-                (retries_i ? ACE_TEXT ("retrying") : ACE_TEXT ("aborting"))));
-    if (retries_i)
-      goto retry;
+                /*retries_i ? ACE_TEXT ("retrying") :*/ ACE_TEXT ("aborting")));
+    // if (retries_i)
+    //   goto retry;
     return false;
   } // end IF
 
-  // pixel format/resolution may have changed
-  if (unlikely ((context_->sample_fmt != format_)                        ||
-                (context_->sample_rate != static_cast<int> (sampleRate_))))
+  // sample format/resolution/channel layout may have changed
+  if (unlikely ((context_->sample_fmt != format_)                                        ||
+                (context_->sample_rate != static_cast<int> (sampleRate_))                ||
+                (context_->ch_layout.nb_channels != static_cast<int> (numberOfChannels_))))
   {
     if (transformContext_)
     {
@@ -772,7 +800,7 @@ retry:
     AVChannelLayout channel_layout_out_s;
     result =
       av_channel_layout_from_mask (&channel_layout_out_s,
-                                    Stream_Module_Decoder_Tools::channelsToMask (outputChannels_)); // *TODO* should be input-
+                                   Stream_Module_Decoder_Tools::channelsToMask (outputChannels_));
     if (unlikely (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -810,6 +838,7 @@ retry:
     sampleRate_ = context_->sample_rate;
     frameSize_ =
       av_get_bytes_per_sample (context_->sample_fmt) * context_->ch_layout.nb_channels;
+    numberOfChannels_ = context_->ch_layout.nb_channels;
   } // end IF
 
   result = avcodec_receive_frame (context_,

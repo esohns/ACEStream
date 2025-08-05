@@ -158,15 +158,16 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
   struct NeAACDecFrameInfo frame_info_s;
   int result = -1;
   void* data_p = NULL;
+  long result_2 = -1;
+  unsigned char result_3 = 0;
 
   static bool is_first = true;
+reinitialize:
   if (unlikely (is_first))
   {
-    is_first = false;
-
     unsigned long sample_rate = 0;
     unsigned char channels = 0;
-    long result_2 =
+    result_2 =
       NeAACDecInit (context_,
                     reinterpret_cast<unsigned char*> (message_block_p->rd_ptr ()),
                     static_cast<unsigned long> (message_block_p->length ()),
@@ -174,17 +175,20 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
                     &channels);
     if (unlikely (result_2 < 0))
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to NeAACDecInit(), aborting\n"),
-                  inherited::mod_->name ()));
-      goto error;
+      // ACE_DEBUG ((LM_WARNING,
+      //             ACE_TEXT ("%s: failed to NeAACDecInit(), continuing\n"),
+      //             inherited::mod_->name ()));
+      message_block_p->rd_ptr (1);
+      if (!message_block_p->length ())
+        goto clean; // try with next buffer
+      goto reinitialize; // try with next byte
     } // end IF
     message_block_p->rd_ptr (result_2);
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: initialized faad context: %u channels @ %u samples/s\n"),
-                inherited::mod_->name (),
-                channels,
-                sample_rate));
+    // ACE_DEBUG ((LM_DEBUG,
+    //             ACE_TEXT ("%s: (re-)initialized faad context: %u channels @ %u samples/s\n"),
+    //             inherited::mod_->name (),
+    //             channels,
+    //             sample_rate));
     //NeAACDecConfigurationPtr configuration_p =
     //  NeAACDecGetCurrentConfiguration (context_);
     //ACE_DEBUG ((LM_DEBUG,
@@ -194,6 +198,7 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
     //            configuration_p->outputFormat,
     //            configuration_p->downMatrix));
 
+    is_first = false;
   } // end IF
 
   while (message_block_p)
@@ -221,15 +226,48 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
                        static_cast<unsigned long> (message_block_p->length ()),
                        &data_p,
                        static_cast<unsigned long> (buffer_->size ()));
-    if (unlikely (!result_p))
+    if (unlikely (!result_p || frame_info_s.error > 0))
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to NeAACDecDecode2(): \"%s\", continuing\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (NeAACDecGetErrorMessage (frame_info_s.error))));
-      goto continue_;
+      // ACE_DEBUG ((LM_ERROR,
+      //             ACE_TEXT ("%s: failed to NeAACDecDecode2(): \"%s\", continuing\n"),
+      //             inherited::mod_->name (),
+      //             ACE_TEXT (NeAACDecGetErrorMessage (frame_info_s.error))));
+
+      if (frame_info_s.error == 21 || frame_info_s.error == 12)
+      {
+        NeAACDecClose (context_); context_ = NULL;
+        context_ = NeAACDecOpen ();
+        if (unlikely (!context_))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to NeAACDecOpen(), aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+
+        result_3 = NeAACDecSetConfiguration (context_,
+                                             &configuration_);
+        if (unlikely (!result_3))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to NeAACDecSetConfiguration(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (NeAACDecGetErrorMessage (result_3))));
+          goto error;
+        } // end IF
+
+        is_first = true;
+        goto reinitialize;
+      } // end IF
+
+      if (!frame_info_s.bytesconsumed)
+      {
+        message_block_p->rd_ptr (1); // try next byte
+        //goto clean;
+      } // end IF
     } // end IF
-    ACE_ASSERT (frame_info_s.bytesconsumed == message_block_p->length ());
+    message_block_p->rd_ptr (frame_info_s.bytesconsumed);
+
     if (likely (frame_info_s.samples))
     {
       buffer_->wr_ptr (frame_info_s.samples * sampleSize_);
@@ -246,10 +284,14 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
       buffer_ = NULL;
     } // end IF
 
+    if (message_block_p->length () > 0)
+      continue; // continue with same (!) buffer
+
 continue_:
     message_block_p = message_block_p->cont ();
   } // end WHILE
 
+clean:
   message_inout->release (); message_inout = NULL;
 
   return;
@@ -411,13 +453,13 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
 
       result_2 = NeAACDecSetConfiguration (context_,
                                            &configuration_);
-      if (unlikely (result_2))
+      if (unlikely (!result_2))
       {
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: failed to NeAACDecSetConfiguration(): \"%s\", continuing\n"),
+                    ACE_TEXT ("%s: failed to NeAACDecSetConfiguration(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (NeAACDecGetErrorMessage (result_2))));
-//        goto error;
+        goto error;
       } // end IF
 
 //      result = NeAACDecInit (context_,

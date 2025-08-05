@@ -118,6 +118,7 @@ class Stream_Decoder_LibAVAudioDecoder_T
   unsigned int                 sampleRate_; // codec output-
   struct AVFrame*              frame_;
   unsigned int                 frameSize_; // codec output-
+  unsigned int                 numberOfChannels_; // codec output-
   enum AVSampleFormat          outputFormat_; // output-
   unsigned int                 outputFrameSize_; // output-
   unsigned int                 outputSampleRate_; // output-
