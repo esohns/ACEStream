@@ -195,6 +195,8 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
       event_e = COMMON_UI_EVENT_STATISTIC;
       break;
     }
+    case STREAM_SESSION_MESSAGE_STEP_DATA:
+      break;
     case STREAM_SESSION_MESSAGE_STEP:
     {
 #if defined (GTK_USE)

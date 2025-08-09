@@ -268,30 +268,7 @@ idle_initialize_ui_cb (gpointer userData_in)
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_FILECHOOSERBUTTON_SAVE)));
   ACE_ASSERT (file_chooser_button_p);
-  //struct _GValue property_s = G_VALUE_INIT;
-  //g_value_init (&property_s,
-  //              G_TYPE_POINTER);
-  //g_object_get_property (G_OBJECT (file_chooser_button_p),
-  //                       ACE_TEXT_ALWAYS_CHAR ("dialog"),
-  //                       &property_s);
-  //G_VALUE_HOLDS_POINTER (&property_s);
-  //GtkFileChooser* file_chooser_p = NULL;
-    //reinterpret_cast<GtkFileChooser*> (g_value_get_pointer (&property_s));
-  //g_object_get (G_OBJECT (file_chooser_button_p),
-  //              ACE_TEXT_ALWAYS_CHAR ("dialog"),
-  //              &file_chooser_p, NULL);
-  //ACE_ASSERT (file_chooser_p);
-  //ACE_ASSERT (GTK_IS_FILE_CHOOSER_DIALOG (file_chooser_p));
-  //GtkFileChooserDialog* file_chooser_dialog_p =
-  //  GTK_FILE_CHOOSER_DIALOG (file_chooser_p);
-  //ACE_ASSERT (file_chooser_dialog_p);
-  //GtkPlacesSidebar* places_sidebar_p = NULL;
-  //Common_UI_Tools::dump (GTK_WIDGET (file_chooser_dialog_p));
-  //[0].get_children ()[0].get_children ([0].get_children ()[0]
-  //  vbox.get_children ()[0].hide ()
 
-  //GError* error_p = NULL;
-  //GFile* file_p = NULL;
   struct _GString* string_p = NULL;
   gchar* filename_p = NULL;
   if (!(*iterator_2).second.second->targetFileName.empty ())
@@ -306,16 +283,7 @@ idle_initialize_ui_cb (gpointer userData_in)
                     ACE_TEXT ((*iterator_2).second.second->targetFileName.c_str ())));
         return G_SOURCE_REMOVE;
       } // end IF
-    //file_p =
-    //  g_file_new_for_path (ui_cb_data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ());
-    //ACE_ASSERT (file_p);
-    //ACE_ASSERT (g_file_query_exists (file_p, NULL));
 
-    //std::string file_uri =
-    //  ACE_TEXT_ALWAYS_CHAR ("file://") +
-    //  ui_cb_data_p->configuration->moduleHandlerConfiguration.targetFileName;
-    //if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
-    //                                              file_uri.c_str ()))
     string_p =
       g_string_new ((*iterator_2).second.second->targetFileName.c_str ());
     filename_p = string_p->str;
@@ -324,7 +292,7 @@ idle_initialize_ui_cb (gpointer userData_in)
                                         filename_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to gtk_file_chooser_set_filename(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to gtk_file_chooser_select_filename(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT ((*iterator_2).second.second->targetFileName.c_str ())));
 
       // clean up
@@ -335,33 +303,11 @@ idle_initialize_ui_cb (gpointer userData_in)
     } // end IF
     g_string_free (string_p, FALSE);
     g_free (filename_p);
-
-    //if (!gtk_file_chooser_select_file (GTK_FILE_CHOOSER (file_chooser_dialog_p),
-    //                                   file_p,
-    //                                   &error_p))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to gtk_file_chooser_select_file(\"%s\"): \"%s\", aborting\n"),
-    //              ACE_TEXT (ui_cb_data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ()),
-    //              ACE_TEXT (error_p->message)));
-
-    //  // clean up
-    //  g_error_free (error_p);
-    //  g_object_unref (file_p);
-
-    //  return G_SOURCE_REMOVE;
-    //} // end IF
-    //g_object_unref (file_p);
   } // end IF
   else
   {
-    //file_p =
-    //  g_file_new_for_path (Common_File_Tools::getTempDirectory ().c_str ());
-    //ACE_ASSERT (file_p);
-
     string_p = g_string_new (Common_File_Tools::getTempDirectory ().c_str ());
     filename_p = string_p->str;
-      //Common_UI_Tools::Locale2UTF8 (Common_File_Tools::getTempDirectory ());
     if (!gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
                                         filename_p))
     {
@@ -377,19 +323,22 @@ idle_initialize_ui_cb (gpointer userData_in)
     } // end IF
     g_string_free (string_p, FALSE);
     g_free (filename_p);
-    //g_object_unref (file_p);
   } // end ELSE
 
-  std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri += (*iterator_2).second.second->targetFileName;
-  if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                                default_folder_uri.c_str ()))
+  std::string default_folder_uri = (*iterator_2).second.second->targetFileName;
+  default_folder_uri = Common_File_Tools::directory (default_folder_uri);
+  //default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://") + default_folder_uri;
+  filename_p = Common_UI_GTK_Tools::localeToUTF8 (default_folder_uri);
+  if (!gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                            filename_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder(\"%s\"): \"%m\", aborting\n"),
                 ACE_TEXT (default_folder_uri.c_str ())));
+    g_free (filename_p);
     return G_SOURCE_REMOVE;
   } // end IF
+  g_free (filename_p);
 
   GtkCheckButton* check_button_p =
 //    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -1091,13 +1040,11 @@ button_execute_clicked_cb (GtkButton* button_in,
   } // end IF
   ACE_ASSERT (!hostname_p);
   ACE_ASSERT (!error_p);
-  directory_string =
-    ACE_TEXT_ALWAYS_CHAR (ACE::dirname (directory_p,
-                                        ACE_DIRECTORY_SEPARATOR_CHAR));
+  directory_string = Common_UI_GTK_Tools::UTF8ToLocale (directory_p, -1);
   g_free (directory_p);
   ACE_ASSERT (Common_File_Tools::isDirectory (directory_string));
   (*iterator_2).second.second->targetFileName = directory_string;
-  (*iterator_2).second.second->targetFileName += ACE_DIRECTORY_SEPARATOR_STR;
+  (*iterator_2).second.second->targetFileName += ACE_DIRECTORY_SEPARATOR_STR_A;
   (*iterator_2).second.second->targetFileName +=
     ACE_TEXT_ALWAYS_CHAR (HTTP_GET_DEFAULT_OUTPUT_FILE);
 
