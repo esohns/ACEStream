@@ -252,7 +252,7 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
         inherited::start (NULL);
         inherited::threadCount_ = 0;
 
-        while (inherited::thr_count_ && !inherited::window_); // *TODO*: never do this
+        while (inherited::thr_count_ && !inherited::window_ && !renderTarget_ && !bitmap_); // *TODO*: never do this
       } // end IF
       else
       {
@@ -296,7 +296,7 @@ error:
       } // end IF
 
       if (inherited::thr_count_)
-        inherited::wait ();
+        inherited::wait (true); // wait for message queue ?
 
       break;
     }
