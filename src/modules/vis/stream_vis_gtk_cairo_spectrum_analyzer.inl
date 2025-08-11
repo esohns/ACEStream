@@ -201,7 +201,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   // initialize cairo context
   // *TODO*: remove type inferences
-  if (!configuration_in.window)
+#if GTK_CHECK_VERSION (4,0,0)
+  if (!configuration_in.window.gdk_surface)
+#else
+  if (!configuration_in.window.gdk_window)
+#endif // GTK_CHECK_VERSION (4,0,0)
   {
     // sanity check(s)
     if (unlikely (!Common_UI_GTK_Tools::GTKInitialized &&
@@ -246,23 +250,27 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end IF
   else
   {
-    CBData_.window = configuration_in.window;
+#if GTK_CHECK_VERSION (4,0,0)
+    CBData_.window = configuration_in.window.gdk_surface;
+#else
+    CBData_.window = configuration_in.window.gdk_window;
+#endif // GTK_CHECK_VERSION (4,0,0)
 
 #if GTK_CHECK_VERSION (3,6,0)
 #else
     gdk_threads_enter ();
 #endif // GTK_CHECK_VERSION (3,6,0)
 #if GTK_CHECK_VERSION (4,0,0)
-    width_ = gdk_surface_get_width (configuration_in.window);
-    height_ = gdk_surface_get_height (configuration_in.window);
+    width_ = gdk_surface_get_width (CBData_.window);
+    height_ = gdk_surface_get_height (CBData_.window);
 #elif GTK_CHECK_VERSION (3,0,0)
-    gdk_window_get_geometry (configuration_in.window,
+    gdk_window_get_geometry (CBData_.window,
                              NULL,
                              NULL,
                              &width_,
                              &height_);
 #elif GTK_CHECK_VERSION (2,0,0)
-    gdk_window_get_geometry (configuration_in.window,
+    gdk_window_get_geometry (CBData_.window,
                              NULL,
                              NULL,
                              &width_,

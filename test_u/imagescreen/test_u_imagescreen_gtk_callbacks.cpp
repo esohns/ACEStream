@@ -94,8 +94,7 @@ load_display_devices (GtkListStore* listStore_in)
   {
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-//                        0, (*iterator_2).description.c_str (),
-                        0, (*iterator_2).device.c_str (),
+                        0, (*iterator_2).description.c_str (),
                         1, (*iterator_2).device.c_str (),
                         -1);
   } // end FOR
@@ -293,6 +292,12 @@ idle_initialize_UI_cb (gpointer userData_in)
 //  ACE_DEBUG ((LM_DEBUG,
 //              ACE_TEXT ("initial window size: %ux%u\n"),
 //              allocation_s.width, allocation_s.height));
+
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_ADAPTER_NAME)));
+  ACE_ASSERT (combo_box_p);
+  gtk_combo_box_set_active (combo_box_p, 0);
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,

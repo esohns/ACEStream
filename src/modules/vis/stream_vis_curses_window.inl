@@ -141,7 +141,7 @@ Stream_Module_Vis_Curses_Window_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->window_2);
+  ACE_ASSERT (inherited::configuration_->window.curses_window);
 
   static const char* char_density =
 //    ACE_TEXT_ALWAYS_CHAR ("Ñ@#W$9876543210?!abc;:+=-,._                    ");
@@ -153,16 +153,16 @@ Stream_Module_Vis_Curses_Window_T<ACE_SYNCH_USE,
   float r_f, g_f, b_f, ratio_f;
   size_t index_i;
 
-  result = wmove (inherited::configuration_->window_2,
+  result = wmove (inherited::configuration_->window.curses_window,
                   0, 0);
   if (unlikely (result == ERR))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to wmove(), continuing\n")));
   for (int y = 0;
-       y < getmaxy (inherited::configuration_->window_2);
+       y < getmaxy (inherited::configuration_->window.curses_window);
        ++y)
     for (int x = 0;
-         x < getmaxx (inherited::configuration_->window_2);
+         x < getmaxx (inherited::configuration_->window.curses_window);
          ++x)
     {
       r_f = *data_p / 255.0F;
@@ -179,7 +179,7 @@ Stream_Module_Vis_Curses_Window_T<ACE_SYNCH_USE,
       index_i =
         (index_i == char_density_length ? char_density_length - 1 : index_i);
 
-      result = waddch (inherited::configuration_->window_2,
+      result = waddch (inherited::configuration_->window.curses_window,
                        char_density[index_i]);
       //if (unlikely (result == ERR))
       //  ACE_DEBUG ((LM_ERROR,
@@ -188,7 +188,7 @@ Stream_Module_Vis_Curses_Window_T<ACE_SYNCH_USE,
       data_p += 3;
     } // end FOR
 
-  result = wrefresh (inherited::configuration_->window_2);
+  result = wrefresh (inherited::configuration_->window.curses_window);
   if (unlikely (result == ERR))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to wrefresh(), continuing\n")));

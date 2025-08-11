@@ -62,6 +62,8 @@ extern "C"
 #include "common_isubscribe.h"
 #include "common_tools.h"
 
+#include "common_ui_windowtype_converter.h"
+
 #include "stream_common.h"
 #include "stream_control_message.h"
 #include "stream_inotify.h"
@@ -371,11 +373,7 @@ struct Stream_CameraAR_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , display ()
    , fullScreen (false)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , window (NULL)
-#else
-   , window (0)
-#endif // ACE_WIN32 || ACE_WIN64
+   , window ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
@@ -391,11 +389,7 @@ struct Stream_CameraAR_ModuleHandlerConfiguration
   struct Common_UI_Display        display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
   bool                            fullScreen;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                            window;
-#else
-  Window                          window;
-#endif // ACE_WIN32 || ACE_WIN64
+  union Common_UI_Window          window;
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

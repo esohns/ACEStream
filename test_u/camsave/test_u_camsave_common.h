@@ -76,6 +76,7 @@ extern "C"
 #include "common_tools.h"
 
 #include "common_ui_common.h"
+#include "common_ui_windowtype_converter.h"
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_common.h"
@@ -502,8 +503,8 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , shaderFile ()
 #endif // ACE_WIN32 || ACE_WIN64
-   , window (NULL)
    , targetFileName ()
+   , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
@@ -517,16 +518,8 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::string                     shaderFile;
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GTK_SUPPORT) && defined (GTK_USE)
-  GdkWindow*                      window;
-#else
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                            window;
-#else
-  Window                          window;
-#endif // ACE_WIN32 || ACE_WIN64
-#endif // GTK_SUPPORT && GTK_USE
   std::string                     targetFileName;
+  union Common_UI_Window          window;
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

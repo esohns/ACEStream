@@ -104,8 +104,11 @@ class Stream_ImageScreen_Stream
   Stream_ImageScreen_Display2D_Module           display2D_;
   Stream_ImageScreen_Display3D_Module           display3D_;
 #else
-  Stream_ImageScreen_Display_Module             display_;
+  Stream_ImageScreen_X11Display_Module          displayX11_;
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_SUPPORT)
+  Stream_ImageScreen_GTKDisplay_Module          displayGTK_;
+#endif // GTK_SUPPORT
 };
 
 #endif

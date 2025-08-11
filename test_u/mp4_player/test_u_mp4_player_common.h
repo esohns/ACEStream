@@ -36,6 +36,8 @@
 
 #include "common_isubscribe.h"
 
+#include "common_ui_windowtype_converter.h"
+
 #include "stream_common.h"
 #include "stream_control_message.h"
 #include "stream_isessionnotify.h"
@@ -277,11 +279,7 @@ struct Test_U_MP4Player_ModuleHandlerConfiguration
 #if defined (FFMPEG_SUPPORT)
    , streamIndex (-1)
 #endif // FFMPEG_SUPPORT
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , window (NULL)
-#else
-   , window (0)
-#endif // ACE_WIN32 || ACE_WIN64
+   , window ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -306,11 +304,7 @@ struct Test_U_MP4Player_ModuleHandlerConfiguration
 #if defined (FFMPEG_SUPPORT)
   int                                                     streamIndex;
 #endif // FFMPEG_SUPPORT
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                                                    window;
-#else
-  Window                                                  window;
-#endif // ACE_WIN32 || ACE_WIN64
+  union Common_UI_Window                                  window;
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

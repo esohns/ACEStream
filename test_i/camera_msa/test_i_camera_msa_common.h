@@ -64,6 +64,7 @@ extern "C"
 #include "common_isubscribe.h"
 #include "common_tools.h"
 
+#include "common_ui_windowtype_converter.h"
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_common.h"
 #endif // GTK_SUPPORT
@@ -330,11 +331,7 @@ struct Test_I_CameraMSA_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , display ()
    , fullScreen (false)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , window (NULL)
-#else
-   , window (0)
-#endif // ACE_WIN32 || ACE_WIN64
+   , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
@@ -349,11 +346,7 @@ struct Test_I_CameraMSA_ModuleHandlerConfiguration
   struct Common_UI_Display                                display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
   bool                                                    fullScreen;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                                                    window;
-#else
-  Window                                                  window;
-#endif // ACE_WIN32 || ACE_WIN64
+  union Common_UI_Window                                  window;
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

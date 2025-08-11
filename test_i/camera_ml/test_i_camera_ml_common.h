@@ -62,6 +62,8 @@ extern "C"
 #include "common_isubscribe.h"
 #include "common_tools.h"
 
+#include "common_ui_windowtype_converter.h"
+
 #include "stream_common.h"
 #include "stream_control_message.h"
 #include "stream_inotify.h"
@@ -383,10 +385,8 @@ struct Stream_CameraML_ModuleHandlerConfiguration
    , fullScreen (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , shaderFile ()
-   , window (NULL)
-#else
-   , window (0)
 #endif // ACE_WIN32 || ACE_WIN64
+   , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
@@ -408,10 +408,8 @@ struct Stream_CameraML_ModuleHandlerConfiguration
   bool                            fullScreen;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::string                     shaderFile;
-  HWND                            window;
-#else
-  Window                          window;
 #endif // ACE_WIN32 || ACE_WIN64
+  union Common_UI_Window          window;
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

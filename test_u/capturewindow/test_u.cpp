@@ -759,7 +759,7 @@ do_work (
       directshow_modulehandler_configuration.codecConfiguration = &codec_configuration;
 #endif // FFMPEG_SUPPORT
       directshow_modulehandler_configuration.fileFormat = ACE_TEXT_ALWAYS_CHAR ("mp4");
-      directshow_modulehandler_configuration.window = windowHandle_in;
+      directshow_modulehandler_configuration.window.win32_hwnd = windowHandle_in;
 
       //if (statisticReportingInterval_in)
       //{
@@ -837,14 +837,11 @@ do_work (
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directShowConfiguration_in.signalHandlerConfiguration.stream =
-        &directshow_stream;
+      directShowConfiguration_in.signalHandlerConfiguration.stream = &directshow_stream;
 
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
-      directshow_stream_configuration.messageAllocator =
-          &directshow_message_allocator;
-      directshow_stream_configuration.module =
-        &directshow_message_handler;
+      directshow_stream_configuration.messageAllocator = &directshow_message_allocator;
+      directshow_stream_configuration.module = &directshow_message_handler;
       //directshow_stream_configuration.renderer = STREAM_VISUALIZATION_VIDEORENDERER_GDI;
       directshow_stream_configuration.renderer = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D;
 
@@ -971,7 +968,7 @@ do_work (
       ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration_3.outputFormat = *media_type_p;
       delete media_type_p; media_type_p = NULL;
-      directshow_modulehandler_configuration_3.window = NULL;
+      directshow_modulehandler_configuration_3.window.win32_hwnd = NULL;
 
       directshow_modulehandler_configuration_4.flipImage = true;
       media_type_p =

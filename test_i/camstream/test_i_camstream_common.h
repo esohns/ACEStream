@@ -60,6 +60,7 @@ extern "C"
 #include "common_time_common.h"
 
 #include "common_ui_common.h"
+#include "common_ui_windowtype_converter.h"
 
 #include "stream_base.h"
 #include "stream_common.h"
@@ -205,9 +206,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
    , display ()
    , fullScreen (false)
-#if defined (GTK_USE)
-   , window (NULL)
-#endif // GTK_USE
+   , window ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     deviceIdentifier.identifier._guid = GUID_NULL;
@@ -228,9 +227,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
   struct Common_UI_DisplayDevice                       display;
   bool                                                 fullScreen;
-#if defined (GTK_USE)
-  GdkWindow*                                           window;
-#endif // GTK_USE
+  union Common_UI_Window                               window;
 };
 
 struct Test_I_CamStream_Configuration

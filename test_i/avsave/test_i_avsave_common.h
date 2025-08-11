@@ -71,6 +71,7 @@
 #include "common_tools.h"
 
 #include "common_ui_common.h"
+#include "common_ui_windowtype_converter.h"
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_common.h"
@@ -412,7 +413,7 @@ struct Stream_AVSave_ModuleHandlerConfiguration
    , sinusFrequency (0.0) // N/A
    , spectrumAnalyzerConfiguration (NULL)
    , targetFileName ()
-   , window (NULL)
+   , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
@@ -431,13 +432,7 @@ struct Stream_AVSave_ModuleHandlerConfiguration
   double                                            sinusFrequency; // N/A
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
   std::string                                       targetFileName;
-#if defined (GTK_USE)
-  GdkWindow*                                        window;
-#elif defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                                              window;
-#else
-  Window                                            window;
-#endif // GTK_USE || ACE_WIN32 || ACE_WIN64
+  union Common_UI_Window                            window;
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

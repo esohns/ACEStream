@@ -59,6 +59,9 @@
 #include "stream_vis_wayland_window.h"
 #include "stream_vis_x11_window.h"
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_SUPPORT)
+#include "stream_vis_gtk_cairo.h"
+#endif // GTK_SUPPORT
 
 #include "test_u_imagescreen_common.h"
 #include "test_u_imagescreen_message.h"
@@ -225,6 +228,18 @@ typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Stream_ImageScreen_SessionData,
                                      Stream_ImageScreen_SessionData_t,
                                      struct _AMMediaType> Stream_ImageScreen_Display3D;
+
+#if defined (GTK_SUPPORT)
+typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Stream_ImageScreen_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Stream_ImageScreen_Message_t,
+                                      Stream_ImageScreen_SessionMessage_t,
+                                      Stream_ImageScreen_SessionData,
+                                      Stream_ImageScreen_SessionData_t,
+                                      struct _AMMediaType> Stream_ImageScreen_GTKDisplay;
+#endif // GTK_SUPPORT
 #else
 typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
@@ -233,7 +248,19 @@ typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Stream_ImageScreen_Message_t,
                                        Stream_ImageScreen_SessionMessage_t,
                                        Stream_ImageScreen_SessionData_t,
-                                       struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_Display;
+                                       struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_X11Display;
+
+#if defined (GTK_SUPPORT)
+typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Stream_ImageScreen_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Stream_ImageScreen_Message_t,
+                                      Stream_ImageScreen_SessionMessage_t,
+                                      Stream_ImageScreen_SessionData,
+                                      Stream_ImageScreen_SessionData_t,
+                                      struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_GTKDisplay;
+#endif // GTK_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
@@ -314,13 +341,22 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   
                               Stream_INotify_t,                                     // stream notification interface type
                               Stream_ImageScreen_Display3D);                        // writer type
 #else
-DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                         // session data type
+                              enum Stream_SessionMessageType,                         // session event type
+                              struct Stream_ImageScreen_ModuleHandlerConfiguration,   // module handler configuration type
                               libacestream_default_vis_x11_window_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_ImageScreen_Display);                      // writer type
+                              Stream_INotify_t,                                       // stream notification interface type
+                              Stream_ImageScreen_X11Display);                         // writer type
 #endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (GTK_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                        // session data type
+                              enum Stream_SessionMessageType,                        // session event type
+                              struct Stream_ImageScreen_ModuleHandlerConfiguration,  // module handler configuration type
+                              libacestream_default_vis_gtk_cairo_module_name_string,
+                              Stream_INotify_t,                                      // stream notification interface type
+                              Stream_ImageScreen_GTKDisplay);                        // writer type
+#endif // GTK_SUPPORT
 
 DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                       // session event type

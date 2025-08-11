@@ -2870,18 +2870,20 @@ idle_initialize_UI_cb (gpointer userData_in)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT (!(*directshow_stream_iterator_3).second.second->window);
+    { ACE_ASSERT (!(*directshow_stream_iterator_3).second.second->window.gdk_window);
       //ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow);
       //ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.focusWindow);
       ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
-      (*directshow_stream_iterator_3).second.second->window = window_p;
-//        gdk_win32_window_get_impl_hwnd (window_p);
+      (*directshow_stream_iterator_3).second.second->window.gdk_window =
+        window_p;
+      //        gdk_win32_window_get_impl_hwnd (window_p);
       //directshow_cb_data_p->configuration->direct3DConfiguration.focusWindow =
       //  NULL;
       //directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
       //  gdk_win32_window_get_impl_hwnd (window_p);
-      ACE_ASSERT (!(*directshow_stream_iterator_2).second.second->window);
-      (*directshow_stream_iterator_2).second.second->window = window_2;
+      ACE_ASSERT (!(*directshow_stream_iterator_2).second.second->window.gdk_window);
+      (*directshow_stream_iterator_2).second.second->window.gdk_window =
+        window_2;
 
       Common_Image_Resolution_t resolution_s;
       resolution_s.cx = allocation.width;
@@ -2902,14 +2904,15 @@ idle_initialize_UI_cb (gpointer userData_in)
       //ACE_ASSERT (IsWindow (directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow));
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("drawing area window handle: 0x%@; size: %dx%d\n"),
-                  (*directshow_stream_iterator).second.second->window,
+                  (*directshow_stream_iterator).second.second->window.gdk_window,
                   allocation.width, allocation.height));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT (!(*mediafoundation_stream_iterator).second.second->window);
+    { ACE_ASSERT (!(*mediafoundation_stream_iterator).second.second->window.gdk_window);
       ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
-      (*mediafoundation_stream_iterator).second.second->window = window_p;
+      (*mediafoundation_stream_iterator).second.second->window.gdk_window =
+        window_p;
       //        gdk_win32_window_get_impl_hwnd (window_p);
 
       HRESULT result_3 =
@@ -2948,8 +2951,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 //  ACE_ASSERT ((*iterator_2).second.second->window);
 //  ACE_ASSERT ((*iterator_3).second.second->window);
 
-  (*iterator_2).second.second->window = window_p;
-  (*iterator_4).second.second->window = window_2;
+  (*iterator_2).second.second->window.gdk_window = window_p;
+  (*iterator_4).second.second->window.gdk_window = window_2;
 
   (*iterator_3).second.second->outputFormat.video.format.height =
       static_cast<__u32> (allocation.height);

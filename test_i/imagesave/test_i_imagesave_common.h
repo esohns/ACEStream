@@ -66,6 +66,7 @@
 #include "common_tools.h"
 
 #include "common_ui_common.h"
+#include "common_ui_windowtype_converter.h"
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_common.h"
@@ -241,11 +242,7 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
    , subscriber (NULL)
    , subscribers (NULL)
    , targetFileName ()
-#if defined (GTK_USE)
-   , window (NULL)
-#else
-   , window (0)
-#endif // GTK_USE
+   , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
@@ -267,15 +264,7 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
   Test_I_ISessionNotify_t*                           subscriber;
   Test_I_Subscribers_t*                              subscribers;
   std::string                                        targetFileName;
-#if defined (GTK_USE)
-  GdkWindow*                                         window;
-#else
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                                               window;
-#else
-  unsigned long                                      window;
-#endif // ACE_WIN32 || ACE_WIN64
-#endif // GTK_USE
+  union Common_UI_Window                             window;
 };
 
 struct Test_I_ImageSave_StreamState

@@ -27,6 +27,8 @@
 #include "gtk/gtk.h"
 #endif // GTK_SUPPORT
 
+#include "common_ui_windowtype_converter.h"
+
 #include "stream_common.h"
 #include "stream_configuration.h"
 #include "stream_messagequeue.h"
@@ -256,9 +258,7 @@ struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration
    , subscribers (NULL)
    , voice ()
    , voiceDirectory ()
-#if defined (GTK_SUPPORT)
-   , window (NULL)
-#endif // GTK_SUPPORT
+   , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
@@ -275,9 +275,7 @@ struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration
   Test_I_DirectShow_Subscribers_t*                  subscribers;
   std::string                                       voice;
   std::string                                       voiceDirectory;
-#if defined (GTK_SUPPORT)
-  GdkWindow*                                        window;
-#endif // GTK_SUPPORT
+  union Common_UI_Window                            window;
 };
 
 struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
@@ -297,9 +295,7 @@ struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
    , subscribers (NULL)
    , voice ()
    , voiceDirectory ()
-#if defined (GTK_SUPPORT)
-   , window (NULL)
-#endif // GTK_SUPPORT
+   , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
@@ -316,9 +312,7 @@ struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
   Test_I_MediaFoundation_Subscribers_t*             subscribers;
   std::string                                       voice;
   std::string                                       voiceDirectory;
-#if defined (GTK_SUPPORT)
-  GdkWindow*                                        window;
-#endif // GTK_SUPPORT
+  union Common_UI_Window                            window;
 };
 #else
 struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
@@ -338,9 +332,7 @@ struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
    , subscribers (NULL)
    , voice ()
    , voiceDirectory ()
-#if defined (GTK_SUPPORT)
-   , window (NULL)
-#endif // GTK_SUPPORT
+   , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
@@ -357,9 +349,7 @@ struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
   Test_I_ALSA_Subscribers_t*                        subscribers;
   std::string                                       voice;
   std::string                                       voiceDirectory;
-#if defined (GTK_SUPPORT)
-  GdkWindow*                                        window;
-#endif // GTK_SUPPORT
+  union Common_UI_Window                            window;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

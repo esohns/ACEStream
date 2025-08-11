@@ -37,6 +37,7 @@
 #endif // HAVE_CONFIG_H
 
 #include "common_file_tools.h"
+#include "common_string_tools.h"
 #include "common_tools.h"
 
 #include "common_log_tools.h"
@@ -93,16 +94,23 @@ dirent_selector_cb (const dirent* dirEntry_in)
   // *IMPORTANT NOTE*: select all files
 
   std::string filename (ACE_TEXT_ALWAYS_CHAR (dirEntry_in->d_name));
+
+  // step1: filter '.' and '..'
   std::string::size_type position =
-      filename.find_last_of ('.', std::string::npos);
-  if ((position == 0) || ((position == 1) && filename[0] == '.')) // filter '.' and '..'
+    filename.find_last_of ('.', std::string::npos);
+  if ((position == 0) || ((position == 1) && filename[0] == '.'))
     return 0;
-  filename.erase (0, position + 1);
-  if (!ACE_OS::strncmp (filename.c_str (),
+
+  // step2: retrieve and normalize file extension
+  std::string file_extension =
+    Common_String_Tools::tolower (Common_File_Tools::fileExtension (filename, false));
+
+  // step3: filter image types
+  if (!ACE_OS::strncmp (file_extension.c_str (),
                         ACE_TEXT_ALWAYS_CHAR ("jpg"),
                         ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR ("jpg"))))
     return 1;
-  else if (!ACE_OS::strncmp (filename.c_str (),
+  else if (!ACE_OS::strncmp (file_extension.c_str (),
                              ACE_TEXT_ALWAYS_CHAR ("png"),
                              ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR ("png"))))
     return 1;
@@ -120,8 +128,14 @@ do_print_usage (const std::string& programName_in)
   // enable verbatim boolean output
   std::cout.setf (std::ios::boolalpha);
 
-  std::string path_root =
-    Common_File_Tools::getWorkingDirectory ();
+  std::string configuration_path =
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                      true); // configuration-
+  std::string data_path =
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                      false); // data-
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -130,10 +144,7 @@ do_print_usage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
-  std::string image_file_path = path_root;
-  image_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  image_file_path +=
-      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+  std::string image_file_path = data_path;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [PATH]   : image path [")
             << image_file_path
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -142,10 +153,7 @@ do_print_usage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::string ui_definition_file_path = path_root;
-  ui_definition_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  ui_definition_file_path +=
-      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+  std::string ui_definition_file_path = configuration_path;
   ui_definition_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   ui_definition_file_path += ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_DEFINITION_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-g {[PATH]} : ui definition file [")
@@ -165,7 +173,7 @@ do_print_usage (const std::string& programName_in)
 bool
 do_process_arguments (int argc_in,
                       ACE_TCHAR** argv_in, // cannot be const...
-                      std::string& ImageFilePath_out,
+                      std::string& imageFilePath_out,
                       bool& fullscreen_out,
                       bool& logToFile_out,
                       bool& traceInformation_out,
@@ -173,21 +181,21 @@ do_process_arguments (int argc_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_process_arguments"));
 
-  std::string path_root =
-    Common_File_Tools::getWorkingDirectory ();
+  std::string configuration_path =
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                      true); // configuration-
+  std::string data_path =
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                      false); // data-
 
   // initialize results
-  ImageFilePath_out = path_root;
-  ImageFilePath_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  ImageFilePath_out +=
-      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+  imageFilePath_out = data_path;
   fullscreen_out = false;
   logToFile_out = false;
   traceInformation_out = false;
-  UIDefinitionFilePath_out = path_root;
-  UIDefinitionFilePath_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UIDefinitionFilePath_out +=
-      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+  UIDefinitionFilePath_out = configuration_path;
   UIDefinitionFilePath_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIDefinitionFilePath_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_DEFINITION_FILE);
 
@@ -207,7 +215,7 @@ do_process_arguments (int argc_in,
     {
       case 'd':
       {
-        ImageFilePath_out =
+        imageFilePath_out =
           ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
@@ -606,6 +614,7 @@ ACE_TMAIN (int argc_in,
 #else
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
+  Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (argv_in[0]));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_Visualization_Tools::initialize (STREAM_VIS_FRAMEWORK_DEFAULT);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -623,21 +632,22 @@ ACE_TMAIN (int argc_in,
   ACE_Time_Value user_time, system_time;
 
   // step1a set defaults
-  std::string path_root = Common_File_Tools::getWorkingDirectory ();
+  std::string configuration_path =
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                      true); // configuration-
+  std::string data_path =
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                      false); // data-
   bool fullscreen_b = false;
   bool log_to_file = false;
   std::string log_file_name;
   bool trace_information = false;
-  std::string ui_definition_file_path = path_root;
-  ui_definition_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  ui_definition_file_path +=
-      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+  std::string ui_definition_file_path = configuration_path;
   ui_definition_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   ui_definition_file_path += ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_DEFINITION_FILE);
-  std::string image_file_path = path_root;
-  image_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  image_file_path +=
-      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+  std::string image_file_path = data_path;
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
@@ -648,7 +658,7 @@ ACE_TMAIN (int argc_in,
                              trace_information
                              , ui_definition_file_path))
   {
-    do_print_usage (ACE::basename (argv_in[0]));
+    do_print_usage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
     goto clean;
   } // end IF
 
@@ -658,16 +668,16 @@ ACE_TMAIN (int argc_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid argument(s), aborting\n")));
-    do_print_usage (ACE::basename (argv_in[0]));
+    do_print_usage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
     goto clean;
   } // end IF
 
   // step1c: initialize logging and/or tracing
   if (log_to_file)
     log_file_name =
-    Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                      ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initialize (ACE::basename (argv_in[0]), // program name
+      Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                        ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
+  if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)), // program name
                                      log_file_name,              // log file name
                                      false,                      // log to syslog ?
                                      false,                      // trace messages ?

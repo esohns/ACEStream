@@ -1365,7 +1365,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                                      directshow_stream_configuration.captureFormat,
                                      directshow_stream_configuration.outputFormat,
                                      directshow_modulehandler_configuration.outputFormat,
-                                     directshow_modulehandler_configuration_3.window))
+                                     directshow_modulehandler_configuration_3.window.win32_hwnd))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
@@ -1669,8 +1669,8 @@ continue_:
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      DestroyWindow (directshow_modulehandler_configuration_3.window);
-      directshow_modulehandler_configuration_3.window = NULL;
+      DestroyWindow (directshow_modulehandler_configuration_3.window.win32_hwnd);
+      directshow_modulehandler_configuration_3.window.win32_hwnd = NULL;
 
       switch (mediaFramework_in)
       {

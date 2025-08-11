@@ -287,10 +287,9 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
         } // end ELSE
       } // end IF
 
-      ACE_ASSERT (inherited::configuration_->window);
+      ACE_ASSERT (inherited::configuration_->window.win32_hwnd);
       HWND window_h = NULL;
-      inherited2::getWindowType (inherited::configuration_->window,
-                                 window_h);
+      inherited2::getWindowType (inherited::configuration_->window.win32_hwnd, window_h);
       ACE_ASSERT (window_h);
       if (!initialize_Session (window_h,
                                inherited::configuration_->area,

@@ -312,7 +312,6 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
-   , window (NULL)
    , windowController (NULL)
    , windowController2 (NULL)
   {
@@ -342,11 +341,6 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
   Test_I_Target_DirectShow_StreamConfiguration_t*      streamConfiguration;
   Test_I_Target_DirectShow_ISessionNotify_t*           subscriber;        // event handler module
   Test_I_Target_DirectShow_Subscribers_t*              subscribers;       // event handler module
-#if defined (GTK_USE)
-  GdkWindow*                                           window;            // display module
-#else
-  HWND                                                 window;            // display module
-#endif // GTK_USE
   IVideoWindow*                                        windowController;  // display module
   IMFVideoDisplayControl*                              windowController2; // display module: EVR
 };
@@ -383,7 +377,6 @@ struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
-   , window (NULL)
    , windowController (NULL)
   {
     inbound = true;
@@ -416,7 +409,6 @@ struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
   Test_I_Target_MediaFoundation_StreamConfiguration_t*  streamConfiguration;
   Test_I_Target_MediaFoundation_ISessionNotify_t*       subscriber;                // event handler module
   Test_I_Target_MediaFoundation_Subscribers_t*          subscribers;               // event handler module
-  HWND                                                  window;                    // display module
   IMFVideoDisplayControl*                               windowController;          // display module
 };
 #else

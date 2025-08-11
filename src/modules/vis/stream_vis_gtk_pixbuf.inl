@@ -108,22 +108,30 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   } // end IF
 
   // sanity check(s)
-  ACE_ASSERT (configuration_in.window);
+#if GTK_CHECK_VERSION (4,0,0)
+  ACE_ASSERT (configuration_in.window.gdk_surface);
+#else
+  ACE_ASSERT (configuration_in.window.gdk_window);
+#endif // GTK_CHECK_VERSION (4,0,0)
 
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,22,0)
 #else
-  context_ = gdk_cairo_create (configuration_in.window);
+  context_ = gdk_cairo_create (configuration_in.window.gdk_window);
   ACE_ASSERT (context_);
 #endif // GTK_CHECK_VERSION (3,22,0)
 #endif // GTK_CHECK_VERSION (3,0,0)
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  sourceResolution_.cx = gdk_window_get_width (configuration_in.window);
-  sourceResolution_.cy = gdk_window_get_height (configuration_in.window);
+  sourceResolution_.cx =
+    gdk_window_get_width (configuration_in.window.gdk_window);
+  sourceResolution_.cy =
+    gdk_window_get_height (configuration_in.window.gdk_window);
 #else
-  sourceResolution_.width = gdk_window_get_width (configuration_in.window);
-  sourceResolution_.height = gdk_window_get_height (configuration_in.window);
+  sourceResolution_.width =
+    gdk_window_get_width (configuration_in.window.gdk_window);
+  sourceResolution_.height =
+    gdk_window_get_height (configuration_in.window.gdk_window);
 #endif // ACE_WIN32 || ACE_WIN64
 
   return inherited::initialize (configuration_in,
@@ -155,7 +163,11 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->window);
+#if GTK_CHECK_VERSION (4,0,0)
+  ACE_ASSERT (inherited::configuration_->window.gdk_surface);
+#else
+  ACE_ASSERT (inherited::configuration_->window.gdk_window);
+#endif // GTK_CHECK_VERSION (4,0,0)
   if (unlikely (inherited2::resizing_))
     return; // done
 
@@ -187,6 +199,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 #endif // GTK_CHECK_VERSION (3,22,0)
 #endif // GTK_CHECK_VERSION (3,0,0)
 
+  // *TODO*: support 32 bit RGBA as well
   GdkPixbuf* pixbuf_p =
     gdk_pixbuf_new_from_data (reinterpret_cast<guchar*> (message_inout->rd_ptr ()),
                               GDK_COLORSPACE_RGB,
@@ -222,8 +235,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 #if GTK_CHECK_VERSION (3,22,0)
   cairo_region_p = cairo_region_create ();
   ACE_ASSERT (cairo_region_p);
-  window_p =
-    gtk_widget_get_window (GTK_WIDGET (inherited::configuration_->window));
+  window_p = inherited::configuration_->window.gdk_window;
   ACE_ASSERT (window_p);
   drawing_context_p = gdk_window_begin_draw_frame (window_p, cairo_region_p);
   ACE_ASSERT (drawing_context_p);
@@ -233,7 +245,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   gdk_cairo_set_source_pixbuf (context_p, pixbuf_p, 0.0, 0.0);
   cairo_paint (context_p);
 #else
-  gdk_draw_pixbuf (GDK_DRAWABLE (inherited::configuration_->window),
+  gdk_draw_pixbuf (GDK_DRAWABLE (inherited::configuration_->window.gdk_window),
                    NULL,
                    pixbuf_p,
                    0, 0, 0, 0, -1, -1,
@@ -286,7 +298,11 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       // *TODO*: remove type inference
-      if (!inherited::configuration_->window)
+#if GTK_CHECK_VERSION (4,0,0)
+      if (!inherited::configuration_->window.gdk_surface)
+#else
+      if (!inherited::configuration_->window.gdk_window)
+#endif // GTK_CHECK_VERSION (4,0,0)
         goto continue_;
 
       gint width_i, height_i;
@@ -297,10 +313,12 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 #endif // GTK_CHECK_VERSION (3,6,0)
 
 #if GTK_CHECK_VERSION (3,0,0)
-      width_i = gdk_window_get_width (inherited::configuration_->window);
-      height_i = gdk_window_get_height (inherited::configuration_->window);
+      width_i =
+        gdk_window_get_width (inherited::configuration_->window.gdk_window);
+      height_i =
+        gdk_window_get_height (inherited::configuration_->window.gdk_window);
 #else
-      gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
+      gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window.gdk_window),
                              &width_i, &height_i);
 #endif // GTK_CHECK_VERSION (3,0,0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -328,7 +346,11 @@ continue_:
     {
       // sanity check(s)
       // *TODO*: remove type inferences
-      if (!inherited::configuration_->window)
+#if GTK_CHECK_VERSION (4,0,0)
+      if (!inherited::configuration_->window.gdk_surface)
+#else
+      if (!inherited::configuration_->window.gdk_window)
+#endif // GTK_CHECK_VERSION (4,0,0)
         break;
 
       gint width_i = 0, height_i = 0;
@@ -346,10 +368,10 @@ continue_:
 #endif  // GTK_CHECK_VERSION (3,0,0)
 
 #if GTK_CHECK_VERSION (3,0,0)
-      width_i = gdk_window_get_width (inherited::configuration_->window);
-      height_i = gdk_window_get_height (inherited::configuration_->window);
+      width_i = gdk_window_get_width (inherited::configuration_->window.gdk_window);
+      height_i = gdk_window_get_height (inherited::configuration_->window.gdk_window);
 #elif GTK_CHECK_VERSION (2,0,0)
-      gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
+      gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window.gdk_window),
                              &width_i, &height_i);
 #endif // GTK_CHECK_VERSION (3,0,0)
 
@@ -364,7 +386,8 @@ continue_:
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,22,0)
 #else
-      context_ = gdk_cairo_create (inherited::configuration_->window);
+      context_ =
+        gdk_cairo_create (inherited::configuration_->window.gdk_window);
       ACE_ASSERT (context_);
 #endif // GTK_CHECK_VERSION (3,22,0)
 #endif // GTK_CHECK_VERSION (3,0,0)

@@ -288,13 +288,11 @@ curses_main (struct Common_UI_Curses_State* state_in)
 
   // step3b: handle input
   while (true)
-  {
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_p->lock, false);
-
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_p->lock, false);
     // step3ba: done ?
     if (state_p->finished)
     {
-      result = OK;
+      result = 0;//OK;
       break; // done
     } // end IF
 
@@ -320,5 +318,5 @@ clean:
                                                         false); // N/A
   } // end IF
 
-  return (result == OK);
+  return (result == 0/*OK*/);
 }

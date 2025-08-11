@@ -97,6 +97,7 @@ extern "C"
 #include "common_gl_camera.h"
 #include "common_gl_shader.h"
 
+#include "common_ui_windowtype_converter.h"
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_gl_common.h"
@@ -361,9 +362,7 @@ struct Test_U_MicVisualize_ModuleHandlerConfiguration
    , shader ()
    , spectrumAnalyzer3DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_3DMODE)
 #endif // GTKGL_SUPPORT
-#if defined (GTK_SUPPORT)
-   , window (NULL)
-#endif // GTK_SUPPORT
+   , window ()
   {}
 
   unsigned int                                              bufferSize; // statistic analysis
@@ -385,9 +384,7 @@ struct Test_U_MicVisualize_ModuleHandlerConfiguration
   Common_GL_Shader                                          shader;
   enum Stream_Visualization_SpectrumAnalyzer_3DMode         spectrumAnalyzer3DMode;
 #endif /* GTKGL_SUPPORT */
-#if defined (GTK_SUPPORT)
-  GdkWindow*                                                window;
-#endif // GTK_SUPPORT
+  union Common_UI_Window                                    window;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //extern const char stream_name_string_[];

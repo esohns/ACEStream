@@ -63,7 +63,7 @@ Test_U_CameraScreen_Curses_Window::handleDataMessage (Stream_CameraScreen_Messag
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->window_2);
+  ACE_ASSERT (inherited::configuration_->window.curses_window);
 
   int result;
   uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
@@ -76,16 +76,16 @@ Test_U_CameraScreen_Curses_Window::handleDataMessage (Stream_CameraScreen_Messag
   ACE_OS::memset (&char_2, 0, sizeof (cchar_t));
 #endif // ACE_WIN32 || ACE_WIN64
 
-  result = wmove (inherited::configuration_->window_2,
+  result = wmove (inherited::configuration_->window.curses_window,
                   0, 0);
   if (unlikely (result == ERR))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to wmove(), continuing\n")));
   for (int y = 0;
-       y < getmaxy (inherited::configuration_->window_2);
+       y < getmaxy (inherited::configuration_->window.curses_window);
        ++y)
     for (int x = 0;
-         x < getmaxx (inherited::configuration_->window_2);
+         x < getmaxx (inherited::configuration_->window.curses_window);
          ++x)
     {
       r_f = *data_p / 255.0F;
@@ -106,7 +106,7 @@ Test_U_CameraScreen_Curses_Window::handleDataMessage (Stream_CameraScreen_Messag
       char_i |=
         (Common_UI_Curses_Tools::is_bold (fg)/* || Common_UI_Curses_Tools::is_bold (bg)*/ ? WA_BOLD : WA_NORMAL);
       char_i |= COLOR_PAIR (Common_UI_Curses_Tools::colornum (fg, bg));
-      result = wadd_wch (inherited::configuration_->window_2,
+      result = wadd_wch (inherited::configuration_->window.curses_window,
                          &char_i);
 #else
       char_2.attr =
@@ -117,7 +117,7 @@ Test_U_CameraScreen_Curses_Window::handleDataMessage (Stream_CameraScreen_Messag
       result =
         setcchar (&char_2, char_a, char_2.attr, Common_UI_Curses_Tools::colornum (fg, bg), NULL);
       ACE_ASSERT (result == OK);
-      result = wadd_wch (inherited::configuration_->window_2,
+      result = wadd_wch (inherited::configuration_->window.curses_window,
                          &char_2);
 #endif // ACE_WIN32 || ACE_WIN64
       //if (unlikely (result == ERR))
@@ -127,7 +127,7 @@ Test_U_CameraScreen_Curses_Window::handleDataMessage (Stream_CameraScreen_Messag
       data_p += 3;
     } // end FOR
 
-  result = wrefresh (inherited::configuration_->window_2);
+  result = wrefresh (inherited::configuration_->window.curses_window);
   if (unlikely (result == ERR))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to wrefresh(), continuing\n")));

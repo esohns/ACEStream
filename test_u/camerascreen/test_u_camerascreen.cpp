@@ -1406,7 +1406,7 @@ do_work (int argc_in,
                                      directshow_stream_configuration.captureFormat,
                                      directshow_stream_configuration.outputFormat,
                                      directshow_modulehandler_configuration.outputFormat,
-                                     directshow_modulehandler_configuration_3.window))
+                                     directshow_modulehandler_configuration_3.window.win32_hwnd))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
@@ -1562,8 +1562,8 @@ do_work (int argc_in,
     case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      DestroyWindow (directshow_modulehandler_configuration_3.window);
-      directshow_modulehandler_configuration_3.window = NULL;
+      DestroyWindow (directshow_modulehandler_configuration_3.window.win32_hwnd);
+      directshow_modulehandler_configuration_3.window.win32_hwnd = NULL;
 
       switch (mediaFramework_in)
       {
@@ -1648,8 +1648,8 @@ do_work (int argc_in,
       {
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         {
-          directshow_modulehandler_configuration_3.window_2 = state_r.std_window;
-          ACE_ASSERT (directshow_modulehandler_configuration_3.window_2);
+          directshow_modulehandler_configuration_3.window.curses_window = state_r.std_window;
+          ACE_ASSERT (directshow_modulehandler_configuration_3.window.curses_window);
           resolution_s.cx = getmaxx (state_r.std_window);
           resolution_s.cy = getmaxy (state_r.std_window);
           Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
@@ -1661,8 +1661,8 @@ do_work (int argc_in,
         }
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
         {
-          mediafoundation_modulehandler_configuration.window_2 = state_r.std_window;
-          ACE_ASSERT (mediafoundation_modulehandler_configuration.window_2);
+          mediafoundation_modulehandler_configuration.window.curses_window = state_r.std_window;
+          ACE_ASSERT (mediafoundation_modulehandler_configuration.window.curses_window);
           Stream_MediaFramework_MediaFoundation_Tools::setResolution (resolution_s,
                                                                       mediafoundation_modulehandler_configuration.outputFormat);
 
@@ -1679,8 +1679,8 @@ do_work (int argc_in,
         }
       } // end SWITCH
 #else
-      modulehandler_configuration.window_2 = state_r.std_window;
-      ACE_ASSERT (modulehandler_configuration.window_2);
+      modulehandler_configuration.window.curses_window = state_r.std_window;
+      ACE_ASSERT (modulehandler_configuration.window.curses_window);
       modulehandler_configuration.outputFormat.format.width =
         getmaxx (state_r.std_window);
       modulehandler_configuration.outputFormat.format.height =
@@ -1697,8 +1697,8 @@ do_work (int argc_in,
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      DestroyWindow (directshow_modulehandler_configuration_3.window);
-      directshow_modulehandler_configuration_3.window = NULL;
+      DestroyWindow (directshow_modulehandler_configuration_3.window.win32_hwnd);
+      directshow_modulehandler_configuration_3.window.win32_hwnd = NULL;
 
       switch (mediaFramework_in)
       {

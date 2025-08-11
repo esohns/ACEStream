@@ -3038,11 +3038,11 @@ idle_initialize_UI_cb (gpointer userData_in)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT (!(*directshow_stream_iterator_2).second.second->window);
+    { ACE_ASSERT (!(*directshow_stream_iterator_2).second.second->window.gdk_window);
       //ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow);
       //ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.focusWindow);
       ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
-      (*directshow_stream_iterator_2).second.second->window = window_p;
+      (*directshow_stream_iterator_2).second.second->window.gdk_window = window_p;
       directshow_cb_data_p->configuration->direct3DConfiguration.focusWindow =
         NULL;
       directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
@@ -3067,9 +3067,9 @@ idle_initialize_UI_cb (gpointer userData_in)
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT (!(*mediafoundation_stream_iterator_2).second.second->window);
+    { ACE_ASSERT (!(*mediafoundation_stream_iterator_2).second.second->window.gdk_window);
       ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
-      (*mediafoundation_stream_iterator_2).second.second->window = window_p;
+      (*mediafoundation_stream_iterator_2).second.second->window.gdk_window = window_p;
         //gdk_win32_window_get_impl_hwnd (window_p);
 
       //// *TODO*: this seems to be a one-off... check carefully
@@ -3153,9 +3153,9 @@ idle_initialize_UI_cb (gpointer userData_in)
 //  (*iterator_2).second.second->window = GDK_WINDOW_XID (window_p);
 //  (*iterator_3).second.second->window = GDK_WINDOW_XID (window_p);
 //  (*iterator_2).second.second->window = window_p;
-  (*iterator_3).second.second->window = window_p;
+  (*iterator_3).second.second->window.gdk_window = window_p;
 //  ACE_ASSERT ((*iterator_2).second.second->window);
-  ACE_ASSERT ((*iterator_3).second.second->window);
+  ACE_ASSERT ((*iterator_3).second.second->window.gdk_window);
 
   (*iterator_4).second.second->outputFormat.format.height = allocation.height;
   (*iterator_4).second.second->outputFormat.format.width = allocation.width;

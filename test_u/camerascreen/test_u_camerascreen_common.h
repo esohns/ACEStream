@@ -62,6 +62,7 @@ extern "C"
 #include "common_isubscribe.h"
 #include "common_tools.h"
 
+#include "common_ui_windowtype_converter.h"
 #if defined (CURSES_SUPPORT)
 #include "common_ui_curses_common.h"
 #endif // CURSES_SUPPORT
@@ -377,14 +378,7 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , display ()
    , fullScreen (false)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , window (NULL)
-#else
-   , window (0)
-#endif // ACE_WIN32 || ACE_WIN64
-#if defined (CURSES_SUPPORT)
-   , window_2 (NULL)
-#endif // CURSES_SUPPORT
+   , window ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -399,14 +393,7 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
   struct Common_UI_Display        display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
   bool                            fullScreen;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                            window;
-#else
-  Window                          window;
-#endif // ACE_WIN32 || ACE_WIN64
-#if defined (CURSES_SUPPORT)
-  WINDOW*                         window_2;
-#endif // CURSES_SUPPORT
+  union Common_UI_Window          window;
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

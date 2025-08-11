@@ -30,6 +30,8 @@
 #include "common_isubscribe.h"
 #include "common_tools.h"
 
+#include "common_ui_windowtype_converter.h"
+
 #include "stream_common.h"
 #include "stream_control_message.h"
 #include "stream_inotify.h"
@@ -323,11 +325,7 @@ struct Test_U_CaptureWindow_ModuleHandlerConfiguration
 #if defined (FFMPEG_SUPPORT)
    , codecConfiguration (NULL)
 #endif // FFMPEG_SUPPORT
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , window (NULL)
-#else
-   , window (0)
-#endif // ACE_WIN32 || ACE_WIN64
+   , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
@@ -335,11 +333,7 @@ struct Test_U_CaptureWindow_ModuleHandlerConfiguration
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
 #endif // FFMPEG_SUPPORT
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                            window;
-#else
-  unsigned long                   window;
-#endif // ACE_WIN32 || ACE_WIN64
+  union Common_UI_Window                                  window;
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

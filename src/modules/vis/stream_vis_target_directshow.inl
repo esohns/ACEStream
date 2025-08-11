@@ -1062,8 +1062,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   // sanity check(s)
   //ACE_ASSERT (configuration_in.window);
 
-  inherited::getWindowType (configuration_in.window,
-                            window_);
+  inherited::getWindowType (configuration_in.window.win32_hwnd, window_);
 
   if (COM_initialized)
     Common_Tools::finalizeCOM ();

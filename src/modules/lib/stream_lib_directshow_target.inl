@@ -322,10 +322,8 @@ Stream_MediaFramework_DirectShow_Target_T<TaskType,
 
         // sanity check(s)
         if (InlineIsEqualGUID (media_type_s.majortype, MEDIATYPE_Video))
-        {
-          ACE_ASSERT (inherited::configuration_->window);
-          inherited3::getWindowType (inherited::configuration_->window,
-                                     window_h);
+        { ACE_ASSERT (inherited::configuration_->window.win32_hwnd);
+          inherited3::getWindowType (inherited::configuration_->window.win32_hwnd, window_h);
           ACE_ASSERT (window_h);
         } // end IF
         // *TODO*: remove type inferences
@@ -371,12 +369,10 @@ Stream_MediaFramework_DirectShow_Target_T<TaskType,
       ACE_ASSERT (IMediaEventEx_);
 
       if (InlineIsEqualGUID (media_type_s.majortype, MEDIATYPE_Video))
-      {
-        // set the window handle used to process graph events
-        ACE_ASSERT (inherited::configuration_->window);
+      { ACE_ASSERT (inherited::configuration_->window.win32_hwnd);
         window_h = NULL;
-        inherited3::getWindowType (inherited::configuration_->window,
-                                   window_h);
+        inherited3::getWindowType (inherited::configuration_->window.win32_hwnd, window_h);
+        ACE_ASSERT (window_h);
         result_2 =
           IMediaEventEx_->SetNotifyWindow (reinterpret_cast<OAHWND> (window_h),
                                            STREAM_LIB_DIRECTSHOW_WM_GRAPHNOTIFY_EVENT, 0);

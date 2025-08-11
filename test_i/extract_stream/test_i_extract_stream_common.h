@@ -25,16 +25,6 @@
 #include <map>
 #include <string>
 
-//#if defined (FFMPEG_SUPPORT)
-//#ifdef __cplusplus
-//extern "C"
-//{
-//#include "libavcodec/avcodec.h"
-//#include "libavutil/pixfmt.h"
-//}
-//#endif // __cplusplus
-//#endif // FFMPEG_SUPPORT
-
 #if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
 #endif // GTK_SUPPORT
@@ -52,6 +42,7 @@
 #include "common_tools.h"
 
 #include "common_ui_common.h"
+#include "common_ui_windowtype_converter.h"
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_common.h"
@@ -166,9 +157,7 @@ struct Test_I_ExtractStream_ModuleHandlerConfiguration
 #endif // FFMPEG_SUPPORT
    , subscriber (NULL)
    , targetFileName ()
-#if defined (GTK_USE)
-   , window (NULL)
-#endif // GTK_USE
+   , window ()
   {}
 
 #if defined (FFMPEG_SUPPORT)
@@ -184,9 +173,7 @@ struct Test_I_ExtractStream_ModuleHandlerConfiguration
 #endif // FFMPEG_SUPPORT
   Test_I_ISessionNotify_t*                                subscriber;
   std::string                                             targetFileName;
-#if defined (GTK_USE)
-  GdkWindow*                                              window;
-#endif // GTK_USE
+  union Common_UI_Window                                  window;
 };
 
 //extern const char stream_name_string_[];

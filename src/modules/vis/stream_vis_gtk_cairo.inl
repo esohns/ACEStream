@@ -160,7 +160,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   } // end IF
 
   // sanity check(s)
-  if (!configuration_in.window)
+#if GTK_CHECK_VERSION (4,0,0)
+  if (!configuration_in.window.gdk_surface)
+#else
+  if (!configuration_in.window.gdk_window)
+#endif // GTK_CHECK_VERSION (4,0,0)
     return inherited::initialize (configuration_in,
                                   allocator_in); // nothing to do
 
@@ -519,7 +523,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
       // *TODO*: remove type inferences
-      if (!inherited::configuration_->window)
+#if GTK_CHECK_VERSION (4,0,0)
+      if (!inherited::configuration_->window.gdk_surface)
+#else
+      if (!inherited::configuration_->window.gdk_window)
+#endif // GTK_CHECK_VERSION (4,0,0)
         break; // do it later, using setP()
 
       setP (inherited::configuration_->window);

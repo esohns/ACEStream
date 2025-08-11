@@ -35,6 +35,8 @@
 #include "gtk/gtk.h"
 #endif // GTK_SUPPORT
 
+#include "common_ui_windowtype_converter.h"
+
 #include "stream_common.h"
 #include "stream_configuration.h"
 #include "stream_messagequeue.h"
@@ -313,9 +315,7 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
    , spectrumAnalyzerConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
-#if defined (GTK_SUPPORT)
-   , window (NULL)
-#endif // GTK_SUPPORT
+   , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
@@ -343,9 +343,7 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
   Test_I_DirectShow_ISessionNotify_t*               subscriber;
   Test_I_DirectShow_Subscribers_t*                  subscribers;
-#if defined (GTK_SUPPORT)
-  GdkWindow*                                        window;
-#endif // GTK_SUPPORT
+  union Common_UI_Window                            window;
 };
 
 struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
@@ -376,9 +374,7 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
    , spectrumAnalyzerConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
-#if defined (GTK_SUPPORT)
-   , window (NULL)
-#endif // GTK_SUPPORT
+   , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
@@ -406,9 +402,7 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
   Test_I_MediaFoundation_ISessionNotify_t*          subscriber;
   Test_I_MediaFoundation_Subscribers_t*             subscribers;
-#if defined (GTK_SUPPORT)
-  GdkWindow*                                        window;
-#endif // GTK_SUPPORT
+  union Common_UI_Window                            window;
 };
 #else
 struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
@@ -438,9 +432,7 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
    , spectrumAnalyzerConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
-#if defined (GTK_SUPPORT)
-   , window (NULL)
-#endif // GTK_SUPPORT
+   , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
@@ -467,9 +459,7 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
   Test_I_ALSA_ISessionNotify_t*                     subscriber;
   Test_I_ALSA_Subscribers_t*                        subscribers;
-#if defined (GTK_SUPPORT)
-  GdkWindow*                                        window;
-#endif // GTK_SUPPORT
+  union Common_UI_Window                            window;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

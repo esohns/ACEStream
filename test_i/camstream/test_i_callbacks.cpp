@@ -2764,9 +2764,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      ACE_ASSERT (!(*directshow_modulehandler_iterator).second.second->window);
-      (*directshow_modulehandler_iterator).second.second->window = window_p;
+    { ACE_ASSERT (!(*directshow_modulehandler_iterator).second.second->window.gdk_window);
+      (*directshow_modulehandler_iterator).second.second->window.gdk_window = window_p;
       //  gdk_win32_window_get_impl_hwnd (window_p);
       ////static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
       //ACE_ASSERT (IsWindow ((*directshow_modulehandler_iterator).second.second->window));
@@ -2777,13 +2776,11 @@ idle_initialize_source_UI_cb (gpointer userData_in)
       //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
       //directshow_ui_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
       //  gdk_win32_window_get_impl_hwnd (window_p);
-
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second->window);
-      (*mediafoundation_modulehandler_iterator).second.second->window = window_p;
+    { ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second->window.gdk_window);
+      (*mediafoundation_modulehandler_iterator).second.second->window.gdk_window = window_p;
       //  gdk_win32_window_get_impl_hwnd (window_p);
       ////static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
       //ACE_ASSERT (IsWindow ((*mediafoundation_modulehandler_iterator).second.second->window));
@@ -2794,7 +2791,6 @@ idle_initialize_source_UI_cb (gpointer userData_in)
       //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
       //mediafoundation_ui_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
       //  gdk_win32_window_get_impl_hwnd (window_p);
-
       break;
     }
     default:
@@ -2812,8 +2808,9 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T iterator_4 =
       (*iterator_3).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_4 != (*iterator_3).second.end ());
-  ACE_ASSERT (!(*iterator_4).second.second->window);
-  (*iterator_4).second.second->window = window_p;
+
+  ACE_ASSERT (!(*iterator_4).second.second->window.gdk_window);
+  (*iterator_4).second.second->window.gdk_window = window_p;
 #endif
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));
@@ -3859,18 +3856,20 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT (!(*directshow_modulehandler_iterator).second.second->window);
+    { ACE_ASSERT (!(*directshow_modulehandler_iterator).second.second->window.gdk_window);
       // *NOTE*: the DirectShow video renderers do not draw onto
       //         GtkDrawingArea(s) correctly (on Win32, only the toplevel window
       //         maps to HWND directly)
-      (*directshow_modulehandler_iterator).second.second->window = window_p;
+      (*directshow_modulehandler_iterator).second.second->window.gdk_window =
+        window_p;
         //gdk_win32_window_get_impl_hwnd (window_p);
       //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second->window);
-      (*mediafoundation_modulehandler_iterator).second.second->window = NULL;
+    { ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second->window.gdk_window);
+      (*mediafoundation_modulehandler_iterator).second.second->window.gdk_window =
+        window_p;
         //gdk_win32_window_get_impl_hwnd (window_p);
       //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
       break;
@@ -3884,8 +3883,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  ACE_ASSERT (!(*iterator_2).second.second->window);
-  (*iterator_2).second.second->window = window_p;
+  ACE_ASSERT (!(*iterator_2).second.second->window.gdk_window);
+  (*iterator_2).second.second->window.gdk_window = window_p;
 #endif
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));

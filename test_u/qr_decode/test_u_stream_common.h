@@ -29,6 +29,8 @@
 
 #include "common_time_common.h"
 
+#include "common_ui_windowtype_converter.h"
+
 #include "stream_base.h"
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -195,9 +197,7 @@ struct QRDecode_ModuleHandlerConfiguration
    , pushStatisticMessages (true)
    , subscriber (NULL)
    , subscribers (NULL)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , window (NULL)
-#endif // ACE_WIN32 || ACE_WIN64
+   , window ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_OS::memset (&outputFormat, 0, sizeof (struct _AMMediaType));
@@ -220,9 +220,7 @@ struct QRDecode_ModuleHandlerConfiguration
   bool                                       pushStatisticMessages;
   Test_U_Notification_t*                     subscriber;
   Test_U_Subscribers_t*                      subscribers;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                                       window;
-#endif // ACE_WIN32 || ACE_WIN64
+  union Common_UI_Window                     window;
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

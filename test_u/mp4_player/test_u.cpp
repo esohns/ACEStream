@@ -988,7 +988,7 @@ do_work (int argc_in,
       if (!do_initialize_directshow (directshow_modulehandler_configuration.builder,
                                      directshow_modulehandler_configuration_audio.outputFormat,
                                      directshow_modulehandler_configuration.outputFormat,
-                                     directshow_modulehandler_configuration_3.window))
+                                     directshow_modulehandler_configuration_3.window.win32_hwnd))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));

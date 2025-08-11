@@ -162,7 +162,7 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
   } // end IF
 
   // *TODO*: remove type inferences
-  inherited3::getWindowType (configuration_in.window, window_);
+  inherited3::getWindowType (configuration_in.window.win32_hwnd, window_);
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

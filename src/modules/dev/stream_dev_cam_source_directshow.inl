@@ -424,9 +424,8 @@ error_2:
       ACE_ASSERT (!IAMDroppedFrames_);
 
       // *TODO*: remove type inferences
-      ACE_ASSERT (inherited::configuration_->window);
-      inherited3::getWindowType (inherited::configuration_->window,
-                                 window_h);
+      ACE_ASSERT (inherited::configuration_->window.win32_hwnd);
+      inherited3::getWindowType (inherited::configuration_->window.win32_hwnd, window_h);
       ACE_ASSERT (window_h);
       if (!initialize_DirectShow (inherited::configuration_->deviceIdentifier,
                                   window_h,

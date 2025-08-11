@@ -21,16 +21,6 @@
 #ifndef TEST_U_IMAGESCREEN_COMMON_H
 #define TEST_U_IMAGESCREEN_COMMON_H
 
-//#if defined (FFMPEG_SUPPORT)
-//#ifdef __cplusplus
-//extern "C"
-//{
-//#include "libavcodec/avcodec.h"
-//#include "libavutil/pixfmt.h"
-//}
-//#endif // __cplusplus
-//#endif // FFMPEG_SUPPORT
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "X11/Xlib.h"
@@ -45,6 +35,8 @@
 #endif // WXWIDGETS_SUPPORT
 
 #include "common_isubscribe.h"
+
+#include "common_ui_windowtype_converter.h"
 
 #if defined (WXWIDGETS_SUPPORT)
 #include "common_ui_wxwidgets_application.h"
@@ -134,14 +126,7 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
    , outputFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
-#if defined (GTK_USE)
-//   , window (NULL)
-#endif // GTK_USE
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , window (NULL)
-#else
-   , window (0)
-#endif // ACE_WIN32 || ACE_WIN64
+   , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
@@ -172,14 +157,7 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
   Stream_ImageScreen_ISessionNotify_t*          subscriber;
   Stream_ImageScreen_Subscribers_t*             subscribers;
-#if defined (GTK_USE)
-//  GdkWindow*                                    window;
-#endif // GTK_USE
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                                          window;
-#else
-  Window                                        window;
-#endif // ACE_WIN32 || ACE_WIN64
+  union Common_UI_Window                        window;
 };
 //extern const char stream_name_string_[];
 struct Stream_ImageScreen_StreamConfiguration;

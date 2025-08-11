@@ -194,7 +194,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     DeleteDC (captureContext_); captureContext_ = NULL;
     DeleteObject (captureBitmap_); captureBitmap_ = NULL;
-    ReleaseDC (inherited::configuration_->window, sourceContext_); sourceContext_ = NULL;
+    ReleaseDC (inherited::configuration_->window.win32_hwnd, sourceContext_); sourceContext_ = NULL;
 #else
 #if defined (GTK_SUPPORT)
     g_object_unref (window_); window_ = NULL;
@@ -202,7 +202,13 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 
-  if (unlikely (!configuration_in.window))
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (unlikely (!configuration_in.window.win32_hwnd))
+#else
+#if defined (GTK_SUPPORT)
+  if (unlikely (!configuration_in.window.gdk_window))
+#endif // GTK_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no window provided, aborting\n"),
@@ -344,12 +350,12 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
 
       ACE_ASSERT (inherited::configuration_->allocatorConfiguration->defaultBufferSize >= video_info_header_p->bmiHeader.biSizeImage);
 
-      ACE_ASSERT (inherited::configuration_->window);
+      ACE_ASSERT (inherited::configuration_->window.win32_hwnd);
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: window handle: 0x%@\n"),
                   inherited::mod_->name (),
-                  inherited::configuration_->window));
-      sourceContext_ = GetDC (inherited::configuration_->window);
+                  inherited::configuration_->window.win32_hwnd));
+      sourceContext_ = GetDC (inherited::configuration_->window.win32_hwnd);
       ACE_ASSERT (sourceContext_);
       captureContext_ = CreateCompatibleDC (sourceContext_);
       ACE_ASSERT (captureContext_);
