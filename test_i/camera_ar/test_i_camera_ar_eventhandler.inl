@@ -23,8 +23,8 @@
 
 #include "stream_macros.h"
 
-#include "test_i_camera_ar_common.h"
-#include "test_i_camera_ar_defines.h"
+// #include "test_i_camera_ar_common.h"
+// #include "test_i_camera_ar_defines.h"
 
 template <typename NotificationType,
           typename DataMessageType,

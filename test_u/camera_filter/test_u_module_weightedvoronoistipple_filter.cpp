@@ -19,10 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_u_module_weightedvoronoistipple_filter.h"
-
 #define JC_VORONOI_IMPLEMENTATION
-#include "jc_voronoi.h"
+#undef OK
+#include "test_u_module_weightedvoronoistipple_filter.h"
 
 #include "ace/Log_Msg.h"
 

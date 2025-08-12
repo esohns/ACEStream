@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#define OLC_PGE_APPLICATION
 #include "test_i_camera_ar_module_pge.h"
 
 #include "test_i_camera_ar_defines.h"

@@ -37,9 +37,9 @@
 
 #include "stream_lib_mediatype_converter.h"
 
-#include "test_u_camera_filter_common.h"
 #include "test_u_message.h"
 #include "test_u_session_message.h"
+#include "test_u_stream_common.h"
 
 //////////////////////////////////////////
 

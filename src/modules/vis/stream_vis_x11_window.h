@@ -63,7 +63,7 @@ class Stream_Module_Vis_X11_Window_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
- , public Common_UI_WindowTypeConverter_T<void>
+ , public Common_UI_WindowTypeConverter_T<Window>
  , public Common_UI_IFullscreen
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -76,7 +76,7 @@ class Stream_Module_Vis_X11_Window_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
-  typedef Common_UI_WindowTypeConverter_T<void> inherited3;
+  typedef Common_UI_WindowTypeConverter_T<Window> inherited3;
 
  public:
   Stream_Module_Vis_X11_Window_T (typename inherited::ISTREAM_T*); // stream handle

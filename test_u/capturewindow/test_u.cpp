@@ -29,6 +29,7 @@
 #include "uuids.h"
 #endif // UUIDS_H
 #else
+#include "X11/X.h"
 #include "X11/Xlib.h"
 
 #if defined (FFMPEG_SUPPORT)
@@ -532,13 +533,13 @@ do_initialize (Window windowHandle_in,
   Window window;
   int x, y;
   unsigned int width, height, border_width, depth;
-  Status result = XGetGeometry (display_p,
-                                windowHandle_in,
-                                &window,
-                                &x, &y,
-                                &width, &height,
-                                &border_width,
-                                &depth);
+  int result = XGetGeometry (display_p,
+                             windowHandle_in,
+                             &window,
+                             &x, &y,
+                             &width, &height,
+                             &border_width,
+                             &depth);
   if (unlikely (result == 0))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -808,7 +809,8 @@ do_work (
 #endif // FFMPEG_SUPPORT
   modulehandler_configuration.fileFormat = ACE_TEXT_ALWAYS_CHAR ("mp4");
   modulehandler_configuration.subscriber = &ui_event_handler;
-  modulehandler_configuration.window = windowHandle_in;
+  modulehandler_configuration.window.x11_window = windowHandle_in;
+  modulehandler_configuration.window.type = Common_UI_Window::TYPE_X11;
 
   struct Test_U_CaptureWindow_StreamConfiguration stream_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1047,7 +1049,9 @@ do_work (
       // modulehandler_configuration_3.outputFormat.resolution.height = 480;
 
       modulehandler_configuration_4 = modulehandler_configuration;
-      modulehandler_configuration_4.window = 0;
+      modulehandler_configuration_4.window.x11_window = 0;
+      modulehandler_configuration_4.window.type =
+        Common_UI_Window::TYPE_INVALID;
       break;
     }
     default:

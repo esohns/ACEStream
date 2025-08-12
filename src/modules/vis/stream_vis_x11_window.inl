@@ -416,7 +416,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 
   //  bool release_lock = false;
   bool refresh_b = true;
-  Status result_2 = -1;
+  int result_2 = -1;
   XImage* image_p = NULL;
 
   // XWindowAttributes attributes_s = Common_UI_Tools::get (*display_,
@@ -627,7 +627,7 @@ error:
                       ACE_TEXT ("%s: failed to XFreePixmap(%@,%u): \"%m\", aborting\n"),
                       inherited::mod_->name (),
                       display_, pixmap_));
-        pixmap_ = None;
+        pixmap_ = 0;
       } // end IF
       if (closeWindow_)
       { ACE_ASSERT (display_ && window_);
@@ -638,7 +638,7 @@ error:
                       ACE_TEXT ("%s: failed to XDestroyWindow(%@,%u): \"%m\", continuing\n"),
                       inherited::mod_->name (),
                       display_, window_));
-        window_ = None;
+        window_ = 0;
         closeWindow_ = false;
       } // end IF
       if (closeDisplay_)

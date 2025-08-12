@@ -93,6 +93,7 @@
 #include "test_i_defines.h"
 
 #include "test_i_camera_msa_common.h"
+#include "test_i_camera_msa_configuration.h"
 #include "test_i_camera_msa_defines.h"
 #include "test_i_eventhandler.h"
 #include "test_i_stream.h"

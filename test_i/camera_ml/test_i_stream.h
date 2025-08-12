@@ -42,7 +42,7 @@
 #include "stream_base.h"
 #include "stream_common.h"
 
-#include "test_i_camera_ml_common.h"
+#include "test_i_camera_ml_stream_common.h"
 #include "test_i_common_modules.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"

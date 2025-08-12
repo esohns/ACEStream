@@ -24,8 +24,22 @@
 #if defined (GLEW_SUPPORT)
 #include "GL/glew.h"
 #endif // GLEW_SUPPORT
-#undef OK
+
 #include "olcPixelGameEngine.h"
+// *IMPORTANT NOTE*: the olc PixelGameEngine includes X11 headers and puts these
+//                   into a dedicated namespace (Nice !); since the X11 headers
+//                   have already been included, circumvent the double header
+//                   inclusion guard
+#if defined (X_H)
+#undef X_H
+#undef _XTYPEDEF_ATOM
+#undef _XTYPEDEF_FONT
+#undef _XTYPEDEF_XID
+#endif // X_H
+#if defined (_X11_XLIB_H_)
+#undef _X11_XLIB_H_
+#endif // _X11_XLIB_H_
+
 #include "jc_voronoi.h"
 
 #include "ace/Basic_Types.h"
@@ -39,9 +53,9 @@
 
 #include "stream_lib_mediatype_converter.h"
 
-#include "test_u_camera_filter_common.h"
 #include "test_u_message.h"
 #include "test_u_session_message.h"
+#include "test_u_stream_common.h"
 
 //////////////////////////////////////////
 

@@ -485,7 +485,6 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
    , streamConfiguration (NULL)
    , subscriber (NULL)
 //   , subscribers (NULL)
-   , window (NULL)
   {
     ACE_OS::memset (&area, 0, sizeof (struct v4l2_rect));
   }
@@ -505,15 +504,6 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
   // *TODO*: remove this ASAP
   Test_I_Source_V4L_StreamConfiguration_t*           streamConfiguration;
   Test_I_Source_V4L_ISessionNotify_t*                subscriber;
-#if defined (GTK_USE)
-  GdkWindow*                                         window;
-#elif defined (WXWIDGETS_USE)
-  wxWindow*                                          window;
-#elif defined (QT_USE)
-  XID                                                window;
-#else
-  void*                                              window;
-#endif // GTK_USE || WXWIDGETS_USE || QT_USE
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

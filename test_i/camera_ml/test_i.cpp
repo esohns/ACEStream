@@ -88,9 +88,10 @@
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
+#include "test_i_camera_ml_configuration.h"
 #include "test_i_camera_ml_defines.h"
+#include "test_i_camera_ml_stream_common.h"
 #include "test_i_eventhandler.h"
-#define OLC_PGE_APPLICATION // *TODO*: remove ASAP
 #include "test_i_stream.h"
 
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CameraMLStream");

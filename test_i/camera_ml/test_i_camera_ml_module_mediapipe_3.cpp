@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#define OLC_PGE_APPLICATION
 #include "test_i_camera_ml_module_mediapipe_3.h"
 
 #include "test_i_camera_ml_defines.h"

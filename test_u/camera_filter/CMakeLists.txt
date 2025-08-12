@@ -106,6 +106,7 @@ set (${EXECUTABLE}_EXE_SRCS
      stdafx.h
      test_u.cpp
      test_u_camera_filter_common.h
+     test_u_camera_filter_configuration.h
      test_u_camera_filter_defines.h
      test_u_common_modules.h
      test_u_eventhandler.cpp
@@ -122,11 +123,13 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_signalhandler.cpp
      test_u_signalhandler.h
      test_u_stream.cpp
-     test_u_stream.h)
+     test_u_stream.h
+     test_u_stream_common.h)
 
 if (OLC_PGE_SUPPORT)
  set (${EXECUTABLE}_EXE_SRCS
       ${${EXECUTABLE}_EXE_SRCS}
+      test_u_olc_pge.cpp
       test_u_module_marchingsquares_filter.cpp
       test_u_module_marchingsquares_filter.h)
 endif (OLC_PGE_SUPPORT)

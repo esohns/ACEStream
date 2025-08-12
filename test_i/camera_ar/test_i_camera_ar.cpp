@@ -86,6 +86,7 @@
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
+#include "test_i_camera_ar_configuration.h"
 #include "test_i_camera_ar_defines.h"
 #include "test_i_camera_ar_eventhandler.h"
 #include "test_i_camera_ar_stream.h"

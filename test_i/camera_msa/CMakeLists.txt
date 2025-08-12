@@ -73,11 +73,11 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 set (EXECUTABLE camera_msa)
 set (${EXECUTABLE}_EXE_SRCS
      stdafx.h
-     ../test_i_common.h
-     ../test_i_defines.h
      test_i.cpp
      test_i_camera_msa_common.h
+     test_i_camera_msa_configuration.h
      test_i_camera_msa_defines.h
+     test_i_camera_msa_stream_common.h
      test_i_common_modules.h
      test_i_eventhandler.cpp
      test_i_eventhandler.h
@@ -97,7 +97,8 @@ if (OLC_PGE_SUPPORT)
       ${${EXECUTABLE}_EXE_SRCS}
       test_i_module_pge.cpp
       test_i_module_pge.h
-      test_i_module_pge.inl)
+      test_i_module_pge.inl
+      test_i_olc_pge.cpp)
 endif (OLC_PGE_SUPPORT)
 if (GTK_SUPPORT)
  set (${EXECUTABLE}_EXE_SRCS

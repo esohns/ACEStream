@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#define OLC_PGE_APPLICATION
+#undef OK
 #include "test_u_module_marchingsquares_filter.h"
 
 #if defined (GLM_SUPPORT)

@@ -1818,12 +1818,21 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
         static_cast<__u32> (area_s.GetWidth ());
     (*stream_iterator).second.second->area.height =
         static_cast<__u32> (area_s.GetHeight ());
-//    GtkWidget* widget_p = panel_video->GetHandle ();
-//    ACE_ASSERT (widget_p);
-//    GdkWindow* window_p = gtk_widget_get_window (widget_p);
-//    ACE_ASSERT (window_p);
-//    (*stream_iterator).second.second->window = GDK_WINDOW_XID (window_p);
-//    ACE_ASSERT ((*stream_iterator).second.second->window);
+    WXWidget widget_p = panel_video->GetHandle ();
+    ACE_ASSERT (widget_p);
+    GdkWindow* window_p = gtk_widget_get_window (widget_p);
+    ACE_ASSERT (window_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    (*stream_iterator).second.second->window.type = Common_UI_Window::TYPE_WIN32;
+    (*stream_iterator).second.second->window.win32_hwnd =
+      GDK_WINDOW_HWND (window_p);
+    ACE_ASSERT ((*stream_iterator).second.second->window.win32_hwnd);
+#else
+    (*stream_iterator).second.second->window.type = Common_UI_Window::TYPE_X11;
+    (*stream_iterator).second.second->window.x11_window =
+      GDK_WINDOW_XID (window_p);
+    ACE_ASSERT ((*stream_iterator).second.second->window.x11_window);
+#endif // ACE_WIN32 || ACE_WIN64
     wxStringClientData* client_data_p =
       dynamic_cast<wxStringClientData*> (choice_screen->GetClientObject (choice_screen->GetSelection ()));
     ACE_ASSERT (client_data_p);
@@ -1833,7 +1842,12 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   else
   {
     ACE_OS::memset (&(*stream_iterator).second.second->area, 0, sizeof (struct v4l2_rect));
-    (*stream_iterator).second.second->window = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    (*stream_iterator).second.second->window.win32_hwnd = NULL;
+#else
+    (*stream_iterator).second.second->window.x11_window = 0;
+#endif // ACE_WIN32 || ACE_WIN64
+    (*stream_iterator).second.second->window.type = Common_UI_Window::TYPE_INVALID;
     (*stream_iterator).second.second->deviceIdentifier.identifier.clear ();
   } // end ELSE
 

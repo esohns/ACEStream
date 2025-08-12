@@ -80,6 +80,7 @@
 
 #include "test_u_defines.h"
 
+#include "test_u_camera_filter_configuration.h"
 #include "test_u_camera_filter_defines.h"
 #include "test_u_eventhandler.h"
 #include "test_u_signalhandler.h"

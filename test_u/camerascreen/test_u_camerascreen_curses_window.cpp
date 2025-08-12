@@ -109,7 +109,7 @@ Test_U_CameraScreen_Curses_Window::handleDataMessage (Stream_CameraScreen_Messag
       wchar_t char_a[] = { char_2.chars[0], L'\0' };
       result =
         setcchar (&char_2, char_a, char_2.attr, Common_UI_Curses_Tools::colornum (fg, bg), NULL);
-      ACE_ASSERT (result == OK);
+      ACE_ASSERT (result == 0/*OK*/);
       result = wadd_wch (inherited::window_,
                          &char_2);
 #endif // ACE_WIN32 || ACE_WIN64

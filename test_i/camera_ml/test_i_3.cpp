@@ -87,6 +87,7 @@
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
+#include "test_i_camera_ml_configuration.h"
 #include "test_i_camera_ml_defines.h"
 #include "test_i_eventhandler.h"
 #include "test_i_stream_3.h"

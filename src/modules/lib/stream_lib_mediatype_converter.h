@@ -238,6 +238,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void free_ (struct Stream_MediaFramework_LibCamera_MediaType&) {}
 
   inline void getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType& mediaType_in, enum Stream_MediaType_Type, struct Stream_MediaFramework_LibCamera_MediaType& mediaType_out) { mediaType_out = mediaType_in; }
+  void getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_V4L_MediaType&);
 #if defined (FFMPEG_SUPPORT)
   void getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
   void getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_AudioMediaType&);

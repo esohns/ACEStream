@@ -54,7 +54,7 @@
 #include "stream_vis_libav_resize.h"
 #endif // FFMPEG_SUPPORT
 
-#include "test_i_camera_msa_common.h"
+#include "test_i_camera_msa_stream_common.h"
 #include "test_i_message.h"
 #if defined (OLC_PGE_SUPPORT)
 #include "test_i_module_pge.h"

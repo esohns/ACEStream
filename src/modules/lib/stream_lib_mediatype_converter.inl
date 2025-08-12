@@ -849,6 +849,24 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 #endif // FFMPEG_SUPPORT
 
 #if defined (LIBCAMERA_SUPPORT)
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     struct Stream_MediaFramework_V4L_MediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
+
+  mediaType_out.format.pixelformat =
+      Stream_MediaFramework_Tools::ffmpegFormatToV4lFormat (Stream_MediaFramework_Tools::libCameraFormatToffmpegFormat (mediaType_in.format));
+  mediaType_out.format.width = mediaType_in.resolution.width;
+  mediaType_out.format.height = mediaType_in.resolution.height;
+  mediaType_out.frameRate.numerator = mediaType_in.frameRateNumerator;
+  mediaType_out.frameRate.denominator = mediaType_in.frameRateDenominator;
+}
+
 #if defined (FFMPEG_SUPPORT)
 template <typename MediaType>
 void

@@ -287,7 +287,7 @@ reinitialize:
     if (message_block_p->length () > 0)
       continue; // continue with same (!) buffer
 
-continue_:
+//continue_:
     message_block_p = message_block_p->cont ();
   } // end WHILE
 

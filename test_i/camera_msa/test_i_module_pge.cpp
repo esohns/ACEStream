@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#define OLC_PGE_APPLICATION
 #include "test_i_module_pge.h"
 
 #include "test_i_camera_msa_defines.h"

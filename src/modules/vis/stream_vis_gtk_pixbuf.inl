@@ -226,7 +226,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                    GDK_RGB_DITHER_NONE, 0, 0);
 #endif // GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,22,0)
-  gdk_window_end_draw_frame (window_p, drawing_context_p);
+  gdk_window_end_draw_frame (window_, drawing_context_p);
   cairo_region_destroy (cairo_region_p);
 #endif // GTK_CHECK_VERSION (3,22,0)
   g_object_unref (pixbuf_p); pixbuf_p = NULL;
@@ -298,7 +298,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
       frame_channels_i =
-        Stream_MediaFramework_Tools::toFrameBits (media_type_s) / 8;
+        Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_s.format.pixelformat) / 8;
       resolution_s.width = media_type_s.format.width;
       resolution_s.height = media_type_s.format.height;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -394,7 +394,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
       frame_channels_i =
-        Stream_MediaFramework_Tools::toFrameBits (media_type_s) / 8;
+        Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_s.format.pixelformat) / 8;
       resolution_s.width = media_type_s.format.width;
       resolution_s.height = media_type_s.format.height;
 #endif // ACE_WIN32 || ACE_WIN64

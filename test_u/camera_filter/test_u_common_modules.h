@@ -73,9 +73,9 @@
 #include "stream_vis_opengl_glut.h"
 #endif // GLUT_SUPPORT
 
-#include "test_u_camera_filter_common.h"
 #include "test_u_message.h"
 #include "test_u_session_message.h"
+#include "test_u_stream_common.h"
 
 // declare module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

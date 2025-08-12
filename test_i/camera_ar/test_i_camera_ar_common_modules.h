@@ -53,7 +53,7 @@
 #include "stream_vis_libav_resize.h"
 #endif // FFMPEG_SUPPORT
 
-#include "test_i_camera_ar_common.h"
+#include "test_i_camera_ar_stream_common.h"
 #include "test_i_camera_ar_message.h"
 #if defined (OLC_CGE_SUPPORT)
 #include "test_i_camera_ar_module_cge.h"

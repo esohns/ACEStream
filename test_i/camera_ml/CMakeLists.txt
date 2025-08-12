@@ -81,11 +81,11 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 set (EXECUTABLE camera_ml)
 set (${EXECUTABLE}_EXE_SRCS
      stdafx.h
-     ../test_i_common.h
-     ../test_i_defines.h
      test_i.cpp
      test_i_camera_ml_common.h
+     test_i_camera_ml_configuration.h
      test_i_camera_ml_defines.h
+     test_i_camera_ml_stream_common.h
      test_i_common_modules.h
      test_i_eventhandler.cpp
      test_i_eventhandler.h
@@ -93,6 +93,7 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_message.cpp
      test_i_message.h
      test_i_message.inl
+     test_i_olc_pge.cpp
      test_i_session_message.cpp
      test_i_session_message.h
      test_i_session_message.inl
@@ -133,11 +134,11 @@ if (MEDIAPIPE_SUPPORT)
  set (EXECUTABLE_2 camera_ml_2)
  set (${EXECUTABLE_2}_EXE_SRCS
       stdafx.h
-      ../test_i_common.h
-      ../test_i_defines.h
       test_i_2.cpp
       test_i_camera_ml_common.h
+      test_i_camera_ml_configuration.h
       test_i_camera_ml_defines.h
+      test_i_camera_ml_stream_common.h
       test_i_camera_ml_module_mediapipe.cpp
       test_i_camera_ml_module_mediapipe.h
       test_i_camera_ml_module_mediapipe.inl
@@ -148,6 +149,7 @@ if (MEDIAPIPE_SUPPORT)
       test_i_message.cpp
       test_i_message.h
       test_i_message.inl
+      test_i_olc_pge.cpp
       test_i_session_message.cpp
       test_i_session_message.h
       test_i_session_message.inl
@@ -161,11 +163,11 @@ if (MEDIAPIPE_SUPPORT)
   set (EXECUTABLE_3 camera_ml_3)
   set (${EXECUTABLE_3}_EXE_SRCS
        stdafx.h
-       ../test_i_common.h
-       ../test_i_defines.h
        test_i_3.cpp
        test_i_camera_ml_common.h
+       test_i_camera_ml_configuration.h
        test_i_camera_ml_defines.h
+       test_i_camera_ml_stream_common.h
        test_i_camera_ml_module_mediapipe_3.cpp
        test_i_camera_ml_module_mediapipe_3.h
        test_i_camera_ml_module_mediapipe_3.inl
@@ -176,6 +178,7 @@ if (MEDIAPIPE_SUPPORT)
        test_i_message.cpp
        test_i_message.h
        test_i_message.inl
+       test_i_olc_pge.cpp
        test_i_session_message.cpp
        test_i_session_message.h
        test_i_session_message.inl

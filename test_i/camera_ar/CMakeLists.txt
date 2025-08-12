@@ -75,12 +75,12 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 set (EXECUTABLE camera_ar)
 set (${EXECUTABLE}_EXE_SRCS
      stdafx.h
-     ../test_i_common.h
-     ../test_i_defines.h
      test_i_camera_ar.cpp
      test_i_camera_ar_common.h
      test_i_camera_ar_common_modules.h
+     test_i_camera_ar_configuration.h
      test_i_camera_ar_defines.h
+     test_i_camera_ar_stream_common.h
      test_i_camera_ar_eventhandler.cpp
      test_i_camera_ar_eventhandler.h
      test_i_camera_ar_eventhandler.inl
@@ -97,7 +97,8 @@ if (OLC_PGE_SUPPORT)
       ${${EXECUTABLE}_EXE_SRCS}
       test_i_camera_ar_module_pge.cpp
       test_i_camera_ar_module_pge.h
-      test_i_camera_ar_module_pge.inl)
+      test_i_camera_ar_module_pge.inl
+      test_i_olc_pge.cpp)
 endif (OLC_PGE_SUPPORT)
 if (OLC_CGE_SUPPORT)
  set (${EXECUTABLE}_EXE_SRCS
