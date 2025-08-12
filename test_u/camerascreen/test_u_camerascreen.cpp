@@ -1644,28 +1644,32 @@ do_work (int argc_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       Common_Image_Resolution_t resolution_s;
+      resolution_s.cx = getmaxx (state_r.std_window);
+      resolution_s.cy = getmaxy (state_r.std_window);
       switch (mediaFramework_in)
       {
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         {
-          directshow_modulehandler_configuration_3.window.curses_window = state_r.std_window;
+          directshow_modulehandler_configuration_3.window.curses_window =
+            state_r.std_window;
           ACE_ASSERT (directshow_modulehandler_configuration_3.window.curses_window);
-          resolution_s.cx = getmaxx (state_r.std_window);
-          resolution_s.cy = getmaxy (state_r.std_window);
+          directshow_modulehandler_configuration_3.window.type =
+            Common_UI_Window::TYPE_CURSES;
           Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                                  directshow_modulehandler_configuration_2c.outputFormat);
-
           Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
                                                              directshow_modulehandler_configuration_2.outputFormat);
           break;
         }
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
         {
-          mediafoundation_modulehandler_configuration.window.curses_window = state_r.std_window;
+          mediafoundation_modulehandler_configuration.window.curses_window =
+            state_r.std_window;
           ACE_ASSERT (mediafoundation_modulehandler_configuration.window.curses_window);
+          mediafoundation_modulehandler_configuration.window.type =
+            Common_UI_Window::TYPE_CURSES;
           Stream_MediaFramework_MediaFoundation_Tools::setResolution (resolution_s,
                                                                       mediafoundation_modulehandler_configuration.outputFormat);
-
           Stream_MediaFramework_MediaFoundation_Tools::setFormat (MEDIASUBTYPE_RGB24,
                                                                   mediafoundation_modulehandler_configuration_2.outputFormat);
           break;
@@ -1681,11 +1685,11 @@ do_work (int argc_in,
 #else
       modulehandler_configuration.window.curses_window = state_r.std_window;
       ACE_ASSERT (modulehandler_configuration.window.curses_window);
+      modulehandler_configuration.window.type = Common_UI_Window::TYPE_CURSES;
       modulehandler_configuration.outputFormat.format.width =
         getmaxx (state_r.std_window);
       modulehandler_configuration.outputFormat.format.height =
         getmaxy (state_r.std_window);
-      
       modulehandler_configuration_2.outputFormat.format.pixelformat =
         V4L2_PIX_FMT_RGB24;
 #endif // ACE_WIN32 || ACE_WIN64

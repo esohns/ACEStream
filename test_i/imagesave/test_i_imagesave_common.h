@@ -264,7 +264,7 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
   Test_I_ISessionNotify_t*                           subscriber;
   Test_I_Subscribers_t*                              subscribers;
   std::string                                        targetFileName;
-  union Common_UI_Window                             window;
+  struct Common_UI_Window                            window;
 };
 
 struct Test_I_ImageSave_StreamState

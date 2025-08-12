@@ -56,7 +56,7 @@ class Stream_Module_Vis_Curses_Window_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
- , public Common_UI_WindowTypeConverter_T<void>
+ , public Common_UI_WindowTypeConverter_T<WINDOW*>
  , public Common_UI_IFullscreen
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -69,7 +69,7 @@ class Stream_Module_Vis_Curses_Window_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
-  typedef Common_UI_WindowTypeConverter_T<void> inherited3;
+  typedef Common_UI_WindowTypeConverter_T<WINDOW*> inherited3;
 
  public:
   Stream_Module_Vis_Curses_Window_T (typename inherited::ISTREAM_T*); // stream handle
@@ -87,12 +87,15 @@ class Stream_Module_Vis_Curses_Window_T
   // implement Common_UI_IFullscreen
   virtual void toggle ();
 
+ protected:
+  WINDOW* window_;
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Curses_Window_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Curses_Window_T (const Stream_Module_Vis_Curses_Window_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Curses_Window_T& operator= (const Stream_Module_Vis_Curses_Window_T&))
 
-  bool closeWindow_;
+  bool    closeWindow_;
 };
 
 // include template definition

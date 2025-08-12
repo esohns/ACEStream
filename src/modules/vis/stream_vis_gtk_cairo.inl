@@ -55,6 +55,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , inherited2 ()
  , inherited3 ()
+ , inherited4 ()
  , context_ (NULL)
  , surface_ (NULL)
  , surfaceLock_ ()
@@ -161,10 +162,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   // sanity check(s)
 #if GTK_CHECK_VERSION (4,0,0)
-  if (!configuration_in.window.gdk_surface)
+  GdkSurface* window_h = inherited4::convert (configuration_in.window);
 #else
-  if (!configuration_in.window.gdk_window)
+  GdkWindow* window_h = inherited4::convert (configuration_in.window);
 #endif // GTK_CHECK_VERSION (4,0,0)
+  if (!window_h)
     return inherited::initialize (configuration_in,
                                   allocator_in); // nothing to do
 
@@ -173,12 +175,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   GDK_THREADS_ENTER ();
 #endif // GTK_CHECK_VERSION (3,6,0)
 #if GTK_CHECK_VERSION (4,0,0)
-  if (drawingContext_)
-  {
-    g_object_unref (drawingContext_); drawingContext_ = NULL;
-  } // end IF
-
-  drawingContext_ = gdk_surface_create_cairo_context (configuration_in.window);
+  drawingContext_ = gdk_surface_create_cairo_context (window_h);
   if (unlikely (!drawingContext_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -191,13 +188,13 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   cairoRegion_ = cairo_region_create ();
   ACE_ASSERT (cairoRegion_);
 #elif GTK_CHECK_VERSION (2,8,0)
-  context_ = gdk_cairo_create (configuration_in.window);
+  context_ = gdk_cairo_create (window_h);
   if (unlikely (!context_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to gdk_cairo_create(%@), aborting\n"),
                 inherited::mod_->name (),
-                configuration_in.window));
+                window_h));
 #if GTK_CHECK_VERSION (3,6,0)
 #else
     GDK_THREADS_LEAVE ();
@@ -516,27 +513,29 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      // sanity check(s)
-      ACE_ASSERT (inherited::configuration_);
       // *TODO*: remove type inferences
 #if GTK_CHECK_VERSION (4,0,0)
-      if (!inherited::configuration_->window.gdk_surface)
+      GdkSurface* window_h = inherited4::convert (inherited::configuration_->window);
 #else
-      if (!inherited::configuration_->window.gdk_window)
+      GdkWindow* window_h = inherited4::convert (inherited::configuration_->window);
 #endif // GTK_CHECK_VERSION (4,0,0)
+      if (!window_h)
         break; // do it later, using setP()
 
-      setP (inherited::configuration_->window);
+      setP (window_h);
       if (unlikely (!surface_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_Module_Vis_GTK_Cairo_T::setP(%@), aborting\n"),
                     inherited::mod_->name (),
-                    inherited::configuration_->window));
+                    window_h));
         goto error;
       } // end IF
 
@@ -597,14 +596,21 @@ error:
 #endif // GTK_CHECK_VERSION(3,10,0)
       surface_ = NULL;
 
+#if GTK_CHECK_VERSION (4,0,0)
+      GdkSurface* window_h = inherited4::convert (inherited::configuration_->window);
+#else
+      GdkWindow* window_h = inherited4::convert (inherited::configuration_->window);
+#endif // GTK_CHECK_VERSION (4,0,0)
+      ACE_ASSERT (window_h);
+
 #if GTK_CHECK_VERSION (3,0,0)
-      context_ = gdk_cairo_create (inherited::configuration_->window);
+      context_ = gdk_cairo_create (window_h);
       ACE_ASSERT (context_);
 #endif // GTK_CHECK_VERSION (3,0,0)
 
       surface_ =
 #if GTK_CHECK_VERSION (3,10,0)
-        gdk_window_create_similar_image_surface (inherited::configuration_->window,
+        gdk_window_create_similar_image_surface (window_h,
                                                  CAIRO_FORMAT_ARGB32,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                                  resolution_s.cx,
@@ -628,12 +634,12 @@ error:
       } // end IF
 #elif GTK_CHECK_VERSION (3,0,0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        gdk_pixbuf_get_from_window (inherited::configuration_->window,
+        gdk_pixbuf_get_from_window (window_h,
                                     0, 0,
                                     resolution_s.cx,
                                     resolution_s.cy);
 #else
-        gdk_pixbuf_get_from_window (inherited::configuration_->window,
+        gdk_pixbuf_get_from_window (window_h,
                                     0, 0,
                                     resolution_s.width,
                                     resolution_s.height);
@@ -643,7 +649,7 @@ error:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(%@), aborting\n"),
                     inherited::mod_->name (),
-                    inherited::configuration_->window));
+                    window_h));
 #if GTK_CHECK_VERSION (3,6,0)
 #else
         GDK_THREADS_LEAVE ();
@@ -652,7 +658,7 @@ error:
       } // end IF
 #elif GTK_CHECK_VERSION (2,0,0)
         gdk_pixbuf_get_from_drawable (NULL,
-                                      GDK_DRAWABLE (inherited::configuration_->window),
+                                      GDK_DRAWABLE (window_h),
                                       NULL,
                                       0, 0,
                                       0, 0,
@@ -668,7 +674,7 @@ error:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_drawable(%@), aborting\n"),
                     inherited::mod_->name (),
-                    inherited::configuration_->window));
+                    window_h));
 #if GTK_CHECK_VERSION (3,6,0)
 #else
         GDK_THREADS_LEAVE ();
@@ -782,14 +788,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->window);
+  ACE_ASSERT (surface_);
+  GdkWindow* window_h = inherited4::convert (inherited::configuration_->window);
+  ACE_ASSERT (window_h);
 
-  // *IMPORTANT NOTE*: potentially, this involves tranfer of image data to an X
-  //                   server running on a different host. Also, X servers don't
-  //                   react kindly to multithreaded access
-  //                   --> move this into the gtk context and simply schedule a
-  //                   refresh, which takes care of that
-  gdk_draw_pixbuf (GDK_DRAWABLE (inherited::configuration_->window),
+  gdk_draw_pixbuf (GDK_DRAWABLE (window_h),
                    NULL,
                    surface_,
                    0, 0, 0, 0,

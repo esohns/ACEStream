@@ -1482,26 +1482,25 @@ idle_initialize_UI_cb (gpointer userData_in)
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_button_p), TRUE);
   } // end IF
 
-  GdkWindow* window_p = NULL;
+  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  ACE_ASSERT (window_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (!(*directshow_modulehandler_configuration_iterator).second.second->window.gdk_window);
       (*directshow_modulehandler_configuration_iterator).second.second->window.gdk_window =
-        gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->window.gdk_window);
-      window_p =
-        (*directshow_modulehandler_configuration_iterator).second.second->window.gdk_window;
+        window_p;
+      (*directshow_modulehandler_configuration_iterator).second.second->window.type =
+        Common_UI_Window::TYPE_GTK;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second->window.gdk_window);
       (*mediafoundation_modulehandler_configuration_iterator).second.second->window.gdk_window =
-        gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->window.gdk_window);
-      window_p =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->window.gdk_window;
+        window_p;
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->window.type =
+        Common_UI_Window::TYPE_GTK;
       break;
     }
     default:
@@ -1513,13 +1512,12 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-//  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->window);
+  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->window.gdk_window);
   (*modulehandler_configuration_iterator).second.second->window.gdk_window =
-    gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->window.gdk_window);
-  window_p = (*modulehandler_configuration_iterator).second.second->window.gdk_window;
+    window_p;
+  (*modulehandler_configuration_iterator).second.second->window.type =
+    Common_UI_Window::TYPE_GTK;
 #endif // ACE_WIN32 || ACE_WIN64
-  ACE_ASSERT (window_p);
 
   // step12: initialize updates
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock, G_SOURCE_REMOVE);

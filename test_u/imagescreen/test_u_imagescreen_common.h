@@ -157,7 +157,7 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
   Stream_ImageScreen_ISessionNotify_t*          subscriber;
   Stream_ImageScreen_Subscribers_t*             subscribers;
-  union Common_UI_Window                        window;
+  struct Common_UI_Window                       window;
 };
 //extern const char stream_name_string_[];
 struct Stream_ImageScreen_StreamConfiguration;

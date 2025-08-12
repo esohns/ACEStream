@@ -333,7 +333,7 @@ struct Test_U_CaptureWindow_ModuleHandlerConfiguration
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
 #endif // FFMPEG_SUPPORT
-  union Common_UI_Window                                  window;
+  struct Common_UI_Window                                 window;
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

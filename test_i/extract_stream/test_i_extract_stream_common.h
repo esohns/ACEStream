@@ -173,7 +173,7 @@ struct Test_I_ExtractStream_ModuleHandlerConfiguration
 #endif // FFMPEG_SUPPORT
   Test_I_ISessionNotify_t*                                subscriber;
   std::string                                             targetFileName;
-  union Common_UI_Window                                  window;
+  struct Common_UI_Window                                 window;
 };
 
 //extern const char stream_name_string_[];

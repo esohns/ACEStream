@@ -227,7 +227,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
   struct Common_UI_DisplayDevice                       display;
   bool                                                 fullScreen;
-  union Common_UI_Window                               window;
+  struct Common_UI_Window                              window;
 };
 
 struct Test_I_CamStream_Configuration

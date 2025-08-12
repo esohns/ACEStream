@@ -760,6 +760,8 @@ do_work (
 #endif // FFMPEG_SUPPORT
       directshow_modulehandler_configuration.fileFormat = ACE_TEXT_ALWAYS_CHAR ("mp4");
       directshow_modulehandler_configuration.window.win32_hwnd = windowHandle_in;
+      directshow_modulehandler_configuration.window.type =
+        Common_UI_Window::TYPE_WIN32;
 
       //if (statisticReportingInterval_in)
       //{

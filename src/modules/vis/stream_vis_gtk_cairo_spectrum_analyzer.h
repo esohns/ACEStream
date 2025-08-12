@@ -21,11 +21,11 @@
 #ifndef STREAM_VISUALIZATION_GTK_CAIRO_SPECTRUM_ANALYZER_H
 #define STREAM_VISUALIZATION_GTK_CAIRO_SPECTRUM_ANALYZER_H
 
+#include "gtk/gtk.h"
+
 #include "ace/Global_Macros.h"
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
-
-#include "gtk/gtk.h"
 
 #include "common_icounter.h"
 #include "common_iget.h"
@@ -38,6 +38,8 @@
 #endif // FFTW_SUPPORT
 
 #include "common_timer_resetcounterhandler.h"
+
+#include "common_ui_windowtype_converter.h"
 
 #include "stream_vis_gtk_common.h"
 #include "stream_vis_gtk_window.h"
@@ -122,7 +124,11 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
 #else
  , public Common_Math_FFT_T<ValueType>
 #endif // FFTW_SUPPORT
-  //, public Common_ICounter
+#if GTK_CHECK_VERSION (4,0,0)
+ , public Common_UI_WindowTypeConverter_T<GdkSurface*>
+#else
+ , public Common_UI_WindowTypeConverter_T<GdkWindow*>
+#endif // GTK_CHECK_VERSION (4,0,0)
  , public Common_IDispatch
 #if GTK_CHECK_VERSION (4,0,0)
  , public Common_ISetP_T<GdkSurface>
@@ -142,6 +148,11 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
 #else
   typedef Common_Math_FFT_T<ValueType> inherited2;
 #endif // FFTW_SUPPORT
+#if GTK_CHECK_VERSION (4,0,0)
+  typedef Common_UI_WindowTypeConverter_T<GdkSurface*> inherited3;
+#else
+  typedef Common_UI_WindowTypeConverter_T<GdkWindow*> inherited3;
+#endif // GTK_CHECK_VERSION (4,0,0)
 
  public:
   Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (typename inherited::ISTREAM_T*); // stream handle

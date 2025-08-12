@@ -519,7 +519,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   std::string                     shaderFile;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string                     targetFileName;
-  union Common_UI_Window          window;
+  struct Common_UI_Window         window;
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

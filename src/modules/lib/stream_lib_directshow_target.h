@@ -26,11 +26,11 @@
 #include "control.h"
 #include "guiddef.h"
 #include "strmif.h"
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
 #include "minwindef.h"
 #else
 #include "windef.h"
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"

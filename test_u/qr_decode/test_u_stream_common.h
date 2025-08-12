@@ -220,7 +220,7 @@ struct QRDecode_ModuleHandlerConfiguration
   bool                                       pushStatisticMessages;
   Test_U_Notification_t*                     subscriber;
   Test_U_Subscribers_t*                      subscribers;
-  union Common_UI_Window                     window;
+  struct Common_UI_Window                    window;
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

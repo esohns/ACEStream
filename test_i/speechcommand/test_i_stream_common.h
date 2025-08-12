@@ -343,7 +343,7 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
   Test_I_DirectShow_ISessionNotify_t*               subscriber;
   Test_I_DirectShow_Subscribers_t*                  subscribers;
-  union Common_UI_Window                            window;
+  struct Common_UI_Window                           window;
 };
 
 struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
@@ -402,7 +402,7 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
   Test_I_MediaFoundation_ISessionNotify_t*          subscriber;
   Test_I_MediaFoundation_Subscribers_t*             subscribers;
-  union Common_UI_Window                            window;
+  struct Common_UI_Window                           window;
 };
 #else
 struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
@@ -459,7 +459,7 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
   Test_I_ALSA_ISessionNotify_t*                     subscriber;
   Test_I_ALSA_Subscribers_t*                        subscribers;
-  union Common_UI_Window                            window;
+  struct Common_UI_Window                           window;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -3039,49 +3039,26 @@ idle_initialize_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (!(*directshow_stream_iterator_2).second.second->window.gdk_window);
-      //ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow);
-      //ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.focusWindow);
-      ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
       (*directshow_stream_iterator_2).second.second->window.gdk_window = window_p;
+      (*directshow_stream_iterator_2).second.second->window.type =
+        Common_UI_Window::TYPE_GTK;
       directshow_cb_data_p->configuration->direct3DConfiguration.focusWindow =
         NULL;
       directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
         gdk_win32_window_get_impl_hwnd (window_p);
-
-      //// *TODO*: this seems to be a one-off... check carefully
-      //(*directshow_stream_iterator_2).second.second->area.bottom =
-      //  allocation.y + allocation.height;
-      //(*directshow_stream_iterator_2).second.second->area.left = allocation.x;
-      //(*directshow_stream_iterator_2).second.second->area.right =
-      //  allocation.x + allocation.width;
-      //(*directshow_stream_iterator_2).second.second->area.top = allocation.y;
-
-      //(*directshow_stream_iterator).second.second->pixelBuffer =
-      //  ui_cb_data_base_p->pixelBuffer;
-
       ACE_ASSERT (IsWindow (directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow));
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("drawing area window handle: 0x%@; size: %dx%d\n"),
-                  (*directshow_stream_iterator).second.second->window,
+                  ACE_TEXT ("drawing area window handle: %@; size: %dx%d\n"),
+                  (*directshow_stream_iterator_2).second.second->window.gdk_window,
                   allocation.width, allocation.height));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (!(*mediafoundation_stream_iterator_2).second.second->window.gdk_window);
-      ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
-      (*mediafoundation_stream_iterator_2).second.second->window.gdk_window = window_p;
-        //gdk_win32_window_get_impl_hwnd (window_p);
-
-      //// *TODO*: this seems to be a one-off... check carefully
-      //(*mediafoundation_stream_iterator_2).second.second->area.bottom =
-      //  allocation.y + allocation.height;
-      //(*mediafoundation_stream_iterator_2).second.second->area.left = allocation.x;
-      //(*mediafoundation_stream_iterator_2).second.second->area.right =
-      //  allocation.x + allocation.width;
-      //(*mediafoundation_stream_iterator_2).second.second->area.top = allocation.y;
-
-      //(*mediafoundation_stream_iterator).second.second->pixelBuffer =
-      //  ui_cb_data_base_p->pixelBuffer;
+      (*mediafoundation_stream_iterator_2).second.second->window.gdk_window =
+        window_p;
+      (*mediafoundation_stream_iterator_2).second.second->window.type =
+        Common_UI_Window::TYPE_GTK;
       break;
     }
     default:
@@ -3093,79 +3070,15 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-//  ACE_ASSERT (!ui_cb_data_p->pixelBuffer);
-
-#if GTK_CHECK_VERSION(3,0,0)
-//  GdkPixbuf* pixbuf_p =
-//      gdk_pixbuf_get_from_window (window_p,
-//                                  0, 0,
-//                                  allocation.width, allocation.height);
-//  if (!pixbuf_p)
-//  { // *NOTE*: most probable reason: window is not mapped
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
-//    return G_SOURCE_REMOVE;
-//  } // end IF
-#endif // GTK_CHECK_VERSION
-//  ui_cb_data_p->pixelBuffer =
-//#if GTK_CHECK_VERSION(3,0,0)
-////      gdk_pixbuf_get_from_window (window_p,
-//      gdk_cairo_surface_create_from_pixbuf (pixbuf_p,
-//                                            0,
-//                                            window_p);
-//#elif GTK_CHECK_VERSION(2,0,0)
-//      gdk_pixbuf_get_from_drawable (NULL,
-//                                    GDK_DRAWABLE (window_p),
-//                                    NULL,
-//                                    0, 0,
-//                                    0, 0, allocation.width, allocation.height);
-//#else
-//      gdk_pixbuf_get_from_drawable (NULL,
-//                                    GDK_DRAWABLE (window_p),
-//                                    NULL,
-//                                    0, 0,
-//                                    0, 0, allocation.width, allocation.height);
-//#endif // GTK_CHECK_VERSION
-//  if (!ui_cb_data_p->pixelBuffer)
-//  { // *NOTE*: most probable reason: window is not mapped
-//#if GTK_CHECK_VERSION(3,0,0)
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to gdk_cairo_surface_create_from_pixbuf(), aborting\n")));
-//#elif GTK_CHECK_VERSION(2,0,0)
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
-//#else
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
-//#endif // GTK_CHECK_VERSION
-//#if GTK_CHECK_VERSION(3,0,0)
-//  g_object_unref (pixbuf_p); pixbuf_p = NULL;
-//#endif // GTK_CHECK_VERSION
-//    return G_SOURCE_REMOVE;
-//  } // end IF
-//#if GTK_CHECK_VERSION(3,0,0)
-//  g_object_unref (pixbuf_p); pixbuf_p = NULL;
-//#endif // GTK_CHECK_VERSION
-
-  ACE_ASSERT (GDK_IS_WINDOW (window_p));
-//  (*iterator_2).second.second->X11Display = GDK_WINDOW_XDISPLAY (window_p);
-//  (*iterator_3).second.second->X11Display = GDK_WINDOW_XDISPLAY (window_p);
-//  (*iterator_2).second.second->window = GDK_WINDOW_XID (window_p);
-//  (*iterator_3).second.second->window = GDK_WINDOW_XID (window_p);
-//  (*iterator_2).second.second->window = window_p;
+  ACE_ASSERT (!(*iterator_3).second.second->window.gdk_window);
   (*iterator_3).second.second->window.gdk_window = window_p;
-//  ACE_ASSERT ((*iterator_2).second.second->window);
-  ACE_ASSERT ((*iterator_3).second.second->window.gdk_window);
+  (*iterator_3).second.second->window.type = Common_UI_Window::TYPE_GTK;
 
   (*iterator_4).second.second->outputFormat.format.height = allocation.height;
   (*iterator_4).second.second->outputFormat.format.width = allocation.width;
-//  (*iterator_2).second.second->area =
-//      (*iterator_3).second.second->area;
-
-//  (*iterator_3).second.second->pixelBuffer = ui_cb_data_p->pixelBuffer;
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;

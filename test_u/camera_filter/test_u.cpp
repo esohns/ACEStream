@@ -1371,9 +1371,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
         return;
       } // end IF
-      //ACE_ASSERT (stream_config_p);
-      //ACE_ASSERT (directshow_modulehandler_configuration_3.window);
-      //directShowCBData_in.streamConfiguration = stream_config_p;
+      ACE_ASSERT (directshow_modulehandler_configuration_3.window.win32_hwnd);
+      directshow_modulehandler_configuration_3.window.type = Common_UI_Window::TYPE_WIN32;
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
@@ -1671,6 +1670,7 @@ continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       DestroyWindow (directshow_modulehandler_configuration_3.window.win32_hwnd);
       directshow_modulehandler_configuration_3.window.win32_hwnd = NULL;
+      directshow_modulehandler_configuration_3.window.type = Common_UI_Window::TYPE_INVALID;
 
       switch (mediaFramework_in)
       {

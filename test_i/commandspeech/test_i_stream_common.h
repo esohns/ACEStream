@@ -275,7 +275,7 @@ struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration
   Test_I_DirectShow_Subscribers_t*                  subscribers;
   std::string                                       voice;
   std::string                                       voiceDirectory;
-  union Common_UI_Window                            window;
+  struct Common_UI_Window                           window;
 };
 
 struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
@@ -312,7 +312,7 @@ struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
   Test_I_MediaFoundation_Subscribers_t*             subscribers;
   std::string                                       voice;
   std::string                                       voiceDirectory;
-  union Common_UI_Window                            window;
+  struct Common_UI_Window                           window;
 };
 #else
 struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
@@ -349,7 +349,7 @@ struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
   Test_I_ALSA_Subscribers_t*                        subscribers;
   std::string                                       voice;
   std::string                                       voiceDirectory;
-  union Common_UI_Window                            window;
+  struct Common_UI_Window                           window;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

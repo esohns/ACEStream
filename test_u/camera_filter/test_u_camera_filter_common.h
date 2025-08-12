@@ -351,7 +351,7 @@ struct Test_U_CameraFilter_ModuleHandlerConfiguration
   struct Common_UI_Display                                display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
   bool                                                    fullScreen;
-  union Common_UI_Window                                  window; // display module
+  struct Common_UI_Window                                 window; // display module
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -24,11 +24,11 @@
 #undef GetObject
 #include "evr.h"
 #include "strmif.h"
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
 #include "minwindef.h"
 #else
 #include "windef.h"
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -36,7 +36,6 @@
 #include "common_time_common.h"
 
 #include "common_ui_ifullscreen.h"
-#include "common_ui_windowtype_converter.h"
 
 #include "stream_task_base_asynch.h"
 
@@ -82,8 +81,6 @@ class Stream_Vis_Target_DirectShow_T
                                                     PinConfigurationType,
                                                     MediaType,
                                                     FilterType>
- //, public Stream_MediaFramework_MediaTypeConverter_T<struct _AMMediaType>
- //, public Common_UI_WindowTypeConverter_T<HWND>
  , public Common_UI_IFullscreen
 {
   typedef Stream_MediaFramework_DirectShow_Target_T<Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
@@ -99,8 +96,6 @@ class Stream_Vis_Target_DirectShow_T
                                                     PinConfigurationType,
                                                     MediaType,
                                                     FilterType> inherited;
-  //typedef Stream_MediaFramework_MediaTypeConverter_T<struct _AMMediaType> inherited2;
-  //typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;
 
  public:
   typedef typename inherited::ISTREAM_T ISTREAM_T;

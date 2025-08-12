@@ -73,11 +73,11 @@ class Stream_Vis_Target_MediaFoundation_T
  , public Common_UI_WindowTypeConverter_T<HWND>
  , public Common_UI_IFullscreen
  , public Common_IInitialize_T<struct _AMMediaType>
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
  , public IMFMediaSourceEx
 #else
  , public IMFMediaSource
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,

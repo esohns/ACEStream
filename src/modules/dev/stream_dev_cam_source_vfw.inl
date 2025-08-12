@@ -303,7 +303,7 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
                     &inherited::configuration_->statisticCollectionInterval));
       } // end IF
 
-      if (!inherited::configuration_->window.win32_hwnd)
+      if (inherited::configuration_->window.type == Common_UI_Window::TYPE_INVALID)
       {
         window_ =
           capCreateCaptureWindow (NULL,         // window name if pop-up
@@ -321,7 +321,7 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
       } // end IF
       else
       {
-        inherited3::getWindowType (inherited::configuration_->window.win32_hwnd, window_);
+        window_ = inherited3::convert (inherited::configuration_->window);
         ACE_ASSERT (window_);
         passive_ = true;
       } // end ELSE

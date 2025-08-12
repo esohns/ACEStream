@@ -5993,16 +5993,17 @@ continue_3:
     } // end IF
   } // end IF
 
+  window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  ACE_ASSERT (window_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (!(*directshow_modulehandler_configuration_iterator).second.second->window.gdk_window);
       (*directshow_modulehandler_configuration_iterator).second.second->window.gdk_window =
-        gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->window.gdk_window);
-      window_p =
-        (*directshow_modulehandler_configuration_iterator).second.second->window.gdk_window;
+        window_p;
+      (*directshow_modulehandler_configuration_iterator).second.second->window.type =
+        Common_UI_Window::TYPE_GTK;
       (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window =
         window_p;
       break;
@@ -6010,10 +6011,9 @@ continue_3:
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second->window.gdk_window);
       (*mediafoundation_modulehandler_configuration_iterator).second.second->window.gdk_window =
-        gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->window.gdk_window);
-      window_p =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->window.gdk_window;
+        window_p;
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->window.type =
+        Common_UI_Window::TYPE_GTK;
       (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window =
         window_p;
       break;
@@ -6027,11 +6027,11 @@ continue_3:
     }
   } // end SWITCH
 #else
-//  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->window);
+  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->window.gdk_window);
   (*modulehandler_configuration_iterator).second.second->window.gdk_window =
-    gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->window.gdk_window);
-  window_p = (*modulehandler_configuration_iterator).second.second->window.gdk_window;
+    window_p;
+  (*modulehandler_configuration_iterator).second.second->window.type =
+    Common_UI_Window::TYPE_GTK;
   (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window =
     window_p;
 #endif // ACE_WIN32 || ACE_WIN64

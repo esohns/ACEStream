@@ -130,7 +130,11 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
   if (captureBitmap_)
     DeleteObject (captureBitmap_);
   if (inherited::configuration_ && sourceContext_)
-    ReleaseDC (inherited::configuration_->window, sourceContext_);
+  {
+    HWND window_h = inherited3::convert (inherited::configuration_->window);
+    ACE_ASSERT (window_h);
+    ReleaseDC (window_h, sourceContext_);
+  } // end IF
 #else
 #if defined (GTK_SUPPORT)
   if (window_)
@@ -194,7 +198,9 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     DeleteDC (captureContext_); captureContext_ = NULL;
     DeleteObject (captureBitmap_); captureBitmap_ = NULL;
-    ReleaseDC (inherited::configuration_->window.win32_hwnd, sourceContext_); sourceContext_ = NULL;
+    HWND window_h = inherited3::convert (inherited::configuration_->window);
+    ACE_ASSERT (window_h);
+    ReleaseDC (window_h, sourceContext_); sourceContext_ = NULL;
 #else
 #if defined (GTK_SUPPORT)
     g_object_unref (window_); window_ = NULL;
@@ -203,12 +209,19 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (unlikely (!configuration_in.window.win32_hwnd))
+  HWND window_h = inherited3::convert (configuration_in.window);
 #else
 #if defined (GTK_SUPPORT)
-  if (unlikely (!configuration_in.window.gdk_window))
+#if GTK_CHECK_VERSION (4,0,0)
+  GdkSurface* window_h = inherited3::convert (configuration_in.window);
+#else
+  GdkWindow* window_h = inherited3::convert (configuration_in.window);
+#endif // GTK_CHECK_VERSION (4,0,0)
+#else
+  Window window_h = inherited3::convert (configuration_in.window);
 #endif // GTK_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+  if (unlikely (!window_h))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no window provided, aborting\n"),
@@ -219,13 +232,13 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (GTK_SUPPORT)
-  window_ = Common_UI_GTK_Tools::get (configuration_in.window);
+  window_ = Common_UI_GTK_Tools::get (configuration_in.window.x11_window);
   if (!window_)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_UI_GTK_Tools::get (%d), aborting\n"),
                 inherited::mod_->name (),
-                configuration_in.window));
+                configuration_in.window.x11_window));
     return false;
   } // end IF
 #endif // GTK_SUPPORT
@@ -350,12 +363,13 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
 
       ACE_ASSERT (inherited::configuration_->allocatorConfiguration->defaultBufferSize >= video_info_header_p->bmiHeader.biSizeImage);
 
-      ACE_ASSERT (inherited::configuration_->window.win32_hwnd);
+      ACE_ASSERT (inherited::configuration_->window.type != Common_UI_Window::TYPE_INVALID);
+      HWND window_h = inherited3::convert (inherited::configuration_->window);
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: window handle: 0x%@\n"),
                   inherited::mod_->name (),
-                  inherited::configuration_->window.win32_hwnd));
-      sourceContext_ = GetDC (inherited::configuration_->window.win32_hwnd);
+                  window_h));
+      sourceContext_ = GetDC (window_h);
       ACE_ASSERT (sourceContext_);
       captureContext_ = CreateCompatibleDC (sourceContext_);
       ACE_ASSERT (captureContext_);

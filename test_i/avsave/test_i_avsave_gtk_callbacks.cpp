@@ -2871,19 +2871,14 @@ idle_initialize_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (!(*directshow_stream_iterator_3).second.second->window.gdk_window);
-      //ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow);
-      //ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.focusWindow);
-      ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
       (*directshow_stream_iterator_3).second.second->window.gdk_window =
         window_p;
-      //        gdk_win32_window_get_impl_hwnd (window_p);
-      //directshow_cb_data_p->configuration->direct3DConfiguration.focusWindow =
-      //  NULL;
-      //directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
-      //  gdk_win32_window_get_impl_hwnd (window_p);
+      (*directshow_stream_iterator_3).second.second->window.type = Common_UI_Window::TYPE_GTK;
+
       ACE_ASSERT (!(*directshow_stream_iterator_2).second.second->window.gdk_window);
       (*directshow_stream_iterator_2).second.second->window.gdk_window =
         window_2;
+      (*directshow_stream_iterator_2).second.second->window.type = Common_UI_Window::TYPE_GTK;
 
       Common_Image_Resolution_t resolution_s;
       resolution_s.cx = allocation.width;
@@ -2891,45 +2886,24 @@ idle_initialize_UI_cb (gpointer userData_in)
       Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                              (*directshow_stream_iterator).second.second->outputFormat);
 
-      //(*directshow_stream_iterator).second.second->area.bottom =
-      //  allocation.y + allocation.height;
-      //(*directshow_stream_iterator).second.second->area.left = allocation.x;
-      //(*directshow_stream_iterator).second.second->area.right =
-      //  allocation.x + allocation.width;
-      //(*directshow_stream_iterator).second.second->area.top = allocation.y;
-
-      //(*directshow_stream_iterator).second.second->pixelBuffer =
-      //  ui_cb_data_base_p->pixelBuffer;
-
-      //ACE_ASSERT (IsWindow (directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow));
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("drawing area window handle: 0x%@; size: %dx%d\n"),
-                  (*directshow_stream_iterator).second.second->window.gdk_window,
-                  allocation.width, allocation.height));
+                  ACE_TEXT ("drawing area video handle: %@; size: %dx%d; audio handle: %@\n"),
+                  (*directshow_stream_iterator_3).second.second->window.gdk_window,
+                  allocation.width, allocation.height,
+                  (*directshow_stream_iterator_2).second.second->window.gdk_window));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (!(*mediafoundation_stream_iterator).second.second->window.gdk_window);
-      ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
       (*mediafoundation_stream_iterator).second.second->window.gdk_window =
         window_p;
-      //        gdk_win32_window_get_impl_hwnd (window_p);
+      (*mediafoundation_stream_iterator).second.second->window.type = Common_UI_Window::TYPE_GTK;
 
       HRESULT result_3 =
         MFSetAttributeSize ((*mediafoundation_stream_iterator).second.second->outputFormat,
                             MF_MT_FRAME_SIZE,
                             allocation.width, allocation.height);
       ACE_ASSERT (SUCCEEDED (result_3));
-
-      //(*mediafoundation_stream_iterator).second.second->area.bottom =
-      //  allocation.y + allocation.height;
-      //(*mediafoundation_stream_iterator).second.second->area.left = allocation.x;
-      //(*mediafoundation_stream_iterator).second.second->area.right =
-      //  allocation.x + allocation.width;
-      //(*mediafoundation_stream_iterator).second.second->area.top = allocation.y;
-
-      //(*mediafoundation_stream_iterator).second.second->pixelBuffer =
-      //  ui_cb_data_base_p->pixelBuffer;
       break;
     }
     default:
@@ -2941,25 +2915,15 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-//  ACE_ASSERT (GDK_IS_WINDOW (window_p));
-//  (*iterator_2).second.second->X11Display = GDK_WINDOW_XDISPLAY (window_p);
-//  (*iterator_3).second.second->X11Display = GDK_WINDOW_XDISPLAY (window_p);
-//  (*iterator_2).second.second->window = GDK_WINDOW_XID (window_p);
-//  (*iterator_3).second.second->window = GDK_WINDOW_XID (window_p);
-//  (*iterator_2).second.second->window = window_p;
-//  (*iterator_3).second.second->window = window_p;
-//  ACE_ASSERT ((*iterator_2).second.second->window);
-//  ACE_ASSERT ((*iterator_3).second.second->window);
-
   (*iterator_2).second.second->window.gdk_window = window_p;
+  (*iterator_2).second.second->window.type = Common_UI_Window::TYPE_GTK;
   (*iterator_4).second.second->window.gdk_window = window_2;
+  (*iterator_4).second.second->window.type = Common_UI_Window::TYPE_GTK;
 
   (*iterator_3).second.second->outputFormat.video.format.height =
       static_cast<__u32> (allocation.height);
   (*iterator_3).second.second->outputFormat.video.format.width =
       static_cast<__u32> (allocation.width);
-//  (*iterator_2).second.second->area =
-//      (*iterator_3).second.second->area;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if GTK_CHECK_VERSION(2,30,0)

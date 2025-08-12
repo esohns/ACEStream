@@ -304,7 +304,7 @@ struct Test_U_MP4Player_ModuleHandlerConfiguration
 #if defined (FFMPEG_SUPPORT)
   int                                                     streamIndex;
 #endif // FFMPEG_SUPPORT
-  union Common_UI_Window                                  window;
+  struct Common_UI_Window                                 window;
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

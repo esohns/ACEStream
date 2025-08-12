@@ -33,6 +33,8 @@
 
 #include "common_time_common.h"
 
+#include "common_ui_windowtype_converter.h"
+
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
@@ -78,6 +80,19 @@ class Stream_Module_Window_Source_T
                                       TimerManagerType,
                                       struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , public Common_UI_WindowTypeConverter_T<HWND>
+#else
+#if defined (GTK_SUPPORT)
+#if GTK_CHECK_VERSION (4,0,0)
+ , public Common_UI_WindowTypeConverter_T<GdkSurface*>
+#else
+ , public Common_UI_WindowTypeConverter_T<GdkWindow*>
+#endif // GTK_CHECK_VERSION (4,0,0)
+#else
+ , public Common_UI_WindowTypeConverter_T<Window>
+#endif // GTK_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
  , public Common_ITimerHandler
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -95,6 +110,19 @@ class Stream_Module_Window_Source_T
                                       TimerManagerType,
                                       struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;
+#else
+#if defined (GTK_SUPPORT)
+#if GTK_CHECK_VERSION (4,0,0)
+  typedef Common_UI_WindowTypeConverter_T<GdkSurface*> inherited3;
+#else
+  typedef Common_UI_WindowTypeConverter_T<GdkWindow*> inherited3;
+#endif // GTK_CHECK_VERSION (4,0,0)
+#else
+  typedef Common_UI_WindowTypeConverter_T<Window> inherited3;
+#endif // GTK_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
  public:
    Stream_Module_Window_Source_T (typename inherited::ISTREAM_T*); // stream handle
@@ -143,9 +171,15 @@ class Stream_Module_Window_Source_T
   Common_Image_Resolution_t resolution_;
   BITMAPINFO                bitmapInfo_;
 #else
-#if defined (GTK_SUPPORT)
   unsigned int              frameSize_;
+#if defined (GTK_SUPPORT)
+#if GTK_CHECK_VERSION (4,0,0)
+  GdkSurface*               window_;
+#else
   GdkWindow*                window_;
+#endif // GTK_CHECK_VERSION (4,0,0)
+#else
+  Window                    window_;
 #endif // GTK_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 };

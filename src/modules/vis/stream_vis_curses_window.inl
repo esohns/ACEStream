@@ -53,6 +53,7 @@ Stream_Module_Vis_Curses_Window_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , inherited2 ()
  , inherited3 ()
+ , window_ (NULL)
  , closeWindow_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Curses_Window_T::Stream_Module_Vis_Curses_Window_T"));
@@ -110,7 +111,11 @@ Stream_Module_Vis_Curses_Window_T<ACE_SYNCH_USE,
     {
       closeWindow_ = false;
     } // end IF
+    window_ = NULL;
   } // end IF
+
+  window_ = inherited3::convert (configuration_in.window);
+  ACE_ASSERT (window_);
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -141,7 +146,7 @@ Stream_Module_Vis_Curses_Window_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->window.curses_window);
+  ACE_ASSERT (window_);
 
   static const char* char_density =
 //    ACE_TEXT_ALWAYS_CHAR ("Ñ@#W$9876543210?!abc;:+=-,._                    ");
@@ -153,16 +158,16 @@ Stream_Module_Vis_Curses_Window_T<ACE_SYNCH_USE,
   float r_f, g_f, b_f, ratio_f;
   size_t index_i;
 
-  result = wmove (inherited::configuration_->window.curses_window,
+  result = wmove (window_,
                   0, 0);
   if (unlikely (result == ERR))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to wmove(), continuing\n")));
   for (int y = 0;
-       y < getmaxy (inherited::configuration_->window.curses_window);
+       y < getmaxy (window_);
        ++y)
     for (int x = 0;
-         x < getmaxx (inherited::configuration_->window.curses_window);
+         x < getmaxx (window_);
          ++x)
     {
       r_f = *data_p / 255.0F;
@@ -179,7 +184,7 @@ Stream_Module_Vis_Curses_Window_T<ACE_SYNCH_USE,
       index_i =
         (index_i == char_density_length ? char_density_length - 1 : index_i);
 
-      result = waddch (inherited::configuration_->window.curses_window,
+      result = waddch (window_,
                        char_density[index_i]);
       //if (unlikely (result == ERR))
       //  ACE_DEBUG ((LM_ERROR,
@@ -188,7 +193,7 @@ Stream_Module_Vis_Curses_Window_T<ACE_SYNCH_USE,
       data_p += 3;
     } // end FOR
 
-  result = wrefresh (inherited::configuration_->window.curses_window);
+  result = wrefresh (window_);
   if (unlikely (result == ERR))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to wrefresh(), continuing\n")));
@@ -224,7 +229,7 @@ Stream_Module_Vis_Curses_Window_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
       const typename SessionDataContainerType::DATA_T& session_data_r =
-          inherited::sessionData_->getR ();
+        inherited::sessionData_->getR ();
       ACE_ASSERT (!session_data_r.formats.empty ());
       const MediaType& media_type_r = session_data_r.formats.back ();
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;

@@ -386,7 +386,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   Common_GL_Shader                                          shader;
   enum Stream_Visualization_SpectrumAnalyzer_3DMode         spectrumAnalyzer3DMode;
 #endif /* GTKGL_SUPPORT */
-  union Common_UI_Window                                    window;
+  struct Common_UI_Window                                   window;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //extern const char stream_name_string_[];

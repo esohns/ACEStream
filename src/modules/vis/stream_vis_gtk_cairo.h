@@ -30,6 +30,7 @@
 #include "common_inotify.h"
 
 #include "common_ui_ifullscreen.h"
+#include "common_ui_windowtype_converter.h"
 
 #include "stream_task_base_synch.h"
 
@@ -64,6 +65,11 @@ class Stream_Module_Vis_GTK_Cairo_T
                                  struct Stream_UserData>
  , public Stream_Visualization_Base
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+#if GTK_CHECK_VERSION (4,0,0)
+ , public Common_UI_WindowTypeConverter_T<GdkSurface*>
+#else
+ , public Common_UI_WindowTypeConverter_T<GdkWindow*>
+#endif // GTK_CHECK_VERSION (4,0,0)
  , public Common_IDispatch
 #if GTK_CHECK_VERSION (4,0,0)
  , public Common_ISetP_T<GdkSurface>
@@ -82,6 +88,11 @@ class Stream_Module_Vis_GTK_Cairo_T
                                  struct Stream_UserData> inherited;
   typedef Stream_Visualization_Base inherited2;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited3;
+#if GTK_CHECK_VERSION (4,0,0)
+  typedef Common_UI_WindowTypeConverter_T<GdkSurface*> inherited4;
+#else
+  typedef Common_UI_WindowTypeConverter_T<GdkWindow*> inherited4;
+#endif // GTK_CHECK_VERSION (4,0,0)
 
  public:
   Stream_Module_Vis_GTK_Cairo_T (typename inherited::ISTREAM_T*); // stream handle

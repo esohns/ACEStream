@@ -202,10 +202,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   // initialize cairo context
   // *TODO*: remove type inferences
 #if GTK_CHECK_VERSION (4,0,0)
-  if (!configuration_in.window.gdk_surface)
+  GdkSurface* window_h = inherited3::convert (configuration_in.window);
 #else
-  if (!configuration_in.window.gdk_window)
+  GdkWindow* window_h = inherited3::convert (configuration_in.window);
 #endif // GTK_CHECK_VERSION (4,0,0)
+  if (!window_h)
   {
     // sanity check(s)
     if (unlikely (!Common_UI_GTK_Tools::GTKInitialized &&
@@ -250,27 +251,22 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end IF
   else
   {
-#if GTK_CHECK_VERSION (4,0,0)
-    CBData_.window = configuration_in.window.gdk_surface;
-#else
-    CBData_.window = configuration_in.window.gdk_window;
-#endif // GTK_CHECK_VERSION (4,0,0)
-
+    CBData_.window = window_h;
 #if GTK_CHECK_VERSION (3,6,0)
 #else
     gdk_threads_enter ();
 #endif // GTK_CHECK_VERSION (3,6,0)
 #if GTK_CHECK_VERSION (4,0,0)
-    width_ = gdk_surface_get_width (CBData_.window);
-    height_ = gdk_surface_get_height (CBData_.window);
+    width_ = gdk_surface_get_width (window_h);
+    height_ = gdk_surface_get_height (window_h);
 #elif GTK_CHECK_VERSION (3,0,0)
-    gdk_window_get_geometry (CBData_.window,
+    gdk_window_get_geometry (window_h,
                              NULL,
                              NULL,
                              &width_,
                              &height_);
 #elif GTK_CHECK_VERSION (2,0,0)
-    gdk_window_get_geometry (CBData_.window,
+    gdk_window_get_geometry (window_h,
                              NULL,
                              NULL,
                              &width_,
@@ -278,8 +274,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                              NULL);
 #endif /* GTK_CHECK_VERSION (x,0,0) */
 
-    ACE_ASSERT (CBData_.window);
-    if (unlikely (!initialize_Cairo (CBData_.window,
+    if (unlikely (!initialize_Cairo (window_h,
                                      CBData_.context)))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1127,8 +1122,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     return;
   ACE_ASSERT (window_in);
 
-//  int result = -1;
-//  bool release_lock = false;
   unsigned int sound_sample_size = 0;
   bool is_floating_point_format = false;
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();
@@ -1158,22 +1151,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     (snd_pcm_format_linear (media_type_s.format) == 0);
 #endif // ACE_WIN32 || ACE_WIN64
 
-  //{ ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-    //if (likely (CBData_.context))
-    //{
-    //  cairo_destroy (CBData_.context); CBData_.context = NULL;
-    //} // end IF
-    //if (unlikely (!initialize_Cairo (window_in,
-    //                                 CBData_.context)))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("%s: failed to initialize_Cairo(), returning\n"),
-    //              inherited::mod_->name ()));
-    //  return;
-    //} // end IF
-    //ACE_ASSERT (CBData_.context);
-    //CBData_.window = window_in;
-
 #if GTK_CHECK_VERSION (4,0,0)
    width_ = gdk_surface_get_width (window_in);
    height_ = gdk_surface_get_height (window_in);
@@ -1185,11 +1162,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                             &height_);
 #elif GTK_CHECK_VERSION (2,0,0)
   gdk_window_get_geometry (window_in,
-                            NULL,
-                            NULL,
-                            &width_,
-                            &height_,
-                            NULL);
+                           NULL,
+                           NULL,
+                           &width_,
+                           &height_,
+                           NULL);
 #endif /* GTK_CHECK_VERSION (x,0,0) */
   ACE_ASSERT (height_); ACE_ASSERT (width_);
   halfHeight_ = height_ / 2;

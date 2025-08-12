@@ -2760,37 +2760,22 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
   ACE_ASSERT (window_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (!(*directshow_modulehandler_iterator).second.second->window.gdk_window);
-      (*directshow_modulehandler_iterator).second.second->window.gdk_window = window_p;
-      //  gdk_win32_window_get_impl_hwnd (window_p);
-      ////static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
-      //ACE_ASSERT (IsWindow ((*directshow_modulehandler_iterator).second.second->window));
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("drawing area window handle: 0x%@\n"),
-                  (*directshow_modulehandler_iterator).second.second->window));
-
-      //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
-      //directshow_ui_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
-      //  gdk_win32_window_get_impl_hwnd (window_p);
+      (*directshow_modulehandler_iterator).second.second->window.gdk_window =
+        window_p;
+      (*directshow_modulehandler_iterator).second.second->window.type =
+        Common_UI_Window::TYPE_GTK;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second->window.gdk_window);
-      (*mediafoundation_modulehandler_iterator).second.second->window.gdk_window = window_p;
-      //  gdk_win32_window_get_impl_hwnd (window_p);
-      ////static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
-      //ACE_ASSERT (IsWindow ((*mediafoundation_modulehandler_iterator).second.second->window));
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("drawing area window handle: 0x%@\n"),
-                  (*mediafoundation_modulehandler_iterator).second.second->window));
-
-      //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
-      //mediafoundation_ui_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
-      //  gdk_win32_window_get_impl_hwnd (window_p);
+      (*mediafoundation_modulehandler_iterator).second.second->window.gdk_window =
+        window_p;
+      (*mediafoundation_modulehandler_iterator).second.second->window.type =
+        Common_UI_Window::TYPE_GTK;
       break;
     }
     default:
@@ -2804,14 +2789,19 @@ idle_initialize_source_UI_cb (gpointer userData_in)
 #else
   Test_I_Source_V4L_StreamConfigurationsIterator_t iterator_3 =
     V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (iterator_3 != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
+  ACE_ASSERT (iterator_3 != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T iterator_4 =
-      (*iterator_3).second.find (ACE_TEXT_ALWAYS_CHAR (""));
+    (*iterator_3).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_4 != (*iterator_3).second.end ());
 
   ACE_ASSERT (!(*iterator_4).second.second->window.gdk_window);
   (*iterator_4).second.second->window.gdk_window = window_p;
+  (*iterator_4).second.second->window.type = Common_UI_Window::TYPE_GTK;
 #endif
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("drawing area window handle: %@\n"),
+              window_p));
+
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
@@ -3852,26 +3842,22 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
   ACE_ASSERT (window_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (!(*directshow_modulehandler_iterator).second.second->window.gdk_window);
-      // *NOTE*: the DirectShow video renderers do not draw onto
-      //         GtkDrawingArea(s) correctly (on Win32, only the toplevel window
-      //         maps to HWND directly)
       (*directshow_modulehandler_iterator).second.second->window.gdk_window =
         window_p;
-        //gdk_win32_window_get_impl_hwnd (window_p);
-      //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
+      (*directshow_modulehandler_iterator).second.second->window.type =
+        Common_UI_Window::TYPE_GTK;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second->window.gdk_window);
       (*mediafoundation_modulehandler_iterator).second.second->window.gdk_window =
         window_p;
-        //gdk_win32_window_get_impl_hwnd (window_p);
-      //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
+      (*mediafoundation_modulehandler_iterator).second.second->window.type =
+        Common_UI_Window::TYPE_GTK;
       break;
     }
     default:
@@ -3885,6 +3871,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 #else
   ACE_ASSERT (!(*iterator_2).second.second->window.gdk_window);
   (*iterator_2).second.second->window.gdk_window = window_p;
+  (*iterator_2).second.second->window.type = Common_UI_Window::TYPE_GTK;
 #endif
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));
