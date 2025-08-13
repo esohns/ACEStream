@@ -243,10 +243,11 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       bool result_2 = false;
 
       unsigned int num_channels = 0;
+      unsigned int frame_size = 0;
       unsigned int sample_size = 0;
-      unsigned int sub_sample_size = 0;
       unsigned int sample_rate;
       int sample_byte_order = ACE_BYTE_ORDER;
+      bool is_floating_point_b = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
@@ -257,22 +258,23 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
       ACE_ASSERT (media_type_s.pbFormat);
 
-      // *NOTE*: apparently, all Win32 sound data is signed 16 bits
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
       num_channels = waveformatex_p->nChannels;
-      sub_sample_size = waveformatex_p->wBitsPerSample / 8;
-      //sample_size = waveformatex_p->nBlockAlign;
-      sample_size = (waveformatex_p->nChannels * sub_sample_size);
+      sample_size = waveformatex_p->wBitsPerSample / 8;
+      //frame_size = waveformatex_p->nBlockAlign;
+      frame_size = (waveformatex_p->nChannels * sample_size);
       sample_rate = waveformatex_p->nSamplesPerSec;
       // *NOTE*: apparently, all Win32 sound data is little endian only
       sample_byte_order = ACE_LITTLE_ENDIAN;
+      is_floating_point_b =
+        (waveformatex_p->wFormatTag == WAVE_FORMAT_IEEE_FLOAT);
 
       // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
       //         are unsigned values. (Each audio sample has the range 0–255.)
       //         If the audio contains 16 bits per sample or higher, the audio
       //         samples are signed values. ..."
-      sampleIsSigned_ = !(sub_sample_size == 1);
+      sampleIsSigned_ = !(sample_size == 1);
 
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
@@ -281,18 +283,21 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                 STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
       num_channels = media_type_s.channels;
-      sub_sample_size = snd_pcm_format_width (media_type_s.format) / 8;
-      sample_size = media_type_s.channels * sub_sample_size;
+      sample_size = snd_pcm_format_width (media_type_s.format) / 8;
+      frame_size = media_type_s.channels * sample_size;
       sample_rate = media_type_s.rate;
       sample_byte_order =
-          ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
-                                                                     : -1);
+        ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
+                                                                   : (snd_pcm_format_big_endian (media_type_s.format) == 1) ? 0x3210
+                                                                                                                            : -1);
+      is_floating_point_b = (snd_pcm_format_linear (media_type_s.format) == 0);
 
       sampleIsSigned_ =
           (snd_pcm_format_signed (media_type_s.format) == 1);
 #endif // ACE_WIN32 || ACE_WIN64
-      result_2 = iterator_.initialize (sample_size,
-                                       sub_sample_size,
+      result_2 = iterator_.initialize (frame_size,
+                                       sample_size,
+                                       is_floating_point_b,
                                        sampleIsSigned_,
                                        sample_byte_order);
       if (unlikely (!result_2))
