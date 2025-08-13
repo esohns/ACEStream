@@ -154,14 +154,14 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
+  ACE_ASSERT (iterator_.frameSize_);
+  //ACE_ASSERT (message_inout->length () % iterator_.frameSize_ == 0);
   ACE_ASSERT (iterator_.sampleSize_);
   //ACE_ASSERT (message_inout->length () % iterator_.sampleSize_ == 0);
-  ACE_ASSERT (iterator_.subSampleSize_);
-  //ACE_ASSERT (message_inout->length () % iterator_.subSampleSize_ == 0);
 
-  unsigned int number_of_samples =
-    static_cast<unsigned int> (message_inout->length () / iterator_.sampleSize_);
-  unsigned int samples_to_write = 0;
+  unsigned int number_of_frames =
+    static_cast<unsigned int> (message_inout->length () / iterator_.frameSize_);
+  unsigned int frames_to_write = 0;
   unsigned int offset = 0;
   unsigned int tail_slot = 0;
 
@@ -171,29 +171,29 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()) + offset;
     for (unsigned int i = 0; i < inherited3::channels_; ++i)
     {
-      samples_to_write =
-          (number_of_samples > inherited3::slots_ ? inherited3::slots_
-                                                  : number_of_samples);
+      frames_to_write =
+          (number_of_frames > inherited3::slots_ ? inherited3::slots_
+                                                 : number_of_frames);
 
       // make space for inbound samples at the end of the buffer, shifting
       // previous samples towards the beginning
-      tail_slot = inherited3::slots_ - samples_to_write;
+      tail_slot = inherited3::slots_ - frames_to_write;
       ACE_OS::memmove (&(inherited3::buffer_[i][0]),
-                       &(inherited3::buffer_[i][samples_to_write]),
+                       &(inherited3::buffer_[i][frames_to_write]),
                        tail_slot * sizeof (ValueType));
 
       // copy the sample data to the tail end of the buffer, transform to
       // ValueType
-      for (unsigned int j = 0; j < samples_to_write; ++j)
+      for (unsigned int j = 0; j < frames_to_write; ++j)
         inherited3::buffer_[i][tail_slot + j] = iterator_.get (j, i);
-      offset += (iterator_.subSampleSize_ * samples_to_write);
+      offset += (iterator_.sampleSize_ * frames_to_write);
 
       // analyze sample data
-      Process (i, tail_slot, tail_slot + samples_to_write - 1);
+      Process (i, tail_slot, tail_slot + frames_to_write - 1);
     } // end FOR
 
-    number_of_samples -= samples_to_write;
-    if (unlikely (number_of_samples == 0))
+    number_of_frames -= frames_to_write;
+    if (unlikely (number_of_frames == 0))
       break; // done
   } while (true);
 }
@@ -266,7 +266,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       frame_size = (waveformatex_p->nChannels * sample_size);
       sample_rate = waveformatex_p->nSamplesPerSec;
       // *NOTE*: apparently, all Win32 sound data is little endian only
-      sample_byte_order = ACE_LITTLE_ENDIAN;
+      sample_byte_order = 0x0123; // ACE_LITTLE_ENDIAN
       is_floating_point_b =
         (waveformatex_p->wFormatTag == WAVE_FORMAT_IEEE_FLOAT);
 
@@ -287,9 +287,9 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       frame_size = media_type_s.channels * sample_size;
       sample_rate = media_type_s.rate;
       sample_byte_order =
-        ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
-                                                                   : (snd_pcm_format_big_endian (media_type_s.format) == 1) ? 0x3210
-                                                                                                                            : -1);
+        ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? 0x0123 // ACE_LITTLE_ENDIAN
+                                                                   : (snd_pcm_format_big_endian (media_type_s.format) == 1) ? 0x3210 // ACE_BIG_ENDIAN
+                                                                                                                            : -1); // N/A
       is_floating_point_b = (snd_pcm_format_linear (media_type_s.format) == 0);
 
       sampleIsSigned_ =
@@ -517,7 +517,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
   {
     // step1: 'attack' detection
     abs_value =
-      (sampleIsSigned_ ? std::abs (inherited3::buffer_[channel_in][startIndex_in + j]) + static_cast<ValueType> ((1ULL << ((8 * iterator_.subSampleSize_) - 1)) - 1)
+      (sampleIsSigned_ ? std::abs (inherited3::buffer_[channel_in][startIndex_in + j]) + static_cast<ValueType> ((1ULL << ((8 * iterator_.sampleSize_) - 1)) - 1)
                        : inherited3::buffer_[channel_in][startIndex_in + j]);
     old_mean = (sampleCount_ ? amplitudeM_ : abs_value);
     amplitudeM_ =
@@ -579,17 +579,17 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     // step2b: 'sustain' detection (volume)
     old_mean = (sampleCount_ ? volumeM_ : abs_value);
     volumeM_ =
-        (sampleCount_ ? old_mean + (((double)abs_value - old_mean) / (double)sampleCount_)
-                      : abs_value);
+      (sampleCount_ ? old_mean + (((double)abs_value - old_mean) / (double)sampleCount_)
+                    : abs_value);
     difference = ((double)abs_value - old_mean);
     volumeS_ =
-        volumeS_ + (((double)abs_value - old_mean) * ((double)abs_value - volumeM_));
+      volumeS_ + (((double)abs_value - old_mean) * ((double)abs_value - volumeM_));
     std_deviation = (sampleCount_ ? std::sqrt (volumeS_ / (double)sampleCount_)
                                   : 0.0);
     was_in_volume = in_volume;
     ACE_UNUSED_ARG (was_in_volume);
     in_volume =
-        (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std_deviation));
+      (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std_deviation));
 
 continue_2:
     if (unlikely (inherited::configuration_->dispatch &&
