@@ -54,11 +54,15 @@ struct Stream_Miscellaneous_DelayConfiguration
 {
   Stream_Miscellaneous_DelayConfiguration ()
    : averageTokensPerInterval (0)
+   , catchUp (false)
    , interval (ACE_Time_Value::zero)
    , mode (STREAM_MISCELLANEOUS_DELAY_MODE_INVALID)
   {}
 
   ACE_UINT64                              averageTokensPerInterval;
+  // catch-up mode (accumulate unused available tokens ? : reset after each interval)
+  // *NOTE*: set this to false for real isochronicity (i.e. no catch-up)
+  bool                                    catchUp;
   ACE_Time_Value                          interval;
   enum Stream_Miscellaneous_DelayModeType mode;
 };

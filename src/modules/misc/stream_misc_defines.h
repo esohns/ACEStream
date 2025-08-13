@@ -21,8 +21,6 @@
 #ifndef STREAM_MISC_DEFINES_H
 #define STREAM_MISC_DEFINES_H
 
-#include "ace/config-lite.h"
-
 // module
 #define STREAM_MISC_AGGREGATOR_DEFAULT_NAME_STRING                  "Aggregator"
 #define STREAM_MISC_ASYNCH_DEFAULT_NAME_STRING                      "Asynch"
@@ -45,6 +43,9 @@
 #define STREAM_MISC_DEFAULT_INPUT_STREAM_NAME_STRING                "InputStream"
 
 #define STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US                 10000 // us
+// *NOTE*: adjust the average bps by this factor to allow smooth audio playback.
+//         A value of 2 seems to produce satisfactory ressults, i.e. no glitches
+#define STREAM_MISC_DEFAULT_DELAY_AUDIO_TOKEN_MULTIPLIER            2
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // DirectShow
@@ -65,11 +66,11 @@
 #define STREAM_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L            L"ACEStream DirectShow Asynch Source"
 #define STREAM_MISC_DS_WIN32_FILTER_NAME_SOURCE                     "ACEStream DirectShow Source"
 #define STREAM_MISC_DS_WIN32_FILTER_NAME_SOURCE_L                   L"ACEStream DirectShow Source"
-#define STREAM_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME                 L"Output"
+#define STREAM_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME_L               L"Output"
 
 // MediaFoundation
 // *NOTE*: #samples each stream tries to hold in its queue
-#define STREAM_MISC_MF_WIN32_MEDIA_SOURCE_SAMPLE_QUEUE_SIZE         2;
+#define STREAM_MISC_MF_WIN32_MEDIA_SOURCE_SAMPLE_QUEUE_SIZE         2
 
 #define STREAM_MISC_MF_WIN32_BYTESTREAMHANDLER_DESCRIPTION          "ACEStream Source ByteStreamHandler"
 #define STREAM_MISC_MF_WIN32_REG_BYTESTREAMHANDLERS_KEY             "Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers"

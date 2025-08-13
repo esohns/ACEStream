@@ -434,7 +434,14 @@ retry:
         goto error;
       } // end IF
       result_2 = audioClient_->SetEventHandle (event_);
-      ACE_ASSERT (SUCCEEDED (result_2));
+      if (unlikely (!SUCCEEDED (result_2)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IAudioClient::SetEventHandle(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
+        goto error;
+      } // end IF
 
       ACE_ASSERT (!audioCaptureClient_);
       result_2 = audioClient_->GetService (IID_PPV_ARGS (&audioCaptureClient_));
@@ -877,7 +884,11 @@ continue_:
 
     // step2: grab the next buffer(s) from the capture device
     result_4 = audioCaptureClient_->GetNextPacketSize (&packet_length_i);
-    ACE_ASSERT (SUCCEEDED (result_4));
+    if (unlikely (!SUCCEEDED (result_4)))
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: failed to IAudioCaptureClient::GetNextPacketSize(): \"%s\", continuing\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_4, false, false).c_str ())));
     while (packet_length_i)
     {
       result_4 = audioCaptureClient_->GetBuffer (&data_p,

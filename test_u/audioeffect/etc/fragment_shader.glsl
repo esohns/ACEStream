@@ -1,7 +1,8 @@
 #version 330 core
 
+//in vec3 ourPosition;
 in vec4 ourColor;
-in vec2 TexCoord;
+in vec2 ourTexCoord;
 
 out vec4 FragColor;
 
@@ -13,9 +14,9 @@ void
 main ()
 {
   //FragColor = ourColor;
-  //FragColor = texture (texture1, TexCoord);
-  //FragColor = texture (texture1, TexCoord) * ourColor;
+  //FragColor = texture (texture1, ourTexCoord);
+  //FragColor = texture (texture1, ourTexCoord) * ourColor;
 
   float pct = abs (sin (time));
-  FragColor = mix (texture (texture1, TexCoord), ourColor, pct);
+  FragColor = mix (texture (texture1, ourTexCoord), ourColor, pct);
 }

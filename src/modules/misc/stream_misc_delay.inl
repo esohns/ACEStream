@@ -228,7 +228,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_INVALID, // N/A
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
       waveformatex_p =
@@ -238,7 +238,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
       inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_INVALID, // N/A
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
       average_bytes_per_second_i =
         media_type_s.rate                                *
@@ -248,7 +248,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
       availableTokens_ =
         static_cast<ACE_UINT64> (static_cast<float> (average_bytes_per_second_i) * static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US) / 1000000.0F);
       inherited::configuration_->delayConfiguration->averageTokensPerInterval =
-        availableTokens_;
+        availableTokens_ * STREAM_MISC_DEFAULT_DELAY_AUDIO_TOKEN_MULTIPLIER;
       interval = ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
       inherited::configuration_->delayConfiguration->mode =
         STREAM_MISCELLANEOUS_DELAY_MODE_BYTES;
@@ -413,11 +413,12 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->delayConfiguration);
 
-  int result = -1;
+  int result;
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-    availableTokens_ = // --> do NOT "catch up"
-      inherited::configuration_->delayConfiguration->averageTokensPerInterval;
+    availableTokens_ =
+      (inherited::configuration_->delayConfiguration->catchUp ? availableTokens_ + inherited::configuration_->delayConfiguration->averageTokensPerInterval
+                                                              : inherited::configuration_->delayConfiguration->averageTokensPerInterval);
 
     result = condition_.broadcast ();
     if (unlikely (result == -1))
@@ -637,9 +638,9 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->delayConfiguration);
   ACE_ASSERT (messageBlock_in);
 
-  int result = -1;
-  ACE_UINT64 available_tokens_i = 0;
-  size_t total_length_i = 0;
+  int result;
+  ACE_UINT64 available_tokens_i;
+  size_t total_length_i;
 
 continue_:
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
@@ -719,7 +720,19 @@ continue_:
       } // end IF
 
       if (available_tokens_i < total_length_i)
-        goto continue_;
+      {
+        if (availableTokens_)
+          goto continue_;
+        result = queue_.enqueue_head (messageBlock_in, NULL);
+        if (unlikely (result == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue_head(): \"%m\", returning\n"),
+                      inherited::mod_->name ()));
+          messageBlock_in->release ();
+          return;
+        } // end IF
+      } // end IF
 
       break;
     }
@@ -823,60 +836,60 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_2::handleDataMessage"));
 
-     // sanity check(s)
+  // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->delayConfiguration);
 
   passMessageDownstream_out = false;
 
-  int result = -1;
-  ACE_UINT64 available_tokens_i = 0;
-  size_t total_length_i = 0;
+  int result;
+  ACE_UINT64 available_tokens_i;
+  size_t total_length_i;
   ACE_Message_Block* message_block_p = message_inout;
   message_inout = NULL;
 
-//continue_:
-{ ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-  while (!availableTokens_)
-  {
-    result = condition_.wait (NULL);
-    if (unlikely (result == -1))
+continue_:
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+    while (!availableTokens_)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_CONDITION::wait(): \"%m\", returning\n"),
-                  inherited::mod_->name ()));
-      message_block_p->release ();
-      return;
-    } // end IF
-  } // end WHILE
+      result = condition_.wait (NULL);
+      if (unlikely (result == -1))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_SYNCH_CONDITION::wait(): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        message_block_p->release ();
+        return;
+      } // end IF
+    } // end WHILE
 
-  switch (inherited::configuration_->delayConfiguration->mode)
-  {
-    case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
+    switch (inherited::configuration_->delayConfiguration->mode)
     {
-      total_length_i = message_block_p->total_length ();
-      available_tokens_i = std::min (total_length_i, availableTokens_);
-      availableTokens_ -= available_tokens_i;
-      break;
-    }
-    case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
-    case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER:
-    {
-      available_tokens_i = 1;
-      --availableTokens_;
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown delay mode (was: %d), returning\n"),
-                  inherited::mod_->name (),
-                  inherited::configuration_->delayConfiguration->mode));
-      message_block_p->release ();
-      return;
-    }
-  } // end SWITCH
-} // end lock scope
+      case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
+      {
+        total_length_i = message_block_p->total_length ();
+        available_tokens_i = std::min (total_length_i, availableTokens_);
+        availableTokens_ -= available_tokens_i;
+        break;
+      }
+      case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
+      case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER:
+      {
+        available_tokens_i = 1;
+        --availableTokens_;
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown delay mode (was: %d), returning\n"),
+                    inherited::mod_->name (),
+                    inherited::configuration_->delayConfiguration->mode));
+        message_block_p->release ();
+        return;
+      }
+    } // end SWITCH
+  } // end lock scope
 
   switch (inherited::configuration_->delayConfiguration->mode)
   {
@@ -912,6 +925,8 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
 
       if (available_tokens_i < total_length_i)
       {
+        if (availableTokens_)
+          goto continue_;
         result = inherited::ungetq (message_block_p, NULL);
         if (unlikely (result == -1))
         {
@@ -972,17 +987,17 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_2::handleSessionMessage"));
 
-     // don't care (implies yes per default, if part of a stream)
+  // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-     // sanity check(s)
+  // sanity check(s)
   ACE_ASSERT (message_inout);
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->delayConfiguration);
 
   Common_ITimerCBBase* itimer_p =
     (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
-                                               : COMMON_TIMERMANAGER_SINGLETON::instance ());
+                                             : COMMON_TIMERMANAGER_SINGLETON::instance ());
   ACE_ASSERT (itimer_p);
 
   switch (message_inout->type ())
@@ -1004,11 +1019,11 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
       if (inherited::configuration_->delayConfiguration->mode != STREAM_MISCELLANEOUS_DELAY_MODE_INVALID)
         goto continue_;
 
-   // *TODO*: move this to a template specialization
+      // *TODO*: this assumes audio input; move this block to a template specialization
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_INVALID, // N/A
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
       waveformatex_p =
@@ -1018,7 +1033,7 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
       inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_INVALID, // N/A
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
       average_bytes_per_second_i = media_type_s.rate                                *
                                    (snd_pcm_format_width (media_type_s.format) / 8) *
@@ -1027,7 +1042,7 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
       availableTokens_ =
         static_cast<ACE_UINT64> (static_cast<float> (average_bytes_per_second_i) * static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US) / 1000000.0F);
       inherited::configuration_->delayConfiguration->averageTokensPerInterval =
-        availableTokens_;
+        availableTokens_ * STREAM_MISC_DEFAULT_DELAY_AUDIO_TOKEN_MULTIPLIER;
       inherited::configuration_->delayConfiguration->interval =
         ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
       inherited::configuration_->delayConfiguration->mode =
@@ -1139,11 +1154,12 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->delayConfiguration);
 
-  int result = -1;
+  int result;
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-    availableTokens_ += // --> "catch up"
-      inherited::configuration_->delayConfiguration->averageTokensPerInterval;
+    availableTokens_ =
+      (inherited::configuration_->delayConfiguration->catchUp ? availableTokens_ + inherited::configuration_->delayConfiguration->averageTokensPerInterval
+                                                              : inherited::configuration_->delayConfiguration->averageTokensPerInterval);
 
     result = condition_.broadcast ();
     if (unlikely (result == -1))

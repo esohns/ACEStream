@@ -64,7 +64,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
  , volumeS_ (0.0)
  , eventDispatcher_ (NULL)
  , iterator_ (NULL)
- , sampleCount_ (0)
+ , frameCount_ (0)
  , sampleIsSigned_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::Stream_Statistic_StatisticAnalysis_T"));
@@ -117,7 +117,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
     eventDispatcher_ = NULL;
     iterator_.buffer_ = NULL;
-    sampleCount_ = 0;
+    frameCount_ = 0;
     sampleIsSigned_ = false;
   } // end IF
 
@@ -334,17 +334,14 @@ error:
 
       session_data_r.statistic.amplitudeAverage = amplitudeM_;
       session_data_r.statistic.amplitudeVariance =
-              ((sampleCount_ > 1) ? amplitudeS_ / (double)(sampleCount_ - 1)
-                                  : 0.0);
+        (frameCount_ ? amplitudeS_ / (double)(frameCount_ - 1) : 0.0);
       session_data_r.statistic.streakAverage = streakM_;
       session_data_r.statistic.streakCount = streakCount_;
       session_data_r.statistic.streakVariance =
-          ((sampleCount_ > 1) ? streakS_ / (double)(sampleCount_ - 1)
-                              : 0.0);
+        (frameCount_ ? streakS_ / (double)(frameCount_ - 1) : 0.0);
       session_data_r.statistic.volumeAverage = volumeM_;
       session_data_r.statistic.volumeVariance =
-          ((sampleCount_ > 1) ? volumeS_ / (double)(sampleCount_ - 1)
-                              : 0.0);
+        (frameCount_ ? volumeS_ / (double)(frameCount_ - 1) : 0.0);
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
@@ -510,33 +507,35 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
   static bool in_volume = false;
   static bool was_in_volume = false;
 
-  ValueType abs_value = 0;
-  double difference = 0.0, old_mean = 0.0, std_deviation = 0.0;
+  ValueType abs_value;
+  double abs_value_d, frame_count_d, difference, old_mean, std_deviation, streak_d;
 
-  for (unsigned int j = 0; j < (endIndex_in - startIndex_in + 1); ++j, ++sampleCount_)
+  for (unsigned int j = 0; j < (endIndex_in - startIndex_in + 1); ++j, ++frameCount_)
   {
-    // step1: 'attack' detection
     abs_value =
       (sampleIsSigned_ ? std::abs (inherited3::buffer_[channel_in][startIndex_in + j]) + static_cast<ValueType> ((1ULL << ((8 * iterator_.sampleSize_) - 1)) - 1)
                        : inherited3::buffer_[channel_in][startIndex_in + j]);
-    old_mean = (sampleCount_ ? amplitudeM_ : abs_value);
+    abs_value_d = static_cast<double> (abs_value);
+    frame_count_d = static_cast<double> (frameCount_);
+
+    // step1: 'attack' detection
+    old_mean = (frameCount_ ? amplitudeM_ : abs_value_d);
     amplitudeM_ =
-        (sampleCount_ ? old_mean + (((double)abs_value - old_mean) / (double)sampleCount_)
-                      : abs_value);
-    difference = ((double)abs_value - old_mean);
+      (frameCount_ ? old_mean + ((abs_value_d - old_mean) / frame_count_d) : abs_value_d);
+    difference = abs_value_d - old_mean;
     amplitudeS_ =
-        amplitudeS_ + (((double)abs_value - old_mean) * ((double)abs_value - amplitudeM_));
-    std_deviation = (sampleCount_ ? std::sqrt (amplitudeS_ / (double)sampleCount_)
-                                  : 0.0);
-        
+      amplitudeS_ + ((abs_value_d - old_mean) * (abs_value_d - amplitudeM_));
+    std_deviation = (frameCount_ ? std::sqrt (amplitudeS_ / frame_count_d) : 0.0);
+
     was_in_peak = in_peak;
     in_peak =
-        (std::abs (difference) > (MODULE_STAT_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE * std_deviation));
+      (std::abs (difference) > (MODULE_STAT_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE * std_deviation));
 
     // step2a: 'sustain' detection (streak)
-    if (difference <= 0)
+    if (difference <= 0.0)
     { // --> amplitude drop
       streak_ = 0;
+      streak_d = 0.0;
       in_streak = false;
 
       in_volume = false;
@@ -547,18 +546,17 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     } // end IF
 
     ++streak_;
-    old_mean = (sampleCount_ ? streakM_ : abs_value);
+    streak_d = static_cast<double> (streak_);
+
+    old_mean = (frameCount_ ? streakM_ : abs_value_d);
     streakM_ =
-        (sampleCount_ ? old_mean + (((double)streak_ - old_mean) / (double)sampleCount_)
-                      : streak_);
-    difference = ((double)streak_ - old_mean);
-    streakS_ =
-        streakS_ + (((double)streak_ - old_mean) * ((double)streak_ - streakM_));
-    std_deviation = (sampleCount_ ? std::sqrt (streakS_ / (double)sampleCount_)
-                                  : 0.0);
+      (frameCount_ ? old_mean + ((streak_d - old_mean) / frame_count_d) : streak_d);
+    difference = (streak_d - old_mean);
+    streakS_ = streakS_ + ((streak_d - old_mean) * (streak_d - streakM_));
+    std_deviation = (frameCount_ ? std::sqrt (streakS_ / frame_count_d) : 0.0);
     was_in_streak = in_streak;
     in_streak =
-        (std::abs (difference) >= (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std_deviation));
+      (std::abs (difference) >= (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std_deviation));
 
     if (unlikely (in_streak))
     {
@@ -570,6 +568,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     if (unlikely (was_in_streak))
     {
       streak_ = 0;
+      streak_d = 0.0;
 
       in_volume = false;
       volumeM_ = 0.0;
@@ -577,15 +576,13 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     } // end IF
 
     // step2b: 'sustain' detection (volume)
-    old_mean = (sampleCount_ ? volumeM_ : abs_value);
+    old_mean = (frameCount_ ? volumeM_ : abs_value_d);
     volumeM_ =
-      (sampleCount_ ? old_mean + (((double)abs_value - old_mean) / (double)sampleCount_)
-                    : abs_value);
-    difference = ((double)abs_value - old_mean);
+      (frameCount_ ? old_mean + ((abs_value_d - old_mean) / frame_count_d) : abs_value_d);
+    difference = abs_value_d - old_mean;
     volumeS_ =
-      volumeS_ + (((double)abs_value - old_mean) * ((double)abs_value - volumeM_));
-    std_deviation = (sampleCount_ ? std::sqrt (volumeS_ / (double)sampleCount_)
-                                  : 0.0);
+      volumeS_ + ((abs_value_d - old_mean) * (abs_value_d - volumeM_));
+    std_deviation = (frameCount_ ? std::sqrt (volumeS_ / frame_count_d) : 0.0);
     was_in_volume = in_volume;
     ACE_UNUSED_ARG (was_in_volume);
     in_volume =

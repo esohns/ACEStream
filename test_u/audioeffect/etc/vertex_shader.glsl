@@ -4,8 +4,9 @@ layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec4 aColor;
 layout (location = 2) in vec2 aTexCoord;
 
+//out vec3 ourPosition;
 out vec4 ourColor;
-out vec2 TexCoord;
+out vec2 ourTexCoord;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -18,7 +19,7 @@ main ()
   ourColor = aColor;
 // *IMPORTANT NOTE*: "...OpenGL stores textures starting at the bottom left
 //                   pixel while images are usually stored starting with the top
-//                   left pixel..." --> flip texture
-  TexCoord = vec2 (aTexCoord.x, 1.0f - aTexCoord.y);
-//  TexCoord = aTexCoord;
+//                   left pixel..." --> flip texture ?
+//  ourTexCoord = vec2 (aTexCoord.x, 1.0f - aTexCoord.y);
+  ourTexCoord = aTexCoord;
 }

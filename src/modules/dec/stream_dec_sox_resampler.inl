@@ -620,8 +620,9 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
         } // end IF
         free (effect_p); effect_p = NULL;
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: added SoX effect \"rate\"\n"),
-                    inherited::mod_->name ()));
+                    ACE_TEXT ("%s: added SoX effect \"rate\" (%.2f Hz --> %.2f Hz)\n"),
+                    inherited::mod_->name (),
+                    signalInfo_.rate, signalInfoOut_.rate));
       } // end IF
 
       if (signalInfo_.channels != signalInfoOut_.channels)
@@ -668,8 +669,9 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
         } // end IF
         free (effect_p); effect_p = NULL;
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: added SoX effect \"channels\"\n"),
-                    inherited::mod_->name ()));
+                    ACE_TEXT ("%s: added SoX effect \"channels\" (%u --> %u)\n"),
+                    inherited::mod_->name (),
+                    signalInfo_.channels, signalInfoOut_.channels));
       } // end IF
 
       effect_handler_p =
@@ -711,7 +713,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
       session_data_r.formats.push_back (media_type_3);
 
 continue_2:
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
       Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -719,7 +721,7 @@ continue_2:
       goto continue_;
 
 error:
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
       Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
 #endif // ACE_WIN32 || ACE_WIN64

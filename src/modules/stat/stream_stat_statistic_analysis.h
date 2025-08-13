@@ -117,7 +117,7 @@ class Stream_Statistic_StatisticAnalysis_T
 
   INOTIFY_T*                      eventDispatcher_;
   typename inherited3::ITERATOR_T iterator_;
-  unsigned int                    sampleCount_; // processed-
+  unsigned int                    frameCount_; // processed-
   bool                            sampleIsSigned_;
 };
 

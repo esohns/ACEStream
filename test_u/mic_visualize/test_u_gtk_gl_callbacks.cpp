@@ -363,7 +363,7 @@ glarea_realize_cb (GtkWidget* widget_in,
     filename += ACE_DIRECTORY_SEPARATOR_CHAR;
     filename +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_OPENGL_DEFAULT_TEXTURE_FILE);
-    *texture_id_p = Common_GL_Tools::loadTexture (filename, true);
+    *texture_id_p = Common_GL_Tools::loadTexture (filename, false);
     if (!*texture_id_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -378,8 +378,7 @@ glarea_realize_cb (GtkWidget* widget_in,
     glBindTexture (GL_TEXTURE_2D, *texture_id_p);
 
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                     GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glGenerateMipmap (GL_TEXTURE_2D);
   } // end IF
 
@@ -1327,12 +1326,10 @@ glarea_expose_event_cb (GtkWidget* widget_in,
     return FALSE;
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
   glBindVertexArray (*VAO_p);
 
   glBindTexture (GL_TEXTURE_2D, *texture_id_p);
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
 #if defined (GLM_SUPPORT)
   glm::mat4 model_matrix = glm::mat4 (1.0f); // make sure to initialize matrix to identity matrix first
@@ -1362,13 +1359,13 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   shader_p->setMat4 (ACE_TEXT_ALWAYS_CHAR ("projection"), projection_matrix);
 #endif // GLM_SUPPORT
   shader_p->setInt (ACE_TEXT_ALWAYS_CHAR ("texture1"), 0); // *IMPORTANT NOTE*: <-- texture unit (!) not -id
+  shader_p->setFloat (ACE_TEXT_ALWAYS_CHAR ("time"), 0.0f);
 
   glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, *EBO_p);
-  COMMON_GL_ASSERT;
 
-  glDisable (GL_DEPTH_TEST);
+  //glDisable (GL_DEPTH_TEST);
   glDrawElements (GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_BYTE, (void*)0); // see: cube_indices
-  glEnable (GL_DEPTH_TEST);
+  //glEnable (GL_DEPTH_TEST);
 
   glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 

@@ -347,17 +347,7 @@ glarea_realize_cb (GtkWidget* widget_in,
                 ACE_TEXT (glewGetErrorString (err))));
 #endif // GLEW_SUPPORT
 
-  glEnable (GL_BLEND);                                // Enable Semi-Transparency
-  //glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  //glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective
   glEnable (GL_TEXTURE_2D);                           // Enable Texture Mapping
-  //glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
-  //glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-
-  //glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
-  //glDepthFunc (GL_LESS);                              // The Type Of Depth Testing To Do
-  //glDepthMask (GL_TRUE);
 
   // load texture
   if (!*texture_id_p)
@@ -373,7 +363,7 @@ glarea_realize_cb (GtkWidget* widget_in,
     filename += ACE_DIRECTORY_SEPARATOR_CHAR;
     filename +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_OPENGL_DEFAULT_TEXTURE_FILE);
-    *texture_id_p = Common_GL_Tools::loadTexture (filename, true);
+    *texture_id_p = Common_GL_Tools::loadTexture (filename, false);
     if (!*texture_id_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -416,6 +406,16 @@ glarea_realize_cb (GtkWidget* widget_in,
 
   glFrustum (-fW, fW, -fH, fH, 0.1, 100.0);
 #endif // GLU_SUPPORT
+
+  //glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective
+  //glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
+  //glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+
+  glEnable (GL_BLEND);                                // Enable Semi-Transparency
+  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
+  //glDepthFunc (GL_LESS);                              // The Type Of Depth Testing To Do
+  //glDepthMask (GL_TRUE);
 
   path_root = Common_File_Tools::getWorkingDirectory ();
   vertex_shader_file_path = path_root;
@@ -1360,12 +1360,13 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   shader_p->setMat4 (ACE_TEXT_ALWAYS_CHAR ("projection"), projection_matrix);
 #endif // GLM_SUPPORT
   shader_p->setInt (ACE_TEXT_ALWAYS_CHAR ("texture1"), 0); // *IMPORTANT NOTE*: <-- texture unit (!) not -id
+  shader_p->setFloat (ACE_TEXT_ALWAYS_CHAR ("time"), 0.0f);
 
   glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, *EBO_p);
 
-  glDisable (GL_DEPTH_TEST);
+  //glDisable (GL_DEPTH_TEST);
   glDrawElements (GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_BYTE, (void*)0); // see: cube_indices
-  glEnable (GL_DEPTH_TEST);
+  //glEnable (GL_DEPTH_TEST);
 
   glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 
