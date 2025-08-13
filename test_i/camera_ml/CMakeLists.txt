@@ -93,7 +93,6 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_message.cpp
      test_i_message.h
      test_i_message.inl
-     test_i_olc_pge.cpp
      test_i_session_message.cpp
      test_i_session_message.h
      test_i_session_message.inl
@@ -106,6 +105,11 @@ if (TENSORFLOW_SUPPORT OR TENSORFLOW_CC_SUPPORT)
       test_i_camera_ml_module_tensorflow.h
       test_i_camera_ml_module_tensorflow.inl)
 endif (TENSORFLOW_SUPPORT OR TENSORFLOW_CC_SUPPORT)
+if (OLC_PGE_SUPPORT)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
+      test_i_olc_pge.cpp)
+endif (OLC_PGE_SUPPORT)
 
 if (MEDIAPIPE_SUPPORT)
  if (UNIX)
@@ -149,12 +153,16 @@ if (MEDIAPIPE_SUPPORT)
       test_i_message.cpp
       test_i_message.h
       test_i_message.inl
-      test_i_olc_pge.cpp
       test_i_session_message.cpp
       test_i_session_message.h
       test_i_session_message.inl
       test_i_stream_2.cpp
       test_i_stream_2.h)
+ if (OLC_PGE_SUPPORT)
+  set (${EXECUTABLE_2}_EXE_SRCS
+       ${${EXECUTABLE_2}_EXE_SRCS}
+       test_i_olc_pge.cpp)
+ endif (OLC_PGE_SUPPORT)
 
  if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
   include_directories (${BOX2D_INCLUDE_DIRS})
