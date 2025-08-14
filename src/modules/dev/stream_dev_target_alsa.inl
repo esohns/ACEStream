@@ -275,6 +275,10 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
                     inherited::mod_->name (),
                     result));
+      else
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborting\n"),
+                    inherited::mod_->name ()));
       break;
     }
     default:
@@ -358,17 +362,18 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
     {
       unsigned int result = queue_.flush (false); // flush all data messages
       if (unlikely (result == static_cast<unsigned int> (-1)))
-      {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", returning\n"),
+                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
-        return;
-      } // end IF
       else if (result > 0)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: aborting session: flushed %u data messages\n"),
                     inherited::mod_->name (),
                     result));
+      else
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborting session\n"),
+                    inherited::mod_->name ()));
 
       high_priority_b = true;
       goto end;
