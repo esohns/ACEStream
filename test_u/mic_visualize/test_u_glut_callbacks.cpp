@@ -146,7 +146,7 @@ void
 test_u_glut_draw (void)
 {
   static int frame_count_i = 1;
-  float x1, y1, z1;
+  float x, y, z, x1, y1, z1;
   int i = 0;
   float r, g, b;
   std::vector<float> spectrum_a;
@@ -154,8 +154,12 @@ test_u_glut_draw (void)
   struct Test_U_GLUT_CBData* cb_data_p =
     static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
-  if (!cb_data_p->fft) // stream currently not running ?
-    goto continue_;
+  { ACE_GUARD (ACE_Thread_Mutex, aGuard, cb_data_p->lock);
+    if (likely (cb_data_p->fft))
+      spectrum_a = cb_data_p->fft->Spectrum (false); // do not normalize
+    else
+      spectrum_a.resize ((TEST_U_DEFAULT_ANALYZER_RESOLUTION / 2) - 1, 0.0f);
+  } // end lock scope
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -173,19 +177,16 @@ test_u_glut_draw (void)
 
   // draw a red x-axis, a green y-axis, and a blue z-axis. Each of the
   // axes are 100 units long
-  glBegin (GL_LINES);
-  glColor3f (1.0f, 0.0f, 0.0f); glVertex3i (0, 0, 0); glVertex3i (100, 0, 0);
-  glColor3f (0.0f, 1.0f, 0.0f); glVertex3i (0, 0, 0); glVertex3i (0, 100, 0);
-  glColor3f (0.0f, 0.0f, 1.0f); glVertex3i (0, 0, 0); glVertex3i (0, 0, 100);
-  glEnd ();
-
-  //glColor3f (1.0f, 1.0f, 1.0f);
+  //glBegin (GL_LINES);
+  //glColor3f (1.0f, 0.0f, 0.0f); glVertex3i (0, 0, 0); glVertex3i (100, 0, 0);
+  //glColor3f (0.0f, 1.0f, 0.0f); glVertex3i (0, 0, 0); glVertex3i (0, 100, 0);
+  //glColor3f (0.0f, 0.0f, 1.0f); glVertex3i (0, 0, 0); glVertex3i (0, 0, 100);
+  //glEnd ();
 
   glTranslatef (0.0f, -250.0f, 0.0f);
   glRotatef (static_cast<float> (M_PI_4) * (180.0f / static_cast<float> (M_PI)), 1.0f, 0.0f, 0.0f);
   glRotatef (frame_count_i / 10.0f * (180.0f / static_cast<float> (M_PI)), 0.0f, 0.0f, 1.0f);
 
-  spectrum_a = cb_data_p->fft->Spectrum ();
   for (int k = 0; k < TEST_U_GLUT_DEFAULT_LAYERS; k++)
   {
     Common_Image_Tools::HSVToRGB (std::fmod (k * 18.0f, 360.0f),
@@ -195,17 +196,12 @@ test_u_glut_draw (void)
     glColor3f (r, g, b);
 
     glBegin (GL_LINE_STRIP);
-    for (float a = 0.0f; a < 2.0f * static_cast<float> (M_PI); a += 1.0f / static_cast<float> (k))
+    for (float a = 0.0f; a < 2.0f * static_cast<float> (M_PI); a += 1.0f / (0.8f * static_cast<float> (k)))
     {
-      float x = TEST_U_GLUT_DEFAULT_D * k * std::cos (a);
-      float y = TEST_U_GLUT_DEFAULT_D * k * std::sin (a);
-      float z = static_cast<float> (k); //*std::cos (frame_count_i);
-      // z *= noise(x/30,y/30);
-      if (i < static_cast<int> (spectrum_a.size ()))
-      {
-        z -= spectrum_a[i++] * TEST_U_GLUT_DEFAULT_AMP_FACTOR;
-        // stroke(255, 144, random(0,255));
-      } // end IF
+      x = TEST_U_GLUT_DEFAULT_D * k * std::cos (a);
+      y = TEST_U_GLUT_DEFAULT_D * k * std::sin (a);
+      z = static_cast<float> (k); //* 3.0f * std::cos (frame_count_i);
+      z -= (spectrum_a[i++ % spectrum_a.size ()] * TEST_U_GLUT_DEFAULT_AMP_FACTOR);
 
       if (unlikely (a == 0.0f))
       {
@@ -220,7 +216,6 @@ test_u_glut_draw (void)
     glEnd ();
   } // end FOR
 
-continue_:
   glutSwapBuffers ();
 
   ++frame_count_i;

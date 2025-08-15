@@ -119,6 +119,7 @@ class Stream_Statistic_StatisticAnalysis_T
   typename inherited3::ITERATOR_T iterator_;
   unsigned int                    frameCount_; // processed-
   bool                            sampleIsSigned_;
+  ValueType                       signedSampleModifier_;
 };
 
 // include template definition

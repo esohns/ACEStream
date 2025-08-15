@@ -145,7 +145,9 @@ class Stream_Dev_Cam_Source_DirectShow_T
   // implement IMemAllocatorNotifyCallbackTemp
   inline STDMETHODIMP NotifyRelease (void) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (E_FAIL); ACE_NOTREACHED (return E_FAIL;) }
   // implement ISampleGrabberCB
-  inline STDMETHODIMP BufferCB (double, BYTE*, long) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (E_FAIL); ACE_NOTREACHED (return E_FAIL;) }
+  STDMETHODIMP BufferCB (double, // SampleTime
+                         BYTE*,  // Buffer
+                         long);  // Size
   STDMETHODIMP SampleCB (double,         // SampleTime
                          IMediaSample*); // Sample
 

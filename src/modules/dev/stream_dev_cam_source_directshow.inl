@@ -999,6 +999,85 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    TimerManagerType,
                                    UserDataType,
                                    MediaType,
+                                   MediaSampleIsDataMessage>::BufferCB (double sampleTime_in,
+                                                                        BYTE* buffer_in,
+                                                                        long size_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::BufferCB"));
+
+  int result = -1;
+  DataMessageType* message_p = NULL;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  // *TODO*: remove type inferences
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+
+  message_p =
+    inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+  if (unlikely (!message_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), aborting\n"),
+                inherited::mod_->name (),
+                inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+    return E_FAIL;
+  } // end IF
+  ACE_ASSERT (message_p);
+  typename DataMessageType::DATA_T& data_r =
+    const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+  data_r.sampleTime = sampleTime_in;
+  ACE_ASSERT (size_in <= static_cast<long> (inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+  result = message_p->copy (reinterpret_cast<char*> (buffer_in),
+                            size_in);
+  ACE_ASSERT (result == 0);
+
+  result = inherited::put (message_p, NULL);
+  if (unlikely (result == -1))
+  {
+    int error = ACE_OS::last_error ();
+    if (error != ESHUTDOWN)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::put(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
+    message_p->release (); message_p = NULL;
+    return E_FAIL;
+  } // end IF
+
+  return S_OK;
+}
+
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename UserDataType,
+          typename MediaType,
+          bool MediaSampleIsDataMessage>
+HRESULT
+Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   ConfigurationType,
+                                   StreamControlType,
+                                   StreamNotificationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType,
+                                   TimerManagerType,
+                                   UserDataType,
+                                   MediaType,
                                    MediaSampleIsDataMessage>::SampleCB (double sampleTime_in,
                                                                         IMediaSample* sample_in)
 {
@@ -1028,7 +1107,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
     // *TODO*: remove type inference
     message_p =
       inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-    if (!message_p)
+    if (unlikely (!message_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), aborting\n"),
@@ -1056,7 +1135,6 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
     ACE_ASSERT (buffer_p);
     size_t size_i = static_cast<size_t> (sample_in->GetSize ());
     //ACE_ASSERT (size_i <= inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-
     //result = message_p->copy (reinterpret_cast<char*> (buffer_p),
     //                          size_i);
     //ACE_ASSERT (result == 0);
@@ -1064,7 +1142,6 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                      size_i,
                      ACE_Message_Block::DONT_DELETE);
     message_p->wr_ptr (size_i);
-
     //sample_in->Release ();
   } // end ELSE
   ACE_ASSERT (message_p);

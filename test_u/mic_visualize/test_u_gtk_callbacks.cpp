@@ -4061,7 +4061,9 @@ stream_processing_function (void* arg_in)
       directshow_ui_cb_data_p->resizeNotification = resize_notification_p;
       directshow_ui_cb_data_p->spectrumAnalyzerCBData.dispatch = dispatch_p;
 #if defined (GLUT_SUPPORT)
-      directshow_ui_cb_data_p->GLUTCBData.fft = fft_p;
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, directshow_ui_cb_data_p->GLUTCBData.lock, 0);
+        directshow_ui_cb_data_p->GLUTCBData.fft = fft_p;
+      } // end lock scope
 #endif // GLUT_SUPPORT
       break;
     }
@@ -4071,7 +4073,9 @@ stream_processing_function (void* arg_in)
       mediafoundation_ui_cb_data_p->spectrumAnalyzerCBData.dispatch =
         dispatch_p;
 #if defined (GLUT_SUPPORT)
-      mediafoundation_ui_cb_data_p->GLUTCBData.fft = fft_p;
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, mediafoundation_ui_cb_data_p->GLUTCBData.lock, 0);
+        mediafoundation_ui_cb_data_p->GLUTCBData.fft = fft_p;
+      } // end lock scope
 #endif // GLUT_SUPPORT
       break;
     }
@@ -4087,7 +4091,9 @@ stream_processing_function (void* arg_in)
   ui_cb_data_p->resizeNotification = resize_notification_p;
   ui_cb_data_p->spectrumAnalyzerCBData.dispatch = dispatch_p;
 #if defined (GLUT_SUPPORT)
-  ui_cb_data_p->GLUTCBData.fft = fft_p;
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, ui_cb_data_p->GLUTCBData.lock, 0);
+    ui_cb_data_p->GLUTCBData.fft = fft_p;
+  } // end lock scope
 #endif // GLUT_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -4171,7 +4177,9 @@ stream_processing_function (void* arg_in)
       directshow_ui_cb_data_p->resizeNotification = NULL;
       directshow_ui_cb_data_p->spectrumAnalyzerCBData.dispatch = NULL;
 #if defined (GLUT_SUPPORT)
-      directshow_ui_cb_data_p->GLUTCBData.fft = fft_p;
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, directshow_ui_cb_data_p->GLUTCBData.lock, 0);
+        directshow_ui_cb_data_p->GLUTCBData.fft = NULL;
+      } // end lock scope
 #endif // GLUT_SUPPORT
       break;
     }
@@ -4180,7 +4188,9 @@ stream_processing_function (void* arg_in)
       mediafoundation_ui_cb_data_p->resizeNotification = NULL;
       mediafoundation_ui_cb_data_p->spectrumAnalyzerCBData.dispatch = NULL;
 #if defined (GLUT_SUPPORT)
-      mediafoundation_ui_cb_data_p->GLUTCBData.fft = fft_p;
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, mediafoundation_ui_cb_data_p->GLUTCBData.lock, 0);
+        mediafoundation_ui_cb_data_p->GLUTCBData.fft = NULL;
+      } // end lock scope
 #endif // GLUT_SUPPORT
       break;
     }
@@ -4196,7 +4206,9 @@ stream_processing_function (void* arg_in)
   ui_cb_data_p->resizeNotification = NULL;
   ui_cb_data_p->spectrumAnalyzerCBData.dispatch = NULL;
 #if defined (GLUT_SUPPORT)
-  ui_cb_data_p->GLUTCBData.fft = fft_p;
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, ui_cb_data_p->GLUTCBData.lock, 0);
+    ui_cb_data_p->GLUTCBData.fft = NULL;
+  } // end lock scope
 #endif // GLUT_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -6213,7 +6225,9 @@ idle_session_end_cb (gpointer userData_in)
   //                   - audio file has ended playing
   //                   - there was an error on the stream --> abort
 
-  ui_data_base_p->spectrumAnalyzerCBData.dispatch = NULL;
+  // *NOTE*: any audio file will probably still be playing at this point
+  //         --> continue displaying the analyzer data
+  //ui_data_base_p->spectrumAnalyzerCBData.dispatch = NULL;
 
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -11246,7 +11260,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     (ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType != MICVISUALIZE_SOURCE_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
@@ -11305,7 +11319,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
     return;
   } // end IF
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value_2 = G_VALUE_INIT;
   GValue value_3 = G_VALUE_INIT;
 #else
@@ -11321,8 +11335,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                             &iterator_2,
                             2, &value_3);
   ACE_ASSERT (G_VALUE_TYPE (&value_3) == G_TYPE_UINT);
-  struct _GUID GUID_2 =
-    Common_OS_Tools::StringToGUID (g_value_get_string (&value_2));
+  std::string device_identifier_string = g_value_get_string (&value_2);
   g_value_unset (&value_2);
   unsigned int index_i = g_value_get_uint (&value_3);
   g_value_unset (&value_3);
@@ -11357,6 +11370,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
         {
+          struct _GUID GUID_2 =
+            Common_OS_Tools::StringToGUID (device_identifier_string);
           result_2 = load_sample_rates (GUID_2,
                                         GUID_s,
                                         list_store_p);
@@ -11423,6 +11438,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
         {
+          struct _GUID GUID_2 =
+            Common_OS_Tools::StringToGUID (device_identifier_string);
           result_2 = load_sample_rates (GUID_2,
                                         GUID_s,
                                         list_store_p);
@@ -11431,7 +11448,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
         case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
         { ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->session);
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
           if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second->session,
                                                                             media_source_p))
           {
@@ -11439,7 +11456,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                         ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
             return;
           } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
           ACE_ASSERT (media_source_p);
 
           //if (!load_sample_rates (data_p->configuration->moduleHandlerConfiguration.sourceReader,
@@ -11767,8 +11784,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
                             &iterator_2,
                             2, &value_3);
   ACE_ASSERT (G_VALUE_TYPE (&value_3) == G_TYPE_UINT);
-  struct _GUID GUID_2 =
-    Common_OS_Tools::StringToGUID (g_value_get_string (&value_2));
+  std::string device_identifier_string = g_value_get_string (&value_2);
   g_value_unset (&value_2);
   unsigned int index_i = g_value_get_uint (&value_3);
   g_value_unset (&value_3);
@@ -11804,6 +11820,8 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
         {
+          struct _GUID GUID_2 =
+            Common_OS_Tools::StringToGUID (device_identifier_string);
           result_2 =
             load_sample_resolutions (GUID_2,
                                      GUID_s,
@@ -11876,6 +11894,8 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
         {
+          struct _GUID GUID_2 =
+            Common_OS_Tools::StringToGUID (device_identifier_string);
           result_2 =
             load_sample_resolutions (GUID_2,
                                      GUID_s,
@@ -12251,8 +12271,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                             &iterator_2,
                             2, &value_3);
   ACE_ASSERT (G_VALUE_TYPE (&value_3) == G_TYPE_UINT);
-  struct _GUID GUID_2 =
-    Common_OS_Tools::StringToGUID (g_value_get_string (&value_2));
+  std::string device_identifier_string = g_value_get_string (&value_2);
   g_value_unset (&value_2);
   unsigned int index_i = g_value_get_uint (&value_3);
   g_value_unset (&value_3);
@@ -12288,6 +12307,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
         {
+          struct _GUID GUID_2 =
+            Common_OS_Tools::StringToGUID (device_identifier_string);
           result_2 = load_channels (GUID_2,
                                     GUID_s,
                                     sample_rate,
@@ -12361,6 +12382,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
         {
+          struct _GUID GUID_2 =
+            Common_OS_Tools::StringToGUID (device_identifier_string);
           result_2 = load_channels (GUID_2,
                                     GUID_s,
                                     sample_rate,
@@ -12370,7 +12393,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
         }
         case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
         {
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
           ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->session);
           if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second->session,
                                                                             media_source_p))
@@ -12379,7 +12402,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                         ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
             return;
           } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
           ACE_ASSERT (media_source_p);
 
           //if (!load_channels (data_p->configuration->moduleHandlerConfiguration.sourceReader,

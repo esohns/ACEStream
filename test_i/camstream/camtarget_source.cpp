@@ -25,9 +25,9 @@
 
 #undef NANOSECONDS
 #include "streams.h"
+#include "uuids.h"
 
 #include "ace/Log_Msg.h"
-//#include "ace/Synch.h"
 
 #include "common_time_common.h"
 #include "common_tools.h"

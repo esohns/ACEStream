@@ -230,8 +230,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
 
-      if (inherited::configuration_->statisticCollectionInterval !=
-          ACE_Time_Value::zero)
+      if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
       {
         // schedule regular statistic collection
         ACE_ASSERT (inherited::timerId_ == -1);
@@ -247,11 +246,11 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                       inherited::mod_->name ()));
           goto error;
         } // end IF
-//        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("%s: scheduled statistic collecting timer (id: %d) for interval %#T\n"),
-//                    inherited::mod_->name (),
-//                    inherited::timerId_,
-//                    &inherited::configuration_->statisticCollectionInterval));
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: scheduled statistic collecting timer (id: %d) for interval %#T\n"),
+                    inherited::mod_->name (),
+                    inherited::timerId_,
+                    &inherited::configuration_->statisticCollectionInterval));
       } // end IF
 
       // determine media type
@@ -371,12 +370,12 @@ continue_:
       result_2 = audioClient_->GetDevicePeriod (&requested_duration_i, NULL);
       ACE_ASSERT (SUCCEEDED (result_2) && requested_duration_i);
 retry:
-      result_2 = // *TODO*: re-enable 'exclusive' mode ASAP
-        audioClient_->Initialize (AUDCLNT_SHAREMODE_SHARED,//share_mode_e,
+      result_2 =
+        audioClient_->Initialize (share_mode_e,//AUDCLNT_SHAREMODE_SHARED,
                                   stream_flags_i,
                                   requested_duration_i,
-                                  //((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? requested_duration_i 
-                                  0,//                                               : 0),
+                                  ((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? requested_duration_i 
+                                                                                 : 0),
                                   audio_info_p,
                                   NULL);
       if (unlikely (FAILED (result_2))) // AUDCLNT_E_UNSUPPORTED_FORMAT: 0x88890008

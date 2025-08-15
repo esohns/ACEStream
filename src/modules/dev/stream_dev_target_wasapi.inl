@@ -201,6 +201,10 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
                     inherited::mod_->name (),
                     result));
+      else
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborting\n"),
+                    inherited::mod_->name ()));
       break;
     }
     default:
@@ -315,6 +319,10 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
                     inherited::mod_->name (),
                     result));
+      else
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborting\n"),
+                    inherited::mod_->name ()));
 
       high_priority_b = true;
       goto end;
@@ -559,6 +567,8 @@ error:
 end:
       if (likely (inherited::thr_count_ > 0))
       {
+        if (high_priority_b || !inherited::configuration_->waitForDataOnEnd)
+          queue_.flush (false); // flush all data messages
         Common_ITask* itask_p = this;
         itask_p->stop (true,             // wait ?
                        high_priority_b); // high priority ?

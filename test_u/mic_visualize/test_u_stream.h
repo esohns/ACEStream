@@ -96,10 +96,6 @@ class Test_U_DirectShow_Stream
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_DirectShow_Stream (const Test_U_DirectShow_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_DirectShow_Stream& operator= (const Test_U_DirectShow_Stream&))
-
-#if defined (GTK_USE)
-  Test_U_MicVisualize_DirectShow_Vis_SpectrumAnalyzer_Module spectrumAnalyzer_;
-#endif // GTK_USE
 };
 
 //////////////////////////////////////////

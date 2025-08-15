@@ -68,11 +68,10 @@ Test_U_DirectShow_Message::~Test_U_DirectShow_Message ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_DirectShow_Message::~Test_U_DirectShow_Message"));
 
-  // release media sample ?
+  //// release media sample ?
   //if (inherited::data_.sample)
   //{
-  //  inherited::data_.sample->Release ();
-  //  inherited::data_.sample = NULL;
+  //  inherited::data_.sample->Release (); inherited::data_.sample = NULL;
   //} // end IF
 }
 
@@ -124,7 +123,7 @@ Test_U_DirectShow_Message::duplicate (void) const
 
   // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
 
-  // increase reference count
+  // increase reference count ?
   if (message_p->data_.sample)
     message_p->data_.sample->AddRef ();
   // reset data index
@@ -144,7 +143,7 @@ Test_U_DirectShow_Message::release (void)
     inherited::cont_->release (); inherited::cont_ = NULL;
   } // end IF
 
-  // DirectShow buffer ?
+  // release buffer ?
   if (inherited::data_.sample)
   {
     inherited::data_.sample->Release (); inherited::data_.sample = NULL;
@@ -210,8 +209,7 @@ Test_U_MediaFoundation_Message::~Test_U_MediaFoundation_Message ()
   // release media sample ?
   if (inherited::data_.sample)
   {
-    inherited::data_.sample->Release ();
-    inherited::data_.sample = NULL;
+    inherited::data_.sample->Release (); inherited::data_.sample = NULL;
   } // end IF
 }
 

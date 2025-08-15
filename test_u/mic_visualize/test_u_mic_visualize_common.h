@@ -758,7 +758,8 @@ struct Test_U_GLUT_CBData
   Common_Math_FFTW_T<float>*        fft;
 #else
   Common_Math_FFT_T<float>*         fft;
-#endif // 
+#endif // FFTW_SUPPORT
+  ACE_Thread_Mutex                  lock; // protect fft handle
 
   // menu
   bool                              wireframe;

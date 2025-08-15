@@ -577,8 +577,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       max_value_d = static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, is_signed_format));
       scaleFactorY_ =
         (is_floating_point_format ? static_cast<double> (height_)
-                                  : static_cast<double> (height_) / (sampleIterator_.isSignedSampleFormat_ ? max_value_d * 2.0
-                                                                                                           : max_value_d));
+                                  : is_signed_format ? static_cast<double> (halfHeight_) / max_value_d
+                                                     : static_cast<double> (height_) / max_value_d);
       scaleFactorY_2 = scaleFactorY_ * 2.0;
 
       // schedule the renderer
@@ -1274,7 +1274,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
           cairo_line_to (context_p,
                          (static_cast<double> (i) * channelFactor_) + (static_cast<double> (j) * scaleFactorX_),
                          (sampleIterator_.isSignedSampleFormat_ ? static_cast<double> (halfHeight_) - (inherited2::buffer_[i][j] * scaleFactorY_)
-                                                                : static_cast<double> (height_) - (inherited2::buffer_[i][j] * scaleFactorY_)));
+                                                                : static_cast<double> (height_) - (inherited2::buffer_[i][j] * scaleFactorY_2)));
 
         break;
       }
@@ -1362,7 +1362,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   //                   the result is CAIRO_STATUS_NO_MEMORY
   //ACE_ASSERT (cairo_status (cairoContext_) == CAIRO_STATUS_SUCCESS);
   CAIRO_ERROR_WORKAROUND (cbdata_p->context);
-#endif // GTK_CHECK_VERSION (3,22,0)
+#endif // GTK_CHECK_VERSION (4,0,0)
 
 error:
   ;

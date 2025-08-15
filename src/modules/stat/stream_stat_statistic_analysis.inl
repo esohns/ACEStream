@@ -66,6 +66,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
  , iterator_ (NULL)
  , frameCount_ (0)
  , sampleIsSigned_ (false)
+ , signedSampleModifier_ (0.0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::Stream_Statistic_StatisticAnalysis_T"));
 
@@ -119,6 +120,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     iterator_.buffer_ = NULL;
     frameCount_ = 0;
     sampleIsSigned_ = false;
+    signedSampleModifier_ = 0.0;
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -161,19 +163,17 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
   unsigned int number_of_frames =
     static_cast<unsigned int> (message_inout->length () / iterator_.frameSize_);
-  unsigned int frames_to_write = 0;
+  unsigned int frames_to_write;
   unsigned int offset = 0;
-  unsigned int tail_slot = 0;
+  unsigned int tail_slot;
 
-  do
+  while (number_of_frames)
   {
     iterator_.buffer_ =
       reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()) + offset;
     for (unsigned int i = 0; i < inherited3::channels_; ++i)
     {
-      frames_to_write =
-          (number_of_frames > inherited3::slots_ ? inherited3::slots_
-                                                 : number_of_frames);
+      frames_to_write = std::min (number_of_frames, inherited3::slots_);
 
       // make space for inbound samples at the end of the buffer, shifting
       // previous samples towards the beginning
@@ -186,16 +186,16 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       // ValueType
       for (unsigned int j = 0; j < frames_to_write; ++j)
         inherited3::buffer_[i][tail_slot + j] = iterator_.get (j, i);
-      offset += (iterator_.sampleSize_ * frames_to_write);
 
       // analyze sample data
       Process (i, tail_slot, tail_slot + frames_to_write - 1);
+
+      // accumulate offset
+      offset += (iterator_.sampleSize_ * frames_to_write);
     } // end FOR
 
     number_of_frames -= frames_to_write;
-    if (unlikely (number_of_frames == 0))
-      break; // done
-  } while (true);
+  } // end WHILE
 }
 
 template <ACE_SYNCH_DECL,
@@ -307,6 +307,9 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         goto error;
       } // end IF
+
+      signedSampleModifier_ =
+        static_cast<ValueType> ((1ULL << ((8 * sample_size) - 1)) - 1);
 
       result_2 =
         inherited3::Initialize (num_channels,
@@ -513,7 +516,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
   for (unsigned int j = 0; j < (endIndex_in - startIndex_in + 1); ++j, ++frameCount_)
   {
     abs_value =
-      (sampleIsSigned_ ? std::abs (inherited3::buffer_[channel_in][startIndex_in + j]) + static_cast<ValueType> ((1ULL << ((8 * iterator_.sampleSize_) - 1)) - 1)
+      (sampleIsSigned_ ? inherited3::buffer_[channel_in][startIndex_in + j] + signedSampleModifier_
                        : inherited3::buffer_[channel_in][startIndex_in + j]);
     abs_value_d = static_cast<double> (abs_value);
     frame_count_d = static_cast<double> (frameCount_);

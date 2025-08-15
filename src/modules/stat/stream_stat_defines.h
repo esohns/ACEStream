@@ -24,7 +24,7 @@
 #define MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING                "StatisticAnalysis"
 #define MODULE_STAT_REPORT_DEFAULT_NAME_STRING                  "StatisticReport"
 
-#define MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE                1024 // #slots
+#define MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE                2048 // #slots
 
 // *NOTE*: (in a normal distribution,) values in the range of +/- 5.0 * sigma
 //         (i.e. five standard deviations) account for 99.99994% of all sample

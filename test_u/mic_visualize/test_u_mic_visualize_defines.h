@@ -155,8 +155,8 @@
 #define TEST_U_GLUT_DEFAULT_WIDTH          1112
 #define TEST_U_GLUT_DEFAULT_LAYERS         20
 #define TEST_U_GLUT_DEFAULT_D              18
-#define TEST_U_GLUT_DEFAULT_AMP_FACTOR     0.05f
-#define TEST_U_GLUT_DEFAULT_FPS            30
+#define TEST_U_GLUT_DEFAULT_AMP_FACTOR     0.005f
+#define TEST_U_GLUT_DEFAULT_FPS            60
 #endif // GLUT_SUPPORT
 
 #endif

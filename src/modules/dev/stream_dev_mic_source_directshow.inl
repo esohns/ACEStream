@@ -244,7 +244,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
-  if (COM_initialized) Common_Tools::finalizeCOM ();
+  if (COM_initialized)
+    Common_Tools::finalizeCOM ();
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -422,7 +423,7 @@ continue_:
       ACE_ASSERT (IGraphBuilder_);
       ACE_ASSERT (sample_grabber_p);
 
-      result_2 = sample_grabber_p->SetBufferSamples (false);
+      result_2 = sample_grabber_p->SetBufferSamples (FALSE);
       if (unlikely (FAILED (result_2)))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -432,6 +433,8 @@ continue_:
         sample_grabber_p->Release (); sample_grabber_p = NULL;
         goto error;
       } // end IF
+      // *TODO*: using SampleCB (second argument: 0) seems to run out of media
+      //         samples...:(. Find out why
       result_2 = sample_grabber_p->SetCallback (this, 0);
       if (unlikely (FAILED (result_2)))
       {
@@ -882,18 +885,52 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StatisticContainerType,
                                    TimerManagerType>::BufferCB (double sampleTime_in,
                                                                 BYTE* buffer_in,
-                                                                long bufferLen_in)
+                                                                long size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::BufferCB"));
 
-  ACE_UNUSED_ARG (sampleTime_in);
-  ACE_UNUSED_ARG (buffer_in);
-  ACE_UNUSED_ARG (bufferLen_in);
+  int result = -1;
+  DataMessageType* message_p = NULL;
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (E_FAIL);
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  // *TODO*: remove type inferences
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+  //ACE_ASSERT (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
 
-  ACE_NOTREACHED (return E_FAIL;)
+  message_p =
+  //  inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+    inherited::allocateMessage (size_in);
+  if (unlikely (!message_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), aborting\n"),
+                inherited::mod_->name (),
+                size_in));
+    return E_FAIL;
+  } // end IF
+  ACE_ASSERT (message_p);
+  typename DataMessageType::DATA_T& data_r =
+    const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+  data_r.sampleTime = sampleTime_in;
+  //ACE_ASSERT (size_in <= static_cast<long> (inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+  result = message_p->copy (reinterpret_cast<char*> (buffer_in),
+                            size_in);
+  ACE_ASSERT (result == 0);
+
+  result = inherited::put (message_p, NULL);
+  if (unlikely (result == -1))
+  {
+    int error = ACE_OS::last_error ();
+    if (error != ESHUTDOWN)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::put(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
+    message_p->release (); message_p = NULL;
+    return E_FAIL;
+  } // end IF
+
+  return S_OK;
 }
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -926,99 +963,54 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  // *TODO*: remove type inference
+  // *TODO*: remove type inferences
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
-  //ACE_ASSERT (inherited::configuration_->generatorConfiguration);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
 
   int result = -1;
 
-  ULONG reference_count = IMediaSample_in->AddRef ();
-
   DataMessageType* message_p = NULL;
-  //try {
-  //  message_p = dynamic_cast<DataMessageType*> (IMediaSample_in);
-  //} catch (...) {
-  //  //ACE_DEBUG ((LM_ERROR,
-  //  //            ACE_TEXT ("%s: failed to dynamic_cast<DataMessageType*>(0x%@), continuing\n"),
-  //  //            inherited::mod_->name (),
-  //  //            IMediaSample_in));
-  //  message_p = NULL;
-  //}
-  //if (unlikely (!message_p))
-  //{
-    // *TODO*: remove type inference
-    message_p =
-      inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-    if (!message_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), aborting\n"),
-                  inherited::mod_->name (),
-                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
-      return E_FAIL;
-    } // end IF
-    ACE_ASSERT (message_p);
-    typename DataMessageType::DATA_T& data_r =
-      const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
-    data_r.sample = IMediaSample_in;
-    data_r.sampleTime = sampleTime_in;
+  // *TODO*: remove type inference
+  message_p =
+    inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+  if (!message_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), aborting\n"),
+                inherited::mod_->name (),
+                inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+    return E_FAIL;
+  } // end IF
+  ACE_ASSERT (message_p);
+  typename DataMessageType::DATA_T& data_r =
+    const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+  data_r.sample = IMediaSample_in;
+  data_r.sampleTime = sampleTime_in;
 
-    long size = IMediaSample_in->GetSize ();
-    BYTE* buffer_p = NULL;
-    HRESULT result_2 = IMediaSample_in->GetPointer (&buffer_p);
-    if (FAILED (result_2))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IMediaSample::GetPointer(): \"%s\", aborting\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-      return result_2;
-    } // end IF
-    ACE_ASSERT (buffer_p);
-    message_p->base (reinterpret_cast<char*> (buffer_p),
-                     size,
-                     ACE_Message_Block::DONT_DELETE);
-    message_p->wr_ptr (size);
-  //} // end IF
+  long size = IMediaSample_in->GetSize ();
+  BYTE* buffer_p = NULL;
+  HRESULT result_2 = IMediaSample_in->GetPointer (&buffer_p);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IMediaSample::GetPointer(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    return result_2;
+  } // end IF
+  ACE_ASSERT (buffer_p);
+  message_p->base (reinterpret_cast<char*> (buffer_p),
+                   size,
+                   ACE_Message_Block::DONT_DELETE);
+  message_p->wr_ptr (size);
 
-  //if (inherited::configuration_->generatorConfiguration->type != STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID)
-  //{ ACE_ASSERT (inherited::sessionData_);
-  //  SessionDataType& session_data_r =
-  //    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-  //  ACE_ASSERT (!session_data_r.formats.empty ());
-  //  const struct _AMMediaType& media_type_r =
-  //    session_data_r.formats.back ();
-  //  ACE_ASSERT (InlineIsEqualGUID (media_type_r.formattype, FORMAT_WaveFormatEx));
-  //  struct tWAVEFORMATEX* waveformatex_p =
-  //    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_r.pbFormat);
-  //  static double stream_dev_mic_source_directshow_sinus_phase = 0.0;
-  //  data_r.sample->Release (); data_r.sample = NULL;
-  //  buffer_p = NULL;
-  //  ACE_NEW_NORETURN (buffer_p,
-  //                    BYTE[size]);
-  //  ACE_ASSERT (buffer_p);
-  //  Stream_Module_Decoder_Tools::sinus (*inherited::configuration_->generatorConfiguration->frequency,
-  //                                      waveformatex_p->nSamplesPerSec,
-  //                                      waveformatex_p->wBitsPerSample / 8,
-  //                                      waveformatex_p->nChannels,
-  //                                      !((waveformatex_p->wBitsPerSample / 8) == 1),
-  //                                      true,
-  //                                      buffer_p,
-  //                                      (size / waveformatex_p->nBlockAlign),
-  //                                      stream_dev_mic_source_directshow_sinus_phase);
-  //  message_p->base (reinterpret_cast<char*> (buffer_p),
-  //                   size,
-  //                   0); // own the buffer
-  //  message_p->wr_ptr (size);
-  //} // end IF
-
-  result = inherited::put_next (message_p, NULL);
+  result = inherited::put (message_p, NULL);
   if (unlikely (result == -1))
   {
     int error = ACE_OS::last_error ();
     if (error != ESHUTDOWN)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
+                  ACE_TEXT ("%s: failed to ACE_Task::put(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
     message_p->release (); message_p = NULL;
     return E_FAIL;

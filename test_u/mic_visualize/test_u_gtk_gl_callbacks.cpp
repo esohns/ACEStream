@@ -77,10 +77,7 @@ processInstructions (struct Test_U_MicVisualize_UI_CBDataBase* CBDataBase_in)
   struct Stream_Visualization_GTKGL_Instruction* instruction_p = NULL;
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *CBDataBase_in->OpenGLInstructionsLock);
-    if (CBDataBase_in->OpenGLInstructions->empty ())
-      return;
-
-    do
+    while (!CBDataBase_in->OpenGLInstructions->empty ())
     {
       instruction_p = &CBDataBase_in->OpenGLInstructions->front ();
       switch (instruction_p->type)
@@ -92,7 +89,8 @@ processInstructions (struct Test_U_MicVisualize_UI_CBDataBase* CBDataBase_in)
         }
         case STREAM_VISUALIZATION_INSTRUCTION_ROTATE:
         {
-          CBDataBase_in->objectRotation += 0.01f;
+          CBDataBase_in->objectRotation = std::fmod (CBDataBase_in->objectRotation, 360.0f);
+          CBDataBase_in->objectRotation += 0.001f;
           break;
         }
         case STREAM_VISUALIZATION_INSTRUCTION_SET_COLOR_BG:
@@ -134,7 +132,7 @@ processInstructions (struct Test_U_MicVisualize_UI_CBDataBase* CBDataBase_in)
         }
       } // end SWITCH
       CBDataBase_in->OpenGLInstructions->pop_front ();
-    } while (!CBDataBase_in->OpenGLInstructions->empty ());
+    } // end WHILE
   } // end lock scope
 }
 

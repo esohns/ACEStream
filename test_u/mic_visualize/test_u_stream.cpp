@@ -58,10 +58,6 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
 #if defined (GTKGL_SUPPORT)
  , inherited2 ()
 #endif // GTKGL_SUPPORT
-#if defined (GTK_USE)
- , spectrumAnalyzer_ (this,
-                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING))
-#endif // GTK_USE
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_DirectShow_Stream::Test_U_DirectShow_Stream"));
 
@@ -124,6 +120,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     inherited::configuration_->configuration_->displayAnalyzer;
   Stream_Branches_t branches_a;
 
+  (*iterator_3).second.second->waitForDataOnEnd = false;
   switch (inherited::configuration_->configuration_->sourceType)
   {
     case MICVISUALIZE_SOURCE_DEVICE:
@@ -144,8 +141,6 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
                           Test_U_Dev_Mic_Source_WASAPI_Module (this,
                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING)),
                           false);
-          //layout_in->append (module_p, NULL, 0);
-          //module_p = NULL;
           //ACE_NEW_RETURN (module_p,
           //                Test_U_MicVisualize_DirectShow_Asynch_Module (this,
           //                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_ASYNCH_DEFAULT_NAME_STRING)),
@@ -187,6 +182,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
                       false);
       add_resampler_b = true; // *TODO*: depends on file format !
       add_delay_b = true;
+      (*iterator_3).second.second->waitForDataOnEnd = true;
       break;
     }
     default:
@@ -364,6 +360,18 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   {
     if (add_renderer_branch_b)
       ++index_i;
+
+    if (add_delay_b)
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_U_MicVisualize_DirectShow_Delay_Module (this,
+                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
+                      false);
+      ACE_ASSERT (module_p);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+    } // end IF
+
     ACE_NEW_RETURN (module_p,
                     Test_U_MicVisualize_DirectShow_StatisticAnalysis_Module (this,
                                                                              ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
@@ -371,7 +379,10 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     ACE_ASSERT (module_p);
     layout_in->append (module_p, branch_p, index_i);
 #if defined (GTK_USE)
-    module_p = &spectrumAnalyzer_;
+    ACE_NEW_RETURN (module_p,
+                    Test_U_MicVisualize_DirectShow_Vis_SpectrumAnalyzer_Module (this,
+                                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                    false);
     ACE_ASSERT (module_p);
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
@@ -481,7 +492,8 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
 #endif // GTKGL_SUPPORT
 
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
-  //bool COM_initialized = false;
+  struct _AllocatorProperties allocator_properties_s;
+  // bool COM_initialized = false;
   bool release_builder = false;
   ULONG reference_count = 0;
   IAMStreamConfig* stream_config_p = NULL;
@@ -537,6 +549,13 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
     } // end IF
 
     ACE_ASSERT ((*iterator).second.second->filterConfiguration);
+    ACE_ASSERT ((*iterator).second.second->filterConfiguration->pinConfiguration);
+    if ((*iterator).second.second->filterConfiguration->pinConfiguration->format)
+      Stream_MediaFramework_DirectShow_Tools::delete_ ((*iterator).second.second->filterConfiguration->pinConfiguration->format);
+    ACE_ASSERT (!(*iterator).second.second->filterConfiguration->pinConfiguration->format);
+    (*iterator).second.second->filterConfiguration->pinConfiguration->format =
+      Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format);
+    ACE_ASSERT ((*iterator).second.second->filterConfiguration->pinConfiguration->format);
     if (!filter_2->initialize (*(*iterator).second.second->filterConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -592,13 +611,21 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
       case STREAM_DEVICE_RENDERER_WASAPI:
       {
         ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+        Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format,
+                                                      media_type_s);
         struct tWAVEFORMATEX* waveformatex_p =
-          Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat ((*iterator_3).second.second->deviceIdentifier.identifier._guid);
+          Stream_MediaFramework_DirectShow_Tools::toWaveFormatEx (media_type_s);
         ACE_ASSERT (waveformatex_p);
-        struct tWAVEFORMATEX basic_wave_format_ex_s =
-          Stream_MediaFramework_DirectSound_Tools::extensibleTo (*waveformatex_p);
-        Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (basic_wave_format_ex_s,
-                                                                  media_type_s);
+        ACE_ASSERT (Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._guid, STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE, *waveformatex_p));
+        CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+        //struct tWAVEFORMATEX* waveformatex_p =
+        //  Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat ((*iterator_3).second.second->deviceIdentifier.identifier._guid);
+        //ACE_ASSERT (waveformatex_p);
+        //struct tWAVEFORMATEX basic_wave_format_ex_s =
+        //  Stream_MediaFramework_DirectSound_Tools::extensibleTo (*waveformatex_p);
+        //CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+        //Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (basic_wave_format_ex_s,
+        //                                                          media_type_s);
         break;
       }
       case STREAM_DEVICE_RENDERER_DIRECTSHOW:
@@ -741,6 +768,30 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
     } // end IF
     graph_streams_p->Release (); graph_streams_p = NULL;
 
+    Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation ((*iterator).second.second->builder,
+                                                                  STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO_L,
+                                                                  buffer_negotiation_p);
+    ACE_ASSERT (buffer_negotiation_p);
+    ACE_OS::memset (&allocator_properties_s, 0, sizeof (struct _AllocatorProperties));
+    // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+    //         if this is -1/0 (why ?)
+    allocator_properties_s.cbAlign = 1;
+    allocator_properties_s.cbBuffer =
+      configuration_in.configuration_->allocatorConfiguration->defaultBufferSize * 1000;
+    allocator_properties_s.cbPrefix = -1; // <-- use default
+    allocator_properties_s.cBuffers =
+      STREAM_DEV_MIC_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+    result_2 =
+        buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties_s);
+    if (FAILED (result_2)) // E_UNEXPECTED: 0x8000FFFF --> graph already connected
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+      goto error;
+    } // end IF
+
     if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second->builder,
                                                           graph_configuration))
     {
@@ -749,6 +800,19 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
                   ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
+
+    ACE_OS::memset (&allocator_properties_s, 0, sizeof (struct _AllocatorProperties));
+    result_2 =
+      buffer_negotiation_p->GetAllocatorProperties (&allocator_properties_s);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+      goto error;
+    } // end IF
+    buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
 
     result_2 =
       (*iterator).second.second->builder->QueryInterface (IID_PPV_ARGS (&media_filter_p));
