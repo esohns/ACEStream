@@ -148,7 +148,7 @@ elseif (WXWIDGETS_USE)
  set (ui_definition_file_2 etc/target.xrc)
 endif ()
 
-cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
+#cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE_SOURCE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE_SOURCE}_EXE_SRCS}

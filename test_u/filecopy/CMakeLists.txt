@@ -93,7 +93,7 @@ endif (WXWIDGETS_SUPPORT)
 # add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
 #endif (UNIX)
 
-cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
+#cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 #set (GLADE_FILE etc/${EXECUTABLE}.glade)
 if (GTK2_USE)
  set (GLADE_FILE etc/${EXECUTABLE}.gtk2)

@@ -113,7 +113,7 @@ if (WIN32)
  add_compile_options ($<$<CONFIG:Debug>:-DD3D_DEBUG_INFO>)
 endif (WIN32)
 
-cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
+#cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS})

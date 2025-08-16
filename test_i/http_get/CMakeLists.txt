@@ -104,8 +104,8 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_http_get_stream_common.h)
 #  test_i_template_instantiations.cpp
 
-cmake_policy (SET CMP0060 OLD) # link libraries by full path even in implicit directories
-cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
+#cmake_policy (SET CMP0060 OLD) # link libraries by full path even in implicit directories
+#cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${HTTP_get_1_EXE_SRCS})

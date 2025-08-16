@@ -110,8 +110,10 @@ do_printUsage (const std::string& programName_in)
   // enable verbatim boolean output
   std::cout.setf (std::ios::boolalpha);
 
-  std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
+  std::string path_root =
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+                                                      true);
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -138,7 +140,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string path = configuration_path;
+  std::string path = path_root;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-e          : Gtk .rc file [\"\"] {\"\": no GUI}")
@@ -153,7 +155,7 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
-  std::string UI_file = path;
+  std::string UI_file = path_root;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-g[[STRING]]: UI file [\"")
@@ -231,8 +233,10 @@ do_processArguments (int argc_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
-  std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
+  std::string path_root =
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+                                                      true);
 
   // initialize results
   bufferSize_out = TEST_I_DEFAULT_BUFFER_SIZE;
@@ -244,15 +248,13 @@ do_processArguments (int argc_in,
   deviceIdentifier_out.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+  std::string path = path_root;
   //gtkRcFile_out = path;
   //gtkRcFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   //gtkRcFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
   useUncompressedFormat_out = false;
   hostName_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_HOSTNAME);
-  gtkGladeFile_out = path;
+  gtkGladeFile_out = path_root;
   gtkGladeFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtkGladeFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
   logToFile_out = false;
@@ -2077,8 +2079,12 @@ ACE_TMAIN (int argc_in,
 #else
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
+  Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (argv_in[0]));
 
-  std::string configuration_path = Common_File_Tools::getWorkingDirectory ();
+  std::string path_root =
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+                                                      true);
 
   // step1a set defaults
   unsigned int buffer_size = TEST_I_DEFAULT_BUFFER_SIZE;
@@ -2094,15 +2100,13 @@ ACE_TMAIN (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
   std::string interface_identifier;
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+  std::string path = path_root;
   std::string gtk_rc_filename;
   //std::string gtk_rc_filename = path;
   //gtk_rc_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   //gtk_rc_filename += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
   bool use_uncompressed_format = false;
-  std::string gtk_glade_filename = path;
+  std::string gtk_glade_filename = path_root;
   gtk_glade_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtk_glade_filename +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);

@@ -93,7 +93,7 @@ endif (WXWIDGETS_SUPPORT)
 
 #set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
 
-cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
+#cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE_SOURCE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE_SOURCE}_EXE_SRCS}

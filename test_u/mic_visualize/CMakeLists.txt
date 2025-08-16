@@ -146,7 +146,7 @@ if (GLUT_SUPPORT)
       test_u_glut_callbacks.h)
 endif (GLUT_SUPPORT)
 
-cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
+#cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS}
@@ -267,10 +267,15 @@ elseif (WIN32)
                          DIRECTORY)
  set (ACE_DLL_FILE ACE${LIB_FILE_SUFFIX}.dll)
  set (ACE_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_DLL_FILE})
- if (DEFINED $ENV{LIB_ROOT})
-  file (TO_NATIVE_PATH $ENV{LIB_ROOT} LIB_ROOT)
-  string (REPLACE "\\" "\\\\" LIB_ROOT ${LIB_ROOT})
-  install (FILES ${ACE_DLL_FQPATH}
+ file (TO_NATIVE_PATH $ENV{LIB_ROOT} LIB_ROOT)
+ string (REPLACE "\\" "\\\\" LIB_ROOT ${LIB_ROOT})
+ install (FILES ${ACE_DLL_FQPATH}
+                 ${LIB_ROOT}/assimp/cmake/bin/Release/assimp-vc143-mt.dll
+                 ${LIB_ROOT}/ffmpeg/libswresample/swresample-5.dll
+                 ${LIB_ROOT}/ffmpeg/libswscale/swscale-8.dll
+                 ${LIB_ROOT}/ffmpeg/libavcodec/avcodec-61.dll
+                 ${LIB_ROOT}/ffmpeg/libavutil/avutil-59.dll
+                 ${LIB_ROOT}/glew/bin/Release/x64/glew32.dll
                  ${LIB_ROOT}/gtk3/bin/libatk-1.0-0.dll
                  ${LIB_ROOT}/gtk3/bin/libfreetype-6.dll
                  ${LIB_ROOT}/gtk3/bin/libintl-8.dll
@@ -295,27 +300,22 @@ elseif (WIN32)
                  ${LIB_ROOT}/gtk3/bin/libcairo-gobject-2.dll
                  ${LIB_ROOT}/gtk3/bin/libpixman-1-0.dll
                  ${LIB_ROOT}/gtk3/bin/libwinpthread-1.dll
-                 ${LIB_ROOT}/sox/build/src/Debug/libsox.dll
                  ${LIB_ROOT}/mpg123/src/libmpg123/.libs/libmpg123-0.dll
-                 ${LIB_ROOT}/assimp/cmake/bin/Debug/assimp-vc142-mtd.dll
-                 ${LIB_ROOT}/libpng/build/Debug/libpng16d.dll
-                 ${LIB_ROOT}/ffmpeg/libswresample/swresample-4.dll
-                 ${LIB_ROOT}/ffmpeg/libswscale/swscale-6.dll
-                 ${LIB_ROOT}/ffmpeg/libavcodec/avcodec-59.dll
-                 ${LIB_ROOT}/ffmpeg/libavutil/avutil-57.dll
+                 ${LIB_ROOT}/fftw/libfftw3f-3.dll
+                 ${LIB_ROOT}/libpng/build/Release/libpng16.dll
                  ${LIB_ROOT}/libepoxy/bin/epoxy-0.dll
+                 ${LIB_ROOT}/libnoise/build/msvc/Release/libnoise.dll
+                 ${LIB_ROOT}/sox/build/src/Release/libsox.dll
                  ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxbase316d_vc_x64_custom.dll
-                 ${LIB_ROOT}/zlib/build/Debug/zlibd.dll
-           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
-  install (FILES ${LIB_ROOT}/gtk3/share/glib-2.0/schemas/gschemas.compiled
-                 ${LIB_ROOT}/gtk3/share/glib-2.0/schemas/org.gtk.Settings.FileChooser.gschema.xml
-           DESTINATION "${INSTALL_SHARE_DIR}/glib-2.0/schemas" COMPONENT config)
- endif (DEFINED $ENV{LIB_ROOT})
+                 ${LIB_ROOT}/zlib/build/Release/zlib.dll
+          DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
+ install (FILES ${LIB_ROOT}/gtk3/share/glib-2.0/schemas/gschemas.compiled
+                ${LIB_ROOT}/gtk3/share/glib-2.0/schemas/org.gtk.Settings.FileChooser.gschema.xml
+          DESTINATION "${INSTALL_SHARE_DIR}/glib-2.0/schemas" COMPONENT config)
  install (FILES etc/test_u.gtk2 etc/test_u.gtk3
           DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
-#          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
-# install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/image.png
-#          DESTINATION "${INSTALL_SHARE_DIR}/${EXECUTABLE}" COMPONENT data)
+ install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/image.png
+          DESTINATION "${INSTALL_SHARE_DIR}/${EXECUTABLE}" COMPONENT data)
 endif ()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR

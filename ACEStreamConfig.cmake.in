@@ -8,7 +8,7 @@ set (ACESTREAM_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
 
 # library dependencies (contains definitions for IMPORTED targets)
 if (NOT TARGET ACEStream AND NOT LIBACESTREAM_BINARY_DIR)
- cmake_policy (SET CMP0024 OLD)
+# cmake_policy (SET CMP0024 OLD)
  include ("${ACESTREAM_CMAKE_DIR}/ACEStreamTargets.cmake")
 endif ()
 
