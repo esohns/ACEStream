@@ -21,8 +21,6 @@
 #ifndef STREAM_VIS_DEFINES_H
 #define STREAM_VIS_DEFINES_H
 
-#include "ace/config-lite.h"
-
 #include "stream_dev_defines.h"
 
 #if defined (FFMPEG_SUPPORT)

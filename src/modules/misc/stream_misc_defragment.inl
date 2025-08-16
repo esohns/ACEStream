@@ -131,6 +131,7 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
 
       ACE_Message_Block* message_block_p = message_inout;
       int result = -1;
+      typename DataMessageType::DATA_T* data_container_p = NULL;
       do
       {
         result = message_p->copy (message_block_p->rd_ptr (),
@@ -148,13 +149,17 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
 
       if (message_inout->isInitialized ())
       {
-        typename DataMessageType::DATA_T* data_container_p =
+        data_container_p =
           &const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
         data_container_p->increase ();
         message_p->initialize (data_container_p,
                                message_inout->sessionId (),
                                NULL);
       } // end IF
+      else
+        message_p->initialize (data_container_p,
+                               message_inout->sessionId (),
+                               NULL);
 
       result = inherited::put_next (message_p, NULL);
       if (unlikely (result == -1))

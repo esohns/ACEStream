@@ -163,7 +163,8 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
     window_ = NULL;
   } // end IF
 
-  window_ = inherited3::convert (configuration_in.window);
+  if (configuration_in.window.type != Common_UI_Window::TYPE_INVALID)
+    window_ = inherited3::convert (configuration_in.window);
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
