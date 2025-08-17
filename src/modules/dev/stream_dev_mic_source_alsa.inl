@@ -279,17 +279,31 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 
       if (!isPassive_)
       { ACE_ASSERT (!handle_);
+        std::string device_identifier_string =
+          inherited::configuration_->deviceIdentifier.identifier;
+        if (unlikely (device_identifier_string.empty ()))
+        {
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s: no device identifier specified, falling back\n"),
+                      inherited::mod_->name ()));
+#if defined (_DEBUG)
+          Stream_MediaFramework_ALSA_Tools::listCards ();
+#endif // _DEBUG
+          device_identifier_string =
+              Stream_MediaFramework_ALSA_Tools::getDeviceName (0,
+                                                               SND_PCM_STREAM_CAPTURE);
+        } // end IF
         result =
-            snd_pcm_open (&handle_,
-                          inherited::configuration_->deviceIdentifier.identifier.c_str (),
-                          SND_PCM_STREAM_CAPTURE,
-                          inherited::configuration_->ALSAConfiguration->mode);
+          snd_pcm_open (&handle_,
+                        device_identifier_string.c_str (),
+                        SND_PCM_STREAM_CAPTURE,
+                        inherited::configuration_->ALSAConfiguration->mode);
         if (unlikely (result < 0))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to snd_pcm_open(\"%s\",%d) for capture: \"%s\", aborting\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
+                      ACE_TEXT (device_identifier_string.c_str ()),
                       inherited::configuration_->ALSAConfiguration->mode,
                       ACE_TEXT (snd_strerror (result))));
           goto error;

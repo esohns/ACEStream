@@ -158,6 +158,8 @@ if (FFMPEG_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)
 if (UNIX)
+ target_link_options (${EXECUTABLE} PUBLIC "-rdynamic")
+
  target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
  target_link_libraries (${EXECUTABLE} PUBLIC stdc++fs)
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_V4L_LIBRARIES})

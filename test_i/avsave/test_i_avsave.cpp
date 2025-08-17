@@ -936,10 +936,10 @@ do_initialize_ALSA_V4L (const std::string& audioDeviceIdentifier_in,
   //         32-bit quantities are stored native-endian. ..."
   // *TODO*: determine color depth of selected (default) screen (i.e.'Display'
   //         ":0")
-  outputFormat_out.format.pixelformat = V4L2_PIX_FMT_RGB32;
+  outputFormat_out.format.pixelformat = V4L2_PIX_FMT_BGR32;
 #if defined (GTK_USE)
 #if defined (GTK2_USE)
-  outputFormat_out.format.pixelformat = V4L2_PIX_FMT_RGB24;
+  outputFormat_out.format.pixelformat = V4L2_PIX_FMT_BGR24;
 #endif // GTK2_USE
 #endif // GTK_USE
 
@@ -947,7 +947,7 @@ do_initialize_ALSA_V4L (const std::string& audioDeviceIdentifier_in,
                                                       true, // capture
                                                       captureFormat_out.audio);
   // *TODO*: currently hard-coded into the encoder :-(
-  captureFormat_out.audio.format = SND_PCM_FORMAT_S16_LE;
+  ACE_ASSERT (captureFormat_out.audio.format == SND_PCM_FORMAT_S16_LE);
 
   return true;
 
@@ -1179,10 +1179,16 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   audio_modulehandler_configuration.deviceIdentifier.identifier =
     Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                      SND_PCM_STREAM_CAPTURE);
+  if (audio_modulehandler_configuration.deviceIdentifier.identifier.empty ())
+    audio_modulehandler_configuration.deviceIdentifier.identifier =
+      ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
   audio_modulehandler_configuration.messageAllocator = &message_allocator;
+  audio_modulehandler_configuration.spectrumAnalyzerConfiguration =
+    &spectrum_analyzer_configuration;
   audio_modulehandler_configuration.targetFileName = targetFilename_in;
 
-  video_modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
+  video_modulehandler_configuration.allocatorConfiguration =
+    &allocator_configuration;
   video_modulehandler_configuration.buffers =
     STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
   video_modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
@@ -1534,7 +1540,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   configuration_in.audioStreamConfiguration.configuration_->format =
     configuration_in.videoStreamConfiguration.configuration_->format;
 
-  video_modulehandler_configuration.display.device = displayDevice_in.device;
+  video_modulehandler_configuration.display = displayDevice_in;
 //  configuration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
 //                                                               std::make_pair (module_configuration,
 //                                                                               modulehandler_configuration)));

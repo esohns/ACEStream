@@ -163,6 +163,8 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 
 if (UNIX)
+ target_link_options (${EXECUTABLE} PUBLIC "-rdynamic")
+
  target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 endif (UNIX)
 

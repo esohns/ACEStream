@@ -6052,12 +6052,12 @@ combobox_display_changed_cb (GtkWidget* widget_in,
   struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-//  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-//    ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-//  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
-//  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-//    ui_cb_data_p->configuration->videoStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
-//  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
+ Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+   ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+ ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
+ // Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+ //   ui_cb_data_p->configuration->videoStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+ // ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
@@ -6137,8 +6137,8 @@ combobox_display_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-//  display_adapter_s =
-//    Common_UI_Tools::getAdapter ((*iterator_3).second.second->display);
+  display_adapter_s =
+    Common_UI_Tools::getAdapter ((*iterator_2).second.second->display);
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_init (&value, G_TYPE_STRING);
   g_value_set_string (&value,

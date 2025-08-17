@@ -146,7 +146,6 @@ if (GLUT_SUPPORT)
       test_u_glut_callbacks.h)
 endif (GLUT_SUPPORT)
 
-#cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS}
@@ -178,6 +177,10 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
+
+if (UNIX)
+ target_link_options (${EXECUTABLE} PUBLIC "-rdynamic")
+endif (UNIX)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 

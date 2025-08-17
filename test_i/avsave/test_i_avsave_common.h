@@ -422,10 +422,10 @@ struct Stream_AVSave_ModuleHandlerConfiguration
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
 #endif // FFMPEG_SUPPORT
   struct Stream_Device_Identifier                   deviceIdentifier; // source module
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Common_UI_DisplayDevice                    display; // display module
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct Common_UI_Display                          display; // display module
+  // struct Common_UI_Display                          display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
   bool                                              fullScreen;
   bool                                              sinus; // N/A

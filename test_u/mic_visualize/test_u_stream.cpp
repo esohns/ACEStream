@@ -2184,10 +2184,6 @@ Test_U_ALSA_Stream::Test_U_ALSA_Stream ()
 #if defined (GTKGL_SUPPORT)
  , inherited2 ()
 #endif // GTKGL_SUPPORT
-#if defined (GTK_USE)
- , spectrumAnalyzer_ (this,
-                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING))
-#endif // GTK_USE
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_ALSA_Stream::Test_U_ALSA_Stream"));
 
@@ -2366,7 +2362,10 @@ Test_U_ALSA_Stream::load (Stream_ILayout* layout_in,
     module_p = NULL;
 
 #if defined (GTK_USE)
-    module_p = &spectrumAnalyzer_;
+    ACE_NEW_RETURN (module_p,
+                    Test_U_MicVisualize_Vis_SpectrumAnalyzer_Module (this,
+                                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                    false);
     ACE_ASSERT (module_p);
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;

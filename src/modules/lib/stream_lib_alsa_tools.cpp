@@ -160,10 +160,17 @@ Stream_MediaFramework_ALSA_Tools::getDefaultFormat (const std::string& cardName_
                                               &mediaType_out.subFormat);
   if (unlikely (result_2 < 0))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_hw_params_get_subformat(): \"%s\", aborting\n"),
-                ACE_TEXT (snd_strerror (result_2))));
-    goto error;
+    if (unlikely (result_2 != -EINVAL))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_pcm_hw_params_get_subformat(): \"%s\", aborting\n"),
+                  ACE_TEXT (snd_strerror (result_2))));
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("subformat not set, setting to default: \"%s\", continuing\n"),
+                ACE_TEXT (snd_pcm_subformat_name (STREAM_LIB_ALSA_DEFAULT_SUBFORMAT))));
+    mediaType_out.subFormat = STREAM_LIB_ALSA_DEFAULT_SUBFORMAT;
   } // end IF
 
   result_2 = snd_pcm_hw_params_get_channels (snd_pcm_hw_params_p,
@@ -794,15 +801,14 @@ Stream_MediaFramework_ALSA_Tools::getDeviceName (int cardIndex_in,
   std::string result_string;
 
   // sanity check(s)
-  ACE_ASSERT ((direction_in == SND_PCM_STREAM_CAPTURE) ||
-              (direction_in == SND_PCM_STREAM_PLAYBACK));
+  ACE_ASSERT ((direction_in == SND_PCM_STREAM_CAPTURE) || (direction_in == SND_PCM_STREAM_PLAYBACK));
 
   void** hints_p = NULL;
   int result =
-      snd_device_name_hint (cardIndex_in,
-                            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PCM_INTERFACE_NAME),
-                            &hints_p);
-  if (result < 0)
+    snd_device_name_hint (cardIndex_in,
+                          ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PCM_INTERFACE_NAME),
+                          &hints_p);
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_device_name_hint(%d): \"%s\", aborting\n"),
@@ -831,7 +837,7 @@ Stream_MediaFramework_ALSA_Tools::getDeviceName (int cardIndex_in,
 
 continue_:
     string_p = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("NAME"));
-    if (!string_p)
+    if (unlikely (!string_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to snd_device_name_get_hint(): \"%m\", aborting\n")));

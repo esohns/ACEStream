@@ -246,10 +246,6 @@ class Test_U_ALSA_Stream
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_ALSA_Stream (const Test_U_ALSA_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_ALSA_Stream& operator= (const Test_U_ALSA_Stream&))
-
-#if defined (GTK_USE)
-  Test_U_MicVisualize_Vis_SpectrumAnalyzer_Module spectrumAnalyzer_;
-#endif // GTK_USE
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -5764,8 +5764,7 @@ continue_3:
     }
   } // end SWITCH
 #else
-//  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->OpenGLWindow);
-  (*modulehandler_configuration_iterator).second.second->window =
+  (*modulehandler_configuration_iterator).second.second->window.gdk_window =
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
       gtk_widget_get_window (GTK_WIDGET ((*opengl_contexts_iterator).first));
@@ -5791,7 +5790,16 @@ continue_3:
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->GdkWindow3D);
 #endif // GTKGLAREA_SUPPORT
 #endif // GTK_CHECK_VERSION (3,0,0)
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->window);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->window.gdk_window);
+#if defined (GTK_USE)
+  (*modulehandler_configuration_iterator).second.second->window.type =
+      Common_UI_Window::TYPE_GTK;
+#else
+  (*modulehandler_configuration_iterator).second.second->window.x11_window =
+      gdk_x11_window_get_xid ((*modulehandler_configuration_iterator).second.second->window.gdk_window);
+  (*modulehandler_configuration_iterator).second.second->window.type =
+      Common_UI_Window::TYPE_X11;
+#endif // GTK_USE
 #endif // ACE_WIN32 || ACE_WIN64
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
@@ -6027,7 +6035,7 @@ continue_3:
     }
   } // end SWITCH
 #else
-  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->window.gdk_window);
+  // ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->window.gdk_window);
   (*modulehandler_configuration_iterator).second.second->window.gdk_window =
     window_p;
   (*modulehandler_configuration_iterator).second.second->window.type =

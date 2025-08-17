@@ -37,6 +37,7 @@
 //#define STREAM_LIB_ALSA_DEFAULT_DEVICE_NAME                       "hw:0,0"
 #define STREAM_LIB_ALSA_DEFAULT_CHANNELS                          2 // i.e. stereo
 #define STREAM_LIB_ALSA_DEFAULT_FORMAT                            SND_PCM_FORMAT_S16
+#define STREAM_LIB_ALSA_DEFAULT_SUBFORMAT                         SND_PCM_SUBFORMAT_STD
 #define STREAM_LIB_ALSA_DEFAULT_SAMPLE_RATE                       48000 // Hz
 #define STREAM_LIB_ALSA_DEFAULT_LOG_FILE                          "alsa.log"
 #define STREAM_LIB_ALSA_DEFAULT_WAIT_TIMEOUT_MS                   20 // ms
