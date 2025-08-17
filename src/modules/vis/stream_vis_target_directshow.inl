@@ -83,6 +83,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                MediaType>::Stream_Vis_Target_DirectShow_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , closeWindow_ (false)
+ , isFirst_ (true)
  , IMFVideoDisplayControl_ (NULL)
  , IVideoWindow_ (NULL)
  , window_ (NULL)
@@ -373,6 +374,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   if (unlikely (!window_))
     return;
 
+  // --> drop message into the filter graph source filter input queue
   inherited::handleDataMessage (message_inout,
                                 passMessageDownstream_out);
 }
@@ -416,10 +418,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
-      ACE_ASSERT (inherited::msg_queue_);
-      unsigned int result_3 =
-        inherited::msg_queue_->flush (); // flush session data ?
-      ACE_UNUSED_ARG (result_3);
+      inherited::queue_.flush (false); // do not flush session messages
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -588,7 +587,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       // (re-)start forwarding data
       OAFilterState graph_state = 0;
       result_2 =
-        inherited::IMediaControl_->GetState (INFINITE,
+        inherited::IMediaControl_->GetState (1000, // ms
                                              &graph_state);
       if (unlikely (FAILED (result_2))) // VFW_S_STATE_INTERMEDIATE: 0x00040237
       {
@@ -864,7 +863,10 @@ error_2:
       bool COM_initialized = Common_Tools::initializeCOM ();
 
       // step1: dispatch all data to DirectShow
-      inherited::queue_.waitForIdleState (true); // wait forever ?
+      if (inherited::configuration_->waitForDataOnEnd)
+        inherited::queue_.waitForIdleState (true); // wait forever ?
+      else
+        inherited::queue_.flush (false); // do not flush session messages
       // step2: *TODO*: wait for DirectShow
 
       // *IMPORTANT NOTE*: "Reset the owner to NULL before releasing the Filter
@@ -1018,16 +1020,17 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   HRESULT result = E_FAIL;
 
   // initialize COM ?
-  static bool first_run = true;
   bool COM_initialized = false;
-  if (likely (first_run))
+  if (likely (isFirst_))
   {
-    first_run = false;
+    isFirst_ = false;
     COM_initialized = Common_Tools::initializeCOM ();
   } // end IF
 
   if (inherited::isInitialized_)
   {
+    isFirst_ = true;
+
     if (IVideoWindow_)
     {
       result = IVideoWindow_->put_MessageDrain (NULL);
@@ -1703,7 +1706,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
         TranslateMessage (&message_s);
         DispatchMessage (&message_s);
       } // end WHILE
-   } // end IF
+    } // end IF
   } while (true);
 
   ACE_DEBUG ((LM_DEBUG,

@@ -714,6 +714,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
  , mediaType_ (NULL)
  /////////////////////////////////////////
  , frameInterval_ (0)
+ , isFirstFrame_ (true)
  , numberOfMediaTypes_ (1)
  , directShowHasEnded_ (false)
  , sampleNumber_ (0)
@@ -758,7 +759,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::i
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::initialize"));
 
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
+  ACE_ASSERT (configuration_->queue);
 
+  isFirstFrame_ = true;
   directShowHasEnded_ = false;
 
   isInitialized_ = true;
@@ -1436,8 +1439,6 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
   ACE_ASSERT (configuration_);
   ACE_ASSERT (configuration_->queue);
 
-  static bool is_first = true;
-
   // done ?
   HRESULT result = E_FAIL;
   enum Command command_e = CMD_INIT;
@@ -1612,9 +1613,9 @@ continue_2:
     return S_FALSE; // --> stop
   } // end IF
 
-  if (is_first)
+  if (isFirstFrame_)
   {
-    is_first = false;
+    isFirstFrame_ = false;
     result = mediaSample_in->SetDiscontinuity (TRUE);
     if (unlikely (FAILED (result)))
     {

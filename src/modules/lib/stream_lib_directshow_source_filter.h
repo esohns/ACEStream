@@ -311,6 +311,7 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T& operator= (const Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T&))
 
   REFERENCE_TIME       frameInterval_;         // (*100ns)
+  bool                 isFirstFrame_; // set discontinuity ?
   // *TODO*: support multiple media types
   unsigned int         numberOfMediaTypes_;
 

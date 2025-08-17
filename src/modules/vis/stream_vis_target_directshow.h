@@ -133,6 +133,7 @@ class Stream_Vis_Target_DirectShow_T
   virtual int svc (void);
 
   bool                    closeWindow_;
+  bool                    isFirst_;
   IMFVideoDisplayControl* IMFVideoDisplayControl_;
   IVideoWindow*           IVideoWindow_;
   HWND                    window_;
