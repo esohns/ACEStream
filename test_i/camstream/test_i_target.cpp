@@ -839,6 +839,7 @@ do_work (unsigned int bufferSize_in,
 
   // step0a: initialize event dispatch
   struct Stream_AllocatorConfiguration allocator_configuration;
+  struct Common_EventDispatchConfiguration* dispatch_configuration_p = NULL;
   bool serialize_output = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Target_DirectShow_Configuration directshow_configuration;
@@ -852,6 +853,8 @@ do_work (unsigned int bufferSize_in,
       directShowCBData_in.configuration = &directshow_configuration;
       serialize_output =
         directshow_stream_configuration.serializeOutput;
+      dispatch_configuration_p =
+        &directshow_configuration.dispatchConfiguration;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -859,6 +862,8 @@ do_work (unsigned int bufferSize_in,
       mediaFoundationCBData_in.configuration = &mediafoundation_configuration;
       serialize_output =
         mediafoundation_stream_configuration.serializeOutput;
+      dispatch_configuration_p =
+        &mediafoundation_configuration.dispatchConfiguration;
       break;
     } // end IF
     default:
@@ -874,22 +879,24 @@ do_work (unsigned int bufferSize_in,
   struct Test_I_Target_StreamConfiguration stream_configuration;
   CBData_in.configuration = &configuration;
   serialize_output = stream_configuration.serializeOutput;
+  dispatch_configuration_p = &configuration.dispatchConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_UNUSED_ARG (serialize_output);
+  ACE_ASSERT (dispatch_configuration_p);
   if (useReactor_in)
-    configuration.dispatchConfiguration.numberOfReactorThreads =
+    dispatch_configuration_p->numberOfReactorThreads =
       numberOfDispatchThreads_in;
   else
-    configuration.dispatchConfiguration.numberOfProactorThreads =
+    dispatch_configuration_p->numberOfProactorThreads =
       numberOfDispatchThreads_in;
-  if (!Common_Event_Tools::initializeEventDispatch (configuration.dispatchConfiguration))
+  if (!Common_Event_Tools::initializeEventDispatch (*dispatch_configuration_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Event_Tools::initializeEventDispatch(), returning\n")));
     return;
   } // end IF
   struct Common_EventDispatchState event_dispatch_state_s;
-  event_dispatch_state_s.configuration = &configuration.dispatchConfiguration;
+  event_dispatch_state_s.configuration = dispatch_configuration_p;
 
   // step0b: initialize configuration and stream
   struct Test_I_CamStream_Configuration* camstream_configuration_p = NULL;

@@ -1030,8 +1030,11 @@ do_work (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (FFMPEG_SUPPORT)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
   codec_configuration.codecId =
       Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (stream_configuration.format.format.pixelformat);
+#endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.codecConfiguration = &codec_configuration;
 #endif // FFMPEG_SUPPORT
   modulehandler_configuration.messageAllocator = &message_allocator;
