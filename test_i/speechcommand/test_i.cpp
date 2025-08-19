@@ -143,9 +143,13 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #else
+  std::string device_identifier_string =
+    Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                     SND_PCM_STREAM_CAPTURE);
+  if (device_identifier_string.empty ())
+    device_identifier_string = ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : device [\"")
-            << Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
-                                                                SND_PCM_STREAM_CAPTURE)
+            << device_identifier_string
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -271,6 +275,8 @@ do_processArguments (int argc_in,
   deviceIdentifier_out =
     Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                      SND_PCM_STREAM_CAPTURE);
+  if (deviceIdentifier_out.empty ())
+    deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
 #endif // ACE_WIN32 || ACE_WIN64
   gain_out = 0.0;
   modelFile_out = configuration_path;
@@ -1314,17 +1320,17 @@ do_work (const std::string& scorerFile_in,
   struct Test_I_ALSA_StreamConfiguration stream_configuration;
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration; // capture
   ALSA_configuration.asynch = false;
-  ALSA_configuration.mode = SND_PCM_NONBLOCK;
+  ALSA_configuration.mode = STREAM_LIB_ALSA_CAPTURE_DEFAULT_MODE;
   ALSA_configuration.bufferSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_SIZE;
   ALSA_configuration.bufferTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_TIME;
   ALSA_configuration.format = &stream_configuration.format;
   ALSA_configuration.periods = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIODS;
   ALSA_configuration.periodSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_SIZE;
   ALSA_configuration.periodTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_TIME;
-  ALSA_configuration.rateResample = true;
+  ALSA_configuration.rateResample = false;
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration_2; // playback
 //  ALSA_configuration_2.asynch = false;
-  ALSA_configuration_2.rateResample = true;
+  ALSA_configuration_2.rateResample = false;
   struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
   struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration modulehandler_configuration_3; // file writer module
@@ -1898,8 +1904,8 @@ do_work (const std::string& scorerFile_in,
   } // end IF
 #endif // SOX_SUPPORT
 
-  // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 16000Hz
-  modulehandler_configuration.outputFormat.format = SND_PCM_FORMAT_S16_LE;
+  // *NOTE*: Whisper requires floating point mono signed 16 bits at 16000Hz
+  modulehandler_configuration.outputFormat.format = SND_PCM_FORMAT_FLOAT_LE;
   modulehandler_configuration.outputFormat.channels = 1;
   modulehandler_configuration.outputFormat.rate = 16000;
 
@@ -2392,7 +2398,10 @@ ACE_TMAIN (int argc_in,
   unsigned int device_id = 0;
 #else
   std::string device_identifier_string =
-    ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_DEFAULT);
+    Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                     SND_PCM_STREAM_CAPTURE);
+  if (device_identifier_string.empty ())
+    device_identifier_string = ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
 #endif // ACE_WIN32 || ACE_WIN64
   double gain_d = 0.0;
   std::string model_file = path;
@@ -2502,8 +2511,8 @@ ACE_TMAIN (int argc_in,
   if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
-  if (!Common_File_Tools::isReadable (scorer_file)
-      || !Common_File_Tools::isReadable (model_file)
+  if (/*!Common_File_Tools::isReadable (scorer_file)
+      ||*/ !Common_File_Tools::isReadable (model_file)
       || (!UI_definition_file.empty () &&
           !Common_File_Tools::isReadable (UI_definition_file))
 #if defined (GTK_SUPPORT)

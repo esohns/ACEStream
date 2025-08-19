@@ -1340,10 +1340,13 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (idistributor_p);
   idistributor_p->initialize (branches_a);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   layout_in->append (&audioDecode_, branch_p, index_i);
+#else
 #if defined (FAAD_SUPPORT)
-  //layout_in->append (&faadAudioDecode_, branch_p, index_i);
+  layout_in->append (&faadAudioDecode_, branch_p, index_i);
 #endif // FAAD_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (SOX_SUPPORT)
   // *TODO*: add only when necessary...
   //layout_in->append (&SOXResample_, branch_p, index_i);

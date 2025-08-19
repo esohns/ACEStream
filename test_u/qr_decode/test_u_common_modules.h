@@ -51,6 +51,7 @@
 
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_converter.h"
+#include "stream_dec_libav_decoder.h"
 #endif // FFMPEG_SUPPORT
 
 #if defined (OPENCV_SUPPORT)
@@ -288,6 +289,21 @@ DATASTREAM_MODULE_INPUT_ONLY (struct QRDecode_SessionData,                      
                               libacestream_default_dec_libav_converter_module_name_string,
                               Stream_INotify_t,                                            // stream notification interface type
                               Test_U_LibAVConverter);                                      // writer type
+
+typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct QRDecode_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_U_Message,
+                                      Test_U_SessionMessage,
+                                      QRDecode_SessionData_t,
+                                      struct Stream_MediaFramework_V4L_MediaType> Test_U_LibAVDecoder;
+DATASTREAM_MODULE_INPUT_ONLY (struct QRDecode_SessionData,                                // session data type
+                              enum Stream_SessionMessageType,                             // session event type
+                              struct QRDecode_ModuleHandlerConfiguration,                 // module handler configuration type
+                              libacestream_default_dec_libav_decoder_module_name_string,
+                              Stream_INotify_t,                                           // stream notification interface type
+                              Test_U_LibAVDecoder);                                       // writer type
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 

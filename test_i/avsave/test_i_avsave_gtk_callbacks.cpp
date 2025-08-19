@@ -6158,14 +6158,13 @@ drawingarea_audio_draw_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
 
-     // sanity check(s)
+  // sanity check(s)
   struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
   if (!ui_cb_data_base_p->dispatch_2)
-    return FALSE; // propagate event
-  ACE_ASSERT (!ui_cb_data_base_p->spectrumAnalyzerCBData.context);
-  ACE_ASSERT (ui_cb_data_base_p->spectrumAnalyzerCBData.window);
+    return TRUE; // do NOT propagate event
+  //ACE_ASSERT (ui_cb_data_base_p->spectrumAnalyzerCBData.window);
 
   ui_cb_data_base_p->spectrumAnalyzerCBData.context = context_in;
   try {
@@ -6173,12 +6172,9 @@ drawingarea_audio_draw_cb (GtkWidget* widget_in,
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
-    ui_cb_data_base_p->spectrumAnalyzerCBData.context = NULL;
-    return FALSE; // propagate event
   }
-  ui_cb_data_base_p->spectrumAnalyzerCBData.context = NULL;
 
-  return TRUE; // do not propagate
+  return TRUE; // do NOT propagate event
 } // drawingarea_audio_draw_cb
 
 gboolean
@@ -6195,17 +6191,16 @@ drawingarea_video_draw_cb (GtkWidget* widget_in,
     static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
   if (!ui_cb_data_base_p->dispatch)
-    return FALSE; // propagate event
+    return TRUE; // do NOT propagate event
 
   try {
     ui_cb_data_base_p->dispatch->dispatch (context_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
-    return FALSE; // propagate event
   }
 
-  return TRUE; // do not propagate
+  return TRUE; // do NOT propagate event
 } // drawingarea_video_draw_cb
 #else
 gboolean
@@ -6488,49 +6483,68 @@ drawingarea_audio_resize_end (gpointer userData_in)
                 ACE_TEXT (module_name.c_str ())));
     return G_SOURCE_REMOVE;
   } // end IF
-  Common_ISetP_T<GdkWindow>* iset_p =
-    dynamic_cast<Common_ISetP_T<GdkWindow>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-  if (!iset_p)
+  //Common_ISetP_T<GdkWindow>* iset_p =
+  //  dynamic_cast<Common_ISetP_T<GdkWindow>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  //if (!iset_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s:%s: failed to dynamic_cast<Common_ISetP_T<GdkWindow>*>(%@), returning\n"),
+  //              ACE_TEXT (stream_p->name ().c_str ()),
+  //              ACE_TEXT (module_name.c_str ()),
+  //              const_cast<Stream_Module_t*> (module_p)->writer ()));
+  //  return G_SOURCE_REMOVE;
+  //} // end IF
+  //try {
+  //  iset_p->setP (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
+  //} catch (...) {
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("caught exception in Common_ISetP_T::setP(), returning\n")));
+  //  return G_SOURCE_REMOVE;
+  //}
+
+  Stream_Visualization_IResize* iresize_p =
+    dynamic_cast<Stream_Visualization_IResize*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  if (!iresize_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s:%s: failed to dynamic_cast<Common_ISetP_T<GdkWindow>*>(%@), returning\n"),
+                ACE_TEXT ("%s:%s: failed to dynamic_cast<Stream_Visualization_IResize*>(%@), returning\n"),
                 ACE_TEXT (stream_p->name ().c_str ()),
                 ACE_TEXT (module_name.c_str ()),
                 const_cast<Stream_Module_t*> (module_p)->writer ()));
     return G_SOURCE_REMOVE;
   } // end IF
   try {
-    iset_p->setP (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
+    iresize_p->resizing ();
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in Common_ISetP_T::setP(), returning\n")));
+                ACE_TEXT ("caught exception in Stream_Visualization_IResize::resizing(), returning\n")));
     return G_SOURCE_REMOVE;
   }
 
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  switch (ui_cb_data_base_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//      directshow_cb_data_p->audioStream->control (STREAM_CONTROL_RESIZE, false);
-//      break;
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//      mediafoundation_cb_data_p->audioStream->control (STREAM_CONTROL_RESIZE, false);
-//      break;
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: invalid/unkown media framework (was: %d), returning\n"),
-//                  ACE_TEXT (stream_p->name ().c_str ()),
-//                  ui_cb_data_base_p->mediaFramework));
-//      return G_SOURCE_REMOVE;
-//    }
-//  } // end SWITCH
-//#else
-//  ui_cb_data_p->audioStream->control (STREAM_CONTROL_RESIZE, false);
-//#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      directshow_cb_data_p->audioStream->control (STREAM_CONTROL_RESIZE, false);
+      break;
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      mediafoundation_cb_data_p->audioStream->control (STREAM_CONTROL_RESIZE, false);
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unkown media framework (was: %d), returning\n"),
+                  ACE_TEXT (stream_p->name ().c_str ()),
+                  ui_cb_data_base_p->mediaFramework));
+      return G_SOURCE_REMOVE;
+    }
+  } // end SWITCH
+#else
+  ui_cb_data_p->audioStream->control (STREAM_CONTROL_RESIZE, false);
+#endif // ACE_WIN32 || ACE_WIN64
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("window resized to %dx%d\n"),
+              ACE_TEXT ("analyzer window resized to %dx%d\n"),
               allocation_s.width, allocation_s.height));
 
   return G_SOURCE_REMOVE;
@@ -6717,8 +6731,7 @@ drawingarea_video_resize_end (gpointer userData_in)
       directshow_cb_data_p->videoStream->control (STREAM_CONTROL_RESIZE, false);
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      mediafoundation_cb_data_p->videoStream->control (STREAM_CONTROL_RESIZE,
-                                                       false);
+      mediafoundation_cb_data_p->videoStream->control (STREAM_CONTROL_RESIZE, false);
       break;
     default:
     {
@@ -6734,7 +6747,7 @@ drawingarea_video_resize_end (gpointer userData_in)
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("window resized to %dx%d\n"),
+              ACE_TEXT ("video window resized to %dx%d\n"),
               allocation_s.width, allocation_s.height));
 
   return G_SOURCE_REMOVE;

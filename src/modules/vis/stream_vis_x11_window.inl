@@ -238,10 +238,9 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   } // end IF
 
   XVisualInfo visual_info_s;
-  if (configuration_in.window)
+  window_ = inherited3::convert (configuration_in.window);
+  if (window_)
   {
-    inherited3::getWindowType (configuration_in.window,
-                               window_);
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: passive mode (display: %@, window: %u)\n"),
                 inherited::mod_->name (),

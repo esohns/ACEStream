@@ -185,7 +185,12 @@ Stream_Module_Tensorflow_2<ConfigurationType,
 
   if (session_)
   {
-    session_->Close ();
+    tensorflow::Status status = session_->Close ();
+    if (!status.ok ())
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to tensorflow::Session::Close(): \"%s\", continuing\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (status.ToString ().c_str ())));
     delete session_;
   } // end IF
 }
@@ -203,26 +208,32 @@ Stream_Module_Tensorflow_2<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Tensorflow_2::initialize"));
 
+  tensorflow::Status status;
+
   if (inherited::isInitialized_)
   {
     if (session_)
     {
-      session_->Close ();
+      status = session_->Close ();
+      if (!status.ok ())
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to tensorflow::Session::Close(): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (status.ToString ().c_str ())));
       delete session_;
     } // end IF
     session_ = NULL;
   } // end IF
 
   tensorflow::GraphDef graph_def;
-  tensorflow::Status status;
   // *NOTE*: model file needs to be relative to cwd
   status = tensorflow::ReadBinaryProto (tensorflow::Env::Default (),
-                                        configuration_in.modelFile,
+                                        configuration_in.model,
                                         &graph_def);
   //tensorflow::SavedModelBundle bundle;
   //status = tensorflow::LoadSavedModel (tensorflow::SessionOptions (),
   //                                     tensorflow::RunOptions (),
-  //                                     Common_File_Tools::directory (configuration_in.modelFile),
+  //                                     Common_File_Tools::directory (configuration_in.model),
   //                                     {tensorflow::kSavedModelTagServe},
   //                                     &bundle);
   if (!status.ok ())
@@ -230,7 +241,7 @@ Stream_Module_Tensorflow_2<ConfigurationType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to LoadSavedModel() (model was: \"%s\"): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (configuration_in.modelFile.c_str ()),
+                ACE_TEXT (configuration_in.model.c_str ()),
                 ACE_TEXT (status.ToString ().c_str ())));
     return false;
   } // end IF
@@ -253,7 +264,7 @@ Stream_Module_Tensorflow_2<ConfigurationType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Session::Create() (model was: \"%s\"): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (configuration_in.modelFile.c_str ()),
+                ACE_TEXT (configuration_in.model.c_str ()),
                 ACE_TEXT (status.ToString ().c_str ())));
     return false;
   } // end IF

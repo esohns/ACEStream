@@ -440,7 +440,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       struct AVDictionary* dictionary_p = NULL;
       int flags, flags2;
       Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMapIterator_t iterator;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct AVCodecParameters* codec_parameters_p = NULL;
+#endif // ACE_WIN32 || ACE_WIN64
 
       codec_p =
         avcodec_find_decoder (inherited::configuration_->codecConfiguration->codecId);

@@ -70,6 +70,8 @@ class Stream_MediaFramework_ALSA_Tools
                     bool);            // current- ? : any
   static void listCards ();
 
+  static enum _snd_pcm_state status (struct _snd_pcm*); // device handle
+
   static bool getVolumeLevels (const std::string&, // card name
                                const std::string&, // selem name
                                bool,               // capture ? : playback

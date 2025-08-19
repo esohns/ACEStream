@@ -1234,6 +1234,7 @@ struct less_fract
             (rhs_in.numerator / (float)rhs_in.denominator));
   }
 };
+
 bool
 load_rates (int fd_in,
             __u32 format_in,
@@ -1313,6 +1314,7 @@ load_rates (int fd_in,
 continue_:
   GtkTreeIter iterator;
   guint frame_rate = 0;
+  std::ostringstream converter;
   for (std::set<struct v4l2_fract, less_fract>::const_iterator iterator_2 = frame_intervals.begin ();
        iterator_2 != frame_intervals.end ();
        ++iterator_2)
@@ -1321,11 +1323,16 @@ continue_:
         (((*iterator_2).numerator == 1) ? (*iterator_2).denominator
                                         : static_cast<guint> (static_cast<float> ((*iterator_2).denominator) /
                                                               static_cast<float> ((*iterator_2).numerator)));
+
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter << frame_rate;
+
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, frame_rate,
-                        1, (*iterator_2).numerator,
-                        2, (*iterator_2).denominator,
+                        0, converter.str ().c_str (),
+                        1, (*iterator_2).denominator,
+                        2, (*iterator_2).numerator,
                         -1);
   } // end FOR
 
@@ -1908,6 +1915,14 @@ stream_processing_function (void* arg_in)
         //(*iterator_2).second.second->stream = ui_cb_data_p->CBData->stream;
         result_2 =
           V4L_thread_data_p->CBData->stream->initialize ((*stream_iterator).second);
+
+        Stream_Module_t* module_p =
+          const_cast<Stream_Module_t*> (V4L_thread_data_p->CBData->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
+        ACE_ASSERT (module_p);
+        V4L_thread_data_p->CBData->dispatch =
+          dynamic_cast<Common_IDispatch*> (module_p->writer ());
+        ACE_ASSERT (V4L_thread_data_p->CBData->dispatch);
+
         const Test_I_Source_V4L_SessionData_t* session_data_container_p =
           &V4L_thread_data_p->CBData->stream->getR_2 ();
         session_ui_cb_data_p =
@@ -2797,7 +2812,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (!(*iterator_4).second.second->window.gdk_window);
   (*iterator_4).second.second->window.gdk_window = window_p;
   (*iterator_4).second.second->window.type = Common_UI_Window::TYPE_GTK;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("drawing area window handle: %@\n"),
               window_p));
@@ -2851,26 +2866,26 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   (*iterator_4).second.second->area.width =
       static_cast<__u32> (allocation.width);
 
-  ACE_ASSERT (!V4L_ui_cb_data_p->pixelBuffer);
-  V4L_ui_cb_data_p->pixelBuffer =
-#if GTK_CHECK_VERSION (3,0,0)
-      gdk_pixbuf_get_from_window ((*iterator_4).second.second->window,
-                                  0, 0,
-                                  allocation.width, allocation.height);
-#else
-      gdk_pixbuf_get_from_drawable (NULL,
-                                    GDK_DRAWABLE ((*iterator_4).second.second->window),
-                                    NULL,
-                                    0, 0,
-                                    0, 0, allocation.width, allocation.height);
-#endif // GTK_CHECK_VERSION (3,0,0)
-  if (!V4L_ui_cb_data_p->pixelBuffer)
-  { // *NOTE*: most probable reason: window is not mapped
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
-    return G_SOURCE_REMOVE;
-  } // end IF
-  (*iterator_4).second.second->pixelBuffer = V4L_ui_cb_data_p->pixelBuffer;
+//   ACE_ASSERT (!V4L_ui_cb_data_p->pixelBuffer);
+//   V4L_ui_cb_data_p->pixelBuffer =
+// #if GTK_CHECK_VERSION (3,0,0)
+//       gdk_pixbuf_get_from_window ((*iterator_4).second.second->window,
+//                                   0, 0,
+//                                   allocation.width, allocation.height);
+// #else
+//       gdk_pixbuf_get_from_drawable (NULL,
+//                                     GDK_DRAWABLE ((*iterator_4).second.second->window),
+//                                     NULL,
+//                                     0, 0,
+//                                     0, 0, allocation.width, allocation.height);
+// #endif // GTK_CHECK_VERSION (3,0,0)
+//   if (!V4L_ui_cb_data_p->pixelBuffer)
+//   { // *NOTE*: most probable reason: window is not mapped
+//     ACE_DEBUG ((LM_ERROR,
+//                 ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
+//     return G_SOURCE_REMOVE;
+//   } // end IF
+//   (*iterator_4).second.second->pixelBuffer = V4L_ui_cb_data_p->pixelBuffer;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step11: select default capture source (if any)
@@ -3906,8 +3921,6 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  (*modulehandler_iterator).second.second->outputFormat.format =
-      AV_PIX_FMT_RGB24;
   (*modulehandler_iterator).second.second->outputFormat.resolution.height =
       static_cast<__u32> (allocation.height);
   (*modulehandler_iterator).second.second->outputFormat.resolution.width =
@@ -7631,7 +7644,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
 #endif // ACE_WIN32 || ACE_WIN64
     Common_UI_GTK_Tools::selectValue (combo_box_p,
                                       value,
-                                      0);
+                                      1);
     g_value_unset (&value);
   } // end IF
 } // combobox_resolution_changed_cb
@@ -7738,11 +7751,11 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
-                            0, &value);
+                            1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
-                            1, &value_2);
+                            2, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
   unsigned int frame_rate = g_value_get_uint (&value);
   g_value_unset (&value);
@@ -7974,7 +7987,7 @@ drawingarea_video_resize_end (gpointer userData_in)
     return G_SOURCE_REMOVE;
 
   module_name =
-    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING);
+    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
   ACE_ASSERT (stream_p);

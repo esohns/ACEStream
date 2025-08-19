@@ -1341,13 +1341,13 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
 
-  ACE_NEW_RETURN (module_p,
-                  Test_I_ALSA_SoXEffect_Module (this,
-                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
+  // ACE_NEW_RETURN (module_p,
+  //                 Test_I_ALSA_SoXEffect_Module (this,
+  //                                               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
+  //                 false);
+  // ACE_ASSERT (module_p);
+  // layout_in->append (module_p, NULL, 0);
+  // module_p = NULL;
 #endif // SOX_SUPPORT
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
@@ -1358,6 +1358,9 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
                   false);
   ACE_ASSERT (module_p);
   branch_p = module_p;
+#if defined (GTK_USE)
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+#endif // GTK_USE
   branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
   if (!(*iterator_3).second.second->fileIdentifier.empty ())
     branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
@@ -1374,15 +1377,16 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
 
-//#if defined (GTK_USE)
-//  ACE_NEW_RETURN (module_p,
-//                  Test_I_ALSA_Vis_SpectrumAnalyzer_Module (this,
-//                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-//                  false);
-//  ACE_ASSERT (module_p);
-//  layout_in->append (module_p, branch_p, index_i);
-//  module_p = NULL;
-//#endif // GTK_USE
+#if defined (GTK_USE)
+ ACE_NEW_RETURN (module_p,
+                 Test_I_ALSA_Vis_SpectrumAnalyzer_Module (this,
+                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                 false);
+ ACE_ASSERT (module_p);
+ layout_in->append (module_p, branch_p, index_i);
+ module_p = NULL;
+ ++index_i;
+#endif // GTK_USE
 
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_ALSA_Module (this,

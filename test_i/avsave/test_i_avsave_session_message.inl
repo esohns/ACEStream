@@ -47,7 +47,7 @@ Stream_AVSave_SessionMessage_T<DataMessageType,
                                SessionDataType>::Stream_AVSave_SessionMessage_T (const Stream_AVSave_SessionMessage_T<DataMessageType,
                                                                                                                       SessionDataType>& message_in)
  : inherited (message_in)
- , mediaType_ (STREAM_MEDIATYPE_INVALID)
+ , mediaType_ (message_in.mediaType_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_SessionMessage_T::Stream_AVSave_SessionMessage_T"));
 
@@ -107,6 +107,8 @@ Stream_AVSave_SessionMessage_T<DataMessageType,
                          static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->malloc (0)),
                          OWN_TYPE_T (*this),
                          NULL);
+
+
 
   // increment the reference counts of all the continuation messages
   if (unlikely (inherited::cont_))

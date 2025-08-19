@@ -112,6 +112,7 @@ Test_I_Target_EventHandler_T<SessionDataType,
   CBData_->stream =
     &const_cast<Test_I_Target_TCPStream&> (tcp_connection_p->stream ());
 #endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (CBData_->stream);
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (CBData_->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);

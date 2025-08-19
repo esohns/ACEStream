@@ -48,7 +48,8 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
-// , mainLoop_ (NULL)
+ , inherited3 ()
+ // , mainLoop_ (NULL)
  , window_ (NULL)
 #if GTK_CHECK_VERSION (3,0,0)
  , context_ (NULL)
@@ -239,7 +240,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 #if GTK_CHECK_VERSION (3,0,0)
       if (context_)
       { // *TODO*: crash here
-        //cairo_destroy (context_); context_ = NULL;
+        cairo_destroy (context_); context_ = NULL;
       } // end IF
 #endif // GTK_CHECK_VERSION (3,0,0)
       if (pixbuf_)
@@ -270,11 +271,11 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 #else
       struct Stream_MediaFramework_V4L_MediaType media_type_s;
 #endif // ACE_WIN32 || ACE_WIN64
-      inherited2::getMediaType (session_data_r.formats.back (),
+      inherited3::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
       Common_Image_Resolution_t resolution_s =
-        inherited2::getResolution (media_type_s);
+        inherited3::getResolution (media_type_s);
 
 #if GTK_CHECK_VERSION (3,6,0)
 #else
@@ -349,7 +350,7 @@ error:
 #if GTK_CHECK_VERSION (3,0,0)
       if (context_)
       { // *TODO*: crash here
-        //cairo_destroy (context_); context_ = NULL;
+        cairo_destroy (context_); context_ = NULL;
       } // end IF
 #endif // GTK_CHECK_VERSION (3,0,0)
       if (pixbuf_)
@@ -509,7 +510,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
                      width_i, height_i);
 
   // *TODO*: subscribe to more signals (realize, configure, expose, ...)
-  g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("destroy"),      G_CALLBACK (acestream_gtk_window_destroy_cb), NULL);
+  g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("destroy"), G_CALLBACK (acestream_gtk_window_destroy_cb), NULL);
   //ACE_ASSERT (inherited::mod_);
   //IGET_T* iget_p = dynamic_cast<IGET_T*> (inherited::mod_);
   //if (unlikely (!iget_p))
@@ -526,6 +527,11 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   //ACE_ASSERT (istream_control_base_p);
   Common_INotify* inotify_p = this;
   g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("delete-event"), G_CALLBACK (acestream_gtk_window_delete_event_cb), (gpointer)inotify_p);
+
+#if GTK_CHECK_VERSION (3,0,0)
+  context_ = gdk_cairo_create (gtk_widget_get_window (GTK_WIDGET (window_)));
+  ACE_ASSERT (context_);
+#endif // GTK_CHECK_VERSION (3,0,0)
 
   return true;
 }

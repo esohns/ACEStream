@@ -3999,8 +3999,7 @@ continue_:
         //  ACE_DEBUG ((LM_ERROR,
         //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
         //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-        (*mediafoundation_stream_iterator).second.second->session->Release (); (*mediafoundation_stream_iterator).second.second->session =
-            NULL;
+        (*mediafoundation_stream_iterator).second.second->session->Release (); (*mediafoundation_stream_iterator).second.second->session = NULL;
       } // end IF
 
       ////if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
@@ -4552,7 +4551,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->streamConfiguration.end ());
 
       (*directshow_stream_iterator_2).second.second->fullScreen = is_active_b;
-      (*directshow_stream_iterator_2).second.second->window =
+      (*directshow_stream_iterator_2).second.second->window.gdk_window =
         (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
                      : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
       break;
@@ -4588,7 +4587,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
     cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO)));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->v4l_streamConfiguration.end ());
   (*iterator_2).second.second->fullScreen = is_active_b;
-  (*iterator_2).second.second->window =
+  (*iterator_2).second.second->window.gdk_window =
     (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
                  : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
   ACE_ASSERT ((*iterator_2).second.second->window);

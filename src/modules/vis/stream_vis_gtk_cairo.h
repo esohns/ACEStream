@@ -126,7 +126,7 @@ class Stream_Module_Vis_GTK_Cairo_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T (const Stream_Module_Vis_GTK_Cairo_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T& operator= (const Stream_Module_Vis_GTK_Cairo_T&))
 
-  cairo_t*         context_;
+  //cairo_t*         context_;
 #if GTK_CHECK_VERSION (3,10,0)
   cairo_surface_t* surface_; // target-
 #else

@@ -36,6 +36,7 @@
 #include "stream_dev_cam_source_directshow.h"
 #include "stream_dev_cam_source_mediafoundation.h"
 
+#include "stream_dev_mic_source_wasapi.h"
 #include "stream_dev_mic_source_wavein.h"
 #else
 #include "stream_dev_cam_source_v4l.h"
@@ -141,7 +142,7 @@ typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
+typedef Stream_Dev_Mic_Source_WASAPI_T<ACE_MT_SYNCH,
                                        Stream_ControlMessage_t,
                                        Stream_AVSave_DirectShow_Message_t,
                                        Stream_AVSave_DirectShow_SessionMessage_t,
@@ -153,7 +154,20 @@ typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
                                        Stream_AVSave_DirectShow_SessionData_t,
                                        struct Stream_AVSave_StatisticData,
                                        Common_Timer_Manager_t,
-                                       struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_DirectShow_WaveIn_Source;
+                                       struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_DirectShow_WASAPI_Source;
+//typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
+//                                       Stream_ControlMessage_t,
+//                                       Stream_AVSave_DirectShow_Message_t,
+//                                       Stream_AVSave_DirectShow_SessionMessage_t,
+//                                       struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
+//                                       enum Stream_ControlType,
+//                                       enum Stream_SessionMessageType,
+//                                       struct Stream_AVSave_DirectShow_StreamState,
+//                                       Stream_AVSave_DirectShow_SessionData,
+//                                       Stream_AVSave_DirectShow_SessionData_t,
+//                                       struct Stream_AVSave_StatisticData,
+//                                       Common_Timer_Manager_t,
+//                                       struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_DirectShow_WaveIn_Source;
 
 typedef Stream_Dev_Cam_Source_VfW_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,
@@ -496,7 +510,7 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Stream_AVSave_DirectShow_SessionData_t,
                                                           Common_Timer_Manager_t,
                                                           struct Stream_MediaFramework_DirectShow_AudioVideoFormat,
-                                                          double> Stream_AVSave_DirectShow_SpectrumAnalyzer;
+                                                          float> Stream_AVSave_DirectShow_SpectrumAnalyzer;
 
 typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -599,9 +613,15 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                          // session data type
                               enum Stream_SessionMessageType,                                // session event type
                               struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,    // module handler configuration type
-                              libacestream_default_dev_mic_source_wavein_module_name_string,
+                              libacestream_default_dev_mic_source_wasapi_module_name_string,
                               Stream_INotify_t,                                              // stream notification interface type
-                              Stream_AVSave_DirectShow_WaveIn_Source);                       // writer type
+                              Stream_AVSave_DirectShow_WASAPI_Source);                       // writer type
+//DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                          // session data type
+//                              enum Stream_SessionMessageType,                                // session event type
+//                              struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,    // module handler configuration type
+//                              libacestream_default_dev_mic_source_wavein_module_name_string,
+//                              Stream_INotify_t,                                              // stream notification interface type
+//                              Stream_AVSave_DirectShow_WaveIn_Source);                       // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                             // session event type

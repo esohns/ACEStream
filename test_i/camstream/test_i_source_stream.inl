@@ -1379,6 +1379,15 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
   ACE_ASSERT (idistributor_p);
   idistributor_p->initialize (branches_a);
+
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Source_V4L_Converter_Module (this,
+                                                      ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2")),
+                  false);
+  layout_inout->append (module_p, branch_p, 0);
+  module_p = NULL;
+
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_V4L_Resize_Module (this,
                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING)),
@@ -1387,8 +1396,8 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
   module_p = NULL;
 #if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_V4L_Display_Module (this,
-                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
+                  Test_I_Source_V4L_GTK_Cairo_Display_Module (this,
+                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)),
                   false);
   layout_inout->append (module_p, branch_p, 0);
   module_p = NULL;
@@ -1425,7 +1434,6 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_T::initialize"));
 
-//  bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
 
@@ -1453,41 +1461,6 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
   ACE_ASSERT (session_data_r.formats.empty ());
   session_data_r.formats.push_back (configuration_in.configuration_->format);
 
-  // ---------------------------------------------------------------------------
-  // sanity check(s)
-//  ACE_ASSERT (configuration_in.moduleConfiguration);
-
-  //  configuration_in.moduleConfiguration.streamState = &state_;
-
-  // ---------------------------------------------------------------------------
-
-//  Test_I_Source_V4L_CamSource* source_impl_p = NULL;
-
-  // ******************* Camera Source ************************
-//  typename inherited::MODULE_T* module_p =
-//    const_cast<typename inherited::MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING)));
-//  if (!module_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-//                ACE_TEXT (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING)));
-//    return false;
-//  } // end IF
-//  source_impl_p =
-//    dynamic_cast<Test_I_Source_V4L_CamSource*> (module_p->writer ());
-//  if (!source_impl_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("dynamic_cast<Test_I_Source_V4L_CamSource> failed, aborting\n")));
-//    return false;
-//  } // end IF
-//  source_impl_p->setP (&(inherited::state_));
-//  //fileReader_impl_p->reset ();
-//  // *NOTE*: push()ing the module will open() it
-//  //         --> set the argument that is passed along (head module expects a
-//  //             handle to the session data)
-//  module_p->arg (inherited::sessionData_);
-
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))
     {
@@ -1498,14 +1471,6 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
     } // end IF
 
   // -------------------------------------------------------------
-
-  //// *TODO*: remove type inferences
-  //session_data_p =
-  //    &const_cast<Test_I_Source_Stream_SessionData&> (inherited::sessionData_->get ());
-  //session_data_p->fileName =
-  //  configuration_in.moduleHandlerConfiguration->fileName;
-  //session_data_p->size =
-  //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
 
   // OK: all went well
   inherited::isInitialized_ = true;

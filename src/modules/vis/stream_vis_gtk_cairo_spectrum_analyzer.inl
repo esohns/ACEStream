@@ -295,16 +295,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     halfHeight_ = height_ / 2;
   } // end ELSE
 
-  //ACE_ASSERT (inherited::msg_queue_);
-  //int result = inherited::msg_queue_->activate ();
-  //if (unlikely (result == -1))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to ACE_Message_Queue::activate(): \"%m\", aborting\n"),
-  //              inherited::mod_->name ()));
-  //  return false;
-  //} // end IF
-
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
@@ -476,6 +466,14 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
 
   int result = -1;
+  unsigned int data_sample_size = 0;
+  unsigned int sound_sample_size = 0;
+  unsigned int channels, sample_rate;
+  int sample_byte_order = ACE_BYTE_ORDER;
+  bool is_signed_format = false;
+  bool is_floating_point_format = false;
+  double max_value_d = 0.0;
+  bool result_2 = false;
 
   switch (message_inout->type ())
   {
@@ -490,16 +488,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       ACE_ASSERT (!session_data_r.formats.empty ());
 
       typename TimerManagerType::INTERFACE_T* itimer_manager_p = NULL;
-      bool result_2 = false;
       bool shutdown = false;
 
-      unsigned int data_sample_size = 0;
-      unsigned int sound_sample_size = 0;
-      unsigned int channels, sample_rate;
-      int sample_byte_order = ACE_BYTE_ORDER;
-      bool is_signed_format = false;
-      bool is_floating_point_format = false;
-      double max_value_d = 0.0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
@@ -540,6 +530,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       is_signed_format = (snd_pcm_format_signed (media_type_s.format) == 1);
       is_floating_point_format =
         (snd_pcm_format_linear (media_type_s.format) == 0);
+      if (is_floating_point_format)
+        is_signed_format = true;
 
       channels = media_type_s.channels;
       sample_rate = media_type_s.rate;
@@ -564,7 +556,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       if (unlikely (!result_2))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Common_Math_FFT::initialize(), aborting\n"),
+                    ACE_TEXT ("%s: failed to Common_Math_FFT(W)::initialize(), aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
@@ -668,6 +660,106 @@ error:
 
       break;
     }
+    case STREAM_SESSION_MESSAGE_RESIZE:
+    {
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+      typename SessionDataContainerType::DATA_T& session_data_r =
+        const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
+      // *TODO*: remove type inference
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      ACE_ASSERT (session_data_r.lock);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      inherited::getMediaType (session_data_r.formats.back (),
+                               STREAM_MEDIATYPE_AUDIO,
+                               media_type_s);
+      ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
+      struct tWAVEFORMATEX* waveformatex_p =
+        reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
+      ACE_ASSERT (waveformatex_p);
+      sound_sample_size = (waveformatex_p->wBitsPerSample / 8);
+      //data_sample_size = waveformatex_p->nBlockAlign;
+      data_sample_size = waveformatex_p->nChannels * sound_sample_size;
+      // *NOTE*: apparently, all Win32 sound data is little endian only
+      sample_byte_order = ACE_LITTLE_ENDIAN;
+      // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
+      //         are unsigned values. (Each audio sample has the range 0255.)
+      //         If the audio contains 16 bits per sample or higher, the audio
+      //         samples are signed values. ..."
+      is_signed_format = !(sound_sample_size == 1);
+      is_floating_point_format =
+        Stream_MediaFramework_DirectSound_Tools::isFloat (*waveformatex_p);
+
+      channels = waveformatex_p->nChannels;
+      sample_rate = waveformatex_p->nSamplesPerSec;
+
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#else
+      struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+      inherited::getMediaType (session_data_r.formats.back (),
+                               STREAM_MEDIATYPE_AUDIO,
+                               media_type_s);
+      sound_sample_size = (snd_pcm_format_width (media_type_s.format) / 8);
+      data_sample_size = sound_sample_size * media_type_s.channels;
+      sample_byte_order =
+        ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
+                                                                   : -1);
+      is_signed_format = (snd_pcm_format_signed (media_type_s.format) == 1);
+      is_floating_point_format =
+        (snd_pcm_format_linear (media_type_s.format) == 0);
+
+      channels = media_type_s.channels;
+      sample_rate = media_type_s.rate;
+#endif // ACE_WIN32 || ACE_WIN64
+      result_2 = sampleIterator_.initialize (data_sample_size,
+                                             sound_sample_size,
+                                             is_signed_format,
+                                             is_floating_point_format,
+                                             sample_byte_order);
+      if (unlikely (!result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to initialize sample iterator, aborting\n"),
+                    inherited::mod_->name ()));
+        goto error_2;
+      } // end IF
+
+      result_2 =
+        inherited2::Initialize (channels,
+                                inherited::configuration_->spectrumAnalyzerConfiguration->resolution,
+                                sample_rate);
+      if (unlikely (!result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Common_Math_FFT(W)::initialize(), aborting\n"),
+                    inherited::mod_->name ()));
+        goto error_2;
+      } // end IF
+
+      channelFactor_ = width_ / static_cast<double> (inherited2::channels_);
+      scaleFactorX_ =
+        width_ / static_cast<double> (inherited2::channels_ * inherited2::slots_);
+      scaleFactorX_2 =
+        width_ / static_cast<double> (inherited2::channels_ * ((inherited2::slots_ / 2) - 1));
+      max_value_d = static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, is_signed_format));
+      scaleFactorY_ =
+        (is_floating_point_format ? static_cast<double> (height_)
+                                  : is_signed_format ? static_cast<double> (halfHeight_) / max_value_d
+                                                     : static_cast<double> (height_) / max_value_d);
+      scaleFactorY_2 = scaleFactorY_ * 2.0;
+
+      inherited::resizing_ = false;
+
+      break;
+
+error_2:
+      inherited::TASK_BASE_T::notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_END:
     {
       //if (likely (renderHandlerTimerId_ != -1))
@@ -712,6 +804,10 @@ error:
 #else
         gdk_threads_leave ();
 #endif // GTK_CHECK_VERSION (3,6,0)
+
+        if (likely (CBData_.context))
+          cairo_destroy (CBData_.context);
+        ACE_OS::memset (&CBData_, 0, sizeof (struct acestream_visualization_gtk_cairo_cbdata));
       } // end IF
 //      if (likely (inherited::mainLoop_ &&
 //                  g_main_loop_is_running (inherited::mainLoop_)))
@@ -733,10 +829,6 @@ error:
 //      {
 //        g_main_loop_unref (inherited::mainLoop_); inherited::mainLoop_ = NULL;
 //      } // end IF
-
-      if (likely (CBData_.context))
-        cairo_destroy (CBData_.context);
-      ACE_OS::memset (&CBData_, 0, sizeof (struct acestream_visualization_gtk_cairo_cbdata));
 
       break;
     }
@@ -1181,8 +1273,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, sampleIterator_.isSignedSampleFormat_));
   scaleFactorY_ =
     (is_floating_point_format ? static_cast<double> (height_)
-                              : static_cast<double> (height_) / (sampleIterator_.isSignedSampleFormat_ ? max_value_d * 2.0
-                                                                                                       : max_value_d));
+                              : sampleIterator_.isSignedSampleFormat_ ? static_cast<double> (halfHeight_) / max_value_d
+                                                                      : static_cast<double> (height_) / max_value_d);
   scaleFactorY_2 = scaleFactorY_ * 2.0;
 //} // end lock scope
 }
@@ -1213,6 +1305,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::dispatch"));
 
+  if (unlikely (inherited::resizing_))
+    return;
+
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   struct acestream_visualization_gtk_cairo_cbdata* cbdata_p =
@@ -1239,13 +1334,13 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   cairo_surface_t* surface_p = NULL;
   context_p = cbdata_p->context;
 #else
-#define CAIRO_ERROR_WORKAROUND(X)                                \
-  if (cairo_status (X) != CAIRO_STATUS_SUCCESS) {                \
-    cairo_destroy (cbdata_p->context); cbdata_p->context = NULL; \
-    cbdata_p->context = gdk_cairo_create (cbdata_p->window);     \
-    ACE_ASSERT (cbdata_p->context);                              \
-    cairo_set_line_width (cbdata_p->context, 1.0);               \
-  } // end IF
+//#define CAIRO_ERROR_WORKAROUND(X)                                \
+//  if (cairo_status (X) != CAIRO_STATUS_SUCCESS) {                \
+//    cairo_destroy (cbdata_p->context); cbdata_p->context = NULL; \
+//    cbdata_p->context = gdk_cairo_create (cbdata_p->window);     \
+//    ACE_ASSERT (cbdata_p->context);                              \
+//    cairo_set_line_width (cbdata_p->context, 1.0);               \
+//  } // end IF
 
   context_p = cbdata_p->context;
 #endif // GTK_CHECK_VERSION ()
@@ -1361,7 +1456,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   // *IMPORTANT NOTE*: this assert fails intermittently on Gtk2 Win32;
   //                   the result is CAIRO_STATUS_NO_MEMORY
   //ACE_ASSERT (cairo_status (cairoContext_) == CAIRO_STATUS_SUCCESS);
-  CAIRO_ERROR_WORKAROUND (cbdata_p->context);
+  //CAIRO_ERROR_WORKAROUND (cbdata_p->context);
 #endif // GTK_CHECK_VERSION (4,0,0)
 
 error:

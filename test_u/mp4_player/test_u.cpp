@@ -132,7 +132,7 @@ do_print_usage (const std::string& programName_in)
             << std::endl;
 #else
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-1          : use X11 renderer [")
-            << true
+            << false
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -218,7 +218,7 @@ do_process_arguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D;
 #else
-  renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_X11;
+  renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND;
 #endif // ACE_WIN32 || ACE_WIN64
   traceInformation_out = false;
   mode_out = TEST_U_PROGRAMMODE_NORMAL;
@@ -1052,7 +1052,11 @@ do_work (int argc_in,
   modulehandler_configuration.deviceIdentifier.identifier =
     Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                      SND_PCM_STREAM_PLAYBACK);
-  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_RGB24;
+  if (modulehandler_configuration.deviceIdentifier.identifier.empty ())
+    modulehandler_configuration.deviceIdentifier.identifier =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
+
+  modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_RGB32;
   modulehandler_configuration.outputFormat.video.resolution.width = 640;
   modulehandler_configuration.outputFormat.video.resolution.height = 480;
   modulehandler_configuration.outputFormat.video.frameRate.num = 30;
@@ -1478,7 +1482,7 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   video_renderer_e = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D;
 #else
-  video_renderer_e = STREAM_VISUALIZATION_VIDEORENDERER_X11;
+  video_renderer_e = STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Common_UI_DisplayDevice display_device_s =
     Common_UI_Tools::getDefaultDisplay ();

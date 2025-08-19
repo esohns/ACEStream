@@ -34,6 +34,8 @@
 
 #include "stream_lib_mediatype_converter.h"
 
+#include "stream_vis_base.h"
+
 //////////////////////////////////////////
 
 extern const char libacestream_default_vis_gtk_window_module_name_string[];
@@ -65,8 +67,8 @@ class Stream_Module_Vis_GTK_Window_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
+ , public Stream_Visualization_Base
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
- , public Common_UI_IFullscreen
  , public Common_INotify
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -78,7 +80,8 @@ class Stream_Module_Vis_GTK_Window_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+  typedef Stream_Visualization_Base inherited2;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited3;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -111,16 +114,17 @@ class Stream_Module_Vis_GTK_Window_T
 
   virtual int svc (void);
 
+ protected:
+  // implement Common_INotify
+  inline virtual void notify () { inherited::notify (STREAM_SESSION_MESSAGE_ABORT); }
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Window_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Window_T (const Stream_Module_Vis_GTK_Window_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Window_T& operator= (const Stream_Module_Vis_GTK_Window_T&))
 
-  // implement Common_INotify
-  inline virtual void notify () { inherited::notify (STREAM_SESSION_MESSAGE_ABORT); }
-
   // helper methods
-  inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); }
+  // inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); }
 
 #if GTK_CHECK_VERSION (3,0,0)
   cairo_t*   context_;

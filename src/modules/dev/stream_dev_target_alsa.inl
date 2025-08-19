@@ -542,6 +542,7 @@ open:
 //      ACE_ASSERT (result >= 0);
 //      free (buffer_p); buffer_p = NULL;
 
+retry:
       result =  snd_pcm_start (deviceHandle_);
       if (unlikely (result < 0))
       {
@@ -570,11 +571,40 @@ open:
             goto error;
           } // end IF
         } // end IF
+        else if (result == -EIO)
+        {
+          enum _snd_pcm_state state_e =
+              Stream_MediaFramework_ALSA_Tools::status (deviceHandle_);
+          if (state_e == SND_PCM_STATE_SETUP)
+          {
+            result = snd_pcm_prepare (deviceHandle_);
+            if (unlikely (result < 0))
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to snd_pcm_prepare(%@): \"%s\", aborting\n"),
+                          inherited::mod_->name (),
+                          deviceHandle_,
+                          ACE_TEXT (snd_strerror (result))));
+              goto error;
+            } // end IF
+          } // end IF
+          else
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to snd_pcm_start(%@): \"%s\", aborting\n"),
+                        inherited::mod_->name (),
+                        deviceHandle_,
+                        ACE_TEXT (snd_strerror (result))));
+            goto error;
+          } // end ELSE
+          goto retry;
+        } // end ELSE IF
         else
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to snd_pcm_start(): \"%s\", aborting\n"),
+                      ACE_TEXT ("%s: failed to snd_pcm_start(%@): \"%s\", aborting\n"),
                       inherited::mod_->name (),
+                      deviceHandle_,
                       ACE_TEXT (snd_strerror (result))));
           goto error;
         } // end IF
@@ -940,9 +970,10 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
           goto recover;
 
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to snd_pcm_writei(): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to snd_pcm_writei_(%@): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (snd_strerror (result))));
+                    deviceHandle_,
+                    ACE_TEXT (snd_strerror (error_i))));
         head_p->release (); head_p = NULL;
         return -1;
       } // end IF
@@ -970,7 +1001,6 @@ recover:
                   ACE_TEXT ("%s: buffer underrun, recovering\n"),
                   inherited::mod_->name ()));
 
-//     result = snd_pcm_prepare (handle_p);
       result = snd_pcm_recover (deviceHandle_,
                                 error_i,
 #if defined (_DEBUG)
@@ -987,6 +1017,9 @@ recover:
         head_p->release (); head_p = NULL;
         return -1;
       } // end IF
+
+      // result = snd_pcm_prepare (deviceHandle_);
+      // ACE_ASSERT (result == 0);
     } while (true);
   } while (true);
 

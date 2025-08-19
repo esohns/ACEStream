@@ -187,6 +187,9 @@ struct QRDecode_ModuleHandlerConfiguration
 #else
    , buffers (STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS)
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (FFMPEG_SUPPORT)
+   , codecConfiguration (NULL)
+#endif // FFMPEG_SUPPORT
    , deviceIdentifier ()
    , outputFormat ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -209,6 +212,9 @@ struct QRDecode_ModuleHandlerConfiguration
 #else
   __u32                                      buffers; // v4l device buffers
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
+#endif // FFMPEG_SUPPORT
   struct Stream_Device_Identifier            deviceIdentifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType                        outputFormat; // DirectShow source

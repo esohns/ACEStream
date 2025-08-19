@@ -43,6 +43,7 @@ Stream_AVSave_Message_T<DataType>::Stream_AVSave_Message_T (Stream_SessionId_t s
 template <typename DataType>
 Stream_AVSave_Message_T<DataType>::Stream_AVSave_Message_T (const OWN_TYPE_T& message_in)
  : inherited (message_in)
+ , mediaType_ (message_in.mediaType_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_Message_T::Stream_AVSave_Message_T"));
 
@@ -109,6 +110,8 @@ Stream_AVSave_Message_T<DataType>::duplicate (void) const
   int result = message_p->copy (this->rd_ptr (),
                                 this->length ());
   ACE_ASSERT (result == 0);
+
+  message_p->setMediaType (getMediaType ());
 
   // increment the reference counts of any continuation messages
   if (inherited::cont_)

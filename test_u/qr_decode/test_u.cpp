@@ -918,6 +918,9 @@ do_work (int argc_in,
   struct Stream_ModuleConfiguration module_configuration;
   struct QRDecode_StreamConfiguration stream_configuration;
   Test_U_StreamConfiguration_t stream_configuration_2;
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
+#endif // FFMPEG_SUPPORT
 
   // step2: initialize stream
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
@@ -1026,6 +1029,11 @@ do_work (int argc_in,
     } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (FFMPEG_SUPPORT)
+  codec_configuration.codecId =
+      Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (stream_configuration.format.format.pixelformat);
+  modulehandler_configuration.codecConfiguration = &codec_configuration;
+#endif // FFMPEG_SUPPORT
   modulehandler_configuration.messageAllocator = &message_allocator;
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration_2.initialize (module_configuration,
@@ -1039,18 +1047,18 @@ do_work (int argc_in,
   Test_U_EventHandler event_handler;
   modulehandler_configuration.subscriber = &event_handler;
 
-  Test_U_Stream Test_U_stream;
-  module_configuration.stream = &Test_U_stream;
+  Test_U_Stream stream;
+  module_configuration.stream = &stream;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_DirectShow_MessageHandler_Module module (&Test_U_stream,
+  Test_U_DirectShow_MessageHandler_Module module (&stream,
                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 #else
-  Test_U_MessageHandler_Module module (&Test_U_stream,
+  Test_U_MessageHandler_Module module (&stream,
                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 #endif // ACE_WIN32 || ACE_WIN64
   stream_configuration.module = &module;
 
-  if (!Test_U_stream.initialize (stream_configuration_2))
+  if (!stream.initialize (stream_configuration_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize stream, returning\n")));
@@ -1058,10 +1066,12 @@ do_work (int argc_in,
   } // end IF
 
   // step3: parse data
-  Test_U_stream.start ();
-  Test_U_stream.wait (true,   // wait for threads ?
-                      false,  // wait for upstream ?
-                      false); // wait for downstream ?
+  stream.start ();
+  stream.wait (true,   // wait for threads ?
+               false,  // wait for upstream ?
+               false); // wait for downstream ?
+
+  stream.remove (&module, true, false);
 }
 
 int

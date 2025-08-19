@@ -39,12 +39,12 @@ string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 if (OPENCV_SUPPORT)
  include_directories (${OPENCV_INCLUDE_DIRS})
 endif (OPENCV_SUPPORT)
-if (TENSORFLOW_SUPPORT)
- include_directories (${tensorflow_INCLUDE_DIRS})
-endif (TENSORFLOW_SUPPORT)
-if (TENSORFLOW_CC_SUPPORT)
- include_directories (${tensorflow_cc_INCLUDE_DIRS})
-endif (TENSORFLOW_CC_SUPPORT)
+#if (TENSORFLOW_SUPPORT)
+# include_directories (${tensorflow_INCLUDE_DIRS})
+#endif (TENSORFLOW_SUPPORT)
+#if (TENSORFLOW_CC_SUPPORT)
+# include_directories (${tensorflow_cc_INCLUDE_DIRS})
+#endif (TENSORFLOW_CC_SUPPORT)
 if (UNIX)
  include_directories (${PKG_V4L_INCLUDE_DIRS})
 
@@ -133,8 +133,6 @@ if (MEDIAPIPE_SUPPORT)
  target_include_directories (MP_FORMATS PUBLIC "${MEDIAPIPE_ROOT}/bazel-bin")
  target_link_libraries (MP_FORMATS libprotobuf)
 
- include_directories (${MEDIAPIPE_INCLUDE_DIRS})
-
  set (EXECUTABLE_2 camera_ml_2)
  set (${EXECUTABLE_2}_EXE_SRCS
       stdafx.h
@@ -146,7 +144,7 @@ if (MEDIAPIPE_SUPPORT)
       test_i_camera_ml_module_mediapipe.cpp
       test_i_camera_ml_module_mediapipe.h
       test_i_camera_ml_module_mediapipe.inl
-      test_i_common_modules.h
+      test_i_common_modules_2.h
       test_i_eventhandler.cpp
       test_i_eventhandler.h
       test_i_eventhandler.inl
@@ -179,7 +177,7 @@ if (MEDIAPIPE_SUPPORT)
        test_i_camera_ml_module_mediapipe_3.cpp
        test_i_camera_ml_module_mediapipe_3.h
        test_i_camera_ml_module_mediapipe_3.inl
-       test_i_common_modules.h
+       test_i_common_modules_2.h
        test_i_eventhandler.cpp
        test_i_eventhandler.h
        test_i_eventhandler.inl
@@ -216,17 +214,29 @@ cmake_policy (SET CMP0012 NEW)
 if (WIN32 AND NOT BUILD_TEST_I)
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif (WIN32 AND NOT BUILD_TEST_I)
+
+if (TENSORFLOW_SUPPORT)
+ target_include_directories (${EXECUTABLE} PUBLIC ${tensorflow_INCLUDE_DIRS})
+endif (TENSORFLOW_SUPPORT)
+if (TENSORFLOW_CC_SUPPORT)
+ target_include_directories (${EXECUTABLE} PUBLIC ${tensorflow_cc_INCLUDE_DIRS})
+endif (TENSORFLOW_CC_SUPPORT)
+
 if (MEDIAPIPE_SUPPORT)
  add_executable (${EXECUTABLE_2}
                  EXCLUDE_FROM_ALL
                  ${${EXECUTABLE_2}_EXE_SRCS})
  set_property (TARGET ${EXECUTABLE_2} PROPERTY FOLDER "test_i")
 
+ target_include_directories (${EXECUTABLE_2} PUBLIC ${MEDIAPIPE_INCLUDE_DIRS})
+
  if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
   add_executable (${EXECUTABLE_3}
                   EXCLUDE_FROM_ALL
                   ${${EXECUTABLE_3}_EXE_SRCS})
   set_property (TARGET ${EXECUTABLE_3} PROPERTY FOLDER "test_i")
+
+  target_include_directories (${EXECUTABLE_3} PUBLIC ${MEDIAPIPE_INCLUDE_DIRS})
  endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
 endif (MEDIAPIPE_SUPPORT)
 

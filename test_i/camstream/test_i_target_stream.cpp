@@ -1146,6 +1146,7 @@ Test_I_Target_TCPStream::load (Stream_ILayout* layout_in,
   delete_out = true;
   ACE_ASSERT (delete_out);
 
+  Stream_Branches_t branches_a;
   Stream_Module_t* module_p = NULL;
 
   if (!inherited::load (layout_in,
@@ -1162,27 +1163,50 @@ Test_I_Target_TCPStream::load (Stream_ILayout* layout_in,
                   false);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
-  //Test_I_Target_Module_AVIDecoder_Module            decoder_;
 //  ACE_NEW_RETURN (module_p,
 //                  Test_I_Target_StatisticReport_Module (this,
 //                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
 //                  false);
 //  layout_in->append (module_p, NULL, 0);
 //  module_p = NULL;
-#if defined (GTK_USE)
+
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_Distributor_Module (this,
+                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, NULL, 0);
+  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
+  branch_p = module_p;
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+  //branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_NETWORK_NAME));
+  Stream_IDistributorModule* idistributor_p =
+      dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
+  ACE_ASSERT (idistributor_p);
+  idistributor_p->initialize (branches_a);
+
+#if defined (FFMPEG_SUPPORT)
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_Convert_Module (this,
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, branch_p, 0);
+  module_p = NULL;
+
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_Resize_Module (this,
                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING)),
                   false);
-  layout_in->append (module_p, NULL, 0);
+  layout_in->append (module_p, branch_p, 0);
   module_p = NULL;
+#endif // FFMPEG_SUPPORT
+#if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_Display_Module (this,
-                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
+                  Test_I_Target_GTK_Cairo_Display_Module (this,
+                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)),
                   false);
-  layout_in->append (module_p, NULL, 0);
-#endif // GTK_USE
+  layout_in->append (module_p, branch_p, 0);
   module_p = NULL;
+#endif // GTK_USE
 
   delete_out = true;
 
@@ -1314,8 +1338,8 @@ Test_I_Target_UDPStream::load (Stream_ILayout* layout_in,
 //  module_p = NULL;
 #if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_Display_Module (this,
-                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
+                  Test_I_Target_GTK_Cairo_Display_Module (this,
+                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)),
                   false);
   layout_in->append (module_p, NULL, 0);
 #endif // GTK_USE
@@ -1328,7 +1352,7 @@ Test_I_Target_UDPStream::load (Stream_ILayout* layout_in,
 
 bool
 Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& configuration_in,
-                                  ACE_HANDLE handle_in)
+                                     ACE_HANDLE handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_UDPStream::initialize"));
 

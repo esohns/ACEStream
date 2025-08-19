@@ -564,7 +564,7 @@ continue_:
                     ACE_TEXT ("failed to snd_device_name_get_hint(): \"%m\", continuing\n")));
         continue;
       } // end IF
-      if ((ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("default")) == 0)             ||
+      if (//(ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("sysdefault:"), 11) == 0)    ||
           (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("dmix:"), 5) == 0)           ||
           (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("dsnoop:"), 7) == 0)         ||
   //        (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("hw:CARD=MID,DEV=0")) == 0)   ||
@@ -573,7 +573,7 @@ continue_:
           (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("plughw:"), 7) == 0)         ||
           (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("pipewire")) == 0)            ||
           (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("pulse")) == 0)               ||
-  //        (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("sysdefault:CARD=MID")) == 0) ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("hdmi:"), 5) == 0)           ||
           (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround21:"), 11) == 0)    ||
           (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround40:"), 11) == 0)    ||
           (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround41:"), 11) == 0)    ||
@@ -603,11 +603,15 @@ continue_:
                   ACE_TEXT (device_name_string.c_str ()),
                   ACE_TEXT (string_2)));
 
+      // *TODO*: remove this translation
+      if (ACE_OS::strcmp (device_name_string.c_str (), ACE_TEXT_ALWAYS_CHAR ("sysdefault")) == 0)
+        device_name_string = ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
+
       gtk_list_store_append (listStore_in, &iterator);
       gtk_list_store_set (listStore_in, &iterator,
                           0, ACE_TEXT_ALWAYS_CHAR (string_2),
-                          1, ACE_TEXT_ALWAYS_CHAR (device_name_string.c_str ()),
-                          2, card_i,
+                          1, card_i,
+                          2, ACE_TEXT_ALWAYS_CHAR (device_name_string.c_str ()),
                           -1);
 
       free (string_2); string_2 = NULL;
@@ -2792,16 +2796,16 @@ combobox_target_changed_cb (GtkWidget* widget_in,
         NULL;
   } // end IF
   ACE_ASSERT (!ui_cb_data_p->handle);
-  int mode = STREAM_LIB_ALSA_CAPTURE_DEFAULT_MODE;
+  int mode = STREAM_LIB_ALSA_PLAYBACK_DEFAULT_MODE;
 //   if ((*modulehandler_configuration_iterator).second.second->ALSAConfiguration->asynch)
 //     mode |= SND_PCM_ASYNC;
   result = snd_pcm_open (&ui_cb_data_p->handle,
                          device_identifier_string.c_str (),
-                         SND_PCM_STREAM_CAPTURE, mode);
+                         SND_PCM_STREAM_PLAYBACK, mode);
   if ((result < 0) || !ui_cb_data_p->handle)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_open(\"%s\",%d) for capture: \"%s\", aborting\n"),
+                ACE_TEXT ("failed to snd_pcm_open(\"%s\",%d) for playback: \"%s\", aborting\n"),
                 ACE_TEXT (device_identifier_string.c_str ()),
                 mode,
                 ACE_TEXT (snd_strerror (result))));
@@ -2810,8 +2814,9 @@ combobox_target_changed_cb (GtkWidget* widget_in,
   (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->handle =
     ui_cb_data_p->handle;
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("opened ALSA device (capture) \"%s\"\n"),
-              ACE_TEXT (device_identifier_string.c_str ())));
+              ACE_TEXT ("opened ALSA device (playback) \"%s\": %@\n"),
+              ACE_TEXT (device_identifier_string.c_str ()),
+              ui_cb_data_p->handle));
 #endif // ACE_WIN32 || ACE_WIN64
 
   toggle_button_p =
@@ -3173,7 +3178,7 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
 
 gboolean
 drawingarea_key_press_event_cb (GtkWidget* widget_in,
-                                GdkEventKey keyEvent_in,
+                                GdkEventKey* keyEvent_in,
                                 gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_key_press_event_cb"));
@@ -3776,14 +3781,19 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
 
 gboolean
 textview_key_press_event_cb (GtkWidget* widget_in,
-                             GdkEventKey keyEvent_in,
+                             GdkEventKey* keyEvent_in,
                              gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::textview_key_press_event_cb"));
 
   ACE_UNUSED_ARG (widget_in);
 
+  // g_printerr("%s\n", gdk_keyval_name (keyEvent_in->keyval));
+
   // sanity check(s)
+  if ((keyEvent_in->type != GDK_KEY_PRESS) ||
+      (keyEvent_in->keyval != GDK_KEY_Return))
+    return FALSE; // <-- propagate event
   struct Test_I_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Test_I_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
@@ -3791,9 +3801,6 @@ textview_key_press_event_cb (GtkWidget* widget_in,
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
-  if ((keyEvent_in.type != GDK_KEY_PRESS) ||
-      (keyEvent_in.keyval != GDK_KEY_Return))
-    return FALSE; // <-- propagate event
 
   GtkTextBuffer* text_buffer_p =
     GTK_TEXT_BUFFER (gtk_builder_get_object ((*iterator).second.second,
@@ -3819,7 +3826,7 @@ textview_key_press_event_cb (GtkWidget* widget_in,
   g_free (text_p); text_p = NULL;
   gtk_text_buffer_insert (text_buffer_p,
                           &text_iterator_2,
-                          keyEvent_in.string,
+                          keyEvent_in->string,
                           -1);
   gtk_text_buffer_get_end_iter (text_buffer_p,
                                 &text_iterator_2);
@@ -3926,7 +3933,13 @@ textview_key_press_event_cb (GtkWidget* widget_in,
   ACE_ASSERT (stream_p);
   result = stream_p->put (message_block_p, NULL);
 #endif // ACE_WIN32 || ACE_WIN64
-  ACE_ASSERT (result != -1);
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::put(): \"%m\", returning\n")));
+    message_block_p->release ();
+    return TRUE;
+  } // end IF
 
   return TRUE; // <-- do not propagate event
 } // textview_key_press_event_cb
@@ -4126,7 +4139,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator_2 =
-    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
   ACE_ASSERT (modulehandler_configuration_iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   stream_p = ui_cb_data_p->stream;
@@ -4215,6 +4228,15 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 #else
   (*modulehandler_configuration_iterator_2).second.second->fileIdentifier.identifier =
     filename_string;
+
+  ACE_ASSERT (ui_cb_data_p->handle);
+  if (!Stream_MediaFramework_ALSA_Tools::setFormat (ui_cb_data_p->handle,
+                                                    *(*modulehandler_configuration_iterator).second.second->ALSAConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::setFormat(): \"%m\", returning\n")));
+    return;
+  } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step2: modify widgets
@@ -4323,25 +4345,15 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   // progress_data_p->bytesPerFrame = bytes_per_frame_i;
   ACE_OS::memset (&progress_data_p->statistic, 0, sizeof (struct Stream_Statistic));
   ACE_OS::memset (thread_name, 0, sizeof (ACE_TCHAR[BUFSIZ]));
-//  char* thread_name_p = NULL;
-//  ACE_NEW_NORETURN (thread_name_p,
-//                    ACE_TCHAR[BUFSIZ]);
-//  if (!thread_name_p)
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
-
-//    // clean up
-//    delete thread_data_p;
-
-//    return;
-//  } // end IF
-//  ACE_OS::memset (thread_name_p, 0, sizeof (thread_name_p));
-//  ACE_OS::strcpy (thread_name_p,
-//                  ACE_TEXT (TEST_U_Test_I_THREAD_NAME));
-//  const char* thread_name_2 = thread_name_p;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::strcpy (thread_name,
                   ACE_TEXT (TEST_I_STREAM_THREAD_NAME));
+#else
+  ACE_ASSERT (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH <= BUFSIZ);
+  ACE_OS::strncpy (thread_name,
+                   ACE_TEXT (TEST_I_STREAM_THREAD_NAME),
+                   std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT (TEST_I_STREAM_THREAD_NAME)))));
+#endif // ACE_WIN32 || ACE_WIN64
   thread_name_2 = thread_name;
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
@@ -4439,7 +4451,7 @@ void
 togglebutton_playback_toggled_cb (GtkToggleButton* toggleButton_in,
                                   gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::togglebutton_save_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::togglebutton_playback_toggled_cb"));
 
   // sanity check(s)
   struct Test_I_UI_CBData* ui_cb_data_base_p =

@@ -1089,6 +1089,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_AllocatorConfiguration allocator_configuration;
   struct Test_I_Source_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_I_Source_V4L_ModuleHandlerConfiguration modulehandler_configuration_2; // net io
+  struct Test_I_Source_V4L_ModuleHandlerConfiguration modulehandler_configuration_3; // (display) converter
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.connectionConfigurations =
       &v4l2CBData_in.configuration->connectionConfigurations;
@@ -1121,6 +1122,14 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   stream_configuration_3.initialize (module_configuration,
                                      modulehandler_configuration,
                                      stream_configuration);
+
+  modulehandler_configuration_3 = modulehandler_configuration;
+  modulehandler_configuration_3.outputFormat.format =
+      AV_PIX_FMT_RGB32;
+  stream_configuration_3.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
+                                                 std::make_pair (&module_configuration,
+                                                                 &modulehandler_configuration_3)));
+
   v4l2CBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                             stream_configuration_3));
   stream_iterator =
@@ -2079,7 +2088,7 @@ ACE_TMAIN (int argc_in,
 #else
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
-  Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (argv_in[0]));
+  Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR ("camstream"));
 
   std::string path_root =
     Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),

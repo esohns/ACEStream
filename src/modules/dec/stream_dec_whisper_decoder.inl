@@ -62,17 +62,21 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WhisperCppDecoder_T::Stream_Decoder_WhisperCppDecoder_T"));
 
   parameters_ = whisper_context_default_params ();
-  //parameters_.use_gpu = false;
+#if defined (_DEBUG)
+  // parameters_.use_gpu = false;
+#endif // _DEBUG
+
   parameters2_ = whisper_full_default_params (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SAMPLING_STRATEGY);
-  parameters2_.n_threads = Common_Tools::getNumberOfCPUs (true) / 2;
-  //parameters2_.n_max_text_ctx = 16;
-  //parameters2_.no_context = false;
-  parameters2_.no_timestamps = true;
-  parameters2_.single_segment = true;
-  parameters2_.print_progress = false;
-  parameters2_.print_timestamps = false;
-  parameters2_.temperature_inc = -1.0f;
-  parameters2_.greedy.best_of = 1;
+  // if (!parameters_.use_gpu)
+    parameters2_.n_threads = Common_Tools::getNumberOfCPUs (true);
+  // //parameters2_.n_max_text_ctx = 16;
+  // //parameters2_.no_context = false;
+  // parameters2_.no_timestamps = true;
+  // parameters2_.single_segment = true;
+  // parameters2_.print_progress = false;
+  // parameters2_.print_timestamps = false;
+  // parameters2_.temperature_inc = -1.0f;
+  // parameters2_.greedy.best_of = 1;
 }
 
 template <ACE_SYNCH_DECL,
@@ -121,8 +125,6 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WhisperCppDecoder_T::initialize"));
 
-  int result = -1;
-
   if (inherited::isInitialized_)
   {
     if (likely (buffer_))
@@ -137,10 +139,6 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     sampleSize_ = 0;
   } // end IF
 
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: using model file: \"%s\"\n"),
-              inherited::mod_->name (),
-              ACE_TEXT (configuration_in.modelFile.c_str ())));
   context_ = whisper_init_from_file_with_params (configuration_in.modelFile.c_str (),
                                                  parameters_);
   if (unlikely (!context_))
@@ -151,6 +149,10 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (configuration_in.modelFile.c_str ())));
     return false;
   } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: using model file: \"%s\"\n"),
+              inherited::mod_->name (),
+              ACE_TEXT (configuration_in.modelFile.c_str ())));
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

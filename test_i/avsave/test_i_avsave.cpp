@@ -1191,6 +1191,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     &allocator_configuration;
   video_modulehandler_configuration.buffers =
     STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
+#if defined (FFMPEG_SUPPORT)
+  video_modulehandler_configuration.codecConfiguration = &codec_configuration;
+#endif // FFMPEG_SUPPORT
   video_modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
 #if defined (GTK_USE)
 //  modulehandler_configuration.pixelBufferLock = &state_r.lock;
@@ -1255,10 +1258,15 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_audio_modulehandler_configuration_2.allocatorConfiguration =
         &allocator_configuration_2;
       directshow_audio_modulehandler_configuration_2.deviceIdentifier.clear ();
-      directshow_audio_modulehandler_configuration_2.deviceIdentifier.identifier._id =
-        0;
+      //directshow_audio_modulehandler_configuration_2.deviceIdentifier.identifier._id =
+      //  0;
+      //directshow_audio_modulehandler_configuration_2.deviceIdentifier.identifierDiscriminator =
+      //  Stream_Device_Identifier::ID;
+      directshow_audio_modulehandler_configuration_2.deviceIdentifier.identifier._guid =
+        Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
+                                                                                true);
       directshow_audio_modulehandler_configuration_2.deviceIdentifier.identifierDiscriminator =
-        Stream_Device_Identifier::ID;
+        Stream_Device_Identifier::GUID;
 
       directshow_audio_modulehandler_configuration =
         directshow_audio_modulehandler_configuration_2;
@@ -1431,13 +1439,13 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       ACE_ASSERT (media_type_p);
       directshow_video_modulehandler_configuration_2.outputFormat =
         *media_type_p;
-      Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
+      Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB32,
                                                          directshow_video_modulehandler_configuration_2.outputFormat);
       delete media_type_p; media_type_p = NULL;
 
       // *NOTE*: need to set this for RGB-capture formats ONLY !
-      directshow_video_modulehandler_configuration_2.flipImage =
-        Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_video_stream_configuration.format.video);
+      directshow_video_modulehandler_configuration_2.flipImage = true;
+        //Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_video_stream_configuration.format.video);
 
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_video_modulehandler_configuration_2.outputFormat);
@@ -1509,6 +1517,14 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   CBData_in.progressData.audioFrameSize =
     (snd_pcm_format_width (video_stream_configuration.format.audio.format) / 8) *
       video_stream_configuration.format.audio.channels;
+#if defined (FFMPEG_SUPPORT)
+  enum AVCodecID codec_id =
+    Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (video_stream_configuration.format.video.format.pixelformat);
+  if (codec_id != AV_CODEC_ID_NONE)
+    codec_configuration.codecId = codec_id;
+#endif // FFMPEG_SUPPORT
+
+  audio_modulehandler_configuration.display = displayDevice_in;
 
   configuration_in.audioStreamConfiguration.initialize (module_configuration,
                                                         audio_modulehandler_configuration,

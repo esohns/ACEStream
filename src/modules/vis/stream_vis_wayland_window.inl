@@ -286,7 +286,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   } // end IF
 
 #if defined (_DEBUG)
-//  wl_log_set_handler_client (libacestream_vis_wayland_global_log_cb);
+  wl_log_set_handler_client (libacestream_vis_wayland_global_log_cb);
 #endif // _DEBUG
 
   ACE_ASSERT (!cbData_.display);
@@ -594,7 +594,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   do
   {
     result = inherited::getq (message_block_p,
-                              &no_wait);
+                              NULL/*&no_wait*/);
     if (result == 0)
     {
       ACE_ASSERT (message_block_p);

@@ -1186,7 +1186,7 @@ error:
 Stream_AVSave_DirectShow_Audio_Stream::Stream_AVSave_DirectShow_Audio_Stream ()
  : inherited ()
  , source_ (this,
-            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEIN_CAPTURE_DEFAULT_NAME_STRING))
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING))
 // , statisticReport_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , distributor_ (this,
@@ -1246,7 +1246,7 @@ Stream_AVSave_DirectShow_Audio_Stream::initialize (const typename inherited::CON
   bool reset_setup_pipeline = false;
   Stream_AVSave_DirectShow_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  Stream_AVSave_DirectShow_WaveIn_Source* source_impl_p = NULL;
+  //Stream_AVSave_DirectShow_WaveIn_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -1470,10 +1470,6 @@ Stream_AVSave_V4L_Stream::Stream_AVSave_V4L_Stream ()
 #if defined (GTK_SUPPORT)
  , GTKCairoDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
-// , display_ (this,
-//             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
-// , display_2_ (this,
-//               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
 #endif // GTK_SUPPORT
  , X11Display_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
@@ -1481,10 +1477,8 @@ Stream_AVSave_V4L_Stream::Stream_AVSave_V4L_Stream ()
                 ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
  , tagger_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING))
-// , encoder_ (this,
-//             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
-// , fileWriter_ (this,
-//                ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING))
+ , tagger_2 (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_V4L_Stream::Stream_AVSave_V4L_Stream"));
 
@@ -1530,24 +1524,18 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
   if (codec_id != AV_CODEC_ID_NONE)
     layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
 
+  layout_in->append (&tagger_, NULL, 0);
+
   if (display_b || save_to_file_b)
   {
-    if (display_b && save_to_file_b)
-    {
-      layout_in->append (&distributor_, NULL, 0);
-      branch_p = &distributor_;
-      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-//      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
-      Stream_IDistributorModule* idistributor_p =
-          dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
-      ACE_ASSERT (idistributor_p);
-      idistributor_p->initialize (branches_a);
-    } // end IF
+    layout_in->append (&distributor_, NULL, 0);
+    branch_p = &distributor_;
 
     if (display_b)
-    { // *WARNING*: display modules must support uncompressed 24-bit RGB (at
-      //            native endianness)
-      layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
+    {
+      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+
+      // layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
 #if defined (GTK_USE)
 //      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
@@ -1558,15 +1546,25 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
 #elif defined (WXWIDGETS_USE)
       layout_in->append (&display_, branch_p, index_i);
 #endif // GTK_USE || WXWIDGETS_USE
-      ++index_i;
     } // end IF
+
     if (save_to_file_b)
-    { ACE_ASSERT (inherited::configuration_->configuration_->module_2);
-      layout_in->append (&converter_2, NULL, 0);
-      layout_in->append (&tagger_, NULL, 0);
-//      layout_in->append (&display_, NULL, 0);
-      layout_in->append (inherited::configuration_->configuration_->module_2, NULL, 0); // output is AVI
+    {
+      ++index_i;
+      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+
+      layout_in->append (&converter_2, branch_p, index_i);
+
+      layout_in->append (&tagger_2, branch_p, index_i);
+
+      ACE_ASSERT (inherited::configuration_->configuration_->module_2);
+      layout_in->append (inherited::configuration_->configuration_->module_2, branch_p, index_i); // output is AVI
     } // end IF
+
+    Stream_IDistributorModule* idistributor_p =
+        dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
+    ACE_ASSERT (idistributor_p);
+    idistributor_p->initialize (branches_a);
   } // end IF
 
   return true;
@@ -1690,13 +1688,36 @@ Stream_AVSave_ALSA_Stream::load (Stream_ILayout* layout_in,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_->end ());
-//  bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
+
+  bool display_b = !(*iterator).second.second->display.device.empty ();
+  Stream_Branches_t branches_a;
+  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
+  unsigned int index_i = 0;
 
   layout_in->append (&source_, NULL, 0);
-  layout_in->append (&analyzer_, NULL, 0);
+//  layout_inout.append (&statisticReport_, NULL, 0);
+
   layout_in->append (&tagger_, NULL, 0);
+
+  if (display_b)
+  {
+    layout_in->append (&distributor_, NULL, 0);
+    branch_p = &distributor_;
+
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+
+    Stream_IDistributorModule* idistributor_p =
+        dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
+    ACE_ASSERT (idistributor_p);
+    idistributor_p->initialize (branches_a);
+
+    layout_in->append (&analyzer_, branch_p, index_i);
+    ++index_i;
+  } // end IF
+
   ACE_ASSERT (inherited::configuration_->configuration_->module_2);
-  layout_in->append (inherited::configuration_->configuration_->module_2, NULL, 0); // output is AVI
+  layout_in->append (inherited::configuration_->configuration_->module_2, branch_p, index_i); // output is AVI
 
   return true;
 }

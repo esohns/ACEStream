@@ -170,7 +170,12 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 
+if (UNIX)
+ target_link_options (${EXECUTABLE} PUBLIC "-rdynamic")
+endif (UNIX)
+
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+
 if (GLEW_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${GLEW_LIBRARIES})
 endif (GLEW_SUPPORT)

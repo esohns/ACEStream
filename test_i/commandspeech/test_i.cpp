@@ -143,7 +143,7 @@ do_printUsage (const std::string& programName_in)
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   std::string voice_directory = path;
-  voice_directory += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  // voice_directory += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE_DIRECTORY);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-c [STRING] : voice directory [\"")
             << voice_directory
@@ -156,9 +156,13 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #else
+  std::string device_identifier_string =
+      Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                       SND_PCM_STREAM_PLAYBACK);
+  if (device_identifier_string.empty ())
+    device_identifier_string = ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : device [\"")
-            << Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
-                                                                SND_PCM_STREAM_PLAYBACK)
+            << device_identifier_string
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -271,7 +275,7 @@ do_processArguments (int argc_in,
 
   // initialize results
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-  voice_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
+  voice_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
   voiceDirectory_out = configuration_path;
   voiceDirectory_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   voiceDirectory_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE_DIRECTORY);
@@ -282,6 +286,8 @@ do_processArguments (int argc_in,
   deviceIdentifier_out =
     Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                      SND_PCM_STREAM_PLAYBACK);
+  if (deviceIdentifier_out.empty ())
+    deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   sourceFileName_out.clear ();
@@ -2126,6 +2132,8 @@ ACE_TMAIN (int argc_in,
   std::string device_identifier_string =
     Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                      SND_PCM_STREAM_PLAYBACK);
+  if (device_identifier_string.empty ())
+    device_identifier_string = ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   std::string source_filename;
@@ -2338,10 +2346,11 @@ ACE_TMAIN (int argc_in,
 
 #if defined (GTK_SUPPORT)
   ui_cb_data.progressData.state = state_p;
+  cb_data_base_p = &ui_cb_data;
 
   configuration.GTKConfiguration.argc = argc_in;
   configuration.GTKConfiguration.argv = argv_in;
-  configuration.GTKConfiguration.CBData = &ui_cb_data;
+  configuration.GTKConfiguration.CBData = cb_data_base_p;
   configuration.GTKConfiguration.eventHooks.finiHook =
     idle_finalize_UI_cb;
   configuration.GTKConfiguration.eventHooks.initHook =
@@ -2353,7 +2362,6 @@ ACE_TMAIN (int argc_in,
 #endif // GTK_CHECK_VERSION(3,0,0)
   gtk_configuration_p = &configuration.GTKConfiguration;
 #endif // GTK_SUPPORT
-  cb_data_base_p = &ui_cb_data;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (cb_data_base_p);
 

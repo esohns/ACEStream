@@ -175,7 +175,7 @@ extern int yyparse (Stream_Decoder_AVIParserDriver*, yyscan_t);
 %printer                  { const char* char_p =
                               reinterpret_cast<const char*> (&$$.identifier);
                             ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u, offset: %u\n"),
+                                             ACE_TEXT_ALWAYS_CHAR ("@%lu: fourcc: \"%c%c%c%c\", size: %u, offset: %lu\n"),
                                              $$.offset,
                                              char_p[3],char_p[2],char_p[1],char_p[0],
                                              $$.size,

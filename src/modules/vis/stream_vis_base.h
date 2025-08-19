@@ -11,13 +11,13 @@ class Stream_Visualization_Base
  : public Common_UI_IFullscreen
  , public Stream_Visualization_IResize
 {
-  public:
-   Stream_Visualization_Base ();
-   inline virtual ~Stream_Visualization_Base () {}
+ public:
+  Stream_Visualization_Base ();
+  inline virtual ~Stream_Visualization_Base () {}
 
-   // implement Stream_Visualization_IResize
-   inline virtual void resize (const Common_Image_Resolution_t&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-   inline virtual void resizing () { resizing_ = true; }
+  // implement Stream_Visualization_IResize
+  inline virtual void resize (const Common_Image_Resolution_t&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  inline virtual void resizing () { resizing_ = true; }
 
  protected:
   bool resizing_;

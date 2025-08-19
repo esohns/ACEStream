@@ -613,7 +613,8 @@ Stream_MediaFramework_ALSA_Tools::getFormat (struct _snd_pcm* handle_in,
   if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_hw_params_current(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to snd_pcm_hw_params_current(%@): \"%s\", aborting\n"),
+                handle_in,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
@@ -630,7 +631,7 @@ Stream_MediaFramework_ALSA_Tools::getFormat (struct _snd_pcm* handle_in,
   } // end IF
   configuration_out.asynch =
       ((snd_pcm_stream (handle_in) == SND_PCM_STREAM_PLAYBACK) ? STREAM_LIB_ALSA_PLAYBACK_DEFAULT_ASYNCH
-                                                                     : STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH);
+                                                               : STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH);
   configuration_out.handle = handle_in;
 
   result = snd_pcm_hw_params_get_format (snd_pcm_hw_params_p,
@@ -1198,8 +1199,9 @@ Stream_MediaFramework_ALSA_Tools::dump (struct _snd_pcm* handle_in,
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_hw_params_%s(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to snd_pcm_hw_params_%s(%@): \"%s\", aborting\n"),
                 (current_in ? ACE_TEXT ("current") : ACE_TEXT ("any")),
+                handle_in,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
@@ -1393,6 +1395,35 @@ Stream_MediaFramework_ALSA_Tools::listCards ()
   } // end FOR
 
   snd_config_update_free_global ();
+}
+
+enum _snd_pcm_state
+Stream_MediaFramework_ALSA_Tools::status (struct _snd_pcm* handle_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_ALSA_Tools::status"));
+
+  enum _snd_pcm_state result = static_cast<enum _snd_pcm_state> (-1);
+
+  snd_pcm_status_t* status_p = NULL;
+  snd_pcm_status_malloc (&status_p);
+  ACE_ASSERT (status_p);
+
+  int result_2 = snd_pcm_status (handle_in, status_p);
+  if (unlikely (result_2 < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_status(%@): \"%s\", aborting\n"),
+                handle_in,
+                ACE_TEXT (snd_strerror (result_2))));
+    goto error;
+  } // end IF
+
+  result = snd_pcm_status_get_state (status_p);
+
+error:
+  snd_pcm_status_free (status_p);
+
+  return result;
 }
 
 bool

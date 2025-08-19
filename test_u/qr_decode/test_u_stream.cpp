@@ -52,6 +52,10 @@ Test_U_Stream::load (Stream_ILayout* layout_inout,
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_Stream::load"));
 
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (*inherited::configuration_).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+
   Stream_Module_t* module_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_NEW_RETURN (module_p,
@@ -90,12 +94,20 @@ Test_U_Stream::load (Stream_ILayout* layout_inout,
   ACE_ASSERT (module_p);
   layout_inout->append (module_p, NULL, 0);
 #else
-  ACE_NEW_RETURN (module_p,
-                  Test_U_LibAVConverter_Module (this,
-                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)),
-                  false);
+#if defined (FFMPEG_SUPPORT)
+  if ((*iterator).second.second->codecConfiguration->codecId != AV_CODEC_ID_NONE)
+    ACE_NEW_RETURN (module_p,
+                    Test_U_LibAVDecoder_Module (this,
+                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING)),
+                    false);
+  else
+    ACE_NEW_RETURN (module_p,
+                    Test_U_LibAVConverter_Module (this,
+                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)),
+                    false);
   ACE_ASSERT (module_p);
   layout_inout->append (module_p, NULL, 0);
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   module_p = NULL;
 #if defined (OPENCV_SUPPORT)

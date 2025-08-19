@@ -257,7 +257,8 @@ class Stream_AVSave_DirectShow_Audio_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_DirectShow_Audio_Stream& operator= (const Stream_AVSave_DirectShow_Audio_Stream&))
 
   // modules
-  Stream_AVSave_DirectShow_WaveIn_Source_Module    source_;
+  Stream_AVSave_DirectShow_WASAPI_Source_Module    source_;
+  // Stream_AVSave_DirectShow_WaveIn_Source_Module    source_;
   //  Stream_AVSave_StatisticReport_Module statisticReport_;
   Stream_AVSave_DirectShow_Distributor_Module      distributor_;
   Stream_AVSave_DirectShow_SpectrumAnalyzer_Module analyzer_;
@@ -389,6 +390,7 @@ class Stream_AVSave_V4L_Stream
   Stream_AVSave_LibAVConverter_Module   converter_2; // --> 32-bit RGB (AVI format)
 #endif // FFMPEG_SUPPORT
   Stream_AVSave_V4L_Tagger_Module       tagger_;
+  Stream_AVSave_V4L_Tagger_Module       tagger_2;
 //  Stream_AVSave_V4L_AVIEncoder_Module  encoder_; // --> AVI
 //  Stream_AVSave_FileWriter_Module      fileWriter_;
 };

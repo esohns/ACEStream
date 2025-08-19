@@ -56,7 +56,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
  , inherited2 ()
  , inherited3 ()
  , inherited4 ()
- , context_ (NULL)
+ //, context_ (NULL)
  , surface_ (NULL)
  , surfaceLock_ ()
 #if GTK_CHECK_VERSION (4,0,0)
@@ -91,8 +91,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::~Stream_Module_Vis_GTK_Cairo_T"));
 
-  if (unlikely (context_))
-    cairo_destroy (context_);
+  //if (unlikely (context_))
+  //  cairo_destroy (context_);
   if (unlikely (surface_))
 #if GTK_CHECK_VERSION (3,10,0)
     cairo_surface_destroy (surface_);
@@ -134,10 +134,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    if (unlikely (context_))
-    {
-      cairo_destroy (context_); context_ = NULL;
-    } // end IF
+    //if (unlikely (context_))
+    //{
+    //  cairo_destroy (context_); context_ = NULL;
+    //} // end IF
     if (unlikely (surface_))
 #if GTK_CHECK_VERSION (3,10,0)
       cairo_surface_destroy (surface_);
@@ -188,19 +188,19 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   cairoRegion_ = cairo_region_create ();
   ACE_ASSERT (cairoRegion_);
 #elif GTK_CHECK_VERSION (2,8,0)
-  context_ = gdk_cairo_create (window_h);
-  if (unlikely (!context_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to gdk_cairo_create(%@), aborting\n"),
-                inherited::mod_->name (),
-                window_h));
-#if GTK_CHECK_VERSION (3,6,0)
-#else
-    GDK_THREADS_LEAVE ();
-#endif // GTK_CHECK_VERSION (3,6,0)
-    return false;
-  } // end IF
+  //context_ = gdk_cairo_create (window_h);
+  //if (unlikely (!context_))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to gdk_cairo_create(%@), aborting\n"),
+  //              inherited::mod_->name (),
+  //              window_h));
+//#if GTK_CHECK_VERSION (3,6,0)
+//#else
+//    GDK_THREADS_LEAVE ();
+//#endif // GTK_CHECK_VERSION (3,6,0)
+//    return false;
+//  } // end IF
 #endif // GTK_CHECK_VERSION ()
 #if GTK_CHECK_VERSION (3,6,0)
 #else
@@ -211,10 +211,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                                 allocator_in);
 
 //error:
-  if (context_)
-  {
-    cairo_destroy (context_); context_ = NULL;
-  } // end IF
+  //if (context_)
+  //{
+  //  cairo_destroy (context_); context_ = NULL;
+  //} // end IF
 
   return false;
 }
@@ -582,12 +582,12 @@ error:
 #else
       GDK_THREADS_ENTER ();
 #endif // GTK_CHECK_VERSION (3,6,0)
-#if GTK_CHECK_VERSION (3,0,0)
-      if (context_)
-      {
-        cairo_destroy (context_); context_ = NULL;
-      } // end IF
-#endif  // GTK_CHECK_VERSION (3,0,0)
+//#if GTK_CHECK_VERSION (3,0,0)
+//      if (context_)
+//      {
+//        cairo_destroy (context_); context_ = NULL;
+//      } // end IF
+//#endif  // GTK_CHECK_VERSION (3,0,0)
       if (surface_)
 #if GTK_CHECK_VERSION (3,10,0)
         cairo_surface_destroy (surface_);
@@ -603,10 +603,10 @@ error:
 #endif // GTK_CHECK_VERSION (4,0,0)
       ACE_ASSERT (window_h);
 
-#if GTK_CHECK_VERSION (3,0,0)
-      context_ = gdk_cairo_create (window_h);
-      ACE_ASSERT (context_);
-#endif // GTK_CHECK_VERSION (3,0,0)
+//#if GTK_CHECK_VERSION (3,0,0)
+//      context_ = gdk_cairo_create (window_h);
+//      ACE_ASSERT (context_);
+//#endif // GTK_CHECK_VERSION (3,0,0)
 
       surface_ =
 #if GTK_CHECK_VERSION (3,10,0)

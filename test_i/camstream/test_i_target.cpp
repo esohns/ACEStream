@@ -838,13 +838,6 @@ do_work (unsigned int bufferSize_in,
   int result = -1;
 
   // step0a: initialize event dispatch
-  struct Common_EventDispatchConfiguration event_dispatch_configuration_s;
-  if (useReactor_in)
-    event_dispatch_configuration_s.numberOfReactorThreads =
-      TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
-  else
-    event_dispatch_configuration_s.numberOfProactorThreads =
-      TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
   struct Stream_AllocatorConfiguration allocator_configuration;
   bool serialize_output = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -883,19 +876,20 @@ do_work (unsigned int bufferSize_in,
   serialize_output = stream_configuration.serializeOutput;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_UNUSED_ARG (serialize_output);
-  event_dispatch_configuration_s.numberOfProactorThreads =
-          numberOfDispatchThreads_in;
-  event_dispatch_configuration_s.numberOfReactorThreads =
-          numberOfDispatchThreads_in;
-  if (!Common_Event_Tools::initializeEventDispatch (event_dispatch_configuration_s))
+  if (useReactor_in)
+    configuration.dispatchConfiguration.numberOfReactorThreads =
+      numberOfDispatchThreads_in;
+  else
+    configuration.dispatchConfiguration.numberOfProactorThreads =
+      numberOfDispatchThreads_in;
+  if (!Common_Event_Tools::initializeEventDispatch (configuration.dispatchConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Event_Tools::initializeEventDispatch(), returning\n")));
     return;
   } // end IF
   struct Common_EventDispatchState event_dispatch_state_s;
-  event_dispatch_state_s.configuration =
-      &event_dispatch_configuration_s;
+  event_dispatch_state_s.configuration = &configuration.dispatchConfiguration;
 
   // step0b: initialize configuration and stream
   struct Test_I_CamStream_Configuration* camstream_configuration_p = NULL;
@@ -929,10 +923,6 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration = &configuration;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (camstream_configuration_p);
-  camstream_configuration_p->dispatchConfiguration.numberOfReactorThreads =
-      numberOfDispatchThreads_in;
-  camstream_configuration_p->dispatchConfiguration.numberOfProactorThreads =
-      numberOfDispatchThreads_in;
 
   camstream_configuration_p->protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                                    : NET_TRANSPORTLAYER_TCP);
@@ -1067,7 +1057,7 @@ do_work (unsigned int bufferSize_in,
   //modulehandler_configuration.format.fmt.pix.sizeimage = 230400;
   //modulehandler_configuration.format.fmt.pix.width = 320;
   modulehandler_configuration.outputFormat.format =
-      AV_PIX_FMT_RGB24;
+      AV_PIX_FMT_RGB32;
   modulehandler_configuration.outputFormat.resolution.height =
       STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
   modulehandler_configuration.outputFormat.resolution.width =
@@ -1096,6 +1086,8 @@ do_work (unsigned int bufferSize_in,
 
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.crunch = true;
+  modulehandler_configuration_2.outputFormat.format =
+      AV_PIX_FMT_RGB24;
   configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING),
                                                             std::make_pair (&module_configuration,
                                                                             &modulehandler_configuration_2)));

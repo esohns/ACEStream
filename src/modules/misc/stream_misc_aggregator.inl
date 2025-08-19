@@ -1118,7 +1118,7 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
     } // end FOR
 
     if (!task_p)
-    { ACE_ASSERT (writerLinks_.empty ());
+    { //ACE_ASSERT (writerLinks_.empty ());
       SESSIONID_TO_TAIL_MAP_ITERATOR_T iterator_2 = tails_.find (sessionId_in);
       ACE_ASSERT (iterator_2 != tails_.end ());
 
