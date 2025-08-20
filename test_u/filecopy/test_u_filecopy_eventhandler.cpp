@@ -38,6 +38,9 @@
 
 #include "test_u_filecopy_common.h"
 #include "test_u_filecopy_defines.h"
+#if defined (GTK_SUPPORT)
+#include "test_u_filecopy_callbacks.h"
+#endif // GTK_SUPPORT
 
 Stream_Filecopy_EventHandler::Stream_Filecopy_EventHandler (struct Stream_Filecopy_UI_CBData* CBData_in)
  : CBData_ (CBData_in)
@@ -136,44 +139,21 @@ Stream_Filecopy_EventHandler::end (Stream_SessionId_t sessionId_in)
   ACE_ASSERT (CBData_);
 
 #if defined (GTK_USE)
-  Common_UI_GTK_BuildersIterator_t iterator;
-  GtkTable* table_p = NULL;
-  GtkAction* action_p = NULL;
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+
+  guint event_source_id = 0;
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-    iterator =
-      state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-    // sanity check(s)
-    ACE_ASSERT (iterator != state_r.builders.end ());
-
-#if GTK_CHECK_VERSION (3,6,0)
-#else
-    gdk_threads_enter ();
-#endif // GTK_CHECK_VERSION (3,6,0)
-    table_p =
-      GTK_TABLE (gtk_builder_get_object ((*iterator).second.second,
-                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TABLE_OPTIONS_NAME)));
-    ACE_ASSERT (table_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (table_p), TRUE);
-
-    action_p =
-      GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_START_NAME)));
-    ACE_ASSERT (action_p);
-    gtk_action_set_stock_id (action_p, GTK_STOCK_MEDIA_PLAY);
-    action_p =
-      GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_STOP_NAME)));
-    ACE_ASSERT (action_p);
-    gtk_action_set_sensitive (action_p, FALSE);
-#if GTK_CHECK_VERSION (3,6,0)
-#else
-    gdk_threads_leave ();
-#endif // GTK_CHECK_VERSION (3,6,0)
+    event_source_id = g_idle_add (idle_end_session_cb,
+                                  CBData_);
+    if (event_source_id == 0)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_idle_add(idle_end_session_cb): \"%m\", continuing\n")));
+    else
+      state_r.eventSourceIds.insert (event_source_id);
     state_r.eventStack.push (COMMON_UI_EVENT_FINISHED);
   } // end lock scope
 #endif // GTK_USE

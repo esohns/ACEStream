@@ -123,13 +123,12 @@ class Stream_Module_Vis_GTK_Window_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Window_T (const Stream_Module_Vis_GTK_Window_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Window_T& operator= (const Stream_Module_Vis_GTK_Window_T&))
 
-  // helper methods
-  // inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); }
-
-#if GTK_CHECK_VERSION (3,0,0)
-  cairo_t*   context_;
-#endif // GTK_CHECK_VERSION (3,0,0)
-  GdkPixbuf* pixbuf_;
+#if GTK_CHECK_VERSION (4,0,0)
+  GdkCairoContext* context_;
+#elif GTK_CHECK_VERSION (3,0,0)
+  cairo_t*         context_;
+#endif // GTK_CHECK_VERSION
+  GdkPixbuf*       pixbuf_;
 };
 
 // include template definition

@@ -23,7 +23,7 @@
 
 #include "gdk/gdkkeysyms.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "gdk/gdkwin32.h"
+//#include "gdk/gdkwin32.h"
 #else
 #include "gdk/gdkx.h"
 #endif // ACE_WIN32 || ACE_WIN64

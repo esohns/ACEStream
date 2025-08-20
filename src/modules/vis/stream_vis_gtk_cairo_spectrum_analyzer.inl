@@ -1320,7 +1320,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if GTK_CHECK_VERSION (4,0,0)
   ACE_ASSERT (cairoRegion_);
   ACE_ASSERT (drawingContext_);
-  gdk_draw_context_begin_frame (drawingContext_,
+  gdk_draw_context_begin_frame (GDK_DRAW_CONTEXT (drawingContext_),
                                 cairoRegion_);
   context_p = gdk_cairo_context_cairo_create (drawingContext_);
 #elif GTK_CHECK_VERSION (3,22,0)
@@ -1430,10 +1430,10 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     {
       cairo_set_source_rgb (context_p, 1.0, 0.0, 0.0); //  red
       cairo_move_to (context_p,
-                     i * channelFactor_,
+                     static_cast<double> (i) * channelFactor_,
                      0);
       cairo_line_to (context_p,
-                     i * channelFactor_,
+                     static_cast<double> (i) * channelFactor_,
                      height_);
       cairo_stroke (context_p);
       cairo_set_source_rgb (context_p, 0.0, 1.0, 0.0); // green
@@ -1441,7 +1441,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end FOR
 
 #if GTK_CHECK_VERSION (4,0,0)
-  gdk_draw_context_end_frame (drawingContext_);
+  gdk_draw_context_end_frame (GDK_DRAW_CONTEXT (drawingContext_));
 #elif GTK_CHECK_VERSION (3,22,0)
   gdk_window_end_draw_frame (cbdata_p->window,
                              drawing_context_p);

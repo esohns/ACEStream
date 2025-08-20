@@ -24,7 +24,7 @@
 #include "gmodule.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "gdk/gdkwin32.h"
+//#include "gdk/gdkwin32.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include <sstream>
@@ -261,8 +261,9 @@ idle_initialize_ui_cb (gpointer userData_in)
   HTTPGet_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
-  gtk_entry_set_text (entry_p,
-                      (*iterator_2).second.second->URL.c_str ());
+  gtk_entry_buffer_set_text (gtk_entry_get_buffer (entry_p),
+                             (*iterator_2).second.second->URL.c_str (),
+                             -1);
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -947,7 +948,8 @@ button_execute_clicked_cb (GtkButton* button_in,
       GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                          ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_ENTRY_URL)));
   ACE_ASSERT (entry_p);
-  (*iterator_2).second.second->URL = gtk_entry_get_text (entry_p);
+  (*iterator_2).second.second->URL =
+    gtk_entry_buffer_get_text (gtk_entry_get_buffer (entry_p));
   // step1: parse URL
   ACE_INET_Addr host_address;
   std::string hostname_string, URI_string;

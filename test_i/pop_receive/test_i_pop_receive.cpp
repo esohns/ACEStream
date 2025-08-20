@@ -22,13 +22,6 @@
 #include <iostream>
 #include <string>
 
-#if defined (GTK_SUPPORT)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "gdk/gdkwin32.h"
-#endif // ACE_WIN32 || ACE_WIN64
-#include "gtk/gtk.h"
-#endif // GTK_SUPPORT
-
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/Init_ACE.h"

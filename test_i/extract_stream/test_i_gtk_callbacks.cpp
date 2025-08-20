@@ -458,9 +458,12 @@ idle_initialize_UI_cb (gpointer userData_in)
 //  bool is_display_b = false;
   bool is_fullscreen_b = false;
   filename_string = (*stream_iterator).second.second->targetFileName;
-  gtk_entry_set_text (entry_p,
-                      (filename_string.empty () ? ACE_TEXT_ALWAYS_CHAR ("")
-                                                : ACE_TEXT_ALWAYS_CHAR (ACE::basename (filename_string.c_str (), ACE_DIRECTORY_SEPARATOR_CHAR))));
+  GtkEntryBuffer* entry_buffer_p = gtk_entry_get_buffer (entry_p);
+  ACE_ASSERT (entry_buffer_p);
+  gtk_entry_buffer_set_text (entry_buffer_p,
+                             (filename_string.empty () ? ACE_TEXT_ALWAYS_CHAR ("")
+                                                       : ACE_TEXT_ALWAYS_CHAR (ACE::basename (filename_string.c_str (), ACE_DIRECTORY_SEPARATOR_CHAR))),
+                             -1);
   file_uri =
     ACE_TEXT_ALWAYS_CHAR ("file://") + (filename_string.empty () ? Common_File_Tools::getTempDirectory ()
                                                                  : filename_string);
@@ -702,7 +705,10 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_VIDEO_NAME)));
   ACE_ASSERT (drawing_area_p);
-  (*stream_iterator).second.second->window = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+
+  (*stream_iterator).second.second->window.gdk_window =
+    gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  (*stream_iterator).second.second->window.type = Common_UI_Window::TYPE_GTK;
 
   // step10: retrieve canvas coordinates, window handle and pixel buffer
   GtkAllocation allocation;
@@ -1424,7 +1430,8 @@ togglebutton_play_toggled_cb (GtkToggleButton* toggleButton_in,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_SAVE_NAME)));
   ACE_ASSERT (entry_p);
   filename_string += ACE_DIRECTORY_SEPARATOR_STR;
-  filename_string += ACE_TEXT_ALWAYS_CHAR (gtk_entry_get_text (entry_p));
+  filename_string +=
+    ACE_TEXT_ALWAYS_CHAR (gtk_entry_buffer_get_text (gtk_entry_get_buffer (entry_p)));
   ACE_ASSERT (Common_File_Tools::isValidPath (filename_string));
 
 continue_:
@@ -1945,8 +1952,9 @@ combobox_stream_changed_cb (GtkWidget* widget_in,
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_SAVE_NAME)));
   ACE_ASSERT (entry_p);
-  gtk_entry_set_text (entry_p,
-                      (*stream_iterator).second.second->targetFileName.c_str ());
+  gtk_entry_buffer_set_text (gtk_entry_get_buffer (entry_p),
+                             (*stream_iterator).second.second->targetFileName.c_str (),
+                             -1);
 } // combobox_stream_changed_cb
 
 void

@@ -3948,8 +3948,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_ENTRY_SAVE_NAME)));
   ACE_ASSERT (entry_p);
-  filename_string += ACE_DIRECTORY_SEPARATOR_STR;
-  filename_string += ACE_TEXT_ALWAYS_CHAR (gtk_entry_get_text (entry_p));
+  filename_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+  filename_string +=
+    ACE_TEXT_ALWAYS_CHAR (gtk_entry_buffer_get_text (gtk_entry_get_buffer (entry_p)));
   ACE_ASSERT (Common_File_Tools::isValidPath (filename_string));
 
 continue_:
@@ -4847,7 +4848,7 @@ button_hw_settings_clicked_cb (GtkButton* button_in,
       IUnknown* iunknown_p = NULL;
       filter_p->QueryInterface (IID_PPV_ARGS (&iunknown_p));
       ACE_ASSERT (SUCCEEDED (result) && iunknown_p);
-      ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
+      //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
       // display modal properties dialog
       // *TODO*: implement modeless support
       result =

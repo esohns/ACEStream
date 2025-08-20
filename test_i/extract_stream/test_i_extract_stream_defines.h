@@ -30,7 +30,9 @@
 #define TEST_I_UI_DEFINITION_FILE              "test_i.gtk3"
 #elif defined (GTK2_USE)
 #define TEST_I_UI_DEFINITION_FILE              "test_i.gtk2"
-#endif // GTK3_USE || GTK2_USE
+#else
+#define TEST_I_UI_DEFINITION_FILE              "test_i.gtk3"
+#endif // GTK3_USE || GTK2_USE 
 #elif defined (QT_USE)
 #define TEST_I_UI_DEFINITION_FILE              "mainwindow.ui"
 #elif defined (WXWIDGETS_USE)

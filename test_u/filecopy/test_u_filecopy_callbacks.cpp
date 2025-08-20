@@ -208,10 +208,13 @@ idle_initialize_UI_cb (gpointer userData_in)
                              0.0,
                              static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
 
+#if GTK_CHECK_VERSION (4,0,0)
+#else
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME)));
   ACE_ASSERT (file_chooser_button_p);
+#endif // GTK_CHECK_VERSION (4,0,0)
   GFile* file_p = NULL;
   GError* error_p = NULL;
   Stream_Filecopy_StreamConfiguration_t::ITERATOR_T iterator_2 =
@@ -222,6 +225,8 @@ idle_initialize_UI_cb (gpointer userData_in)
     file_p =
       g_file_new_for_path ((*iterator_2).second.second->fileIdentifier.identifier.c_str ());
     ACE_ASSERT (file_p);
+#if GTK_CHECK_VERSION (4,0,0)
+#else
     if (!gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_button_p),
                                     file_p,
                                     &error_p))
@@ -236,12 +241,17 @@ idle_initialize_UI_cb (gpointer userData_in)
 
       return G_SOURCE_REMOVE;
     } // end IF
+#endif // GTK_CHECK_VERSION (4,0,0)
     g_object_unref (file_p);
   } // end IF
+
+#if GTK_CHECK_VERSION (4,0,0)
+#else
   file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
+#endif // GTK_CHECK_VERSION (4,0,0)
   if (!(*iterator_2).second.second->targetFileName.empty ())
   {
     file_p =
@@ -252,6 +262,8 @@ idle_initialize_UI_cb (gpointer userData_in)
     //  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFileName;
     //if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
     //                                              file_uri.c_str ()))
+#if GTK_CHECK_VERSION (4,0,0)
+#else
     if (!gtk_file_chooser_set_current_folder_file (GTK_FILE_CHOOSER (file_chooser_button_p),
                                                    file_p,
                                                    &error_p))
@@ -267,6 +279,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
       return G_SOURCE_REMOVE;
     } // end IF
+#endif // GTK_CHECK_VERSION (4,0,0)
     g_object_unref (file_p);
   } // end IF
 
@@ -303,6 +316,8 @@ idle_initialize_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
   // apply font
+#if GTK_CHECK_VERSION (4,0,0)
+#else
   GtkRcStyle* rc_style_p = gtk_rc_style_new ();
   if (!rc_style_p)
   {
@@ -325,6 +340,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                            rc_style_p);
   //gtk_rc_style_unref (rc_style_p);
   g_object_unref (rc_style_p);
+#endif // GTK_CHECK_VERSION (4,0,0)
 
   //  GtkTextIter iterator;
   //  gtk_text_buffer_get_end_iter (buffer_p,
@@ -375,6 +391,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end lock scope
 
   // step6: disable some functions ?
+#if GTK_CHECK_VERSION (3,10,0)
+#else
   GtkAction* action_p =
     //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                  ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_CLOSE_NAME)));
@@ -389,6 +407,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_STOP_NAME)));
   ACE_ASSERT (action_p);
   gtk_action_set_sensitive (action_p, FALSE);
+#endif // GTK_CHECK_VERSION (3,10,0)
 
   // step7: (auto-)connect signals/slots
   // *NOTE*: glade_xml_signal_autoconnect does not work reliably
@@ -396,12 +415,18 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   // step6a: connect default signals
   gulong result_2 =
-      g_signal_connect (dialog_p,
-                        ACE_TEXT_ALWAYS_CHAR ("destroy"),
-                        G_CALLBACK (gtk_widget_destroyed),
-                        NULL);
+#if GTK_CHECK_VERSION (4,0,0)
+    1;
+#else
+    g_signal_connect (dialog_p,
+                      ACE_TEXT_ALWAYS_CHAR ("destroy"),
+                      G_CALLBACK (gtk_widget_destroyed),
+                      NULL);
+#endif // GTK_CHECK_VERSION (4,0,0)
   ACE_ASSERT (result_2);
 
+#if GTK_CHECK_VERSION (4,0,0)
+#else
   file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME)));
@@ -422,10 +447,11 @@ idle_initialize_UI_cb (gpointer userData_in)
                       G_CALLBACK (filechooserbutton_cb),
                       userData_in);
   ACE_ASSERT (result_2);
+#endif // GTK_CHECK_VERSION (4,0,0)
   GtkFileChooserDialog* file_chooser_dialog_p =
     GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_OPEN_NAME)));
-  ACE_ASSERT (file_chooser_button_p);
+  ACE_ASSERT (file_chooser_dialog_p);
   result_2 =
     g_signal_connect (file_chooser_dialog_p,
                       ACE_TEXT_ALWAYS_CHAR ("file-activated"),
@@ -466,7 +492,11 @@ idle_initialize_UI_cb (gpointer userData_in)
   //                      G_CALLBACK (button_stop_clicked_cb),
   //                      userData_in);
   //ACE_ASSERT (result_2);
+
   GObject* object_p =
+#if GTK_CHECK_VERSION (3,10,0)
+    NULL;
+#else
     gtk_builder_get_object ((*iterator).second.second,
                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_START_NAME));
   ACE_ASSERT (object_p);
@@ -485,6 +515,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                       G_CALLBACK (action_stop_activate_cb),
                       userData_in);
   ACE_ASSERT (result_2);
+#endif // GTK_CHECK_VERSION (3,10,0)
 
   //-------------------------------------
 
@@ -521,12 +552,14 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_UNUSED_ARG (result_2);
 
   // set defaults
-  //file_chooser_button_p =
-  //  GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-  //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
-  ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
   default_folder_uri += (*iterator_2).second.second->targetFileName;
+#if GTK_CHECK_VERSION (4,0,0)
+#else
+//file_chooser_button_p =
+//  GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+//                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -535,8 +568,9 @@ idle_initialize_UI_cb (gpointer userData_in)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri(\"%s\"): \"%m\", aborting\n"),
                 ACE_TEXT (default_folder_uri.c_str ())));
-    return FALSE; // G_SOURCE_REMOVE
+    return G_SOURCE_REMOVE;
   } // end IF
+#endif // GTK_CHECK_VERSION (4,0,0)
 
   //   // step8: use correct screen
   //   if (parentWidget_in)
@@ -544,7 +578,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   //                            gtk_widget_get_screen (const_cast<GtkWidget*> (//parentWidget_in)));
 
   // step9: draw main dialog
+#if GTK_CHECK_VERSION (4,0,0)
+#else
   gtk_widget_show_all (dialog_p);
+#endif // GTK_CHECK_VERSION (4,0,0)
 
   return G_SOURCE_REMOVE;
 }
@@ -557,7 +594,10 @@ idle_finalize_UI_cb (gpointer userData_in)
   ACE_UNUSED_ARG (userData_in);
 
   // leave GTK
+#if GTK_CHECK_VERSION (4,0,0)
+#else
   gtk_main_quit ();
+#endif // GTK_CHECK_VERSION (4,0,0)
 
   return G_SOURCE_REMOVE;
 }
@@ -883,13 +923,56 @@ idle_update_progress_cb (gpointer userData_in)
   return G_SOURCE_CONTINUE;
 }
 
+gboolean
+idle_end_session_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_end_session_cb"));
+
+//  struct Stream_Filecopy_UI_CBData* data_p =
+//      static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
+//  ACE_ASSERT (data_p);
+
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+  Common_UI_GTK_BuildersIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  // sanity check(s)
+  ACE_ASSERT (iterator != state_r.builders.end ());
+
+  GtkWidget* widget_p =
+    GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TABLE_OPTIONS_NAME)));
+  ACE_ASSERT (widget_p);
+  gtk_widget_set_sensitive (widget_p, TRUE);
+
+#if GTK_CHECK_VERSION (3,10,0)
+#else
+  GtkAction* action_p =
+    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_START_NAME)));
+  ACE_ASSERT (action_p);
+  gtk_action_set_stock_id (action_p, GTK_STOCK_MEDIA_PLAY);
+  action_p =
+    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_STOP_NAME)));
+  ACE_ASSERT (action_p);
+  gtk_action_set_sensitive (action_p, FALSE);
+#endif // GTK_CHECK_VERSION (3,10,0)
+
+  return G_SOURCE_REMOVE;
+}
+
 /////////////////////////////////////////
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
-
+#if GTK_CHECK_VERSION (3,10,0)
+#else
 void
 action_start_activate_cb (GtkAction* action_in,
                           gpointer userData_in)
@@ -1144,6 +1227,7 @@ action_stop_activate_cb (GtkAction* action_in,
 
   data_p->stream->stop (false, true, true);
 } // action_stop_activate_cb
+#endif // GTK_CHECK_VERSION (3,10,0)
 
 // -----------------------------------------------------------------------------
 
@@ -1225,6 +1309,8 @@ button_about_clicked_cb (GtkWidget* widget_in,
     return TRUE; // propagate
   } // end IF
 
+#if GTK_CHECK_VERSION (4,0,0)
+#else
   // run dialog
   gint result = gtk_dialog_run (about_dialog);
   switch (result)
@@ -1235,8 +1321,9 @@ button_about_clicked_cb (GtkWidget* widget_in,
       break;
   } // end SWITCH
   gtk_widget_hide (GTK_WIDGET (about_dialog));
+#endif // GTK_CHECK_VERSION (4,0,0)
 
-  return FALSE;
+  return TRUE;
 } // button_about_clicked_cb
 
 gint
@@ -1283,6 +1370,8 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   return FALSE;
 } // button_quit_clicked_cb
 
+#if GTK_CHECK_VERSION (4,0,0)
+#else
 void
 filechooserbutton_cb (GtkFileChooserButton* button_in,
                       gpointer userData_in)
@@ -1403,6 +1492,7 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
                : result && !(*iterator_2).second.second->fileIdentifier.identifier.empty ());
   gtk_action_set_sensitive (action_p, result);
 } // filechooserbutton_cb
+#endif // GTK_CHECK_VERSION (4,0,0)
 
 void
 filechooserdialog_cb (GtkFileChooser* chooser_in,

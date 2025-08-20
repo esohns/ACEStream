@@ -609,7 +609,25 @@ error:
 //#endif // GTK_CHECK_VERSION (3,0,0)
 
       surface_ =
-#if GTK_CHECK_VERSION (3,10,0)
+#if GTK_CHECK_VERSION (4,0,0)
+        gdk_surface_create_similar_surface (window_h,
+                                            CAIRO_CONTENT_COLOR_ALPHA,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                            resolution_s.cx,
+                                            resolution_s.cy);
+#else
+                                            resolution_s.width,
+                                            resolution_s.height);
+#endif // ACE_WIN32 || ACE_WIN64
+      if (unlikely (!surface_))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to gdk_window_create_similar_image_surface(%@), aborting\n"),
+                    inherited::mod_->name (),
+                    inherited::configuration_->window));
+        goto error_2;
+      } // end IF
+#elif GTK_CHECK_VERSION (3,10,0)
         gdk_window_create_similar_image_surface (window_h,
                                                  CAIRO_FORMAT_ARGB32,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -626,10 +644,6 @@ error:
                     ACE_TEXT ("%s: failed to gdk_window_create_similar_image_surface(%@), aborting\n"),
                     inherited::mod_->name (),
                     inherited::configuration_->window));
-#if GTK_CHECK_VERSION (3,6,0)
-#else
-        GDK_THREADS_LEAVE ();
-#endif // GTK_CHECK_VERSION (3,6,0)
         goto error_2;
       } // end IF
 #elif GTK_CHECK_VERSION (3,0,0)

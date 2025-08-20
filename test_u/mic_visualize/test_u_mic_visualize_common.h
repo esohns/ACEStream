@@ -788,7 +788,11 @@ struct Test_U_MicVisualize_ProgressData
 };
 
 #if defined (GTK_SUPPORT)
+#if GTK_CHECK_VERSION (4,0,0)
+typedef Common_ISetP_T<GdkSurface> Test_U_Common_ISet_t;
+#else
 typedef Common_ISetP_T<GdkWindow> Test_U_Common_ISet_t;
+#endif // GTK_CHECK_VERSION (4,0,0)
 #endif // GTK_SUPPORT
 struct Test_U_MicVisualize_UI_CBDataBase
  : Test_U_UI_CBData

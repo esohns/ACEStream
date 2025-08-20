@@ -26,14 +26,16 @@
 #define TEST_U_UI_DEFINITION_FILE              "imagescreen.gtk3"
 #elif defined (GTK2_USE)
 #define TEST_U_UI_DEFINITION_FILE              "imagescreen.gtk2"
-#endif
+#else
+#define TEST_U_UI_DEFINITION_FILE              "imagescreen.gtk3"
+#endif // GTK3_USE || GTK2_USE
 #elif defined (QT_USE)
 #define TEST_U_UI_DEFINITION_FILE              "imagescreen.ui"
 #elif defined (WXWIDGETS_USE)
 #define TEST_U_UI_DEFINITION_FILE              "imagescreen.xrc"
 #else
 #define TEST_U_UI_DEFINITION_FILE              ""
-#endif
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
 #define TEST_U_UI_CSS_FILE                     "imagescreen.css"
 
 //---------------------------------------

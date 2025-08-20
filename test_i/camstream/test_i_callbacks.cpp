@@ -32,7 +32,7 @@
 #include "mfreadwrite.h"
 #include "wmcodecdsp.h"
 
-#include "gdk/gdkwin32.h"
+//#include "gdk/gdkwin32.h"
 #else
 #include "ace/Dirent_Selector.h"
 #endif // ACE_WIN32 || ACE_WIN64

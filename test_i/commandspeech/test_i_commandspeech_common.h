@@ -314,7 +314,11 @@ struct Test_I_CommandSpeech_UI_ProgressData
 };
 
 #if defined (GTK_SUPPORT)
+#if GTK_CHECK_VERSION (4,0,0)
+typedef Common_ISetP_T<GdkSurface> Test_I_Common_ISet_t;
+#else
 typedef Common_ISetP_T<GdkWindow> Test_I_Common_ISet_t;
+#endif // GTK_CHECK_VERSION (4,0,0)
 #endif // GTK_SUPPORT
 struct Test_I_CommandSpeech_UI_CBData
  : Test_I_UI_CBData

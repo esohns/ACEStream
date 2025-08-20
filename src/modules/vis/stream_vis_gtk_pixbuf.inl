@@ -73,10 +73,13 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::~Stream_Module_Vis_GTK_Pixbuf_T"));
 
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (4,0,0)
+  if (context_)
+    g_object_unref (context_);
+#elif GTK_CHECK_VERSION (3,0,0)
  if (context_)
    cairo_destroy (context_);
-#endif // GTK_CHECK_VERSION (3,0,0)
+#endif // GTK_CHECK_VERSION
 }
 
 template <ACE_SYNCH_DECL,
@@ -102,36 +105,50 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (4,0,0)
+    if (context_)
+    {
+      g_object_unref (context_); context_ = NULL;
+    } // end IF
+#elif GTK_CHECK_VERSION (3,0,0)
     if (context_)
     {
       cairo_destroy (context_); context_ = NULL;
     } // end IF
-#endif // GTK_CHECK_VERSION (3,0,0)
+#endif // GTK_CHECK_VERSION
     window_ = NULL;
   } // end IF
 
   // sanity check(s)
-#if GTK_CHECK_VERSION (4,0,0)
   window_ = inherited4::convert (configuration_in.window);
-#else
-  window_ = inherited4::convert (configuration_in.window);
-#endif // GTK_CHECK_VERSION (4,0,0)
   ACE_ASSERT (window_);
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (4,0,0)
+  context_ = gdk_surface_create_cairo_context (window_);
+  ACE_ASSERT (context_);
+#elif GTK_CHECK_VERSION(3, 0, 0)
 #if GTK_CHECK_VERSION (3,22,0)
 #else
   context_ = gdk_cairo_create (window_);
   ACE_ASSERT (context_);
 #endif // GTK_CHECK_VERSION (3,22,0)
-#endif // GTK_CHECK_VERSION (3,0,0)
+#endif // GTK_CHECK_VERSION
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if GTK_CHECK_VERSION (4,0,0)
+  targetResolution_.cx = gdk_surface_get_width (window_);
+  targetResolution_.cy = gdk_surface_get_height (window_);
+#else
   targetResolution_.cx = gdk_window_get_width (window_);
   targetResolution_.cy = gdk_window_get_height (window_);
+#endif // GTK_CHECK_VERSION (4,0,0)
+#else
+#if GTK_CHECK_VERSION (4,0,0)
+  targetResolution_.width = gdk_surface_get_width (window_);
+  targetResolution_.height = gdk_surface_get_height (window_);
 #else
   targetResolution_.width = gdk_window_get_width (window_);
   targetResolution_.height = gdk_window_get_height (window_);
+#endif // GTK_CHECK_VERSION (4,0,0)
 #endif // ACE_WIN32 || ACE_WIN64
 
   return inherited::initialize (configuration_in,
@@ -173,13 +190,16 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   leave_gdk = true;
 #endif // GTK_CHECK_VERSION (3,6,0)
 
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (4,0,0)
+  GdkCairoContext* context_p = context_;
+  cairo_region_t* cairo_region_p = NULL;
+#elif GTK_CHECK_VERSION(3, 0, 0)
   cairo_t* context_p = context_;
 #if GTK_CHECK_VERSION (3,22,0)
   cairo_region_t* cairo_region_p = NULL;
   GdkDrawingContext* drawing_context_p = NULL;
 #endif // GTK_CHECK_VERSION (3,22,0)
-#endif // GTK_CHECK_VERSION (3,0,0)
+#endif // GTK_CHECK_VERSION
 
   GdkPixbuf* pixbuf_p =
     gdk_pixbuf_new_from_data (reinterpret_cast<guchar*> (message_inout->rd_ptr ()),
@@ -207,7 +227,13 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   //ACE_ASSERT (gdk_pixbuf_get_n_channels (pixbuf_p) == (sourceHasAlphaChannel_ ? 4 : 3));
   //ACE_ASSERT (gdk_pixbuf_get_has_alpha (pixbuf_p) == (sourceHasAlphaChannel_ ? TRUE : FALSE));
 
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (4,0,0)
+  cairo_region_p = cairo_region_create ();
+  ACE_ASSERT (cairo_region_p);
+  gdk_draw_context_begin_frame (GDK_DRAW_CONTEXT (context_p), cairo_region_p);
+  cairo_t* context_2 = gdk_cairo_context_cairo_create (context_p);
+  ACE_ASSERT (context_2);
+#elif GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,22,0)
   cairo_region_p = cairo_region_create ();
   ACE_ASSERT (cairo_region_p);
@@ -216,6 +242,12 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   context_p =
     gdk_drawing_context_get_cairo_context (drawing_context_p);
 #endif // GTK_CHECK_VERSION (3,22,0)
+#endif // GTK_CHECK_VERSION
+
+#if GTK_CHECK_VERSION (4,0,0)
+  gdk_cairo_set_source_pixbuf (context_2, pixbuf_p, 0.0, 0.0);
+  cairo_paint (context_2);
+#elif GTK_CHECK_VERSION (3,0,0)
   gdk_cairo_set_source_pixbuf (context_p, pixbuf_p, 0.0, 0.0);
   cairo_paint (context_p);
 #else
@@ -224,11 +256,15 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                    pixbuf_p,
                    0, 0, 0, 0, -1, -1,
                    GDK_RGB_DITHER_NONE, 0, 0);
-#endif // GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,22,0)
+#endif // GTK_CHECK_VERSION
+
+#if GTK_CHECK_VERSION (4,0,0)
+  gdk_draw_context_end_frame (GDK_DRAW_CONTEXT (context_p));
+  cairo_region_destroy (cairo_region_p);
+#elif GTK_CHECK_VERSION (3,22,0)
   gdk_window_end_draw_frame (window_, drawing_context_p);
   cairo_region_destroy (cairo_region_p);
-#endif // GTK_CHECK_VERSION (3,22,0)
+#endif // GTK_CHECK_VERSION
   g_object_unref (pixbuf_p); pixbuf_p = NULL;
 
 continue_:
@@ -317,12 +353,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
       // *TODO*: remove type inferences
-#if GTK_CHECK_VERSION (4,0,0)
-      GdkSurface* window_h = inherited4::convert (inherited::configuration_->window);
-#else
-      GdkWindow* window_h = inherited4::convert (inherited::configuration_->window);
-#endif // GTK_CHECK_VERSION (4,0,0)
-      ACE_ASSERT (window_h);
+      window_ = inherited4::convert (inherited::configuration_->window);
+      ACE_ASSERT (window_);
 
       gint width_i = 0, height_i = 0;
 #if GTK_CHECK_VERSION (3,6,0)
@@ -330,18 +362,26 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       gdk_threads_enter ();
 #endif // GTK_CHECK_VERSION (3,6,0)
 
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (4,0,0)
+      if (context_)
+      {
+        g_object_unref (context_); context_ = NULL;
+      } // end IF
+#elif GTK_CHECK_VERSION (3,0,0)
       if (context_)
       {
         cairo_destroy (context_); context_ = NULL;
       } // end IF
 #endif  // GTK_CHECK_VERSION (3,0,0)
 
-#if GTK_CHECK_VERSION (3,0,0)
-      width_i = gdk_window_get_width (window_h);
-      height_i = gdk_window_get_height (window_h);
+#if GTK_CHECK_VERSION (4,0,0)
+      width_i = gdk_surface_get_width (window_);
+      height_i = gdk_surface_get_height (window_);
+#elif GTK_CHECK_VERSION (3,0,0)
+      width_i = gdk_window_get_width (window_);
+      height_i = gdk_window_get_height (window_);
 #elif GTK_CHECK_VERSION (2,0,0)
-      gdk_drawable_get_size (GDK_DRAWABLE (window_h),
+      gdk_drawable_get_size (GDK_DRAWABLE (window_),
                              &width_i, &height_i);
 #endif // GTK_CHECK_VERSION (3,0,0)
 
@@ -353,13 +393,17 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       targetResolution_.height = height_i;
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if GTK_CHECK_VERSION (3,0,0)
+
+#if GTK_CHECK_VERSION (4,0,0)
+      context_ = gdk_surface_create_cairo_context (window_);
+      ACE_ASSERT (context_);
+#elif GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,22,0)
 #else
-      context_ = gdk_cairo_create (window_h);
+      context_ = gdk_cairo_create (window_);
       ACE_ASSERT (context_);
 #endif // GTK_CHECK_VERSION (3,22,0)
-#endif // GTK_CHECK_VERSION (3,0,0)
+#endif // GTK_CHECK_VERSION
 
 #if GTK_CHECK_VERSION (3,6,0)
 #else

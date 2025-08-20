@@ -36,7 +36,7 @@
 #endif // UUIDS_H
 #include "wmcodecdsp.h"
 
-#include "gdk/gdkwin32.h"
+//#include "gdk/gdkwin32.h"
 #else
 #include "linux/videodev2.h"
 #include "libv4l2.h"

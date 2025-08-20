@@ -40,7 +40,7 @@
 #endif // UUIDS_H
 #include "wmcodecdsp.h"
 
-#include "gdk/gdkwin32.h"
+//#include "gdk/gdkwin32.h"
 #else
 #include "linux/videodev2.h"
 #include "libv4l2.h"
@@ -3822,7 +3822,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_SAVE_NAME)));
   ACE_ASSERT (entry_p);
   filename_string += ACE_DIRECTORY_SEPARATOR_STR;
-  filename_string += ACE_TEXT_ALWAYS_CHAR (gtk_entry_get_text (entry_p));
+  filename_string +=
+    ACE_TEXT_ALWAYS_CHAR (gtk_entry_buffer_get_text (gtk_entry_get_buffer (entry_p)));
   ACE_ASSERT (Common_File_Tools::isValidPath (filename_string));
 
 continue_:

@@ -27,7 +27,11 @@
 
 #include "gdk/gdkkeysyms.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if GTK_CHECK_VERSION (4,0,0)
+#include "gdk/win32/gdkwin32.h"
+#else
 #include "gdk/gdkwin32.h"
+#endif // GTK_CHECK_VERSION (4,0,0)
 #else
 #include "gdk/gdkx.h"
 #endif // ACE_WIN32 || ACE_WIN64
