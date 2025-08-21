@@ -410,29 +410,6 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   //      ACE_ASSERT (row_stride_i <= static_cast<unsigned int> (row_stride_2));
-  //#if GTK_CHECK_VERSION(3,10,0)
-  //      ACE_ASSERT ((format_e == CAIRO_FORMAT_RGB24) || (format_e == CAIRO_FORMAT_ARGB32));
-  //#else
-  //      ACE_ASSERT (gdk_pixbuf_get_colorspace (surface_) == GDK_COLORSPACE_RGB);
-  //      ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (surface_) == 8);
-  ////      ACE_ASSERT (n_channels_i == 4);
-  ////      ACE_ASSERT (!gdk_pixbuf_get_has_alpha (surface_));
-  //#endif // GTK_CHECK_VERSION
-  //#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //      if (n_channels_i == 3)
-  //        ACE_ASSERT (Stream_MediaFramework_Tools::toBitCount (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW) == 24); //
-  //      else
-  //        ACE_ASSERT (Stream_MediaFramework_Tools::toBitCount (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW) == 32); // CAIRO_FORMAT_RGB24 || CAIRO_FORMAT_ARGB32
-  //#else
-  //#if defined (FFMPEG_SUPPORT)
-  //      if (n_channels_i == 3)
-  //        ACE_ASSERT (media_type_s.format == AV_PIX_FMT_RGB24); //
-  //      else
-  //        ACE_ASSERT (media_type_s.format == AV_PIX_FMT_RGB32); // CAIRO_FORMAT_RGB24 || CAIRO_FORMAT_ARGB32
-  //#else
-  //      ACE_ASSERT (false); // *TODO*
-  //#endif // FFMPEG_SUPPORT
-  //#endif // ACE_WIN32 || ACE_WIN64
   ACE_UNUSED_ARG (row_stride_i);
 #if GTK_CHECK_VERSION (3,6,0)
 #else
@@ -582,12 +559,6 @@ error:
 #else
       GDK_THREADS_ENTER ();
 #endif // GTK_CHECK_VERSION (3,6,0)
-//#if GTK_CHECK_VERSION (3,0,0)
-//      if (context_)
-//      {
-//        cairo_destroy (context_); context_ = NULL;
-//      } // end IF
-//#endif  // GTK_CHECK_VERSION (3,0,0)
       if (surface_)
 #if GTK_CHECK_VERSION (3,10,0)
         cairo_surface_destroy (surface_);
@@ -603,108 +574,16 @@ error:
 #endif // GTK_CHECK_VERSION (4,0,0)
       ACE_ASSERT (window_h);
 
-//#if GTK_CHECK_VERSION (3,0,0)
-//      context_ = gdk_cairo_create (window_h);
-//      ACE_ASSERT (context_);
-//#endif // GTK_CHECK_VERSION (3,0,0)
+      setP (window_h);
+      if (unlikely (!surface_))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Module_Vis_GTK_Cairo_T::setP(%@), aborting\n"),
+                    inherited::mod_->name (),
+                    window_h));
+        goto error_2;
+      } // end IF
 
-      surface_ =
-#if GTK_CHECK_VERSION (4,0,0)
-        gdk_surface_create_similar_surface (window_h,
-                                            CAIRO_CONTENT_COLOR_ALPHA,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                            resolution_s.cx,
-                                            resolution_s.cy);
-#else
-                                            resolution_s.width,
-                                            resolution_s.height);
-#endif // ACE_WIN32 || ACE_WIN64
-      if (unlikely (!surface_))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to gdk_window_create_similar_image_surface(%@), aborting\n"),
-                    inherited::mod_->name (),
-                    inherited::configuration_->window));
-        goto error_2;
-      } // end IF
-#elif GTK_CHECK_VERSION (3,10,0)
-        gdk_window_create_similar_image_surface (window_h,
-                                                 CAIRO_FORMAT_ARGB32,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                 resolution_s.cx,
-                                                 resolution_s.cy,
-#else
-                                                 resolution_s.width,
-                                                 resolution_s.height,
-#endif // ACE_WIN32 || ACE_WIN64
-                                                 0); // 0: use window scale
-      if (unlikely (!surface_))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to gdk_window_create_similar_image_surface(%@), aborting\n"),
-                    inherited::mod_->name (),
-                    inherited::configuration_->window));
-        goto error_2;
-      } // end IF
-#elif GTK_CHECK_VERSION (3,0,0)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-        gdk_pixbuf_get_from_window (window_h,
-                                    0, 0,
-                                    resolution_s.cx,
-                                    resolution_s.cy);
-#else
-        gdk_pixbuf_get_from_window (window_h,
-                                    0, 0,
-                                    resolution_s.width,
-                                    resolution_s.height);
-#endif // ACE_WIN32 || ACE_WIN64
-      if (unlikely (!surface_))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(%@), aborting\n"),
-                    inherited::mod_->name (),
-                    window_h));
-#if GTK_CHECK_VERSION (3,6,0)
-#else
-        GDK_THREADS_LEAVE ();
-#endif // GTK_CHECK_VERSION (3,6,0)
-        goto error_2;
-      } // end IF
-#elif GTK_CHECK_VERSION (2,0,0)
-        gdk_pixbuf_get_from_drawable (NULL,
-                                      GDK_DRAWABLE (window_h),
-                                      NULL,
-                                      0, 0,
-                                      0, 0,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                      resolution_s.cx,
-                                      resolution_s.cy);
-#else
-                                      resolution_s.width,
-                                      resolution_s.height);
-#endif // ACE_WIN32 || ACE_WIN64
-      if (unlikely (!surface_))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_drawable(%@), aborting\n"),
-                    inherited::mod_->name (),
-                    window_h));
-#if GTK_CHECK_VERSION (3,6,0)
-#else
-        GDK_THREADS_LEAVE ();
-#endif // GTK_CHECK_VERSION (3,6,0)
-        goto error_2;
-      } // end IF
-#else
-        NULL;
-      ACE_ASSERT (false);
-      ACE_NOTSUP_RETURN (false);
-      ACE_NOTREACHED (return false;)
-#endif // GTK_CHECK_VERSION
-#if GTK_CHECK_VERSION (3,6,0)
-#else
-      GDK_THREADS_LEAVE ();
-#endif // GTK_CHECK_VERSION (3,6,0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: resized surface to %ux%u\n"),
@@ -730,20 +609,13 @@ error_2:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      // *WORKAROUND*: this prevent a race condition: a stopped stream precedes
-      //               the removal of drawing calls
-      //               --> clean up in initialize/dtor
-//      if (likely (context_))
-//      {
-//        cairo_destroy (context_); context_ = NULL;
-//      } // end IF
-//      if (likely (surface_))
-//#if GTK_CHECK_VERSION (3,10,0)
-//        cairo_surface_destroy (surface_);
-//#else
-//        g_object_unref (surface_);
-//#endif // GTK_CHECK_VERSION(3,10,0)
-//      surface_ = NULL;
+      if (likely (surface_))
+#if GTK_CHECK_VERSION (3,10,0)
+        cairo_surface_destroy (surface_);
+#else
+        g_object_unref (surface_);
+#endif // GTK_CHECK_VERSION(3,10,0)
+      surface_ = NULL;
 
       break;
     }

@@ -759,7 +759,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::i
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::initialize"));
 
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-  ACE_ASSERT (configuration_->queue);
+  //ACE_ASSERT (configuration_->queue);
 
   isFirstFrame_ = true;
   directShowHasEnded_ = false;

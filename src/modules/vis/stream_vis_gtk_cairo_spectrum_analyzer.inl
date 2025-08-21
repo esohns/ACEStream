@@ -739,17 +739,13 @@ error:
         goto error_2;
       } // end IF
 
-      channelFactor_ = width_ / static_cast<double> (inherited2::channels_);
-      scaleFactorX_ =
-        width_ / static_cast<double> (inherited2::channels_ * inherited2::slots_);
-      scaleFactorX_2 =
-        width_ / static_cast<double> (inherited2::channels_ * ((inherited2::slots_ / 2) - 1));
-      max_value_d = static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, is_signed_format));
-      scaleFactorY_ =
-        (is_floating_point_format ? static_cast<double> (height_)
-                                  : is_signed_format ? static_cast<double> (halfHeight_) / max_value_d
-                                                     : static_cast<double> (height_) / max_value_d);
-      scaleFactorY_2 = scaleFactorY_ * 2.0;
+#if GTK_CHECK_VERSION (4,0,0)
+      GdkSurface* window_h = inherited3::convert (inherited::configuration_->window);
+#else
+      GdkWindow* window_h = inherited3::convert (inherited::configuration_->window);
+#endif // GTK_CHECK_VERSION (4,0,0)
+      ACE_ASSERT (window_h);
+      setP (window_h);
 
       inherited::resizing_ = false;
 
@@ -1276,7 +1272,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                               : sampleIterator_.isSignedSampleFormat_ ? static_cast<double> (halfHeight_) / max_value_d
                                                                       : static_cast<double> (height_) / max_value_d);
   scaleFactorY_2 = scaleFactorY_ * 2.0;
-//} // end lock scope
 }
 
 template <ACE_SYNCH_DECL,
@@ -1455,8 +1450,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #else
   // *IMPORTANT NOTE*: this assert fails intermittently on Gtk2 Win32;
   //                   the result is CAIRO_STATUS_NO_MEMORY
-  //ACE_ASSERT (cairo_status (cairoContext_) == CAIRO_STATUS_SUCCESS);
-  //CAIRO_ERROR_WORKAROUND (cbdata_p->context);
+  //ACE_ASSERT (cairo_status (context_p) == CAIRO_STATUS_SUCCESS);
+  //CAIRO_ERROR_WORKAROUND (context_p);
 #endif // GTK_CHECK_VERSION (4,0,0)
 
 error:

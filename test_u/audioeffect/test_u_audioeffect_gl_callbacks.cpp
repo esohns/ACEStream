@@ -858,6 +858,12 @@ glarea_render_cb (GtkGLArea* GLArea_in,
 
       texture_id_p =
         &(*directshow_modulehandler_configuration_iterator).second.second->OpenGLTextureId;
+      VAO_p =
+        &((*directshow_modulehandler_configuration_iterator).second.second->VAO);
+      EBO_p =
+        &((*directshow_modulehandler_configuration_iterator).second.second->EBO);
+      shader_p =
+        &((*directshow_modulehandler_configuration_iterator).second.second->shader);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

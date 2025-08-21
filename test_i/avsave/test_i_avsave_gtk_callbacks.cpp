@@ -2356,6 +2356,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
   Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2; // analyzer
   Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_3; // window
+  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_4; // video resize
   struct Stream_AVSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
     NULL;
   Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
@@ -2370,15 +2371,15 @@ idle_initialize_UI_cb (gpointer userData_in)
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
-      //directshow_stream_iterator_2 =
-      //  directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
-      //ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
       directshow_stream_iterator_2 =
         directshow_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->audioStreamConfiguration.end ());
       directshow_stream_iterator_3 =
         directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator_3 != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
+      directshow_stream_iterator_4 =
+        directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+      ACE_ASSERT (directshow_stream_iterator_4 != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
 
       format_s =
         directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.subtype;
@@ -2858,12 +2859,15 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_show_all (dialog_p);
 
   // step10: retrieve canvas coordinates, window handle and pixel buffer
-  GtkAllocation allocation;
+  GtkAllocation allocation, allocation_2;
   ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
+  ACE_OS::memset (&allocation_2, 0, sizeof (GtkAllocation));
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
                              &allocation);
-  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  GdkWindow* window_2 = gtk_widget_get_window (GTK_WIDGET (drawing_area_2));
+  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_2),
+                             &allocation_2);
+  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p)); // video
+  GdkWindow* window_2 = gtk_widget_get_window (GTK_WIDGET (drawing_area_2)); // audio
   ACE_ASSERT (window_p && window_2);
   ui_cb_data_base_p->spectrumAnalyzerCBData.window = window_2;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2883,14 +2887,15 @@ idle_initialize_UI_cb (gpointer userData_in)
       Common_Image_Resolution_t resolution_s;
       resolution_s.cx = allocation.width;
       resolution_s.cy = allocation.height;
+      //Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+      //                                                       (*directshow_stream_iterator).second.second->outputFormat);
       Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-                                                             (*directshow_stream_iterator).second.second->outputFormat);
+                                                             (*directshow_stream_iterator_4).second.second->outputFormat);
 
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("drawing area video handle: %@; size: %dx%d; audio handle: %@\n"),
-                  (*directshow_stream_iterator_3).second.second->window.gdk_window,
-                  allocation.width, allocation.height,
-                  (*directshow_stream_iterator_2).second.second->window.gdk_window));
+                  ACE_TEXT ("drawing area video handle: %@; size: %dx%d; audio handle: %@; size: %dx%d\n"),
+                  window_p, allocation.width, allocation.height,
+                  window_2, allocation_2.width, allocation_2.height));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -6165,7 +6170,7 @@ drawingarea_audio_draw_cb (GtkWidget* widget_in,
   ACE_ASSERT (ui_cb_data_base_p);
   if (!ui_cb_data_base_p->dispatch_2)
     return TRUE; // do NOT propagate event
-  //ACE_ASSERT (ui_cb_data_base_p->spectrumAnalyzerCBData.window);
+  ACE_ASSERT (ui_cb_data_base_p->spectrumAnalyzerCBData.window);
 
   ui_cb_data_base_p->spectrumAnalyzerCBData.context = context_in;
   try {
@@ -6174,6 +6179,7 @@ drawingarea_audio_draw_cb (GtkWidget* widget_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
   }
+  ui_cb_data_base_p->spectrumAnalyzerCBData.context = NULL;
 
   return TRUE; // do NOT propagate event
 } // drawingarea_audio_draw_cb

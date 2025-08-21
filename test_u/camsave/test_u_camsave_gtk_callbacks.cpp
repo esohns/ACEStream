@@ -3047,6 +3047,16 @@ idle_initialize_UI_cb (gpointer userData_in)
       directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
         gdk_win32_window_get_impl_hwnd (window_p);
       ACE_ASSERT (IsWindow (directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow));
+
+#if defined (FFMPEG_SUPPORT)
+      Common_Image_Resolution_t resolution_s;
+      resolution_s.cx = allocation.width;
+      resolution_s.cy = allocation.height;
+      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                             (*directshow_stream_iterator_3).second.second->outputFormat);
+
+#endif // FFMPEG_SUPPORT
+
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("drawing area window handle: %@; size: %dx%d\n"),
                   (*directshow_stream_iterator_2).second.second->window.gdk_window,
@@ -6498,7 +6508,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
   if (!ui_cb_data_base_p->dispatch)
-    return FALSE; // propagate event
+    return TRUE; // do NOT propagate event
 
   try {
     ui_cb_data_base_p->dispatch->dispatch (context_in);
@@ -6508,7 +6518,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
     return FALSE; // propagate event
   }
 
-  return TRUE; // do not propagate
+  return TRUE; // do NOT propagate event
 }
 #else
 gboolean
@@ -6802,6 +6812,7 @@ drawing_area_resize_end (gpointer userData_in)
 
   return FALSE;
 }
+
 void
 drawingarea_size_allocate_cb (GtkWidget* widget_in,
                               GdkRectangle* allocation_in,
