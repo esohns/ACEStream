@@ -180,12 +180,42 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
 
   do
   { ACE_ASSERT (message_block_p);
-    frame_p->buf[0] =
-      av_buffer_create (reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
-                        message_block_p->length (), NULL, NULL, 0);
-    frame_p->data[0] = reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ());
-    frame_p->buf[0]->data = frame_p->data[0];
-    frame_p->buf[0]->size = message_block_p->length ();
+    switch (message_inout->getMediaType ())
+    {
+      case STREAM_MEDIATYPE_AUDIO:
+      {
+        frame_p->buf[0] =
+          av_buffer_create (reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()), message_block_p->length (), av_buffer_default_free, NULL, 0);
+        frame_p->data[0] = reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ());
+        frame_p->buf[0]->data = frame_p->data[0];
+        frame_p->buf[0]->size = message_block_p->length ();
+        break;
+      }
+      case STREAM_MEDIATYPE_VIDEO:
+      {
+        result =
+          av_image_fill_linesizes (frame_p->linesize,
+                                   static_cast<AVPixelFormat> (frame_p->format),
+                                   static_cast<int> (frame_p->width));
+        ACE_ASSERT (result >= 0);
+        result =
+          av_image_fill_pointers (frame_p->data,
+                                  static_cast<AVPixelFormat> (frame_p->format),
+                                  static_cast<int> (frame_p->height),
+                                  reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
+                                  frame_p->linesize);
+        ACE_ASSERT (result >= 0);
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown message media type (was: %d), aborting\n"),
+                    inherited::mod_->name (),
+                    message_inout->getMediaType ()));
+        goto error;
+      }
+    } // end SWITCH
 
     // send the frame to the encoder
     result = avcodec_send_frame (codec_context_p, frame_p);
@@ -270,7 +300,7 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
     } // end WHILE
 
     message_block_p = message_block_p->cont ();
-    if (!message_block_p)
+    if (likely (!message_block_p))
       break;
   } while (true);
 

@@ -138,9 +138,9 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
     } // end IF
 
     if (display_b)
-    { // *WARNING*: display modules must support uncompressed 24-bit RGB (at
+    { // *WARNING*: display modules must support uncompressed 32-bit RGB (at
       //            native endianness)
-      layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
+      layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 32-bit RGB
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
 #if defined (GTK_USE)
 //      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
@@ -155,7 +155,7 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
     } // end IF
     if (save_to_file_b)
     {
-      //layout_in->append (&converter_2, NULL, 0);
+      layout_in->append (&converter_2, NULL, 0);
       layout_in->append (&tagger_, NULL, 0);
       ACE_ASSERT (inherited::configuration_->configuration_->module_2);
       layout_in->append (inherited::configuration_->configuration_->module_2, NULL, 0); // output is AVI

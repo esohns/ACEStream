@@ -3692,7 +3692,7 @@ Stream_MediaFramework_Tools::AVPixelFormatToBitCount (enum AVPixelFormat format_
     case AV_PIX_FMT_RGB4_BYTE:
       return 8;
     case AV_PIX_FMT_NV12:
-      ACE_ASSERT (false); // *TODO*
+      return 8; // + 2 + 2 (UV) --> 12
       break;
     case AV_PIX_FMT_NV21:
       ACE_ASSERT (false); // *TODO*

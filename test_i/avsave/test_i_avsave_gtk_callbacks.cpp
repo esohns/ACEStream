@@ -6402,8 +6402,8 @@ drawingarea_audio_resize_end (gpointer userData_in)
       Common_Image_Resolution_t resolution_s;
       resolution_s.cx = allocation_s.width;
       resolution_s.cy = allocation_s.height;
-      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-                                                             (*directshow_stream_iterator).second.second->outputFormat);
+      //Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+      //                                                       (*directshow_stream_iterator).second.second->outputFormat);
 
       if (!directshow_cb_data_p->audioStream->isRunning ())
         return G_SOURCE_REMOVE;

@@ -509,11 +509,9 @@ do_it:
     {
       const WAVEFORMATEXTENSIBLE* waveformatextensible_p =
         reinterpret_cast<const WAVEFORMATEXTENSIBLE*> (&format_in);
-      if (InlineIsEqualGUID (waveformatextensible_p->SubFormat,
-                             KSDATAFORMAT_SUBTYPE_PCM))
+      if (InlineIsEqualGUID (waveformatextensible_p->SubFormat, KSDATAFORMAT_SUBTYPE_PCM))
         format_tag = WAVE_FORMAT_PCM;
-      else if (InlineIsEqualGUID (waveformatextensible_p->SubFormat,
-                                  KSDATAFORMAT_SUBTYPE_IEEE_FLOAT))
+      else if (InlineIsEqualGUID (waveformatextensible_p->SubFormat, KSDATAFORMAT_SUBTYPE_IEEE_FLOAT))
         format_tag = WAVE_FORMAT_IEEE_FLOAT;
       else
         format_tag = 0;
@@ -824,8 +822,10 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
     for (int i = 0; i < AV_NUM_DATA_POINTERS; ++i)
     { // *NOTE*: do not change sourceBuffers_in[i] for NV12
       if (sourcePixelFormat_in != AV_PIX_FMT_NV12)
+      {
         sourceBuffers_in[i] += in_linesize[i] * (sourceHeight_in - 1);
-      in_linesize[i] = -in_linesize[i];
+        in_linesize[i] = -in_linesize[i];
+      } // end IF
     } // end FOR
   result_2 = av_image_fill_linesizes (out_linesize,
                                       targetPixelFormat_in,

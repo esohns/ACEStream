@@ -5000,9 +5000,9 @@ Stream_MediaFramework_DirectShow_Tools::mediaSubTypeToAVPixelFormat (REFGUID med
   else if (mediaSubType_in == MEDIASUBTYPE_RGB565)
     return AV_PIX_FMT_RGB565;
   else if (mediaSubType_in == MEDIASUBTYPE_RGB24)
-    return AV_PIX_FMT_RGB24; // *NOTE*: on win32 the RGBxx memory layout is in fact BGR
+    return AV_PIX_FMT_BGR24; // *NOTE*: on win32 the RGBxx memory layout is in fact BGR
   else if (mediaSubType_in == MEDIASUBTYPE_RGB32)
-    return AV_PIX_FMT_RGB32;
+    return AV_PIX_FMT_BGRA;
   // uncompressed RGB (alpha)
   //MEDIASUBTYPE_ARGB1555
   else if (mediaSubType_in == MEDIASUBTYPE_ARGB32)

@@ -256,7 +256,8 @@ class Stream_MediaFramework_DirectShow_Tools
   static struct _AMMediaType* to (const struct Stream_MediaFramework_FFMPEG_AudioMediaType&); // media type
   static struct _AMMediaType* to (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&); // media type
   static enum AVSampleFormat toAVSampleFormat (const struct _AMMediaType&); // media type
-  static enum AVPixelFormat mediaSubTypeToAVPixelFormat (REFGUID); // media foundation subtype
+  // *TODO*: merge and replace this with Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat() ?
+  static enum AVPixelFormat mediaSubTypeToAVPixelFormat (REFGUID); // media type subtype
 #endif // FFMPEG_SUPPORT
 #if defined (SOX_SUPPORT)
   static void to (const struct _AMMediaType&, // media type

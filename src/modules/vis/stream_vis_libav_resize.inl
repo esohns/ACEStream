@@ -125,17 +125,17 @@ Stream_Visualization_LibAVResize_T<TaskType,
   inherited::buffer_->set (message_inout->type ());
   message_inout->release (); message_inout = NULL;
 
-// #if defined (_DEBUG)
-//   if (!Common_File_Tools::store (ACE_TEXT_ALWAYS_CHAR ("output.data"),
-//                                  inherited::frame_->data[0],
-//                                  inherited::frameSize_))
-//   {
-//     ACE_DEBUG ((LM_ERROR,
-//                 ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
-//                 ACE_TEXT ("output.data")));
-//     goto error;
-//   } // end IF
-// #endif // _DEBUG
+ //#if defined (_DEBUG)
+ //  if (!Common_File_Tools::store (ACE_TEXT_ALWAYS_CHAR ("output.data"),
+ //                                 inherited::frame_->data[0],
+ //                                 inherited::frameSize_))
+ //  {
+ //    ACE_DEBUG ((LM_ERROR,
+ //                ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
+ //                ACE_TEXT ("output.data")));
+ //    goto error;
+ //  } // end IF
+ //#endif // _DEBUG
 
   // forward the converted frame
   result = inherited::put_next (inherited::buffer_, NULL);
