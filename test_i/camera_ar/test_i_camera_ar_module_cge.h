@@ -97,9 +97,13 @@ class Test_I_CameraAR_Module_CGE_T
   void drawImage (float*);
   inline float getPixel (float* image_in, int x_in, int y_in)
   {
-    if (likely (x_in >= 0 && x_in < inherited3::ScreenWidth () && y_in >= 0 && y_in < inherited3::ScreenHeight ()))
-      return image_in[y_in * inherited3::ScreenWidth () + x_in];
-
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (likely (x_in >= 0 && x_in < resolution_.cx && y_in >= 0 && y_in < resolution_.cy))
+      return image_in[y_in * resolution_.cx + x_in];
+#else
+    if (likely (x_in >= 0 && x_in < resolution_.width && y_in >= 0 && y_in < resolution_.height))
+      return image_in[y_in * resolution_.width + x_in];
+#endif // ACE_WIN32 || ACE_WIN64
     return 0.0f;
   }
 

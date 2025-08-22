@@ -416,69 +416,74 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   outputFormat_inout = *media_type_p;
   delete media_type_p; media_type_p = NULL;
 
-  // *NOTE*: the default (sample grabber-) output format is RGB32
-  ACE_ASSERT (InlineIsEqualGUID (outputFormat_inout.majortype, MEDIATYPE_Video));
-  outputFormat_inout.subtype =
-    STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT;
-  outputFormat_inout.bFixedSizeSamples = TRUE;
-  outputFormat_inout.bTemporalCompression = FALSE;
-  if (InlineIsEqualGUID (outputFormat_inout.formattype, FORMAT_VideoInfo))
-  { ACE_ASSERT (outputFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
-    struct tagVIDEOINFOHEADER* video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER*> (outputFormat_inout.pbFormat);
-    // *NOTE*: empty --> use entire video
-    BOOL result_3 = SetRectEmpty (&video_info_header_p->rcSource);
-    ACE_ASSERT (result_3);
-    result_3 = SetRectEmpty (&video_info_header_p->rcTarget);
-    // *NOTE*: empty --> fill entire buffer
-    ACE_ASSERT (result_3);
-    ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
-    ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
-    ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
-    video_info_header_p->bmiHeader.biBitCount = 32;
-    video_info_header_p->bmiHeader.biCompression = BI_RGB;
-    video_info_header_p->bmiHeader.biSizeImage =
-      DIBSIZE (video_info_header_p->bmiHeader);
-    ////video_info_header_p->bmiHeader.biXPelsPerMeter;
-    ////video_info_header_p->bmiHeader.biYPelsPerMeter;
-    ////video_info_header_p->bmiHeader.biClrUsed;
-    ////video_info_header_p->bmiHeader.biClrImportant;
-    ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
-    video_info_header_p->dwBitRate =
-      (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
-      (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+  // *WARNING*: the AVIDec DirectShow filter (CLSID_AVIDec) does not convert
+  //            YUY2 to RGB32 properly
+  //            --> use ffmpeg to do the conversion and let the sample grabber
+  //                grab the raw (encoded) frames
+  //            --> i.e capture format == output format here...
+  //// *NOTE*: the default (sample grabber-) output format is RGB32
+  //ACE_ASSERT (InlineIsEqualGUID (outputFormat_inout.majortype, MEDIATYPE_Video));
+  //outputFormat_inout.subtype =
+  //  STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT;
+  //outputFormat_inout.bFixedSizeSamples = TRUE;
+  //outputFormat_inout.bTemporalCompression = FALSE;
+  //if (InlineIsEqualGUID (outputFormat_inout.formattype, FORMAT_VideoInfo))
+  //{ ACE_ASSERT (outputFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+  //  struct tagVIDEOINFOHEADER* video_info_header_p =
+  //    reinterpret_cast<struct tagVIDEOINFOHEADER*> (outputFormat_inout.pbFormat);
+  //  // *NOTE*: empty --> use entire video
+  //  BOOL result_3 = SetRectEmpty (&video_info_header_p->rcSource);
+  //  ACE_ASSERT (result_3);
+  //  result_3 = SetRectEmpty (&video_info_header_p->rcTarget);
+  //  // *NOTE*: empty --> fill entire buffer
+  //  ACE_ASSERT (result_3);
+  //  ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
+  //  ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
+  //  ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
+  //  video_info_header_p->bmiHeader.biBitCount = 32;
+  //  video_info_header_p->bmiHeader.biCompression = BI_RGB;
+  //  video_info_header_p->bmiHeader.biSizeImage =
+  //    DIBSIZE (video_info_header_p->bmiHeader);
+  //  ////video_info_header_p->bmiHeader.biXPelsPerMeter;
+  //  ////video_info_header_p->bmiHeader.biYPelsPerMeter;
+  //  ////video_info_header_p->bmiHeader.biClrUsed;
+  //  ////video_info_header_p->bmiHeader.biClrImportant;
+  //  ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
+  //  video_info_header_p->dwBitRate =
+  //    (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
+  //    (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
 
-    outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
-  } // end IF
-  else if (InlineIsEqualGUID (outputFormat_inout.formattype, FORMAT_VideoInfo2))
-  {
-    ACE_ASSERT (outputFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
-    struct tagVIDEOINFOHEADER2* video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (outputFormat_inout.pbFormat);
-    ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
-    ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
-    video_info_header_p->bmiHeader.biBitCount = 32;
-    video_info_header_p->bmiHeader.biCompression = BI_RGB;
-    video_info_header_p->bmiHeader.biSizeImage =
-      DIBSIZE (video_info_header_p->bmiHeader);
-    ////video_info_header_p->bmiHeader.biXPelsPerMeter;
-    ////video_info_header_p->bmiHeader.biYPelsPerMeter;
-    ////video_info_header_p->bmiHeader.biClrUsed;
-    ////video_info_header_p->bmiHeader.biClrImportant;
-    ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
-    video_info_header_p->dwBitRate =
-      (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
-      (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+  //  outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
+  //} // end IF
+  //else if (InlineIsEqualGUID (outputFormat_inout.formattype, FORMAT_VideoInfo2))
+  //{
+  //  ACE_ASSERT (outputFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
+  //  struct tagVIDEOINFOHEADER2* video_info_header_p =
+  //    reinterpret_cast<struct tagVIDEOINFOHEADER2*> (outputFormat_inout.pbFormat);
+  //  ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
+  //  ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
+  //  video_info_header_p->bmiHeader.biBitCount = 32;
+  //  video_info_header_p->bmiHeader.biCompression = BI_RGB;
+  //  video_info_header_p->bmiHeader.biSizeImage =
+  //    DIBSIZE (video_info_header_p->bmiHeader);
+  //  ////video_info_header_p->bmiHeader.biXPelsPerMeter;
+  //  ////video_info_header_p->bmiHeader.biYPelsPerMeter;
+  //  ////video_info_header_p->bmiHeader.biClrUsed;
+  //  ////video_info_header_p->bmiHeader.biClrImportant;
+  //  ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
+  //  video_info_header_p->dwBitRate =
+  //    (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
+  //    (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
 
-    outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
-  } // end IF
-  else
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (outputFormat_inout.formattype).c_str ())));
-    goto error;
-  } // end ELSE
+  //  outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
+  //} // end IF
+  //else
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
+  //              ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (outputFormat_inout.formattype).c_str ())));
+  //  goto error;
+  //} // end ELSE
 
   IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
   IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
@@ -1019,12 +1024,13 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_stream_configuration.messageAllocator =
           &directshow_message_allocator;
+      // *TODO*: these modules are too slow (at least in Debug mode)
 #if defined (OLC_CGE_SUPPORT)
       directshow_stream_configuration.module = &directshow_CGE;
 #endif // OLC_CGE_SUPPORT
-//#if defined (OLC_PGE_SUPPORT)
-      // directshow_stream_configuration.module = &directshow_PGE;
-//#endif // OLC_PGE_SUPPORT
+#if defined (OLC_PGE_SUPPORT)
+      //directshow_stream_configuration.module = &directshow_PGE;
+#endif // OLC_PGE_SUPPORT
       directshow_stream_configuration.renderer = renderer_in;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
@@ -1111,8 +1117,24 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
   Stream_IStreamControlBase* stream_p = NULL;
+  Common_Image_Resolution_t resolution_s = {0, 0};
+#if defined (_DEBUG)
+#else
+  resolution_s = {160, 99};
+#endif // _DEBUG
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *NOTE*: console manipulation done by the CGE
+  //struct _COORD coord_s = {TEST_I_CAMERA_AR_CONSOLE_FONT_SIZE,
+  //                         TEST_I_CAMERA_AR_CONSOLE_FONT_SIZE};
+  //Common_UI_Tools::setConsoleFontSize (coord_s);
+  Common_UI_Resolution_t resolution_s_2 = Common_UI_Tools::getConsoleSize (true); // get maximum size
+  resolution_s_2.cy = 80; // *TODO*: why ?
+  //coord_s = {static_cast<SHORT> (resolution_s_2.cx), static_cast<SHORT> (resolution_s_2.cy)};
+  //Common_UI_Tools::setConsoleSize (coord_s);
+  //Common_UI_Tools::setConsoleMaxWindowSize (static_cast<ACE_INT16> (resolution_s.cx));
+  resolution_s = {static_cast<SHORT> (resolution_s_2.cx), static_cast<SHORT> (resolution_s_2.cy)};
+
   HWND window_handle = NULL;
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
@@ -1136,13 +1158,9 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       } // end IF
       //ACE_ASSERT (stream_config_p);
       // directShowCBData_in.streamConfiguration = stream_config_p;
-#if defined (_DEBUG)
-      Stream_MediaFramework_DirectShow_Tools::setResolution ({ 80, 60},
+      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                              directshow_modulehandler_configuration.outputFormat);
-#else
-      Stream_MediaFramework_DirectShow_Tools::setResolution ({ 160, 99},
-                                                             directshow_modulehandler_configuration.outputFormat);
-#endif // _DEBUG
+
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
@@ -1152,8 +1170,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       delete media_type_p; media_type_p = NULL;
 
       // *NOTE*: need to set this for RGB-capture formats ONLY !
-      directshow_modulehandler_configuration_2.flipImage =
-        Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
+      directshow_modulehandler_configuration_2.flipImage = true;
+        //Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
 
       //media_type_p =
       //  Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
@@ -1195,7 +1213,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 
       mediafoundation_modulehandler_configuration.concurrency =
         STREAM_HEADMODULECONCURRENCY_ACTIVE;
-      Stream_MediaFramework_MediaFoundation_Tools::setResolution ({ 80, 60},
+      Stream_MediaFramework_MediaFoundation_Tools::setResolution (resolution_s,
                                                                   mediafoundation_modulehandler_configuration.outputFormat);
       mediafoundation_modulehandler_configuration_2.outputFormat =
         Stream_MediaFramework_MediaFoundation_Tools::copy (mediafoundation_modulehandler_configuration.outputFormat);
@@ -1220,13 +1238,9 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       return;
     }
   } // end SWITCH
-
-  struct _COORD coord_s = {4, 4};
-  Common_UI_Tools::setConsoleFontSize (coord_s);
-  coord_s = {80, 60};
-  Common_UI_Tools::setConsoleSize (coord_s);
-  Common_UI_Tools::setConsoleMaxWindowSize (80);
 #else
+  resolution_s = {80, 60};
+
   if (!do_initialize_v4l (deviceIdentifier_in.identifier,
                           modulehandler_configuration.deviceIdentifier,
                           stream_configuration.format,
@@ -1241,8 +1255,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 //  if (!Stream_MediaFramework_Tools::isRGB (stream_configuration.format.format.pixelformat))
 //    modulehandler_configuration.outputFormat.format.pixelformat =
 //      V4L2_PIX_FMT_RGB32;
-  modulehandler_configuration.outputFormat.format.width = 80;
-  modulehandler_configuration.outputFormat.format.height = 60;
+  modulehandler_configuration.outputFormat.format = resolution_s;
 
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.outputFormat.format.pixelformat =
@@ -1326,7 +1339,7 @@ clean:
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       Stream_CameraAR_MediaFoundation_StreamConfiguration_t::ITERATOR_T iterator =
-      mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+        mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
       do_finalize_mediafoundation ((*iterator).second.second->session);
       break;

@@ -2914,7 +2914,7 @@ decode:
   //else if (Stream_Module_Decoder_Tools::isChromaLuminance (graph_entry.mediaType->subtype,
   //                                                         STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
   {
-    //// *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
+    //// *NOTE*: the AVI Decompressor alledgedly supports decoding YUV-formats to RGB
     //CLSID_s = CLSID_AVIDec;
     CLSID_s = CLSID_DMOWrapperFilter;
     graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_YUV_L;

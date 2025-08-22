@@ -242,7 +242,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
   // *NOTE*: 'this' 'owns' the output pin
   // *IMPORTANT NOTE*: increments this' reference count as well; should be 1
   //                   after this call
-  pin_p->AddRef ();
+  ULONG ref_count_i = pin_p->AddRef ();
+  ACE_ASSERT (ref_count_i == 1);
 
   if (result_out)
     *result_out = S_OK;
@@ -285,10 +286,16 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
     filter_info.pGraph->Release ();
   } // end IF
 
-  // step3: remove output pin
+  // step3: remove output pin ?
   CBasePin* pin_p = inherited::GetPin (0);
   if (likely (pin_p))
-    pin_p->Release (); // <-- should 'delete' the pin
+  {
+    // *NOTE*: the pin will Release() this; since we're in the dtor --> increment the refcount temporarily....
+    AddRef ();
+
+    pin_p->Release (); // <-- should 'delete' the pin, but just Release()s the filter
+    delete pin_p;
+  } // end IF
 }
 
 template <typename MessageType,
@@ -749,7 +756,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::~
   //} // end IF
 
   if (mediaType_)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_, false);
 } // (Destructor)
 
 template <typename ConfigurationType>

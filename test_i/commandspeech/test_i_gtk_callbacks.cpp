@@ -2429,15 +2429,15 @@ button_quit_clicked_cb (GtkWidget* widget_in,
     ui_cb_data_base_p->UIState->eventSourceIds.clear ();
   } // end lock scope
 
-  // step2: initiate shutdown sequence
-  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
-                                                      true); // high priority ?
-
   int result = ACE_OS::raise (SIGINT);
-  if (result == -1)
+  if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_OS::raise(%S): \"%m\", continuing\n"),
                 SIGINT));
+
+  // step2: initiate shutdown sequence
+  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?
+                                                      false); // high priority ?
 } // button_quit_clicked_cb
 
 void

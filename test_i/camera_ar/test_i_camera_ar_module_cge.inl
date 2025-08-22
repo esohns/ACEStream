@@ -271,7 +271,7 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
 #else
                                   resolution_.width, resolution_.height,
 #endif // ACE_WIN32 || ACE_WIN64
-                                  8, 8);
+                                  TEST_I_CAMERA_AR_CONSOLE_FONT_SIZE, TEST_I_CAMERA_AR_CONSOLE_FONT_SIZE);
   if (unlikely (!result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -526,7 +526,7 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   ACE_Message_Block* message_block_p = NULL;
   static ACE_Time_Value no_wait = ACE_OS::gettimeofday ();
   int result = inherited::getq (message_block_p, &no_wait);
-  if (unlikely (result == -1))
+  if (likely (result == -1))
   {
     int error = ACE_OS::last_error ();
     if (likely (error == EWOULDBLOCK))

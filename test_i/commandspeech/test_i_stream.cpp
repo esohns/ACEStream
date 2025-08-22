@@ -116,21 +116,21 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #endif // FLITE_SUPPORT
 
 #if defined (SOX_SUPPORT)
-   ACE_NEW_RETURN (module_p,
-                   Test_I_DirectShow_SoXResampler_Module (this,
-                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
-                   false);
-   ACE_ASSERT (module_p);
-   layout_in->append (module_p, NULL, 0);
-   module_p = NULL;
+   //ACE_NEW_RETURN (module_p,
+   //                Test_I_DirectShow_SoXResampler_Module (this,
+   //                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
+   //                false);
+   //ACE_ASSERT (module_p);
+   //layout_in->append (module_p, NULL, 0);
+   //module_p = NULL;
 
-   ACE_NEW_RETURN (module_p,
-                   Test_I_DirectShow_SoXEffect_Module (this,
-                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
-                   false);
-   ACE_ASSERT (module_p);
-   layout_in->append (module_p, NULL, 0);
-   module_p = NULL;
+   //ACE_NEW_RETURN (module_p,
+   //                Test_I_DirectShow_SoXEffect_Module (this,
+   //                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
+   //                false);
+   //ACE_ASSERT (module_p);
+   //layout_in->append (module_p, NULL, 0);
+   //module_p = NULL;
 #endif // SOX_SUPPORT
 
   // sanity check(s)
@@ -202,7 +202,18 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     module_p = NULL;
   } // end IF
 
-  if (!(*iterator).second.second->mute)
+
+#if defined (GTK_USE)
+  ACE_NEW_RETURN (module_p,
+                  Test_I_DirectShow_Vis_SpectrumAnalyzer_Module (this,
+                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, branch_p, index_i);
+  module_p = NULL;
+#endif // GTK_USE
+
+  if (!(*iterator).second.second->mute && device_can_render_format_b)
     switch (inherited::configuration_->configuration_->renderer)
     {
       case STREAM_DEVICE_RENDERER_WAVEOUT:
@@ -233,18 +244,6 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     } // end SWITCH
   if (module_p)
   {
-#if defined (GTK_USE)
-    layout_in->append (module_2, branch_p, index_i);
-    module_2 = NULL;
-    ACE_NEW_RETURN (module_2,
-                    Test_I_DirectShow_Vis_SpectrumAnalyzer_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_2);
-    layout_in->append (module_2, branch_p, index_i);
-    module_2 = NULL;
-#endif // GTK_USE
-
     layout_in->append (module_p, branch_p, index_i);
     ++index_i;
     module_p = NULL;

@@ -309,7 +309,7 @@ if (UNIX)
 elseif (WIN32)
  string (REPLACE "\\" "\\\\" VOICE_DIRECTORY ${VOICE_DIRECTORY})
  set (ARGS "${ARGS} -b ${VOICE} -c ${VOICE_DIRECTORY}")
- set (ARGS "-m ${ARGS}") # use mediafoundation
+ #set (ARGS "-m ${ARGS}") # use mediafoundation
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if ("${ui_definition_file}" STREQUAL "")

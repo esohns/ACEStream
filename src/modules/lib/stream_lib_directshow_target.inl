@@ -547,15 +547,16 @@ Stream_MediaFramework_DirectShow_Target_T<TaskType,
   // sanity check(s)
   if (IGraphBuilder_out)
     IGraphBuilder_out->Release ();
-
   // initialize return value(s)
   IGraphBuilder_out = NULL;
 
   HRESULT result = E_FAIL;
   IBaseFilter* filter_p = NULL;
+  bool is_video_b = Stream_MediaFramework_DirectShow_Tools::isVideoFormat (mediaType_in);
   std::wstring render_filter_name =
-    (windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO_L
-                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L);
+    (is_video_b && windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO_L
+                                   : (is_video_b ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL_L
+                                                 : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO_L));
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   Stream_MediaFramework_DirectShow_GraphConfiguration_t graph_configuration;
   bool release_configuration = false;
@@ -628,42 +629,83 @@ Stream_MediaFramework_DirectShow_Target_T<TaskType,
     goto error;
   } // end IF
 
-  if (!Stream_Module_Decoder_Tools::loadTargetRendererGraph (filter_p,
-                                                             (inherited::configuration_->push ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
-                                                                                              : STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
-                                                             mediaType_in,
-                                                             windowHandle_in,
-                                                             IGraphBuilder_out,
-                                                             buffer_negotiation_p,
-                                                             graph_configuration))
+  if (is_video_b)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadTargetRendererGraph(), aborting\n"),
-                inherited::mod_->name ()));
-    goto error;
+    if (!Stream_Module_Decoder_Tools::loadTargetRendererGraph (filter_p,
+                                                               (inherited::configuration_->push ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
+                                                                                                : STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
+                                                               mediaType_in,
+                                                               windowHandle_in,
+                                                               IGraphBuilder_out,
+                                                               buffer_negotiation_p,
+                                                               graph_configuration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadTargetRendererGraph(), aborting\n"),
+                  inherited::mod_->name ()));
+      goto error;
+    } // end IF
   } // end IF
+  else
+  {
+    result =
+      CoCreateInstance (CLSID_FilterGraph, NULL,
+                        CLSCTX_INPROC_SERVER,
+                        IID_PPV_ARGS (&IGraphBuilder_out));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterGraph): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (IGraphBuilder_out);
+    Stream_MediaFramework_DirectShow_Tools::append (IGraphBuilder_out,
+                                                    filter_p,
+                                                    (inherited::configuration_->push ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
+                                                                                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L));
+
+    union Stream_MediaFramework_DirectSound_AudioEffectOptions effect_options_u;
+    if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (GUID_NULL,
+                                                              mediaType_in,
+                                                              mediaType_in,
+                                                              false,
+                                                              0,
+                                                              IGraphBuilder_out,
+                                                              GUID_NULL,
+                                                              effect_options_u,
+                                                              graph_configuration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadAudioRendererGraph(), aborting\n"),
+                  inherited::mod_->name ()));
+      goto error;
+    } // end IF
+  } // end ELSE
   release_configuration = true;
   filter_p->Release (); filter_p = NULL;
   ACE_ASSERT (IGraphBuilder_out);
-  ACE_ASSERT (buffer_negotiation_p);
 
-  // *TODO*: remove type inference
-  ACE_ASSERT (filterConfiguration_in.allocatorProperties);
-  result =
-      buffer_negotiation_p->SuggestAllocatorProperties (filterConfiguration_in.allocatorProperties);
-  if (FAILED (result))
+  if (buffer_negotiation_p)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    // *TODO*: remove type inference
+    ACE_ASSERT (filterConfiguration_in.allocatorProperties);
+    result =
+        buffer_negotiation_p->SuggestAllocatorProperties (filterConfiguration_in.allocatorProperties);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     
-    // clean up
-    buffer_negotiation_p->Release ();
+      // clean up
+      buffer_negotiation_p->Release ();
     
-    goto error;
+      goto error;
+    } // end IF
+    buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
   } // end IF
-  buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
 
   if (!Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder_out,
                                                         graph_configuration))
