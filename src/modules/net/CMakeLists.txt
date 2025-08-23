@@ -76,6 +76,12 @@ set (source_files
      stream_net_io_stream.cpp
      stream_net_io_stream.h
      stream_net_io_stream.inl
+     stream_net_listener.cpp
+     stream_net_listener.h
+     stream_net_listener.inl
+     stream_net_server_stream.cpp
+     stream_net_server_stream.h
+     stream_net_server_stream.inl
      stream_net_source.cpp
      stream_net_source.h
      stream_net_source.inl
@@ -112,9 +118,6 @@ endif (WIN32)
 target_link_libraries (${PROJECT_NAME}_Network PUBLIC Common)
 target_link_libraries (${PROJECT_NAME}_Network PUBLIC ${PROJECT_NAME})
 
-#set_target_properties (${PROJECT_NAME}_Network PROPERTIES DEFINE_SYMBOL STREAM_NET_BUILD_DLL)
-#set_target_properties (${PROJECT_NAME}_Network PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
-
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Network
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
@@ -123,11 +126,14 @@ export (TARGETS ${PROJECT_NAME}_Network
 install (FILES
          stream_net_common.h
          stream_net_defines.h
-#         stream_net_exports.h
          stream_net_io.h
          stream_net_io.inl
          stream_net_io_stream.h
          stream_net_io_stream.inl
+         stream_net_listener.h
+         stream_net_listener.inl
+         stream_net_server_stream.h
+         stream_net_server_stream.inl
          stream_net_source.h
          stream_net_source.inl
          stream_net_target.h

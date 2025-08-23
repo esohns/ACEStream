@@ -1117,6 +1117,7 @@ do_work (
   struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // directshow target module
   struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // renderer module
   struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_4; // file writer module
+  struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_5; // resampler module
   struct Test_I_DirectShow_StreamConfiguration directshow_stream_configuration;
   struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
   struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // mediafoundation target target module
@@ -1297,6 +1298,9 @@ do_work (
 
       directshow_modulehandler_configuration_3 =
         directshow_modulehandler_configuration;
+
+      directshow_modulehandler_configuration_5 =
+        directshow_modulehandler_configuration;
       switch (directshow_stream_configuration.renderer)
       {
         case STREAM_DEVICE_RENDERER_WAVEOUT:
@@ -1307,6 +1311,12 @@ do_work (
             (mute_in ? -1 : 0); // *TODO*: -1 means WAVE_MAPPER
           renderer_modulename_string =
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING);
+
+          struct tWAVEFORMATEX waveformatex_s;
+          Stream_MediaFramework_DirectSound_Tools::getBestFormat (directshow_modulehandler_configuration_3.deviceIdentifier.identifier._id,
+                                                                  waveformatex_s);
+          Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (waveformatex_s,
+                                                                    directshow_modulehandler_configuration_5.outputFormat);
           break;
         }
         case STREAM_DEVICE_RENDERER_WASAPI:
@@ -1344,6 +1354,10 @@ do_work (
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_4)));
+
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING),
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_5)));
 
       break;
     }

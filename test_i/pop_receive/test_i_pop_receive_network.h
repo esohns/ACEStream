@@ -52,7 +52,7 @@
 
 #include "test_i_pop_receive_stream_common.h"
 
-const char stream_net_name_string_[] = ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING);
+const char stream_net_name_string_[] = ACE_TEXT_ALWAYS_CHAR (STREAM_NET_IO_DEFAULT_NAME_STRING);
 
 /////////////////////////////////////////
 

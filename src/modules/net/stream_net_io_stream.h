@@ -41,7 +41,7 @@ template <ACE_SYNCH_DECL,
 class ACE_Module;
 
 // global variables
-extern const char libacestream_default_net_stream_name_string[];
+extern const char libacestream_default_net_io_stream_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

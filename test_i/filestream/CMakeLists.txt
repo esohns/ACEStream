@@ -136,6 +136,7 @@ target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Test_I)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
+target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork_Server)
 
 # add PCH
 #set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES
@@ -282,6 +283,7 @@ target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Test_I)
 
 target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
+target_link_libraries (${EXECUTABLE_TARGET} ACENetwork_Server)
 
 # add PCH
 #set_target_properties (${EXECUTABLE_TARGET} PROPERTIES

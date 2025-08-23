@@ -573,11 +573,14 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
   ACE_ASSERT (media_type_p);
   mediaType_inout = *media_type_p;
 
-  // *IMPORTANT NOTE*: MFCreateAMMediaTypeFromMFMediaType fails to set the correct resolution !!!
-  Common_Image_Resolution_t resolution_s =
-    Stream_MediaFramework_MediaFoundation_Tools::toResolution (mediaType_in);
-  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-                                                         mediaType_inout);
+  if (type_in == STREAM_MEDIATYPE_VIDEO)
+  {
+    // *IMPORTANT NOTE*: MFCreateAMMediaTypeFromMFMediaType fails to set the correct resolution !!!
+    Common_Image_Resolution_t resolution_s =
+      Stream_MediaFramework_MediaFoundation_Tools::toResolution (mediaType_in);
+    Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                           mediaType_inout);
+  } // end IF
 
   CoTaskMemFree (media_type_p); media_type_p = NULL;
 }

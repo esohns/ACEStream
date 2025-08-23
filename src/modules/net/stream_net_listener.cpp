@@ -19,10 +19,10 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_net_io_stream.h"
+#include "stream_net_listener.h"
 
 #include "stream_net_defines.h"
 
-//STREAM_NET_Export const char libacestream_default_net_io_stream_name_string[] =
-const char libacestream_default_net_io_stream_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_NET_IO_DEFAULT_NAME_STRING);
+//STREAM_NET_Export const char libacestream_default_net_listener_module_name_string[] =
+const char libacestream_default_net_listener_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_NET_SOURCE_DEFAULT_NAME_STRING);

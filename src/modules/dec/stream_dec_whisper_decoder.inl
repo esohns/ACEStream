@@ -62,12 +62,9 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WhisperCppDecoder_T::Stream_Decoder_WhisperCppDecoder_T"));
 
   parameters_ = whisper_context_default_params ();
-#if defined (_DEBUG)
-  // parameters_.use_gpu = false;
-#endif // _DEBUG
 
   parameters2_ = whisper_full_default_params (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SAMPLING_STRATEGY);
-  // if (!parameters_.use_gpu)
+  if (unlikely (!parameters_.use_gpu))
     parameters2_.n_threads = Common_Tools::getNumberOfCPUs (true);
   // //parameters2_.n_max_text_ctx = 16;
   // //parameters2_.no_context = false;

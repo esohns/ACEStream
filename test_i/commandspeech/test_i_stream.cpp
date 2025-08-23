@@ -74,8 +74,10 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   Stream_Module_t* module_p = NULL, *module_2 = NULL;
   bool device_can_render_format_b = false;
+  bool use_framework_renderer_b = false;
   HRESULT result = E_FAIL;
   Stream_Branches_t branches_a;
+  enum Stream_Device_Renderer renderer_e = STREAM_DEVICE_RENDERER_INVALID;
 
   if ((*iterator).second.second->fileIdentifier.empty ())
     ACE_NEW_RETURN (module_p,
@@ -90,6 +92,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
+
   //ACE_NEW_RETURN (module_p,
   //                Test_I_DirectShow_StatisticReport_Module (this,
   //                                                          ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
@@ -115,31 +118,14 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   module_p = NULL;
 #endif // FLITE_SUPPORT
 
-#if defined (SOX_SUPPORT)
-   //ACE_NEW_RETURN (module_p,
-   //                Test_I_DirectShow_SoXResampler_Module (this,
-   //                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
-   //                false);
-   //ACE_ASSERT (module_p);
-   //layout_in->append (module_p, NULL, 0);
-   //module_p = NULL;
-
-   //ACE_NEW_RETURN (module_p,
-   //                Test_I_DirectShow_SoXEffect_Module (this,
-   //                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
-   //                false);
-   //ACE_ASSERT (module_p);
-   //layout_in->append (module_p, NULL, 0);
-   //module_p = NULL;
-#endif // SOX_SUPPORT
-
   // sanity check(s)
   ACE_ASSERT (InlineIsEqualGUID ((*iterator).second.second->outputFormat.formattype, FORMAT_WaveFormatEx));
   ACE_ASSERT ((*iterator).second.second->outputFormat.pbFormat);
 
   struct tWAVEFORMATEX* waveformatex_p =
     reinterpret_cast<struct tWAVEFORMATEX*> ((*iterator).second.second->outputFormat.pbFormat);
-  switch (inherited::configuration_->configuration_->renderer)
+  renderer_e = inherited::configuration_->configuration_->renderer;
+  switch (renderer_e)
   {
     case STREAM_DEVICE_RENDERER_WAVEOUT:
     { ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
@@ -157,6 +143,8 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
       break;
     }
     case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+      use_framework_renderer_b = true;
+      break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -167,24 +155,37 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
   } // end SWITCH
 
-#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
-  if ((!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW)) ||
-      (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW) && !device_can_render_format_b))
+  if (!(*iterator).second.second->mute && !device_can_render_format_b && !use_framework_renderer_b)
   {
-    ACE_NEW_RETURN (module_p,
-                    Test_I_DirectShow_Target_Module (this,
-                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
+#if defined (SOX_SUPPORT)
+   ACE_NEW_RETURN (module_p,
+                   Test_I_DirectShow_SoXResampler_Module (this,
+                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
+                   false);
+   ACE_ASSERT (module_p);
+   layout_in->append (module_p, NULL, 0);
+   module_p = NULL;
+
+   ACE_NEW_RETURN (module_p,
+                   Test_I_DirectShow_SoXEffect_Module (this,
+                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
+                   false);
+   ACE_ASSERT (module_p);
+   layout_in->append (module_p, NULL, 0);
+   module_p = NULL;
+#endif // SOX_SUPPORT
   } // end IF
-#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
-  if ((!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW)) &&
-      !(*iterator_4).second.second->fileIdentifier.empty ())
+  if (!(*iterator).second.second->mute)
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+#if defined (GTK_USE)
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+#endif // GTK_USE
+  if (!(*iterator_4).second.second->fileIdentifier.empty ())
+      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+  if (!branches_a.empty ())
   {
     ACE_NEW_RETURN (module_p,
                     Test_I_DirectShow_Distributor_Module (this,
@@ -192,8 +193,6 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
                     false);
     ACE_ASSERT (module_p);
     branch_p = module_p;
-    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
-    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
     Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
     ACE_ASSERT (idistributor_p);
@@ -202,19 +201,11 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     module_p = NULL;
   } // end IF
 
-
-#if defined (GTK_USE)
-  ACE_NEW_RETURN (module_p,
-                  Test_I_DirectShow_Vis_SpectrumAnalyzer_Module (this,
-                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  layout_in->append (module_p, branch_p, index_i);
-  module_p = NULL;
-#endif // GTK_USE
-
-  if (!(*iterator).second.second->mute && device_can_render_format_b)
-    switch (inherited::configuration_->configuration_->renderer)
+  //playback branch
+  if (use_framework_renderer_b)
+    renderer_e = STREAM_DEVICE_RENDERER_DIRECTSHOW;
+  if (!(*iterator).second.second->mute)
+    switch (renderer_e)
     {
       case STREAM_DEVICE_RENDERER_WAVEOUT:
       {
@@ -233,6 +224,15 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
         break;
       }
       case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+      {
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
+        ACE_NEW_RETURN (module_p,
+                        Test_I_DirectShow_Target_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING)),
+                        false);
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
+        break;
+      }
       default:
       {
         ACE_DEBUG ((LM_ERROR,
@@ -249,6 +249,19 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     module_p = NULL;
   } // end IF
 
+  // display branch
+#if defined (GTK_USE)
+  ACE_NEW_RETURN (module_p,
+                  Test_I_DirectShow_Vis_SpectrumAnalyzer_Module (this,
+                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, branch_p, index_i);
+  ++index_i;
+  module_p = NULL;
+#endif // GTK_USE
+
+  // save branch
   if (!(*iterator_4).second.second->fileIdentifier.empty ())
   {
     ACE_NEW_RETURN (module_p,
@@ -266,6 +279,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     ACE_ASSERT (module_p);
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
+    ++index_i;
   } // end IF
 
   return true;

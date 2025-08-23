@@ -224,6 +224,7 @@ target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${PROJECT_NAME}_Visualization)
 
 target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ACENetwork)
+target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ACENetwork_Server)
 
 target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${PROJECT_NAME}_Test_I)
 
@@ -589,6 +590,7 @@ target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${PROJECT_NAME}_Visualization)
 
 target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ACENetwork)
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ACENetwork_Server)
 
 target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${PROJECT_NAME}_Test_I)
 
