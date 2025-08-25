@@ -1,0 +1,9 @@
+cmake:
+#--rocm-device-lib-path=/usr/lib64/rocm/llvm/lib/clang/19/amdgcn/bitcode
+GPU_TARGETS=gfx900
+CMAKE_HIP_ARCHITECTURES=gfx900
+CMAKE_HIP_FLAGS=--offload-arch=gfx900
+enable "GGML_HIP"
+
+environment:
+HSA_OVERRIDE_GFX_VERSION=9.0.0

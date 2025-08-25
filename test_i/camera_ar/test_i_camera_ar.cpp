@@ -1255,7 +1255,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 //  if (!Stream_MediaFramework_Tools::isRGB (stream_configuration.format.format.pixelformat))
 //    modulehandler_configuration.outputFormat.format.pixelformat =
 //      V4L2_PIX_FMT_RGB32;
-  modulehandler_configuration.outputFormat.format = resolution_s;
+  modulehandler_configuration.outputFormat.format.width = resolution_s.width;
+  modulehandler_configuration.outputFormat.format.height = resolution_s.height;
 
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.outputFormat.format.pixelformat =

@@ -419,6 +419,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   inherited::sessionData_ =
     reinterpret_cast<SessionDataContainerType*> (arg_in);
   inherited::sessionData_->increase ();
+  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+  ACE_ASSERT (session_data_r.lock);
+  inherited::sessionDataLock_ = session_data_r.lock;
 
   // step2: initialize the message queue
   // *NOTE*: the first time around, the queue will have been open()ed
@@ -2521,9 +2524,74 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           session_data_container_p = inherited::sessionData_;
         } // end IF
         else
-          ACE_DEBUG ((LM_WARNING,
-                      ACE_TEXT ("%s: no session data; cannot append to begin message, continuing\n"),
+        { // *NOTE*: most probably, the stream has been restart()ed without
+          //         reload()ing the modules (i.e. initialize() --> open() has
+          //         not been called again). In this case, the queue needs to be
+          //         re-activate()d too (see below)... and more (see below)
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: restarting stream\n"),
                       inherited::mod_->name ()));
+
+          SessionDataType* session_data_p = NULL;
+          ACE_NEW_NORETURN (session_data_p,
+                            SessionDataType ());
+          ACE_ASSERT (session_data_p);
+          ACE_ASSERT (inherited::sessionDataLock_);
+          session_data_p->lock = inherited::sessionDataLock_;
+          ACE_ASSERT (streamState_);
+          session_data_p->state = streamState_;
+          // *TODO*: update streamState_->sessionData as well ? Note that this
+          // would require holding the streams' state lock, which cannot be
+          // easily reached from here...
+          // streamState_->sessionData = session_data_p;
+          ACE_NEW_NORETURN (inherited::sessionData_,
+                            SessionDataContainerType (session_data_p));
+          ACE_ASSERT (inherited::sessionData_);
+          inherited::sessionData_->increase ();
+          session_data_container_p = inherited::sessionData_;
+
+          ACE_ASSERT (inherited::msg_queue_->deactivated ());
+          result_2 = inherited::msg_queue_->activate ();
+          if (unlikely (result_2 == -1))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_Message_Queue::activate(): \"%m\", aborting\n"),
+                        inherited::mod_->name ()));
+            return false;
+          } // end IF
+
+          abortSent_ = false;
+          endSeen_ = false;
+          isHighPriorityStop_ = false;
+
+          { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, false);
+            sessionEndSent_ = false;
+            sessionEndProcessed_ = false;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+            if (inherited::closeHandles_)
+            {
+              ACE_hthread_t handle = ACE_INVALID_HANDLE;
+              for (THREAD_IDS_ITERATOR_T iterator = inherited::threadIds_.begin ();
+                   iterator != inherited::threadIds_.end ();
+                   ++iterator)
+              {
+                handle = (*iterator).handle ();
+                if (unlikely (handle != ACE_INVALID_HANDLE))
+                  if (!::CloseHandle (handle))
+                    ACE_DEBUG ((LM_ERROR,
+                                ACE_TEXT ("%s: failed to CloseHandle(0x%@): \"%s\", continuing\n"),
+                                inherited::mod_->name (),
+                                handle,
+                                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+              } // end FOR
+              inherited::closeHandles_ = false;
+            } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
+            inherited::threadIds_.clear ();
+          } // end lock scope
+        } // end ELSE
+        ACE_ASSERT (session_data_container_p);
         ACE_ASSERT (streamState_);
         // *NOTE*: "fire-and-forget" the second argument
         if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_BEGIN, // session message type
@@ -2651,6 +2719,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           // *TODO*: remove type inferences
           SessionDataType& session_data_r =
               const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+          ACE_ASSERT (session_data_r.lock);
           bool aborted_b = false;
           { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock, false);
             aborted_b = session_data_r.aborted;

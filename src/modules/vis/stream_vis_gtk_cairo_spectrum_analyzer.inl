@@ -714,6 +714,13 @@ error:
       channels = media_type_s.channels;
       sample_rate = media_type_s.rate;
 #endif // ACE_WIN32 || ACE_WIN64
+
+#if GTK_CHECK_VERSION (4,0,0)
+      GdkSurface* window_h = NULL;
+#else
+      GdkWindow* window_h = NULL;
+#endif // GTK_CHECK_VERSION (4,0,0)
+
       result_2 = sampleIterator_.initialize (data_sample_size,
                                              sound_sample_size,
                                              is_signed_format,
@@ -739,11 +746,7 @@ error:
         goto error_2;
       } // end IF
 
-#if GTK_CHECK_VERSION (4,0,0)
-      GdkSurface* window_h = inherited3::convert (inherited::configuration_->window);
-#else
-      GdkWindow* window_h = inherited3::convert (inherited::configuration_->window);
-#endif // GTK_CHECK_VERSION (4,0,0)
+      window_h = inherited3::convert (inherited::configuration_->window);
       ACE_ASSERT (window_h);
       setP (window_h);
 

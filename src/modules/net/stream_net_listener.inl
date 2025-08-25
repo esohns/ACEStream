@@ -251,10 +251,10 @@ Stream_Module_Net_ListenerH_T<ACE_SYNCH_USE,
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
           const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       // *TODO*: remove type inferences
-      ListenerType* listener_p =
-        typename ListenerType::SINGLETON_T::instance ();
+      ListenerType* listener_p = ListenerType::SINGLETON_T::instance ();
       ACE_ASSERT (listener_p);
       bool stop_listening_b = false;
+      typename ListenerType::CONFIGURATION_T* listener_configuration_p = NULL;
 
       // schedule regular statistic collection ?
       if (inherited::configuration_->statisticReportingInterval != ACE_Time_Value::zero)
@@ -269,7 +269,7 @@ Stream_Module_Net_ListenerH_T<ACE_SYNCH_USE,
                                               NULL,                            // asynchronous completion token
                                               COMMON_TIME_NOW + interval,      // first wakeup time
                                               interval);                       // interval
-        if (inherited::timerId_ == -1)
+        if (unlikely (inherited::timerId_ == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", aborting\n"),
@@ -290,7 +290,7 @@ Stream_Module_Net_ListenerH_T<ACE_SYNCH_USE,
       // sanity check(s)
       // *TODO*: remove type inferences
       ACE_ASSERT (inherited::configuration_->listenerConfiguration);
-      typename ListenerType::CONFIGURATION_T* listener_configuration_p =
+      listener_configuration_p =
         static_cast<typename ListenerType::CONFIGURATION_T*> (inherited::configuration_->listenerConfiguration);
       if (!listener_p->initialize (*listener_configuration_p))
       {
@@ -340,8 +340,7 @@ end:
           const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
 
       // stop listening
-      ListenerType* listener_p =
-        typename ListenerType::SINGLETON_T::instance ();
+      ListenerType* listener_p = ListenerType::SINGLETON_T::instance ();
       ACE_ASSERT (listener_p);
 
       // deregister for accepted connections / disconnects
@@ -364,6 +363,7 @@ end:
                       ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
                       inherited::timerId_));
+        inherited::timerId_ = -1;
       } // end IF
 
       if (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
@@ -429,7 +429,11 @@ Stream_Module_Net_ListenerH_T<ACE_SYNCH_USE,
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
     const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_p->getR ());
   // *TODO*: remove type inferences
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   session_data_r.sessionId = reinterpret_cast<Stream_SessionId_t> (handle_in);
+#else
+  session_data_r.sessionId = static_cast<Stream_SessionId_t> (handle_in);
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (inherited::streamState_);
   // *NOTE*: "fire-and-forget" the second argument
   if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_CONNECT,
@@ -496,7 +500,12 @@ Stream_Module_Net_ListenerH_T<ACE_SYNCH_USE,
   ACE_ASSERT (session_data_container_p);
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
     const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_p->getR ());
-  session_data_r.sessionId = reinterpret_cast<Stream_SessionId_t> (handle_in); // *TODO*: remove type inferences
+  // *TODO*: remove type inferences
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  session_data_r.sessionId = reinterpret_cast<Stream_SessionId_t> (handle_in);
+#else
+  session_data_r.sessionId = static_cast<Stream_SessionId_t> (handle_in);
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (inherited::streamState_);
   // *NOTE*: "fire-and-forget" the second argument
   if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_DISCONNECT,

@@ -173,6 +173,7 @@ class Stream_TaskBase_T
   unsigned int                         linked_;
 
   typename SessionMessageType::DATA_T* sessionData_;
+  ACE_SYNCH_MUTEX*                     sessionDataLock_; // backup lock
 
  private:
   // convenient types
@@ -200,7 +201,6 @@ class Stream_TaskBase_T
   // *TODO*: move all of this to Stream_HeadModuleTaskBase_T; it's easier to do
   //         the switch in this class though
   typename SessionMessageType::DATA_T* sessionData_2; // backup 'downstream' session data
-  ACE_SYNCH_MUTEX*                     sessionDataLock_; // backup 'upstream' lock
 };
 
 // include template definition
