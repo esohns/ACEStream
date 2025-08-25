@@ -347,7 +347,8 @@ end:
       listener_p->unsubscribe (this);
 
       if (likely (listener_p->isRunning ()))
-        listener_p->stop (true, false);
+        listener_p->stop (true,  // close socket
+                          false);
 
       if (inherited::timerId_ != -1)
       {

@@ -324,7 +324,13 @@ error:
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
       // sanity check(s)
-      ACE_ASSERT (inherited::sessionData_);
+      if (unlikely (inherited::sessionData_ == NULL))
+      {
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: out-of-session statistic messages cannot be processed, returning\n"),
+                    inherited::mod_->name ()));
+        break;
+      } // end IF
 
       // *NOTE*: the message contains statistic information from some upstream
       //         module (e.g. some hardware capture device driver)
