@@ -1452,11 +1452,8 @@ do_work (int argc_in,
       directshow_modulehandler_configuration_3.outputFormat = *media_type_p;
       delete media_type_p; media_type_p = NULL;
 
-
-
-
       directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
-        directshow_modulehandler_configuration_3.window;
+        directshow_modulehandler_configuration_3.window.win32_hwnd;
       directShowConfiguration_in.direct3DConfiguration.useSoftwareRenderer =
         true; // *TODO*: why doesn't the Direct3D 12 HW device work ?
       stream_p = &directshow_stream;

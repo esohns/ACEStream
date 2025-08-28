@@ -1372,8 +1372,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
         return;
       } // end IF
-      ACE_ASSERT (directshow_modulehandler_configuration_3.window.win32_hwnd);
-      directshow_modulehandler_configuration_3.window.type = Common_UI_Window::TYPE_WIN32;
+      //ACE_ASSERT (directshow_modulehandler_configuration_3.window.win32_hwnd);
+      //directshow_modulehandler_configuration_3.window.type = Common_UI_Window::TYPE_WIN32;
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
@@ -1448,7 +1448,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       delete media_type_p; media_type_p = NULL;
 
       directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
-        directshow_modulehandler_configuration_3.window;
+        directshow_modulehandler_configuration_3.window.win32_hwnd;
       stream_p = &directshow_stream;
       break;
     }

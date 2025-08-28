@@ -242,7 +242,7 @@ set (ds_german_model_file "model.pbmm")
 set (ds_german_scorer_file "de-aashishag-1-prune-kenlm.scorer")
 set (ds_model_file "etc/${ds_german_model_file}")
 set (ds_scorer_file "etc/${ds_german_scorer_file}")
-set (wh_model_file "$ENV{LIB_ROOT}/../models/ggml-medium.en.bin")
+set (wh_model_file "$ENV{LIB_ROOT}/../models/ggml-small.en.bin")
 
 set (ui_definition_file "")
 if (GTK_USE)
@@ -388,6 +388,7 @@ elseif (WIN32)
   file (TO_CMAKE_PATH "${WHISPERCPP_LIB_DIRS}" WHISPERCPP_PATH)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                             ${WHISPERCPP_PATH})
+ set (ENVIRONMENT "${ENVIRONMENT};HSA_OVERRIDE_GFX_VERSION=9.0.0;HIP_VISIBLE_DEVICES=1")
  endif (WHISPERCPP_SUPPORT)
 endif ()
 create_target_launcher (${EXECUTABLE}

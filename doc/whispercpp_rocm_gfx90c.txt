@@ -1,3 +1,5 @@
+Note: seems to work on Linux only :(
+
 cmake:
 #--rocm-device-lib-path=/usr/lib64/rocm/llvm/lib/clang/19/amdgcn/bitcode
 GPU_TARGETS=gfx900

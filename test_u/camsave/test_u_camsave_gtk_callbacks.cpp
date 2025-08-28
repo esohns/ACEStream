@@ -3653,7 +3653,7 @@ idle_update_progress_cb (gpointer userData_in)
   ACE_ASSERT (data_p->state);
 
   // synch access
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
+  //ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
 
   int result = -1;
   Common_UI_GTK_BuildersIterator_t iterator =
@@ -5088,10 +5088,11 @@ button_quit_clicked_cb (GtkWidget* widget_in,
     stream_p->stop (false, true, true);
 
   // wait for processing thread(s)
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock, FALSE);
-    while (!ui_cb_data_base_p->progressData.pendingActions.empty ())
-      ui_cb_data_base_p->UIState->condition.wait (NULL);
-  } // end lock scope
+  //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock, FALSE);
+    while (ui_cb_data_base_p->progressData.completedActions.empty ())
+      ACE_OS::sleep (ACE_Time_Value (1, 0)); // wait for completion
+      //ui_cb_data_base_p->UIState->condition.wait (NULL);
+  //} // end lock scope
 
   COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
                                                       true); // high priority ?
