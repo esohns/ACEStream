@@ -76,8 +76,8 @@ extern int avi_debug;
 //#define YYPRINT 1
 //#define YYTOKEN_TABLE 1
 
-#define YYINITDEPTH 1000
-#define YYMAXDEPTH 100000
+#define YYINITDEPTH 25000
+#define YYMAXDEPTH 200000
 
 
 /* Token kinds.  */

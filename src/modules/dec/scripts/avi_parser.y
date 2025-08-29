@@ -75,8 +75,8 @@ extern int avi_debug;
 //#define YYPRINT 1
 //#define YYTOKEN_TABLE 1
 
-#define YYINITDEPTH 1000
-#define YYMAXDEPTH 100000
+#define YYINITDEPTH 25000
+#define YYMAXDEPTH 200000
 }
 
 // calling conventions / parameter passing
@@ -150,13 +150,13 @@ using namespace std;
 %token <chunk_meta> CHUNK "chunk"
 %token <size> END 0 "end_of_buffer"
 
+%type <size>       riff_header chunks
 %type <chunk_meta> riff_list
-%type <size>       chunks
 
-//%precedence DATA
-//%precedence _SIZE
-//%precedence _FOURCC
-//%left _FOURCC
+//%precedence "chunk" "riff" "list"
+/*%precedence "riff"
+%precedence "list"*/
+//%left "chunk" "riff" "list"
 
 %code provides {
 extern void yy_debug (int);
@@ -194,18 +194,11 @@ extern int yyparse (Stream_Decoder_AVIParserDriver*, yyscan_t);
                                         ACE_TEXT ("discarding tagless symbol...\n"))); } <> */
 
 %%
-%start          chunks;
-riff_list:      "riff"                   { $$ = $1; };
-                | "list"                 { $$ = $1; };
-chunks:         %empty                   { $$ = 0; }
-                | riff_list              {
-                                           driver->chunks_.push_back ($1);
-                                           if (driver->inFrames_)
-                                             driver->betweenFrameChunk ($1);
-                                         }
-                  chunks                 { $$ = 4 + 4 + 4 + $3; };
-                | "chunk"                {
-                                           const char* char_p = NULL;
+%start          riff_header;
+riff_header:    "riff"                   { driver->chunks_.push_back ($1); }
+                  "list"                 { driver->chunks_.push_back ($3); }
+                  chunks                 { $$ = (4 + 4) + (4 + 4 + $3.size) + $5; }
+chunks:         "chunk"                  { const char* char_p = NULL;
 
                                            if ($1.identifier == FOURCC ('s', 't', 'r', 'h'))
                                            {
@@ -216,23 +209,25 @@ chunks:         %empty                   { $$ = 0; }
                                            } // end IF
 
                                            if ($1.identifier == FOURCC ('s', 't', 'r', 'f'))
-                                           { ACE_ASSERT (driver->frameSize_);
+                                           {
                                              if (driver->isVids_ &&
-                                                 !*driver->frameSize_) // get first video stream only
+                                                 !driver->frameSize_) // get first video stream only
                                              {
                                                char_p =
                                                  driver->fragment_->base () + (driver->fragmentOffset_ - $1.size);
                                                // *NOTE*: hard-coded offset into struct tagBITMAPINFOHEADER
-                                               *driver->frameSize_ =
+                                               driver->frameSize_ =
                                                  *reinterpret_cast<const ACE_UINT32*> (char_p + 4 + 4 + 4 + 2 + 2 + 4);
                                                ACE_DEBUG ((LM_DEBUG,
                                                            ACE_TEXT ("video frame size is: %u byte(s)\n"),
-                                                           *driver->frameSize_));
+                                                           driver->frameSize_));
                                              } // end IF
                                            } // end IF
 
-                                           char_p =
-                                             reinterpret_cast<const char*> (&$1.identifier);
+                                           char buffer_a[5];
+                                           ACE_OS::memset (buffer_a, 0, sizeof (char[5]));
+                                           ACE_OS::memcpy (buffer_a, reinterpret_cast<const char*> (&$1.identifier), 4);
+                                           char_p = buffer_a;
                                            // *NOTE*: in memory, the fourcc is stored back-to-front
                                            static std::string regex_string =
                                               ACE_TEXT_ALWAYS_CHAR ("^([[:alpha:]]{2})([[:digit:]]{2})$");
@@ -269,7 +264,16 @@ chunks:         %empty                   { $$ = 0; }
                                                driver->betweenFrameChunk ($1);
                                            }
                                          }
-                  chunks                 { $$ = 4 + 4 + $1.size + $3; };
+                  chunks                 { $$ = 4 + 4 + $1.size + $3; }
+                | riff_list              {
+                                           driver->chunks_.push_back ($1);
+                                           if (driver->inFrames_)
+                                             driver->betweenFrameChunk ($1);
+                                         }
+                  chunks                 { $$ = 4 + 4 + 4 + $3; }
+                | %empty                 { $$ = 0; }
+riff_list:      "riff"                   { $$ = $1; }
+                | "list"                 { $$ = $1; }
 %%
 
 /* void

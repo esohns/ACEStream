@@ -39,6 +39,7 @@ class ACE_Message_Queue_Base;
 typedef void* yyscan_t;
 typedef struct yy_buffer_state* YY_BUFFER_STATE;
 struct AVI_LTYPE;
+extern void RIFF_Scanner_reset_hold_char (yyscan_t);
 
 class Stream_Decoder_IAVIParser
 {
@@ -59,7 +60,7 @@ class Stream_Decoder_AVIParserDriver
   virtual ~Stream_Decoder_AVIParserDriver ();
 
   // target data, needs to be set before invoking parse() !
-  void initialize (ACE_UINT32&,                                           // target data (bitmap frame size)
+  void initialize (ACE_UINT32,                                            // target data (bitmap frame size)
                    bool,                                                  // parse header only ? : parse the whole (file) stream
                    bool = COMMON_PARSER_DEFAULT_LEX_TRACE,                // debug scanner ?
                    bool = COMMON_PARSER_DEFAULT_YACC_TRACE,               // debug parser ?
@@ -79,6 +80,7 @@ class Stream_Decoder_AVIParserDriver
   bool switchBuffer (ACE_Message_Block* = NULL); // fragment to switch to directly : fragment_->cont ()
   bool getDebugScanner () const;
   void wait ();
+  inline void resetHoldChar () { RIFF_Scanner_reset_hold_char (scannerState_); }
 
   // *NOTE*: current (unscanned) data fragment
   Stream_Decoder_RIFFChunks_t chunks_;
@@ -92,7 +94,7 @@ class Stream_Decoder_AVIParserDriver
 
   // target
   bool                        isVids_; // currently in 'vids' strh
-  ACE_UINT32*                 frameSize_; // bitmap-
+  ACE_UINT32                  frameSize_; // bitmap-
 
  protected:
   yyscan_t                    scannerState_;

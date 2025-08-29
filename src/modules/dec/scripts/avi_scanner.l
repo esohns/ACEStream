@@ -61,7 +61,7 @@ void RIFF_Scanner_reset_hold_char (yyscan_t);
 %option extra-type="Stream_Decoder_AVIParserDriver*"
 /* %option nounput */
 
-FOURCC         [[:print:]]{4}
+FOURCC         [\x00-\xFF]{4}
  /* little-endian */
 CHUNK_SIZE     [\x00-\xFF]{4}
 DATA           [\x00-\xFF]
@@ -108,9 +108,9 @@ DATA           [\x00-\xFF]
                              driver->fragmentOffset_ += 4;
                              driver->offset_ += 4;
                              yylval->chunk_meta.size =
-                               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? *reinterpret_cast<unsigned int*> (yytext)
-                                                                      : ACE_SWAP_LONG (*reinterpret_cast<unsigned int*> (yytext)));
-                             BEGIN (LIST_chunk); }
+                               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? *reinterpret_cast<ACE_UINT32*> (yytext)
+                                                                      : ACE_SWAP_LONG (*reinterpret_cast<ACE_UINT32*> (yytext)));
+                             BEGIN (RIFF_LIST_chunk); }
 } // end <RIFF_LIST_header>
 <RIFF_LIST_chunk>{
 {FOURCC}                   { ACE_ASSERT (yyleng == 4);
@@ -122,9 +122,6 @@ DATA           [\x00-\xFF]
                              return avi_tokentype::RIFF; }
 } // end <RIFF_LIST_chunk>
 <chunks>{
-"RIFF"                     { ACE_ASSERT (yyleng == 4);
-                             yyless (0);
-                             BEGIN (INITIAL); }
 "LIST"                     { ACE_ASSERT (yyleng == 4);
                              yylval->chunk_meta.offset = driver->offset_;
                              driver->fragmentOffset_ += 4;
@@ -146,8 +143,8 @@ DATA           [\x00-\xFF]
                              driver->fragmentOffset_ += 4;
                              driver->offset_ += 4;
                              yylval->chunk_meta.size =
-                               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? *reinterpret_cast<unsigned int*> (yytext)
-                                                                      : ACE_SWAP_LONG (*reinterpret_cast<unsigned int*> (yytext)));
+                               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? *reinterpret_cast<ACE_UINT32*> (yytext)
+                                                                      : ACE_SWAP_LONG (*reinterpret_cast<ACE_UINT32*> (yytext)));
                              BEGIN (LIST_chunk); }
 } // end <LIST_header>
 <LIST_chunk>{
@@ -164,8 +161,8 @@ DATA           [\x00-\xFF]
                              driver->fragmentOffset_ += 4;
                              driver->offset_ += 4;
                              yylval->chunk_meta.size =
-                               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? *reinterpret_cast<unsigned int*> (yytext)
-                                                                      : ACE_SWAP_LONG (*reinterpret_cast<unsigned int*> (yytext)));
+                               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? *reinterpret_cast<ACE_UINT32*> (yytext)
+                                                                      : ACE_SWAP_LONG (*reinterpret_cast<ACE_UINT32*> (yytext)));
                              missing_bytes = yylval->chunk_meta.size;
                              BEGIN (chunk_data); }
 } // end <chunks>
@@ -190,12 +187,13 @@ DATA           [\x00-\xFF]
                              {
                                BEGIN (chunks);
                                return avi_tokentype::CHUNK;
-                             } }
+                             }
+                           }
 } // end <chunk_data>
 <chunk_pad>{
 {DATA}{1}                  { ACE_ASSERT (yyleng == 1);
-                             ++driver->fragmentOffset_;
-                             ++driver->offset_;
+                             ++(driver->fragmentOffset_);
+                             ++(driver->offset_);
                              BEGIN (chunks);
                              return avi_tokentype::CHUNK; }
 } // end <chunk_pad>

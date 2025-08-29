@@ -44,7 +44,7 @@ Stream_Decoder_AVIParserDriver::Stream_Decoder_AVIParserDriver (bool traceScanni
  , offset_ (0)
  , parseHeaderOnly_ (false)
  , isVids_ (false)
- , frameSize_ (NULL)
+ , frameSize_ (0)
  , scannerState_ (NULL)
  , bufferState_ (NULL)
  , messageQueue_ (NULL)
@@ -80,7 +80,7 @@ Stream_Decoder_AVIParserDriver::~Stream_Decoder_AVIParserDriver ()
 }
 
 void
-Stream_Decoder_AVIParserDriver::initialize (ACE_UINT32& frameSize_in,
+Stream_Decoder_AVIParserDriver::initialize (ACE_UINT32 frameSize_in,
                                             bool parseHeaderOnly_in,
                                             bool traceScanning_in,
                                             bool traceParsing_in,
@@ -109,7 +109,7 @@ Stream_Decoder_AVIParserDriver::initialize (ACE_UINT32& frameSize_in,
   } // end IF
 
   // set parse target
-  frameSize_ = &frameSize_in;
+  frameSize_ = frameSize_in;
   parseHeaderOnly_ = parseHeaderOnly_in;
 
   // trace ?

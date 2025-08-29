@@ -179,44 +179,6 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
   else
     buffer_ = message_inout;
 
-  //// "crunch" messages for easier parsing ?
-  // if (true &&
-  //     buffer_->cont ())
-  //{
-  //   // step1: get a new message buffer
-  //   DataMessageType* message_p =
-  //     inherited::allocateMessage
-  //     (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-  //   if (unlikely (!message_p))
-  //   {
-  //     ACE_DEBUG ((LM_ERROR,
-  //                 ACE_TEXT ("failed to allocate message(%u), returning\n"),
-  //                 inherited::configuration_->allocatorConfiguration->defaultBufferSize));
-  //     goto error;
-  //   } // end IF
-
-  //  // step2: copy available data
-  //  for (message_block_p = buffer_;
-  //       message_block_p;
-  //       message_block_p = message_block_p->cont ())
-  //  {
-  //    ACE_ASSERT (message_block_p->length () <= message_p->space ());
-  //    result = message_p->copy (message_block_p->rd_ptr (),
-  //                              message_block_p->length ());
-  //    if (unlikely (result == -1))
-  //    {
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\",
-  //                  returning\n")));
-  //      message_p->release (); message_p = NULL;
-  //      goto error;
-  //    } // end IF
-  //  } // end FOR
-
-  //  buffer_->release ();
-  //  buffer_ = message_p;
-  //} // end IF
-
   // OK: parse this message
   if (!inherited2::parse (buffer_))
   {
@@ -230,9 +192,6 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
 
 done:
   return;
-
-//error:
-  //buffer_->release (); buffer_ = NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -297,8 +256,11 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
 
   int result = -1;
   ACE_Message_Block *message_block_p, *message_block_2 = NULL;
+  ACE_Message_Block* message_block_3 = NULL; // new buffer top
   ACE_UINT64 skipped_bytes = 0;
   Stream_Decoder_RIFFChunksIterator_t iterator;
+  ACE_UINT32 chunk_size_i =
+    chunk_in.size % 2 ? chunk_in.size + 1 : chunk_in.size;
 
   if (headerParsed_)
     goto dispatch;
@@ -334,27 +296,32 @@ dispatch:
   // sanity check(s)
   ACE_ASSERT (buffer_);
   size_t buffered_bytes = buffer_->total_length ();
-  ACE_ASSERT (buffered_bytes >= chunk_in.size + 4 + 4);
+  ACE_ASSERT (buffered_bytes >= chunk_size_i + 4 + 4);
 
   message_block_p = NULL;
-  if (buffered_bytes == chunk_in.size + 4 + 4)
+  if (buffered_bytes == chunk_size_i + 4 + 4)
+  {
+    message_block_p = buffer_;
+    buffer_ = NULL;
     goto dispatch_2;
+  } // end IF
 
-  // --> (buffered_bytes > frameSize_ + 4 + 4)
-  message_block_2 = buffer_;
+  // --> (buffered_bytes > frame size + 4 + 4)
+  message_block_p = buffer_;
   skipped_bytes = 0;
 
+  message_block_2 = message_block_p;
   do
   {
     skipped_bytes += message_block_2->length ();
-    if (skipped_bytes >= chunk_in.size + 4 + 4)
+    if (skipped_bytes >= chunk_size_i + 4 + 4)
       break;
     message_block_2 = message_block_2->cont ();
     ACE_ASSERT (message_block_2);
   } while (true);
-  if (skipped_bytes > chunk_in.size + 4 + 4)
+  if (skipped_bytes > chunk_size_i + 4 + 4)
   {
-    ACE_Message_Block* message_block_3 = message_block_2->duplicate ();
+    message_block_3 = message_block_2->duplicate ();
     if (unlikely (!message_block_3))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -364,42 +331,37 @@ dispatch:
     } // end IF
 
     bytes_to_skip =
-      message_block_2->length () - (skipped_bytes - (chunk_in.size + 4 + 4));
+      message_block_2->length () - (skipped_bytes - (chunk_size_i + 4 + 4));
     message_block_3->rd_ptr (bytes_to_skip);
     message_block_2->length (bytes_to_skip);
     if (message_block_2->cont ())
       message_block_2->cont ()->release ();
     message_block_2->cont (NULL);
-    message_block_p = message_block_3;
+    buffer_ = message_block_3;
   } // end IF
 
 dispatch_2:
-  ACE_ASSERT (buffer_->total_length () == chunk_in.size + 4 + 4);
+  ACE_ASSERT (message_block_p->total_length () == chunk_size_i + 4 + 4);
 
   // remove AVI frame header (00db, ...)
   Stream_Tools::skip (4 + 4,
-                      buffer_,
+                      message_block_p,
                       false); // release skipped bytes, if possible
-  ACE_ASSERT (buffer_->total_length () == chunk_in.size);
+  ACE_ASSERT (message_block_p->total_length () == chunk_size_i);
 
-  RIFF_Scanner_reset_hold_char (inherited2::scannerState_);
-  result = inherited::put_next (buffer_, NULL);
+  result = inherited::put_next (message_block_p, NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
-    if (message_block_p)
-    {
-      message_block_p->release (); message_block_p = NULL;
-    } // end IF
-    buffer_->release (); buffer_ = NULL;
+    message_block_p->release (); message_block_p = NULL;
     return false;
   } // end IF
-  buffer_ = message_block_p;
 
   if (likely (buffer_))
   {
+    RIFF_Scanner_reset_hold_char (inherited2::scannerState_);
     inherited2::switchBuffer (buffer_);
     return true;  
   } // end IF
@@ -410,6 +372,7 @@ dispatch_2:
     return false; // done
 
   buffer_ = inherited2::fragment_;
+  RIFF_Scanner_reset_hold_char (inherited2::scannerState_);
   inherited2::switchBuffer (buffer_);
 
   return true;
