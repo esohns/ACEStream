@@ -23,7 +23,9 @@
 
 #include "ace/Global_Macros.h"
 
-#include "stream_message_base.h"
+#include "stream_data_message_base.h"
+
+#include "stream_dec_riff_common.h"
 
 #include "test_u_riffdecoder_common.h"
 
@@ -36,16 +38,20 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
-//struct Test_U_RIFFDecoder_AllocatorConfiguration;
+
+struct Test_U_RIFFDecoder_MessageData
+{
+  Stream_Decoder_RIFFChunks_t chunks;
+};
 
 class Test_U_RIFFDecoder_Message
- : public Stream_MessageBase_T<//struct Test_U_RIFFDecoder_AllocatorConfiguration,
-                               enum Stream_MessageType,
-                               int>
+ : public Stream_DataMessageBase_T<struct Test_U_RIFFDecoder_MessageData,
+                                   enum Stream_MessageType,
+                                   Stream_CommandType_t>
 {
-  typedef Stream_MessageBase_T<//struct Test_U_RIFFDecoder_AllocatorConfiguration,
-                               enum Stream_MessageType,
-                               int> inherited;
+  typedef Stream_DataMessageBase_T<struct Test_U_RIFFDecoder_MessageData,
+                                   enum Stream_MessageType,
+                                   Stream_CommandType_t> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,

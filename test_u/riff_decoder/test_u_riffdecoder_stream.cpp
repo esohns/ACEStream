@@ -65,11 +65,12 @@ Test_U_RIFFDecoder_Stream::initialize (const inherited::CONFIGURATION_T& configu
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-//  bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
-//  struct Test_U_RIFFDecoder_SessionData* session_data_p = NULL;
-  Test_U_RIFFDecoder_Module_Source* source_impl_p = NULL;
+  struct Test_U_RIFFDecoder_SessionData* session_data_p = NULL;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -86,45 +87,10 @@ Test_U_RIFFDecoder_Stream::initialize (const inherited::CONFIGURATION_T& configu
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
-//  session_data_p =
-//    &const_cast<struct Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->getR ());
-
-  // things to be done here:
-  // [- initialize base class]
-  // ------------------------------------
-  // - initialize notification strategy (if any)
-  // ------------------------------------
-  // - push the final module onto the stream (if any)
-  // ------------------------------------
-  // - initialize modules
-  // - push them onto the stream (tail-first) !
-  // ------------------------------------
-
-  // ******************* File Source ************************
-  source_impl_p =
-    dynamic_cast<Test_U_RIFFDecoder_Module_Source*> (source_.writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Test_U_RIFFDecoder_Module_CamSource> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
-//  // *TODO*: remove type inference
-//  if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration,
-//                                  configuration_in.messageAllocator))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-//                source_.name ()));
-//    return false;
-//  } // end IF
-  source_impl_p->setP (&(inherited::state_));
-
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  source_.arg (inherited::sessionData_);
+  session_data_p =
+    &const_cast<struct Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->getR ());
+  session_data_p->fileSize =
+    Common_File_Tools::size (iterator->second.second->fileIdentifier.identifier);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup ())
@@ -138,7 +104,6 @@ Test_U_RIFFDecoder_Stream::initialize (const inherited::CONFIGURATION_T& configu
   // -------------------------------------------------------------
 
   inherited::isInitialized_ = true;
-  //inherited::dump_state ();
 
   return true;
 

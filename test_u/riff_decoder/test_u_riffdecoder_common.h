@@ -93,10 +93,12 @@ struct Test_U_RIFFDecoder_SessionData
 {
   Test_U_RIFFDecoder_SessionData ()
    : Stream_SessionData ()
+   , fileSize (0)
    , frameSize (0)
   {}
 
-  unsigned int frameSize;
+  ACE_UINT64 fileSize;
+  ACE_UINT32 frameSize;
 };
 typedef Stream_SessionData_T<struct Test_U_RIFFDecoder_SessionData> Test_U_RIFFDecoder_SessionData_t;
 

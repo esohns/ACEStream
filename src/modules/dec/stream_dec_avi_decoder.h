@@ -85,11 +85,13 @@ class Stream_Decoder_AVIDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T (const Stream_Decoder_AVIDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T& operator= (const Stream_Decoder_AVIDecoder_T&))
 
+  virtual void header (const Stream_Decoder_RIFFChunks_t&); // header data
   virtual bool frame (const struct RIFF_chunk_meta&); // frame chunk
   virtual bool betweenFrameChunk (const struct RIFF_chunk_meta&); // in-between frames chunk
+  virtual ACE_UINT64 fileSize () const { return fileSize_; }
 
   ACE_Message_Block* buffer_; // <-- continuation chain
-  unsigned int       frameSize_;
+  ACE_UINT64         fileSize_;
   bool               headerParsed_;
 };
 

@@ -45,8 +45,10 @@ class Stream_Decoder_IAVIParser
 {
  public:
   // *NOTE*: to be invoked by the parser (ONLY !)
+  virtual void header (const Stream_Decoder_RIFFChunks_t&) = 0; // header chunks
   virtual bool frame (const struct RIFF_chunk_meta&) = 0; // frame chunk
   virtual bool betweenFrameChunk (const struct RIFF_chunk_meta&) = 0; // in-between frames chunk
+  virtual ACE_UINT64 fileSize () const = 0; // total source file/stream size (iff known) : 0
 };
 
 class Stream_Decoder_AVIParserDriver

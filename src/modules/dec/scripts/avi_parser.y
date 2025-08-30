@@ -151,7 +151,7 @@ using namespace std;
 %token <size> END 0 "end_of_buffer"
 
 %type <size>       riff_header chunks
-%type <chunk_meta> riff_list
+//%type <chunk_meta> riff_list
 
 //%precedence "chunk" "riff" "list"
 /*%precedence "riff"
@@ -197,7 +197,7 @@ extern int yyparse (Stream_Decoder_AVIParserDriver*, yyscan_t);
 %start          riff_header;
 riff_header:    "riff"                   { driver->chunks_.push_back ($1); }
                   "list"                 { driver->chunks_.push_back ($3); }
-                  chunks                 { $$ = (4 + 4) + (4 + 4 + $3.size) + $5; }
+                  chunks                 { $$ = (4 + 4) + (4 + 4 + 4) + $5; }
 chunks:         "chunk"                  { const char* char_p = NULL;
 
                                            if ($1.identifier == FOURCC ('s', 't', 'r', 'h'))
@@ -242,17 +242,16 @@ chunks:         "chunk"                  { const char* char_p = NULL;
                                              ACE_ASSERT (match_results[1].matched);
                                              ACE_ASSERT (match_results[2].matched);
 
-                                             if (driver->parseHeaderOnly_)
-                                               driver->finished_ = true;
                                              driver->inFrames_ = true;
                                              if (driver->parseHeaderOnly_)
+                                             {
+                                               driver->header (driver->chunks_);
+                                               driver->finished_ = true;
                                                YYACCEPT;
+                                             } // end IF
 
                                              driver->chunks_.push_back ($1);
 
-/*                                             std::string frame_header_string = match_results[1].str ();
-                                             bool is_video_frame =
-                                               frame_header_string[0] == 'c' && frame_header_string[1] == 'd';*/
                                              if (!driver->frame ($1))
                                                YYABORT;
                                            } // end IF
@@ -263,17 +262,23 @@ chunks:         "chunk"                  { const char* char_p = NULL;
                                              if (driver->inFrames_)
                                                driver->betweenFrameChunk ($1);
                                            }
+
+                                           ACE_UINT64 file_size_i = driver->fileSize ();
+                                           if (file_size_i &&
+                                               driver->offset_ >= file_size_i)
+                                           {
+                                             driver->finished_ = true;
+                                             YYACCEPT;
+                                           } // end IF
                                          }
                   chunks                 { $$ = 4 + 4 + $1.size + $3; }
-                | riff_list              {
+                | "list"                 {
                                            driver->chunks_.push_back ($1);
                                            if (driver->inFrames_)
                                              driver->betweenFrameChunk ($1);
                                          }
                   chunks                 { $$ = 4 + 4 + 4 + $3; }
                 | %empty                 { $$ = 0; }
-riff_list:      "riff"                   { $$ = $1; }
-                | "list"                 { $$ = $1; }
 %%
 
 /* void

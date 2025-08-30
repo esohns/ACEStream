@@ -51,7 +51,7 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
  , inherited2 (COMMON_PARSER_DEFAULT_LEX_TRACE,
                COMMON_PARSER_DEFAULT_YACC_TRACE)
  , buffer_ (NULL)
- , frameSize_ (0)
+ , fileSize_ (0)
  , headerParsed_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::Stream_Decoder_AVIDecoder_T"));
@@ -179,11 +179,11 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
   else
     buffer_ = message_inout;
 
-  // OK: parse this message
+  // OK: parse this message ?
+  if (inherited2::finished_) // received session end ?
+    goto done;
   if (!inherited2::parse (buffer_))
   {
-    if (inherited2::finished_) // received session end ?
-      goto done;
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Decoder_AVIParserDriver::parse() (message ID: %d), returning\n"),
                 message_inout->id ()));
@@ -228,12 +228,124 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // *TODO*: remove type inference
-      frameSize_ = session_data_r.frameSize;
+      fileSize_ = session_data_r.fileSize;
       break;
     }
     default:
       break;
   } // end SWITCH
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
+void
+Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionDataContainerType>::header (const Stream_Decoder_RIFFChunks_t& chunks_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::header"));
+
+  // sanity check(s)
+  ACE_ASSERT (buffer_);
+
+  int result = -1;
+  ACE_Message_Block *message_block_p, *message_block_2 = NULL;
+  ACE_Message_Block* message_block_3 = NULL; // new buffer top
+  ACE_UINT64 skipped_bytes = 0;
+  Stream_Decoder_RIFFChunksIterator_t iterator;
+
+  headerParsed_ = true;
+
+  // find offset of the first (frame) data chunk
+  ACE_ASSERT (!inherited2::chunks_.empty ());
+  struct RIFF_chunk_meta temp;
+  temp.riff_list_identifier = FOURCC ('m', 'o', 'v', 'i');
+  iterator =
+    std::find (inherited2::chunks_.begin (), inherited2::chunks_.end (), temp);
+  ACE_ASSERT (iterator != inherited2::chunks_.end ());
+
+  // discard all header buffers up until the first frame
+  //  4 + 4 + 4 + // RIFF
+  //  4 + 4 + 4 + // hdrl
+  //  4 + (4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + (4 * 4)) + // avih
+  //  (struct _avimainheader) 4 + 4 + 4 + // strl 4 + (4 + 4 + 4 + 4 + 4 + 2 + 2
+  //  + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + (4 * 2)) + // strh (struct
+  //  _avistreamheader) 4 + (4 + 4 + 4 + 2 + 2 + 4 + 4 + 4 + 4 + 4 + 4 + (4 *
+  //  1)) + // strf (struct tagBITMAPINFO)
+  //  ...
+
+  // *NOTE*: AVI header has been parsed
+  ACE_UINT64 bytes_to_skip = (*iterator).offset + 4 + 4 + 4;
+
+  // sanity check(s)
+  ACE_ASSERT (buffer_);
+  size_t buffered_bytes = buffer_->total_length ();
+
+  if (buffered_bytes == bytes_to_skip)
+  {
+    message_block_p = buffer_;
+    buffer_ = NULL;
+    goto dispatch_2;
+  } // end IF
+
+  // --> buffered_bytes > bytes_to_skip
+  message_block_p = buffer_;
+  skipped_bytes = 0;
+
+  message_block_2 = message_block_p;
+  do
+  {
+    skipped_bytes += message_block_2->length ();
+    if (skipped_bytes > bytes_to_skip)
+      break;
+    message_block_2 = message_block_2->cont ();
+    ACE_ASSERT (message_block_2);
+  } while (true);
+  ACE_ASSERT (skipped_bytes > bytes_to_skip);
+  message_block_3 = message_block_2->duplicate ();
+  if (unlikely (!message_block_3))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to MessageType::duplicate(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    return;
+  } // end IF
+
+  bytes_to_skip =
+    message_block_2->length () - (skipped_bytes - (bytes_to_skip));
+  message_block_3->rd_ptr (bytes_to_skip);
+  message_block_2->length (bytes_to_skip);
+  if (message_block_2->cont ())
+    message_block_2->cont ()->release ();
+  message_block_2->cont (NULL);
+  buffer_ = message_block_3;
+
+dispatch_2:
+  typename DataMessageType::DATA_T message_data_s;
+  message_data_s.chunks = chunks_in;
+  DataMessageType* message_p = static_cast<DataMessageType*> (message_block_p);
+  message_p->initialize (message_data_s,
+                         message_p->sessionId (),
+                         NULL);
+
+  result = inherited::put_next (message_block_p, NULL);
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    message_block_p->release (); message_block_p = NULL;
+    return;
+  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -271,7 +383,6 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (!inherited2::chunks_.empty ());
   struct RIFF_chunk_meta temp;
   temp.riff_list_identifier = FOURCC ('m', 'o', 'v', 'i');
-  //  iterator = driver_.chunks_.find (temp);
   iterator =
     std::find (inherited2::chunks_.begin (), inherited2::chunks_.end (), temp);
   ACE_ASSERT (iterator != inherited2::chunks_.end ());

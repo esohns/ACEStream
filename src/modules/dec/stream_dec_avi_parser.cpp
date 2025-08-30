@@ -103,8 +103,7 @@ enum yysymbol_kind_t
   YYSYMBOL_9_2 = 9,                        /* $@2  */
   YYSYMBOL_chunks = 10,                    /* chunks  */
   YYSYMBOL_11_3 = 11,                      /* $@3  */
-  YYSYMBOL_12_4 = 12,                      /* $@4  */
-  YYSYMBOL_riff_list = 13                  /* riff_list  */
+  YYSYMBOL_12_4 = 12                       /* $@4  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -405,16 +404,16 @@ typedef int yytype_uint16;
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  4
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   7
+#define YYLAST   6
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  6
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  8
+#define YYNNTS  7
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  11
+#define YYNRULES  9
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  16
+#define YYNSTATES  14
 /* YYMAXRHS -- Maximum number of symbols on right-hand side of rule.  */
 #define YYMAXRHS 5
 /* YYMAXLEFT -- Maximum number of symbols to the left of a handle
@@ -468,20 +467,19 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   198,   198,   199,   198,   201,   201,   268,   268,   274,
-     275,   276
+       0,   198,   198,   199,   198,   201,   201,   268,   268,   274
 };
 #endif
 
-#define YYPACT_NINF (-10)
+#define YYPACT_NINF (-9)
 #define YYTABLE_NINF (-1)
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-       2,   -10,     6,     3,   -10,   -10,    -3,   -10,   -10,   -10,
-     -10,   -10,    -3,    -3,   -10,   -10
+       1,    -9,     5,     2,    -9,    -9,    -4,    -9,    -9,    -9,
+      -4,    -4,    -9,    -9
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -489,20 +487,20 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     2,     0,     0,     1,     3,     9,    10,    11,     5,
-       4,     7,     9,     9,     6,     8
+       0,     2,     0,     0,     1,     3,     9,     7,     5,     4,
+       9,     9,     8,     6
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -10,   -10,   -10,   -10,    -9,   -10,   -10,   -10
+      -9,    -9,    -9,    -9,    -8,    -9,    -9
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     2,     3,     6,    10,    12,    13,    11
+       0,     2,     3,     6,     9,    11,    10
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -510,57 +508,52 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-       7,     8,     9,    14,    15,     1,     4,     5
+       7,     8,    12,    13,     1,     4,     5
 };
 
 static const yytype_int8 yycheck[] =
 {
-       3,     4,     5,    12,    13,     3,     0,     4
+       4,     5,    10,    11,     3,     0,     4
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     3,     7,     8,     0,     4,     9,     3,     4,     5,
-      10,    13,    11,    12,    10,    10
+       0,     3,     7,     8,     0,     4,     9,     4,     5,    10,
+      12,    11,    10,    10
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,     6,     8,     9,     7,    11,    10,    12,    10,    10,
-      13,    13
+       0,     6,     8,     9,     7,    11,    10,    12,    10,    10
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     0,     0,     5,     0,     3,     0,     3,     0,
-       1,     1
+       0,     2,     0,     0,     5,     0,     3,     0,     3,     0
 };
 
 
 /* YYDPREC[RULE-NUM] -- Dynamic precedence of rule #RULE-NUM (0 if none).  */
 static const yytype_int8 yydprec[] =
 {
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0
 };
 
 /* YYMERGER[RULE-NUM] -- Index of merging function for rule #RULE-NUM.  */
 static const yytype_int8 yymerger[] =
 {
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0
 };
 
 /* YYIMMEDIATE[RULE-NUM] -- True iff rule #RULE-NUM is not to be deferred, as
    in the case of predicates.  */
 static const yybool yyimmediate[] =
 {
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0
 };
 
 /* YYCONFLP[YYPACT[STATE-NUM]] -- Pointer into YYCONFL of start of
@@ -569,7 +562,7 @@ static const yybool yyimmediate[] =
    yyconfl is terminated by a rule number of 0.  */
 static const yytype_int8 yyconflp[] =
 {
-       0,     0,     0,     0,     0,     0,     0,     0
+       0,     0,     0,     0,     0,     0,     0
 };
 
 /* YYCONFL[I] -- lists of conflicting rule numbers, each terminated by
@@ -804,7 +797,7 @@ static const char *const yytname[] =
 {
   "\"end_of_buffer\"", "error", "\"invalid token\"", "\"riff\"",
   "\"list\"", "\"chunk\"", "$accept", "riff_header", "$@1", "$@2",
-  "chunks", "$@3", "$@4", "riff_list", YY_NULLPTR
+  "chunks", "$@3", "$@4", YY_NULLPTR
 };
 
 static const char *
@@ -979,18 +972,6 @@ yy_symbol_value_print (FILE *yyo,
                           { ACE_OS::fprintf (yyoutput,
                                              ACE_TEXT_ALWAYS_CHAR ("size: %u"),
                                              ((*yyvaluep).size));
-                          }
-        break;
-
-    case YYSYMBOL_riff_list: /* riff_list  */
-                          { const char* char_p =
-                              reinterpret_cast<const char*> (&((*yyvaluep).chunk_meta).identifier);
-                            ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("@%lu: fourcc: \"%c%c%c%c\", size: %u, offset: %lu\n"),
-                                             ((*yyvaluep).chunk_meta).offset,
-                                             char_p[3],char_p[2],char_p[1],char_p[0],
-                                             ((*yyvaluep).chunk_meta).size,
-                                             ((*yyvaluep).chunk_meta).offset);
                           }
         break;
 
@@ -1261,7 +1242,7 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
     break;
 
   case 4: /* riff_header: "riff" $@1 "list" $@2 chunks  */
-                                         { ((*yyvalp).size) = (4 + 4) + (4 + 4 + (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.chunk_meta).size) + (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.size); }
+                                         { ((*yyvalp).size) = (4 + 4) + (4 + 4 + 4) + (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.size); }
     break;
 
   case 5: /* $@3: %empty  */
@@ -1309,11 +1290,13 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
                                              ACE_ASSERT (match_results[1].matched);
                                              ACE_ASSERT (match_results[2].matched);
 
-                                             if (driver->parseHeaderOnly_)
-                                               driver->finished_ = true;
                                              driver->inFrames_ = true;
                                              if (driver->parseHeaderOnly_)
+                                             {
+                                               driver->header (driver->chunks_);
+                                               driver->finished_ = true;
                                                YYACCEPT;
+                                             } // end IF
 
                                              driver->chunks_.push_back ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta));
 
@@ -1329,7 +1312,15 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
 
                                              if (driver->inFrames_)
                                                driver->betweenFrameChunk ((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta));
-                                           }
+                                           } // end ELSE
+
+                                           ACE_UINT64 file_size_i = driver->fileSize ();
+                                           if (file_size_i &&
+                                               driver->offset_ >= file_size_i)
+                                           {
+                                             driver->finished_ = true;
+                                             YYACCEPT;
+                                           } // end IF
                                          }
     break;
 
@@ -1345,20 +1336,12 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
                                          }
     break;
 
-  case 8: /* chunks: riff_list $@4 chunks  */
+  case 8: /* chunks: "list" $@4 chunks  */
                                          { ((*yyvalp).size) = 4 + 4 + 4 + (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.size); }
     break;
 
   case 9: /* chunks: %empty  */
                                          { ((*yyvalp).size) = 0; }
-    break;
-
-  case 10: /* riff_list: "riff"  */
-                                         { ((*yyvalp).chunk_meta) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta); }
-    break;
-
-  case 11: /* riff_list: "list"  */
-                                         { ((*yyvalp).chunk_meta) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.chunk_meta); }
     break;
 
 
@@ -1444,13 +1427,6 @@ yydestruct (const char *yymsg,
 
     case YYSYMBOL_chunks: /* chunks  */
                           { ((*yyvaluep).size) = 0; }
-        break;
-
-    case YYSYMBOL_riff_list: /* riff_list  */
-                          { ((*yyvaluep).chunk_meta).identifier = 0;
-                            ((*yyvaluep).chunk_meta).size = 0;
-                            ((*yyvaluep).chunk_meta).riff_list_identifier = 0;
-                            ((*yyvaluep).chunk_meta).offset = 0; }
         break;
 
       default:
