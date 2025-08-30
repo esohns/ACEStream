@@ -21,8 +21,6 @@
 #ifndef STREAM_DEVICE_COMMON_H
 #define STREAM_DEVICE_COMMON_H
 
-#include "ace/config-lite.h"
-
 #include <list>
 #include <string>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -37,7 +35,14 @@ extern "C"
 {
 #include "alsa/asoundlib.h"
 }
+
 #include "linux/videodev2.h"
+
+#if defined (LIBPIPEWIRE_SUPPORT)
+#include "spa/param/audio/format-utils.h"
+
+#include "pipewire/pipewire.h"
+#endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -85,6 +90,8 @@ enum Stream_Device_Capturer
   // *** video ONLY (!) ***
   STREAM_DEVICE_CAPTURER_LIBCAMERA,
   STREAM_DEVICE_CAPTURER_V4L2,
+  // *** A/V ***
+  STREAM_DEVICE_CAPTURER_PIPEWIRE,
 #endif // ACE_WIN32 || ACE_WIN64
   ////////////////////////////////////////
   STREAM_DEVICE_CAPTURER_MAX,
@@ -106,6 +113,8 @@ enum Stream_Device_Renderer
   STREAM_DEVICE_RENDERER_ALSA = 0,
   // *** video ONLY (!) ***
   STREAM_DEVICE_RENDERER_V4L2,
+  // *** A/V ***
+  STREAM_DEVICE_RENDERER_PIPEWIRE,
 #endif // ACE_WIN32 || ACE_WIN64
   ////////////////////////////////////////
   STREAM_DEVICE_RENDERER_MAX,
@@ -270,6 +279,20 @@ struct Stream_Device_ALSA_Playback_AsynchCBData
   ACE_Message_Queue_Base* queue;
   unsigned int            sampleSize;
 };
+
+#if defined (LIBPIPEWIRE_SUPPORT)
+struct Stream_Device_Pipewire_Capture_CBData
+{
+  Stream_IAllocator*                          allocator;
+  struct Common_AllocatorConfiguration*       allocatorConfiguration;
+  bool                                        displayToConsole;
+  struct spa_audio_info                       format;
+  unsigned int                                frameSize; // bytesPerSample * format.channels
+  ACE_Message_Queue_Base*                     queue;
+  struct Stream_Statistic*                    statistic;
+  struct pw_stream*                           stream;
+};
+#endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #endif

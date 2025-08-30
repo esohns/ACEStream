@@ -59,10 +59,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
  , isInitialized_ (false)
  , linked_ (0)
  , sessionData_ (NULL)
+ , sessionDataLock_ (NULL)
  /////////////////////////////////////////
  , freeSessionData_ (false)
  , sessionData_2 (NULL)
- , sessionDataLock_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
 

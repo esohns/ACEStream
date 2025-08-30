@@ -126,20 +126,9 @@ Test_U_AudioEffect_SignalHandler::handle (const struct Common_Signal& signal_in)
     // - activation timers (connection attempts, ...)
     // [- UI dispatch]
 
-    //// step1: stop action timer (if any)
-    //if (configuration_.actionTimerId >= 0)
-    //{
-    //  const void* act_p = NULL;
-    //  result =
-    //      COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (configuration_.actionTimerId,
-    //                                                                &act_p);
-    //  // *PORTABILITY*: tracing in a signal handler context is not portable
-    //  // *TODO*
-    //  if (result <= 0)
-    //    ACE_DEBUG ((LM_ERROR,
-    //                ACE_TEXT ("failed to cancel action timer (ID: %d): \"%m\", continuing\n"),
-    //                configuration_.actionTimerId));
-    //  configuration_.actionTimerId = -1;
-    //} // end IF
+    if (inherited::configuration_->stream)
+      inherited::configuration_->stream->stop (false,  // wait for completion ?
+                                               false,  // recurse upstream ?
+                                               false); // high priority ?
   } // end IF
 }

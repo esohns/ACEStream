@@ -10,6 +10,7 @@ if (WIN32)
 endif (WIN32)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
+include (pipewire)
 include (libcamera)
 
 if (UNIX)
@@ -43,6 +44,10 @@ if (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
                              $<BUILD_INTERFACE:${DS_BASECLASSES_INCLUDE_DIRS}>)
 endif (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
 
+if (LIBPIPEWIRE_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             "$<BUILD_INTERFACE:${LIBPIPEWIRE_INCLUDE_DIRS}>")
+endif (LIBPIPEWIRE_SUPPORT)
 if (LIBCAMERA_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${LIBCAMERA_INCLUDE_DIRS}>)
@@ -101,6 +106,13 @@ set (source_files
      stream_dev_tools.cpp
      stream_dev_tools.h
      stream_dev_tools.inl)
+if (LIBPIPEWIRE_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_dev_mic_source_pipewire.cpp
+      stream_dev_mic_source_pipewire.h
+      stream_dev_mic_source_pipewire.inl)
+endif (LIBPIPEWIRE_SUPPORT)
 if (LIBCAMERA_SUPPORT)
  set (source_files
       ${source_files}
@@ -191,6 +203,9 @@ if (UNIX)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${PKG_LIBALSA_LIBRARIES})
 
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${PKG_LIBV4L2_LIBRARIES})
+ if (LIBPIPEWIRE_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${LIBPIPEWIRE_LIBRARIES})
+ endif (LIBPIPEWIRE_SUPPORT)
  if (LIBCAMERA_SUPPORT)
   link_directories (/usr/local/lib64)
   target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${LIBCAMERA_LIBRARIES})
@@ -222,22 +237,25 @@ elseif (WIN32)
 endif ()
 #target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${PROJECT_NAME}_Decoder)
 
-#set_target_properties (${PROJECT_NAME}_Device PROPERTIES DEFINE_SYMBOL STREAM_DEV_BUILD_DLL)
-#set_target_properties (${PROJECT_NAME}_Device PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
-
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Device
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 ############### install files ################
 install (FILES
-#          stream_dev_exports.h
          stream_dev_common.h
          stream_dev_defines.h
          stream_dev_tools.h
          stream_dev_tools.inl
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT mod_include)
+if (LIBPIPEWIRE_SUPPORT)
+ install (FILES
+          stream_dev_mic_source_pipewire.h
+          stream_dev_mic_source_pipewire.inl
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+          COMPONENT mod_include)
+endif (LIBPIPEWIRE_SUPPORT)
 if (LIBCAMERA_SUPPORT)
  install (FILES
           stream_dev_cam_source_libcamera.h

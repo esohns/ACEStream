@@ -213,6 +213,13 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-w          : use pipewire [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : use framework source [") // ? (directshow|mediafoundation) capture : WASAPI|waveIn
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -252,6 +259,10 @@ do_processArguments (int argc_in,
                      bool& traceInformation_out,
                      bool& mute_out,
                      bool& printVersionAndExit_out
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+                     ,bool& usePipewire_out
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      ,bool& useFrameworkSource_out,
                      bool& useFrameworkRenderer_out)
@@ -308,6 +319,10 @@ do_processArguments (int argc_in,
   mute_out = false;
   printVersionAndExit_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  usePipewire_out = false;
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   useFrameworkSource_out = false;
   useFrameworkRenderer_out = false;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -322,7 +337,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("cmxy");
 #else
-  options_string += ACE_TEXT_ALWAYS_CHAR ("d:e::p:");
+  options_string += ACE_TEXT_ALWAYS_CHAR ("d:e::p:w");
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
@@ -459,6 +474,14 @@ do_processArguments (int argc_in,
         printVersionAndExit_out = true;
         break;
       }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+      case 'w':
+      {
+        usePipewire_out = true;
+        break;
+      }
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       case 'x':
       {
@@ -1061,6 +1084,10 @@ do_work (
          unsigned int statisticReportingInterval_in,
          bool mute_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+         bool usePipewire_in,
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool useFrameworkSource_in,
          bool useFrameworkRenderer_in,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1642,6 +1669,22 @@ do_work (
   stream_configuration.module =
       (!UIDefinitionFile_in.empty () ? &event_handler
                                      : NULL);
+#if defined (GTK_USE)
+  stream_configuration.UIFramework = COMMON_UI_FRAMEWORK_GTK;
+#endif // GTK_USE
+  if (usePipewire_in)
+  {
+    modulehandler_configuration.concurrency =
+      STREAM_HEADMODULECONCURRENCY_ACTIVE;
+
+    stream_configuration.capturer = STREAM_DEVICE_CAPTURER_PIPEWIRE;
+    // *TODO*: remove these temporary settings
+    stream_configuration.format.format = SND_PCM_FORMAT_FLOAT_LE;
+    stream_configuration.sourceType = AUDIOEFFECT_SOURCE_DEVICE;
+    stream_configuration.UIFramework = COMMON_UI_FRAMEWORK_CONSOLE;
+
+    configuration_in.signalHandlerConfiguration.stream = &stream;
+  } // end IF
   stream_configuration.printFinalReport = true;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1731,15 +1774,11 @@ do_work (
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directShowConfiguration_in.signalHandlerConfiguration.messageAllocator =
-        &directshow_message_allocator;
       signalHandler_in.initialize (directShowConfiguration_in.signalHandlerConfiguration);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediaFoundationConfiguration_in.signalHandlerConfiguration.messageAllocator =
-        &mediafoundation_message_allocator;
       signalHandler_in.initialize (mediaFoundationConfiguration_in.signalHandlerConfiguration);
       break;
     }
@@ -1752,8 +1791,6 @@ do_work (
     }
   } // end SWITCH
 #else
-  configuration_in.signalHandlerConfiguration.messageAllocator =
-    &message_allocator;
   signalHandler_in.initialize (configuration_in.signalHandlerConfiguration);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!Common_Signal_Tools::initialize (((COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
@@ -2053,6 +2090,9 @@ ACE_TMAIN (int argc_in,
   Common_Tools::initialize (true,   // COM ?
                             false); // RNG ?
 #else
+#if defined (LIBPIPEWIRE_SUPPORT)
+  pw_init (&argc_in, &argv_in);
+#endif // LIBPIPEWIRE_SUPPORT
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
   Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (argv_in[0]));
@@ -2109,6 +2149,10 @@ ACE_TMAIN (int argc_in,
   bool mute = false;
   bool print_version_and_exit = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  bool use_pipewire_b = false;
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool use_framework_source = false;
   bool use_framework_renderer = false;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2141,6 +2185,10 @@ ACE_TMAIN (int argc_in,
                             trace_information,
                             mute,
                             print_version_and_exit
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+                            ,use_pipewire_b
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             ,use_framework_source,
                             use_framework_renderer))
@@ -2502,6 +2550,10 @@ ACE_TMAIN (int argc_in,
            target_filename,
            statistic_reporting_interval,
            mute,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+           use_pipewire_b,
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            use_framework_source,
            use_framework_renderer,

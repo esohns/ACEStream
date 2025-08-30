@@ -25,6 +25,9 @@ include (sox)
 
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
+
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev/scripts")
+ include (pipewire)
 endif (UNIX)
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
@@ -41,6 +44,10 @@ if (SOX_SUPPORT)
 endif (SOX_SUPPORT)
 if (UNIX)
  include_directories (${PKG_ALSA_INCLUDE_DIRS})
+
+ if (LIBPIPEWIRE_SUPPORT)
+  include_directories (${LIBPIPEWIRE_INCLUDE_DIRS})
+ endif (LIBPIPEWIRE_SUPPORT)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/image)
@@ -198,6 +205,10 @@ if (SOX_SUPPORT)
 endif (SOX_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_ALSA_LIBRARIES})
+
+ if (LIBPIPEWIRE_SUPPORT)
+  target_link_libraries (${EXECUTABLE} PUBLIC ${LIBPIPEWIRE_LIBRARIES})
+ endif (LIBPIPEWIRE_SUPPORT)
 elseif (WIN32)
 # set (DIRECTX_SDK_DIRECTORY $ENV{DXSDK_DIR})
 
@@ -337,8 +348,9 @@ if (UNIX)
  if (GTK_USE)
   set (ARGS "-g./etc/${ui_definition_file} ${ARGS}")
  endif (GTK_USE)
- set (RUNTIME_LIBRARY_DIR ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
-# set (ENVIRONMENT "GDK_BACKEND=x11")
+ set (RUNTIME_LIBRARY_DIR $ENV{LIB_ROOT}/libcamera/build/src/libcamera
+                          ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
+ set (ENVIRONMENT "SPA_PLUGIN_DIR=/usr/lib64/spa-0.2")
 elseif (WIN32)
 # set (ARGS "-m ${ARGS}") # use mediafoundation
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)

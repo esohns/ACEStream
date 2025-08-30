@@ -32,17 +32,6 @@
 #include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-//#if defined (FFMPEG_SUPPORT)
-//#ifdef __cplusplus
-//extern "C"
-//{
-//#endif // __cplusplus
-//#include "libavcodec/codec_id.h"
-//#ifdef __cplusplus
-//}
-//#endif // __cplusplus
-//#endif // FFMPEG_SUPPORT
-
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
@@ -54,6 +43,8 @@
 #include "common_timer_common.h"
 
 #include "common_signal_common.h"
+
+#include "common_ui_common.h"
 
 #include "stream_common.h"
 #include "stream_defines.h"
@@ -271,7 +262,6 @@ struct Stream_Configuration
 {
   Stream_Configuration ()
    : allocatorConfiguration (NULL)
-   //, branches ()
    , cloneModule (false) // *NOTE*: cloneModule ==> delete module
    , dispatchConfiguration (NULL)
    , finishOnDisconnect (false)
@@ -287,11 +277,11 @@ struct Stream_Configuration
    , serializeOutput (false)
    , sessionId (0)
    , setupPipeline (true)
+   , UIFramework (COMMON_UI_FRAMEWORK_CONSOLE)
    , userData (NULL)
   {}
 
   struct Common_AllocatorConfiguration*     allocatorConfiguration;
-  //Stream_Branches_t                         branches; // distributor(s) *TODO*
   bool                                      cloneModule; // final-
   struct Common_EventDispatchConfiguration* dispatchConfiguration;
   bool                                      finishOnDisconnect; // (network) i/o streams
@@ -311,7 +301,7 @@ struct Stream_Configuration
   bool                                      serializeOutput;
   Stream_SessionId_t                        sessionId;
   bool                                      setupPipeline;
-
+  enum Common_UI_FrameworkType              UIFramework;
   struct Stream_UserData*                   userData;
 };
 

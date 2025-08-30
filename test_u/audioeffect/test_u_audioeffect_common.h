@@ -161,7 +161,7 @@ class Test_U_AudioEffect_Stream;
 
 enum Test_U_AudioEffect_SourceType
 {
-  AUDIOEFFECT_SOURCE_DEVICE,
+  AUDIOEFFECT_SOURCE_DEVICE = 0,
   AUDIOEFFECT_SOURCE_NOISE,
   AUDIOEFFECT_SOURCE_FILE,
   ////////////////////////////////////////
@@ -607,14 +607,10 @@ struct Test_U_AudioEffect_SignalHandlerConfiguration
 {
   Test_U_AudioEffect_SignalHandlerConfiguration ()
    : Test_U_SignalHandlerConfiguration ()
-   , actionTimerId (-1)
-   , messageAllocator (NULL)
-   , statisticReportingInterval (0)
+   , stream (NULL)
   {}
 
-  long               actionTimerId;
-  Stream_IAllocator* messageAllocator;
-  unsigned int       statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
+  Stream_IStreamControlBase* stream;
 };
 
 struct Test_U_AudioEffect_Configuration

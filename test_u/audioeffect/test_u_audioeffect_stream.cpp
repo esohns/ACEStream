@@ -2164,10 +2164,34 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
   {
     case AUDIOEFFECT_SOURCE_DEVICE:
     {
-      ACE_NEW_RETURN (module_p,
-                      Test_U_Dev_Mic_Source_ALSA_Module (this,
-                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING)),
-                      false);
+      switch (inherited::configuration_->configuration_->capturer)
+      {
+        case STREAM_DEVICE_CAPTURER_ALSA:
+        {
+          ACE_NEW_RETURN (module_p,
+                          Test_U_Dev_Mic_Source_ALSA_Module (this,
+                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING)),
+                          false);
+          break;
+        }
+        case STREAM_DEVICE_CAPTURER_PIPEWIRE:
+        {
+          ACE_NEW_RETURN (module_p,
+                          Test_U_Dev_Mic_Source_Pipewire_Module (this,
+                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_PIPEWIRE_DEFAULT_NAME_STRING)),
+                          false);
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown capturer type (was: %d), aborting\n"),
+                      ACE_TEXT (stream_name_string_),
+                      inherited::configuration_->configuration_->capturer));
+          return false;
+        }
+      } // end SWITCH
+
       break;
     }
     case AUDIOEFFECT_SOURCE_NOISE:
@@ -2296,14 +2320,23 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
 
+    switch (inherited::configuration_->configuration_->UIFramework)
+    {
+      case COMMON_UI_FRAMEWORK_GTK:
+      {
 #if defined (GTK_USE)
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_Vis_SpectrumAnalyzer_Module (this,
-                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
-    layout_in->append (module_p, branch_p, index_i);
-    module_p = NULL;
+        ACE_NEW_RETURN (module_p,
+                        Test_U_AudioEffect_Vis_SpectrumAnalyzer_Module (this,
+                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                        false);
+        layout_in->append (module_p, branch_p, index_i);
+        module_p = NULL;
 #endif // GTK_USE
+        break;
+      }
+      default:
+        break;
+    } // end SWITCH
   } // end IF
 
   delete_out = true;

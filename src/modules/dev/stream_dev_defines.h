@@ -26,6 +26,7 @@
 
 #define STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING            "ALSAMicSource"
 #define STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING                "ALSAPlayback"
+#define STREAM_DEV_MIC_SOURCE_PIPEWIRE_DEFAULT_NAME_STRING        "PipewireMicSource"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -67,5 +68,7 @@
 #define STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE                    16
 #define STREAM_DEV_MIC_DEFAULT_CHANNELS                           2 // i.e. stereo
 #define STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE                        48000 // Hz
+
+#define STREAM_DEV_MIC_PIPEWIRE_DEFAULT_POD_BUFFER_SIZE           1024
 
 #endif

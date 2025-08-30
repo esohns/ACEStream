@@ -224,6 +224,7 @@ class Stream_HeadModuleTaskBase_T
   ILOCK_T*                            streamLock_;
   StreamStateType*                    streamState_;
   // timer
+  StatisticContainerType              statistic_;
   STATISTIC_HANDLER_T                 statisticHandler_;
   long                                timerId_;
 

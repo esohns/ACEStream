@@ -78,6 +78,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       NULL) // attributes
  , streamLock_ (stream_in)
  , streamState_ (NULL)
+ , statistic_ ()
  , statisticHandler_ (COMMON_STATISTIC_ACTION_COLLECT, // handler action
                       this,                            // interface handle
                       false)                           // report on collect ?
