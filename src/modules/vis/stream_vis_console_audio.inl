@@ -186,6 +186,7 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_ASSERT (media_type_s.majortype == MEDIATYPE_Audio);
       ACE_ASSERT (media_type_s.formattype == FORMAT_WaveFormatEx);
       struct tWAVEFORMATEX* audio_info_p =
@@ -193,13 +194,12 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
       channels_ = audio_info_p->nChannels;
       frameSize_ = audio_info_p->nChannels * (audio_info_p->wBitsPerSample / 8);
       ACE_ASSERT (frameSize_ == audio_info_p->nBlockAlign);
-      iterator_.initialize (frameSize_,
-                            audio_info_p->wBitsPerSample / 8,
-                            Stream_MediaFramework_DirectSound_Tools::isFloat (*audio_info_p),
-                            audio_info_p->wBitsPerSample > 8, // signed if > 8 bit/sample
-                            0x0123); // all Win32 sound data is little endian
+      iterator_.initialize (
+        frameSize_, audio_info_p->wBitsPerSample / 8,
+        Stream_MediaFramework_DirectSound_Tools::isFloat (*audio_info_p),
+        audio_info_p->wBitsPerSample > 8, // signed if > 8 bit/sample
+        0x0123); // all Win32 sound data is little endian
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
       channels_ = media_type_s.channels;
       frameSize_ =
