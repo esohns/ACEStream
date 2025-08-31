@@ -121,7 +121,7 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
     std::is_integral<ValueType>::value ? 1.0f / static_cast<float> (std::numeric_limits<ValueType>::max ()) : 1.0f;
 
   iterator_.buffer_ = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
-  ACE_UINT32 samples_i = message_inout->length () / (frameSize_ / channels_);
+  ACE_UINT32 frames_i = message_inout->length () / frameSize_;
 
   /* move cursor up */
   // ACE_OS::fprintf (stdout, "%c[%dA", 0x1b, channels_ + 1);
@@ -130,11 +130,11 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
 
   float max_f;
   uint32_t level_i;
-  for (ACE_UINT32 c = 0; c < channels_; c++)
+  for (ACE_UINT32 c = 0; c < channels_; ++c)
   {
     max_f = 0.0f;
-    for (ACE_UINT32 n = c; n < samples_i; n += channels_)
-      max_f = fmaxf (max_f, fabsf (iterator_.get (n / channels_, c) * factor_f));
+    for (ACE_UINT32 n = 0; n < frames_i; ++n)
+      max_f = fmaxf (max_f, fabsf (iterator_.get (n, c) * factor_f));
 
     level_i = (uint32_t)fminf (fmaxf (max_f * 30.0f, 0.f), 39.f);
 
