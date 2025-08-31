@@ -2203,10 +2203,12 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
         }
         case STREAM_DEVICE_CAPTURER_PIPEWIRE:
         {
+#if defined (LIBPIPEWIRE_SUPPORT)
           ACE_NEW_RETURN (module_p,
                           Test_U_Dev_Mic_Source_Pipewire_Module (this,
                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_PIPEWIRE_DEFAULT_NAME_STRING)),
                           false);
+#endif // LIBPIPEWIRE_SUPPORT
           break;
         }
         default:
