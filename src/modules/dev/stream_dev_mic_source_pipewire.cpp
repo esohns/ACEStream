@@ -85,12 +85,11 @@ acestream_dev_mic_pw_on_process_cb (void* userData_in)
 
   struct pw_buffer* pw_buffer_p;
   struct spa_buffer* spa_buffer_p;
-  float* samples_p, max;
-  uint32_t c, n, n_channels, n_samples, peak;
+  uint8_t* samples_p;
   ACE_Message_Block* message_block_p = NULL;
   uint32_t index_i = 0;
   int result;
-  uint32_t available_samples_i, frames_to_copy_i;
+  uint32_t available_frames_i, frames_to_copy_i;
 
   pw_buffer_p = pw_stream_dequeue_buffer (cb_data_p->stream);
   if (unlikely (!pw_buffer_p))
@@ -101,7 +100,7 @@ acestream_dev_mic_pw_on_process_cb (void* userData_in)
   } // end IF
   spa_buffer_p = pw_buffer_p->buffer;
   ACE_ASSERT (spa_buffer_p);
-  samples_p = static_cast<float*> (spa_buffer_p->datas[0].data);
+  samples_p = static_cast<uint8_t*> (spa_buffer_p->datas[0].data);
   if (unlikely (!samples_p))
   {
     ACE_DEBUG ((LM_WARNING,
@@ -109,26 +108,9 @@ acestream_dev_mic_pw_on_process_cb (void* userData_in)
     goto continue_;
   } // end IF
 
-  n_channels = cb_data_p->format.info.raw.channels;
-  n_samples = spa_buffer_p->datas[0].chunk->size / sizeof (float);
-
-  /* move cursor up */
-  fprintf (stdout, "%c[%dA", 0x1b, n_channels + 1);
-  fprintf (stdout, "captured %d samples\n", n_samples / n_channels);
-  for (c = 0; c < n_channels; c++)
-  {
-    max = 0.0f;
-    for (n = c; n < n_samples; n += n_channels)
-      max = fmaxf(max, fabsf(samples_p[n]));
-
-    peak = (uint32_t)SPA_CLAMPF(max * 30, 0.f, 39.f);
-
-    fprintf (stdout, "channel %d: |%*s%*s| peak:%f\n", c, peak+1, "*", 40 - peak, "", max);
-  } // end FOR
-  fflush (stdout);
-
-  available_samples_i = n_samples;
-  while (available_samples_i)
+  available_frames_i =
+    spa_buffer_p->datas[0].chunk->size / cb_data_p->frameSize;
+  while (available_frames_i)
   {
     if (likely (cb_data_p->allocator))
     {
@@ -153,7 +135,7 @@ acestream_dev_mic_pw_on_process_cb (void* userData_in)
     } // end IF
 
     frames_to_copy_i = message_block_p->space () / cb_data_p->frameSize;
-    frames_to_copy_i = std::min (frames_to_copy_i, available_samples_i);
+    frames_to_copy_i = std::min (frames_to_copy_i, available_frames_i);
     result = message_block_p->copy (reinterpret_cast<char*> (&samples_p[index_i]),
                                     cb_data_p->frameSize * frames_to_copy_i);
     if (unlikely (result == -1))
@@ -164,7 +146,7 @@ acestream_dev_mic_pw_on_process_cb (void* userData_in)
       goto continue_;
     } // end IF
     index_i += cb_data_p->frameSize * frames_to_copy_i;
-    available_samples_i -= frames_to_copy_i;
+    available_frames_i -= frames_to_copy_i;
     cb_data_p->statistic->capturedFrames += frames_to_copy_i;
 
     result = cb_data_p->queue->enqueue_tail (message_block_p,

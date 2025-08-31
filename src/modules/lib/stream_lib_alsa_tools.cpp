@@ -1659,7 +1659,152 @@ error:
   return result;
 }
 
-#if defined(FFMPEG_SUPPORT)
+#if defined (LIBPIPEWIRE_SUPPORT)
+enum spa_audio_format
+Stream_MediaFramework_ALSA_Tools::ALSAFormatToPipewireFormat (enum _snd_pcm_format format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_ALSA_Tools::ALSAFormatToPipewireFormat"));
+
+  switch (format_in)
+  {
+    case SND_PCM_FORMAT_S8:
+      return SPA_AUDIO_FORMAT_S8;
+    case SND_PCM_FORMAT_U8:
+      return SPA_AUDIO_FORMAT_U8;
+
+    case SND_PCM_FORMAT_S16_BE:
+      return SPA_AUDIO_FORMAT_S16_BE;
+    case SND_PCM_FORMAT_S16_LE:
+      return SPA_AUDIO_FORMAT_S16_LE;
+    case SND_PCM_FORMAT_U16_BE:
+      return SPA_AUDIO_FORMAT_U16_BE;
+    case SND_PCM_FORMAT_U16_LE:
+      return SPA_AUDIO_FORMAT_U16_LE;
+
+    case SND_PCM_FORMAT_S24_BE:
+      return SPA_AUDIO_FORMAT_S24_BE;
+    case SND_PCM_FORMAT_S24_LE:
+      return SPA_AUDIO_FORMAT_S24_LE;
+    case SND_PCM_FORMAT_U24_BE:
+      return SPA_AUDIO_FORMAT_U24_BE;
+    case SND_PCM_FORMAT_U24_LE:
+      return SPA_AUDIO_FORMAT_U24_LE;
+
+    case SND_PCM_FORMAT_S32_BE:
+      return SPA_AUDIO_FORMAT_S32_BE;
+    case SND_PCM_FORMAT_S32_LE:
+      return SPA_AUDIO_FORMAT_S32_LE;
+    case SND_PCM_FORMAT_U32_BE:
+      return SPA_AUDIO_FORMAT_U32_BE;
+    case SND_PCM_FORMAT_U32_LE:
+      return SPA_AUDIO_FORMAT_U32_LE;
+
+    case SND_PCM_FORMAT_FLOAT_BE:
+      return SPA_AUDIO_FORMAT_F32_BE;
+    case SND_PCM_FORMAT_FLOAT_LE:
+      return SPA_AUDIO_FORMAT_F32_LE;
+    case SND_PCM_FORMAT_FLOAT64_BE:
+      return SPA_AUDIO_FORMAT_F64_BE;
+    case SND_PCM_FORMAT_FLOAT64_LE:
+      return SPA_AUDIO_FORMAT_F64_LE;
+
+    case SND_PCM_FORMAT_IEC958_SUBFRAME_LE:
+    case SND_PCM_FORMAT_IEC958_SUBFRAME_BE:
+      break;
+
+    case SND_PCM_FORMAT_MU_LAW:
+      return SPA_AUDIO_FORMAT_ULAW;
+    case SND_PCM_FORMAT_A_LAW:
+      return SPA_AUDIO_FORMAT_ALAW;
+
+    case SND_PCM_FORMAT_IMA_ADPCM:
+    case SND_PCM_FORMAT_MPEG:
+    case SND_PCM_FORMAT_GSM:
+      return SPA_AUDIO_FORMAT_ENCODED;
+
+    case SND_PCM_FORMAT_S20_LE:
+      return SPA_AUDIO_FORMAT_S20_LE;
+    case SND_PCM_FORMAT_S20_BE:
+      return SPA_AUDIO_FORMAT_S20_BE;
+    case SND_PCM_FORMAT_U20_LE:
+      return SPA_AUDIO_FORMAT_U20_LE;
+    case SND_PCM_FORMAT_U20_BE:
+      return SPA_AUDIO_FORMAT_U20_BE;
+
+    case SND_PCM_FORMAT_SPECIAL:
+      break;
+
+    case SND_PCM_FORMAT_S24_3LE:
+    case SND_PCM_FORMAT_S24_3BE:
+    case SND_PCM_FORMAT_U24_3LE:
+    case SND_PCM_FORMAT_U24_3BE:
+      break;
+    case SND_PCM_FORMAT_S20_3LE:
+    case SND_PCM_FORMAT_S20_3BE:
+    case SND_PCM_FORMAT_U20_3LE:
+    case SND_PCM_FORMAT_U20_3BE:
+      break;
+    case SND_PCM_FORMAT_S18_3LE:
+    case SND_PCM_FORMAT_S18_3BE:
+    case SND_PCM_FORMAT_U18_3LE:
+    case SND_PCM_FORMAT_U18_3BE:
+      break;
+
+    case SND_PCM_FORMAT_G723_24:
+    case SND_PCM_FORMAT_G723_24_1B:
+    case SND_PCM_FORMAT_G723_40:
+    case SND_PCM_FORMAT_G723_40_1B:
+      break;
+
+    case SND_PCM_FORMAT_DSD_U8:
+    case SND_PCM_FORMAT_DSD_U16_LE:
+    case SND_PCM_FORMAT_DSD_U32_LE:
+    case SND_PCM_FORMAT_DSD_U16_BE:
+    case SND_PCM_FORMAT_DSD_U32_BE:
+      break;
+
+    // case SND_PCM_FORMAT_S16:
+    //   return SPA_AUDIO_FORMAT_S16;
+    // case SND_PCM_FORMAT_U16:
+    //   return SPA_AUDIO_FORMAT_U16;
+
+    // case SND_PCM_FORMAT_S24:
+    //   return SPA_AUDIO_FORMAT_S24;
+    // case SND_PCM_FORMAT_U24:
+    //   return SPA_AUDIO_FORMAT_U24;
+
+    // case SND_PCM_FORMAT_S32:
+    //   return SPA_AUDIO_FORMAT_S32;
+    // case SND_PCM_FORMAT_U32:
+    //   return SPA_AUDIO_FORMAT_U32;
+
+    // case SND_PCM_FORMAT_FLOAT:
+    //   return SPA_AUDIO_FORMAT_F32;
+    // case SND_PCM_FORMAT_FLOAT64:
+    //   return SPA_AUDIO_FORMAT_F64;
+
+    // case SND_PCM_FORMAT_IEC958_SUBFRAME:
+    //   break;
+
+    // case SND_PCM_FORMAT_S20:
+    //   return SPA_AUDIO_FORMAT_S20;
+    // case SND_PCM_FORMAT_U20:
+    //   return SPA_AUDIO_FORMAT_U20;
+
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown ALSA audio frame format (was: %d), aborting\n"),
+                  format_in));
+      break;
+    }
+  } // end SWITCH
+
+  return SPA_AUDIO_FORMAT_UNKNOWN;
+}
+#endif // LIBPIPEWIRE_SUPPORT
+
+#if defined (FFMPEG_SUPPORT)
 enum AVSampleFormat
 Stream_MediaFramework_ALSA_Tools::ALSAFormatToffmpegFormat (enum _snd_pcm_format format_in)
 {

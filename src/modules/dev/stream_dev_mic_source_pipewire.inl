@@ -237,7 +237,6 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
-      ACE_ASSERT (media_type_s.format == SND_PCM_FORMAT_FLOAT);
 
       CBData_.frameSize =
         (snd_pcm_format_width (media_type_s.format) / 8) * media_type_s.channels;
@@ -247,7 +246,12 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
       const struct spa_pod* parameters_a[1];
       struct spa_audio_info_raw audio_info_raw_s;
       ACE_OS::memset (&audio_info_raw_s, 0, sizeof (struct spa_audio_info_raw));
-      audio_info_raw_s.format = SPA_AUDIO_FORMAT_F32;
+      audio_info_raw_s.channels = media_type_s.channels;
+      audio_info_raw_s.format =
+        Stream_MediaFramework_ALSA_Tools::ALSAFormatToPipewireFormat (media_type_s.format);
+      audio_info_raw_s.position[0] = SPA_AUDIO_CHANNEL_FL;
+      audio_info_raw_s.position[1] = SPA_AUDIO_CHANNEL_FR;
+      audio_info_raw_s.rate = media_type_s.rate;
       parameters_a[0] = spa_format_audio_raw_build (&POD_builder_s,
                                                     SPA_PARAM_EnumFormat,
                                                     &audio_info_raw_s);
@@ -275,7 +279,9 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
         inherited::threadCount_ = 1;
         bool lock_activate_was_b = inherited::TASK_BASE_T::TASK_BASE_T::lockActivate_;
         inherited::lockActivate_ = false;
-        if (unlikely (!inherited::TASK_BASE_T::open (NULL)))
+
+        result = inherited::TASK_BASE_T::open (NULL);
+        if (unlikely (result == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_Task_Base_T::open(), aborting\n"),

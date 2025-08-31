@@ -504,7 +504,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       //data_sample_size = waveformatex_p->nBlockAlign;
       data_sample_size = waveformatex_p->nChannels * sound_sample_size;
       // *NOTE*: apparently, all Win32 sound data is little endian only
-      sample_byte_order = ACE_LITTLE_ENDIAN;
+      sample_byte_order = 0x0123;
       // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
       //         are unsigned values. (Each audio sample has the range 0255.)
       //         If the audio contains 16 bits per sample or higher, the audio

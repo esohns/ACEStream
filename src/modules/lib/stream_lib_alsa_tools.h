@@ -29,6 +29,10 @@ extern "C"
 #include "alsa/asoundlib.h"
 }
 
+#if defined (LIBPIPEWIRE_SUPPORT)
+#include "spa/param/audio/raw.h"
+#endif // LIBPIPEWIRE_SUPPORT
+
 #if defined (FFMPEG_SUPPORT)
 #include "libavutil/samplefmt.h"
 #endif // FFMPEG_SUPPORT
@@ -83,6 +87,9 @@ class Stream_MediaFramework_ALSA_Tools
                               bool,               // capture ? : playback
                               long);              // level
 
+#if defined (LIBPIPEWIRE_SUPPORT)
+  static enum spa_audio_format ALSAFormatToPipewireFormat (enum _snd_pcm_format); // format
+#endif // LIBPIPEWIRE_SUPPORT
 #if defined (FFMPEG_SUPPORT)
   static enum AVSampleFormat ALSAFormatToffmpegFormat (enum _snd_pcm_format); // format
 #endif // FFMPEG_SUPPORT

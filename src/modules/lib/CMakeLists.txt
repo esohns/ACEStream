@@ -5,6 +5,7 @@ include (ffmpeg)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../dev/scripts")
 include (libcamera)
+include (pipewire)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../dec/scripts")
 include (libnoise)
@@ -46,6 +47,10 @@ if (LIBCAMERA_SUPPORT)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${LIBCAMERA_INCLUDE_DIRS}>)
 endif (LIBCAMERA_SUPPORT)
+if (LIBPIPEWIRE_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             "$<BUILD_INTERFACE:${LIBPIPEWIRE_INCLUDE_DIRS}>")
+endif (LIBPIPEWIRE_SUPPORT)
 if (SOX_SUPPORT)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${SOX_INCLUDE_DIRS}>)
@@ -246,17 +251,17 @@ if (WIN32 AND DIRECTXSDK_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${DIRECTXSDK_LIBRARIES})
 endif (WIN32 AND DIRECTXSDK_SUPPORT)
 if (FFMPEG_SUPPORT)
- target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC
-                        ${ffmpeg_LIBRARIES})
- target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC
-                        ${ffmpeg_2_LIBRARIES})
+ target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${ffmpeg_LIBRARIES})
+ target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${ffmpeg_2_LIBRARIES})
 endif (FFMPEG_SUPPORT)
 if (UNIX)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC X11)
  if (LIBCAMERA_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC
-                         ${LIBCAMERA_LIBRARIES})
+  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${LIBCAMERA_LIBRARIES})
  endif (LIBCAMERA_SUPPORT)
+ if (LIBPIPEWIRE_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${LIBPIPEWIRE_LIBRARIES})
+ endif (LIBPIPEWIRE_SUPPORT)
 elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC dsound.lib)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC Mf.lib)

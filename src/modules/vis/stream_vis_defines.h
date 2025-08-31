@@ -23,6 +23,7 @@
 
 #include "stream_dev_defines.h"
 
+#define STREAM_VIS_CONSOLE_AUDIO_DEFAULT_NAME_STRING                      "Console_Audio"
 #if defined (FFMPEG_SUPPORT)
 #define STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING                       "LibAV_Resize"
 #endif // FFMPEG_SUPPORT

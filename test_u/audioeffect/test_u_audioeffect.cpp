@@ -1162,6 +1162,15 @@ do_work (
         (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_DIRECTSHOW
                                  : STREAM_DEVICE_RENDERER_WASAPI);
                                  //: STREAM_DEVICE_RENDERER_WAVEOUT);
+#if defined (GTK_USE)
+      directshow_stream_configuration.UIFramework = COMMON_UI_FRAMEWORK_GTK;
+#endif // GTK_USE
+      if (showConsole_in)
+      {
+        directshow_stream_configuration.sourceType = AUDIOEFFECT_SOURCE_DEVICE;
+        directshow_stream_configuration.UIFramework = COMMON_UI_FRAMEWORK_CONSOLE;
+      } // end IF
+
 #if defined (GTKGL_SUPPORT)
       directShowCBData_in.OpenGLInstructions = &directshow_stream.instructions_;
       directShowCBData_in.OpenGLInstructionsLock =
@@ -2660,6 +2669,13 @@ ACE_TMAIN (int argc_in,
                                  previous_signal_mask);
   Common_Log_Tools::finalize ();
   Common_Tools::finalize ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (LIBPIPEWIRE_SUPPORT)
+  pw_deinit ();
+#endif // LIBPIPEWIRE_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *PORTABILITY*: on Windows, finalize ACE...

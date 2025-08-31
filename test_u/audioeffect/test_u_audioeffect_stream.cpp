@@ -360,7 +360,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   {
     if (add_renderer_branch_b)
       ++index_i;
-#if defined (GTK_USE)
+
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
                                                                             ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
@@ -368,14 +368,41 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     ACE_ASSERT (module_p);
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
-                                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, branch_p, index_i);
-    module_p = NULL;
+
+    switch (inherited::configuration_->configuration_->UIFramework)
+    {
+      case COMMON_UI_FRAMEWORK_CONSOLE:
+      {
+        ACE_NEW_RETURN (module_p,
+                        Test_U_AudioEffect_DirectShow_Vis_Console_Module (this,
+                                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CONSOLE_AUDIO_DEFAULT_NAME_STRING)),
+                        false);
+        layout_in->append (module_p, branch_p, index_i);
+        module_p = NULL;
+        break;
+      }
+      case COMMON_UI_FRAMEWORK_GTK:
+      {
+#if defined (GTK_USE)
+        ACE_NEW_RETURN (module_p,
+                        Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
+                                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                        false);
+        ACE_ASSERT (module_p);
+        layout_in->append (module_p, branch_p, index_i);
+        module_p = NULL;
 #endif // GTK_USE
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown UI framework (was: %d), aborting\n"),
+                    ACE_TEXT (stream_name_string_),
+                    inherited::configuration_->configuration_->UIFramework));
+        return false;
+      }
+    } // end SWITCH
   } // end IF
 
   if (add_save_branch_b)
@@ -2322,6 +2349,16 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
 
     switch (inherited::configuration_->configuration_->UIFramework)
     {
+      case COMMON_UI_FRAMEWORK_CONSOLE:
+      {
+        ACE_NEW_RETURN (module_p,
+                        Test_U_AudioEffect_Vis_Console_Module (this,
+                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CONSOLE_AUDIO_DEFAULT_NAME_STRING)),
+                        false);
+        layout_in->append (module_p, branch_p, index_i);
+        module_p = NULL;
+        break;
+      }
       case COMMON_UI_FRAMEWORK_GTK:
       {
 #if defined (GTK_USE)
@@ -2335,7 +2372,13 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
         break;
       }
       default:
-        break;
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown UI framework (was: %d), aborting\n"),
+                    ACE_TEXT (stream_name_string_),
+                    inherited::configuration_->configuration_->UIFramework));
+        return false;
+      }
     } // end SWITCH
   } // end IF
 

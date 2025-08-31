@@ -185,6 +185,9 @@ set (source_files
      stream_vis_base.cpp
      stream_vis_base.h
      stream_vis_common.h
+     stream_vis_console_audio.cpp
+     stream_vis_console_audio.h
+     stream_vis_console_audio.inl
      stream_vis_defines.h
      stream_vis_iresize.h
      stream_vis_tools.cpp
@@ -384,6 +387,8 @@ export (TARGETS ${PROJECT_NAME}_Visualization
 set (header_files
      stream_vis_base.h
      stream_vis_common.h
+     stream_vis_console_audio.h
+     stream_vis_console_audio.inl
      stream_vis_defines.h
      stream_vis_iresize.h
      stream_vis_tools.h)

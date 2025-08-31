@@ -1,0 +1,108 @@
+/***************************************************************************
+ *   Copyright (C) 2009 by Erik Sohns   *
+ *   erik.sohns@web.de   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#ifndef STREAM_VIS_CONSOLE_AUDIO_H
+#define STREAM_VIS_CONSOLE_AUDIO_H
+
+#include <utility>
+
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
+
+#include "common_math_sample.h"
+
+#include "common_ui_windowtype_converter.h"
+#include "common_ui_ifullscreen.h"
+
+#include "stream_task_base_synch.h"
+
+#include "stream_lib_mediatype_converter.h"
+
+extern const char libacestream_default_vis_console_audio_module_name_string[];
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename MediaType, // *IMPORTANT NOTE*: must correspond to session data 'formats' member
+          ////////////////////////////////
+          typename ValueType> // sample-
+class Stream_Module_Vis_Console_Audio_T
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+ , public Common_UI_WindowTypeConverter_T<void>
+ , public Common_UI_IFullscreen
+{
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+  typedef Common_UI_WindowTypeConverter_T<void> inherited3;
+
+ public:
+  Stream_Module_Vis_Console_Audio_T (typename inherited::ISTREAM_T*); // stream handle
+  inline virtual ~Stream_Module_Vis_Console_Audio_T () {}
+
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
+
+  // implement (part of) Stream_ITaskBase_T
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+  // implement Common_UI_IFullscreen
+  virtual void toggle ();
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Console_Audio_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Console_Audio_T (const Stream_Module_Vis_Console_Audio_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Console_Audio_T& operator= (const Stream_Module_Vis_Console_Audio_T&))
+
+  ACE_UINT32                              channels_;
+  ACE_UINT32                              frameSize_;
+  // std::pair<ACE_INT32, ACE_INT32> minMax_;
+  Common_Math_SampleIterator_T<ValueType> iterator_;
+};
+
+// include template definition
+#include "stream_vis_console_audio.inl"
+
+#endif
