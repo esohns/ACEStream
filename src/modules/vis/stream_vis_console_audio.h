@@ -21,8 +21,6 @@
 #ifndef STREAM_VIS_CONSOLE_AUDIO_H
 #define STREAM_VIS_CONSOLE_AUDIO_H
 
-#include <utility>
-
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
@@ -98,7 +96,6 @@ class Stream_Module_Vis_Console_Audio_T
 
   ACE_UINT32                              channels_;
   ACE_UINT32                              frameSize_;
-  // std::pair<ACE_INT32, ACE_INT32> minMax_;
   Common_Math_SampleIterator_T<ValueType> iterator_;
 };
 

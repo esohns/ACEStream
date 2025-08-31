@@ -55,7 +55,6 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
  , channels_ (0)
  , frameSize_ (0)
  , iterator_ (NULL)
-// , minMax_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Console_Audio_T::Stream_Module_Vis_Console_Audio_T"));
 
@@ -86,7 +85,6 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
   {
     channels_ = 0;
     frameSize_ = 0;
-    // minMax_ = {0, 0};
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -126,7 +124,9 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
   /* move cursor up */
   // ACE_OS::fprintf (stdout, "%c[%dA", 0x1b, channels_ + 1);
   // ACE_OS::fprintf (stdout, "captured %d frames\n", samples_i / channels_);
-  ACE_OS::fprintf (stdout, "%c[%dA", 0x1b, channels_);
+  ACE_OS::fprintf (stdout,
+                   ACE_TEXT_ALWAYS_CHAR ("%c[%dA"),
+                   0x1b, channels_);
 
   float max_f;
   uint32_t level_i;
@@ -138,7 +138,9 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
 
     level_i = (uint32_t)fminf (fmaxf (max_f * 30.0f, 0.f), 39.f);
 
-    ACE_OS::fprintf (stdout, "channel %d: |%*s%*s| peak:%f\n", c, level_i + 1, "*", 40 - level_i, "", max_f);
+    ACE_OS::fprintf (stdout,
+                     ACE_TEXT_ALWAYS_CHAR ("channel %d: |%*s%*s| peak:%f\n"),
+                     c, level_i + 1, "*", 40 - level_i, "", max_f);
   } // end FOR
   ACE_OS::fflush (stdout);
 }
