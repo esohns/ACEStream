@@ -28,9 +28,9 @@ elseif (WIN32)
   if (DEFINED CMAKE_BUILD_TYPE)
    set (PATH_SUFFIX ${CMAKE_BUILD_TYPE})
   endif (DEFINED CMAKE_BUILD_TYPE)
-  set (FAAD_LIB_FILE "libfaad2_dll.lib")
+  set (FAAD_LIB_FILE "faad.lib")
   find_library (FAAD_LIBRARY ${FAAD_LIB_FILE}
-                PATHS $ENV{LIB_ROOT}/faad2/project/msvc/bin
+                PATHS $ENV{LIB_ROOT}/faad2/build/msvc
                 PATH_SUFFIXES ${PATH_SUFFIX}
                 DOC "searching for ${FAAD_LIB_FILE}"
                 NO_DEFAULT_PATH)
@@ -39,9 +39,9 @@ elseif (WIN32)
   else ()
    message (STATUS "Found ${FAAD_LIB_FILE} library \"${FAAD_LIBRARY}\"")
    set (FAAD_FOUND TRUE)
-   set (faad_INCLUDE_DIRS "$ENV{LIB_ROOT}/faad2/include")
+   set (faad_INCLUDE_DIRS "$ENV{LIB_ROOT}/faad2/build/msvc/include")
    set (faad_LIBRARIES "${FAAD_LIBRARY}")
-   set (faad_LIB_DIR "$ENV{LIB_ROOT}/faad2/project/msvc/bin/${PATH_SUFFIX}")
+   set (faad_LIB_DIR "$ENV{LIB_ROOT}/faad2/build/msvc/${PATH_SUFFIX}")
   endif (NOT FAAD_LIBRARY)
  endif (NOT FAAD_FOUND)
 endif ()
