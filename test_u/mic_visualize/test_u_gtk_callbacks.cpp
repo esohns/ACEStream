@@ -809,12 +809,7 @@ load_all_sample_resolutions (GtkListStore* listStore_in)
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-  std::vector<unsigned int> resolutions_a = {8, 16};
-  //if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IEEE_FLOAT))
-  //{
-  //  resolutions_a.clear ();
-  //  resolutions_a.push_back (32);
-  //} // end IF
+  std::vector<unsigned int> resolutions_a = {8, 16, 32};
   std::ostringstream converter;
   GtkTreeIter iterator;
   for (std::vector<unsigned int>::const_iterator iterator_2 = resolutions_a.begin ();
