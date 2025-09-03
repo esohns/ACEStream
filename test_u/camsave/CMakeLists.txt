@@ -223,8 +223,10 @@ elseif (WIN32)
                          DIRECTORY)
  set (ACE_DLL_FILE ACE${LIB_FILE_SUFFIX}.dll)
  set (ACE_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_DLL_FILE})
- file (TO_NATIVE_PATH $ENV{LIB_ROOT} LIB_ROOT)
- string (REPLACE "\\" "\\\\" LIB_ROOT ${LIB_ROOT})
+ if (DEFINED $ENV{LIB_ROOT})
+  file (TO_NATIVE_PATH $ENV{LIB_ROOT} LIB_ROOT)
+  string (REPLACE "\\" "\\\\" LIB_ROOT ${LIB_ROOT})
+ endif (DEFINED $ENV{LIB_ROOT})
  install (FILES ${ACE_DLL_FQPATH}
                 ${LIB_ROOT}/gtk3/bin/libatk-1.0-0.dll
                 ${LIB_ROOT}/gtk3/bin/libfreetype-6.dll
