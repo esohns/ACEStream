@@ -495,6 +495,9 @@ ACE_TMAIN (int argc_in,
   Common_Tools::initialize (false,  // COM ?
                             false); // RNG ?
 #else
+#if defined (LIBPIPEWIRE_SUPPORT)
+  pw_init (&argc_in, &argv_in);
+#endif // LIBPIPEWIRE_SUPPORT
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -728,7 +731,6 @@ ACE_TMAIN (int argc_in,
   user_time_string = Common_Timer_Tools::periodToString (user_time);
   system_time_string = Common_Timer_Tools::periodToString (system_time);
 
-  // debug info
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
@@ -765,8 +767,17 @@ ACE_TMAIN (int argc_in,
                                  previous_signal_actions,
                                  previous_signal_mask);
   Common_Log_Tools::finalize ();
-  // *PORTABILITY*: on Windows, finalize ACE...
+  Common_Tools::finalize ();
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (LIBPIPEWIRE_SUPPORT)
+  pw_deinit ();
+#endif // LIBPIPEWIRE_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *PORTABILITY*: on Windows, finalize ACE...
   result = ACE::fini ();
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,

@@ -40,6 +40,7 @@ extern "C"
 
 #if defined (LIBPIPEWIRE_SUPPORT)
 #include "spa/param/audio/format-utils.h"
+#include "spa/param/video/format-utils.h"
 
 #include "pipewire/pipewire.h"
 #endif // LIBPIPEWIRE_SUPPORT
@@ -285,12 +286,21 @@ struct Stream_Device_Pipewire_Capture_CBData
 {
   Stream_IAllocator*                          allocator;
   struct Common_AllocatorConfiguration*       allocatorConfiguration;
-  bool                                        displayToConsole;
-  struct spa_audio_info                       format;
-  unsigned int                                frameSize; // bytesPerSample * format.channels
+  struct spa_audio_info                       audioFormat;
+  struct spa_video_info                       videoFormat;
+  unsigned int                                frameSize; // bytesPerSample * format.channels | video-
   ACE_Message_Queue_Base*                     queue;
   struct Stream_Statistic*                    statistic;
   struct pw_stream*                           stream;
+};
+
+struct Stream_Device_Pipewire_Playback_CBData
+{
+  ACE_Message_Block*      buffer;
+  struct spa_audio_info   format;
+  unsigned int            frameSize; // bytesPerSample * format.channels
+  ACE_Message_Queue_Base* queue;
+  struct pw_stream*       stream;
 };
 #endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64

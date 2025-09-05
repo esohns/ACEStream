@@ -61,19 +61,20 @@ Test_I_Stream::Test_I_Stream ()
  //               ACE_TEXT_ALWAYS_CHAR ("WAVEncoder"))
  //, FileSink_ (this,
  //             ACE_TEXT_ALWAYS_CHAR ("FileSink"))
- , player_ (this,
-            ACE_TEXT_ALWAYS_CHAR ("Player"))
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , waveOutPlayer_ (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING))
+#else
+ , ALSAPlayer_ (this,
+                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING))
+#if defined (LIBPIPEWIRE_SUPPORT)
+ , PipewirePlayer_ (this,
+                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_PIPEWIRE_DEFAULT_NAME_STRING))
+#endif // LIBPIPEWIRE_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream::Test_I_Stream"));
 
-}
-
-Test_I_Stream::~Test_I_Stream ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream::~Test_I_Stream"));
-
-  // *NOTE*: this implements an ordered shutdown on destruction
-  inherited::shutdown ();
 }
 
 bool
@@ -110,7 +111,15 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&statisticReport_, NULL, 0);
   //layout_in->append (&WAVEncoder_, NULL, 0);
   //layout_in->append (&FileSink_, NULL, 0);
-  layout_in->append (&player_, NULL, 0);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  layout_in->append (&waveOutPlayer_, NULL, 0);
+#else
+#if defined (LIBPIPEWIRE_SUPPORT)
+  layout_in->append (&PipewirePlayer_, NULL, 0);
+#else
+  layout_in->append (&ALSAPlayer_, NULL, 0);
+#endif // LIBPIPEWIRE_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
   return true;
 }

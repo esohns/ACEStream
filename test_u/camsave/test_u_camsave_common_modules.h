@@ -49,9 +49,14 @@
 #include "stream_dev_cam_source_mediafoundation.h"
 #else
 #include "stream_dev_cam_source_v4l.h"
+
 #if defined (LIBCAMERA_SUPPORT)
 #include "stream_dev_cam_source_libcamera.h"
 #endif // LIBCAMERA_SUPPORT
+
+#if defined (LIBPIPEWIRE_SUPPORT)
+#include "stream_dev_cam_source_pipewire.h"
+#endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_file_sink.h"
@@ -310,6 +315,19 @@ typedef Stream_Visualization_LibAVResize_T<Test_U_LibCamera_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_LibCamera_MediaType> Stream_CamSave_LibCamera_LibAVResize;
 #endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT
+
+#if defined (LIBPIPEWIRE_SUPPORT)
+typedef Stream_Dev_Cam_Source_Pipewire_T<ACE_MT_SYNCH,
+                                         Stream_ControlMessage_t,
+                                         Stream_CamSave_V4L_Message_t,
+                                         Stream_CamSave_V4L_SessionMessage_t,
+                                         struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
+                                         enum Stream_ControlType,
+                                         enum Stream_SessionMessageType,
+                                         struct Stream_CamSave_V4L_StreamState,
+                                         struct Stream_CamSave_StatisticData,
+                                         Common_Timer_Manager_t> Stream_CamSave_Pipewire_Source;
+#endif // LIBPIPEWIRE_SUPPORT
 
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
@@ -818,6 +836,15 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   
                               libacestream_default_dev_cam_source_v4l_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_V4L_Source);                       // writer type
+
+#if defined (LIBPIPEWIRE_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                       // session event type
+                              struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_cam_source_pipewire_module_name_string,
+                              Stream_INotify_t,                                     // stream notification interface type
+                              Stream_CamSave_Pipewire_Source);                      // writer type
+#endif // LIBPIPEWIRE_SUPPORT
 
 #if defined (LIBCAMERA_SUPPORT)
 #if defined (FFMPEG_SUPPORT)

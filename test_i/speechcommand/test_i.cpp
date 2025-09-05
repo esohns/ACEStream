@@ -2456,9 +2456,9 @@ ACE_TMAIN (int argc_in,
   struct Test_I_ALSA_UI_CBData ui_cb_data;
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined(GTK_SUPPORT)
+#if defined (GTK_SUPPORT)
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
-#if defined(GTKGL_SUPPORT)
+#if defined (GTKGL_SUPPORT)
   struct Common_UI_GTK_GLConfiguration* gtk_configuration_p = NULL;
 #else
   struct Common_UI_GTK_Configuration* gtk_configuration_p = NULL;

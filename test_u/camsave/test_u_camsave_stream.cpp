@@ -1553,8 +1553,12 @@ error:
 
 Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
  : inherited ()
- , source_ (this,
-            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING))
+ , v4lSource_ (this,
+               ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING))
+#if defined (LIBPIPEWIRE_SUPPORT)
+ , pipewireSource_ (this,
+                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_PIPEWIRE_DEFAULT_NAME_STRING))
+#endif // LIBPIPEWIRE_SUPPORT
 // , statisticReport_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , decoder_ (this,
@@ -1565,14 +1569,14 @@ Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resizer_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
-#if defined (GTK_SUPPORT) && defined (GTK_USE)
+#if defined (GTK_USE)
  , GTKCairoDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
  , GTKPixbufDisplay_ (this,
                       ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
 // , GTKWindowDisplay_ (this,
 //                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
-#endif // GTK_SUPPORT && defined (GTK_USE)
+#endif // GTK_USE
 // , X11Display_ (this,
 //                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
  , converter_2 (this,
@@ -1596,16 +1600,16 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
   delete_out = false;
 
   // sanity check(s)
-//  ACE_ASSERT (layout_in->empty ());
-  ACE_ASSERT (configuration_);
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->configuration_);
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
-      configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_->end ());
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
-      configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
-  ACE_ASSERT (iterator_2 != configuration_->end ());
+    inherited::configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
+  ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
   bool display_b =
-      !(*iterator_2).second.second->deviceIdentifier.identifier.empty ();
+    !(*iterator_2).second.second->deviceIdentifier.identifier.empty ();
   bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
   Stream_Branches_t branches_a;
   // *NOTE*: this processing stream may have branches, depending on:
@@ -1614,10 +1618,36 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
 
-  layout_in->append (&source_, NULL, 0);
+  switch (inherited::configuration_->configuration_->capturer)
+  {
+    case STREAM_DEVICE_CAPTURER_V4L2:
+    {
+      layout_in->append (&v4lSource_, NULL, 0);
+      break;
+    }
+    case STREAM_DEVICE_CAPTURER_PIPEWIRE:
+    {
+#if defined (LIBPIPEWIRE_SUPPORT)
+      layout_in->append (&pipewireSource_, NULL, 0);
+
+
+#endif // LIBPIPEWIRE_SUPPORT
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown capturer (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->capturer));
+      return false;
+    }
+  } // end SWITCH
 //  layout_inout.append (&statisticReport_, NULL, 0);
 
-  if ((*iterator).second.second->codecConfiguration->codecId != AV_CODEC_ID_NONE)
+  enum AVCodecID codec_id_e =
+      Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (inherited::configuration_->configuration_->format.format.pixelformat);
+  if (codec_id_e != AV_CODEC_ID_NONE)
     layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
 
   if (display_b && save_to_file_b)
@@ -1636,7 +1666,7 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
   {
     if (display_b)
     {
-      if ((*iterator).second.second->codecConfiguration->codecId == AV_CODEC_ID_NONE)
+      if (codec_id_e == AV_CODEC_ID_NONE)
         layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
 #if defined (GTK_USE)

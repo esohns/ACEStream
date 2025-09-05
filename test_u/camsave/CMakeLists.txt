@@ -3,6 +3,7 @@ include (ImageMagick)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev/scripts")
 include (libcamera)
+include (pipewire)
 
 if (UNIX)
 # include (CheckLibraryExists)
@@ -23,6 +24,10 @@ endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
  include_directories (${ImageMagick_INCLUDE_DIRS})
 endif (IMAGEMAGICK_SUPPORT)
+
+if (LIBPIPEWIRE_SUPPORT)
+ include_directories (${LIBPIPEWIRE_INCLUDE_DIRS})
+endif (LIBPIPEWIRE_SUPPORT)
 if (UNIX)
  include_directories (${PKG_V4L_INCLUDE_DIRS})
 
@@ -158,7 +163,13 @@ endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ImageMagick_LIBRARIES})
 endif (IMAGEMAGICK_SUPPORT)
+
+if (LIBPIPEWIRE_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${LIBPIPEWIRE_LIBRARIES})
+endif (LIBPIPEWIRE_SUPPORT)
 if (UNIX)
+ target_link_options (${EXECUTABLE} PUBLIC "-rdynamic")
+
  target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_V4L_LIBRARIES})
 elseif (WIN32)

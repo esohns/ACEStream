@@ -22,11 +22,13 @@
 #define STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING             "WaveOutRender"
 #else
 #define STREAM_DEV_CAM_SOURCE_LIBCAMERA_DEFAULT_NAME_STRING       "libCameraCamSource"
+#define STREAM_DEV_CAM_SOURCE_PIPEWIRE_DEFAULT_NAME_STRING        "PipewireCamSource"
 #define STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING             "V4LCamSource"
 
 #define STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING            "ALSAMicSource"
 #define STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING                "ALSAPlayback"
 #define STREAM_DEV_MIC_SOURCE_PIPEWIRE_DEFAULT_NAME_STRING        "PipewireMicSource"
+#define STREAM_DEV_TARGET_PIPEWIRE_DEFAULT_NAME_STRING            "PipewirePlayback"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -69,6 +71,6 @@
 #define STREAM_DEV_MIC_DEFAULT_CHANNELS                           2 // i.e. stereo
 #define STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE                        48000 // Hz
 
-#define STREAM_DEV_MIC_PIPEWIRE_DEFAULT_POD_BUFFER_SIZE           1024
+#define STREAM_DEV_PIPEWIRE_DEFAULT_POD_BUFFER_SIZE               4096 // bytes
 
 #endif

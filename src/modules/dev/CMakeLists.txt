@@ -109,9 +109,15 @@ set (source_files
 if (LIBPIPEWIRE_SUPPORT)
  set (source_files
       ${source_files}
+      stream_dev_cam_source_pipewire.cpp
+      stream_dev_cam_source_pipewire.h
+      stream_dev_cam_source_pipewire.inl
       stream_dev_mic_source_pipewire.cpp
       stream_dev_mic_source_pipewire.h
-      stream_dev_mic_source_pipewire.inl)
+      stream_dev_mic_source_pipewire.inl
+      stream_dev_target_pipewire.cpp
+      stream_dev_target_pipewire.h
+      stream_dev_target_pipewire.inl)
 endif (LIBPIPEWIRE_SUPPORT)
 if (LIBCAMERA_SUPPORT)
  set (source_files
@@ -251,8 +257,12 @@ install (FILES
          COMPONENT mod_include)
 if (LIBPIPEWIRE_SUPPORT)
  install (FILES
+          stream_dev_cam_source_pipewire.h
+          stream_dev_cam_source_pipewire.inl
           stream_dev_mic_source_pipewire.h
           stream_dev_mic_source_pipewire.inl
+          stream_dev_target_pipewire.h
+          stream_dev_target_pipewire.inl
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
 endif (LIBPIPEWIRE_SUPPORT)

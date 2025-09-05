@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "spa/param/video/raw-utils.h"
+
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
 
@@ -30,6 +32,8 @@
 #include "stream_defines.h"
 #include "stream_macros.h"
 
+#include "stream_lib_tools.h"
+
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
@@ -40,7 +44,7 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename StatisticContainerType,
           typename StatisticHandlerType>
-Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
+Stream_Dev_Cam_Source_Pipewire_T<ACE_SYNCH_USE,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
@@ -49,7 +53,7 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  StreamNotificationType,
                                  StreamStateType,
                                  StatisticContainerType,
-                                 StatisticHandlerType>::Stream_Dev_Mic_Source_Pipewire_T (ISTREAM_T* stream_in)
+                                 StatisticHandlerType>::Stream_Dev_Cam_Source_Pipewire_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
  , CBData_ ()
@@ -58,14 +62,14 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
  , loop_ (NULL)
  , PODBuffer_ ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_Pipewire_T::Stream_Dev_Mic_Source_Pipewire_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_Pipewire_T::Stream_Dev_Cam_Source_Pipewire_T"));
 
   CBData_.queue = inherited::msg_queue_;
   ACE_ASSERT (CBData_.queue);
 
   events_.version = PW_VERSION_STREAM_EVENTS;
-  events_.param_changed = acestream_dev_mic_pw_on_stream_param_changed_cb;
-  events_.process = acestream_dev_mic_pw_on_process_cb;
+  events_.param_changed = acestream_dev_cam_pw_on_stream_param_changed_cb;
+  events_.process = acestream_dev_cam_pw_on_process_cb;
 
   // ACE_OS::memset (PODBuffer_, 0, sizeof (uint8_t[STREAM_DEV_PIPEWIRE_DEFAULT_POD_BUFFER_SIZE]));
 }
@@ -80,7 +84,7 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename StatisticContainerType,
           typename StatisticHandlerType>
-Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
+Stream_Dev_Cam_Source_Pipewire_T<ACE_SYNCH_USE,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
@@ -89,9 +93,9 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  StreamNotificationType,
                                  StreamStateType,
                                  StatisticContainerType,
-                                 StatisticHandlerType>::~Stream_Dev_Mic_Source_Pipewire_T ()
+                                 StatisticHandlerType>::~Stream_Dev_Cam_Source_Pipewire_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_Pipewire_T::~Stream_Dev_Mic_Source_Pipewire_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_Pipewire_T::~Stream_Dev_Cam_Source_Pipewire_T"));
 
   if (likely (CBData_.stream))
     pw_stream_destroy (CBData_.stream);
@@ -110,7 +114,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename StatisticHandlerType>
 bool
-Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
+Stream_Dev_Cam_Source_Pipewire_T<ACE_SYNCH_USE,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
@@ -122,7 +126,7 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  StatisticHandlerType>::initialize (const ConfigurationType& configuration_in,
                                                                     Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_Pipewire_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_Pipewire_T::initialize"));
 
   if (inherited::isInitialized_)
   {
@@ -150,9 +154,9 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
   } // end IF
 
   struct pw_properties* properties_p =
-      pw_properties_new (PW_KEY_MEDIA_TYPE, ACE_TEXT_ALWAYS_CHAR ("Audio"),
+      pw_properties_new (PW_KEY_MEDIA_TYPE, ACE_TEXT_ALWAYS_CHAR ("Video"),
                          PW_KEY_MEDIA_CATEGORY, ACE_TEXT_ALWAYS_CHAR ("Capture"),
-                         PW_KEY_MEDIA_ROLE, ACE_TEXT_ALWAYS_CHAR ("Music"),
+                         PW_KEY_MEDIA_ROLE, ACE_TEXT_ALWAYS_CHAR ("Camera"),
                          NULL);
   if (unlikely (!properties_p))
   {
@@ -162,13 +166,10 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
     pw_main_loop_destroy (loop_); loop_ = NULL;
     return false;
   } // end IF
-  // "Stereo Mix" ?
-  pw_properties_set (properties_p,
-                     PW_KEY_STREAM_CAPTURE_SINK, ACE_TEXT_ALWAYS_CHAR ("true"));
 
   ACE_ASSERT (!CBData_.stream);
   CBData_.stream = pw_stream_new_simple (pw_main_loop_get_loop (loop_),
-                                         ACE_TEXT_ALWAYS_CHAR ("audio-capture"),
+                                         ACE_TEXT_ALWAYS_CHAR ("video-capture"),
                                          properties_p,
                                          &events_,
                                          &CBData_);
@@ -201,7 +202,46 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename StatisticHandlerType>
 void
-Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
+Stream_Dev_Cam_Source_Pipewire_T<ACE_SYNCH_USE,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 ConfigurationType,
+                                 StreamControlType,
+                                 StreamNotificationType,
+                                 StreamStateType,
+                                 StatisticContainerType,
+                                 StatisticHandlerType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                           bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_Pipewire_T::handleDataMessage"));
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::isInitialized_);
+  ACE_ASSERT (inherited::sessionData_);
+
+  const typename SessionMessageType::DATA_T::DATA_T* session_data_p =
+      &inherited::sessionData_->getR ();
+  message_inout->initialize (session_data_p->sessionId,
+                             NULL);
+}
+
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
+void
+Stream_Dev_Cam_Source_Pipewire_T<ACE_SYNCH_USE,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
@@ -213,7 +253,7 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  StatisticHandlerType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                               bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_Pipewire_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_Pipewire_T::handleSessionMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -232,28 +272,51 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
           const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       ACE_ASSERT (!session_data_r.formats.empty ());
-      struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+      struct Stream_MediaFramework_V4L_MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_AUDIO,
+                                STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
-
-      CBData_.frameSize =
-        (snd_pcm_format_width (media_type_s.format) / 8) * media_type_s.channels;
 
       struct spa_pod_builder POD_builder_s =
         SPA_POD_BUILDER_INIT (PODBuffer_, sizeof (uint8_t[STREAM_DEV_PIPEWIRE_DEFAULT_POD_BUFFER_SIZE]));
       const struct spa_pod* parameters_a[1];
-      struct spa_audio_info_raw audio_info_raw_s;
-      ACE_OS::memset (&audio_info_raw_s, 0, sizeof (struct spa_audio_info_raw));
-      audio_info_raw_s.channels = media_type_s.channels;
-      audio_info_raw_s.format =
-        Stream_MediaFramework_ALSA_Tools::ALSAFormatToPipewireFormat (media_type_s.format);
-      audio_info_raw_s.position[0] = SPA_AUDIO_CHANNEL_FL;
-      audio_info_raw_s.position[1] = SPA_AUDIO_CHANNEL_FR;
-      audio_info_raw_s.rate = media_type_s.rate;
-      parameters_a[0] = spa_format_audio_raw_build (&POD_builder_s,
+      struct spa_video_info_raw video_info_raw_s;
+      ACE_OS::memset (&video_info_raw_s, 0, sizeof (struct spa_video_info_raw));
+      video_info_raw_s.format =
+        Stream_MediaFramework_Tools::v4lFormatToPipewireFormat (media_type_s.format.pixelformat);
+      video_info_raw_s.size.width = media_type_s.format.width;
+      video_info_raw_s.size.height = media_type_s.format.height;
+      video_info_raw_s.framerate.num = media_type_s.frameRate.numerator;
+      video_info_raw_s.framerate.denom = media_type_s.frameRate.denominator;
+      video_info_raw_s.pixel_aspect_ratio.num = 1;
+      video_info_raw_s.pixel_aspect_ratio.denom = 1;
+      video_info_raw_s.chroma_site = SPA_VIDEO_CHROMA_SITE_NONE;
+      video_info_raw_s.color_range = SPA_VIDEO_COLOR_RANGE_0_255;
+      video_info_raw_s.color_matrix = SPA_VIDEO_COLOR_MATRIX_RGB;
+      video_info_raw_s.transfer_function = SPA_VIDEO_TRANSFER_GAMMA10;
+      parameters_a[0] = spa_format_video_raw_build (&POD_builder_s,
                                                     SPA_PARAM_EnumFormat,
-                                                    &audio_info_raw_s);
+                                                    &video_info_raw_s);
+      // parameters_a[0] = spa_pod_builder_add_object (&POD_builder_s,
+      //                 SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
+      //                 SPA_FORMAT_mediaType,       SPA_POD_Id(SPA_MEDIA_TYPE_video),
+      //                 SPA_FORMAT_mediaSubtype,    SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
+      //                 SPA_FORMAT_VIDEO_format,    SPA_POD_CHOICE_ENUM_Id(7,
+      //                                                 SPA_VIDEO_FORMAT_RGB,
+      //                                                 SPA_VIDEO_FORMAT_RGB,
+      //                                                 SPA_VIDEO_FORMAT_RGBA,
+      //                                                 SPA_VIDEO_FORMAT_RGBx,
+      //                                                 SPA_VIDEO_FORMAT_BGRx,
+      //                                                 SPA_VIDEO_FORMAT_YUY2,
+      //                                                 SPA_VIDEO_FORMAT_I420),
+      //                 SPA_FORMAT_VIDEO_size,      SPA_POD_CHOICE_RANGE_Rectangle(
+      //                                                 &SPA_RECTANGLE(media_type_s.format.width, media_type_s.format.height),
+      //                                                 &SPA_RECTANGLE(1, 1),
+      //                                                 &SPA_RECTANGLE(4096, 4096)),
+      //                 SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(
+      //                                                 &SPA_FRACTION(media_type_s.frameRate.numerator, media_type_s.frameRate.denominator),
+      //                                                 &SPA_FRACTION(0, 1),
+      //                                                 &SPA_FRACTION(1000, 1)));
       ACE_ASSERT (parameters_a[0]);
       ACE_ASSERT (CBData_.stream);
       enum pw_stream_flags stream_flags_e =
@@ -337,7 +400,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename StatisticHandlerType>
 bool
-Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
+Stream_Dev_Cam_Source_Pipewire_T<ACE_SYNCH_USE,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
@@ -348,7 +411,7 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  StatisticContainerType,
                                  StatisticHandlerType>::collect (StatisticContainerType& data_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_Pipewire_T::collect"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_Pipewire_T::collect"));
 
   // sanity check(s)
   ACE_ASSERT (inherited::isInitialized_);
@@ -381,7 +444,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename StatisticHandlerType>
 int
-Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
+Stream_Dev_Cam_Source_Pipewire_T<ACE_SYNCH_USE,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
@@ -392,7 +455,7 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  StatisticContainerType,
                                  StatisticHandlerType>::svc (void)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_Pipewire_T::svc"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_Pipewire_T::svc"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10

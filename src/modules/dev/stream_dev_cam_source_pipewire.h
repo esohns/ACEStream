@@ -18,10 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DEV_MIC_SOURCE_PIPEWIRE_H
-#define STREAM_DEV_MIC_SOURCE_PIPEWIRE_H
+#ifndef STREAM_DEV_CAM_SOURCE_PIPEWIRE_H
+#define STREAM_DEV_CAM_SOURCE_PIPEWIRE_H
 
-#include "spa/param/audio/format-utils.h"
+#include "spa/param/video/format-utils.h"
 
 #include "pipewire/pipewire.h"
 
@@ -37,10 +37,10 @@
 
 #include "stream_dev_common.h"
 
-void acestream_dev_mic_pw_on_stream_param_changed_cb (void* , uint32_t, const struct spa_pod*);
-void acestream_dev_mic_pw_on_process_cb (void*);
+void acestream_dev_cam_pw_on_stream_param_changed_cb (void* , uint32_t, const struct spa_pod*);
+void acestream_dev_cam_pw_on_process_cb (void*);
 
-extern const char libacestream_default_dev_mic_source_pipewire_module_name_string[];
+extern const char libacestream_default_dev_cam_source_pipewire_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           ////////////////////////////////
@@ -56,7 +56,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename StatisticContainerType,
           typename StatisticHandlerType>
-class Stream_Dev_Mic_Source_Pipewire_T
+class Stream_Dev_Cam_Source_Pipewire_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
@@ -71,7 +71,7 @@ class Stream_Dev_Mic_Source_Pipewire_T
                                       StatisticContainerType,
                                       StatisticHandlerType,
                                       struct Stream_UserData>
- , public Stream_MediaFramework_MediaTypeConverter_T<struct spa_audio_info>
+ , public Stream_MediaFramework_MediaTypeConverter_T<struct spa_video_info>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -87,15 +87,15 @@ class Stream_Dev_Mic_Source_Pipewire_T
                                       StatisticContainerType,
                                       StatisticHandlerType,
                                       struct Stream_UserData> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<struct spa_audio_info> inherited2;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<struct spa_video_info> inherited2;
 
  public:
   // convenient types
   typedef Stream_IStream_T<ACE_SYNCH_USE,
                            Common_TimePolicy_t> ISTREAM_T;
 
-  Stream_Dev_Mic_Source_Pipewire_T (ISTREAM_T* = NULL); // stream handle
-  virtual ~Stream_Dev_Mic_Source_Pipewire_T ();
+  Stream_Dev_Cam_Source_Pipewire_T (ISTREAM_T* = NULL); // stream handle
+  virtual ~Stream_Dev_Cam_Source_Pipewire_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -109,13 +109,15 @@ class Stream_Dev_Mic_Source_Pipewire_T
   // info
   bool isInitialized () const;
 
-//  // implement (part of) Stream_ITaskBase
+  // implement (part of) Stream_ITaskBase
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_Pipewire_T (const Stream_Dev_Mic_Source_Pipewire_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_Pipewire_T& operator= (const Stream_Dev_Mic_Source_Pipewire_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_Pipewire_T (const Stream_Dev_Cam_Source_Pipewire_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_Pipewire_T& operator= (const Stream_Dev_Cam_Source_Pipewire_T&))
 
   // override some task-based members
   virtual int svc (void);
@@ -128,6 +130,6 @@ class Stream_Dev_Mic_Source_Pipewire_T
 };
 
 // include template definition
-#include "stream_dev_mic_source_pipewire.inl"
+#include "stream_dev_cam_source_pipewire.inl"
 
 #endif

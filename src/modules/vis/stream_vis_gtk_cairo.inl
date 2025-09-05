@@ -390,7 +390,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   width_2 = cairo_image_surface_get_width (surface_);
   height_2 = cairo_image_surface_get_height (surface_);
   row_stride_2 = cairo_image_surface_get_stride (surface_);
-  ACE_UNUSED_ARG (n_channels_i);
+  n_channels_2 = n_channels_i;
   format_e = cairo_image_surface_get_format (surface_);
 #else
   ACE_ASSERT (GDK_IS_PIXBUF (surface_));

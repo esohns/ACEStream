@@ -40,6 +40,9 @@
 #include "stream_dev_target_wavout.h"
 #else
 #include "stream_dev_target_alsa.h"
+#if defined (LIBPIPEWIRE_SUPPORT)
+#include "stream_dev_target_pipewire.h"
+#endif // LIBPIPEWIRE_SUPPORT
 
 #include "stream_lib_alsa_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -206,12 +209,27 @@ typedef Stream_Dev_Target_ALSA_T<ACE_MT_SYNCH,
                                  Test_I_Stream_Message,
                                  Test_I_Stream_SessionMessage,
                                  struct Test_I_MP3Player_SessionData> Test_I_ALSAPlayer;
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,         // session data type
-                              enum Stream_SessionMessageType,           // session event type
-                              struct Test_I_MP3Player_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                     // session data type
+                              enum Stream_SessionMessageType,                          // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration,      // module handler configuration type
                               libacestream_default_dev_target_alsa_module_name_string,
-                              Stream_INotify_t,                         // stream notification interface type
-                              Test_I_ALSAPlayer);                          // writer type
+                              Stream_INotify_t,                                        // stream notification interface type
+                              Test_I_ALSAPlayer);                                      // writer type
+
+#if defined (LIBPIPEWIRE_SUPPORT)
+typedef Stream_Dev_Target_Pipewire_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage> Test_I_PipewirePlayer;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                         // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration,          // module handler configuration type
+                              libacestream_default_dev_target_pipewire_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_I_PipewirePlayer);                                      // writer type
+#endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 //typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,

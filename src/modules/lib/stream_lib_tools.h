@@ -41,6 +41,10 @@ extern "C"
 #include "libcamera/pixel_format.h"
 #endif // LIBCAMERA_SUPPORT
 
+#if defined (LIBPIPEWIRE_SUPPORT)
+#include "spa/param/video/raw.h"
+#endif // LIBPIPEWIRE_SUPPORT
+
 #if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
@@ -137,6 +141,9 @@ class Stream_MediaFramework_Tools
   static enum AVPixelFormat v4lFormatToffmpegFormat (__u32); // format (fourcc)
   static enum AVCodecID v4lFormatToffmpegCodecId (__u32); // format (fourcc)
 #endif // FFMPEG_SUPPORT
+#if defined (LIBPIPEWIRE_SUPPORT)
+  static enum spa_video_format v4lFormatToPipewireFormat (__u32); // format (fourcc)
+#endif // LIBPIPEWIRE_SUPPORT
   static unsigned int frameSize (const std::string&,                                 // device identifier
                                  const struct Stream_MediaFramework_V4L_MediaType&); // format
   inline static std::string v4lFormatToString (__u32 format_in) { std::string result; result += ((char)(format_in & 0x000000FF)); result += ((char)((format_in >> 8) & 0x000000FF)); result += ((char)((format_in >> 16) & 0x000000FF)); result += ((char)((format_in >> 24) & 0x000000FF)); return result; }

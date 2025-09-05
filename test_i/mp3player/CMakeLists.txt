@@ -4,6 +4,9 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../s
 include (faad)
 include (mpg123)
 
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev/scripts")
+include (pipewire)
+
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
@@ -16,6 +19,9 @@ endif (FAAD_SUPPORT)
 if (MPG123_SUPPORT)
  include_directories (${MPG123_INCLUDE_DIRS})
 endif (MPG123_SUPPORT)
+if (LIBPIPEWIRE_SUPPORT)
+ include_directories (${LIBPIPEWIRE_INCLUDE_DIRS})
+endif (LIBPIPEWIRE_SUPPORT)
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
@@ -99,6 +105,9 @@ endif (FAAD_SUPPORT)
 if (MPG123_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${MPG123_LIBRARIES})
 endif (MPG123_SUPPORT)
+if (LIBPIPEWIRE_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${LIBPIPEWIRE_LIBRARIES})
+endif (LIBPIPEWIRE_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 

@@ -253,6 +253,10 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #else
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-w          : use pipewire [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : test device for method support and exit [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -266,15 +270,11 @@ do_processArguments (int argc_in,
                      struct Stream_Device_Identifier& deviceIdentifier_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      bool& showConsole_out,
-#else
-                     bool& useLibCamera_out,
 #endif // ACE_WIN32 || ACE_WIN64
                      std::string& targetFileName_out,
                      std::string& UIFile_out,
                      bool& logToFile_out,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
                      enum Stream_Device_Capturer& capturer_out,
-#endif // ACE_WIN32 || ACE_WIN64
                      struct Common_UI_DisplayDevice& displayDevice_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
@@ -290,7 +290,6 @@ do_processArguments (int argc_in,
   deviceIdentifier_out.clear ();
   showConsole_out = false;
 #else
-  useLibCamera_out = false;
   deviceIdentifier_out.identifier =
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
   deviceIdentifier_out.identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -310,6 +309,8 @@ do_processArguments (int argc_in,
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   capturer_out = STREAM_DEVICE_CAPTURER_DIRECTSHOW;
+#else
+  capturer_out = STREAM_DEVICE_CAPTURER_V4L2;
 #endif // ACE_WIN32 || ACE_WIN64
   displayDevice_out = Common_UI_Tools::getDefaultDisplay ();
   statisticReportingInterval_out =
@@ -322,7 +323,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                               ACE_TEXT ("cd:f::g::hlmo:s:tvw"),
 #else
-                              ACE_TEXT ("cd:f::g::hlo:s:tvx"),
+                              ACE_TEXT ("cd:f::g::hlo:s:tvwx"),
 #endif // ACE_WIN32 || ACE_WIN64
                               1,                          // skip command name
                               1,                          // report parsing errors
@@ -340,7 +341,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         showConsole_out = true;
 #else
-        useLibCamera_out = true;
+        capturer_out = STREAM_DEVICE_CAPTURER_LIBCAMERA;
 #endif // ACE_WIN32 || ACE_WIN64
         break;
       }
@@ -418,6 +419,11 @@ do_processArguments (int argc_in,
         break;
       }
 #else
+      case 'w':
+      {
+        capturer_out = STREAM_DEVICE_CAPTURER_PIPEWIRE;
+        break;
+      }
       case 'x':
       {
         mode_out = STREAM_CAMSAVE_PROGRAMMODE_TEST_METHODS;
@@ -1197,8 +1203,8 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
                                                               : O_RDONLY);
   int result = -1;
   deviceIdentifier_out.fileDescriptor =
-      v4l2_open (deviceIdentifier_in.c_str (),
-                 open_mode);
+    v4l2_open (deviceIdentifier_in.c_str (),
+               open_mode);
   if (unlikely (deviceIdentifier_out.fileDescriptor == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1269,13 +1275,11 @@ void
 do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
-#else
-         bool useLibCamera_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const std::string& targetFilename_in,
+         enum Stream_Device_Capturer capturer_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          //enum Stream_MediaFramework_Type mediaFramework_in,
-         enum Stream_Device_Capturer capturer_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const struct Common_UI_DisplayDevice& displayDevice_in,
          unsigned int statisticReportingInterval_in,
@@ -1324,8 +1328,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #else
   struct Stream_AllocatorConfiguration allocator_configuration;
 #endif // FFMPEG_SUPPORT
-  //if (bufferSize_in)
-  //  allocator_configuration.defaultBufferSize = bufferSize_in;
+  allocator_configuration.defaultBufferSize = 1228800; // 640x480x4
 
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
@@ -1463,7 +1466,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator;
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator_2;
 
-  if (useLibCamera_in)
+  if (capturer_in == STREAM_DEVICE_CAPTURER_LIBCAMERA)
   {
 #if defined (LIBCAMERA_SUPPORT)
     libcamera_modulehandler_configuration.allocatorConfiguration =
@@ -1493,8 +1496,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         Stream_Device_Tools::defaultCaptureFormat (camera_p);
     libcamera_modulehandler_configuration.outputFormat.format =
         libcamera::PixelFormat (FOURCC ('R', 'G', 'B', 'A'));
-  libcamera_modulehandler_configuration.subscriber = &libcamera_ui_event_handler;
-  libcamera_modulehandler_configuration.targetFileName = targetFilename_in;
+    libcamera_modulehandler_configuration.subscriber = &libcamera_ui_event_handler;
+    libcamera_modulehandler_configuration.targetFileName = targetFilename_in;
 
 error:
     camera_manager_p->stop ();
@@ -1679,10 +1682,13 @@ error:
   //      bufferSize_in;
 #if defined (LIBCAMERA_SUPPORT)
   libcamera_stream_configuration.allocatorConfiguration = &allocator_configuration;
+  libcamera_stream_configuration.capturer = capturer_in;
   libcamera_stream_configuration.messageAllocator = &libcamera_message_allocator;
 #endif // LIBCAMERA_SUPPORT
   v4l_stream_configuration.allocatorConfiguration = &allocator_configuration;
+  v4l_stream_configuration.capturer = capturer_in;
   v4l_stream_configuration.messageAllocator = &v4l_message_allocator;
+  v4l_modulehandler_configuration.messageAllocator = &v4l_message_allocator;
 #if defined (LIBCAMERA_SUPPORT)
   libcamera_stream_configuration.module =
       (!UIDefinitionFilename_in.empty () ? &libcamera_message_handler
@@ -1783,7 +1789,7 @@ error:
     }
   } // end SWITCH
 #else
-  if (useLibCamera_in)
+  if (capturer_in == STREAM_DEVICE_CAPTURER_LIBCAMERA)
   {
 #if defined (LIBCAMERA_SUPPORT)
     if (!do_initialize_libcamera (libcamera_modulehandler_configuration.deviceIdentifier,
@@ -1801,6 +1807,7 @@ error:
 #endif // LIBCAMERA_SUPPORT
   }
   else
+  {
     if (!do_initialize_v4l (deviceIdentifier_in.identifier,
                             v4l_modulehandler_configuration.deviceIdentifier,
                             v4l_stream_configuration.format,
@@ -1810,6 +1817,18 @@ error:
                   ACE_TEXT ("failed to ::do_initialize_v4l(), returning\n")));
       return;
     } // end IF
+
+    if (capturer_in != STREAM_DEVICE_CAPTURER_V4L2)
+    {
+      int result =
+        v4l2_close (v4l_modulehandler_configuration.deviceIdentifier.fileDescriptor);
+      if (unlikely (result == -1))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
+                    v4l_modulehandler_configuration.deviceIdentifier.fileDescriptor));
+      v4l_modulehandler_configuration.deviceIdentifier.fileDescriptor = -1;
+    } // end IF
+  } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1924,7 +1943,7 @@ error:
     reset_token = 0;
   } // end ELSE
 #else
-  if (useLibCamera_in)
+  if (capturer_in == STREAM_DEVICE_CAPTURER_LIBCAMERA)
 #if defined (LIBCAMERA_SUPPORT)
     stream_p = &libcamera_stream;
 #else
@@ -2147,7 +2166,7 @@ error:
     } // end SWITCH
 #else
 #if defined (GTK_USE)
-    if (useLibCamera_in)
+    if (capturer_in == STREAM_DEVICE_CAPTURER_LIBCAMERA)
 #if defined (LIBCAMERA_SUPPORT)
       Common_UI_GTK_Tools::initialize (libCamera_CBData_in.configuration->GTKConfiguration.argc,
                                        libCamera_CBData_in.configuration->GTKConfiguration.argv);
@@ -2225,7 +2244,7 @@ clean:
     }
   } // end SWITCH
 #else
-  if (useLibCamera_in) ;
+  if (capturer_in == STREAM_DEVICE_CAPTURER_LIBCAMERA) ;
 //    do_libcamera_finalize ();
   else
     do_finalize_v4l (v4l_modulehandler_configuration.deviceIdentifier);
@@ -2384,6 +2403,9 @@ ACE_TMAIN (int argc_in,
   Common_Tools::initialize (true,   // COM ?
                             false); // RNG ?
 #else
+#if defined (LIBPIPEWIRE_SUPPORT)
+  pw_init (&argc_in, &argv_in);
+#endif // LIBPIPEWIRE_SUPPORT
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (WXWIDGETS_USE)
@@ -2413,8 +2435,6 @@ ACE_TMAIN (int argc_in,
   struct Stream_Device_Identifier device_identifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool show_console = false;
-#else
-  bool use_libcamera = false;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -2428,9 +2448,11 @@ ACE_TMAIN (int argc_in,
   UI_definition_filename +=
     ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_DEFINITION_FILE);
   bool log_to_file = false;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_Device_Capturer capturer_e =
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     STREAM_DEVICE_CAPTURER_DIRECTSHOW;
+#else
+    STREAM_DEVICE_CAPTURER_V4L2;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Common_UI_DisplayDevice display_device_s =
     Common_UI_Tools::getDefaultDisplay ();
@@ -2450,15 +2472,11 @@ ACE_TMAIN (int argc_in,
                             device_identifier,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             show_console,
-#else
-                            use_libcamera,
 #endif // ACE_WIN32 || ACE_WIN64
                             target_filename,
                             UI_definition_filename,
                             log_to_file,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
                             capturer_e,
-#endif // ACE_WIN32 || ACE_WIN64
                             display_device_s,
                             statistic_reporting_interval,
                             trace_information,
@@ -2521,7 +2539,7 @@ ACE_TMAIN (int argc_in,
     } // end SWITCH
 #else
   device_identifier.identifier =
-      Stream_Device_Tools::getDefaultVideoCaptureDevice (use_libcamera);
+    Stream_Device_Tools::getDefaultVideoCaptureDevice (capturer_e == STREAM_DEVICE_CAPTURER_LIBCAMERA);
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step1c: validate arguments
@@ -2721,7 +2739,7 @@ ACE_TMAIN (int argc_in,
 #if defined (LIBCAMERA_SUPPORT)
   struct Stream_CamSave_LibCamera_UI_CBData libcamera_ui_cb_data;
 #endif // LIBCAMERA_SUPPORT
-  if (use_libcamera)
+  if (capturer_e == STREAM_DEVICE_CAPTURER_LIBCAMERA)
   {
 #if defined (LIBCAMERA_SUPPORT)
     libcamera_ui_cb_data.useLibCamera = true;
@@ -2736,7 +2754,7 @@ ACE_TMAIN (int argc_in,
 //  ui_cb_data_p = &ui_cb_data;
 
 #if defined (GTK_USE)
-  if (use_libcamera)
+  if (capturer_e == STREAM_DEVICE_CAPTURER_LIBCAMERA)
   {
 #if defined (LIBCAMERA_SUPPORT)
     libcamera_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
@@ -3035,7 +3053,7 @@ ACE_TMAIN (int argc_in,
     } // end SWITCH
 #else
 #if defined (GTK_USE)
-  if (use_libcamera)
+  if (capturer_e == STREAM_DEVICE_CAPTURER_LIBCAMERA)
 #if defined (LIBCAMERA_SUPPORT)
     result_2 =
         gtk_manager_p->initialize (libcamera_ui_cb_data.configuration->GTKConfiguration);
@@ -3077,13 +3095,11 @@ ACE_TMAIN (int argc_in,
   do_work (device_identifier,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            show_console,
-#else
-           use_libcamera,
 #endif // ACE_WIN32 || ACE_WIN64
            target_filename,
+           capturer_e,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            //media_framework_e,
-           capturer_e,
 #endif // ACE_WIN32 || ACE_WIN64
            display_device_s,
            statistic_reporting_interval,
@@ -3195,6 +3211,13 @@ ACE_TMAIN (int argc_in,
                                  previous_signal_mask);
   Common_Log_Tools::finalize ();
   Common_Tools::finalize ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (LIBPIPEWIRE_SUPPORT)
+  pw_deinit ();
+#endif // LIBPIPEWIRE_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *PORTABILITY*: on Windows, finalize ACE...

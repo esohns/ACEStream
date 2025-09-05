@@ -330,7 +330,10 @@ class Stream_CamSave_V4L_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_V4L_Stream& operator= (const Stream_CamSave_V4L_Stream&))
 
   // modules
-  Stream_CamSave_V4L_Source_Module           source_;
+  Stream_CamSave_V4L_Source_Module           v4lSource_;
+#if defined (LIBPIPEWIRE_SUPPORT)
+  Stream_CamSave_Pipewire_Source_Module      pipewireSource_;
+#endif // LIBPIPEWIRE_SUPPORT
 //  Stream_CamSave_StatisticReport_Module statisticReport_;
   Stream_CamSave_V4L_LibAVDecoder_Module     decoder_; // --> RGB
   Stream_CamSave_V4L_Distributor_Module      distributor_; // (sub-)branch ?

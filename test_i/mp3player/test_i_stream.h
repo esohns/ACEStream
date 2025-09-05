@@ -79,7 +79,7 @@ class Test_I_Stream
 
  public:
   Test_I_Stream ();
-  virtual ~Test_I_Stream ();
+  inline virtual ~Test_I_Stream () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*,
@@ -115,9 +115,12 @@ class Test_I_Stream
   //Test_I_WAVEncoder_Module      WAVEncoder_;
   //Test_I_FileWriter_Module      FileSink_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_WavOutPlayer_Module      player_;
+  Test_I_WavOutPlayer_Module      waveOutPlayer_;
 #else
-  Test_I_ALSAPlayer_Module        player_;
+  Test_I_ALSAPlayer_Module        ALSAPlayer_;
+#if defined (LIBPIPEWIRE_SUPPORT)
+  Test_I_PipewirePlayer_Module    PipewirePlayer_;
+#endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 };
 

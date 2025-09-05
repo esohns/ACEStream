@@ -4035,19 +4035,22 @@ continue_:
     }
   } // end SWITCH
 #else
-  if (!Stream_Device_Tools::setFormat ((*iterator_2).second.second->deviceIdentifier.fileDescriptor,
-                                       ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format))
+  if (ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->capturer == STREAM_DEVICE_CAPTURER_V4L2)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
-    goto error;
-  } // end IF
-  if (!Stream_Device_Tools::setFrameRate ((*iterator_2).second.second->deviceIdentifier.fileDescriptor,
-                                          ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.frameRate))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Device_Tools::setFrameRate(), aborting\n")));
-    goto error;
+    if (!Stream_Device_Tools::setFormat ((*iterator_2).second.second->deviceIdentifier.fileDescriptor,
+                                         ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
+      goto error;
+    } // end IF
+    if (!Stream_Device_Tools::setFrameRate ((*iterator_2).second.second->deviceIdentifier.fileDescriptor,
+                                            ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.frameRate))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Device_Tools::setFrameRate(), aborting\n")));
+      goto error;
+    } // end IF
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -5613,7 +5616,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   value = G_VALUE_INIT;
 #else
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));

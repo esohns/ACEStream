@@ -103,7 +103,7 @@ Stream_Decoder_AVIParserDriver::initialize (ACE_UINT32 frameSize_in,
     offset_ = 0;
     parseHeaderOnly_ = false;
 
-    frameSize_ = NULL;
+    frameSize_ = 0;
 
     initialized_ = false;
   } // end IF
