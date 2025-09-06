@@ -93,12 +93,14 @@ struct Test_U_RIFFDecoder_SessionData
 {
   Test_U_RIFFDecoder_SessionData ()
    : Stream_SessionData ()
+   , sourceFileName ()
    , fileSize (0)
-   , frameSize (0)
+   //, frameSize (0)
   {}
 
-  ACE_UINT64 fileSize;
-  ACE_UINT32 frameSize;
+  std::string sourceFileName;
+  ACE_UINT64  fileSize;
+  //ACE_UINT32  frameSize;
 };
 typedef Stream_SessionData_T<struct Test_U_RIFFDecoder_SessionData> Test_U_RIFFDecoder_SessionData_t;
 

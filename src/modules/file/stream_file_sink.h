@@ -68,11 +68,8 @@ class Stream_Module_FileWriter_T
   Stream_Module_FileWriter_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Module_FileWriter_T ();
 
-  //// override (part of) Stream_IModuleHandler_T
-  //virtual bool initialize (const ConfigurationType&,
-  //                         Stream_IAllocator* = NULL);
-
   // implement (part of) Stream_ITaskBase_T
+  virtual void handleControlMessage (ControlMessageType&); // control message handle
   virtual void handleDataMessage (DataMessageType*&, // data message handle
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle

@@ -187,6 +187,7 @@ Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionId_in,
   } // end lock scope
 #endif // GTK_USE
 }
+
 void
 Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionId_in,
                                       const Stream_Filecopy_SessionMessage& sessionMessage_in)
@@ -198,11 +199,25 @@ Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionId_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-#if defined (GTK_USE)
-  enum Common_UI_EventType event_e =
-    ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? COMMON_UI_EVENT_STATISTIC
-                                                                     : COMMON_UI_EVENT_INVALID);
-#endif // GTK_USE
+#if defined (GTK_SUPPORT)
+  enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
+  switch (sessionMessage_in.type ())
+  {
+    case STREAM_SESSION_MESSAGE_STEP:
+      event_e = COMMON_UI_EVENT_STEP;
+      break;
+    case STREAM_SESSION_MESSAGE_STATISTIC:
+      event_e = COMMON_UI_EVENT_STATISTIC;
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown session message type (was: %d), returning\n"),
+                  sessionMessage_in.type ()));
+      return;
+    }
+  } // end SWITCH
+#endif // GTK_SUPPORT
 
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =

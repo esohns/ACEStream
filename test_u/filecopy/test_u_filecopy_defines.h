@@ -30,7 +30,7 @@
 #endif // GTK2_USE || GTK3_USE || GTK4_USE
 #define TEST_U_STREAM_FILECOPY_DEFAULT_OUTPUT_FILE           "output.tmp"
 
-#define TEST_U_STREAM_FILECOPY_DEFAULT_BUFFER_SIZE           4096 // bytes
+#define TEST_U_STREAM_FILECOPY_DEFAULT_BUFFER_SIZE           262144 // bytes
 
 //---------------------------------------
 

@@ -91,12 +91,12 @@ struct Stream_Filecopy_SessionData
 {
   Stream_Filecopy_SessionData ()
    : Stream_SessionData ()
-   , fileName ()
+   , sourceFileName ()
    , size (0)
    , targetFileName ()
   {}
 
-  std::string fileName;
+  std::string sourceFileName;
   ACE_UINT64  size;
   std::string targetFileName;
 };

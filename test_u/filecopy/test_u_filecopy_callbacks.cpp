@@ -399,7 +399,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_START_NAME)));
   ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, FALSE);
+  gtk_action_set_sensitive (action_p, TRUE);
   action_p =
       //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
       //                                  ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_CLOSEALL_NAME)));
@@ -550,27 +550,6 @@ idle_initialize_UI_cb (gpointer userData_in)
                         userData_in);
   ACE_ASSERT (result_2);
   ACE_UNUSED_ARG (result_2);
-
-  // set defaults
-  std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri += (*iterator_2).second.second->targetFileName;
-#if GTK_CHECK_VERSION (4,0,0)
-#else
-//file_chooser_button_p =
-//  GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-//                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
-  ACE_ASSERT (file_chooser_button_p);
-  gboolean result =
-    gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                             default_folder_uri.c_str ());
-  if (!result)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (default_folder_uri.c_str ())));
-    return G_SOURCE_REMOVE;
-  } // end IF
-#endif // GTK_CHECK_VERSION (4,0,0)
 
   //   // step8: use correct screen
   //   if (parentWidget_in)
@@ -741,6 +720,7 @@ idle_update_info_display_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p, 0.0);
+
           spin_button_p =
             //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
             //                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
@@ -759,6 +739,7 @@ idle_update_info_display_cb (gpointer userData_in)
           ACE_ASSERT (spin_button_p);
           break;
         }
+        case COMMON_UI_EVENT_STEP:
         case COMMON_UI_EVENT_FINISHED:
         {
           spin_button_p =

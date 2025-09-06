@@ -184,7 +184,7 @@ Test_I_Source_Stream_T<ConnectionManagerType,
       &const_cast<struct Test_I_Source_SessionData&> (inherited::sessionData_->getR ());
   iterator = configuration_in.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  session_data_p->fileName =
+  session_data_p->sourceFileName =
       (*iterator).second.second->fileIdentifier.identifier;
   session_data_p->size =
     Common_File_Tools::size ((*iterator).second.second->fileIdentifier.identifier);

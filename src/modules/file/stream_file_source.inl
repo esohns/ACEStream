@@ -264,7 +264,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
   int error = 0;
   ssize_t bytes_read = -1;
   ACE_Message_Block* message_block_p = NULL;
-  ACE_Time_Value no_wait = COMMON_TIME_NOW;
+  ACE_Time_Value no_wait = ACE_OS::gettimeofday ();
   int message_type = -1;
   DataMessageType* message_p = NULL;
   bool finished = false;
@@ -278,13 +278,17 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (!isOpen_);
   size_t pdu_size_i = 0;
+  SessionDataContainerType* session_data_container_p = NULL;
+
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
 next:
   file_path_string = inherited::configuration_->fileIdentifier.identifier;
   if ((inherited::configuration_->fileIdentifier.identifierDiscriminator == Common_File_Identifier::DIRECTORY) &&
       directory_.length ())
   {
-    file_path_string += ACE_DIRECTORY_SEPARATOR_STR;
+    file_path_string += ACE_DIRECTORY_SEPARATOR_STR_A;
     file_path_string += directory_[file_index_i++]->d_name;
   } // end IF
   pdu_size_i =
@@ -310,6 +314,18 @@ next:
                 inherited::mod_->name (),
                 ACE_TEXT (file_path_string.c_str ()),
                 Common_File_Tools::size (file_path_string)));
+
+    session_data_r.sourceFileName = file_path_string;
+    inherited::sessionData_->increase ();
+    session_data_container_p = inherited::sessionData_;
+    if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_STEP,
+                                                 session_data_container_p,
+                                                 NULL,
+                                                 false))) // expedited ?
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
+                  inherited::mod_->name (),
+                  STREAM_SESSION_MESSAGE_STEP));
   } // end ELSE
 
   do
@@ -453,6 +469,11 @@ continue_:
                         ACE_TEXT ("%s: failed to ACE_FILE_IO::close(): \"%m\", continuing\n"),
                         inherited::mod_->name ()));
           isOpen_ = false;
+
+          // *NOTE*: send session message instead (see above)
+          //inherited::control (STREAM_CONTROL_STEP,
+          //                    false); // forward upstream ?
+
           goto next;
         } // end IF
 

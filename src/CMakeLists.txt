@@ -174,6 +174,9 @@ set (source_files
      stream_session_data.cpp
      stream_session_data.h
      stream_session_data.inl
+     stream_session_manager.cpp
+     stream_session_manager.h
+     stream_session_manager.inl
      stream_session_message_base.cpp
      stream_session_message_base.h
      stream_session_message_base.inl
@@ -313,6 +316,8 @@ install (FILES
          stream_session_base.inl
          stream_session_data.h
          stream_session_data.inl
+         stream_session_manager.h
+         stream_session_manager.inl
          stream_session_message_base.h
          stream_session_message_base.inl
          stream_statistic.h

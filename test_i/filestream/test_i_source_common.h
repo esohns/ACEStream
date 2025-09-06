@@ -67,8 +67,8 @@ struct Test_I_Source_SessionData
    : Stream_SessionData ()
    , connection (NULL)
    , connectionStates ()
-   , fileName ()
    , size (0)
+   , sourceFileName ()
    , targetFileName ()
   {}
 
@@ -80,19 +80,19 @@ struct Test_I_Source_SessionData
     connection = ((connection == NULL) ? rhs_in.connection : connection);
     connectionStates.insert (rhs_in.connectionStates.begin (),
                              rhs_in.connectionStates.end ());
-    fileName = (fileName.empty () ? rhs_in.fileName : fileName);
     size = ((size == 0) ? rhs_in.size : size);
-    targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
-                                              : targetFileName);
-    userData = (userData ? userData : rhs_in.userData);
+    sourceFileName =
+      (sourceFileName.empty () ? rhs_in.sourceFileName : sourceFileName);
+    targetFileName =
+      (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
 
     return *this;
   }
 
   Net_IINETConnection_t*        connection;
   Stream_Net_ConnectionStates_t connectionStates;
-  std::string                   fileName;
-  unsigned int                  size;
+  ACE_UINT64                    size;
+  std::string                   sourceFileName;
   std::string                   targetFileName;
 };
 typedef Stream_SessionData_T<struct Test_I_Source_SessionData> Test_I_Source_SessionData_t;

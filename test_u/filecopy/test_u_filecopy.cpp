@@ -30,7 +30,6 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -49,7 +48,6 @@
 
 #if defined (GTK_SUPPORT)
 #include "common_ui_gtk_defines.h"
-//#include "common_ui_gtk_glade_definition.h"
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
 #endif // GTK_SUPPORT
@@ -75,6 +73,22 @@
 #include "test_u_filecopy_signalhandler.h"
 #include "test_u_filecopy_stream.h"
 
+
+int
+dirent_selector_cb (const ACE_DIRENT* dirEntry_in)
+{
+  // *IMPORTANT NOTE*: select all files other than "." and ".."
+
+  std::string filename (ACE_TEXT_ALWAYS_CHAR (dirEntry_in->d_name));
+  std::string::size_type position =
+    filename.find_last_of ('.', std::string::npos);
+  if ((position == 0) ||
+      ((position == 1) && filename[0] == '.')) // filter '.' and '..'
+    return 0;
+
+  return 1;
+}
+
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("FileCopyStream");
 
 void
@@ -86,18 +100,9 @@ do_printUsage (const std::string& programName_in)
   std::cout.setf (std::ios::boolalpha);
 
   std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  configuration_path = Common_File_Tools::getWorkingDirectory ();
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filecopy");
-#endif // #ifdef DEBUG_DEBUGGER
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                      true); // configuration-
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -110,11 +115,9 @@ do_printUsage (const std::string& programName_in)
             << TEST_U_STREAM_FILECOPY_DEFAULT_BUFFER_SIZE
             << ACE_TEXT ("])")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : filename")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : source filename|directory")
             << std::endl;
   std::string path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_GLADE_FILE);
@@ -141,7 +144,7 @@ do_printUsage (const std::string& programName_in)
   path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_OUTPUT_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x[[STRING]]: target filename [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x[[STRING]]: target filename|directory [")
             << path
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
@@ -167,23 +170,12 @@ do_processArguments (int argc_in,
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
   std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  configuration_path = Common_File_Tools::getWorkingDirectory ();
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filecopy");
-#endif // #ifdef DEBUG_DEBUGGER
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                      true); // configuration-
 
   // initialize results
   std::string path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   bufferSize_out = TEST_U_STREAM_FILECOPY_DEFAULT_BUFFER_SIZE;
   filename_out.clear ();
   UIFile_out = path;
@@ -381,7 +373,7 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 
 void
 do_work (unsigned int bufferSize_in,
-         const std::string& fileName_in,
+         const std::string& sourceFileName_in,
          const std::string& UIDefinitionFile_in,
          unsigned int statisticReportingInterval_in,
          const std::string& targetFileName_in,
@@ -429,9 +421,15 @@ do_work (unsigned int bufferSize_in,
 //  if (!UIDefinitionFile_in.empty ())
 //    moduleheandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   moduleheandler_configuration.printProgressDot = UIDefinitionFile_in.empty ();
-  moduleheandler_configuration.fileIdentifier.identifier = fileName_in;
+  moduleheandler_configuration.fileIdentifier.identifier = sourceFileName_in;
+  if (Common_File_Tools::isDirectory (sourceFileName_in))
+  {
+    moduleheandler_configuration.fileIdentifier.identifierDiscriminator = Common_File_Identifier::DIRECTORY;
+    moduleheandler_configuration.fileIdentifier.selector = dirent_selector_cb;
+    moduleheandler_configuration.splitOnStep = true;
+  } // end IF
   moduleheandler_configuration.statisticReportingInterval =
-      ACE_Time_Value (statisticReportingInterval_in, 0);
+    ACE_Time_Value (statisticReportingInterval_in, 0);
   if (!UIDefinitionFile_in.empty ())
     moduleheandler_configuration.subscriber = &ui_event_handler;
   moduleheandler_configuration.targetFileName =
@@ -605,26 +603,17 @@ ACE_TMAIN (int argc_in,
   // start profile timer...
   process_profile.start ();
 
+  Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (argv_in[0]));
+
   std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  configuration_path = Common_File_Tools::getWorkingDirectory ();
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filecopy");
-#endif // #ifdef DEBUG_DEBUGGER
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                      true); // configuration-
 
   // step1a set defaults
   unsigned int buffer_size = TEST_U_STREAM_FILECOPY_DEFAULT_BUFFER_SIZE;
-  std::string file_name;
+  std::string source_file_name;
   std::string path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file +=
@@ -644,7 +633,7 @@ ACE_TMAIN (int argc_in,
   if (!do_processArguments (argc_in,
                             argv_in,
                             buffer_size,
-                            file_name,
+                            source_file_name,
                             UI_definition_file,
                             log_to_file,
                             statistic_reporting_interval,
@@ -660,7 +649,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
 
@@ -673,7 +662,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
   if ((UI_definition_file.empty () &&
-       !Common_File_Tools::isReadable (file_name)) ||
+       !Common_File_Tools::isReadable (source_file_name)) ||
       (!UI_definition_file.empty () &&
        !Common_File_Tools::isReadable (UI_definition_file)))
   {
@@ -687,7 +676,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
   //if (run_stress_test)
@@ -711,15 +700,14 @@ ACE_TMAIN (int argc_in,
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
-        Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                          ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
+      Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                        ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
   if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])), // program name
                                      log_file_name,                                     // log file name
                                      false,                                             // log to syslog ?
                                      false,                                             // trace messages ?
                                      trace_information,                                 // debug messages ?
-                                     (UI_definition_file.empty () ? NULL
-                                                                  : &logger)))          // (ui-) logger ?
+                                     (UI_definition_file.empty () ? NULL : &logger)))   // (ui-) logger ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Log_Tools::initialize(), aborting\n")));
@@ -730,7 +718,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
 
@@ -806,7 +794,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
 
@@ -831,7 +819,7 @@ ACE_TMAIN (int argc_in,
   timer.start ();
   // step2: do actual work
   do_work (buffer_size,
-           file_name,
+           source_file_name,
            UI_definition_file,
            statistic_reporting_interval,
            target_file_name,
@@ -873,7 +861,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
   ACE_Profile_Timer::Rusage elapsed_rusage;
@@ -916,7 +904,7 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nsignals,
               elapsed_rusage.ru_nvcsw,
               elapsed_rusage.ru_nivcsw));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                  previous_signal_actions,
@@ -929,7 +917,7 @@ ACE_TMAIN (int argc_in,
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return EXIT_SUCCESS;
 } // end main
