@@ -1524,7 +1524,7 @@ Stream_Base_T<ACE_SYNCH_USE,
         onSessionBegin (state_.sessionData->sessionId);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in Stream_ISessionCB::onSessionBegin(), continuing\n"),
+                    ACE_TEXT ("%s/%s: caught exception in Stream_ISessionCB::onSessionBegin(), continuing\n"),
                     ACE_TEXT (name_.c_str ()),
                     module_p->name ()));
       }
@@ -1557,7 +1557,7 @@ session_end:
         onSessionEnd (state_.sessionData->sessionId);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in Stream_ISessionCB::onSessionEnd(), continuing\n"),
+                    ACE_TEXT ("%s/%s: caught exception in Stream_ISessionCB::onSessionEnd(), continuing\n"),
                     ACE_TEXT (name_.c_str ()),
                     module_p->name ()));
       }

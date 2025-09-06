@@ -37,6 +37,7 @@
 #include "stream_istreamcontrol.h"
 
 template <ACE_SYNCH_DECL,
+          typename NotificationType, // session-
           typename ConfigurationType, // session-
           typename SessionDataType, // inherits Stream_SessionData
           typename StatisticContainerType,
@@ -44,11 +45,13 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 class Stream_Session_Manager_T
  : public Stream_IStreamControlBase
+ , public Stream_IEvent_T<NotificationType>
  , public Stream_ISessionCB
  , public Common_ICounter
 {
   // singleton has access to the ctor/dtors
   friend class ACE_Singleton<Stream_Session_Manager_T<ACE_SYNCH_USE,
+                                                      NotificationType,
                                                       ConfigurationType,
                                                       SessionDataType,
                                                       StatisticContainerType,
@@ -61,6 +64,7 @@ class Stream_Session_Manager_T
   typedef SessionDataType DATA_T;
   typedef UserDataType USERDATA_T;
   typedef ACE_Singleton<Stream_Session_Manager_T<ACE_SYNCH_USE,
+                                                 NotificationType,
                                                  ConfigurationType,
                                                  SessionDataType,
                                                  StatisticContainerType,
@@ -108,10 +112,14 @@ class Stream_Session_Manager_T
 
   // convenient types
   typedef Stream_Session_Manager_T<ACE_SYNCH_USE,
+                                   NotificationType,
                                    ConfigurationType,
                                    SessionDataType,
                                    StatisticContainerType,
                                    UserDataType> OWN_TYPE_T;
+
+  // implement Stream_IEvent_T
+  virtual void onEvent (NotificationType);
 
   // implement Common_ICounter
   // *NOTE*: visits each connection updating its statistic to support throughput

@@ -31,11 +31,13 @@
 #include "stream_macros.h"
 
 template <ACE_SYNCH_DECL,
+          typename NotificationType,
           typename ConfigurationType,
           typename SessionDataType,
           typename StatisticContainerType,
           typename UserDataType>
 Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
@@ -53,11 +55,13 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
 }
 
 template <ACE_SYNCH_DECL,
+          typename NotificationType,
           typename ConfigurationType,
           typename SessionDataType,
           typename StatisticContainerType,
           typename UserDataType>
 Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
@@ -80,12 +84,14 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
 }
 
 template <ACE_SYNCH_DECL,
+          typename NotificationType,
           typename ConfigurationType,
           typename SessionDataType,
           typename StatisticContainerType,
           typename UserDataType>
 bool
 Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
@@ -99,12 +105,14 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
 }
 
 template <ACE_SYNCH_DECL,
+          typename NotificationType,
           typename ConfigurationType,
           typename SessionDataType,
           typename StatisticContainerType,
           typename UserDataType>
 void
 Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
@@ -147,12 +155,14 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
 }
 
 template <ACE_SYNCH_DECL,
+          typename NotificationType,
           typename ConfigurationType,
           typename SessionDataType,
           typename StatisticContainerType,
           typename UserDataType>
 void
 Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
@@ -181,12 +191,14 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
 }
 
 template <ACE_SYNCH_DECL,
+          typename NotificationType,
           typename ConfigurationType,
           typename SessionDataType,
           typename StatisticContainerType,
           typename UserDataType>
 unsigned int
 Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
@@ -200,12 +212,14 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
 }
 
 template <ACE_SYNCH_DECL,
+          typename NotificationType,
           typename ConfigurationType,
           typename SessionDataType,
           typename StatisticContainerType,
           typename UserDataType>
 void
 Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
@@ -217,12 +231,14 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
 }
 
 template <ACE_SYNCH_DECL,
+          typename NotificationType,
           typename ConfigurationType,
           typename SessionDataType,
           typename StatisticContainerType,
           typename UserDataType>
 void
 Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
@@ -235,12 +251,14 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
 }
 
 template <ACE_SYNCH_DECL,
+          typename NotificationType,
           typename ConfigurationType,
           typename SessionDataType,
           typename StatisticContainerType,
           typename UserDataType>
 void
 Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
@@ -256,12 +274,14 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
 }
 
 template <ACE_SYNCH_DECL,
+          typename NotificationType,
           typename ConfigurationType,
           typename SessionDataType,
           typename StatisticContainerType,
           typename UserDataType>
 void
 Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
@@ -276,12 +296,76 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
 }
 
 template <ACE_SYNCH_DECL,
+          typename NotificationType,
           typename ConfigurationType,
           typename SessionDataType,
           typename StatisticContainerType,
           typename UserDataType>
 void
 Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
+                         ConfigurationType,
+                         SessionDataType,
+                         StatisticContainerType,
+                         UserDataType>::onEvent (NotificationType notification_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::onEvent"));
+
+  switch (notification_in)
+  {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    case STREAM_SESSION_MESSAGE_CONNECT:
+    case STREAM_SESSION_MESSAGE_DISCONNECT:
+    case STREAM_SESSION_MESSAGE_LINK:
+    case STREAM_SESSION_MESSAGE_RESIZE:
+    case STREAM_SESSION_MESSAGE_UNLINK:
+      break;
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+      // sanity check(s)
+      ACE_ASSERT (sessionData_);
+
+      try {
+        onSessionBegin (sessionData_->sessionId);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("caught exception in Stream_ISessionCB::onSessionBegin(), continuing\n")));
+      }
+
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_END:
+    {
+      // sanity check(s)
+      ACE_ASSERT (sessionData_);
+
+      try {
+        onSessionEnd (sessionData_->sessionId);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("caught exception in Stream_ISessionCB::onSessionEnd(), continuing\n")));
+      }
+
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_STEP:
+    case STREAM_SESSION_MESSAGE_STEP_DATA:
+    case STREAM_SESSION_MESSAGE_STATISTIC:
+      break;
+    default:
+      break;
+  } // end SWITCH
+}
+
+template <ACE_SYNCH_DECL,
+          typename NotificationType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename StatisticContainerType,
+          typename UserDataType>
+void
+Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
