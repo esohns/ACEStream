@@ -89,10 +89,6 @@ if (WXWIDGETS_SUPPORT)
       )
 endif (WXWIDGETS_SUPPORT)
 
-#if (UNIX)
-# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
-#endif (UNIX)
-
 #cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 #set (GLADE_FILE etc/${EXECUTABLE}.glade)
 if (GTK2_USE)
@@ -117,6 +113,8 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 if (UNIX)
+ target_link_options (${EXECUTABLE} PUBLIC "-rdynamic")
+
  target_link_libraries (${EXECUTABLE} PUBLIC rt)
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_CAP_LIBRARIES})
  target_link_libraries (${EXECUTABLE} PUBLIC X11)
@@ -125,7 +123,6 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} PUBLIC Ole32.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC Quartz.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC Shell32.lib)
- #target_link_libraries (${EXECUTABLE} PUBLIC ucrtd.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC User32.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC Userenv.lib)
 # *TODO*: repair WIN32 pkgconfig support
@@ -155,8 +152,6 @@ if (UNIX)
 endif (UNIX)
 
 # add PCH
-#set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${EXECUTABLE})
 target_precompile_headers (${EXECUTABLE}
                            PUBLIC stdafx.h)
 
@@ -176,7 +171,7 @@ if (UNIX)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
  create_target_launcher (${EXECUTABLE}
                          COMMAND ${COMMAND}
-                         ARGS "-g./etc/filecopy.gtk2 -l -t"
+                         ARGS "-g./etc/filecopy.gtk3 -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin

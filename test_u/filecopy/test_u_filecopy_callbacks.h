@@ -43,11 +43,11 @@ extern "C"
 {
 #endif /* __cplusplus */
 // callbacks
-#if GTK_CHECK_VERSION (3,10,0)
-#else
+// #if GTK_CHECK_VERSION (3,10,0)
+// #else
 G_MODULE_EXPORT void action_start_activate_cb (GtkAction*, gpointer);
 G_MODULE_EXPORT void action_stop_activate_cb (GtkAction*, gpointer);
-#endif // GTK_CHECK_VERSION (3,10,0)
+//#endif // GTK_CHECK_VERSION (3,10,0)
 G_MODULE_EXPORT gint button_report_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);

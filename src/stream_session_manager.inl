@@ -77,19 +77,6 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
                   ACE_TEXT ("failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
                   resetTimeoutHandlerId_));
   } // end IF
-
-  bool do_abort = false;
-  { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, connectionsLock_);
-    if (!unlikely (connections_.is_empty ()))
-    {
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%u remaining connection(s) in dtor, continuing\n"),
-                  connections_.size ()));
-      do_abort = true;
-    } // end IF
-  } // end lock scope
-  if (unlikely (do_abort))
-    abort ();
 }
 
 template <ACE_SYNCH_DECL,

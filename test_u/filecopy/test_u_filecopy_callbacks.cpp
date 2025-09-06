@@ -42,6 +42,21 @@
 #include "test_u_filecopy_defines.h"
 #include "test_u_filecopy_stream.h"
 
+struct acestream_test_u_filecopy_find_id
+ //: std::unary_function<ACE_Thread_ID, bool>
+{
+  acestream_test_u_filecopy_find_id (ACE_thread_t id)
+   : id_ (id)
+  {}
+
+  bool operator() (std::pair<guint, ACE_Thread_ID> const& id_in) const
+  {
+    return id_in.second.id () == id_;
+  }
+
+  ACE_thread_t id_;
+};
+
 ACE_THR_FUNC_RETURN
 stream_processing_function (void* arg_in)
 {
@@ -116,7 +131,9 @@ stream_processing_function (void* arg_in)
   //              ACE_TEXT ("failed to Stream_Filecopy_Stream::start(): \"%m\", aborting\n")));
   //  goto done;
   //} // end IF
-  data_p->CBData->stream->wait (true, false, false);
+  data_p->CBData->stream->wait (true,   // wait for completion ?
+                                false,  // wait for upstream ?
+                                false); // wait for downstream ?
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = 0;
@@ -494,9 +511,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   //ACE_ASSERT (result_2);
 
   GObject* object_p =
-#if GTK_CHECK_VERSION (3,10,0)
-    NULL;
-#else
+// #if GTK_CHECK_VERSION (3,10,0)
+    // NULL;
+// #else
     gtk_builder_get_object ((*iterator).second.second,
                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_START_NAME));
   ACE_ASSERT (object_p);
@@ -515,7 +532,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                       G_CALLBACK (action_stop_activate_cb),
                       userData_in);
   ACE_ASSERT (result_2);
-#endif // GTK_CHECK_VERSION (3,10,0)
+// #endif // GTK_CHECK_VERSION (3,10,0)
 
   //-------------------------------------
 
@@ -814,87 +831,75 @@ idle_update_progress_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
 
-  // synch access
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
-
   ACE_THR_FUNC_RETURN exit_status;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
-  for (Common_UI_GTK_CompletedActionsIterator_t iterator_2 = data_p->completedActions.begin ();
-       iterator_2 != data_p->completedActions.end ();
-       ++iterator_2)
-  {
-    result = thread_manager_p->join (*iterator_2, &exit_status);
-    if (result == -1)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Thread_Manager::join(%d): \"%m\", continuing\n"),
-                  *iterator_2));
-#else
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Thread_Manager::join(%u): \"%m\", continuing\n"),
-                  *iterator_2));
-#endif // ACE_WIN32 || ACE_WIN64
-    else if (exit_status)
-    {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("thread %d has joined (status was: %d)...\n"),
-                  *iterator_2,
-                  exit_status));
-#else
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("thread %u has joined (status was: %@)...\n"),
-                  *iterator_2,
-                  exit_status));
-#endif // ACE_WIN32 || ACE_WIN64
-    } // end IF
 
-    struct find_id
-     //: std::unary_function<ACE_Thread_ID, bool>
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
+    for (Common_UI_GTK_CompletedActionsIterator_t iterator_2 = data_p->completedActions.begin ();
+         iterator_2 != data_p->completedActions.end ();
+         ++iterator_2)
     {
-      ACE_thread_t id_;
-      find_id (ACE_thread_t id)
-       : id_ (id)
-      {}
-
-      bool operator() (std::pair<guint, ACE_Thread_ID> const& id_in) const
+      result = thread_manager_p->join (*iterator_2, &exit_status);
+      if (unlikely (result == -1))
+  #if defined (ACE_WIN32) || defined (ACE_WIN64)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Thread_Manager::join(%d): \"%m\", continuing\n"),
+                    *iterator_2));
+  #else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Thread_Manager::join(%u): \"%m\", continuing\n"),
+                    *iterator_2));
+  #endif // ACE_WIN32 || ACE_WIN64
+      else if (exit_status)
       {
-        return id_in.second.id () == id_;
-      }
-    };
-   Common_UI_GTK_PendingActionsIterator_t iterator_3 =
-      std::find_if (data_p->pendingActions.begin (), data_p->pendingActions.end (), 
-                    find_id (*iterator_2));
-    ACE_ASSERT (iterator_3 != data_p->pendingActions.end ());
-    state_r.eventSourceIds.erase ((*iterator_3).first);
-    data_p->pendingActions.erase (iterator_3);
-  } // end FOR
-  data_p->completedActions.clear ();
+  #if defined (ACE_WIN32) || defined (ACE_WIN64)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("thread %d has joined (status was: %d)...\n"),
+                    *iterator_2,
+                    exit_status));
+  #else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("thread %u has joined (status was: %@)...\n"),
+                    *iterator_2,
+                    exit_status));
+  #endif // ACE_WIN32 || ACE_WIN64
+      } // end IF
 
-  if (data_p->pendingActions.empty ())
-  {
-    //if (data_p->cursorType != GDK_LAST_CURSOR)
-    //{
-    //  GdkCursor* cursor_p = gdk_cursor_new (data_p->cursorType);
-    //  if (!cursor_p)
-    //  {
-    //    ACE_DEBUG ((LM_ERROR,
-    //                ACE_TEXT ("failed to gdk_cursor_new(%d): \"%m\", continuing\n"),
-    //                data_p->cursorType));
-    //    return G_SOURCE_REMOVE;
-    //  } // end IF
-    //  GtkWindow* window_p =
-    //    GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
-    //                                        ACE_TEXT_ALWAYS_CHAR (IRC_CLIENT_GUI_GTK_WINDOW_MAIN)));
-    //  ACE_ASSERT (window_p);
-    //  GdkWindow* window_2 = gtk_widget_get_window (GTK_WIDGET (window_p));
-    //  ACE_ASSERT (window_2);
-    //  gdk_window_set_cursor (window_2, cursor_p);
-    //  data_p->cursorType = GDK_LAST_CURSOR;
-    //} // end IF
-    return G_SOURCE_REMOVE;
-  } // end IF
+      struct acestream_test_u_filecopy_find_id find_id_s (*iterator_2);
+      Common_UI_GTK_PendingActionsIterator_t iterator_3 =
+        std::find_if (data_p->pendingActions.begin (), data_p->pendingActions.end (),
+                      find_id_s);
+      ACE_ASSERT (iterator_3 != data_p->pendingActions.end ());
+      state_r.eventSourceIds.erase ((*iterator_3).first);
+      data_p->pendingActions.erase (iterator_3);
+    } // end FOR
+    data_p->completedActions.clear ();
+
+    if (data_p->pendingActions.empty ())
+    {
+      //if (data_p->cursorType != GDK_LAST_CURSOR)
+      //{
+      //  GdkCursor* cursor_p = gdk_cursor_new (data_p->cursorType);
+      //  if (!cursor_p)
+      //  {
+      //    ACE_DEBUG ((LM_ERROR,
+      //                ACE_TEXT ("failed to gdk_cursor_new(%d): \"%m\", continuing\n"),
+      //                data_p->cursorType));
+      //    return G_SOURCE_REMOVE;
+      //  } // end IF
+      //  GtkWindow* window_p =
+      //    GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
+      //                                        ACE_TEXT_ALWAYS_CHAR (IRC_CLIENT_GUI_GTK_WINDOW_MAIN)));
+      //  ACE_ASSERT (window_p);
+      //  GdkWindow* window_2 = gtk_widget_get_window (GTK_WIDGET (window_p));
+      //  ACE_ASSERT (window_2);
+      //  gdk_window_set_cursor (window_2, cursor_p);
+      //  data_p->cursorType = GDK_LAST_CURSOR;
+      //} // end IF
+      return G_SOURCE_REMOVE;
+    } // end IF
+  } // end lock scope
 
   //gtk_progress_bar_pulse (progress_bar_p);
   gtk_progress_bar_set_fraction (progress_bar_p,
@@ -929,8 +934,8 @@ idle_end_session_cb (gpointer userData_in)
   ACE_ASSERT (widget_p);
   gtk_widget_set_sensitive (widget_p, TRUE);
 
-#if GTK_CHECK_VERSION (3,10,0)
-#else
+// #if GTK_CHECK_VERSION (3,10,0)
+// #else
   GtkAction* action_p =
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_START_NAME)));
@@ -941,7 +946,7 @@ idle_end_session_cb (gpointer userData_in)
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_STOP_NAME)));
   ACE_ASSERT (action_p);
   gtk_action_set_sensitive (action_p, FALSE);
-#endif // GTK_CHECK_VERSION (3,10,0)
+// #endif // GTK_CHECK_VERSION (3,10,0)
 
   return G_SOURCE_REMOVE;
 }
@@ -952,8 +957,8 @@ idle_end_session_cb (gpointer userData_in)
 extern "C"
 {
 #endif /* __cplusplus */
-#if GTK_CHECK_VERSION (3,10,0)
-#else
+// #if GTK_CHECK_VERSION (3,10,0)
+// #else
 void
 action_start_activate_cb (GtkAction* action_in,
                           gpointer userData_in)
@@ -1090,18 +1095,18 @@ action_start_activate_cb (GtkAction* action_in,
   ACE_thread_t thread_id = -1;
 #endif
   ACE_hthread_t thread_handle = ACE_INVALID_HANDLE;
-  ACE_TCHAR thread_name[BUFSIZ];
-  ACE_OS::memset (thread_name, 0, sizeof (ACE_TCHAR[BUFSIZ]));
+  ACE_TCHAR thread_name_a[BUFSIZ];
+  ACE_OS::memset (thread_name_a, 0, sizeof (ACE_TCHAR[BUFSIZ]));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_OS::strcpy (thread_name,
+  ACE_OS::strcpy (thread_name_a,
                   ACE_TEXT (TEST_U_STREAM_THREAD_NAME));
 #else
   ACE_ASSERT (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH <= BUFSIZ);
-  ACE_OS::strncpy (thread_name,
+  ACE_OS::strncpy (thread_name_a,
                    ACE_TEXT (TEST_U_STREAM_THREAD_NAME),
                    std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT (TEST_U_STREAM_THREAD_NAME)))));
 #endif // ACE_WIN32 || ACE_WIN64
-  const char* thread_name_2 = thread_name;
+  const char* thread_name_2 = thread_name_a;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
 
@@ -1160,13 +1165,11 @@ action_start_activate_cb (GtkAction* action_in,
 
     return;
   } // end IF
-  else
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("added event source (id: %u)\n"),
-                event_source_id));
-  data_p->progressData.pendingActions[event_source_id] =
-      ACE_Thread_ID (thread_id,
-                     thread_handle);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added event source (id: %u)\n"),
+              event_source_id));
+  ACE_Thread_ID thread_id_2 (thread_id, thread_handle);
+  data_p->progressData.pendingActions.insert (std::make_pair (event_source_id, thread_id_2));
   //    ACE_DEBUG ((LM_DEBUG,
   //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
   //                event_source_id));
@@ -1206,9 +1209,11 @@ action_stop_activate_cb (GtkAction* action_in,
   ACE_ASSERT (action_p);
   gtk_action_set_stock_id (action_p, GTK_STOCK_MEDIA_PLAY);
 
-  data_p->stream->stop (false, true, true);
+  data_p->stream->stop (false, // wait for completion ?
+                        true,  // recurse upstream ?
+                        true); // high priority ?
 } // action_stop_activate_cb
-#endif // GTK_CHECK_VERSION (3,10,0)
+// #endif // GTK_CHECK_VERSION (3,10,0)
 
 // -----------------------------------------------------------------------------
 
