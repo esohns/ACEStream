@@ -38,6 +38,7 @@
 #include "stream_isessionnotify.h"
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
+#include "stream_session_manager.h"
 
 #include "stream_dev_common.h"
 #include "stream_dev_defines.h"
@@ -256,6 +257,8 @@ struct Test_U_StreamState
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
+//////////////////////////////////////////
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Common_AllocatorConfiguration,
@@ -268,6 +271,24 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Stream_ControlMessage_t,
                                           Test_U_Message,
                                           Test_U_SessionMessage> Test_U_MessageAllocator_t;
+#endif // ACE_WIN32 || ACE_WIN64
+
+//////////////////////////////////////////
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 QRDecode_DirectShow_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_U_DirectShow_SessionManager_t;
+#else
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 QRDecode_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_U_SessionManager_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #endif

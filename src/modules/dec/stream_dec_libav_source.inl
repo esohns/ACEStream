@@ -59,9 +59,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType>
 Stream_LibAV_Source_T<ACE_SYNCH_USE,
@@ -72,9 +71,8 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
                       StreamControlType,
                       StreamNotificationType,
                       StreamStateType,
-                      SessionDataType,
-                      SessionDataContainerType,
                       StatisticContainerType,
+                      SessionManagerType,
                       TimerManagerType,
                       UserDataType>::Stream_LibAV_Source_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
@@ -93,9 +91,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType>
 Stream_LibAV_Source_T<ACE_SYNCH_USE,
@@ -106,9 +103,8 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
                       StreamControlType,
                       StreamNotificationType,
                       StreamStateType,
-                      SessionDataType,
-                      SessionDataContainerType,
                       StatisticContainerType,
+                      SessionManagerType,
                       TimerManagerType,
                       UserDataType>::~Stream_LibAV_Source_T ()
 {
@@ -126,9 +122,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType>
 bool
@@ -140,9 +135,8 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
                       StreamControlType,
                       StreamNotificationType,
                       StreamStateType,
-                      SessionDataType,
-                      SessionDataContainerType,
                       StatisticContainerType,
+                      SessionManagerType,
                       TimerManagerType,
                       UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                  Stream_IAllocator* allocator_in)
@@ -179,9 +173,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType>
 int
@@ -193,9 +186,8 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
                       StreamControlType,
                       StreamNotificationType,
                       StreamStateType,
-                      SessionDataType,
-                      SessionDataContainerType,
                       StatisticContainerType,
+                      SessionManagerType,
                       TimerManagerType,
                       UserDataType>::svc (void)
 {
@@ -216,8 +208,9 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
   DataMessageType* message_p = NULL;
   bool stop_processing = false;
   struct AVPacket packet_s;
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
   struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration codec_configuration_s;
   std::vector<int> stream_ids_to_skip_a;

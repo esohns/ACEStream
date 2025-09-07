@@ -130,10 +130,6 @@ Test_I_SMTPSend_Stream::initialize (const typename inherited::CONFIGURATION_T& c
                 ACE_TEXT ("failed to Stream_Base_T::initialize(), aborting\n")));
     return false;
   } // end IF
-  ACE_ASSERT (inherited::sessionData_);
-
-//  struct SMTP_Stream_SessionData& session_data_r =
-//      const_cast<struct SMTP_Stream_SessionData&> (inherited::sessionData_->getR ());
 
   // ******************* Source ************************
 //  Stream_SMTPSend_NetSource* source_impl_p =
@@ -146,12 +142,6 @@ Test_I_SMTPSend_Stream::initialize (const typename inherited::CONFIGURATION_T& c
 //  Stream_SMTPSend_SSLNetSource* source_impl_3 =
 //    static_cast<Stream_SMTPSend_SSLNetSource*> (SSLSource_.writer ());
 //  source_impl_3->setP (&(inherited::state_));
-//#endif // SSL_SUPPORT
-//
-//  source_.arg (inherited::sessionData_);
-//  asynchSource_.arg (inherited::sessionData_);
-//#if defined (SSL_SUPPORT)
-//  SSLSource_.arg (inherited::sessionData_);
 //#endif // SSL_SUPPORT
 
   inherited::isInitialized_ = true;

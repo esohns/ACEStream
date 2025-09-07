@@ -71,6 +71,9 @@ Test_U_RIFFDecoder_Stream::initialize (const inherited::CONFIGURATION_T& configu
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
+  Test_U_SessionManager_t* session_manager_p =
+    Test_U_SessionManager_t::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -86,9 +89,9 @@ Test_U_RIFFDecoder_Stream::initialize (const inherited::CONFIGURATION_T& configu
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  ACE_ASSERT (inherited::sessionData_);
+
   session_data_p =
-    &const_cast<struct Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<struct Test_U_RIFFDecoder_SessionData&> (session_manager_p->getR ());
   session_data_p->fileSize =
     Common_File_Tools::size (iterator->second.second->fileIdentifier.identifier);
 

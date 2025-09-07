@@ -21,27 +21,154 @@
 #ifndef TEST_I_TARGET_SESSION_MESSAGE_H
 #define TEST_I_TARGET_SESSION_MESSAGE_H
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "control.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/Global_Macros.h"
 #include "ace/Message_Block.h"
 
 #include "stream_common.h"
+#include "stream_control_message.h"
 #include "stream_session_message_base.h"
 #include "stream_messageallocatorheap_base.h"
 
-#include "test_i_target_common.h"
+#include "test_i_camstream_common.h"
 
 // forward declaration(s)
 class ACE_Allocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Target_DirectShow_StreamState;
+struct Test_I_Target_MediaFoundation_StreamState;
+
 class Test_I_Target_DirectShow_Stream_Message;
 class Test_I_Target_MediaFoundation_Stream_Message;
-#endif
+#else
+struct Test_I_Target_StreamState;
+
 class Test_I_Target_Stream_Message;
-//template <ACE_SYNCH_DECL,
-//          typename AllocatorConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
+#endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+class Test_I_Target_DirectShow_SessionData
+ : public Stream_SessionDataMediaBase_T<struct Test_I_CamStream_DirectShow_SessionData,
+                                        struct _AMMediaType,
+                                        struct Test_I_Target_DirectShow_StreamState,
+                                        struct Stream_Statistic,
+                                        struct Stream_UserData>
+{
+ public:
+  Test_I_Target_DirectShow_SessionData ()
+   : Stream_SessionDataMediaBase_T<struct Test_I_CamStream_DirectShow_SessionData,
+                                   struct _AMMediaType,
+                                   struct Test_I_Target_DirectShow_StreamState,
+                                   struct Stream_Statistic,
+                                   struct Stream_UserData> ()
+   , connection (NULL)
+   , targetFileName ()
+   , windowController (NULL)
+  {}
+
+  Test_I_Target_DirectShow_SessionData& operator+= (const Test_I_Target_DirectShow_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Stream_SessionDataMediaBase_T<struct Test_I_CamStream_DirectShow_SessionData,
+                                  struct _AMMediaType,
+                                  struct Test_I_Target_DirectShow_StreamState,
+                                  struct Stream_Statistic,
+                                  struct Stream_UserData>::operator+= (rhs_in);
+
+    connection = ((connection == NULL) ? rhs_in.connection : connection);
+
+    return *this;
+  }
+
+  Net_IINETConnection_t* connection;
+  std::string            targetFileName;
+  IVideoWindow*          windowController;
+};
+typedef Stream_SessionData_T<Test_I_Target_DirectShow_SessionData> Test_I_Target_DirectShow_SessionData_t;
+
+class Test_I_Target_MediaFoundation_SessionData
+ : public Stream_SessionDataMediaBase_T<struct Test_I_CamStream_MediaFoundation_SessionData,
+                                        IMFMediaType*,
+                                        struct Test_I_Target_MediaFoundation_StreamState,
+                                        struct Stream_Statistic,
+                                        struct Stream_UserData>
+{
+ public:
+  Test_I_Target_MediaFoundation_SessionData ()
+   : Stream_SessionDataMediaBase_T<struct Test_I_CamStream_MediaFoundation_SessionData,
+                                   IMFMediaType*,
+                                   struct Test_I_Target_MediaFoundation_StreamState,
+                                   struct Stream_Statistic,
+                                   struct Stream_UserData> ()
+   , connection (NULL)
+   , outputFormat (NULL)
+   , sourceFormat (NULL)
+  {}
+
+  Test_I_Target_MediaFoundation_SessionData& operator+= (const Test_I_Target_MediaFoundation_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Stream_SessionDataMediaBase_T<struct Test_I_CamStream_MediaFoundation_SessionData,
+                                  IMFMediaType*,
+                                  struct Test_I_Target_MediaFoundation_StreamState,
+                                  struct Stream_Statistic,
+                                  struct Stream_UserData>::operator+= (rhs_in);
+
+    connection = ((connection == NULL) ? rhs_in.connection : connection);
+
+    return *this;
+  }
+
+  Net_IINETConnection_t* connection;
+  IMFMediaType*          outputFormat;
+  IMFMediaType*          sourceFormat;
+};
+typedef Stream_SessionData_T<Test_I_Target_MediaFoundation_SessionData> Test_I_Target_MediaFoundation_SessionData_t;
+#else
+class Test_I_Target_SessionData
+ : public Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
+                                        struct Stream_MediaFramework_FFMPEG_VideoMediaType,
+                                        struct Test_I_Target_StreamState,
+                                        struct Stream_Statistic,
+                                        struct Stream_UserData>
+{
+ public:
+  Test_I_Target_SessionData ()
+   : Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
+                                   struct Stream_MediaFramework_FFMPEG_VideoMediaType,
+                                   struct Test_I_Target_StreamState,
+                                   struct Stream_Statistic,
+                                   struct Stream_UserData> ()
+   , connection (NULL)
+   , connectionStates ()
+  {}
+
+  Test_I_Target_SessionData& operator+= (const Test_I_Target_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
+                                  struct Stream_MediaFramework_FFMPEG_VideoMediaType,
+                                  struct Test_I_Target_StreamState,
+                                  struct Stream_Statistic,
+                                  struct Stream_UserData>::operator+= (rhs_in);
+
+    connection = ((connection == NULL) ? rhs_in.connection : connection);
+    connectionStates.insert (rhs_in.connectionStates.begin (),
+                             rhs_in.connectionStates.end ());
+    targetFileName =
+      (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
+
+    return *this;
+  }
+
+  Net_IINETConnection_t*        connection;
+  Stream_Net_ConnectionStates_t connectionStates;
+};
+typedef Stream_SessionData_T<Test_I_Target_SessionData> Test_I_Target_SessionData_t;
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Target_DirectShow_SessionMessage

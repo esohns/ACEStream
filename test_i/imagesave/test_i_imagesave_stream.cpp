@@ -156,6 +156,9 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   Test_I_ImageSave_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
   std::string log_file_name;
+  Test_I_SessionManager_t* session_manager_p =
+    Test_I_SessionManager_t::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
 
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -193,22 +196,13 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 //  reset_setup_pipeline = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-  //ACE_ASSERT ((*iterator).second.second->direct3DConfiguration);
-
   session_data_p =
-    &const_cast<Test_I_ImageSave_SessionData&> (inherited::sessionData_->getR ());
-  // *TODO*: remove type inferences
-  //if ((*iterator).second.second->direct3DConfiguration->handle)
-  //{
-  //  (*iterator).second.second->direct3DConfiguration->handle->AddRef ();
-  //  session_data_p->direct3DDevice =
-  //    (*iterator).second.second->direct3DConfiguration->handle;
-  //} // end IF
+    &const_cast<Test_I_ImageSave_SessionData&> (session_manager_p->getR ());
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
   // step5: update session data
+  ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
 
   // ---------------------------------------------------------------------------

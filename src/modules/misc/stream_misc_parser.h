@@ -259,10 +259,8 @@ template <ACE_SYNCH_DECL, // state machine-/task
           typename SessionEventType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
-          ////////////////////////////////
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename UserDataType,
@@ -278,9 +276,8 @@ class Stream_Module_ParserH_T
                                       SessionControlType,
                                       SessionEventType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType>
  , public ParserDriverType
@@ -294,9 +291,8 @@ class Stream_Module_ParserH_T
                                       SessionControlType,
                                       SessionEventType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
   typedef ParserDriverType inherited2;

@@ -24,7 +24,6 @@
 #include <map>
 #include <string>
 
-#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "OAIdl.h"
 #include "control.h"
@@ -234,8 +233,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_DirectShow_StreamConfiguration,
                       struct Stream_Statistic,
                       struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                      Test_I_Source_DirectShow_SessionData,
-                      Test_I_Source_DirectShow_SessionData_t,
+                      Test_I_DirectShow_SessionManager_t,
                       Stream_ControlMessage_t,
                       Test_I_Source_DirectShow_Stream_Message,
                       Test_I_Source_DirectShow_SessionMessage> Test_I_Source_DirectShow_StreamBase_t;
@@ -249,8 +247,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_MediaFoundation_StreamConfiguration,
                       struct Stream_Statistic,
                       struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                      Test_I_Source_MediaFoundation_SessionData,
-                      Test_I_Source_MediaFoundation_SessionData_t,
+                      Test_I_MediaFoundation_SessionManager_t,
                       Stream_ControlMessage_t,
                       Test_I_Source_MediaFoundation_Stream_Message,
                       Test_I_Source_MediaFoundation_SessionMessage> Test_I_Source_MediaFoundation_StreamBase_t;

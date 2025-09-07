@@ -27,6 +27,7 @@
 #include "common_timer_manager_common.h"
 
 #include "stream_common.h"
+#include "stream_session_manager.h"
 #include "stream_streammodule_base.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -83,6 +84,19 @@
 
 // declare module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Stream_AVSave_DirectShow_SessionData,
+                                 struct Stream_AVSave_StatisticData,
+                                 struct Stream_UserData> Test_I_DirectShow_SessionManager_t;
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Stream_AVSave_MediaFoundation_SessionData,
+                                 struct Stream_AVSave_StatisticData,
+                                 struct Stream_UserData> Test_I_MediaFoundation_SessionManager_t;
+
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
@@ -150,9 +164,8 @@ typedef Stream_Dev_Mic_Source_WASAPI_T<ACE_MT_SYNCH,
                                        enum Stream_ControlType,
                                        enum Stream_SessionMessageType,
                                        struct Stream_AVSave_DirectShow_StreamState,
-                                       Stream_AVSave_DirectShow_SessionData,
-                                       Stream_AVSave_DirectShow_SessionData_t,
                                        struct Stream_AVSave_StatisticData,
+                                       Test_I_DirectShow_SessionManager_t,
                                        Common_Timer_Manager_t,
                                        struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_DirectShow_WASAPI_Source;
 //typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
@@ -177,9 +190,8 @@ typedef Stream_Dev_Cam_Source_VfW_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Stream_AVSave_DirectShow_StreamState,
-                                    Stream_AVSave_DirectShow_SessionData,
-                                    Stream_AVSave_DirectShow_SessionData_t,
                                     struct Stream_AVSave_StatisticData,
+                                    Test_I_DirectShow_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData,
                                     struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_VfW_Source;
@@ -191,9 +203,8 @@ typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            enum Stream_ControlType,
                                            enum Stream_SessionMessageType,
                                            struct Stream_AVSave_DirectShow_StreamState,
-                                           Stream_AVSave_DirectShow_SessionData,
-                                           Stream_AVSave_DirectShow_SessionData_t,
                                            struct Stream_AVSave_StatisticData,
+                                           Test_I_DirectShow_SessionManager_t,
                                            Common_Timer_Manager_t,
                                            struct Stream_UserData,
                                            struct Stream_MediaFramework_DirectShow_AudioVideoFormat,
@@ -207,9 +218,8 @@ typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
                                        enum Stream_ControlType,
                                        enum Stream_SessionMessageType,
                                        struct Stream_AVSave_MediaFoundation_StreamState,
-                                       Stream_AVSave_MediaFoundation_SessionData,
-                                       Stream_AVSave_MediaFoundation_SessionData_t,
                                        struct Stream_AVSave_StatisticData,
+                                       Test_I_MediaFoundation_SessionManager_t,
                                        Common_Timer_Manager_t,
                                        struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat> Stream_AVSave_MediaFoundation_WaveIn_Source;
 typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
@@ -220,9 +230,8 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 enum Stream_ControlType,
                                                 enum Stream_SessionMessageType,
                                                 struct Stream_AVSave_MediaFoundation_StreamState,
-                                                Stream_AVSave_MediaFoundation_SessionData,
-                                                Stream_AVSave_MediaFoundation_SessionData_t,
                                                 struct Stream_AVSave_StatisticData,
+                                                Test_I_MediaFoundation_SessionManager_t,
                                                 Common_Timer_Manager_t,
                                                 struct Stream_UserData,
                                                 struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat> Stream_AVSave_MediaFoundation_Source;

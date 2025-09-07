@@ -105,7 +105,8 @@ class Stream_SessionData_T
   typedef DataType DATA_T;
 
   // *IMPORTANT NOTE*: fire-and-forget API (first argument)
-  Stream_SessionData_T (DataType*&); // session data handle
+  Stream_SessionData_T (DataType*&,   // session data handle
+                        bool = true); // delete data_ on destruction ?
   virtual ~Stream_SessionData_T ();
 
   // implement Common_ILock_T
@@ -140,6 +141,8 @@ class Stream_SessionData_T
 
   // convenient types
   typedef Stream_SessionData_T<DataType> OWN_TYPE_T;
+
+  bool delete_;
 };
 
 // include template definition

@@ -57,8 +57,7 @@ class HTTPGet_Stream_T
                         struct Stream_Configuration,
                         struct Stream_Statistic,
                         struct HTTPGet_ModuleHandlerConfiguration,
-                        struct HTTPGet_SessionData,
-                        HTTPGet_SessionData_t,
+                        HTTPGet_SessionManager_t,
                         Stream_ControlMessage_t,
                         HTTPGet_Message,
                         HTTPGet_SessionMessage>
@@ -73,8 +72,7 @@ class HTTPGet_Stream_T
                         struct Stream_Configuration,
                         struct Stream_Statistic,
                         struct HTTPGet_ModuleHandlerConfiguration,
-                        struct HTTPGet_SessionData,
-                        HTTPGet_SessionData_t,
+                        HTTPGet_SessionManager_t,
                         Stream_ControlMessage_t,
                         HTTPGet_Message,
                         HTTPGet_SessionMessage> inherited;

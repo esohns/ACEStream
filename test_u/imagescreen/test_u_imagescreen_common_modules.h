@@ -21,13 +21,13 @@
 #ifndef TEST_U_IMAGESCREEN_COMMON_MODULES_H
 #define TEST_U_IMAGESCREEN_COMMON_MODULES_H
 
-#include "ace/config-lite.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 #include "common_timer_manager_common.h"
 
 #include "stream_common.h"
+#include "stream_session_manager.h"
 #include "stream_streammodule_base.h"
 
 #include "stream_file_source.h"
@@ -67,6 +67,13 @@
 #include "test_u_imagescreen_message.h"
 #include "test_u_imagescreen_session_message.h"
 
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Stream_ImageScreen_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_U_SessionManager_t;
+
 // declare module(s)
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
@@ -95,9 +102,8 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Stream_ImageScreen_StreamState,
-                                    Stream_ImageScreen_SessionData,
-                                    Stream_ImageScreen_SessionData_t,
                                     struct Stream_Statistic,
+                                    Test_U_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Stream_ImageScreen_Source;
 #if defined (FFMPEG_SUPPORT)
@@ -142,6 +148,7 @@ typedef Stream_File_ImageMagick_Source_T<ACE_MT_SYNCH,
                                          Stream_ImageScreen_SessionMessage_t,
                                          struct Stream_ImageScreen_StreamState,
                                          struct Stream_Statistic,
+                                         Test_U_SessionManager_t,
                                          Common_Timer_Manager_t,
                                          struct Stream_UserData,
                                          struct _AMMediaType> Stream_ImageScreen_ImageMagick_Source;

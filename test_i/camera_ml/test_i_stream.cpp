@@ -194,12 +194,16 @@ Stream_CameraML_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T&
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
   struct _AMMediaType media_type_s;
+  Test_I_DirectShow_SessionManager_t* session_manager_p =
+    Test_I_DirectShow_SessionManager_t::SINGLETON_T::instance ();
 
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   //iterator_2 =
   //  const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (Stream_Visualization_Tools::rendererToModuleName (configuration_in.configuration_->renderer));
   // sanity check(s)
+
+  ACE_ASSERT (session_manager_p);
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
   //ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
 
@@ -411,7 +415,6 @@ continue_:
 
   if (buffer_negotiation_p)
   {
-#if defined (_DEBUG)
     ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
     result_2 =
         buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
@@ -432,7 +435,6 @@ continue_:
                   allocator_properties.cbBuffer,
                   allocator_properties.cbAlign,
                   allocator_properties.cbPrefix));
-#endif // _DEBUG
     buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
   } // end IF
 
@@ -474,12 +476,8 @@ continue_:
     setup_pipeline;
   reset_setup_pipeline = false;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-  //ACE_ASSERT ((*iterator).second.second->direct3DConfiguration);
-
   session_data_p =
-    &const_cast<Stream_CameraML_DirectShow_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Stream_CameraML_DirectShow_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
   //if ((*iterator).second.second->direct3DConfiguration->handle)
   //{
@@ -505,6 +503,7 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step5: update session data
+  ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat ((*iterator).second.second->builder,
@@ -521,13 +520,6 @@ continue_:
   //ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::matchMediaType (*session_data_p->sourceFormat, *(*iterator).second.second->sourceFormat));
 
   // ---------------------------------------------------------------------------
-  // step6: initialize head module
-  //source_impl_p->setP (&(inherited::state_));
-  ////fileReader_impl_p->reset ();
-  //// *NOTE*: push()ing the module will open() it
-  ////         --> set the argument that is passed along (head module expects a
-  ////             handle to the session data)
-  //source_.arg (inherited::sessionData_);
 
   // step7: assemble stream
   if (configuration_in.configuration_->setupPipeline)
@@ -758,12 +750,8 @@ Stream_CameraML_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (mediaSession_);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  ACE_ASSERT (inherited::sessionData_);
 
-  //Stream_CameraML_SessionData& session_data_r =
-  //  const_cast<Stream_CameraML_SessionData&> (inherited::sessionData_->get ());
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = mediaSession_->EndGetEvent (result_in, &media_event_p);
   if (FAILED (result))
   {
@@ -773,7 +761,7 @@ Stream_CameraML_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   ACE_ASSERT (media_event_p);
   result = media_event_p->GetType (&event_type);
   ACE_ASSERT (SUCCEEDED (result));
@@ -832,14 +820,14 @@ Stream_CameraML_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: received MESessionEnded, closing sesion\n"),
                   ACE_TEXT (stream_name_string_)));
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       result = mediaSession_->Close ();
       if (FAILED (result))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
                     ACE_TEXT (stream_name_string_),
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       break;
     }
     case MESessionCapabilitiesChanged:
@@ -934,7 +922,7 @@ error:
 
 bool
 Stream_CameraML_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
-                                                  bool& delete_out)
+                                              bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraML_MediaFoundation_Stream::load"));
 
@@ -963,8 +951,15 @@ Stream_CameraML_MediaFoundation_Stream::initialize (const inherited::CONFIGURATI
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Stream_CameraML_MediaFoundation_SessionData* session_data_p = NULL;
-  inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   Stream_CameraML_MediaFoundation_Source* source_impl_p = NULL;
+  Test_I_MediaFoundation_SessionManager_t* session_manager_p =
+    Test_I_MediaFoundation_SessionManager_t::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -981,16 +976,8 @@ Stream_CameraML_MediaFoundation_Stream::initialize (const inherited::CONFIGURATI
     setup_pipeline;
   reset_setup_pipeline = false;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
   session_data_p =
-    &const_cast<Stream_CameraML_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
-  iterator =
-      const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-
-  // sanity check(s)
-  ACE_ASSERT (iterator != configuration_in.end ());
+    &const_cast<Stream_CameraML_MediaFoundation_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
   //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
@@ -1099,9 +1086,7 @@ Stream_CameraML_MediaFoundation_Stream::initialize (const inherited::CONFIGURATI
   } // end IF
   ACE_ASSERT (topology_p);
   graph_loaded = true;
-#if defined (_DEBUG)
   Stream_MediaFramework_MediaFoundation_Tools::dump (topology_p);
-#endif // _DEBUG
 
 continue_:
   if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
@@ -1112,12 +1097,10 @@ continue_:
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: capture format: \"%s\"\n"),
               ACE_TEXT (stream_name_string_),
               ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration_->format).c_str ())));
-#endif // _DEBUG
 
   ACE_ASSERT (session_data_p->formats.empty ());
   media_type_p =
@@ -1171,20 +1154,13 @@ continue_:
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   topology_p->Release (); topology_p = NULL;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (!(*iterator).second.second->session)
   {
     ULONG reference_count = mediaSession_->AddRef ();
     (*iterator).second.second->session = mediaSession_;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-
-  source_impl_p->setP (&(inherited::state_));
-
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  source_.arg (inherited::sessionData_);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))
@@ -1219,12 +1195,12 @@ error:
   {
     session_data_p->session->Release (); session_data_p->session = NULL;
   } // end IF
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
   {
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   if (COM_initialized)
     CoUninitialize ();

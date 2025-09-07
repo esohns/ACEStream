@@ -50,10 +50,8 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
-          ////////////////////////////////
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename UserDataType,
@@ -69,9 +67,8 @@ class Stream_Decoder_MP3Decoder_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
@@ -85,9 +82,8 @@ class Stream_Decoder_MP3Decoder_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;

@@ -78,11 +78,18 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  inherited::CONFIGURATION_T::CONST_ITERATOR_T iterator;
+  inherited::CONFIGURATION_T::CONST_ITERATOR_T iterator =
+    configuration_in.find (ACE_TEXT_ALWAYS_CHAR (""));
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   struct Test_I_Target_SessionData* session_data_p = NULL;
   bool reset_setup_pipeline = false;
   Test_I_Target_Module_TCP_Writer_t* netIO_impl_p = NULL;
+  Test_I_SessionManager_2* session_manager_p =
+    Test_I_SessionManager_2::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -100,51 +107,13 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
     setup_pipeline;
   reset_setup_pipeline = false;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
   session_data_p =
-      &const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->getR ());
-  iterator = configuration_in.find (ACE_TEXT_ALWAYS_CHAR (""));
-
-  // sanity check(s)
-  ACE_ASSERT (iterator != configuration_in.end ());
-
+    &const_cast<struct Test_I_Target_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
-  //  session_data_r.fileName =
-  //    configuration_in.moduleHandlerConfiguration->fileName;
   session_data_p->targetFileName =
       (*iterator).second.second->fileIdentifier.identifier;
 
-  // things to be done here:
-  // [- initialize base class]
-  // ------------------------------------
-  // - initialize modules
-  // ------------------------------------
-  // - push them onto the stream (tail-first) !
-  // ------------------------------------
-
-//  configuration_in.moduleConfiguration.streamState = &state_;
-
   // ---------------------------------------------------------------------------
-
-  // ---------------------------------------------------------------------------
-
-  // ******************* Net IO ***********************
-  netIO_impl_p =
-    dynamic_cast<Test_I_Target_Module_TCP_Writer_t*> (netIO_.writer ());
-  if (!netIO_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Module_Net_Writer_T> failed, aborting\n")));
-    goto error;
-  } // end IF
-  netIO_impl_p->setP (&(inherited::state_));
-//  netIO_impl_p->reset ();
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  netIO_.arg (inherited::sessionData_);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup ())
@@ -175,22 +144,15 @@ Test_I_Target_TCPStream::collect (struct Stream_Statistic& data_out)
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_TCPStream::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
+  Test_I_SessionManager_2* session_manager_p =
+    Test_I_SessionManager_2::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
 
   int result = -1;
   bool release_lock = false;
 
   struct Test_I_Target_SessionData& session_data_r =
-        const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->getR ());
-
-  //Test_I_Target_Module_Statistic_WriterTask_t* statistic_impl_p =
-  //  dynamic_cast<Test_I_Target_Module_Statistic_WriterTask_t*> (statisticReport_.writer ());
-  //if (!statistic_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("dynamic_cast<Test_I_Target_Module_Statistic_WriterTask_t> failed, aborting\n")));
-  //  return false;
-  //} // end IF
+    const_cast<struct Test_I_Target_SessionData&> (session_manager_p->getR ());
 
   // synch access
   if (session_data_r.lock)
@@ -310,11 +272,18 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  inherited::CONFIGURATION_T::CONST_ITERATOR_T iterator;
+  inherited::CONFIGURATION_T::CONST_ITERATOR_T iterator =
+    configuration_in.find (ACE_TEXT_ALWAYS_CHAR (""));
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   struct Test_I_Target_SessionData* session_data_p = NULL;
   bool reset_setup_pipeline = false;
   Test_I_Target_Module_TCP_Writer_t* netIO_impl_p = NULL;
+  Test_I_SessionManager_2* session_manager_p =
+    Test_I_SessionManager_2::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -332,50 +301,12 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
     setup_pipeline;
   reset_setup_pipeline = false;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
   session_data_p =
-      &const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->getR ());
-  iterator = configuration_in.find (ACE_TEXT_ALWAYS_CHAR (""));
-
-  // sanity check(s)
-  ACE_ASSERT (iterator != configuration_in.end ());
-
+    &const_cast<struct Test_I_Target_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
-  //  session_data_r.fileName =
-  //    configuration_in.moduleHandlerConfiguration->fileName;
   session_data_p->targetFileName = (*iterator).second.second->fileIdentifier.identifier;
 
-  // things to be done here:
-  // [- initialize base class]
-  // ------------------------------------
-  // - initialize modules
-  // ------------------------------------
-  // - push them onto the stream (tail-first) !
-  // ------------------------------------
-
-//  configuration_in.moduleConfiguration.streamState = &state_;
-
   // ---------------------------------------------------------------------------
-
-  // ---------------------------------------------------------------------------
-
-  // ******************* Net IO ***********************
-  netIO_impl_p =
-    dynamic_cast<Test_I_Target_Module_TCP_Writer_t*> (netIO_.writer ());
-  if (!netIO_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Module_Net_Writer_T> failed, aborting\n")));
-    goto error;
-  } // end IF
-  netIO_impl_p->setP (&(inherited::state_));
-//  netIO_impl_p->reset ();
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  netIO_.arg (inherited::sessionData_);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup ())
@@ -406,22 +337,15 @@ Test_I_Target_UDPStream::collect (struct Stream_Statistic& data_out)
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_UDPStream::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
+  Test_I_SessionManager_2* session_manager_p =
+    Test_I_SessionManager_2::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
 
   int result = -1;
   bool release_lock = false;
 
   struct Test_I_Target_SessionData& session_data_r =
-        const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->getR ());
-
-  //Test_I_Target_Module_Statistic_WriterTask_t* statistic_impl_p =
-  //  dynamic_cast<Test_I_Target_Module_Statistic_WriterTask_t*> (statisticReport_.writer ());
-  //if (!statistic_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("dynamic_cast<Test_I_Target_Module_Statistic_WriterTask_t> failed, aborting\n")));
-  //  return false;
-  //} // end IF
+    const_cast<struct Test_I_Target_SessionData&> (session_manager_p->getR ());
 
   // synch access
   if (session_data_r.lock)

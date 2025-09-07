@@ -56,10 +56,8 @@ template <ACE_SYNCH_DECL, // state machine-/task
           typename SessionEventType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
-          ////////////////////////////////
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename UserDataType>
@@ -239,9 +237,8 @@ class Stream_HeadModuleTaskBase_T
                                       StreamControlType,
                                       SessionEventType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType> OWN_TYPE_T;
 

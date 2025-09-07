@@ -135,7 +135,14 @@ Test_I_Target_DirectShow_TCPStream::initialize (const CONFIGURATION_T& configura
   bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
-  inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  Test_I_DirectShow_SessionManager_2* session_manager_p =
+    Test_I_DirectShow_SessionManager_2::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -152,15 +159,12 @@ Test_I_Target_DirectShow_TCPStream::initialize (const CONFIGURATION_T& configura
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  ACE_ASSERT (inherited::sessionData_);
+
   Test_I_Target_DirectShow_SessionData& session_data_r =
-    const_cast<Test_I_Target_DirectShow_SessionData&> (inherited::sessionData_->getR ());
+    const_cast<Test_I_Target_DirectShow_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
-  session_data_r.lock = &(inherited::sessionDataLock_);
-  inherited::state_.sessionData = &session_data_r;
-  iterator =
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.end ());
+  //session_data_r.lock = &(inherited::sessionDataLock_);
+  //inherited::state_.sessionData = &session_data_r;
 
   // ---------------------------------------------------------------------------
 
@@ -184,7 +188,6 @@ Test_I_Target_DirectShow_TCPStream::initialize (const CONFIGURATION_T& configura
   //  goto error;
   //} // end IF
 
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("source format: %s\n"),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString ((*iterator).second.second->sourceFormat, true).c_str ())));
@@ -196,7 +199,6 @@ Test_I_Target_DirectShow_TCPStream::initialize (const CONFIGURATION_T& configura
   //log_file_name += STREAM_DEV_DIRECTSHOW_LOGFILE_NAME;
   //Stream_Module_Device_DirectShow_Tools::debug (graphBuilder_,
   //                                              log_file_name);
-#endif // _DEBUG
 
   // ---------------------------------------------------------------------------
 
@@ -364,7 +366,14 @@ Test_I_Target_DirectShow_UDPStream::initialize (const CONFIGURATION_T& configura
   bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
-  inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  Test_I_DirectShow_SessionManager_2* session_manager_p =
+    Test_I_DirectShow_SessionManager_2::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -381,15 +390,12 @@ Test_I_Target_DirectShow_UDPStream::initialize (const CONFIGURATION_T& configura
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  ACE_ASSERT (inherited::sessionData_);
+
   Test_I_Target_DirectShow_SessionData& session_data_r =
-    const_cast<Test_I_Target_DirectShow_SessionData&> (inherited::sessionData_->getR ());
+    const_cast<Test_I_Target_DirectShow_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
-  session_data_r.lock = &(inherited::sessionDataLock_);
-  inherited::state_.sessionData = &session_data_r;
-  iterator =
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.end ());
+  //session_data_r.lock = &(inherited::sessionDataLock_);
+  //inherited::state_.sessionData = &session_data_r;
 
   // ---------------------------------------------------------------------------
 
@@ -413,7 +419,6 @@ Test_I_Target_DirectShow_UDPStream::initialize (const CONFIGURATION_T& configura
     goto error;
   } // end IF
 
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("source format: %s\n"),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString ((*iterator).second.second->sourceFormat, true).c_str ())));
@@ -425,7 +430,6 @@ Test_I_Target_DirectShow_UDPStream::initialize (const CONFIGURATION_T& configura
   //log_file_name += STREAM_DEV_DIRECTSHOW_LOGFILE_NAME;
   //Stream_Module_Device_DirectShow_Tools::debug (graphBuilder_,
   //                                              log_file_name);
-#endif // _DEBUG
 
   // ---------------------------------------------------------------------------
 
@@ -597,9 +601,16 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
   bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
-  inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   std::string url_string = ACE_TEXT_ALWAYS_CHAR (CAMSTREAM_TARGET_DEFAULT_SCHEME_HANDLER_URL);
   //url_string += ACE_TEXT_ALWAYS_CHAR ("//test");
+  Test_I_MediaFoundation_SessionManager_2* session_manager_p =
+    Test_I_MediaFoundation_SessionManager_2::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -616,16 +627,13 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  ACE_ASSERT (inherited::sessionData_);
+
   Test_I_Target_MediaFoundation_SessionData& session_data_r =
-    const_cast<Test_I_Target_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
+    const_cast<Test_I_Target_MediaFoundation_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
-  session_data_r.lock = &(inherited::sessionDataLock_);
-  inherited::state_.sessionData = &session_data_r;
-  iterator =
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.end ());
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  //session_data_r.lock = &(inherited::sessionDataLock_);
+  //inherited::state_.sessionData = &session_data_r;
+
   ACE_ASSERT ((*iterator).second.second->sourceFormat);
   ACE_ASSERT (!session_data_r.sourceFormat);
 
@@ -638,9 +646,6 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-#else
-  session_data_r.sourceFormat = configuration_p->format;
-#endif // ACE_WIN32 || ACE_WIN64
 
   // ---------------------------------------------------------------------------
 
@@ -959,8 +964,15 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
   bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
-  inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   std::string url_string = ACE_TEXT_ALWAYS_CHAR (CAMSTREAM_TARGET_DEFAULT_SCHEME_HANDLER_URL);
+  Test_I_MediaFoundation_SessionManager_2* session_manager_p =
+    Test_I_MediaFoundation_SessionManager_2::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -977,16 +989,13 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  ACE_ASSERT (inherited::sessionData_);
+
   Test_I_Target_MediaFoundation_SessionData& session_data_r =
-    const_cast<Test_I_Target_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
+    const_cast<Test_I_Target_MediaFoundation_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
-  session_data_r.lock = &(inherited::sessionDataLock_);
-  inherited::state_.sessionData = &session_data_r;
-  iterator =
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.end ());
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  //session_data_r.lock = &(inherited::sessionDataLock_);
+  //inherited::state_.sessionData = &session_data_r;
+
   ACE_ASSERT ((*iterator).second.second->sourceFormat);
   ACE_ASSERT (!session_data_r.sourceFormat);
 
@@ -999,9 +1008,6 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-#else
-  session_data_r.sourceFormat = configuration_p->format;
-#endif // ACE_WIN32 || ACE_WIN64
 
   // ---------------------------------------------------------------------------
 
@@ -1043,14 +1049,12 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
   ACE_ASSERT (topology_p);
   graph_loaded = true;
 
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: source format: \"%s\"\n"),
               ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString ((*iterator).second.second->sourceFormat).c_str ()),
               ACE_TEXT (stream_name_string_)));
-#endif // _DEBUG
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
   {
     // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
@@ -1091,7 +1095,7 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
     reference_count = mediaSession_->AddRef ();
     (*iterator).second.second->session = mediaSession_;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   topology_p->Release (); topology_p = NULL;
 
   // ---------------------------------------------------------------------------

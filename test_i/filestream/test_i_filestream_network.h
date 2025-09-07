@@ -38,6 +38,7 @@
 #include "stream_configuration.h"
 #include "stream_control_message.h"
 #include "stream_session_data.h"
+#include "stream_session_manager.h"
 
 #include "stream_net_io_stream.h"
 
@@ -64,12 +65,6 @@
 #include "test_i_message.h"
 
 // forward declarations
-//struct Test_I_Source_Stream_Configuration;
-//struct Test_I_StreamConfiguration;
-//struct Test_I_Source_ModuleHandlerConfiguration;
-//struct Test_I_ModuleHandlerConfiguration;
-//struct Test_I_Source_SessionData;
-//typedef Stream_SessionData_T<Test_I_Source_SessionData> Test_I_Source_SessionData_t;
 struct Test_I_Source_SessionData;
 
 //////////////////////////////////////////
@@ -78,9 +73,6 @@ typedef Stream_SessionData_T<struct Test_I_Source_SessionData> Test_I_Source_Ses
 class Test_I_Source_SessionMessage;
 typedef Test_I_Message_T<enum Stream_MessageType,
                          Test_I_Source_SessionMessage> Test_I_Source_Message_t;
-//typedef Stream_ControlMessage_T<enum Stream_ControlType,
-//                                enum Stream_ControlMessageType,
-//                                struct Common_AllocatorConfiguration> Stream_ControlMessage_t;
 
 //////////////////////////////////////////
 
@@ -144,29 +136,21 @@ typedef Net_IConnectionManager_T<ACE_INET_Addr,
 
 //////////////////////////////////////////
 
-//typedef Net_IConnection_T<ACE_INET_Addr,
-//                          //Test_I_Source_TCPConnectionConfiguration_t,
-//                          struct Net_StreamConnectionState,
-//                          Net_StreamStatistic_t> Test_I_Source_ITCPConnection_t;
-//typedef Net_IConnection_T<ACE_INET_Addr,
-//                          //Test_I_Source_UDPConnectionConfiguration_t,
-//                          struct Net_StreamConnectionState,
-//                          Net_StreamStatistic_t> Test_I_Source_IUDPConnection_t;
-//
-//typedef Net_IConnection_T<ACE_INET_Addr,
-//                          //Test_I_Target_TCPConnectionConfiguration_t,
-//                          struct Net_StreamConnectionState,
-//                          Net_StreamStatistic_t> Test_I_Target_ITCPConnection_t;
-//typedef Net_IConnection_T<ACE_INET_Addr,
-//                          //Test_I_Target_UDPConnectionConfiguration_t,
-//                          struct Net_StreamConnectionState,
-//                          Net_StreamStatistic_t> Test_I_Target_IUDPConnection_t;
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 struct Test_I_Source_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_I_SessionManager_t;
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 struct Test_I_Target_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_I_SessionManager_2;
 
-//////////////////////////////////////////
-
-//static constexpr const char network_io_stream_name_string_[] =
-//    ACE_TEXT_ALWAYS_CHAR ("NetworkIOStream");
 extern const char stream_name_string_[];
+
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       stream_name_string_,
@@ -178,8 +162,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Stream_Statistic,
                                       Common_Timer_Manager_t,
                                       struct Test_I_Source_ModuleHandlerConfiguration,
-                                      struct Test_I_Source_SessionData,
-                                      Test_I_Source_SessionData_t,
+                                      Test_I_SessionManager_t,
                                       Stream_ControlMessage_t,
                                       Test_I_Source_Message_t,
                                       Test_I_Source_SessionMessage,
@@ -197,8 +180,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Stream_Statistic,
                                       Common_Timer_Manager_t,
                                       struct Test_I_Source_ModuleHandlerConfiguration,
-                                      struct Test_I_Source_SessionData,
-                                      Test_I_Source_SessionData_t,
+                                      Test_I_SessionManager_t,
                                       Stream_ControlMessage_t,
                                       Test_I_Source_Message_t,
                                       Test_I_Source_SessionMessage,

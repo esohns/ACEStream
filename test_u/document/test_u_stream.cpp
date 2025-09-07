@@ -101,7 +101,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  ACE_ASSERT (inherited::sessionData_);
+  //ACE_ASSERT (inherited::sessionData_);
 //  session_data_p =
 //      &const_cast<struct Test_U_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences

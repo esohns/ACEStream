@@ -40,6 +40,7 @@
 #include "stream_data_base.h"
 #include "stream_isessionnotify.h"
 #include "stream_session_data.h"
+#include "stream_session_manager.h"
 
 // forward declarations
 struct Parser_AllocatorConfiguration;
@@ -158,5 +159,14 @@ struct Parser_StreamState
 
   //struct Parser_UserData*    userData;
 };
+
+//////////////////////////////////////////
+
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 struct Parser_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_U_SessionManager_t;
 
 #endif

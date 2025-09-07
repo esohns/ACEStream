@@ -28,11 +28,19 @@
 
 #include "stream_base.h"
 #include "stream_common.h"
+#include "stream_session_manager.h"
 
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
 #include "test_i_extract_stream_common.h"
+
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_I_ExtractStream_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_I_SessionManager_t;
 
 extern const char stream_name_string_[];
 
@@ -47,8 +55,7 @@ class Test_I_Stream
                         struct Test_I_ExtractStream_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_I_ExtractStream_ModuleHandlerConfiguration,
-                        Test_I_ExtractStream_SessionData,
-                        Test_I_ExtractStream_SessionData_t,
+                        Test_I_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Message_t,
                         Test_I_SessionMessage_t>
@@ -63,8 +70,7 @@ class Test_I_Stream
                         struct Test_I_ExtractStream_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_I_ExtractStream_ModuleHandlerConfiguration,
-                        Test_I_ExtractStream_SessionData,
-                        Test_I_ExtractStream_SessionData_t,
+                        Test_I_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Message_t,
                         Test_I_SessionMessage_t> inherited;

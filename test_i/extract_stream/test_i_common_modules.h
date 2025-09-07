@@ -27,6 +27,7 @@
 #include "common_timer_manager_common.h"
 
 #include "stream_common.h"
+#include "stream_session_manager.h"
 #include "stream_streammodule_base.h"
 
 #include "stream_file_sink.h"
@@ -65,6 +66,13 @@
 
 #include "test_i_extract_stream_common.h"
 
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_I_ExtractStream_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_I_SessionManager_t;
+
 // declare module(s)
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
@@ -85,6 +93,7 @@ typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                 enum Stream_SessionMessageType,
                                 struct Stream_UserData> Test_I_TaskBaseAsynch_t;
 
+#if defined (FFMPEG_SUPPORT)
 typedef Stream_LibAV_Source_T<ACE_MT_SYNCH,
                               Stream_ControlMessage_t,
                               Test_I_Message_t,
@@ -93,13 +102,11 @@ typedef Stream_LibAV_Source_T<ACE_MT_SYNCH,
                               enum Stream_ControlType,
                               enum Stream_SessionMessageType,
                               struct Test_I_ExtractStream_StreamState,
-                              Test_I_ExtractStream_SessionData,
-                              Test_I_ExtractStream_SessionData_t,
                               struct Stream_Statistic,
+                              Test_I_SessionManager_t,
                               Common_Timer_Manager_t,
                               struct Stream_UserData> Test_I_Source;
 
-#if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVAudioDecoder_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
                                            struct Test_I_ExtractStream_ModuleHandlerConfiguration,

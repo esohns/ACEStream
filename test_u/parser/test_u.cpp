@@ -197,8 +197,8 @@ do_work (int argc_in,
   int result = -1;
   Parser_MessageData_t* data_container_p = NULL;
   Parser_MessageData* data_3 = NULL;
-  const Parser_SessionData_t* session_data_container_p = NULL;
-  const Parser_SessionData* session_data_p = NULL;
+  struct Parser_SessionData session_data_s;
+  Test_U_SessionManager_t* session_manager_p = NULL;
 
   // step1: initialize/start stream
   parser_configuration.block = true;
@@ -218,6 +218,11 @@ do_work (int argc_in,
   stream_configuration_2.initialize (module_configuration,
                                      modulehandler_configuration,
                                      stream_configuration);
+
+  session_manager_p = Test_U_SessionManager_t::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
+  session_manager_p->set (session_data_s);
+
   if (!parser_stream.initialize (stream_configuration_2))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -257,10 +262,8 @@ do_work (int argc_in,
   ACE_ASSERT (data_3);
   data_container_p->setPR (data_3);
 
-  session_data_container_p = &parser_stream.getR_2 ();
-  session_data_p = &session_data_container_p->getR ();
   message_p->initialize (data_container_p,
-                         session_data_p->sessionId,
+                         session_data_s.sessionId,
                          NULL);
 
   if (!Common_File_Tools::load (file_path_2,

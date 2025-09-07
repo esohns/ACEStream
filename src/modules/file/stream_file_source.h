@@ -59,10 +59,8 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
-          ////////////////////////////////
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename UserDataType>
@@ -76,9 +74,8 @@ class Stream_Module_FileReaderH_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType>
 {
@@ -91,9 +88,8 @@ class Stream_Module_FileReaderH_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
 
@@ -113,9 +109,8 @@ class Stream_Module_FileReaderH_T
                                     StreamControlType,
                                     StreamNotificationType,
                                     StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
                                     StatisticContainerType,
+                                    SessionManagerType,
                                     TimerManagerType,
                                     UserDataType>::initialize;
 #endif // __GNUG__ || _MSC_VER

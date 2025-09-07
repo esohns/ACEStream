@@ -27,6 +27,7 @@
 #include "common_timer_manager_common.h"
 
 #include "stream_common.h"
+#include "stream_session_manager.h"
 #include "stream_streammodule_base.h"
 #include "stream_task_base_synch.h"
 
@@ -78,6 +79,18 @@
 #include "test_i_commandspeech_common.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_I_CommandSpeech_DirectShow_SessionData,
+                                 struct Strean_Statistic,
+                                 struct Stream_UserData> Test_I_DirectShow_SessionManager_t;
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_I_CommandSpeech_MediaFoundation_SessionData,
+                                 struct Strean_Statistic,
+                                 struct Stream_UserData> Test_I_MediaFoundation_SessionManager_t;
 
 typedef Stream_Module_QueueReader_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,
@@ -87,9 +100,8 @@ typedef Stream_Module_QueueReader_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Test_I_CommandSpeech_DirectShow_StreamState,
-                                    Test_I_CommandSpeech_DirectShow_SessionData,
-                                    Test_I_CommandSpeech_DirectShow_SessionData_t,
                                     struct Stream_Statistic,
+                                    Test_I_DirectShow_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Test_I_DirectShow_QueueReader;
 typedef Stream_Module_QueueReader_T<ACE_MT_SYNCH,
@@ -100,9 +112,8 @@ typedef Stream_Module_QueueReader_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Test_I_CommandSpeech_MediaFoundation_StreamState,
-                                    Test_I_CommandSpeech_MediaFoundation_SessionData,
-                                    Test_I_CommandSpeech_MediaFoundation_SessionData_t,
                                     struct Stream_Statistic,
+                                    Test_I_MediaFoundation_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Test_I_MediaFoundation_QueueReader;
 
@@ -114,9 +125,8 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Test_I_CommandSpeech_DirectShow_StreamState,
-                                    Test_I_CommandSpeech_DirectShow_SessionData,
-                                    Test_I_CommandSpeech_DirectShow_SessionData_t,
                                     struct Stream_Statistic,
+                                    Test_I_DirectShow_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Test_I_DirectShow_FileReader;
 typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
@@ -127,9 +137,8 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Test_I_CommandSpeech_MediaFoundation_StreamState,
-                                    Test_I_CommandSpeech_MediaFoundation_SessionData,
-                                    Test_I_CommandSpeech_MediaFoundation_SessionData_t,
                                     struct Stream_Statistic,
+                                    Test_I_MediaFoundation_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Test_I_MediaFoundation_FileReader;
 

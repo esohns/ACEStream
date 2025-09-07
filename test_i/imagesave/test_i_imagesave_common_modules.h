@@ -27,6 +27,7 @@
 #include "common_timer_manager_common.h"
 
 #include "stream_common.h"
+#include "stream_session_manager.h"
 #include "stream_streammodule_base.h"
 
 #include "stream_dec_mpeg_4_decoder.h"
@@ -66,6 +67,13 @@
 #include "test_i_imagesave_message.h"
 #include "test_i_imagesave_session_message.h"
 
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_I_ImageSave_SessionData,
+                                 struct Test_I_StatisticData,
+                                 struct Stream_UserData> Test_I_SessionManager_t;
+
 // declare module(s)
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
@@ -94,9 +102,8 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Test_I_ImageSave_StreamState,
-                                    Test_I_ImageSave_SessionData,
-                                    Test_I_ImageSave_SessionData_t,
                                     struct Test_I_StatisticData,
+                                    Test_I_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Test_I_Source;
 

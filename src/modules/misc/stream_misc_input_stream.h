@@ -49,8 +49,7 @@ template <ACE_SYNCH_DECL,
           ///////////////////////////////
           typename HandlerConfigurationType,
           ////////////////////////////////
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // (reference counted)
+          typename SessionManagerType,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
@@ -68,8 +67,7 @@ class Stream_Miscellaneous_Input_Stream_T
                         ConfigurationType,
                         StatisticContainerType,
                         HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
+                        SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType>
@@ -84,8 +82,7 @@ class Stream_Miscellaneous_Input_Stream_T
                         ConfigurationType,
                         StatisticContainerType,
                         HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
+                        SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType> inherited;
@@ -105,8 +102,7 @@ class Stream_Miscellaneous_Input_Stream_T
                         ConfigurationType,
                         StatisticContainerType,
                         HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
+                        SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType> STREAM_BASE_T;
@@ -131,14 +127,14 @@ class Stream_Miscellaneous_Input_Stream_T
                                       ControlType,
                                       NotificationType,
                                       StateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType> WRITER_T;
+  typedef typename SessionMessageType::DATA_T::DATA_T SESSION_DATA_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,                     // task synch type
                                          TimePolicyType,                    // time policy
-                                         SessionDataType,                   // session data type
+                                         SESSION_DATA_T,                    // session data type
                                          enum Stream_SessionMessageType,    // session event type
                                          struct Stream_ModuleConfiguration, // module configuration type
                                          HandlerConfigurationType,          // module handler configuration type
@@ -158,8 +154,7 @@ class Stream_Miscellaneous_Input_Stream_T
                                               StatisticContainerType,
                                               TimerManagerType,
                                               HandlerConfigurationType,
-                                              SessionDataType,
-                                              SessionDataContainerType,
+                                              SessionManagerType,
                                               ControlMessageType,
                                               DataMessageType,
                                               SessionMessageType,

@@ -127,8 +127,7 @@ class Test_U_DirectShow_Stream
                         struct Test_U_CameraFilter_DirectShow_StreamConfiguration,
                         struct Test_U_StatisticData,
                         struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration,
-                        Test_U_CameraFilter_DirectShow_SessionData,
-                        Test_U_CameraFilter_DirectShow_SessionData_t,
+                        Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_DirectShow_Message_t,
                         Test_U_DirectShow_SessionMessage_t>
@@ -143,8 +142,7 @@ class Test_U_DirectShow_Stream
                         struct Test_U_CameraFilter_DirectShow_StreamConfiguration,
                         struct Test_U_StatisticData,
                         struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration,
-                        Test_U_CameraFilter_DirectShow_SessionData,
-                        Test_U_CameraFilter_DirectShow_SessionData_t,
+                        Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_DirectShow_Message_t,
                         Test_U_DirectShow_SessionMessage_t> inherited;
@@ -254,8 +252,7 @@ class Test_U_MediaFoundation_Stream
                         struct Test_U_CameraFilter_MediaFoundation_StreamConfiguration,
                         struct Test_U_StatisticData,
                         struct Test_U_CameraFilter_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_U_CameraFilter_MediaFoundation_SessionData,
-                        Test_U_CameraFilter_MediaFoundation_SessionData_t,
+                        Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_MediaFoundation_Message_t,
                         Test_U_MediaFoundation_SessionMessage_t>
@@ -271,8 +268,7 @@ class Test_U_MediaFoundation_Stream
                         struct Test_U_CameraFilter_MediaFoundation_StreamConfiguration,
                         struct Test_U_StatisticData,
                         struct Test_U_CameraFilter_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_U_CameraFilter_MediaFoundation_SessionData,
-                        Test_U_CameraFilter_MediaFoundation_SessionData_t,
+                        Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_MediaFoundation_Message_t,
                         Test_U_MediaFoundation_SessionMessage_t> inherited;

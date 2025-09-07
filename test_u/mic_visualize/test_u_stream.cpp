@@ -424,6 +424,11 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
   bool reset_setup_pipeline = false;
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  Test_U_DirectShow_SessionManager_t* session_manager_p =
+    Test_U_DirectShow_SessionManager_t::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -441,9 +446,8 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
   reset_setup_pipeline = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
   Test_U_MicVisualize_DirectShow_SessionData& session_data_r =
-    const_cast<Test_U_MicVisualize_DirectShow_SessionData&> (inherited::sessionData_->getR ());
+    const_cast<Test_U_MicVisualize_DirectShow_SessionData&> (session_manager_p->getR ());
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
@@ -1449,6 +1453,12 @@ Test_U_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& con
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_MediaFoundation_Stream::initialize"));
 
+  Test_U_MediaFoundation_SessionManager_t* session_manager_p =
+    Test_U_MediaFoundation_SessionManager_t::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (session_manager_p);
+
   if (inherited::isInitialized_)
   {
     if (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING),
@@ -1504,9 +1514,8 @@ Test_U_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& con
   reset_setup_pipeline = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
   Test_U_MicVisualize_MediaFoundation_SessionData& session_data_r =
-    const_cast<Test_U_MicVisualize_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
+    const_cast<Test_U_MicVisualize_MediaFoundation_SessionData&> (session_manager_p->getR ());
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());

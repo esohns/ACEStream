@@ -37,7 +37,6 @@
 #include "test_i_common_modules.h"
 #include "test_i_message.h"
 #include "test_i_module_htmlparser.h"
-//#include "test_i_module_htmlwriter.h"
 #include "test_i_session_message.h"
 
 // forward declarations
@@ -57,8 +56,7 @@ class Test_I_HTTPGet_Stream_T
                         struct Test_I_HTTPGet_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                        struct Test_I_Stream_SessionData,
-                        Test_I_Stream_SessionData_t,
+                        Test_I_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage>
@@ -73,8 +71,7 @@ class Test_I_HTTPGet_Stream_T
                         struct Test_I_HTTPGet_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                        struct Test_I_Stream_SessionData,
-                        Test_I_Stream_SessionData_t,
+                        Test_I_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage> inherited;

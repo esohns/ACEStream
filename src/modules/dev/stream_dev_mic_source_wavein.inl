@@ -39,9 +39,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
@@ -52,9 +51,8 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                StreamControlType,
                                StreamNotificationType,
                                StreamStateType,
-                               SessionDataType,
-                               SessionDataContainerType,
                                StatisticContainerType,
+                               SessionManagerType,
                                TimerManagerType,
                                MediaType>::Stream_Dev_Mic_Source_WaveIn_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in) // stream handle
@@ -78,9 +76,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
@@ -91,9 +88,8 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                StreamControlType,
                                StreamNotificationType,
                                StreamStateType,
-                               SessionDataType,
-                               SessionDataContainerType,
                                StatisticContainerType,
+                               SessionManagerType,
                                TimerManagerType,
                                MediaType>::~Stream_Dev_Mic_Source_WaveIn_T ()
 {
@@ -121,9 +117,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 bool
@@ -135,9 +130,8 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                StreamControlType,
                                StreamNotificationType,
                                StreamStateType,
-                               SessionDataType,
-                               SessionDataContainerType,
                                StatisticContainerType,
+                               SessionManagerType,
                                TimerManagerType,
                                MediaType>::initialize (const ConfigurationType& configuration_in,
                                                        Stream_IAllocator* allocator_in)
@@ -173,9 +167,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 void
@@ -187,9 +180,8 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                StreamControlType,
                                StreamNotificationType,
                                StreamStateType,
-                               SessionDataType,
-                               SessionDataContainerType,
                                StatisticContainerType,
+                               SessionManagerType,
                                TimerManagerType,
                                MediaType>::handleDataMessage (DataMessageType*& message_inout,
                                                               bool& passMessageDownstream_out)
@@ -280,8 +272,8 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
 
   ++CBData_.inFlightBuffers;
 
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   message_inout->initialize (session_data_r.sessionId,
                              NULL);
 }
@@ -294,9 +286,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 void
@@ -308,9 +299,8 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                StreamControlType,
                                StreamNotificationType,
                                StreamStateType,
-                               SessionDataType,
-                               SessionDataContainerType,
                                StatisticContainerType,
+                               SessionManagerType,
                                TimerManagerType,
                                MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                  bool& passMessageDownstream_out)
@@ -341,8 +331,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
       ACE_ASSERT (inherited::sessionData_);
 
-      if (inherited::configuration_->statisticCollectionInterval !=
-          ACE_Time_Value::zero)
+      if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
       {
         // schedule regular statistic collection
         ACE_ASSERT (inherited::timerId_ == -1);
@@ -369,8 +358,8 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
       Stream_Device_Tools::id (inherited::configuration_->deviceIdentifier,
                                device_id_i);
 
-      SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       ACE_ASSERT (!session_data_r.formats.empty ());
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
@@ -590,9 +579,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 bool
@@ -604,9 +592,8 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                StreamControlType,
                                StreamNotificationType,
                                StreamStateType,
-                               SessionDataType,
-                               SessionDataContainerType,
                                StatisticContainerType,
+                               SessionManagerType,
                                TimerManagerType,
                                MediaType>::collect (StatisticContainerType& data_out)
 {
@@ -713,9 +700,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 bool
@@ -727,9 +713,8 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                StreamControlType,
                                StreamNotificationType,
                                StreamStateType,
-                               SessionDataType,
-                               SessionDataContainerType,
                                StatisticContainerType,
+                               SessionManagerType,
                                TimerManagerType,
                                MediaType>::allocateBuffers (Stream_IAllocator* allocator_in,
                                                             unsigned int bufferSize_in)

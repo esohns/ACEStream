@@ -57,8 +57,7 @@ class Test_I_DirectShow_Stream
                         struct Test_I_DirectShow_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration,
-                        Test_I_CommandSpeech_DirectShow_SessionData,
-                        Test_I_CommandSpeech_DirectShow_SessionData_t,
+                        Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_DirectShow_Message,
                         Test_I_DirectShow_SessionMessage_t>
@@ -73,8 +72,7 @@ class Test_I_DirectShow_Stream
                         struct Test_I_DirectShow_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration,
-                        Test_I_CommandSpeech_DirectShow_SessionData,
-                        Test_I_CommandSpeech_DirectShow_SessionData_t,
+                        Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_DirectShow_Message,
                         Test_I_DirectShow_SessionMessage_t> inherited;
@@ -103,8 +101,7 @@ class Test_I_MediaFoundation_Stream
                         struct Test_I_MediaFoundation_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_I_CommandSpeech_MediaFoundation_SessionData,
-                        Test_I_CommandSpeech_MediaFoundation_SessionData_t,
+                        Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_MediaFoundation_Message,
                         Test_I_MediaFoundation_SessionMessage_t>
@@ -122,8 +119,7 @@ class Test_I_MediaFoundation_Stream
                         struct Test_I_MediaFoundation_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_I_CommandSpeech_MediaFoundation_SessionData,
-                        Test_I_CommandSpeech_MediaFoundation_SessionData_t,
+                        Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_MediaFoundation_Message,
                         Test_I_MediaFoundation_SessionMessage_t> inherited;
@@ -164,9 +160,9 @@ class Test_I_MediaFoundation_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_I_MediaFoundation_Stream& operator= (const Test_I_MediaFoundation_Stream&))
 
   ACE_SYNCH_CONDITION                  condition_;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   IMFMediaSession*                     mediaSession_;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   Test_I_MediaFoundation_Source_Module mediaFoundationSource_;
   Test_I_MediaFoundation_Target_Module mediaFoundationTarget_;
   ULONG                                referenceCount_;

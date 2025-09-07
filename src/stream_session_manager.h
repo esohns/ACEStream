@@ -29,6 +29,7 @@
 #include "ace/Time_Value.h"
 
 #include "common_icounter.h"
+#include "common_iget.h"
 #include "common_istatistic.h"
 
 #include "common_timer_resetcounterhandler.h"
@@ -48,6 +49,7 @@ class Stream_Session_Manager_T
  , public Stream_IEvent_T<NotificationType>
  , public Stream_ISessionCB
  , public Common_ICounter
+ , public Common_IGetR_T<SessionDataType>
 {
   // singleton has access to the ctor/dtors
   friend class ACE_Singleton<Stream_Session_Manager_T<ACE_SYNCH_USE,
@@ -97,9 +99,11 @@ class Stream_Session_Manager_T
   inline virtual void onSessionBegin (Stream_SessionId_t) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   inline virtual void onSessionEnd (Stream_SessionId_t) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
+  // implement Common_IGetR_T
+  inline virtual const SessionDataType& getR () const { ACE_ASSERT (sessionData_); return *sessionData_; }
+
   // *WARNING*: this method is NOT (!) re-entrant
   virtual void set (const SessionDataType&); // session data
-  virtual void get (SessionDataType*&); // return value: session data handle
 
  protected:
   // *NOTE*: support derived classes
@@ -132,7 +136,6 @@ class Stream_Session_Manager_T
   ACE_Time_Value                               resetTimeoutInterval_;
 
   ConfigurationType*                           configuration_;
-  bool                                         isInitialized_;
   mutable ACE_SYNCH_MUTEX                      lock_;
   SessionDataType*                             sessionData_; // default-
 };

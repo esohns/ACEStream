@@ -207,14 +207,18 @@ Stream_CameraScreen_DirectShow_Stream::initialize (const inherited::CONFIGURATIO
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
   struct _AMMediaType media_type_s;
+  Test_U_DirectShow_SessionManager_t* session_manager_p =
+    Test_U_DirectShow_SessionManager_t::SINGLETON_T::instance ();
 
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   iterator_2 =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (Stream_Visualization_Tools::rendererToModuleName (configuration_in.configuration_->renderer));
+
   // sanity check(s)
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
   ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
+  ACE_ASSERT (session_manager_p);
 
   source_impl_p =
     dynamic_cast<Stream_CameraScreen_DirectShow_Source*> (source_.writer ());
@@ -437,7 +441,6 @@ continue_:
 
   if (buffer_negotiation_p)
   {
-#if defined (_DEBUG)
     ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
     result_2 =
       buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
@@ -458,7 +461,6 @@ continue_:
                   allocator_properties.cbBuffer,
                   allocator_properties.cbAlign,
                   allocator_properties.cbPrefix));
-#endif // _DEBUG
     buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
   } // end IF
 
@@ -501,18 +503,8 @@ continue_:
   reset_setup_pipeline = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-  //ACE_ASSERT ((*iterator).second.second->direct3DConfiguration);
-
   session_data_p =
-    &const_cast<Stream_CameraScreen_DirectShow_SessionData&> (inherited::sessionData_->getR ());
-  // *TODO*: remove type inferences
-  //if ((*iterator).second.second->direct3DConfiguration->handle)
-  //{
-  //  (*iterator).second.second->direct3DConfiguration->handle->AddRef ();
-  //  session_data_p->direct3DDevice =
-  //    (*iterator).second.second->direct3DConfiguration->handle;
-  //} // end IF
+    &const_cast<Stream_CameraScreen_DirectShow_SessionData&> (session_manager_p->getR ());
   //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
@@ -533,13 +525,6 @@ continue_:
   //ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::matchMediaType (*session_data_p->sourceFormat, *(*iterator).second.second->sourceFormat));
 
   // ---------------------------------------------------------------------------
-  // step6: initialize head module
-  //source_impl_p->setP (&(inherited::state_));
-  ////fileReader_impl_p->reset ();
-  //// *NOTE*: push()ing the module will open() it
-  ////         --> set the argument that is passed along (head module expects a
-  ////             handle to the session data)
-  //source_.arg (inherited::sessionData_);
 
   // step7: assemble stream
   if (configuration_in.configuration_->setupPipeline)
@@ -552,12 +537,6 @@ continue_:
     } // end IF
 
   // ---------------------------------------------------------------------------
-
-  //// *TODO*: remove type inferences
-  //session_data_r.fileName =
-  //  configuration_in.moduleHandlerConfiguration->fileName;
-  //session_data_r.size =
-  //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
 
   // OK: all went well
   inherited::isInitialized_ = true;
@@ -767,15 +746,11 @@ Stream_CameraScreen_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
 
   // sanity check(s)
   ACE_ASSERT (result_in);
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (mediaSession_);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  ACE_ASSERT (inherited::sessionData_);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
-  //Stream_CameraScreen_SessionData& session_data_r =
-  //  const_cast<Stream_CameraScreen_SessionData&> (inherited::sessionData_->get ());
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = mediaSession_->EndGetEvent (result_in, &media_event_p);
   if (FAILED (result))
   {
@@ -785,7 +760,7 @@ Stream_CameraScreen_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   ACE_ASSERT (media_event_p);
   result = media_event_p->GetType (&event_type);
   ACE_ASSERT (SUCCEEDED (result));
@@ -975,8 +950,15 @@ Stream_CameraScreen_MediaFoundation_Stream::initialize (const inherited::CONFIGU
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Stream_CameraScreen_MediaFoundation_SessionData* session_data_p = NULL;
-  inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   Stream_CameraScreen_MediaFoundation_Source* source_impl_p = NULL;
+  Test_U_MediaFoundation_SessionManager_t* session_manager_p =
+    Test_U_MediaFoundation_SessionManager_t::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -993,16 +975,9 @@ Stream_CameraScreen_MediaFoundation_Stream::initialize (const inherited::CONFIGU
     setup_pipeline;
   reset_setup_pipeline = false;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
   session_data_p =
-    &const_cast<Stream_CameraScreen_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
-  iterator =
-      const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-
+    &const_cast<Stream_CameraScreen_MediaFoundation_SessionData&> (session_manager_p->getR ());
   // sanity check(s)
-  ACE_ASSERT (iterator != configuration_in.end ());
   // *TODO*: remove type inferences
   //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
@@ -1042,7 +1017,7 @@ Stream_CameraScreen_MediaFoundation_Stream::initialize (const inherited::CONFIGU
   } // end IF
   COM_initialized = true;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if ((*iterator).second.second->session)
   {
     ULONG reference_count = (*iterator).second.second->session->AddRef ();
@@ -1075,7 +1050,7 @@ Stream_CameraScreen_MediaFoundation_Stream::initialize (const inherited::CONFIGU
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       goto error;
     } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
     ACE_ASSERT (topology_p);
 
     //if ((*iterator).second.second->sampleGrabberNodeId)
@@ -1090,10 +1065,10 @@ Stream_CameraScreen_MediaFoundation_Stream::initialize (const inherited::CONFIGU
     } // end IF
     ACE_ASSERT (node_id);
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
     goto continue_;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second->deviceIdentifier,
                                                                configuration_in.configuration_->format,
@@ -1157,7 +1132,7 @@ continue_:
   session_data_p->formats.push_back (media_type_p);
   media_type_p = NULL;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   //HRESULT result = E_FAIL;
   if (mediaSession_)
   {
@@ -1180,16 +1155,16 @@ continue_:
     goto error;
   } // end IF
   ACE_ASSERT (mediaSession_);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   topology_p->Release (); topology_p = NULL;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (!(*iterator).second.second->session)
   {
     ULONG reference_count = mediaSession_->AddRef ();
     (*iterator).second.second->session = mediaSession_;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   //source_impl_p->setP (&(inherited::state_));
 
@@ -1231,12 +1206,12 @@ error:
   {
     session_data_p->session->Release (); session_data_p->session = NULL;
   } // end IF
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
   {
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   if (COM_initialized)
     CoUninitialize ();

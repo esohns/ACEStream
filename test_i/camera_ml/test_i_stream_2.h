@@ -64,8 +64,7 @@ class Stream_CameraML_DirectShow_Stream_2
                         struct Stream_CameraML_DirectShow_StreamConfiguration,
                         struct Stream_CameraML_StatisticData,
                         struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration,
-                        Stream_CameraML_DirectShow_SessionData,
-                        Stream_CameraML_DirectShow_SessionData_t,
+                        Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraML_DirectShow_Message_t,
                         Stream_CameraML_DirectShow_SessionMessage_t>
@@ -80,8 +79,7 @@ class Stream_CameraML_DirectShow_Stream_2
                         struct Stream_CameraML_DirectShow_StreamConfiguration,
                         struct Stream_CameraML_StatisticData,
                         struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration,
-                        Stream_CameraML_DirectShow_SessionData,
-                        Stream_CameraML_DirectShow_SessionData_t,
+                        Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraML_DirectShow_Message_t,
                         Stream_CameraML_DirectShow_SessionMessage_t> inherited;
@@ -134,8 +132,7 @@ class Stream_CameraML_MediaFoundation_Stream_2
                         struct Stream_CameraML_MediaFoundation_StreamConfiguration,
                         struct Stream_CameraML_StatisticData,
                         struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration,
-                        Stream_CameraML_MediaFoundation_SessionData,
-                        Stream_CameraML_MediaFoundation_SessionData_t,
+                        Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraML_MediaFoundation_Message_t,
                         Stream_CameraML_MediaFoundation_SessionMessage_t>
@@ -151,8 +148,7 @@ class Stream_CameraML_MediaFoundation_Stream_2
                         struct Stream_CameraML_MediaFoundation_StreamConfiguration,
                         struct Stream_CameraML_StatisticData,
                         struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration,
-                        Stream_CameraML_MediaFoundation_SessionData,
-                        Stream_CameraML_MediaFoundation_SessionData_t,
+                        Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraML_MediaFoundation_Message_t,
                         Stream_CameraML_MediaFoundation_SessionMessage_t> inherited;

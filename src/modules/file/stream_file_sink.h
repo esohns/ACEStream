@@ -160,11 +160,9 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
-          ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType> // implements Common_ITimer
 class Stream_Module_FileWriterH_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       TimePolicyType,
@@ -175,10 +173,9 @@ class Stream_Module_FileWriterH_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      SessionManagerType,
+                                      TimerManagerType,
                                       struct Stream_UserData>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -190,10 +187,9 @@ class Stream_Module_FileWriterH_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      SessionManagerType,
+                                      TimerManagerType,
                                       struct Stream_UserData> inherited;
 
  public:
@@ -213,10 +209,9 @@ class Stream_Module_FileWriterH_T
                                     StreamControlType,
                                     StreamNotificationType,
                                     StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    SessionManagerType,
+                                    TimerManagerType,
                                     struct Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T

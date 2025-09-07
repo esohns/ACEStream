@@ -68,8 +68,7 @@ class Stream_CameraScreen_DirectShow_Stream
                         struct Stream_CameraScreen_DirectShow_StreamConfiguration,
                         struct Stream_CameraScreen_StatisticData,
                         struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
-                        Stream_CameraScreen_DirectShow_SessionData,
-                        Stream_CameraScreen_DirectShow_SessionData_t,
+                        Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraScreen_DirectShow_Message_t,
                         Stream_CameraScreen_DirectShow_SessionMessage_t>
@@ -84,8 +83,7 @@ class Stream_CameraScreen_DirectShow_Stream
                         struct Stream_CameraScreen_DirectShow_StreamConfiguration,
                         struct Stream_CameraScreen_StatisticData,
                         struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
-                        Stream_CameraScreen_DirectShow_SessionData,
-                        Stream_CameraScreen_DirectShow_SessionData_t,
+                        Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraScreen_DirectShow_Message_t,
                         Stream_CameraScreen_DirectShow_SessionMessage_t> inherited;
@@ -142,8 +140,7 @@ class Stream_CameraScreen_MediaFoundation_Stream
                         struct Stream_CameraScreen_MediaFoundation_StreamConfiguration,
                         struct Stream_CameraScreen_StatisticData,
                         struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration,
-                        Stream_CameraScreen_MediaFoundation_SessionData,
-                        Stream_CameraScreen_MediaFoundation_SessionData_t,
+                        Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraScreen_MediaFoundation_Message_t,
                         Stream_CameraScreen_MediaFoundation_SessionMessage_t>
@@ -159,8 +156,7 @@ class Stream_CameraScreen_MediaFoundation_Stream
                         struct Stream_CameraScreen_MediaFoundation_StreamConfiguration,
                         struct Stream_CameraScreen_StatisticData,
                         struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration,
-                        Stream_CameraScreen_MediaFoundation_SessionData,
-                        Stream_CameraScreen_MediaFoundation_SessionData_t,
+                        Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraScreen_MediaFoundation_Message_t,
                         Stream_CameraScreen_MediaFoundation_SessionMessage_t> inherited;
@@ -206,10 +202,10 @@ class Stream_CameraScreen_MediaFoundation_Stream
 //  Stream_CameraScreen_MediaFoundation_GTKCairoDisplay_Module            GTKCairoDisplay_;
 //#endif // GTK_USE
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   // media session
   IMFMediaSession*                                           mediaSession_;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   ULONG                                                      referenceCount_;
 };
 #else

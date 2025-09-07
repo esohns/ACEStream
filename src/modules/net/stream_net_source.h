@@ -163,6 +163,7 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           ////////////////////////////////
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename ConnectorType, // implements Net_IConnector
@@ -178,9 +179,8 @@ class Stream_Module_Net_SourceH_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      typename SessionMessageType::DATA_T::DATA_T,
-                                      typename SessionMessageType::DATA_T,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType>
 {
@@ -193,9 +193,8 @@ class Stream_Module_Net_SourceH_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      typename SessionMessageType::DATA_T::DATA_T,
-                                      typename SessionMessageType::DATA_T,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
 

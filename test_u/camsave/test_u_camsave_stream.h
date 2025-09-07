@@ -46,9 +46,6 @@
 #include "test_u_camsave_message.h"
 #include "test_u_camsave_session_message.h"
 
-// forward declarations
-class Stream_IAllocator;
-
 extern const char stream_name_string_[];
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -63,8 +60,7 @@ class Stream_CamSave_DirectShow_Stream
                         struct Stream_CamSave_DirectShow_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
-                        Stream_CamSave_DirectShow_SessionData,
-                        Stream_CamSave_DirectShow_SessionData_t,
+                        Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_DirectShow_Message_t,
                         Stream_CamSave_DirectShow_SessionMessage_t>
@@ -79,8 +75,7 @@ class Stream_CamSave_DirectShow_Stream
                         struct Stream_CamSave_DirectShow_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
-                        Stream_CamSave_DirectShow_SessionData,
-                        Stream_CamSave_DirectShow_SessionData_t,
+                        Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_DirectShow_Message_t,
                         Stream_CamSave_DirectShow_SessionMessage_t> inherited;
@@ -140,8 +135,7 @@ class Stream_CamSave_MediaFoundation_Stream
                         struct Stream_CamSave_MediaFoundation_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration,
-                        Stream_CamSave_MediaFoundation_SessionData,
-                        Stream_CamSave_MediaFoundation_SessionData_t,
+                        Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_MediaFoundation_Message_t,
                         Stream_CamSave_MediaFoundation_SessionMessage_t>
@@ -157,8 +151,7 @@ class Stream_CamSave_MediaFoundation_Stream
                         struct Stream_CamSave_MediaFoundation_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration,
-                        Stream_CamSave_MediaFoundation_SessionData,
-                        Stream_CamSave_MediaFoundation_SessionData_t,
+                        Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_MediaFoundation_Message_t,
                         Stream_CamSave_MediaFoundation_SessionMessage_t> inherited;
@@ -204,10 +197,10 @@ class Stream_CamSave_MediaFoundation_Stream
   Stream_CamSave_MediaFoundation_AVIEncoder_Module                 encoder_;
   Stream_CamSave_MediaFoundation_FileWriter_Module                 fileWriter_;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   // media session
   IMFMediaSession*                                                 mediaSession_;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   ULONG                                                            referenceCount_;
 };
 #else

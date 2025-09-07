@@ -59,8 +59,7 @@ template <ACE_SYNCH_DECL,
           ///////////////////////////////
           typename HandlerConfigurationType,
           ////////////////////////////////
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // (reference counted)
+          typename SessionManagerType,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
@@ -81,8 +80,7 @@ class Stream_Module_Net_IO_Stream_T
                         ConfigurationType,
                         StatisticContainerType,
                         HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
+                        SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType>
@@ -100,8 +98,7 @@ class Stream_Module_Net_IO_Stream_T
                         ConfigurationType,
                         StatisticContainerType,
                         HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
+                        SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType> inherited;
@@ -118,8 +115,7 @@ class Stream_Module_Net_IO_Stream_T
                         ConfigurationType,
                         StatisticContainerType,
                         HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
+                        SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType> STREAM_BASE_T;
@@ -176,9 +172,8 @@ class Stream_Module_Net_IO_Stream_T
                                        ControlType,
                                        NotificationType,
                                        StateType,
-                                       SessionDataType,
-                                       SessionDataContainerType,
                                        StatisticContainerType,
+                                       SessionManagerType,
                                        TimerManagerType,
                                        AddressType,
                                        ConnectionManagerType,
@@ -191,23 +186,22 @@ class Stream_Module_Net_IO_Stream_T
                                        ControlType,
                                        NotificationType,
                                        StateType,
-                                       SessionDataType,
-                                       SessionDataContainerType,
                                        StatisticContainerType,
+                                       SessionManagerType,
                                        TimerManagerType,
                                        AddressType,
                                        ConnectionManagerType,
                                        UserDataType> WRITER_T;
-  typedef Stream_StreamModule_T<ACE_SYNCH_USE,                     // task synch type
-                                TimePolicyType,                    // time policy
-                                SessionDataType,                   // session data type
-                                enum Stream_SessionMessageType,    // session event type
-                                struct Stream_ModuleConfiguration, // module configuration type
-                                HandlerConfigurationType,          // module handler configuration type
+  typedef Stream_StreamModule_T<ACE_SYNCH_USE,                               // task synch type
+                                TimePolicyType,                              // time policy
+                                typename SessionMessageType::DATA_T::DATA_T, // session data type
+                                enum Stream_SessionMessageType,              // session event type
+                                struct Stream_ModuleConfiguration,           // module configuration type
+                                HandlerConfigurationType,                    // module handler configuration type
                                 libacestream_default_net_io_module_name_string, // name
-                                INOTIFY_T,                         // stream notification interface type
-                                READER_T,                          // reader type
-                                WRITER_T> IO_MODULE_T;             // writer type
+                                INOTIFY_T,                                   // stream notification interface type
+                                READER_T,                                    // reader type
+                                WRITER_T> IO_MODULE_T;                       // writer type
 
   // *NOTE*: finish session on disconnect notification ?
   bool        finishOnDisconnect_;
@@ -226,8 +220,7 @@ class Stream_Module_Net_IO_Stream_T
                                         StatisticContainerType,
                                         TimerManagerType,
                                         HandlerConfigurationType,
-                                        SessionDataType,
-                                        SessionDataContainerType,
+                                        SessionManagerType,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,

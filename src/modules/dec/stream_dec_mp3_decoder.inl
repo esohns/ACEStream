@@ -37,9 +37,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType,
           typename MediaType>
@@ -51,9 +50,8 @@ template <ACE_SYNCH_DECL,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
+                            SessionManagerType,
                             TimerManagerType,
                             UserDataType,
                             MediaType>::Stream_Decoder_MP3Decoder_T (typename inherited::ISTREAM_T* stream_in)
@@ -79,9 +77,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType,
           typename MediaType>
@@ -93,9 +90,8 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
+                            SessionManagerType,
                             TimerManagerType,
                             UserDataType,
                             MediaType>::~Stream_Decoder_MP3Decoder_T ()
@@ -123,9 +119,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType,
           typename MediaType>
@@ -138,9 +133,8 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
+                            SessionManagerType,
                             TimerManagerType,
                             UserDataType,
                             MediaType>::initialize (const ConfigurationType& configuration_in,
@@ -207,9 +201,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType,
           typename MediaType>
@@ -222,9 +215,8 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
+                            SessionManagerType,
                             TimerManagerType,
                             UserDataType,
                             MediaType>::svc (void)
@@ -257,14 +249,14 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
 #else
   struct Stream_MediaFramework_ALSA_MediaType media_type_2;
 #endif // ACE_WIN32 || ACE_WIN64
-  SessionDataContainerType* session_data_container_p = NULL;
+  typename SessionMessageType::DATA_T* session_data_container_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (handle_);
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
 
 //next:
   file_path_string = inherited::configuration_->fileIdentifier.identifier;

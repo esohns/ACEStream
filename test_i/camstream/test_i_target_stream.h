@@ -40,9 +40,6 @@
 #include "test_i_target_common.h"
 #include "test_i_target_message.h"
 
-// forward declarations
-class Stream_IAllocator;
-
 extern const char stream_name_string_[];
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -87,6 +84,19 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_I_Target_DirectShow_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_I_DirectShow_SessionManager_2;
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_I_Target_MediaFoundation_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_I_MediaFoundation_SessionManager_2;
+
 class Test_I_Target_DirectShow_TCPStream
  : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
@@ -99,8 +109,7 @@ class Test_I_Target_DirectShow_TCPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
-                                        Test_I_Target_DirectShow_SessionData,
-                                        Test_I_Target_DirectShow_SessionData_t,
+                                        Test_I_DirectShow_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_DirectShow_Stream_Message,
                                         Test_I_Target_DirectShow_SessionMessage,
@@ -119,8 +128,7 @@ class Test_I_Target_DirectShow_TCPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
-                                        Test_I_Target_DirectShow_SessionData,
-                                        Test_I_Target_DirectShow_SessionData_t,
+                                        Test_I_DirectShow_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_DirectShow_Stream_Message,
                                         Test_I_Target_DirectShow_SessionMessage,
@@ -164,8 +172,7 @@ class Test_I_Target_DirectShow_UDPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
-                                        Test_I_Target_DirectShow_SessionData,
-                                        Test_I_Target_DirectShow_SessionData_t,
+                                        Test_I_DirectShow_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_DirectShow_Stream_Message,
                                         Test_I_Target_DirectShow_SessionMessage,
@@ -184,8 +191,7 @@ class Test_I_Target_DirectShow_UDPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
-                                        Test_I_Target_DirectShow_SessionData,
-                                        Test_I_Target_DirectShow_SessionData_t,
+                                        Test_I_DirectShow_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_DirectShow_Stream_Message,
                                         Test_I_Target_DirectShow_SessionMessage,
@@ -230,8 +236,7 @@ class Test_I_Target_MediaFoundation_TCPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
-                                        Test_I_Target_MediaFoundation_SessionData,
-                                        Test_I_Target_MediaFoundation_SessionData_t,
+                                        Test_I_MediaFoundation_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_MediaFoundation_Stream_Message,
                                         Test_I_Target_MediaFoundation_SessionMessage,
@@ -250,8 +255,7 @@ class Test_I_Target_MediaFoundation_TCPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
-                                        Test_I_Target_MediaFoundation_SessionData,
-                                        Test_I_Target_MediaFoundation_SessionData_t,
+                                        Test_I_MediaFoundation_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_MediaFoundation_Stream_Message,
                                         Test_I_Target_MediaFoundation_SessionMessage,
@@ -294,8 +298,7 @@ class Test_I_Target_MediaFoundation_UDPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
-                                        Test_I_Target_MediaFoundation_SessionData,
-                                        Test_I_Target_MediaFoundation_SessionData_t,
+                                        Test_I_MediaFoundation_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_MediaFoundation_Stream_Message,
                                         Test_I_Target_MediaFoundation_SessionMessage,
@@ -314,8 +317,7 @@ class Test_I_Target_MediaFoundation_UDPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
-                                        Test_I_Target_MediaFoundation_SessionData,
-                                        Test_I_Target_MediaFoundation_SessionData_t,
+                                        Test_I_MediaFoundation_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_MediaFoundation_Stream_Message,
                                         Test_I_Target_MediaFoundation_SessionMessage,

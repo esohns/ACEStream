@@ -28,6 +28,7 @@
 
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
+#include "stream_session_manager.h"
 
 #include "stream_file_sink.h"
 #include "stream_file_source.h"
@@ -40,6 +41,13 @@
 #include "test_u_filecopy_message.h"
 #include "test_u_filecopy_session_message.h"
 
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 struct Stream_Filecopy_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_U_SessionManager_t;
+
 // declare module(s)
 typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,
@@ -49,9 +57,8 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Stream_Filecopy_StreamState,
-                                    struct Stream_Filecopy_SessionData,
-                                    Stream_Filecopy_SessionData_t,
                                     struct Stream_Statistic,
+                                    Test_U_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Stream_Filecopy_FileReader;
 //typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,

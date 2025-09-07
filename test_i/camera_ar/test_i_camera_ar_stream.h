@@ -64,8 +64,7 @@ class Stream_CameraAR_DirectShow_Stream
                         struct Stream_CameraAR_DirectShow_StreamConfiguration,
                         struct Stream_CameraAR_StatisticData,
                         struct Stream_CameraAR_DirectShow_ModuleHandlerConfiguration,
-                        Stream_CameraAR_DirectShow_SessionData,
-                        Stream_CameraAR_DirectShow_SessionData_t,
+                        Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraAR_DirectShow_Message_t,
                         Stream_CameraAR_DirectShow_SessionMessage_t>
@@ -80,8 +79,7 @@ class Stream_CameraAR_DirectShow_Stream
                         struct Stream_CameraAR_DirectShow_StreamConfiguration,
                         struct Stream_CameraAR_StatisticData,
                         struct Stream_CameraAR_DirectShow_ModuleHandlerConfiguration,
-                        Stream_CameraAR_DirectShow_SessionData,
-                        Stream_CameraAR_DirectShow_SessionData_t,
+                        Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraAR_DirectShow_Message_t,
                         Stream_CameraAR_DirectShow_SessionMessage_t> inherited;
@@ -122,8 +120,7 @@ class Stream_CameraAR_MediaFoundation_Stream
                         struct Stream_CameraAR_MediaFoundation_StreamConfiguration,
                         struct Stream_CameraAR_StatisticData,
                         struct Stream_CameraAR_MediaFoundation_ModuleHandlerConfiguration,
-                        Stream_CameraAR_MediaFoundation_SessionData,
-                        Stream_CameraAR_MediaFoundation_SessionData_t,
+                        Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraAR_MediaFoundation_Message_t,
                         Stream_CameraAR_MediaFoundation_SessionMessage_t>
@@ -139,8 +136,7 @@ class Stream_CameraAR_MediaFoundation_Stream
                         struct Stream_CameraAR_MediaFoundation_StreamConfiguration,
                         struct Stream_CameraAR_StatisticData,
                         struct Stream_CameraAR_MediaFoundation_ModuleHandlerConfiguration,
-                        Stream_CameraAR_MediaFoundation_SessionData,
-                        Stream_CameraAR_MediaFoundation_SessionData_t,
+                        Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraAR_MediaFoundation_Message_t,
                         Stream_CameraAR_MediaFoundation_SessionMessage_t> inherited;

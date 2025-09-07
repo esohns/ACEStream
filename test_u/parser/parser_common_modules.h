@@ -45,9 +45,8 @@ typedef Stream_Module_QueueReader_T <ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Parser_StreamState,
-                                     struct Parser_SessionData,
-                                     Parser_SessionData_t,
                                      struct Stream_Statistic,
+                                     Test_U_SessionManager_t,
                                      Common_Timer_Manager_t,
                                      struct Stream_UserData> Parser_Source;
 DATASTREAM_MODULE_INPUT_ONLY (struct Parser_SessionData,                // session data type

@@ -39,6 +39,7 @@
 #include "stream_common.h"
 #include "stream_control_message.h"
 #include "stream_session_data.h"
+#include "stream_session_manager.h"
 
 #include "stream_net_io_stream.h"
 
@@ -95,6 +96,13 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 struct HTTPGet_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> HTTPGet_SessionManager_t;
+
 extern const char stream_name_string_2[];
 
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
@@ -108,8 +116,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Stream_Statistic,
                                       Common_Timer_Manager_t,
                                       struct HTTPGet_ModuleHandlerConfiguration,
-                                      struct HTTPGet_SessionData,
-                                      HTTPGet_SessionData_t,
+                                      HTTPGet_SessionManager_t,
                                       Stream_ControlMessage_t,
                                       HTTPGet_Message,
                                       HTTPGet_SessionMessage,

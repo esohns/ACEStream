@@ -37,9 +37,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType>
 Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
@@ -50,9 +49,8 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
+                            SessionManagerType,
                             TimerManagerType,
                             UserDataType>::Stream_Module_FileReaderH_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
@@ -72,9 +70,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType>
 Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
@@ -85,9 +82,8 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
+                            SessionManagerType,
                             TimerManagerType,
                             UserDataType>::~Stream_Module_FileReaderH_T ()
 {
@@ -119,9 +115,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType>
 bool
@@ -133,9 +128,8 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
+                            SessionManagerType,
                             TimerManagerType,
                             UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                        Stream_IAllocator* allocator_in)
@@ -201,9 +195,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType>
 bool
@@ -215,9 +208,8 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
+                            SessionManagerType,
                             TimerManagerType,
                             UserDataType>::collect (StatisticContainerType& statisticContainer_inout)
 {
@@ -237,9 +229,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType>
 int
@@ -251,9 +242,8 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
+                            SessionManagerType,
                             TimerManagerType,
                             UserDataType>::svc (void)
 {
@@ -278,10 +268,10 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (!isOpen_);
   size_t pdu_size_i = 0;
-  SessionDataContainerType* session_data_container_p = NULL;
+  typename SessionMessageType::DATA_T* session_data_container_p = NULL;
 
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
 
 next:
   file_path_string = inherited::configuration_->fileIdentifier.identifier;

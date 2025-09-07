@@ -28,6 +28,7 @@
 #include "common_timer_manager_common.h"
 
 #include "stream_common.h"
+#include "stream_session_manager.h"
 #include "stream_streammodule_base.h"
 
 #include "stream_file_sink.h"
@@ -45,6 +46,13 @@
 #include "http_get_network.h"
 #include "http_get_stream_common.h"
 
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 struct HTTPGet_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> HTTPGet_SessionManager_t;
+
 // declare module(s)
 typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      Stream_ControlMessage_t,
@@ -54,9 +62,8 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct HTTPGet_StreamState,
-                                     struct HTTPGet_SessionData,
-                                     HTTPGet_SessionData_t,
                                      struct Stream_Statistic,
+                                     HTTPGet_SessionManager_t,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      HTTPGet_ConnectionManager_t,
@@ -69,9 +76,8 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct HTTPGet_StreamState,
-                                     struct HTTPGet_SessionData,
-                                     HTTPGet_SessionData_t,
                                      struct Stream_Statistic,
+                                     HTTPGet_SessionManager_t,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      HTTPGet_ConnectionManager_t,
@@ -100,9 +106,8 @@ typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
                               enum Stream_ControlType,
                               enum Stream_SessionMessageType,
                               struct HTTPGet_StreamState,
-                              struct HTTPGet_SessionData,
-                              HTTPGet_SessionData_t,
                               struct Stream_Statistic,
+                              HTTPGet_SessionManager_t,
                               Common_Timer_Manager_t,
                               struct Stream_UserData> HTTPGet_HTTPParser;
 DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session data type

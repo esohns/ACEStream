@@ -135,13 +135,20 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   struct Test_I_MP3Player_SessionData* session_data_p = NULL;
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<Test_I_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   // Test_I_MP3Decoder* MP3Decoder_impl_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
 #else
   struct Stream_MediaFramework_ALSA_MediaType media_type_s;
 #endif // ACE_WIN32 || ACE_WIN64
+  Test_I_SessionManager_t* session_manager_p =
+    Test_I_SessionManager_t::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline =
@@ -157,13 +164,10 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  ACE_ASSERT (inherited::sessionData_);
+
   session_data_p =
-      &const_cast<struct Test_I_MP3Player_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<struct Test_I_MP3Player_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
-  iterator =
-      const_cast<Test_I_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.end ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 //  Stream_MediaFramework_DirectShow_Tools::copy ((*iterator).second.second->outputFormat,
@@ -210,12 +214,15 @@ Test_I_Stream::collect (struct Stream_Statistic& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream::collect"));
 
+  Test_I_SessionManager_t* session_manager_p =
+    Test_I_SessionManager_t::SINGLETON_T::instance ();
+
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
+  ACE_ASSERT (session_manager_p);
 
   int result = -1;
   struct Test_I_MP3Player_SessionData& session_data_r =
-      const_cast<struct Test_I_MP3Player_SessionData&> (inherited::sessionData_->getR ());
+    const_cast<struct Test_I_MP3Player_SessionData&> (session_manager_p->getR ());
 
   //Test_I_Statistic_WriterTask_t* statistic_impl =
   //  dynamic_cast<Test_I_Statistic_WriterTask_t*> (statisticReport_.writer ());
@@ -251,7 +258,7 @@ Test_I_Stream::collect (struct Stream_Statistic& data_out)
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
                 ACE_TEXT (stream_name_string_)));
   }
-  if (!result)
+  if (!result_2)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));

@@ -35,9 +35,6 @@
 #include "parser_session_message.h"
 #include "parser_stream_common.h"
 
-// forward declarations
-class Stream_IAllocator;
-
 class Parser_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -49,8 +46,7 @@ class Parser_Stream
                         struct Stream_Configuration,
                         struct Stream_Statistic,
                         struct Parser_ModuleHandlerConfiguration,
-                        struct Parser_SessionData,
-                        Parser_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Parser_Message,
                         Parser_SessionMessage>
@@ -65,8 +61,7 @@ class Parser_Stream
                         struct Stream_Configuration,
                         struct Stream_Statistic,
                         struct Parser_ModuleHandlerConfiguration,
-                        struct Parser_SessionData,
-                        Parser_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Parser_Message,
                         Parser_SessionMessage> inherited;

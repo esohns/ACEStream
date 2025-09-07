@@ -250,10 +250,12 @@ Stream_SessionDataMediaBase_T<BaseType,
 
 //}
 template <typename DataType>
-Stream_SessionData_T<DataType>::Stream_SessionData_T (DataType*& data_inout)
+Stream_SessionData_T<DataType>::Stream_SessionData_T (DataType*& data_inout,
+                                                      bool deleteDataInDtor_in)
  : inherited (1,    // initial count
               true) // delete 'this' on zero ?
  , data_ (data_inout)
+ , delete_ (deleteDataInDtor_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::Stream_SessionData_T"));
 
@@ -265,7 +267,7 @@ Stream_SessionData_T<DataType>::~Stream_SessionData_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::~Stream_SessionData_T"));
 
-  if (data_)
+  if (likely (data_ && delete_))
     delete data_;
 }
 

@@ -50,8 +50,7 @@ class Stream_Filecopy_Stream
                         struct Stream_Configuration,
                         struct Stream_Statistic,
                         struct Stream_Filecopy_ModuleHandlerConfiguration,
-                        struct Stream_Filecopy_SessionData, // session data
-                        Stream_Filecopy_SessionData_t,      // session data container (reference counted)
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_Filecopy_Message,
                         Stream_Filecopy_SessionMessage>
@@ -66,8 +65,7 @@ class Stream_Filecopy_Stream
                         struct Stream_Configuration,
                         struct Stream_Statistic,
                         struct Stream_Filecopy_ModuleHandlerConfiguration,
-                        struct Stream_Filecopy_SessionData,
-                        Stream_Filecopy_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_Filecopy_Message,
                         Stream_Filecopy_SessionMessage> inherited;

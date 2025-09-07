@@ -1083,11 +1083,12 @@ action_start_activate_cb (GtkAction* action_in,
     return;
   } // end IF
   thread_data_p->CBData = data_p;
-  const Stream_Filecopy_SessionData_t* session_data_container_p =
-    &data_p->stream->getR_2 ();
-  ACE_ASSERT (session_data_container_p);
+  Test_U_SessionManager_t* session_manager_p =
+    Test_U_SessionManager_t::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
   const struct Stream_Filecopy_SessionData& session_data_r =
-    session_data_container_p->getR ();
+    session_manager_p->getR ();
+  // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
   data_p->progressData.sessionId = session_data_r.sessionId;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_thread_t thread_id = std::numeric_limits<unsigned long>::max ();

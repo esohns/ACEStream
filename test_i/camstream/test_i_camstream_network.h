@@ -24,7 +24,6 @@
 #include <map>
 #include <string>
 
-#include "ace/config-lite.h"
 #include "ace/INET_Addr.h"
 #include "ace/SOCK_Connector.h"
 #include "ace/Synch_Traits.h"
@@ -42,6 +41,7 @@
 #include "stream_configuration.h"
 #include "stream_control_message.h"
 #include "stream_session_data.h"
+#include "stream_session_manager.h"
 
 #include "stream_net_io_stream.h"
 
@@ -82,17 +82,15 @@ struct Net_UserData;
 struct Test_I_Target_DirectShow_ConnectionConfiguration;
 struct Net_StreamConnectionState;
 struct Test_I_Target_DirectShow_ModuleHandlerConfiguration;
-class Test_I_Target_DirectShow_SessionData;
+//class Test_I_Target_DirectShow_SessionData;
 class Test_I_Target_DirectShow_TCPStream;
 class Test_I_Target_DirectShow_UDPStream;
-class Test_I_Target_DirectShow_Stream_Message;
-class Test_I_Target_DirectShow_SessionMessage;
 struct Test_I_Target_DirectShow_StreamConfiguration;
 struct Test_I_Target_DirectShow_StreamState;
 
 typedef Stream_SessionData_T<Test_I_Source_DirectShow_SessionData> Test_I_Source_DirectShow_SessionData_t;
 
-typedef Stream_SessionData_T<Test_I_Target_DirectShow_SessionData> Test_I_Target_DirectShow_SessionData_t;
+//typedef Stream_SessionData_T<Test_I_Target_DirectShow_SessionData> Test_I_Target_DirectShow_SessionData_t;
 
 struct Test_I_Source_MediaFoundation_Configuration;
 struct Net_StreamConnectionState;
@@ -329,6 +327,19 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
 extern const char stream_name_string_2[];
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_I_Source_DirectShow_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_I_DirectShow_SessionManager_t;
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_I_Source_MediaFoundation_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_I_MediaFoundation_SessionManager_t;
+
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       stream_name_string_2,
@@ -340,8 +351,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Stream_Statistic,
                                       Common_Timer_Manager_t,
                                       struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                                      Test_I_Source_DirectShow_SessionData,
-                                      Test_I_Source_DirectShow_SessionData_t,
+                                      Test_I_DirectShow_SessionManager_t,
                                       Stream_ControlMessage_t,
                                       Test_I_Source_DirectShow_Stream_Message,
                                       Test_I_Source_DirectShow_SessionMessage,
@@ -359,8 +369,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Stream_Statistic,
                                       Common_Timer_Manager_t,
                                       struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                                      Test_I_Source_DirectShow_SessionData,
-                                      Test_I_Source_DirectShow_SessionData_t,
+                                      Test_I_DirectShow_SessionManager_t,
                                       Stream_ControlMessage_t,
                                       Test_I_Source_DirectShow_Stream_Message,
                                       Test_I_Source_DirectShow_SessionMessage,
@@ -379,8 +388,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Stream_Statistic,
                                       Common_Timer_Manager_t,
                                       struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                                      Test_I_Source_MediaFoundation_SessionData,
-                                      Test_I_Source_MediaFoundation_SessionData_t,
+                                      Test_I_MediaFoundation_SessionManager_t,
                                       Stream_ControlMessage_t,
                                       Test_I_Source_MediaFoundation_Stream_Message,
                                       Test_I_Source_MediaFoundation_SessionMessage,
@@ -398,8 +406,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Stream_Statistic,
                                       Common_Timer_Manager_t,
                                       struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                                      Test_I_Source_MediaFoundation_SessionData,
-                                      Test_I_Source_MediaFoundation_SessionData_t,
+                                      Test_I_MediaFoundation_SessionManager_t,
                                       Stream_ControlMessage_t,
                                       Test_I_Source_MediaFoundation_Stream_Message,
                                       Test_I_Source_MediaFoundation_SessionMessage,

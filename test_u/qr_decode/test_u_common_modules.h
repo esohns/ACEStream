@@ -28,6 +28,7 @@
 #include "common_timer_manager_common.h"
 
 #include "stream_common.h"
+#include "stream_session_manager.h"
 #include "stream_streammodule_base.h"
 #include "stream_task_base_asynch.h"
 #include "stream_task_base_synch.h"
@@ -63,6 +64,19 @@
 #include "test_u_stream_common.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 QRDecode_DirectShow_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_U_DirectShow_SessionManager_t;
+//typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+//                                 enum Stream_SessionMessageType,
+//                                 struct Stream_SessionManager_Configuration,
+//                                 QRDecode_MediaFoundation_SessionData,
+//                                 struct Stream_Statistic,
+//                                 struct Stream_UserData> Test_U_MediaFoundation_SessionManager_t;
+
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                struct QRDecode_ModuleHandlerConfiguration,
@@ -112,9 +126,8 @@ typedef Stream_Dev_Cam_Source_VfW_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Test_U_DirectShow_StreamState,
-                                    QRDecode_DirectShow_SessionData,
-                                    QRDecode_DirectShow_SessionData_t,
                                     struct Stream_Statistic,
+                                    Test_U_DirectShow_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData,
                                     struct _AMMediaType> Test_U_VfW_Source;
@@ -133,9 +146,8 @@ typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            enum Stream_ControlType,
                                            enum Stream_SessionMessageType,
                                            struct Test_U_DirectShow_StreamState,
-                                           QRDecode_DirectShow_SessionData,
-                                           QRDecode_DirectShow_SessionData_t,
                                            struct Stream_Statistic,
+                                           Test_U_DirectShow_SessionManager_t,
                                            Common_Timer_Manager_t,
                                            struct Stream_UserData,
                                            struct _AMMediaType,

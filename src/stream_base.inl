@@ -39,8 +39,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -54,8 +53,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::Stream_Base_T ()
@@ -68,8 +66,6 @@ Stream_Base_T<ACE_SYNCH_USE,
  , messageQueue_ (STREAM_QUEUE_MAX_SLOTS,
                   NULL)
  , name_ (StreamName)
- , sessionData_ (NULL)
- , sessionDataLock_ ()
  , state_ ()
  , statistic_ ()
  /////////////////////////////////////////
@@ -101,8 +97,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -116,8 +111,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::~Stream_Base_T ()
@@ -132,9 +126,6 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_ASSERT (task_p);
     task_p->msg_queue (NULL);
   } // end IF
-
-  if (unlikely (sessionData_))
-    sessionData_->decrease ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -147,8 +138,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -163,8 +153,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::reset ()
@@ -220,8 +209,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -236,8 +224,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::setup (ACE_Notification_Strategy* notificationStrategy_in)
@@ -378,8 +365,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -394,8 +380,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::subscribe (IEVENT_T* interfaceHandle_in)
@@ -422,8 +407,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -438,8 +422,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::unsubscribe (IEVENT_T* interfaceHandle_in)
@@ -477,8 +460,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -493,8 +475,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::initialize (bool setupPipeline_in,
@@ -509,49 +490,14 @@ Stream_Base_T<ACE_SYNCH_USE,
   // step1: allocate session data ?
   if (resetSessionData_in)
   {
-    // sanity check(s)
-    if (unlikely (sessionData_))
-      sessionData_->decrease ();
-    sessionData_ = NULL;
-
-    SessionDataType* session_data_p = NULL;
-    ACE_NEW_NORETURN (session_data_p,
-                      SessionDataType ());
-    if (unlikely (!session_data_p))
-    {
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
-                  ACE_TEXT (name_.c_str ())));
-      goto error;
-    } // end IF
-    //ACE_DEBUG ((LM_DEBUG,
-    //            ACE_TEXT ("%s: allocated %u byte(s) of session data: %@ (lock: %@)\n"),
-    //            ACE_TEXT (name_.c_str ()),
-    //            sizeof (SessionDataType),
-    //            session_data_p,
-    //            &sessionDataLock_));
-    // *TODO*: remove type inferences
-    session_data_p->lock = &sessionDataLock_;
-    session_data_p->state = &state_;
-
+    SessionManagerType* session_manager_p =
+      SessionManagerType::SINGLETON_T::instance ();
+    ACE_ASSERT (session_manager_p);
+    typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+      const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
-      state_.sessionData = session_data_p;
+      state_.sessionData = &session_data_r;
     } // end lock scope
-
-    // *IMPORTANT NOTE*: fire-and-forget API (session_data_p)
-    ACE_NEW_NORETURN (sessionData_,
-                      SessionDataContainerType (session_data_p));
-    if (unlikely (!sessionData_))
-    {
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
-                  ACE_TEXT (name_.c_str ())));
-      { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
-        state_.sessionData = NULL;
-      } // end lock scope
-      delete session_data_p; session_data_p = NULL;
-      goto error;
-    } // end IF
   } // end IF
 
   // step2: load modules
@@ -590,10 +536,9 @@ Stream_Base_T<ACE_SYNCH_USE,
       goto continue_;
 
     // *NOTE*: push()ing a module will open() it
-    //         --> set the argument that is passed along (head module expects a
-    //             handle to the session data)
+    //         --> (re)set the argument that is passed along
     LAYOUT_ITERATOR_T iterator = layout_.begin ();
-    (*iterator)->arg (sessionData_);
+    (*iterator)->arg (NULL);
     // *NOTE*: the head module writer task needs access to the stream state
     ISET_T* iset_p = dynamic_cast<ISET_T*> ((*iterator)->writer ());
     if (unlikely (!iset_p))
@@ -623,11 +568,6 @@ continue_:
   return;
 
 error:
-  if (resetSessionData_in && sessionData_)
-  {
-    sessionData_->decrease (); sessionData_ = NULL;
-  } // end IF
-
   isInitialized_ = false;
 }
 
@@ -641,8 +581,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -657,8 +596,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::finalize (bool initializeHeadTailModules_in)
@@ -747,8 +685,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -763,8 +700,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::initializeHeadTail ()
@@ -877,8 +813,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -893,8 +828,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::start ()
@@ -919,20 +853,22 @@ Stream_Base_T<ACE_SYNCH_USE,
     return; // nothing to do
   } // end IF
   ACE_ASSERT (configuration_);
-  ACE_ASSERT (sessionData_);
+  ACE_ASSERT (configuration_->configuration_);
 
   // initialize session data
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (sessionData_->getR ());
+  SessionManagerType* session_manager_p =
+    SessionManagerType::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_r.lock);
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-    ACE_ASSERT (configuration_->configuration_);
     session_data_r.sessionId =
       (configuration_->configuration_->sessionId ? configuration_->configuration_->sessionId
                                                  : ++inherited2::currentSessionId);
     session_data_r.startOfSession = COMMON_TIME_NOW;
-    session_data_r.state = &state_;
+    //session_data_r.state = &state_;
   } // end lock scope
 
   // delegate to the head module
@@ -977,8 +913,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -993,8 +928,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::stop (bool wait_in,
@@ -1083,8 +1017,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -1099,8 +1032,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::isRunning () const
@@ -1148,8 +1080,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -1164,8 +1095,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::control (ControlType control_in,
@@ -1275,8 +1205,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -1291,8 +1220,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::notify (NotificationType notification_in,
@@ -1378,8 +1306,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -1394,8 +1321,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::onEvent (NotificationType notification_in)
@@ -1595,8 +1521,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -1611,8 +1536,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::flush (bool flushInbound_in,
@@ -1745,8 +1669,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -1761,8 +1684,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::pause ()
@@ -1810,8 +1732,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -1826,8 +1747,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::rewind ()
@@ -1884,8 +1804,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -1900,8 +1819,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::status () const
@@ -1958,8 +1876,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -1974,8 +1891,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::idle (bool waitForever_in,
@@ -2118,8 +2034,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -2134,8 +2049,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::wait (bool waitForThreads_in,
@@ -2381,8 +2295,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -2399,8 +2312,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::find (const std::string& name_in,
@@ -2435,8 +2347,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -2451,8 +2362,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::link (typename ISTREAM_T::STREAM_T* upstream_in)
@@ -2507,8 +2417,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -2523,8 +2432,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::_unlink ()
@@ -2561,8 +2469,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -2577,8 +2484,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::downstream () const
@@ -2648,8 +2554,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -2664,8 +2569,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::upstream (bool recurse_in) const
@@ -2703,8 +2607,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -2719,8 +2622,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::lock (bool block_in,
@@ -2797,8 +2699,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -2813,8 +2714,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::unlock (bool unlock_in,
@@ -2859,8 +2759,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -2875,8 +2774,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::getLock (bool recurseUpstream_in)
@@ -2920,8 +2818,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -2936,8 +2833,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::hasLock (bool recurseUpstream_in)
@@ -2999,8 +2895,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -3015,8 +2910,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::dump_state () const
@@ -3189,8 +3083,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -3205,8 +3098,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::dump_state (MODULE_T* module_in,
@@ -3288,12 +3180,11 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-void
+const typename SessionMessageType::DATA_T::DATA_T&
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               StreamName,
@@ -3304,23 +3195,35 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::setPR (SessionDataContainerType*& sessionData_inout)
+              SessionMessageType>::getR_2 () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::setPR"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::getR_2"));
 
-  // sanity check(s)
-  ACE_ASSERT (sessionData_inout);
+  if (unlikely (inherited::linked_us_))
+  {
+    ISESSION_DATA_T* iget_p =
+      dynamic_cast<ISESSION_DATA_T*> (inherited::linked_us_);
+    if (!iget_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: upstream (was: %@) does not implement Common_IGetR_T<SESSION_DATA_T>, cannot retrieve session data, aborting\n"),
+                  ACE_TEXT (name_.c_str ()),
+                  inherited::linked_us_));
+      static typename SessionMessageType::DATA_T::DATA_T dummy;
+      return dummy;
+    } // end IF
 
-  // clean up
-  if (sessionData_)
-    sessionData_->decrease ();
+    return iget_p->getR ();
+  } // end IF
 
-  sessionData_ = sessionData_inout;
-  sessionData_inout = NULL;
+  SessionManagerType* session_manager_p =
+    SessionManagerType::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
+
+  return session_manager_p->getR ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -3333,8 +3236,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -3349,8 +3251,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::initialize (const CONFIGURATION_T& configuration_in)
@@ -3383,13 +3284,6 @@ Stream_Base_T<ACE_SYNCH_USE,
                   ACE_TEXT (name_.c_str ())));
       return false;
     }// end IF
-
-    ACE_ASSERT (configuration_->configuration_);
-    if (configuration_->configuration_->resetSessionData &&
-        sessionData_)
-    {
-      sessionData_->decrease (); sessionData_ = NULL;
-    } // end IF
 
     isInitialized_ = false;
   } // end IF
@@ -3484,8 +3378,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -3500,8 +3393,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::collect (StatisticContainerType& data_out)
@@ -3567,8 +3459,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -3583,8 +3474,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::update (const ACE_Time_Value& interval_in)
@@ -3633,8 +3523,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -3649,8 +3538,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::report () const
@@ -3707,8 +3595,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -3723,8 +3610,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::close (int flags_in)
@@ -3760,8 +3646,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -3776,8 +3661,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::replace (const ACE_TCHAR* name_in,
@@ -3823,8 +3707,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -3839,8 +3722,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::tail ()
@@ -3864,8 +3746,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -3880,8 +3761,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::link (STREAM_T& upstream_in)
@@ -3906,9 +3786,10 @@ Stream_Base_T<ACE_SYNCH_USE,
   bool unlink_modules = false;
   StateType* state_p = NULL;
   ISESSION_DATA_T* iget_p = NULL;
-  SessionDataContainerType* session_data_container_p = NULL;
-  SessionDataType* session_data_p = NULL;
-  SessionDataType* session_data_2 = NULL;
+  SESSION_DATA_T* session_data_p = NULL; // upstream-
+  SessionManagerType* session_manager_p =
+    SessionManagerType::SINGLETON_T::instance ();
+  SESSION_DATA_T* session_data_2 = NULL; // this-
 
   // *IMPORTANT NOTE*: in fully synchronous, or 'concurrent' scenarios, with
   //                   non-reentrant modules, the caller needs to hold the
@@ -4032,37 +3913,21 @@ continue_2:
     if (!iget_p)
     {
 //      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("%s: upstream (was: 0x%@) does not implement Common_IGetR_T<SessionDataContainerType>, cannot update session data, continuing\n"),
+//                  ACE_TEXT ("%s: upstream (was: 0x%@) does not implement Common_IGetR_T<SESSION_DATA_T>, cannot update session data, continuing\n"),
 //                  ACE_TEXT (name_.c_str ()),
 //                  inherited::linked_us_in));
       goto continue_3;
     } // end IF
-    session_data_container_p =
-        &const_cast<SessionDataContainerType&> (iget_p->getR ());
-    // *TODO*: race condition here
-    //         --> make Stream_Base_T::get() return a reference directly
-    session_data_container_p->increase ();
-    session_data_p =
-        &const_cast<SessionDataType&> (session_data_container_p->getR ());
-
-    if (likely (sessionData_))
-    {
-      session_data_2 =
-          &const_cast<SessionDataType&> (sessionData_->getR ());
-      ACE_ASSERT (session_data_2->lock);
-      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_2->lock, -1);
-        ACE_ASSERT (session_data_p->lock);
-        ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard_2, *session_data_p->lock, -1);
-        // *IMPORTANT NOTE*: the idea here is to 'merge' the two datasets
-        *session_data_p += *session_data_2;
-
-        // switch session data
-        sessionData_->decrease ();
-        sessionData_ = session_data_container_p;
-      } // end lock scope
-    } // end IF
-    else
-      sessionData_ = session_data_container_p;
+    session_data_p = &const_cast<SESSION_DATA_T&> (iget_p->getR ());
+    ACE_ASSERT (session_manager_p);
+    session_data_2 = &const_cast<SESSION_DATA_T&> (session_manager_p->getR ());
+    ACE_ASSERT (session_data_2->lock);
+    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_2->lock, -1);
+      ACE_ASSERT (session_data_p->lock);
+      ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard_2, *session_data_p->lock, -1);
+      // *IMPORTANT NOTE*: the idea here is to 'merge' the two datasets
+      *session_data_p += *session_data_2;
+    } // end lock scope
 
 continue_3:
     ;
@@ -4102,8 +3967,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -4118,8 +3982,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::unlink (void)
@@ -4219,8 +4082,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -4235,8 +4097,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::remove (MODULE_T* module_in,
@@ -4335,8 +4196,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -4351,8 +4211,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::finished (bool recurseUpstream_in)
@@ -4440,8 +4299,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -4456,8 +4314,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::shutdown ()
@@ -4536,8 +4393,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -4552,8 +4408,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ConfigurationType,
               StatisticContainerType,
               HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
+              SessionManagerType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::deactivateModules ()
@@ -4563,13 +4418,23 @@ Stream_Base_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (configuration_);
   ACE_ASSERT (configuration_->configuration_);
-  ACE_ASSERT (sessionData_);
-
-  const SessionDataType& session_data_r = sessionData_->getR ();
-
-  // *NOTE*: the message instance assumes responsibility for the session data
-  //         --> increment the reference counter
-  sessionData_->increase ();
+  SessionManagerType* session_manager_p =
+    SessionManagerType::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR ());
+  typename SessionMessageType::DATA_T* session_data_container_p = NULL;
+  typename SessionMessageType::DATA_T::DATA_T* session_data_p = &session_data_r;
+  ACE_NEW_NORETURN (session_data_container_p,
+                    typename SessionMessageType::DATA_T (session_data_p,
+                                                         false)); // *NOTE*: do NOT delete the session data when the container is destroyed
+  if (unlikely (!session_data_container_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
+                ACE_TEXT (name_.c_str ())));
+    return;
+  } // end IF
 
   // allocate SESSION_END session message
   SessionMessageType* message_p = NULL;
@@ -4585,7 +4450,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                   ACE_TEXT (name_.c_str ())));
 
       // clean up
-      sessionData_->decrease ();
+      session_data_container_p->decrease ();
 
       return;
     }
@@ -4594,7 +4459,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_NEW_NORETURN (message_p,
                       SessionMessageType (session_data_r.sessionId,
                                           STREAM_SESSION_MESSAGE_END,
-                                          sessionData_, // *NOTE*: fire-and-forget sessionData_
+                                          session_data_container_p, // *NOTE*: fire-and-forget session_data_container_p
                                           state_.userData,
                                           false)); // expedited ?
   if (unlikely (!message_p))
@@ -4604,7 +4469,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT (name_.c_str ())));
 
     // clean up
-    sessionData_->decrease ();
+    session_data_container_p->decrease ();
 
     return;
   } // end IF
@@ -4612,7 +4477,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (configuration_->configuration_->messageAllocator)
     message_p->initialize (session_data_r.sessionId,
                            STREAM_SESSION_MESSAGE_END,
-                           sessionData_, // *NOTE*: fire-and-forget sessionData_
+                           session_data_container_p, // *NOTE*: fire-and-forget session_data_container_p
                            state_.userData,
                            false); // expedited ?
 
@@ -4641,8 +4506,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 //          typename ConfigurationType,
 //          typename StatisticContainerType,
 //          typename HandlerConfigurationType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
+//          typename SessionManagerType,
 //          typename ControlMessageType,
 //          typename DataMessageType,
 //          typename SessionMessageType>
@@ -4657,8 +4521,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 //              ConfigurationType,
 //              StatisticContainerType,
 //              HandlerConfigurationType,
-//              SessionDataType,
-//              SessionDataContainerType,
+//              SessionManagerType,
 //              ControlMessageType,
 //              DataMessageType,
 //              SessionMessageType>::unlinkModules ()

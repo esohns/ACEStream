@@ -36,6 +36,7 @@
 #include "stream_isessionnotify.h"
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
+#include "stream_session_manager.h"
 
 // forward declarations
 struct Branch_AllocatorConfiguration;
@@ -132,10 +133,21 @@ struct Branch_StreamState
   //struct Branch_UserData*    userData;
 };
 
+//////////////////////////////////////////
+
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Common_AllocatorConfiguration,
                                           Stream_ControlMessage_t,
                                           Branch_Message,
                                           Branch_SessionMessage> Branch_MessageAllocator_t;
+
+//////////////////////////////////////////
+
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 struct Branch_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_U_SessionManager_t;
 
 #endif

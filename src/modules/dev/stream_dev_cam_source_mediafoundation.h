@@ -53,10 +53,8 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
-          ////////////////////////////////
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename UserDataType,
@@ -72,17 +70,16 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
  , public IMFSampleGrabberSinkCallback2
 #else
  , public IMFSampleGrabberSinkCallback
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
  //, public IMFAsyncCallback
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
@@ -94,9 +91,8 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
@@ -120,9 +116,8 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                     StreamControlType,
                                     StreamNotificationType,
                                     StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
                                     StatisticContainerType,
+                                    SessionManagerType,
                                     TimerManagerType,
                                     UserDataType>::initialize;
 
@@ -189,9 +184,8 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                                   StreamControlType,
                                                   StreamNotificationType,
                                                   StreamStateType,
-                                                  SessionDataType,          // session data
-                                                  SessionDataContainerType, // session message payload (reference counted)
                                                   StatisticContainerType,
+                                                  SessionManagerType,
                                                   TimerManagerType,
                                                   UserDataType,
                                                   MediaType> OWN_TYPE_T;

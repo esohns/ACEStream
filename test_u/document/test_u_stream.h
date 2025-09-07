@@ -47,8 +47,7 @@ class Test_U_Stream
                         struct Stream_Configuration,
                         struct Stream_Statistic,
                         struct Test_U_Document_ModuleHandlerConfiguration,
-                        struct Test_U_SessionData,
-                        Test_U_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message,
                         Test_U_SessionMessage>
@@ -63,8 +62,7 @@ class Test_U_Stream
                         struct Stream_Configuration,
                         struct Stream_Statistic,
                         struct Test_U_Document_ModuleHandlerConfiguration,
-                        struct Test_U_SessionData,
-                        Test_U_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message,
                         Test_U_SessionMessage> inherited;

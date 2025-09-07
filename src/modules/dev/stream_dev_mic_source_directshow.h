@@ -56,10 +56,8 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          ////////////////////////////////
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType> // implements Common_ITimer
 class Stream_Dev_Mic_Source_DirectShow_T
  : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
@@ -71,9 +69,8 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       struct Stream_UserData>
  , public IMemAllocatorNotifyCallbackTemp
@@ -88,9 +85,8 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       struct Stream_UserData> inherited;
 
@@ -109,9 +105,8 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                     StreamControlType,
                                     StreamNotificationType,
                                     StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
                                     StatisticContainerType,
+                                    SessionManagerType,
                                     TimerManagerType,
                                     struct Stream_UserData>::initialize;
 
@@ -156,9 +151,8 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                              StreamControlType,
                                              StreamNotificationType,
                                              StreamStateType,
-                                             SessionDataType,
-                                             SessionDataContainerType,
                                              StatisticContainerType,
+                                             SessionManagerType,
                                              TimerManagerType> OWN_TYPE_T;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_DirectShow_T ())

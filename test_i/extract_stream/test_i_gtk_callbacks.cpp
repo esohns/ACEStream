@@ -202,21 +202,19 @@ stream_processing_function (void* arg_in)
   // sanity check(s)
   ACE_ASSERT (thread_data_p);
   ACE_ASSERT (thread_data_p->CBData);
+  Test_I_SessionManager_t* session_manager_p =
+    Test_I_SessionManager_t::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
+  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ExtractStream_UI_CBData*> (thread_data_p->CBData);
+  ACE_ASSERT (cb_data_p->configuration);
+  ACE_ASSERT (cb_data_p->stream);
 
   Common_UI_GTK_BuildersIterator_t iterator;
   GtkProgressBar* progress_bar_p = NULL;
   GtkStatusbar* statusbar_p = NULL;
   std::ostringstream converter;
   Stream_IStreamControlBase* stream_p = NULL;
-//  Stream_Module_t* module_p = NULL;
-//  bool result_2 = false;
-
-  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
-    static_cast<struct Test_I_ExtractStream_UI_CBData*> (thread_data_p->CBData);
-  ACE_ASSERT (cb_data_p->configuration);
-  ACE_ASSERT (cb_data_p->stream);
-
-  const Test_I_ExtractStream_SessionData_t* session_data_container_p = NULL;
   const Test_I_ExtractStream_SessionData* session_data_p = NULL;
 
   iterator =
@@ -243,19 +241,11 @@ stream_processing_function (void* arg_in)
   } // end IF
 
   stream_p = cb_data_p->stream;
-  session_data_container_p = &cb_data_p->stream->getR_2 ();
-  session_data_p = &session_data_container_p->getR ();
+  
+  session_data_p = &session_manager_p->getR ();
+  // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
   cb_data_p->progressData.sessionId = session_data_p->sessionId;
   converter << session_data_p->sessionId;
-
-//  module_p =
-//    const_cast<Stream_Module_t*> (cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING),
-//                                                                false,  // do not sanitize module names
-//                                                                false)); // do not recurse upstream
-//  module_2 =
-//    const_cast<Stream_Module_t*> (cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING),
-//                                                                false,  // do not sanitize module names
-//                                                                false)); // do not recurse upstream
 
   // generate context id
 #if GTK_CHECK_VERSION (3,6,0)

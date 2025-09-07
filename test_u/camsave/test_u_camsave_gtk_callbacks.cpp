@@ -2076,11 +2076,7 @@ stream_processing_function (void* arg_in)
   struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   struct Stream_CamSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
     NULL;
-  const Stream_CamSave_DirectShow_SessionData_t* directshow_session_data_container_p =
-    NULL;
   const Stream_CamSave_DirectShow_SessionData* directshow_session_data_p = NULL;
-  const Stream_CamSave_MediaFoundation_SessionData_t* mediafoundation_session_data_container_p =
-    NULL;
   const Stream_CamSave_MediaFoundation_SessionData* mediafoundation_session_data_p =
     NULL;
   switch (thread_data_p->CBData->mediaFramework)
@@ -2158,7 +2154,6 @@ stream_processing_function (void* arg_in)
     ACE_ASSERT (v4l_cb_data_p->configuration);
     ACE_ASSERT (v4l_cb_data_p->stream);
     stream_p = v4l_cb_data_p->stream;
-    const Stream_CamSave_V4L_SessionData_t* session_data_container_p = NULL;
     const Stream_CamSave_V4L_SessionData* session_data_p = NULL;
     if (!v4l_cb_data_p->stream->initialize (v4l_cb_data_p->configuration->v4l_streamConfiguration))
     {
@@ -2174,8 +2169,8 @@ stream_processing_function (void* arg_in)
       dynamic_cast<Common_IDispatch*> (module_p->writer ());
     ACE_ASSERT (v4l_cb_data_p->dispatch);
 
-    session_data_container_p = &v4l_cb_data_p->stream->getR_2 ();
-    session_data_p = &session_data_container_p->getR ();
+    session_data_p = &v4l_cb_data_p->stream->getR_2 ();
+    // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
     v4l_cb_data_p->progressData.sessionId = session_data_p->sessionId;
     converter << session_data_p->sessionId;
   } // end ELSE
@@ -2238,9 +2233,8 @@ stream_processing_function (void* arg_in)
       } // end IF
 
       stream_p = directshow_cb_data_p->stream;
-      directshow_session_data_container_p =
-        &directshow_cb_data_p->stream->getR_2 ();
-      directshow_session_data_p = &directshow_session_data_container_p->getR ();
+      directshow_session_data_p = &directshow_cb_data_p->stream->getR_2 ();
+      // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
       directshow_cb_data_p->progressData.sessionId =
         directshow_session_data_p->sessionId;
       converter << directshow_session_data_p->sessionId;
@@ -2263,10 +2257,9 @@ stream_processing_function (void* arg_in)
       ACE_ASSERT (mediafoundation_cb_data_p->dispatch);
 
       stream_p = mediafoundation_cb_data_p->stream;
-      mediafoundation_session_data_container_p =
-        &mediafoundation_cb_data_p->stream->getR_2 ();
       mediafoundation_session_data_p =
-        &mediafoundation_session_data_container_p->getR ();
+        &mediafoundation_cb_data_p->stream->getR_2 ();
+      // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
       mediafoundation_cb_data_p->progressData.sessionId =
         mediafoundation_session_data_p->sessionId;
       converter << mediafoundation_session_data_p->sessionId;

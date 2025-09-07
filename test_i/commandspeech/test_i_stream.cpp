@@ -609,6 +609,9 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
   // sanity check(s)
   ACE_ASSERT (!inherited::isRunning ());
   ACE_ASSERT (configuration_in.configuration_);
+  Test_I_MediaFoundation_SessionManager_t* session_manager_p =
+    Test_I_MediaFoundation_SessionManager_t::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
 
   if (inherited::isInitialized_)
   {
@@ -655,9 +658,8 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
   reset_setup_pipeline = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
   Test_I_CommandSpeech_MediaFoundation_SessionData& session_data_r =
-    const_cast<Test_I_CommandSpeech_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
+    const_cast<Test_I_CommandSpeech_MediaFoundation_SessionData&> (session_manager_p->getR ());
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
@@ -677,28 +679,17 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
 
   // ---------------------------------------------------------------------------
 
-  // ********************** Spectrum Analyzer *****************
-//#if defined (GTK_USE)
-//  Stream_Module_t* module_p =
-//    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
-//  ACE_ASSERT (module_p);
-//  Stream_Statistic_IDispatch_t* idispatch_p =
-//    dynamic_cast<Stream_Statistic_IDispatch_t*> (module_p->writer ());
-//  ACE_ASSERT (idispatch_p);
-//  (*iterator).second.second->dispatch = idispatch_p;
-//#endif // GTK_USE
-
   bool graph_loaded = false;
   HRESULT result_2 = E_FAIL;
   IMFTopology* topology_p = NULL;
   enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
     MFSESSION_GETFULLTOPOLOGY_CURRENT;
   ULONG reference_count = 0;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
   IMFSampleGrabberSinkCallback2* sample_grabber_p = NULL;
 #else
   IMFSampleGrabberSinkCallback* sample_grabber_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
   IMFMediaType* media_type_p = NULL, *media_type_2 = NULL; // capture-
   bool use_framework_renderer_b = false;
   int render_device_id_i = -1;
@@ -737,11 +728,11 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
   if (module_p)
   {
     sample_grabber_p =
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       dynamic_cast<IMFSampleGrabberSinkCallback2*> (mediaFoundationSource_.writer ());
 #else
       dynamic_cast<IMFSampleGrabberSinkCallback*> (mediaFoundationSource_.writer ());
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
     ACE_ASSERT (sample_grabber_p);
 
     // set sample grabber output format ?

@@ -1117,10 +1117,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
@@ -1130,12 +1129,11 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType>::Stream_Module_FileWriterH_T (typename inherited::ISTREAM_T* stream_in,
-                                                                                bool autoStart_in,
-                                                                                bool generateSessionMessages_in)
+                            SessionManagerType,
+                            TimerManagerType>::Stream_Module_FileWriterH_T (typename inherited::ISTREAM_T* stream_in,
+                                                                            bool autoStart_in,
+                                                                            bool generateSessionMessages_in)
  : inherited (stream_in,
               autoStart_in,
               STREAM_HEADMODULECONCURRENCY_ACTIVE,
@@ -1158,10 +1156,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
@@ -1171,10 +1168,9 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType>::~Stream_Module_FileWriterH_T ()
+                            SessionManagerType,
+                            TimerManagerType>::~Stream_Module_FileWriterH_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::~Stream_Module_FileWriterH_T"));
 
@@ -1199,10 +1195,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 void
 Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1213,11 +1208,10 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                      bool& passMessageDownstream_out)
+                            SessionManagerType,
+                            TimerManagerType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                  bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::handleDataMessage"));
 
@@ -1289,10 +1283,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 void
 Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1303,11 +1296,10 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                         bool& passMessageDownstream_out)
+                            SessionManagerType,
+                            TimerManagerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                     bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::handleSessionMessage"));
 
@@ -1612,10 +1604,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 bool
 Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1626,11 +1617,10 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType>::initialize (const ConfigurationType& configuration_in,
-                                                               Stream_IAllocator* allocator_in)
+                            SessionManagerType,
+                            TimerManagerType>::initialize (const ConfigurationType& configuration_in,
+                                                           Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::initialize"));
 
@@ -1682,10 +1672,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 bool
 Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1696,10 +1685,9 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType>::collect (StatisticContainerType& data_out)
+                            SessionManagerType,
+                            TimerManagerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::collect"));
 

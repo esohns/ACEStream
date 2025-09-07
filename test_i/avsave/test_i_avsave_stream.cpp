@@ -191,6 +191,8 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
   std::string log_file_name;
   struct Stream_MediaFramework_DirectShow_AudioVideoFormat media_type_s;
   bool remove_module_2 = false;
+  Test_I_DirectShow_SessionManager_t* session_manager_p =
+    Test_I_DirectShow_SessionManager_t::SINGLETON_T::instance ();
 
   // sanity check(s)
   iterator =
@@ -202,6 +204,7 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
   ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
   ACE_ASSERT (iterator_3 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
+  ACE_ASSERT (session_manager_p);
 
   // ---------------------------------------------------------------------------
   // step1: set up directshow filter graph
@@ -466,11 +469,8 @@ continue_:
   //              ACE_TEXT (stream_name_string_),
   //              inherited::configuration_->configuration_->module_2->name ()));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
   session_data_p =
-    &const_cast<Stream_AVSave_DirectShow_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Stream_AVSave_DirectShow_SessionData&> (session_manager_p->getR ());
   Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format,
                                                 media_type_s);
   session_data_p->formats.push_back (media_type_s);
@@ -721,15 +721,11 @@ Stream_AVSave_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
 
   // sanity check(s)
   ACE_ASSERT (result_in);
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (mediaSession_);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  ACE_ASSERT (inherited::sessionData_);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
-  //Stream_AVSave_SessionData& session_data_r =
-  //  const_cast<Stream_AVSave_SessionData&> (inherited::sessionData_->get ());
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = mediaSession_->EndGetEvent (result_in, &media_event_p);
   if (FAILED (result))
   {
@@ -739,7 +735,7 @@ Stream_AVSave_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   ACE_ASSERT (media_event_p);
   result = media_event_p->GetType (&event_type);
   ACE_ASSERT (SUCCEEDED (result));
@@ -934,7 +930,8 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Stream_AVSave_MediaFoundation_SessionData* session_data_p = NULL;
-  inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+      const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   Stream_AVSave_MediaFoundation_Source* source_impl_p = NULL;
   bool graph_loaded = false;
   bool COM_initialized = false;
@@ -944,6 +941,8 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
     MFSESSION_GETFULLTOPOLOGY_CURRENT;
   struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat media_type_s;
   TOPOID node_id = 0, node_id_2 = 0;
+  Test_I_MediaFoundation_SessionManager_t* session_manager_p =
+    Test_I_MediaFoundation_SessionManager_t::SINGLETON_T::instance ();
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -961,15 +960,11 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
   reset_setup_pipeline = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   session_data_p =
-    &const_cast<Stream_AVSave_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
-  iterator =
-      const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-
-  // sanity check(s)
-  ACE_ASSERT (iterator != configuration_in.end ());
+    &const_cast<Stream_AVSave_MediaFoundation_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
@@ -1129,13 +1124,6 @@ continue_:
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
-  source_impl_p->setP (&(inherited::state_));
-
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  source_.arg (inherited::sessionData_);
-
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))
     {
@@ -1245,8 +1233,11 @@ Stream_AVSave_DirectShow_Audio_Stream::initialize (const typename inherited::CON
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Stream_AVSave_DirectShow_SessionData* session_data_p = NULL;
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   //Stream_AVSave_DirectShow_WaveIn_Source* source_impl_p = NULL;
+  Test_I_DirectShow_SessionManager_t* session_manager_p =
+    Test_I_DirectShow_SessionManager_t::SINGLETON_T::instance ();
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -1264,15 +1255,11 @@ Stream_AVSave_DirectShow_Audio_Stream::initialize (const typename inherited::CON
   reset_setup_pipeline = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   session_data_p =
-    &const_cast<Stream_AVSave_DirectShow_SessionData&> (inherited::sessionData_->getR ());
-  iterator =
-      const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-
-  // sanity check(s)
-  ACE_ASSERT (iterator != configuration_in.end ());
+    &const_cast<Stream_AVSave_DirectShow_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
@@ -1378,8 +1365,11 @@ Stream_AVSave_MediaFoundation_Audio_Stream::initialize (const typename inherited
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Stream_AVSave_MediaFoundation_SessionData* session_data_p = NULL;
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   Stream_AVSave_MediaFoundation_WaveIn_Source* source_impl_p = NULL;
+  Test_I_MediaFoundation_SessionManager_t* session_manager_p =
+    Test_I_MediaFoundation_SessionManager_t::SINGLETON_T::instance ();
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -1397,15 +1387,11 @@ Stream_AVSave_MediaFoundation_Audio_Stream::initialize (const typename inherited
   reset_setup_pipeline = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   session_data_p =
-    &const_cast<Stream_AVSave_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
-  iterator =
-      const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-
-  // sanity check(s)
-  ACE_ASSERT (iterator != configuration_in.end ());
+    &const_cast<Stream_AVSave_MediaFoundation_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);

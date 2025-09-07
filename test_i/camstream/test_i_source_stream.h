@@ -48,7 +48,6 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct IMFMediaSession;
 #endif // ACE_WIN32 || ACE_WIN64
-class Stream_IAllocator;
 
 extern const char stream_name_string_[];
 
@@ -57,8 +56,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename TimerManagerType, // implements Common_ITimer
           typename HandlerConfigurationType, // module-
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -75,8 +72,7 @@ class Test_I_Source_DirectShow_Stream_T
                         ConfigurationType,
                         struct Stream_Statistic,
                         HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
+                        Test_I_DirectShow_SessionManager_t,
                         ControlMessageType,
                         MessageType,
                         SessionMessageType>
@@ -91,15 +87,14 @@ class Test_I_Source_DirectShow_Stream_T
                         ConfigurationType,
                         struct Stream_Statistic,
                         HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
+                        Test_I_DirectShow_SessionManager_t,
                         ControlMessageType,
                         MessageType,
                         SessionMessageType> inherited;
 
  public:
   Test_I_Source_DirectShow_Stream_T ();
-  virtual ~Test_I_Source_DirectShow_Stream_T ();
+  inline virtual ~Test_I_Source_DirectShow_Stream_T () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*, // return value: module list
@@ -113,25 +108,25 @@ class Test_I_Source_DirectShow_Stream_T
                                             ConfigurationType,
                                             TimerManagerType,
                                             HandlerConfigurationType,
-                                            SessionDataType,
-                                            SessionDataContainerType,
                                             ControlMessageType,
                                             MessageType,
                                             SessionMessageType,
                                             ConnectionManagerType,
                                             ConnectorType> OWN_TYPE_T;
+  typedef typename SessionMessageType::DATA_T SESSION_DATA_CONTAINER_T;
   typedef Stream_Module_Net_Target_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      HandlerConfigurationType,
                                      ControlMessageType,
                                      MessageType,
                                      SessionMessageType,
-                                     SessionDataContainerType,
+                                     SESSION_DATA_CONTAINER_T,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
+  typedef typename SessionMessageType::DATA_T::DATA_T SESSION_DATA_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
                                          Common_TimePolicy_t,        // time policy
-                                         SessionDataType,            // session data type
+                                         SESSION_DATA_T,             // session data type
                                          Stream_SessionMessageType,  // session event type
                                          Stream_ModuleConfiguration, // module configuration type
                                          HandlerConfigurationType,   // module handler configuration type
@@ -149,8 +144,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename TimerManagerType, // implements Common_ITimer
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -167,8 +160,7 @@ class Test_I_Source_MediaFoundation_Stream_T
                         ConfigurationType,
                         struct Stream_Statistic,
                         HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
+                        Test_I_MediaFoundation_SessionManager_t,
                         ControlMessageType,
                         MessageType,
                         SessionMessageType>
@@ -184,8 +176,7 @@ class Test_I_Source_MediaFoundation_Stream_T
                         ConfigurationType,
                         struct Stream_Statistic,
                         HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
+                        Test_I_MediaFoundation_SessionManager_t,
                         ControlMessageType,
                         MessageType,
                         SessionMessageType> inherited;
@@ -214,25 +205,25 @@ class Test_I_Source_MediaFoundation_Stream_T
                                                  ConfigurationType,
                                                  TimerManagerType,
                                                  HandlerConfigurationType,
-                                                 SessionDataType,
-                                                 SessionDataContainerType,
                                                  ControlMessageType,
                                                  MessageType,
                                                  SessionMessageType,
                                                  ConnectionManagerType,
                                                  ConnectorType> OWN_TYPE_T;
+  typedef typename SessionMessageType::DATA_T SESSION_DATA_CONTAINER_T;
   typedef Stream_Module_Net_Target_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      HandlerConfigurationType,
                                      ControlMessageType,
                                      MessageType,
                                      SessionMessageType,
-                                     SessionDataContainerType,
+                                     SESSION_DATA_CONTAINER_T,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
+  typedef typename SessionMessageType::DATA_T::DATA_T SESSION_DATA_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
                                          Common_TimePolicy_t,        // time policy
-                                         SessionDataType,            // session data type
+                                         SESSION_DATA_T,             // session data type
                                          Stream_SessionMessageType,  // session event type
                                          Stream_ModuleConfiguration, // module configuration type
                                          HandlerConfigurationType,   // module handler configuration type
@@ -254,8 +245,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename TimerManagerType, // implements Common_ITimer
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -272,8 +261,7 @@ class Test_I_Source_V4L_Stream_T
                         struct Test_I_Source_V4L_StreamConfiguration,
                         struct Stream_Statistic,
                         HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
+                        Test_I_SessionManager_t,
                         ControlMessageType,
                         MessageType,
                         SessionMessageType>
@@ -288,15 +276,14 @@ class Test_I_Source_V4L_Stream_T
                         struct Test_I_Source_V4L_StreamConfiguration,
                         struct Stream_Statistic,
                         HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
+                        Test_I_SessionManager_t,
                         ControlMessageType,
                         MessageType,
                         SessionMessageType> inherited;
 
  public:
   Test_I_Source_V4L_Stream_T ();
-  virtual ~Test_I_Source_V4L_Stream_T ();
+  inline virtual ~Test_I_Source_V4L_Stream_T () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*, // return value: module list
@@ -310,25 +297,25 @@ class Test_I_Source_V4L_Stream_T
                                       ConfigurationType,
                                       TimerManagerType,
                                       HandlerConfigurationType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       ControlMessageType,
                                       MessageType,
                                       SessionMessageType,
                                       ConnectionManagerType,
                                       ConnectorType> OWN_TYPE_T;
+  typedef typename SessionMessageType::DATA_T SESSION_DATA_CONTAINER_T;
   typedef Stream_Module_Net_Target_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      HandlerConfigurationType,
                                      ControlMessageType,
                                      MessageType,
                                      SessionMessageType,
-                                     SessionDataContainerType,
+                                     SESSION_DATA_CONTAINER_T,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
+  typedef typename SessionMessageType::DATA_T::DATA_T SESSION_DATA_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                      // task synch type
                                          Common_TimePolicy_t,               // time policy
-                                         SessionDataType,                   // session data type
+                                         SESSION_DATA_T,                    // session data type
                                          enum Stream_SessionMessageType,    // session event type
                                          struct Stream_ModuleConfiguration, // module configuration type
                                          HandlerConfigurationType,          // module handler configuration type
@@ -354,32 +341,26 @@ typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_Stream
                                           struct Test_I_Source_DirectShow_StreamConfiguration,
                                           Common_Timer_Manager_t,
                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                                          Test_I_Source_DirectShow_SessionData,
-                                          Test_I_Source_DirectShow_SessionData_t,
                                           Stream_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_SessionMessage,
                                           Test_I_Source_DirectShow_TCPConnectionManager_t,
                                           Test_I_Source_DirectShow_TCPConnector_t> Test_I_Source_DirectShow_TCPStream_t;
-#if defined (SSL_USE)
+#if defined (SSL_SUPPORT)
 typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_StreamState,
                                           struct Test_I_Source_DirectShow_StreamConfiguration,
                                           Common_Timer_Manager_t,
                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                                          Test_I_Source_DirectShow_SessionData,
-                                          Test_I_Source_DirectShow_SessionData_t,
                                           Stream_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_SessionMessage,
                                           Test_I_Source_DirectShow_TCPConnectionManager_t,
                                           Test_I_Source_DirectShow_SSLConnector_t> Test_I_Source_DirectShow_SSLTCPStream_t;
-#endif // SSL_USE
+#endif // SSL_SUPPORT
 typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_StreamState,
                                           struct Test_I_Source_DirectShow_StreamConfiguration,
                                           Common_Timer_Manager_t,
                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                                          Test_I_Source_DirectShow_SessionData,
-                                          Test_I_Source_DirectShow_SessionData_t,
                                           Stream_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_SessionMessage,
@@ -390,8 +371,6 @@ typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_Stream
                                           struct Test_I_Source_DirectShow_StreamConfiguration,
                                           Common_Timer_Manager_t,
                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                                          Test_I_Source_DirectShow_SessionData,
-                                          Test_I_Source_DirectShow_SessionData_t,
                                           Stream_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_SessionMessage,
@@ -401,8 +380,6 @@ typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_Stream
                                           struct Test_I_Source_DirectShow_StreamConfiguration,
                                           Common_Timer_Manager_t,
                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                                          Test_I_Source_DirectShow_SessionData,
-                                          Test_I_Source_DirectShow_SessionData_t,
                                           Stream_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_SessionMessage,
@@ -413,20 +390,16 @@ typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundat
                                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
                                                Common_Timer_Manager_t,
                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                                               Test_I_Source_MediaFoundation_SessionData,
-                                               Test_I_Source_MediaFoundation_SessionData_t,
                                                Stream_ControlMessage_t,
                                                Test_I_Source_MediaFoundation_Stream_Message,
                                                Test_I_Source_MediaFoundation_SessionMessage,
                                                Test_I_Source_MediaFoundation_TCPConnectionManager_t,
                                                Test_I_Source_MediaFoundation_TCPConnector_t> Test_I_Source_MediaFoundation_TCPStream_t;
-#if defined (SSL_USE)
+#if defined (SSL_SUPPORT)
 typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundation_StreamState,
                                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
                                                Common_Timer_Manager_t,
                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                                               Test_I_Source_MediaFoundation_SessionData,
-                                               Test_I_Source_MediaFoundation_SessionData_t,
                                                Stream_ControlMessage_t,
                                                Test_I_Source_MediaFoundation_Stream_Message,
                                                Test_I_Source_MediaFoundation_SessionMessage,
@@ -437,8 +410,6 @@ typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundat
                                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
                                                Common_Timer_Manager_t,
                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                                               Test_I_Source_MediaFoundation_SessionData,
-                                               Test_I_Source_MediaFoundation_SessionData_t,
                                                Stream_ControlMessage_t,
                                                Test_I_Source_MediaFoundation_Stream_Message,
                                                Test_I_Source_MediaFoundation_SessionMessage,
@@ -449,8 +420,6 @@ typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundat
                                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
                                                Common_Timer_Manager_t,
                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                                               Test_I_Source_MediaFoundation_SessionData,
-                                               Test_I_Source_MediaFoundation_SessionData_t,
                                                Stream_ControlMessage_t,
                                                Test_I_Source_MediaFoundation_Stream_Message,
                                                Test_I_Source_MediaFoundation_SessionMessage,
@@ -460,8 +429,6 @@ typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundat
                                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
                                                Common_Timer_Manager_t,
                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                                               Test_I_Source_MediaFoundation_SessionData,
-                                               Test_I_Source_MediaFoundation_SessionData_t,
                                                Stream_ControlMessage_t,
                                                Test_I_Source_MediaFoundation_Stream_Message,
                                                Test_I_Source_MediaFoundation_SessionMessage,
@@ -472,8 +439,6 @@ typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
                                    Test_I_Source_V4L_StreamConfiguration_t,
                                    Common_Timer_Manager_t,
                                    struct Test_I_Source_V4L_ModuleHandlerConfiguration,
-                                   Test_I_Source_V4L_SessionData,
-                                   Test_I_Source_V4L_SessionData_t,
                                    Stream_ControlMessage_t,
                                    Test_I_Source_V4L_Stream_Message,
                                    Test_I_Source_V4L_SessionMessage,
@@ -484,8 +449,6 @@ typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
                                    Test_I_Source_V4L_StreamConfiguration_t,
                                    Common_Timer_Manager_t,
                                    struct Test_I_Source_V4L_ModuleHandlerConfiguration,
-                                   Test_I_Source_V4L_SessionData,
-                                   Test_I_Source_V4L_SessionData_t,
                                    Stream_ControlMessage_t,
                                    Test_I_Source_V4L_Stream_Message,
                                    Test_I_Source_V4L_SessionMessage,
@@ -496,8 +459,6 @@ typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
                                    Test_I_Source_V4L_StreamConfiguration_t,
                                    Common_Timer_Manager_t,
                                    struct Test_I_Source_V4L_ModuleHandlerConfiguration,
-                                   Test_I_Source_V4L_SessionData,
-                                   Test_I_Source_V4L_SessionData_t,
                                    Stream_ControlMessage_t,
                                    Test_I_Source_V4L_Stream_Message,
                                    Test_I_Source_V4L_SessionMessage,
@@ -508,8 +469,6 @@ typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
                                    Test_I_Source_V4L_StreamConfiguration_t,
                                    Common_Timer_Manager_t,
                                    struct Test_I_Source_V4L_ModuleHandlerConfiguration,
-                                   Test_I_Source_V4L_SessionData,
-                                   Test_I_Source_V4L_SessionData_t,
                                    Stream_ControlMessage_t,
                                    Test_I_Source_V4L_Stream_Message,
                                    Test_I_Source_V4L_SessionMessage,
@@ -519,8 +478,6 @@ typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
                                    Test_I_Source_V4L_StreamConfiguration_t,
                                    Common_Timer_Manager_t,
                                    struct Test_I_Source_V4L_ModuleHandlerConfiguration,
-                                   Test_I_Source_V4L_SessionData,
-                                   Test_I_Source_V4L_SessionData_t,
                                    Stream_ControlMessage_t,
                                    Test_I_Source_V4L_Stream_Message,
                                    Test_I_Source_V4L_SessionMessage,

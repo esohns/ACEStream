@@ -167,6 +167,9 @@ Test_U_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+  Test_U_SessionManager_t* session_manager_p =
+    Test_U_SessionManager_t::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -184,19 +187,15 @@ Test_U_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   reset_setup_pipeline = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
   session_data_p =
-    &const_cast<Test_U_AnimatedGIF_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Test_U_AnimatedGIF_SessionData&> (session_manager_p->getR ());
   ACE_ASSERT (session_data_p->formats.empty ());
   iterator = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
 
   // *TODO*: remove type inferences
   session_data_p->fileIdentifier = (*iterator).second.second->fileIdentifier;
-  //session_data_p->size =
-  //  Common_File_Tools::size ((*iterator).second.second->fileIdentifier.identifier);
   session_data_p->formats.push_back (media_type_s);
-  //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
 

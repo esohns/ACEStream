@@ -31,11 +31,6 @@
 
 #include "test_u_imagescreen_common.h"
 #include "test_u_imagescreen_common_modules.h"
-//#include "test_u_imagescreen_message.h"
-//#include "test_u_imagescreen_session_message.h"
-
-// forward declarations
-class Stream_IAllocator;
 
 extern const char stream_name_string_[];
 
@@ -50,8 +45,7 @@ class Stream_ImageScreen_Stream
                         struct Stream_ImageScreen_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Stream_ImageScreen_ModuleHandlerConfiguration,
-                        Stream_ImageScreen_SessionData,
-                        Stream_ImageScreen_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_ImageScreen_Message_t,
                         Stream_ImageScreen_SessionMessage_t>
@@ -66,8 +60,7 @@ class Stream_ImageScreen_Stream
                         struct Stream_ImageScreen_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Stream_ImageScreen_ModuleHandlerConfiguration,
-                        Stream_ImageScreen_SessionData,
-                        Stream_ImageScreen_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_ImageScreen_Message_t,
                         Stream_ImageScreen_SessionMessage_t> inherited;

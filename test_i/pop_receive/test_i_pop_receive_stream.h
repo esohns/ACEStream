@@ -55,8 +55,7 @@ class Test_I_POPReceive_Stream
                         struct POP_StreamConfiguration,
                         POP_Statistic_t,
                         struct Stream_POPReceive_ModuleHandlerConfiguration,
-                        struct POP_Stream_SessionData,
-                        POP_Stream_SessionData_t,
+                        POP_SessionManager_t,
                         Stream_ControlMessage_t,
                         POP_Message_t,
                         POP_SessionMessage_t>
@@ -71,8 +70,7 @@ class Test_I_POPReceive_Stream
                         struct POP_StreamConfiguration,
                         POP_Statistic_t,
                         struct Stream_POPReceive_ModuleHandlerConfiguration,
-                        struct POP_Stream_SessionData,
-                        POP_Stream_SessionData_t,
+                        POP_SessionManager_t,
                         Stream_ControlMessage_t,
                         POP_Message_t,
                         POP_SessionMessage_t> inherited;
@@ -181,8 +179,8 @@ class Test_I_POPReceive_Stream
   Stream_POPReceive_SSLNetSource_Module    SSLSource_;
 #endif // SSL_SUPPORT
   //MODULE_PARSER_T    parser_;
-  MODULE_MARSHAL_T                       marshal_;
-  MODULE_STATISTIC_T                     statistic_;
+  MODULE_MARSHAL_T                         marshal_;
+  MODULE_STATISTIC_T                       statistic_;
   Stream_POPReceive_ProtocolHandler_Module protocolHandler_;
 };
 

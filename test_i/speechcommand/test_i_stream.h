@@ -57,8 +57,7 @@ class Test_I_DirectShow_Stream
                         struct Test_I_DirectShow_StreamConfiguration,
                         struct Test_I_Statistic,
                         struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
-                        Test_I_SpeechCommand_DirectShow_SessionData,
-                        Test_I_SpeechCommand_DirectShow_SessionData_t,
+                        Test_I_DirectShow_SessionManager_2,
                         Stream_ControlMessage_t,
                         Test_I_DirectShow_Message,
                         Test_I_DirectShow_SessionMessage_t>
@@ -73,8 +72,7 @@ class Test_I_DirectShow_Stream
                         struct Test_I_DirectShow_StreamConfiguration,
                         struct Test_I_Statistic,
                         struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
-                        Test_I_SpeechCommand_DirectShow_SessionData,
-                        Test_I_SpeechCommand_DirectShow_SessionData_t,
+                        Test_I_DirectShow_SessionManager_2,
                         Stream_ControlMessage_t,
                         Test_I_DirectShow_Message,
                         Test_I_DirectShow_SessionMessage_t> inherited;
@@ -107,8 +105,7 @@ class Test_I_MediaFoundation_Stream
                         struct Test_I_MediaFoundation_StreamConfiguration,
                         struct Test_I_Statistic,
                         struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_I_SpeechCommand_MediaFoundation_SessionData,
-                        Test_I_SpeechCommand_MediaFoundation_SessionData_t,
+                        Test_I_MediaFoundation_SessionManager_2,
                         Stream_ControlMessage_t,
                         Test_I_MediaFoundation_Message,
                         Test_I_MediaFoundation_SessionMessage_t>
@@ -127,8 +124,7 @@ class Test_I_MediaFoundation_Stream
                         struct Test_I_MediaFoundation_StreamConfiguration,
                         struct Test_I_Statistic,
                         struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_I_SpeechCommand_MediaFoundation_SessionData,
-                        Test_I_SpeechCommand_MediaFoundation_SessionData_t,
+                        Test_I_MediaFoundation_SessionManager_2,
                         Stream_ControlMessage_t,
                         Test_I_MediaFoundation_Message,
                         Test_I_MediaFoundation_SessionMessage_t> inherited;

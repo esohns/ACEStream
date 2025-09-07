@@ -162,7 +162,8 @@ Branch_Stream_2::initialize (const typename inherited::CONFIGURATION_T& configur
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  Branch_SessionData* session_data_p = NULL;
+  Test_U_SessionManager_t* session_manager_p = NULL;
+  struct Branch_SessionData* session_data_p = NULL;
 
    // sanity check(s)
   ACE_ASSERT (configuration_in.configuration_);
@@ -183,11 +184,11 @@ Branch_Stream_2::initialize (const typename inherited::CONFIGURATION_T& configur
     true;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
-  session_data_p = &const_cast<Branch_SessionData&> (inherited::sessionData_->getR ());  
+  session_manager_p = Test_U_SessionManager_t::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
+  session_data_p =
+    &const_cast<struct Branch_SessionData&> (session_manager_p->getR ());
   session_data_p->stream = this;
-  // session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
 

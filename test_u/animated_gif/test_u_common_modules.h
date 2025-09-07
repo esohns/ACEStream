@@ -28,6 +28,7 @@
 
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
+#include "stream_session_manager.h"
 
 //#include "stream_file_sink.h"
 #include "stream_file_source.h"
@@ -54,6 +55,13 @@
 #include "test_u_imagemagick_target.h"
 #include "test_u_message.h"
 #include "test_u_session_message.h"
+
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_U_AnimatedGIF_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_U_SessionManager_t;
 
 // declare module(s)
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
@@ -83,9 +91,8 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Test_U_StreamState,
-                                    Test_U_AnimatedGIF_SessionData,
-                                    Test_U_AnimatedGIF_SessionData_t,
                                     struct Stream_Statistic,
+                                    Test_U_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Test_U_FileReader;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AnimatedGIF_SessionData,                // session data type
@@ -189,6 +196,7 @@ typedef Stream_File_ImageMagick_Source_T<ACE_MT_SYNCH,
                                          Test_U_SessionMessage,
                                          struct Test_U_StreamState,
                                          struct Stream_Statistic,
+                                         Test_U_SessionManager_t,
                                          Common_Timer_Manager_t,
                                          struct Stream_UserData,
                                          struct _AMMediaType> Test_U_ImageMagick_Source;

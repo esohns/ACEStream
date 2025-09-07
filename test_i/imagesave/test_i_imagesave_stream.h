@@ -50,8 +50,7 @@ class Test_I_Stream
                         struct Test_I_ImageSave_StreamConfiguration,
                         struct Test_I_StatisticData,
                         struct Test_I_ImageSave_ModuleHandlerConfiguration,
-                        Test_I_ImageSave_SessionData,
-                        Test_I_ImageSave_SessionData_t,
+                        Test_I_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Message,
                         Test_I_SessionMessage_t>
@@ -66,8 +65,7 @@ class Test_I_Stream
                         struct Test_I_ImageSave_StreamConfiguration,
                         struct Test_I_StatisticData,
                         struct Test_I_ImageSave_ModuleHandlerConfiguration,
-                        Test_I_ImageSave_SessionData,
-                        Test_I_ImageSave_SessionData_t,
+                        Test_I_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Message,
                         Test_I_SessionMessage_t> inherited;

@@ -137,28 +137,24 @@ Test_I_POPReceive_Stream::initialize (const typename inherited::CONFIGURATION_T&
                 ACE_TEXT ("failed to Stream_Base_T::initialize(), aborting\n")));
     return false;
   } // end IF
-  ACE_ASSERT (inherited::sessionData_);
-
-//  struct POP_Stream_SessionData& session_data_r =
-//      const_cast<struct POP_Stream_SessionData&> (inherited::sessionData_->getR ());
 
   // ******************* Source ************************
   Stream_POPReceive_NetSource* source_impl_p =
     static_cast<Stream_POPReceive_NetSource*> (source_.writer ());
-  source_impl_p->setP (&(inherited::state_));
+  //source_impl_p->setP (&(inherited::state_));
   Stream_POPReceive_AsynchNetSource* source_impl_2 =
     static_cast<Stream_POPReceive_AsynchNetSource*> (asynchSource_.writer ());
-  source_impl_2->setP (&(inherited::state_));
+  //source_impl_2->setP (&(inherited::state_));
 #if defined (SSL_SUPPORT)
   Stream_POPReceive_SSLNetSource* source_impl_3 =
     static_cast<Stream_POPReceive_SSLNetSource*> (SSLSource_.writer ());
-  source_impl_3->setP (&(inherited::state_));
+  //source_impl_3->setP (&(inherited::state_));
 #endif // SSL_SUPPORT
 
-  source_.arg (inherited::sessionData_);
-  asynchSource_.arg (inherited::sessionData_);
+  //source_.arg (inherited::sessionData_);
+  //asynchSource_.arg (inherited::sessionData_);
 #if defined (SSL_SUPPORT)
-  SSLSource_.arg (inherited::sessionData_);
+  //SSLSource_.arg (inherited::sessionData_);
 #endif // SSL_SUPPORT
 
   inherited::isInitialized_ = true;

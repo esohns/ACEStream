@@ -1,6 +1,19 @@
 include (ffmpeg)
 include (ImageMagick)
 
+if (UNIX)
+# include (CheckLibraryExists)
+# check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
+ set (CMAKE_THREAD_PREFER_PTHREAD ON)
+ find_package (Threads)
+
+ include (FindPkgConfig)
+ pkg_check_modules (PKG_V4L REQUIRED libv4l2)
+elseif (WIN32)
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
+ include (DirectXBaseClasses)
+endif ()
+
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
 include (opencv)
 
@@ -17,13 +30,6 @@ include (mediapipe)
 include (box2d)
 
 if (UNIX)
-# include (CheckLibraryExists)
-# check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
- set (CMAKE_THREAD_PREFER_PTHREAD ON)
- find_package (Threads)
-
- include (FindPkgConfig)
- pkg_check_modules (PKG_V4L REQUIRED libv4l2)
 elseif (WIN32)
 # set (CMAKE_CXX_STANDARD 17)
  if (MSVC)

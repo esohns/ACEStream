@@ -33,9 +33,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType>
 Stream_Module_QueueReader_T<ACE_SYNCH_USE,
@@ -46,9 +45,8 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
+                            SessionManagerType,
                             TimerManagerType,
                             UserDataType>::Stream_Module_QueueReader_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in) // stream handle
@@ -65,9 +63,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType>
 bool
@@ -79,9 +76,8 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
+                            SessionManagerType,
                             TimerManagerType,
                             UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                        Stream_IAllocator* allocator_in)
@@ -125,9 +121,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType>
 void
@@ -139,9 +134,8 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
+                            SessionManagerType,
                             TimerManagerType,
                             UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                  bool& passMessageDownstream_out)
@@ -264,9 +258,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType>
 int
@@ -278,9 +271,8 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             StatisticContainerType,
+                            SessionManagerType,
                             TimerManagerType,
                             UserDataType>::svc (void)
 {
@@ -312,8 +304,10 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   bool release_lock_b = false;
   int result_i = 0;
-  SessionDataContainerType* session_data_container_p = inherited::sessionData_;
-  const SessionDataType* session_data_p = &inherited::sessionData_->getR ();
+  typename SessionMessageType::DATA_T* session_data_container_p =
+    inherited::sessionData_;
+  const typename SessionMessageType::DATA_T::DATA_T* session_data_p =
+    &inherited::sessionData_->getR ();
   bool stop_processing_b = false;
   bool done_b = false;
   bool finish_b = true;

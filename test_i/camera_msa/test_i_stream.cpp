@@ -126,14 +126,15 @@ Test_I_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
   struct _AMMediaType media_type_s;
+  Test_I_DirectShow_SessionManager_t* session_manager_p =
+    Test_I_DirectShow_SessionManager_t::SINGLETON_T::instance ();
 
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  //iterator_2 =
-  //  const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (Stream_Visualization_Tools::rendererToModuleName (configuration_in.configuration_->renderer));
+
   // sanity check(s)
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
-  //ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
+  ACE_ASSERT (session_manager_p);
 
   // ---------------------------------------------------------------------------
   // step1: set up directshow filter graph
@@ -409,19 +410,8 @@ continue_:
     setup_pipeline;
   reset_setup_pipeline = false;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-  //ACE_ASSERT ((*iterator).second.second->direct3DConfiguration);
-
   session_data_p =
-    &const_cast<Test_I_CameraMSA_DirectShow_SessionData&> (inherited::sessionData_->getR ());
-  // *TODO*: remove type inferences
-  //if ((*iterator).second.second->direct3DConfiguration->handle)
-  //{
-  //  (*iterator).second.second->direct3DConfiguration->handle->AddRef ();
-  //  session_data_p->direct3DDevice =
-  //    (*iterator).second.second->direct3DConfiguration->handle;
-  //} // end IF
+    &const_cast<Test_I_CameraMSA_DirectShow_SessionData&> (session_manager_p->getR ());
   //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
@@ -440,6 +430,7 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step5: update session data
+  ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat ((*iterator).second.second->builder,
@@ -699,10 +690,6 @@ Test_I_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (mediaSession_);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
-  ACE_ASSERT (inherited::sessionData_);
-
-  //Test_I_SessionData& session_data_r =
-  //  const_cast<Test_I_SessionData&> (inherited::sessionData_->get ());
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = mediaSession_->EndGetEvent (result_in, &media_event_p);
@@ -905,8 +892,15 @@ Test_I_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& con
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Test_I_CameraMSA_MediaFoundation_SessionData* session_data_p = NULL;
-  inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   Test_I_MediaFoundation_Source* source_impl_p = NULL;
+  Test_I_MediaFoundation_SessionManager_t* session_manager_p =
+    Test_I_MediaFoundation_SessionManager_t::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -923,16 +917,8 @@ Test_I_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& con
     setup_pipeline;
   reset_setup_pipeline = false;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
   session_data_p =
-    &const_cast<Test_I_CameraMSA_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
-  iterator =
-      const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-
-  // sanity check(s)
-  ACE_ASSERT (iterator != configuration_in.end ());
+    &const_cast<Test_I_CameraMSA_MediaFoundation_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
   //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
@@ -1160,12 +1146,12 @@ error:
   {
     session_data_p->session->Release (); session_data_p->session = NULL;
   } // end IF
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
   {
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   if (COM_initialized)
     CoUninitialize ();

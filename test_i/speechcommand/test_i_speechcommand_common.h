@@ -59,6 +59,7 @@
 #include "stream_message_base.h"
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
+#include "stream_session_manager.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_common.h"
@@ -268,6 +269,29 @@ typedef Test_I_InputHandler_T<Stream_IInputSessionNotify_t,
                               Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
                                                           Stream_SessionData_T<struct Stream_SessionData>,
                                                           struct Stream_UserData> > Test_I_InputHandler_t;
+
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 struct Stream_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_I_SessionManager_t;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 struct Test_I_SpeechCommand_DirectShow_SessionData,
+                                 struct Test_I_Statistic,
+                                 struct Stream_UserData> Test_I_DirectShow_SessionManager_2;
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 struct Test_I_SpeechCommand_MediaFoundation_SessionData,
+                                 struct Test_I_Statistic,
+                                 struct Stream_UserData> Test_I_MediaFoundation_SessionManager_2;
+#else
+#endif // ACE_WIN32 || ACE_WIN64
+
 typedef Stream_Miscellaneous_Input_Stream_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
                                             enum Stream_ControlType,
@@ -278,8 +302,7 @@ typedef Stream_Miscellaneous_Input_Stream_T<ACE_MT_SYNCH,
                                             struct Stream_Statistic,
                                             Common_Timer_Manager_t,
                                             struct Stream_Input_ModuleHandlerConfiguration,
-                                            struct Stream_SessionData,
-                                            Stream_SessionData_T<struct Stream_SessionData>,
+                                            Test_I_SessionManager_t,
                                             Stream_ControlMessage_t,
                                             Stream_MessageBase_T<Stream_DataBase_T<Stream_CommandType_t>,
                                                                  enum Stream_MessageType,

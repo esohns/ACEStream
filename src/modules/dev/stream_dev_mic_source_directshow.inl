@@ -45,9 +45,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType>
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -57,9 +56,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamControlType,
                                    StreamNotificationType,
                                    StreamStateType,
-                                   SessionDataType,
-                                   SessionDataContainerType,
                                    StatisticContainerType,
+                                   SessionManagerType,
                                    TimerManagerType>::Stream_Dev_Mic_Source_DirectShow_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in) // stream handle
  , isFirst_ (true)
@@ -99,9 +97,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType>
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -111,9 +108,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamControlType,
                                    StreamNotificationType,
                                    StreamStateType,
-                                   SessionDataType,
-                                   SessionDataContainerType,
                                    StatisticContainerType,
+                                   SessionManagerType,
                                    TimerManagerType>::~Stream_Dev_Mic_Source_DirectShow_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::~Stream_Dev_Mic_Source_DirectShow_T"));
@@ -164,9 +160,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType>
 bool
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -177,9 +172,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamControlType,
                                    StreamNotificationType,
                                    StreamStateType,
-                                   SessionDataType,
-                                   SessionDataContainerType,
                                    StatisticContainerType,
+                                   SessionManagerType,
                                    TimerManagerType>::initialize (const ConfigurationType& configuration_in,
                                                                   Stream_IAllocator* allocator_in)
 {
@@ -259,9 +253,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType>
 void
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -272,9 +265,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamControlType,
                                    StreamNotificationType,
                                    StreamStateType,
-                                   SessionDataType,
-                                   SessionDataContainerType,
                                    StatisticContainerType,
+                                   SessionManagerType,
                                    TimerManagerType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                             bool& passMessageDownstream_out)
 {
@@ -291,8 +283,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (inherited::sessionData_);
 
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   typename TimerManagerType::INTERFACE_T* itimer_manager_p =
     (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
                                              : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
@@ -306,8 +298,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
       std::string log_file_name;
 #endif // _DEBUG
 
-      if (inherited::configuration_->statisticCollectionInterval !=
-          ACE_Time_Value::zero)
+      if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
       {
         // schedule regular statistic collection
         ACE_ASSERT (inherited::timerId_ == -1);
@@ -331,8 +322,6 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
       } // end IF
 
       bool COM_initialized = Common_Tools::initializeCOM ();
-      SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       bool is_running = false;
@@ -731,9 +720,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType>
 bool
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -744,9 +732,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamControlType,
                                    StreamNotificationType,
                                    StreamStateType,
-                                   SessionDataType,
-                                   SessionDataContainerType,
                                    StatisticContainerType,
+                                   SessionManagerType,
                                    TimerManagerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::collect"));
@@ -833,9 +820,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType>
 HRESULT
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -846,9 +832,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamControlType,
                                    StreamNotificationType,
                                    StreamStateType,
-                                   SessionDataType,
-                                   SessionDataContainerType,
                                    StatisticContainerType,
+                                   SessionManagerType,
                                    TimerManagerType>::NotifyRelease (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::NotifyRelease"));
@@ -867,9 +852,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType>
 HRESULT
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -880,9 +864,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamControlType,
                                    StreamNotificationType,
                                    StreamStateType,
-                                   SessionDataType,
-                                   SessionDataContainerType,
                                    StatisticContainerType,
+                                   SessionManagerType,
                                    TimerManagerType>::BufferCB (double sampleTime_in,
                                                                 BYTE* buffer_in,
                                                                 long size_in)
@@ -932,6 +915,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
   return S_OK;
 }
+
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
@@ -940,9 +924,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType>
 HRESULT
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -953,9 +936,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamControlType,
                                    StreamNotificationType,
                                    StreamStateType,
-                                   SessionDataType,
-                                   SessionDataContainerType,
                                    StatisticContainerType,
+                                   SessionManagerType,
                                    TimerManagerType>::SampleCB (double sampleTime_in,
                                                                 IMediaSample* IMediaSample_in)
 {
@@ -1027,9 +1009,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType>
 int
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -1040,9 +1021,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamControlType,
                                    StreamNotificationType,
                                    StreamStateType,
-                                   SessionDataType,
-                                   SessionDataContainerType,
                                    StatisticContainerType,
+                                   SessionManagerType,
                                    TimerManagerType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::svc"));
@@ -1245,9 +1225,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType>
 bool
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -1258,9 +1237,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamControlType,
                                    StreamNotificationType,
                                    StreamStateType,
-                                   SessionDataType,
-                                   SessionDataContainerType,
                                    StatisticContainerType,
+                                   SessionManagerType,
                                    TimerManagerType>::initialize_DirectShow (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                                              int audioOutput_in,
                                                                              ICaptureGraphBuilder2*& ICaptureGraphBuilder2_out,

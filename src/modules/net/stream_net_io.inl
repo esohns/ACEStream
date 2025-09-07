@@ -39,9 +39,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
@@ -54,9 +53,8 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                              StreamControlType,
                              StreamNotificationType,
                              StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
                              StatisticContainerType,
+                             SessionManagerType,
                              TimerManagerType,
                              AddressType,
                              ConnectionManagerType,
@@ -75,9 +73,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
@@ -91,9 +88,8 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                              StreamControlType,
                              StreamNotificationType,
                              StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
                              StatisticContainerType,
+                             SessionManagerType,
                              TimerManagerType,
                              AddressType,
                              ConnectionManagerType,
@@ -104,7 +100,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
   ConnectionManagerType* connection_manager_p =
       ConnectionManagerType::SINGLETON_T::instance ();
   typename ConnectionManagerType::ICONNECTION_T* connection_p = NULL;
-  WRITER_T* sibling_task_p = dynamic_cast<WRITER_T*> (inherited::sibling ());
+  WRITER_T* sibling_task_p = static_cast<WRITER_T*> (inherited::sibling ());
   if (unlikely (!sibling_task_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -113,7 +109,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                 inherited::sibling ()));
     return;
   } // end IF
-  SessionDataType* session_data_p = NULL;
+  SESSION_DATA_T* session_data_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (connection_manager_p);
@@ -122,8 +118,8 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
     goto continue_; // something went wrong: session aborted ?
 
   session_data_p =
-    &const_cast<SessionDataType&> (sibling_task_p->sessionData_->getR ());
-//  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);
+    &const_cast<SESSION_DATA_T&> (sibling_task_p->sessionData_->getR ());
+  //  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);
     ACE_ASSERT (!session_data_p->connectionStates.empty ());
     ACE_ASSERT (session_data_p->connectionStates.size () == 1);
     ACE_ASSERT ((*session_data_p->connectionStates.begin ()).first != ACE_INVALID_HANDLE);
@@ -214,9 +210,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
@@ -229,9 +224,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              StreamControlType,
                              StreamNotificationType,
                              StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
                              StatisticContainerType,
+                             SessionManagerType,
                              TimerManagerType,
                              AddressType,
                              ConnectionManagerType,
@@ -253,9 +247,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
@@ -269,9 +262,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              StreamControlType,
                              StreamNotificationType,
                              StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
                              StatisticContainerType,
+                             SessionManagerType,
                              TimerManagerType,
                              AddressType,
                              ConnectionManagerType,
@@ -324,9 +316,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
@@ -340,9 +331,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              StreamControlType,
                              StreamNotificationType,
                              StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
                              StatisticContainerType,
+                             SessionManagerType,
                              TimerManagerType,
                              AddressType,
                              ConnectionManagerType,
@@ -355,16 +345,10 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 
   // *TODO*: remove this test(, it slows things down unnecessarily)
   if (inbound_)
-  {
-    if (likely (inherited::sessionData_))
-    {
-      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
-      message_inout->set (session_data_r.sessionId); // session id
-    } // end IF
-    else
-      ACE_DEBUG ((LM_WARNING, // *TODO*
-                  ACE_TEXT ("%s: cannot initialize inbound data message; there is no session data, continuing\n"),
-                  inherited::mod_->name ()));
+  { ACE_ASSERT (inherited::sessionData_);
+    const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+      inherited::sessionData_->getR ();
+    message_inout->set (session_data_r.sessionId); // session id
 
     return;
   } // end IF
@@ -411,9 +395,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
@@ -427,9 +410,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              StreamControlType,
                              StreamNotificationType,
                              StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
                              StatisticContainerType,
+                             SessionManagerType,
                              TimerManagerType,
                              AddressType,
                              ConnectionManagerType,
@@ -579,8 +561,8 @@ continue_3:
         break; // don't bother
 
       ACE_ASSERT (inherited::sessionData_);
-      SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       ConnectionManagerType* connection_manager_p =
         ConnectionManagerType::SINGLETON_T::instance ();
       typename ConnectionManagerType::ICONNECTION_T* connection_p = NULL;
@@ -634,21 +616,16 @@ continue_3:
       if (!inbound_)
         break; // don't bother
 
-      if (inherited::sessionData_)
-      {
-        SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-          if (session_data_r.connection && manageSessionData_)
-          {
-            session_data_r.connection->decrease (); session_data_r.connection = NULL;
-          } // end IF
-        } // end lock scope
-      } // end IF
-      else if (manageSessionData_)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: no session data; cannot release session connection, continuing\n"),
-                    inherited::mod_->name ()));
+      ACE_ASSERT (inherited::sessionData_);
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        if (session_data_r.connection && manageSessionData_)
+        {
+          session_data_r.connection->decrease (); session_data_r.connection = NULL;
+        } // end IF
+      } // end lock scope
+
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
@@ -712,9 +689,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
@@ -728,9 +704,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              StreamControlType,
                              StreamNotificationType,
                              StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
                              StatisticContainerType,
+                             SessionManagerType,
                              TimerManagerType,
                              AddressType,
                              ConnectionManagerType,

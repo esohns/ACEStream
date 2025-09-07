@@ -29,6 +29,7 @@
 #include "common_timer_manager_common.h"
 
 #include "stream_common.h"
+#include "stream_session_manager.h"
 #include "stream_streammodule_base.h"
 
 #include "stream_file_sink.h"
@@ -45,6 +46,19 @@
 #include "test_i_source_common.h"
 #include "test_i_target_common.h"
 
+//typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+//                                 enum Stream_SessionMessageType,
+//                                 struct Stream_SessionManager_Configuration,
+//                                 struct Test_I_Source_SessionData,
+//                                 struct Strean_Statistic,
+//                                 struct Stream_UserData> Test_I_SessionManager_t;
+//typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+//                                 enum Stream_SessionMessageType,
+//                                 struct Stream_SessionManager_Configuration,
+//                                 struct Test_I_Target_SessionData,
+//                                 struct Stream_Statistic,
+//                                 struct Stream_UserData> Test_I_SessionManager_2;
+
 // outbound
 typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,
@@ -54,9 +68,8 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Test_I_Source_StreamState,
-                                    struct Test_I_Source_SessionData,
-                                    Test_I_Source_SessionData_t,
                                     struct Stream_Statistic,
+                                    Test_I_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Test_I_FileReader;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_SessionData,                // session data type
@@ -66,36 +79,36 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_SessionData,                /
                               Stream_INotify_t,                          // stream notification interface type
                               Test_I_FileReader);                              // writer type
 
-//typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-//                                                      Common_TimePolicy_t,
-//                                                      struct Test_I_Source_ModuleHandlerConfiguration,
-//                                                      Stream_ControlMessage_t,
-//                                                      Test_I_Source_Message_t,
-//                                                      Test_I_Source_SessionMessage,
-//                                                      Stream_CommandType_t,
-//                                                      struct Stream_Statistic,
-//                                                      Common_Timer_Manager_t,
-//                                                      struct Test_I_Source_SessionData,
-//                                                      Test_I_Source_SessionData_t> Test_I_Source_Module_Statistic_ReaderTask_t;
-//typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-//                                                      Common_TimePolicy_t,
-//                                                      struct Test_I_Source_ModuleHandlerConfiguration,
-//                                                      Stream_ControlMessage_t,
-//                                                      Test_I_Source_Message_t,
-//                                                      Test_I_Source_SessionMessage,
-//                                                      Stream_CommandType_t,
-//                                                      struct Stream_Statistic,
-//                                                      Common_Timer_Manager_t,
-//                                                      struct Test_I_Source_SessionData,
-//                                                      Test_I_Source_SessionData_t> Test_I_Source_Module_Statistic_WriterTask_t;
-//DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_SessionData,                // session data type
-//                          enum Stream_SessionMessageType,                  // session event type
-//                          struct Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
-//                          libacestream_default_stat_report_module_name_string,
-//                          Stream_INotify_t,                          // stream notification interface type
-//                          Test_I_Source_Module_Statistic_ReaderTask_t,     // reader type
-//                          Test_I_Source_Module_Statistic_WriterTask_t,     // writer type
-//                          Test_I_Source_StatisticReport);                  // name
+typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_Source_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_I_Source_Message_t,
+                                                      Test_I_Source_SessionMessage,
+                                                      Stream_CommandType_t,
+                                                      struct Stream_Statistic,
+                                                      Common_Timer_Manager_t,
+                                                      struct Test_I_Source_SessionData,
+                                                      Test_I_Source_SessionData_t> Test_I_Source_Module_Statistic_ReaderTask_t;
+typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_Source_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_I_Source_Message_t,
+                                                      Test_I_Source_SessionMessage,
+                                                      Stream_CommandType_t,
+                                                      struct Stream_Statistic,
+                                                      Common_Timer_Manager_t,
+                                                      struct Test_I_Source_SessionData,
+                                                      Test_I_Source_SessionData_t> Test_I_Source_Module_Statistic_WriterTask_t;
+DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_SessionData,                // session data type
+                          enum Stream_SessionMessageType,                  // session event type
+                          struct Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_stat_report_module_name_string,
+                          Stream_INotify_t,                          // stream notification interface type
+                          Test_I_Source_Module_Statistic_ReaderTask_t,     // reader type
+                          Test_I_Source_Module_Statistic_WriterTask_t,     // writer type
+                          Test_I_Source_StatisticReport);                  // name
 
 // outbound
 typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
@@ -106,9 +119,8 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_I_Source_StreamState,
-                                     struct Test_I_Source_SessionData,
-                                     Test_I_Source_SessionData_t,
                                      struct Stream_Statistic,
+                                     Test_I_SessionManager_t,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_TCPConnectionManager_t,
@@ -121,9 +133,8 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_I_Source_StreamState,
-                                     struct Test_I_Source_SessionData,
-                                     Test_I_Source_SessionData_t,
                                      struct Stream_Statistic,
+                                     Test_I_SessionManager_t,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_TCPConnectionManager_t,
@@ -145,9 +156,8 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_I_Source_StreamState,
-                                     struct Test_I_Source_SessionData,
-                                     Test_I_Source_SessionData_t,
                                      struct Stream_Statistic,
+                                     Test_I_SessionManager_t,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_UDPConnectionManager_t,
@@ -160,9 +170,8 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_I_Source_StreamState,
-                                     struct Test_I_Source_SessionData,
-                                     Test_I_Source_SessionData_t,
                                      struct Stream_Statistic,
+                                     Test_I_SessionManager_t,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_UDPConnectionManager_t,
@@ -185,9 +194,8 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_I_Target_StreamState,
-                                     struct Test_I_Target_SessionData,
-                                     Test_I_Target_SessionData_t,
                                      struct Stream_Statistic,
+                                     Test_I_SessionManager_2,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_Target_TCPConnectionManager_t,
@@ -200,9 +208,8 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_I_Target_StreamState,
-                                     struct Test_I_Target_SessionData,
-                                     Test_I_Target_SessionData_t,
                                      struct Stream_Statistic,
+                                     Test_I_SessionManager_2,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_Target_TCPConnectionManager_t,
@@ -224,9 +231,8 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_I_Target_StreamState,
-                                     struct Test_I_Target_SessionData,
-                                     Test_I_Target_SessionData_t,
                                      struct Stream_Statistic,
+                                     Test_I_SessionManager_2,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_Target_UDPConnectionManager_t,
@@ -239,9 +245,8 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_I_Target_StreamState,
-                                     struct Test_I_Target_SessionData,
-                                     Test_I_Target_SessionData_t,
                                      struct Stream_Statistic,
+                                     Test_I_SessionManager_2,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_Target_UDPConnectionManager_t,

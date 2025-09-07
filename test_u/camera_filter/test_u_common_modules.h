@@ -27,6 +27,7 @@
 #include "common_timer_manager_common.h"
 
 #include "stream_common.h"
+#include "stream_session_manager.h"
 #include "stream_streammodule_base.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -79,6 +80,19 @@
 
 // declare module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_U_CameraFilter_DirectShow_SessionData,
+                                 struct Test_U_StatisticData,
+                                 struct Stream_UserData> Test_U_DirectShow_SessionManager_t;
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_U_CameraFilter_MediaFoundation_SessionData,
+                                 struct Test_U_StatisticData,
+                                 struct Stream_UserData> Test_U_MediaFoundation_SessionManager_t;
+
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration,
@@ -106,9 +120,8 @@ typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            enum Stream_ControlType,
                                            enum Stream_SessionMessageType,
                                            struct Test_U_DirectShow_StreamState,
-                                           Test_U_CameraFilter_DirectShow_SessionData,
-                                           Test_U_CameraFilter_DirectShow_SessionData_t,
                                            struct Test_U_StatisticData,
+                                           Test_U_DirectShow_SessionManager_t,
                                            Common_Timer_Manager_t,
                                            struct Stream_UserData,
                                            struct _AMMediaType,
@@ -122,9 +135,8 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 enum Stream_ControlType,
                                                 enum Stream_SessionMessageType,
                                                 struct Test_U_MediaFoundation_StreamState,
-                                                Test_U_CameraFilter_MediaFoundation_SessionData,
-                                                Test_U_CameraFilter_MediaFoundation_SessionData_t,
                                                 struct Test_U_StatisticData,
+                                                Test_U_MediaFoundation_SessionManager_t,
                                                 Common_Timer_Manager_t,
                                                 struct Stream_UserData,
                                                 IMFMediaType*> Test_U_MediaFoundation_Source;

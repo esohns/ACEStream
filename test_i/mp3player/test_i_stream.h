@@ -55,8 +55,7 @@ class Test_I_Stream
                         struct Test_I_MP3Player_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_I_MP3Player_ModuleHandlerConfiguration,
-                        struct Test_I_MP3Player_SessionData,
-                        Test_I_MP3Player_SessionData_t,
+                        Test_I_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage>
@@ -71,8 +70,7 @@ class Test_I_Stream
                         struct Test_I_MP3Player_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_I_MP3Player_ModuleHandlerConfiguration,
-                        struct Test_I_MP3Player_SessionData,
-                        Test_I_MP3Player_SessionData_t,
+                        Test_I_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage> inherited;

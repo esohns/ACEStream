@@ -90,9 +90,6 @@ Parser_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   ACE_ASSERT (!this->isRunning ());
 
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-//  struct Parser_SessionData* session_data_p = NULL;
-
-//  bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
 
@@ -110,14 +107,10 @@ Parser_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  ACE_ASSERT (inherited::sessionData_);
-//  session_data_p =
-//      &const_cast<struct Parser_SessionData&> (inherited::sessionData_->getR ());
-  // *TODO*: remove type inferences
+
   iterator =
     const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
 

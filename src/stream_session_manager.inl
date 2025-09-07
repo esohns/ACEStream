@@ -46,7 +46,6 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
  , resetTimeoutHandlerId_ (-1)
  , resetTimeoutInterval_ (0, STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL_MS * 1000)
  , configuration_ (NULL)
- , isInitialized_ (false)
  , lock_ ()
  , sessionData_ (NULL)
 {
@@ -266,33 +265,11 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::set"));
 
-  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
-
-  sessionData_ = &const_cast<SessionDataType&> (sessionData_in);
-
-  isInitialized_ = true;
-}
-
-template <ACE_SYNCH_DECL,
-          typename NotificationType,
-          typename ConfigurationType,
-          typename SessionDataType,
-          typename StatisticContainerType,
-          typename UserDataType>
-void
-Stream_Session_Manager_T<ACE_SYNCH_USE,
-                         NotificationType,
-                         ConfigurationType,
-                         SessionDataType,
-                         StatisticContainerType,
-                         UserDataType>::get (SessionDataType*& sessionData_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (isInitialized_);
-
-  sessionData_out = sessionData_;
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
+    sessionData_ = &const_cast<SessionDataType&> (sessionData_in);
+    if (likely (!sessionData_->lock))
+      sessionData_->lock = &lock_;
+  } // end lock scope
 }
 
 template <ACE_SYNCH_DECL,

@@ -66,9 +66,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType, // implements Common_ITimer
           typename UserDataType,
           ////////////////////////////////
@@ -83,9 +82,8 @@ class Stream_Dev_Cam_Source_VfW_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
@@ -102,9 +100,8 @@ class Stream_Dev_Cam_Source_VfW_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
@@ -116,7 +113,7 @@ class Stream_Dev_Cam_Source_VfW_T
                            Common_TimePolicy_t> ISTREAM_T;
 
   Stream_Dev_Cam_Source_VfW_T (ISTREAM_T*); // stream handle
-  virtual ~Stream_Dev_Cam_Source_VfW_T ();
+  inline virtual ~Stream_Dev_Cam_Source_VfW_T () {}
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
@@ -129,9 +126,8 @@ class Stream_Dev_Cam_Source_VfW_T
                                     StreamControlType,
                                     StreamNotificationType,
                                     StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
                                     StatisticContainerType,
+                                    SessionManagerType,
                                     TimerManagerType,
                                     UserDataType>::initialize;
 

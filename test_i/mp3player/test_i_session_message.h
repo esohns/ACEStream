@@ -25,9 +25,10 @@
 #include "ace/Message_Block.h"
 
 #include "stream_common.h"
+#include "stream_session_data.h"
 #include "stream_session_message_base.h"
 
-#include "test_i_stream_common.h"
+//#include "test_i_stream_common.h"
 
 // forward declaration(s)
 class ACE_Allocator;
@@ -38,6 +39,55 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType>
 class Stream_MessageAllocatorHeapBase_T;
+
+//struct Test_I_HTTPGet_ConnectionState;
+struct Test_I_MP3Player_SessionData
+ : Stream_SessionDataMediaBase_T<struct Stream_SessionData,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                 struct _AMMediaType,
+#else
+                                 struct Stream_MediaFramework_ALSA_MediaType,
+#endif // ACE_WIN32 || ACE_WIN64
+                                 struct Test_I_MP3Player_StreamState,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData>
+{
+  Test_I_MP3Player_SessionData ()
+   : Stream_SessionDataMediaBase_T<struct Stream_SessionData,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                   struct _AMMediaType,
+#else
+                                   struct Stream_MediaFramework_ALSA_MediaType,
+#endif // ACE_WIN32 || ACE_WIN64
+                                   struct Test_I_MP3Player_StreamState,
+                                   struct Stream_Statistic,
+                                   struct Stream_UserData> ()
+   , targetFileName ()
+  {}
+
+  struct Test_I_MP3Player_SessionData& operator+= (const struct Test_I_MP3Player_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Stream_SessionDataMediaBase_T<struct Stream_SessionData,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                  struct _AMMediaType,
+#else
+                                  struct Stream_MediaFramework_ALSA_MediaType,
+#endif // ACE_WIN32 || ACE_WIN64
+                                  struct Test_I_MP3Player_StreamState,
+                                  struct Stream_Statistic,
+                                  struct Stream_UserData>::operator+= (rhs_in);
+
+    //data += rhs_in.data;
+    targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
+                                              : targetFileName);
+
+    return *this;
+  }
+
+  std::string targetFileName; // file writer module
+};
+typedef Stream_SessionData_T<struct Test_I_MP3Player_SessionData> Test_I_MP3Player_SessionData_t;
 
 class Test_I_Stream_SessionMessage
  : public Stream_SessionMessageBase_T<//struct Common_Parser_FlexAllocatorConfiguration,

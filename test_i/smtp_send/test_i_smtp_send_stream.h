@@ -55,8 +55,7 @@ class Test_I_SMTPSend_Stream
                         struct SMTP_StreamConfiguration,
                         SMTP_Statistic_t,
                         struct Stream_SMTPSend_ModuleHandlerConfiguration,
-                        struct SMTP_Stream_SessionData,
-                        SMTP_Stream_SessionData_t,
+                        SMTP_SessionManager_t,
                         Stream_ControlMessage_t,
                         SMTP_Message_t,
                         SMTP_SessionMessage_t>
@@ -71,8 +70,7 @@ class Test_I_SMTPSend_Stream
                         struct SMTP_StreamConfiguration,
                         SMTP_Statistic_t,
                         struct Stream_SMTPSend_ModuleHandlerConfiguration,
-                        struct SMTP_Stream_SessionData,
-                        SMTP_Stream_SessionData_t,
+                        SMTP_SessionManager_t,
                         Stream_ControlMessage_t,
                         SMTP_Message_t,
                         SMTP_SessionMessage_t> inherited;

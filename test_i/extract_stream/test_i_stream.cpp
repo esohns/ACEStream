@@ -283,13 +283,15 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Test_I_ExtractStream_SessionData* session_data_p = NULL;
-  inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+        const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   bool remove_module_2 = false;
+  Test_I_SessionManager_t* session_manager_p =
+    Test_I_SessionManager_t::SINGLETON_T::instance ();
 
   // sanity check(s)
-  iterator =
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
+  ACE_ASSERT (session_manager_p);
 
   // ---------------------------------------------------------------------------
   // step1: allocate a new session state, reset stream
@@ -309,23 +311,9 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
     setup_pipeline;
   reset_setup_pipeline = false;
 
-  //if (remove_module_2 &&
-  //    unlikely (!remove (inherited::configuration_->configuration_->module_2,
-  //                       false,   // lock ?
-  //                       false))) // reset ? (see above)
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
-  //              ACE_TEXT (stream_name_string_),
-  //              inherited::configuration_->configuration_->module_2->name ()));
-
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
   session_data_p =
-    &const_cast<Test_I_ExtractStream_SessionData&> (inherited::sessionData_->getR ());
-  //Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format,
-  //                                              media_type_s);
-  //session_data_p->formats.push_back (media_type_s);
-  //session_data_p->stream = this;
+    &const_cast<Test_I_ExtractStream_SessionData&> (session_manager_p->getR ());
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // step2: assemble stream

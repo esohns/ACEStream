@@ -49,8 +49,7 @@ class Branch_Stream
                         struct Branch_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Branch_ModuleHandlerConfiguration,
-                        struct Branch_SessionData,
-                        Branch_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Branch_Message,
                         Branch_SessionMessage>
@@ -65,8 +64,7 @@ class Branch_Stream
                         struct Branch_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Branch_ModuleHandlerConfiguration,
-                        struct Branch_SessionData,
-                        Branch_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Branch_Message,
                         Branch_SessionMessage> inherited;
@@ -103,8 +101,7 @@ class Branch_Stream_2
                         struct Branch_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Branch_ModuleHandlerConfiguration,
-                        struct Branch_SessionData,
-                        Branch_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Branch_Message,
                         Branch_SessionMessage>
@@ -119,8 +116,7 @@ class Branch_Stream_2
                         struct Branch_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Branch_ModuleHandlerConfiguration,
-                        struct Branch_SessionData,
-                        Branch_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Branch_Message,
                         Branch_SessionMessage> inherited;

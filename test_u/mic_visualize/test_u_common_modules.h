@@ -27,6 +27,7 @@
 #include "common_timer_manager_common.h"
 
 #include "stream_common.h"
+#include "stream_session_manager.h"
 #include "stream_streammodule_base.h"
 #include "stream_task_base_synch.h"
 
@@ -86,6 +87,19 @@
 
 // declare module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_U_MicVisualize_DirectShow_SessionData,
+                                 struct Test_U_MicVisualize_Statistic,
+                                 struct Stream_UserData> Test_U_DirectShow_SessionManager_t;
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_U_MicVisualize_MediaFoundation_SessionData,
+                                 struct Test_U_MicVisualize_Statistic,
+                                 struct Stream_UserData> Test_U_MediaFoundation_SessionManager_t;
+
 typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,
                                     Test_U_DirectShow_Message,
@@ -94,9 +108,8 @@ typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Test_U_MicVisualize_DirectShow_StreamState,
-                                    Test_U_MicVisualize_DirectShow_SessionData,
-                                    Test_U_MicVisualize_DirectShow_SessionData_t,
                                     struct Test_U_MicVisualize_Statistic,
+                                    Test_U_DirectShow_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData,
                                     struct _AMMediaType> Test_U_Dec_MP3Decoder_DirectShow;
@@ -106,6 +119,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_DirectShow_SessionData,       
                               libacestream_default_dec_mp3_decoder_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_Dec_MP3Decoder_DirectShow);                               // writer type
+
 typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,
                                     Test_U_MediaFoundation_Message,
@@ -114,9 +128,8 @@ typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Test_U_MicVisualize_MediaFoundation_StreamState,
-                                    Test_U_MicVisualize_MediaFoundation_SessionData,
-                                    Test_U_MicVisualize_MediaFoundation_SessionData_t,
                                     struct Test_U_MicVisualize_Statistic,
+                                    Test_U_MediaFoundation_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData,
                                     IMFMediaType*> Test_U_Dec_MP3Decoder_MediaFoundation;
@@ -135,9 +148,8 @@ typedef Stream_Dec_Noise_Source_T<ACE_MT_SYNCH,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Test_U_MicVisualize_DirectShow_StreamState,
-                                  Test_U_MicVisualize_DirectShow_SessionData,
-                                  Test_U_MicVisualize_DirectShow_SessionData_t,
                                   struct Test_U_MicVisualize_Statistic,
+                                  Test_U_DirectShow_SessionManager_t,
                                   Common_Timer_Manager_t,
                                   struct _AMMediaType> Test_U_Dec_Noise_Source_DirectShow;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_DirectShow_SessionData,                       // session data type
@@ -146,6 +158,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_DirectShow_SessionData,       
                               libacestream_default_dec_noise_source_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_Dec_Noise_Source_DirectShow);                             // writer type
+
 typedef Stream_Dec_Noise_Source_T<ACE_MT_SYNCH,
                                   Stream_ControlMessage_t,
                                   Test_U_MediaFoundation_Message,
@@ -154,9 +167,8 @@ typedef Stream_Dec_Noise_Source_T<ACE_MT_SYNCH,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Test_U_MicVisualize_MediaFoundation_StreamState,
-                                  Test_U_MicVisualize_MediaFoundation_SessionData,
-                                  Test_U_MicVisualize_MediaFoundation_SessionData_t,
                                   struct Test_U_MicVisualize_Statistic,
+                                  Test_U_MediaFoundation_SessionManager_t,
                                   Common_Timer_Manager_t,
                                   IMFMediaType*> Test_U_Dec_Noise_Source_MediaFoundation;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_MediaFoundation_SessionData,                       // session data type
@@ -174,9 +186,8 @@ typedef Stream_Dev_Mic_Source_DirectShow_T<ACE_MT_SYNCH,
                                            enum Stream_ControlType,
                                            enum Stream_SessionMessageType,
                                            struct Test_U_MicVisualize_DirectShow_StreamState,
-                                           Test_U_MicVisualize_DirectShow_SessionData,
-                                           Test_U_MicVisualize_DirectShow_SessionData_t,
                                            struct Test_U_MicVisualize_Statistic,
+                                           Test_U_DirectShow_SessionManager_t,
                                            Common_Timer_Manager_t> Test_U_Dev_Mic_Source_DirectShow;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                  // session event type
@@ -184,6 +195,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_DirectShow_SessionData,       
                               libacestream_default_dev_mic_source_directshow_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_Dev_Mic_Source_DirectShow);                               // writer type
+
 typedef Stream_Dev_Mic_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 Stream_ControlMessage_t,
                                                 Test_U_MediaFoundation_Message,
@@ -192,9 +204,8 @@ typedef Stream_Dev_Mic_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 enum Stream_ControlType,
                                                 enum Stream_SessionMessageType,
                                                 Test_U_MicVisualize_MediaFoundation_StreamState,
-                                                Test_U_MicVisualize_MediaFoundation_SessionData,
-                                                Test_U_MicVisualize_MediaFoundation_SessionData_t,
                                                 struct Test_U_MicVisualize_Statistic,
+                                                Test_U_MediaFoundation_SessionManager_t,
                                                 Common_Timer_Manager_t> Test_U_Dev_Mic_Source_MediaFoundation;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_MediaFoundation_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                       // session event type
@@ -211,9 +222,8 @@ typedef Stream_Dev_Mic_Source_WASAPI_T<ACE_MT_SYNCH,
                                        enum Stream_ControlType,
                                        enum Stream_SessionMessageType,
                                        struct Test_U_MicVisualize_DirectShow_StreamState,
-                                       Test_U_MicVisualize_DirectShow_SessionData,
-                                       Test_U_MicVisualize_DirectShow_SessionData_t,
                                        struct Test_U_MicVisualize_Statistic,
+                                       Test_U_DirectShow_SessionManager_t,
                                        Common_Timer_Manager_t,
                                        struct _AMMediaType> Test_U_Dev_Mic_Source_WASAPI;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_DirectShow_SessionData,                       // session data type
@@ -231,9 +241,8 @@ typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
                                        enum Stream_ControlType,
                                        enum Stream_SessionMessageType,
                                        struct Test_U_MicVisualize_DirectShow_StreamState,
-                                       Test_U_MicVisualize_DirectShow_SessionData,
-                                       Test_U_MicVisualize_DirectShow_SessionData_t,
                                        struct Test_U_MicVisualize_Statistic,
+                                       Test_U_DirectShow_SessionManager_t,
                                        Common_Timer_Manager_t,
                                        struct _AMMediaType> Test_U_Dev_Mic_Source_WaveIn;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_DirectShow_SessionData,                       // session data type
@@ -251,9 +260,8 @@ typedef Stream_Dev_Mic_Source_WASAPI_T<ACE_MT_SYNCH,
                                        enum Stream_ControlType,
                                        enum Stream_SessionMessageType,
                                        struct Test_U_MicVisualize_MediaFoundation_StreamState,
-                                       Test_U_MicVisualize_MediaFoundation_SessionData,
-                                       Test_U_MicVisualize_MediaFoundation_SessionData_t,
                                        struct Test_U_MicVisualize_Statistic,
+                                       Test_U_MediaFoundation_SessionManager_t,
                                        Common_Timer_Manager_t,
                                        IMFMediaType*> Test_U_Dev_Mic_Source_WASAPI2;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_MediaFoundation_SessionData,                  // session data type
@@ -271,9 +279,8 @@ typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
                                        enum Stream_ControlType,
                                        enum Stream_SessionMessageType,
                                        struct Test_U_MicVisualize_MediaFoundation_StreamState,
-                                       Test_U_MicVisualize_MediaFoundation_SessionData,
-                                       Test_U_MicVisualize_MediaFoundation_SessionData_t,
                                        struct Test_U_MicVisualize_Statistic,
+                                       Test_U_MediaFoundation_SessionManager_t,
                                        Common_Timer_Manager_t,
                                        IMFMediaType*> Test_U_Dev_Mic_Source_WaveIn2;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_MediaFoundation_SessionData,                       // session data type

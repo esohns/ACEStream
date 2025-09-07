@@ -46,8 +46,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename StatisticHandlerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -57,8 +55,6 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   ConfigurationType,
                                   StatisticHandlerType,
                                   HandlerConfigurationType,
-                                  SessionDataType,
-                                  SessionDataContainerType,
                                   ControlMessageType,
                                   MessageType,
                                   SessionMessageType,
@@ -74,37 +70,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename StatisticHandlerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ControlMessageType,
-          typename MessageType,
-          typename SessionMessageType,
-          typename ConnectionManagerType,
-          typename ConnectorType>
-Test_I_Source_DirectShow_Stream_T<StreamStateType,
-                                  ConfigurationType,
-                                  StatisticHandlerType,
-                                  HandlerConfigurationType,
-                                  SessionDataType,
-                                  SessionDataContainerType,
-                                  ControlMessageType,
-                                  MessageType,
-                                  SessionMessageType,
-                                  ConnectionManagerType,
-                                  ConnectorType>::~Test_I_Source_DirectShow_Stream_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_T::~Test_I_Source_DirectShow_Stream_T"));
-
-  // *NOTE*: implements an ordered shutdown on destruction
-  inherited::shutdown ();
-}
-
-template <typename StreamStateType,
-          typename ConfigurationType,
-          typename StatisticHandlerType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -115,8 +80,6 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   ConfigurationType,
                                   StatisticHandlerType,
                                   HandlerConfigurationType,
-                                  SessionDataType,
-                                  SessionDataContainerType,
                                   ControlMessageType,
                                   MessageType,
                                   SessionMessageType,
@@ -213,8 +176,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename StatisticHandlerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -225,8 +186,6 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   ConfigurationType,
                                   StatisticHandlerType,
                                   HandlerConfigurationType,
-                                  SessionDataType,
-                                  SessionDataContainerType,
                                   ControlMessageType,
                                   MessageType,
                                   SessionMessageType,
@@ -241,7 +200,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
-  SessionDataType* session_data_p = NULL;
+  typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator /*, iterator_2*/;
   Test_I_Stream_DirectShow_CamSource* source_impl_p = NULL;
   Stream_Module_t* module_p = NULL;
@@ -264,6 +223,8 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
   struct _AMMediaType media_type_s;
+  Test_I_DirectShow_SessionManager_t* session_manager_p =
+    Test_I_DirectShow_SessionManager_t::SINGLETON_T::instance ();
 
   iterator =
     const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -272,6 +233,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
   //ACE_ASSERT (iterator_2 != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // ---------------------------------------------------------------------------
   // step1: set up directshow filter graph
@@ -551,11 +513,8 @@ continue_:
     setup_pipeline;
   reset_setup_pipeline = false;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
   session_data_p =
-    &const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+    &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
   //(*iterator).second.second->direct3DConfiguration->handle->AddRef ();
   //session_data_p->direct3DDevice =
@@ -672,8 +631,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename StatisticHandlerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -683,8 +640,6 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        ConfigurationType,
                                        StatisticHandlerType,
                                        HandlerConfigurationType,
-                                       SessionDataType,
-                                       SessionDataContainerType,
                                        ControlMessageType,
                                        MessageType,
                                        SessionMessageType,
@@ -702,8 +657,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename StatisticHandlerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -713,8 +666,6 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        ConfigurationType,
                                        StatisticHandlerType,
                                        HandlerConfigurationType,
-                                       SessionDataType,
-                                       SessionDataContainerType,
                                        ControlMessageType,
                                        MessageType,
                                        SessionMessageType,
@@ -723,7 +674,6 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_T::~Test_I_Source_MediaFoundation_Stream_T"));
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT result = E_FAIL;
   if (mediaSession_)
   {
@@ -734,7 +684,6 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
-#endif
 
   // *NOTE*: implements an ordered shutdown on destruction
   inherited::shutdown ();
@@ -744,8 +693,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename StatisticHandlerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -756,8 +703,6 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        ConfigurationType,
                                        StatisticHandlerType,
                                        HandlerConfigurationType,
-                                       SessionDataType,
-                                       SessionDataContainerType,
                                        ControlMessageType,
                                        MessageType,
                                        SessionMessageType,
@@ -804,8 +749,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename StatisticHandlerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -816,8 +759,6 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        ConfigurationType,
                                        StatisticHandlerType,
                                        HandlerConfigurationType,
-                                       SessionDataType,
-                                       SessionDataContainerType,
                                        ControlMessageType,
                                        MessageType,
                                        SessionMessageType,
@@ -846,8 +787,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename StatisticHandlerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -858,8 +797,6 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        ConfigurationType,
                                        StatisticHandlerType,
                                        HandlerConfigurationType,
-                                       SessionDataType,
-                                       SessionDataContainerType,
                                        ControlMessageType,
                                        MessageType,
                                        SessionMessageType,
@@ -924,8 +861,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename StatisticHandlerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -936,8 +871,6 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        ConfigurationType,
                                        StatisticHandlerType,
                                        HandlerConfigurationType,
-                                       SessionDataType,
-                                       SessionDataContainerType,
                                        ControlMessageType,
                                        MessageType,
                                        SessionMessageType,
@@ -952,6 +885,12 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
   bool reset_setup_pipeline = true;
+  Test_I_MediaFoundation_SessionManager_t* session_manager_p =
+    Test_I_MediaFoundation_SessionManager_t::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (session_manager_p);
+
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -964,9 +903,9 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  ACE_ASSERT (inherited::sessionData_);
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR ());
   bool input_mediatype_was_null = false;
   IMFMediaType* media_type_p = NULL;
 
@@ -1102,13 +1041,11 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 //    } // end IF
 //  } // end IF
 
-#if defined (_DEBUG)
   if (!input_mediatype_was_null)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: capture format: %s\n"),
                 ACE_TEXT (stream_name_string_),
                 ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration_->format).c_str ())));
-#endif // _DEBUG
   media_type_p =
     Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_->format);
   if (!media_type_p)
@@ -1179,13 +1116,6 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   topology_p->Release (); topology_p = NULL;
 
   // -------------------------------------------------------------
-
-  source_impl_p->setP (&(inherited::state_));
-  //fileReader_impl_p->reset ();
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  module_p->arg (inherited::sessionData_);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))
@@ -1258,8 +1188,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename StatisticHandlerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -1269,8 +1197,6 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
                             ConfigurationType,
                             StatisticHandlerType,
                             HandlerConfigurationType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             ControlMessageType,
                             MessageType,
                             SessionMessageType,
@@ -1286,37 +1212,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename StatisticHandlerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ControlMessageType,
-          typename MessageType,
-          typename SessionMessageType,
-          typename ConnectionManagerType,
-          typename ConnectorType>
-Test_I_Source_V4L_Stream_T<StreamStateType,
-                            ConfigurationType,
-                            StatisticHandlerType,
-                            HandlerConfigurationType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            ControlMessageType,
-                            MessageType,
-                            SessionMessageType,
-                            ConnectionManagerType,
-                            ConnectorType>::~Test_I_Source_V4L_Stream_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_T::~Test_I_Source_V4L_Stream_T"));
-
-  // *NOTE*: implements an ordered shutdown on destruction
-  inherited::shutdown ();
-}
-
-template <typename StreamStateType,
-          typename ConfigurationType,
-          typename StatisticHandlerType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -1327,8 +1222,6 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
                             ConfigurationType,
                             StatisticHandlerType,
                             HandlerConfigurationType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             ControlMessageType,
                             MessageType,
                             SessionMessageType,
@@ -1412,8 +1305,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename StatisticHandlerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -1424,8 +1315,6 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
                             ConfigurationType,
                             StatisticHandlerType,
                             HandlerConfigurationType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             ControlMessageType,
                             MessageType,
                             SessionMessageType,
@@ -1489,8 +1378,6 @@ template <typename StreamStateType,
           typename ConfigurationType,
           typename StatisticHandlerType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
@@ -1501,8 +1388,6 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
                             ConfigurationType,
                             StatisticHandlerType,
                             HandlerConfigurationType,
-                            SessionDataType,
-                            SessionDataContainerType,
                             ControlMessageType,
                             MessageType,
                             SessionMessageType,

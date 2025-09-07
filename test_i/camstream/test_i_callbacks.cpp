@@ -1874,10 +1874,9 @@ stream_processing_function (void* arg_in)
             result_2 =
               directshow_thread_data_p->CBData->stream->initialize ((*directshow_stream_iterator).second);
             ACE_ASSERT (result_2);
-            const Test_I_Source_DirectShow_SessionData_t* session_data_container_p =
+            const Test_I_Source_DirectShow_SessionData* session_data_p =
               &directshow_thread_data_p->CBData->stream->getR_2 ();
-            session_ui_cb_data_p =
-              &const_cast<Test_I_Source_DirectShow_SessionData&> (session_data_container_p->getR ());
+            session_ui_cb_data_p = session_data_p;
 
             Stream_Module_t* module_p =
               const_cast<Stream_Module_t*> (directshow_thread_data_p->CBData->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
@@ -1896,10 +1895,9 @@ stream_processing_function (void* arg_in)
             result_2 =
               mediafoundation_thread_data_p->CBData->stream->initialize ((*mediafoundation_stream_iterator).second);
             ACE_ASSERT (result_2);
-            const Test_I_Source_MediaFoundation_SessionData_t* session_data_container_p =
+            const Test_I_Source_MediaFoundation_SessionData* session_data_p =
               &mediafoundation_thread_data_p->CBData->stream->getR_2 ();
-            session_ui_cb_data_p =
-              &const_cast<Test_I_Source_MediaFoundation_SessionData&> (session_data_container_p->getR ());
+            session_ui_cb_data_p = session_data_p;
             break;
           }
           default:
@@ -1923,10 +1921,9 @@ stream_processing_function (void* arg_in)
           dynamic_cast<Common_IDispatch*> (module_p->writer ());
         ACE_ASSERT (V4L_thread_data_p->CBData->dispatch);
 
-        const Test_I_Source_V4L_SessionData_t* session_data_container_p =
+        const Test_I_Source_V4L_SessionData* session_data_p =
           &V4L_thread_data_p->CBData->stream->getR_2 ();
-        session_ui_cb_data_p =
-          &const_cast<Test_I_Source_V4L_SessionData&> (session_data_container_p->getR ());
+        session_ui_cb_data_p = session_data_p;
 #endif // ACE_WIN32 || ACE_WIN64
         break;
       }
@@ -1942,10 +1939,9 @@ stream_processing_function (void* arg_in)
             //  directshow_ui_cb_data_p->CBData->UDPStream;
             result_2 =
               directshow_thread_data_p->CBData->UDPStream->initialize ((*directshow_stream_iterator).second);
-            const Test_I_Source_DirectShow_SessionData_t* session_data_container_p =
+            const Test_I_Source_DirectShow_SessionData* session_data_p =
               &directshow_thread_data_p->CBData->UDPStream->getR_2 ();
-            session_ui_cb_data_p =
-              &const_cast<Test_I_Source_DirectShow_SessionData&> (session_data_container_p->getR ());
+            session_ui_cb_data_p = session_data_p;
             break;
           }
           case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1955,10 +1951,9 @@ stream_processing_function (void* arg_in)
             //  mediafoundation_ui_cb_data_p->CBData->UDPStream;
             result_2 =
               mediafoundation_thread_data_p->CBData->UDPStream->initialize ((*mediafoundation_stream_iterator).second);
-            const Test_I_Source_MediaFoundation_SessionData_t* session_data_container_p =
+            const Test_I_Source_MediaFoundation_SessionData* session_data_p =
               &mediafoundation_thread_data_p->CBData->UDPStream->getR_2 ();
-            session_ui_cb_data_p =
-              &const_cast<Test_I_Source_MediaFoundation_SessionData&> (session_data_container_p->getR ());
+            session_ui_cb_data_p = session_data_p;
             break;
           }
           default:
@@ -1974,10 +1969,9 @@ stream_processing_function (void* arg_in)
         //(*iterator_2).second.stream = ui_cb_data_p->CBData->UDPStream;
         result_2 =
           V4L_thread_data_p->CBData->UDPStream->initialize ((*stream_iterator).second);
-        const Test_I_Source_V4L_SessionData_t* session_data_container_p =
+        const Test_I_Source_V4L_SessionData* session_data_p =
           &V4L_thread_data_p->CBData->UDPStream->getR_2 ();
-        session_ui_cb_data_p =
-          &const_cast<Test_I_Source_V4L_SessionData&> (session_data_container_p->getR ());
+        session_ui_cb_data_p = session_data_p;
 #endif // ACE_WIN32 || ACE_WIN64
         break;
       }
@@ -1992,6 +1986,7 @@ stream_processing_function (void* arg_in)
     ACE_ASSERT (session_ui_cb_data_p);
     converter.clear ();
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
     converter << session_ui_cb_data_p->sessionId;
 
     // retrieve status bar handle

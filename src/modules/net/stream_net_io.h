@@ -41,9 +41,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
@@ -63,10 +62,8 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
-          ////////////////////////////////
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename AddressType,
@@ -107,6 +104,7 @@ class Stream_Module_Net_IOReader_T // --> input
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOReader_T& operator= (const Stream_Module_Net_IOReader_T&))
 
   // convenient types
+  typedef typename SessionMessageType::DATA_T::DATA_T SESSION_DATA_T;
   typedef Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                                        ControlMessageType,
                                        DataMessageType,
@@ -115,9 +113,8 @@ class Stream_Module_Net_IOReader_T // --> input
                                        StreamControlType,
                                        StreamNotificationType,
                                        StreamStateType,
-                                       SessionDataType,
-                                       SessionDataContainerType,
                                        StatisticContainerType,
+                                       SessionManagerType,
                                        TimerManagerType,
                                        AddressType,
                                        ConnectionManagerType,
@@ -138,10 +135,8 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
-          ////////////////////////////////
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename AddressType,
@@ -158,9 +153,8 @@ class Stream_Module_Net_IOWriter_T // --> output
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType>
 {
@@ -172,9 +166,8 @@ class Stream_Module_Net_IOWriter_T // --> output
                                             StreamControlType,
                                             StreamNotificationType,
                                             StreamStateType,
-                                            SessionDataType,
-                                            SessionDataContainerType,
                                             StatisticContainerType,
+                                            SessionManagerType,
                                             TimerManagerType,
                                             AddressType,
                                             ConnectionManagerType,
@@ -189,9 +182,8 @@ class Stream_Module_Net_IOWriter_T // --> output
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
 

@@ -47,9 +47,6 @@
 #include "test_i_avsave_message.h"
 #include "test_i_avsave_session_message.h"
 
-// forward declarations
-class Stream_IAllocator;
-
 extern const char stream_name_string_[];
 extern const char stream_name_string_2[];
 
@@ -65,8 +62,7 @@ class Stream_AVSave_DirectShow_Stream
                         struct Stream_AVSave_DirectShow_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
                         struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
-                        Stream_AVSave_DirectShow_SessionData,
-                        Stream_AVSave_DirectShow_SessionData_t,
+                        Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_DirectShow_Message_t,
                         Stream_AVSave_DirectShow_SessionMessage_t>
@@ -81,8 +77,7 @@ class Stream_AVSave_DirectShow_Stream
                         struct Stream_AVSave_DirectShow_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
                         struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
-                        Stream_AVSave_DirectShow_SessionData,
-                        Stream_AVSave_DirectShow_SessionData_t,
+                        Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_DirectShow_Message_t,
                         Stream_AVSave_DirectShow_SessionMessage_t> inherited;
@@ -136,8 +131,7 @@ class Stream_AVSave_MediaFoundation_Stream
                         struct Stream_AVSave_MediaFoundation_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
                         struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
-                        Stream_AVSave_MediaFoundation_SessionData,
-                        Stream_AVSave_MediaFoundation_SessionData_t,
+                        Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_MediaFoundation_Message_t,
                         Stream_AVSave_MediaFoundation_SessionMessage_t>
@@ -153,8 +147,7 @@ class Stream_AVSave_MediaFoundation_Stream
                         struct Stream_AVSave_MediaFoundation_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
                         struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
-                        Stream_AVSave_MediaFoundation_SessionData,
-                        Stream_AVSave_MediaFoundation_SessionData_t,
+                        Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_MediaFoundation_Message_t,
                         Stream_AVSave_MediaFoundation_SessionMessage_t> inherited;
@@ -219,8 +212,7 @@ class Stream_AVSave_DirectShow_Audio_Stream
                         struct Stream_AVSave_DirectShow_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
                         struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
-                        Stream_AVSave_DirectShow_SessionData,
-                        Stream_AVSave_DirectShow_SessionData_t,
+                        Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_DirectShow_Message_t,
                         Stream_AVSave_DirectShow_SessionMessage_t>
@@ -235,8 +227,7 @@ class Stream_AVSave_DirectShow_Audio_Stream
                         struct Stream_AVSave_DirectShow_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
                         struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
-                        Stream_AVSave_DirectShow_SessionData,
-                        Stream_AVSave_DirectShow_SessionData_t,
+                        Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_DirectShow_Message_t,
                         Stream_AVSave_DirectShow_SessionMessage_t> inherited;
@@ -276,8 +267,7 @@ class Stream_AVSave_MediaFoundation_Audio_Stream
                         struct Stream_AVSave_MediaFoundation_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
                         struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
-                        Stream_AVSave_MediaFoundation_SessionData,
-                        Stream_AVSave_MediaFoundation_SessionData_t,
+                        Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_MediaFoundation_Message_t,
                         Stream_AVSave_MediaFoundation_SessionMessage_t>
@@ -292,8 +282,7 @@ class Stream_AVSave_MediaFoundation_Audio_Stream
                         struct Stream_AVSave_MediaFoundation_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
                         struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
-                        Stream_AVSave_MediaFoundation_SessionData,
-                        Stream_AVSave_MediaFoundation_SessionData_t,
+                        Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_MediaFoundation_Message_t,
                         Stream_AVSave_MediaFoundation_SessionMessage_t> inherited;

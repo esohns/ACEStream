@@ -47,7 +47,6 @@
 #include "test_i_common.h"
 #include "test_i_connection_common.h"
 #include "test_i_message.h"
-//#include "test_i_module_httpparser.h"
 #include "test_i_session_message.h"
 
 // declare module(s)
@@ -59,9 +58,8 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_I_HTTPGet_StreamState,
-                                     struct Test_I_Stream_SessionData,
-                                     Test_I_Stream_SessionData_t,
                                      struct Stream_Statistic,
+                                     Test_I_SessionManager_t,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_Stream_InetConnectionManager_t,
@@ -74,9 +72,8 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_I_HTTPGet_StreamState,
-                                     struct Test_I_Stream_SessionData,
-                                     Test_I_Stream_SessionData_t,
                                      struct Stream_Statistic,
+                                     Test_I_SessionManager_t,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_Stream_InetConnectionManager_t,
@@ -105,9 +102,8 @@ typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
                               enum Stream_ControlType,
                               enum Stream_SessionMessageType,
                               struct Test_I_HTTPGet_StreamState,
-                              struct Test_I_Stream_SessionData,
-                              Test_I_Stream_SessionData_t,
                               struct Stream_Statistic,
+                              Test_I_SessionManager_t,
                               Common_Timer_Manager_t,
                               struct Stream_UserData> Test_I_HTTPParser;
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Stream_SessionData,         // session data type

@@ -102,6 +102,7 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           ////////////////////////////////
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename ListenerType, // implements Net_IListener
@@ -117,9 +118,8 @@ class Stream_Module_Net_ListenerH_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      typename SessionMessageType::DATA_T::DATA_T,
-                                      typename SessionMessageType::DATA_T,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType>
  , public Net_IConnectionState
@@ -133,9 +133,8 @@ class Stream_Module_Net_ListenerH_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      typename SessionMessageType::DATA_T::DATA_T,
-                                      typename SessionMessageType::DATA_T,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
 
@@ -144,7 +143,7 @@ class Stream_Module_Net_ListenerH_T
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
   Stream_Module_Net_ListenerH_T (typename inherited::ISTREAM_T*); // stream handle
-  virtual ~Stream_Module_Net_ListenerH_T ();
+  inline virtual ~Stream_Module_Net_ListenerH_T () {}
 
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed

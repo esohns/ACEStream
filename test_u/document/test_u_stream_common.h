@@ -37,6 +37,7 @@
 #include "stream_isessionnotify.h"
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
+#include "stream_session_manager.h"
 
 #include "stream_document_defines.h"
 
@@ -138,18 +139,26 @@ struct Test_U_StreamState
   Test_U_StreamState ()
    : Stream_State ()
    , sessionData (NULL)
-   //, userData (NULL)
   {}
 
   struct Test_U_SessionData* sessionData;
-
-  //struct Branch_UserData*    userData;
 };
+
+//////////////////////////////////////////
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Common_AllocatorConfiguration,
                                           Stream_ControlMessage_t,
                                           Test_U_Message,
                                           Test_U_SessionMessage> Test_U_MessageAllocator_t;
+
+//////////////////////////////////////////
+
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 struct Test_U_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_U_SessionManager_t;
 
 #endif

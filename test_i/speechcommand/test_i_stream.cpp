@@ -366,6 +366,8 @@ Test_I_DirectShow_Stream::initialize (const CONFIGURATION_T& configuration_in)
   bool reset_setup_pipeline = false;
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  Test_I_DirectShow_SessionManager_2* session_manager_p =
+    Test_I_DirectShow_SessionManager_2::SINGLETON_T::instance ();
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -383,9 +385,9 @@ Test_I_DirectShow_Stream::initialize (const CONFIGURATION_T& configuration_in)
   reset_setup_pipeline = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
+  ACE_ASSERT (session_manager_p);
   Test_I_SpeechCommand_DirectShow_SessionData& session_data_r =
-    const_cast<Test_I_SpeechCommand_DirectShow_SessionData&> (inherited::sessionData_->getR ());
+    const_cast<Test_I_SpeechCommand_DirectShow_SessionData&> (session_manager_p->getR ());
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
@@ -744,6 +746,7 @@ Test_I_DirectShow_Stream::initialize (const CONFIGURATION_T& configuration_in)
   struct _AMMediaType* media_type_p =
     Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format);
   ACE_ASSERT (media_type_p);
+  ACE_ASSERT (session_data_r.formats.empty ());
   session_data_r.formats.push_back (*media_type_p);
 
   // ---------------------------------------------------------------------------
@@ -1151,9 +1154,13 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::initialize"));
 
+  Test_I_MediaFoundation_SessionManager_2* session_manager_p =
+    Test_I_MediaFoundation_SessionManager_2::SINGLETON_T::instance ();
+
   // sanity check(s)
   ACE_ASSERT (!inherited::isRunning ());
   ACE_ASSERT (configuration_in.configuration_);
+  ACE_ASSERT (session_manager_p);
 
   if (inherited::isInitialized_)
   {
@@ -1210,9 +1217,8 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
   reset_setup_pipeline = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
   Test_I_SpeechCommand_MediaFoundation_SessionData& session_data_r =
-    const_cast<Test_I_SpeechCommand_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
+    const_cast<Test_I_SpeechCommand_MediaFoundation_SessionData&> (session_manager_p->getR ());
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
@@ -1238,17 +1244,17 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
   enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
     MFSESSION_GETFULLTOPOLOGY_CURRENT;
   ULONG reference_count = 0;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
   IMFSampleGrabberSinkCallback2* sample_grabber_p = NULL;
 #else
   IMFSampleGrabberSinkCallback* sample_grabber_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
   IMFMediaType* media_type_p = NULL, *media_type_2 = NULL; // capture-
   bool use_framework_renderer_b = false;
   int render_device_id_i = -1;
   std::string effect_options; // *TODO*
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   // *TODO*: reusing media sessions is harder than it seems...
   //         --> use a fresh one every time
   if (mediaSession_)
@@ -1283,11 +1289,11 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
   if (module_p)
   {
     sample_grabber_p =
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       dynamic_cast<IMFSampleGrabberSinkCallback2*> (mediaFoundationSource_.writer ());
 #else
       dynamic_cast<IMFSampleGrabberSinkCallback*> (mediaFoundationSource_.writer ());
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
     ACE_ASSERT (sample_grabber_p);
 
     // set sample grabber output format ?
@@ -1361,7 +1367,7 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
     goto error;
   } // end IF
 continue_3:
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   use_framework_renderer_b = false;
   switch (inherited::configuration_->configuration_->renderer)
   {
@@ -1415,7 +1421,7 @@ continue_3:
   ACE_ASSERT (media_type_2 && topology_p);
   graph_loaded = true;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                  mediaSession_,
                                                                  false,  // is partial ?
@@ -1450,7 +1456,7 @@ continue_3:
   } // end IF
   reference_count = mediaSession_->AddRef ();
   session_data_r.session = mediaSession_;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   ACE_ASSERT (topology_p);
   topology_p->Release (); topology_p = NULL;
 
@@ -1465,6 +1471,7 @@ continue_3:
   media_type_p =
     Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_->format);
   ACE_ASSERT (media_type_p);
+  ACE_ASSERT (session_data_r.formats.empty ());
   session_data_r.formats.push_back (media_type_p);
 
   if (configuration_in.configuration_->setupPipeline)

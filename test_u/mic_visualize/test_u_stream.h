@@ -37,9 +37,6 @@
 #include "test_u_mic_visualize_common.h"
 #include "test_u_session_message.h"
 
-// forward declarations
-class Stream_IAllocator;
-
 extern const char stream_name_string_[];
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -54,8 +51,7 @@ class Test_U_DirectShow_Stream
                         struct Test_U_MicVisualize_DirectShow_StreamConfiguration,
                         struct Test_U_MicVisualize_Statistic,
                         struct Test_U_MicVisualize_DirectShow_ModuleHandlerConfiguration,
-                        Test_U_MicVisualize_DirectShow_SessionData,
-                        Test_U_MicVisualize_DirectShow_SessionData_t,
+                        Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_DirectShow_Message,
                         Test_U_DirectShow_SessionMessage>
@@ -73,8 +69,7 @@ class Test_U_DirectShow_Stream
                         struct Test_U_MicVisualize_DirectShow_StreamConfiguration,
                         struct Test_U_MicVisualize_Statistic,
                         struct Test_U_MicVisualize_DirectShow_ModuleHandlerConfiguration,
-                        Test_U_MicVisualize_DirectShow_SessionData,
-                        Test_U_MicVisualize_DirectShow_SessionData_t,
+                        Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_DirectShow_Message,
                         Test_U_DirectShow_SessionMessage> inherited;
@@ -111,8 +106,7 @@ class Test_U_MediaFoundation_Stream
                         struct Test_U_MicVisualize_MediaFoundation_StreamConfiguration,
                         struct Test_U_MicVisualize_Statistic,
                         struct Test_U_MicVisualize_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_U_MicVisualize_MediaFoundation_SessionData,
-                        Test_U_MicVisualize_MediaFoundation_SessionData_t,
+                        Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_MediaFoundation_Message,
                         Test_U_MediaFoundation_SessionMessage>
@@ -134,8 +128,7 @@ class Test_U_MediaFoundation_Stream
                         struct Test_U_MicVisualize_MediaFoundation_StreamConfiguration,
                         struct Test_U_MicVisualize_Statistic,
                         struct Test_U_MicVisualize_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_U_MicVisualize_MediaFoundation_SessionData,
-                        Test_U_MicVisualize_MediaFoundation_SessionData_t,
+                        Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_MediaFoundation_Message,
                         Test_U_MediaFoundation_SessionMessage> inherited;

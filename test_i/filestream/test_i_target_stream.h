@@ -53,8 +53,7 @@ class Test_I_Target_TCPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
-                                        struct Test_I_Target_SessionData, // session data
-                                        Test_I_Target_SessionData_t,      // session data container (reference counted)
+                                        Test_I_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_Message_t,
                                         Test_I_Target_SessionMessage,
@@ -73,8 +72,7 @@ class Test_I_Target_TCPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
-                                        struct Test_I_Target_SessionData, // session data
-                                        Test_I_Target_SessionData_t,      // session data container (reference counted)
+                                        Test_I_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_Message_t,
                                         Test_I_Target_SessionMessage,
@@ -128,8 +126,7 @@ class Test_I_Target_UDPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
-                                        struct Test_I_Target_SessionData, // session data
-                                        Test_I_Target_SessionData_t,      // session data container (reference counted)
+                                        Test_I_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_Message_t,
                                         Test_I_Target_SessionMessage,
@@ -148,8 +145,7 @@ class Test_I_Target_UDPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
-                                        struct Test_I_Target_SessionData, // session data
-                                        Test_I_Target_SessionData_t,      // session data container (reference counted)
+                                        Test_I_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_Message_t,
                                         Test_I_Target_SessionMessage,

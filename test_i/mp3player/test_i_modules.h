@@ -29,6 +29,7 @@
 
 #include "stream_common.h"
 #include "stream_lib_ffmpeg_common.h"
+#include "stream_session_manager.h"
 #include "stream_streammodule_base.h"
 
 #include "stream_dec_mp3_decoder.h"
@@ -62,6 +63,13 @@
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 struct Test_I_MP3Player_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_I_SessionManager_t;
+
 // declare module(s)
 typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,
@@ -71,9 +79,8 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Test_I_MP3Player_StreamState,
-                                    struct Test_I_MP3Player_SessionData,
-                                    Test_I_MP3Player_SessionData_t,
                                     struct Stream_Statistic,
+                                    Test_I_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Test_I_FileSource;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,      // session data type
@@ -137,9 +144,8 @@ typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Test_I_MP3Player_StreamState,
-                                    struct Test_I_MP3Player_SessionData,
-                                    Test_I_MP3Player_SessionData_t,
                                     struct Stream_Statistic,
+                                    Test_I_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

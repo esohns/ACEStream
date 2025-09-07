@@ -49,6 +49,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename StreamStateType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename UserDataType,
           ////////////////////////////////
@@ -63,9 +64,8 @@ class Stream_File_ImageMagick_Source_T
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       StreamStateType,
-                                      typename SessionMessageType::DATA_T::DATA_T,
-                                      typename SessionMessageType::DATA_T,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
@@ -79,9 +79,8 @@ class Stream_File_ImageMagick_Source_T
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       StreamStateType,
-                                      typename SessionMessageType::DATA_T::DATA_T,
-                                      typename SessionMessageType::DATA_T,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
@@ -102,9 +101,8 @@ class Stream_File_ImageMagick_Source_T
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     StreamStateType,
-                                    typename SessionMessageType::DATA_T::DATA_T,
-                                    typename SessionMessageType::DATA_T,
                                     StatisticContainerType,
+                                    SessionManagerType,
                                     TimerManagerType,
                                     UserDataType>::initialize;
 #endif // __GNUG__ || _MSC_VER
@@ -123,6 +121,7 @@ class Stream_File_ImageMagick_Source_T
                                            SessionMessageType,
                                            StreamStateType,
                                            StatisticContainerType,
+                                           SessionManagerType,
                                            TimerManagerType,
                                            UserDataType,
                                            MediaType> OWN_TYPE_T;

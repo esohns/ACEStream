@@ -28,14 +28,19 @@
 
 #include "stream_base.h"
 #include "stream_common.h"
+#include "stream_session_manager.h"
 
 #include "test_u_animated_gif_common.h"
 #include "test_u_common_modules.h"
 #include "test_u_message.h"
 #include "test_u_session_message.h"
 
-// forward declarations
-class Stream_IAllocator;
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_U_AnimatedGIF_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_U_SessionManager_t;
 
 extern const char stream_name_string_[];
 
@@ -50,8 +55,7 @@ class Test_U_Stream
                         struct Stream_Configuration,
                         struct Stream_Statistic,
                         struct Test_U_AnimatedGIF_ModuleHandlerConfiguration,
-                        Test_U_AnimatedGIF_SessionData, // session data
-                        Test_U_AnimatedGIF_SessionData_t, // session data container (reference counted)
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message,
                         Test_U_SessionMessage>
@@ -66,8 +70,7 @@ class Test_U_Stream
                         struct Stream_Configuration,
                         struct Stream_Statistic,
                         struct Test_U_AnimatedGIF_ModuleHandlerConfiguration,
-                        Test_U_AnimatedGIF_SessionData,
-                        Test_U_AnimatedGIF_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message,
                         Test_U_SessionMessage> inherited;

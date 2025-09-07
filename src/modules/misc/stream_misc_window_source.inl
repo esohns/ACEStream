@@ -57,9 +57,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 Stream_Module_Window_Source_T<ACE_SYNCH_USE,
@@ -70,9 +69,8 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
                               StreamControlType,
                               StreamNotificationType,
                               StreamStateType,
-                              SessionDataType,
-                              SessionDataContainerType,
                               StatisticContainerType,
+                              SessionManagerType,
                               TimerManagerType,
                               MediaType>::Stream_Module_Window_Source_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in) // stream handle
@@ -103,9 +101,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 Stream_Module_Window_Source_T<ACE_SYNCH_USE,
@@ -116,9 +113,8 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
                               StreamControlType,
                               StreamNotificationType,
                               StreamStateType,
-                              SessionDataType,
-                              SessionDataContainerType,
                               StatisticContainerType,
+                              SessionManagerType,
                               TimerManagerType,
                               MediaType>::~Stream_Module_Window_Source_T ()
 {
@@ -151,9 +147,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 bool
@@ -165,9 +160,8 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
                               StreamControlType,
                               StreamNotificationType,
                               StreamStateType,
-                              SessionDataType,
-                              SessionDataContainerType,
                               StatisticContainerType,
+                              SessionManagerType,
                               TimerManagerType,
                               MediaType>::initialize (const ConfigurationType& configuration_in,
                                                       Stream_IAllocator* allocator_in)
@@ -256,9 +250,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 void
@@ -270,9 +263,8 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
                               StreamControlType,
                               StreamNotificationType,
                               StreamStateType,
-                              SessionDataType,
-                              SessionDataContainerType,
                               StatisticContainerType,
+                              SessionManagerType,
                               TimerManagerType,
                               MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                 bool& passMessageDownstream_out)
@@ -289,8 +281,8 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (inherited::sessionData_);
 
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   typename TimerManagerType::INTERFACE_T* itimer_manager_p =
     (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
                                              : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
@@ -503,9 +495,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 void
@@ -517,9 +508,8 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
                               StreamControlType,
                               StreamNotificationType,
                               StreamStateType,
-                              SessionDataType,
-                              SessionDataContainerType,
                               StatisticContainerType,
+                              SessionManagerType,
                               TimerManagerType,
                               MediaType>::handle (const void* act_in)
 {
@@ -531,12 +521,12 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::allocator_);
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
-  if (unlikely (!inherited::sessionData_))
-    return;
+  ACE_ASSERT (inherited::sessionData_);
 
   ACE_Message_Block* message_block_p = NULL;
   DataMessageType* message_p = NULL;
-  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+  const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    inherited::sessionData_->getR ();
   int result = -1;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -569,7 +559,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
 
   // step2: fill buffer
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!BitBlt (captureContext_, 0, 0, resolution_.cx, resolution_.cy, sourceContext_, 0, 0, SRCCOPY | CAPTUREBLT))
+  if (unlikely (!BitBlt (captureContext_, 0, 0, resolution_.cx, resolution_.cy, sourceContext_, 0, 0, SRCCOPY | CAPTUREBLT)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to BitBlt(): \"%s\", aborting\n"),
@@ -579,7 +569,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
   } // end IF
   result =
     GetDIBits (captureContext_, captureBitmap_, 0, resolution_.cy, message_block_p->wr_ptr (), &bitmapInfo_, DIB_RGB_COLORS);
-  if (result != resolution_.cy)
+  if (unlikely (result != resolution_.cy))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to GetDIBits(): \"%s\", aborting\n"),

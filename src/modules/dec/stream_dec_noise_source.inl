@@ -59,9 +59,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
@@ -72,9 +71,8 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                           StreamControlType,
                           StreamNotificationType,
                           StreamStateType,
-                          SessionDataType,
-                          SessionDataContainerType,
                           StatisticContainerType,
+                          SessionManagerType,
                           TimerManagerType,
                           MediaType>::Stream_Dec_Noise_Source_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in) // stream handle
@@ -114,9 +112,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
@@ -127,9 +124,8 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                           StreamControlType,
                           StreamNotificationType,
                           StreamStateType,
-                          SessionDataType,
-                          SessionDataContainerType,
                           StatisticContainerType,
+                          SessionManagerType,
                           TimerManagerType,
                           MediaType>::~Stream_Dec_Noise_Source_T ()
 {
@@ -174,9 +170,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 bool
@@ -188,9 +183,8 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                           StreamControlType,
                           StreamNotificationType,
                           StreamStateType,
-                          SessionDataType,
-                          SessionDataContainerType,
                           StatisticContainerType,
+                          SessionManagerType,
                           TimerManagerType,
                           MediaType>::initialize (const ConfigurationType& configuration_in,
                                                   Stream_IAllocator* allocator_in)
@@ -252,9 +246,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 void
@@ -266,9 +259,8 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                           StreamControlType,
                           StreamNotificationType,
                           StreamStateType,
-                          SessionDataType,
-                          SessionDataContainerType,
                           StatisticContainerType,
+                          SessionManagerType,
                           TimerManagerType,
                           MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                             bool& passMessageDownstream_out)
@@ -285,8 +277,8 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (inherited::sessionData_);
 
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   typename TimerManagerType::INTERFACE_T* itimer_manager_p =
     (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
                                              : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
@@ -302,8 +294,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       double a = 1.0;
 
       // schedule regular statistic collection
-      if (inherited::configuration_->statisticCollectionInterval !=
-          ACE_Time_Value::zero)
+      if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
       { ACE_ASSERT (inherited::timerId_ == -1);
         inherited::timerId_ =
           itimer_manager_p->schedule_timer (&(inherited::statisticHandler_),                                          // event handler handle
@@ -644,9 +635,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 void
@@ -658,9 +648,8 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                           StreamControlType,
                           StreamNotificationType,
                           StreamStateType,
-                          SessionDataType,
-                          SessionDataContainerType,
                           StatisticContainerType,
+                          SessionManagerType,
                           TimerManagerType,
                           MediaType>::handle (const void* act_in)
 {
@@ -868,9 +857,8 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType,
           typename MediaType>
 bool
@@ -882,9 +870,8 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                           StreamControlType,
                           StreamNotificationType,
                           StreamStateType,
-                          SessionDataType,
-                          SessionDataContainerType,
                           StatisticContainerType,
+                          SessionManagerType,
                           TimerManagerType,
                           MediaType>::collect (StatisticContainerType& data_out)
 {

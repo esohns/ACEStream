@@ -41,9 +41,6 @@
 #include "test_u_audioeffect_module_mediafoundation_target.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-// forward declarations
-class Stream_IAllocator;
-
 extern const char stream_name_string_[];
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -58,8 +55,7 @@ class Test_U_AudioEffect_DirectShow_Stream
                         struct Test_U_AudioEffect_DirectShow_StreamConfiguration,
                         struct Test_U_AudioEffect_Statistic,
                         struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
-                        Test_U_AudioEffect_DirectShow_SessionData,
-                        Test_U_AudioEffect_DirectShow_SessionData_t,
+                        Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_DirectShow_Message,
                         Test_U_AudioEffect_DirectShow_SessionMessage>
@@ -77,8 +73,7 @@ class Test_U_AudioEffect_DirectShow_Stream
                         struct Test_U_AudioEffect_DirectShow_StreamConfiguration,
                         struct Test_U_AudioEffect_Statistic,
                         struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
-                        Test_U_AudioEffect_DirectShow_SessionData,
-                        Test_U_AudioEffect_DirectShow_SessionData_t,
+                        Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_DirectShow_Message,
                         Test_U_AudioEffect_DirectShow_SessionMessage> inherited;
@@ -115,8 +110,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration,
                         struct Test_U_AudioEffect_Statistic,
                         struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_U_AudioEffect_MediaFoundation_SessionData,
-                        Test_U_AudioEffect_MediaFoundation_SessionData_t,
+                        Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_MediaFoundation_Message,
                         Test_U_AudioEffect_MediaFoundation_SessionMessage>
@@ -138,8 +132,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration,
                         struct Test_U_AudioEffect_Statistic,
                         struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_U_AudioEffect_MediaFoundation_SessionData,
-                        Test_U_AudioEffect_MediaFoundation_SessionData_t,
+                        Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_MediaFoundation_Message,
                         Test_U_AudioEffect_MediaFoundation_SessionMessage> inherited;
@@ -184,9 +177,9 @@ class Test_U_AudioEffect_MediaFoundation_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Stream& operator= (const Test_U_AudioEffect_MediaFoundation_Stream&))
 
   ACE_SYNCH_CONDITION                              condition_;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   IMFMediaSession*                                 mediaSession_;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   Test_U_Dev_Mic_Source_MediaFoundation_Module     frameworkSource_;
   Test_U_AudioEffect_MediaFoundation_Source_Module mediaFoundationSource_;
   Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget_Module mediaFoundationTarget_;

@@ -127,11 +127,6 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   bool reset_setup_pipeline = false;
   Stream_ImageScreen_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-//#if defined (IMAGEMAGICK_SUPPORT)
-//  Stream_ImageScreen_ImageMagick_Source* source_impl_p = NULL;
-//#else
-//  Stream_ImageScreen_Source* source_impl_p = NULL;
-//#endif // IMAGEMAGICK_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
@@ -186,6 +181,9 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+  Test_U_SessionManager_t* session_manager_p =
+    Test_U_SessionManager_t::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -203,9 +201,8 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   reset_setup_pipeline = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
   session_data_p =
-    &const_cast<Stream_ImageScreen_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Stream_ImageScreen_SessionData&> (session_manager_p->getR ());
   ACE_ASSERT (session_data_p->formats.empty ());
   // *TODO*: remove type inferences
 //  session_data_p->formats.push_back (configuration_in.configuration->format);
@@ -228,28 +225,8 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   media_type_s.resolution.height = 480;
 #endif // ACE_WIN32 || ACE_WIN64
   session_data_p->formats.push_back (media_type_s);
-  //  session_data_p->targetFileName = (*iterator).second.second->fileIdentifier.identifier;
 
   // ---------------------------------------------------------------------------
-
-  // ******************* Source ************************
-//  source_impl_p =
-//#if defined (IMAGEMAGICK_SUPPORT)
-//    static_cast<Stream_ImageScreen_ImageMagick_Source*> (imagemagick_source_.writer ());
-//#else
-//    static_cast<Stream_ImageScreen_Source*> (source_.writer ());
-//#endif // IMAGEMAGICK_SUPPORT
-//  ACE_ASSERT (source_impl_p);
-//  source_impl_p->setP (&(inherited::state_));
-//
-//  // *NOTE*: push()ing the module will open() it
-//  //         --> set the argument that is passed along (head module expects a
-//  //             handle to the session data)
-//#if defined (IMAGEMAGICK_SUPPORT)
-//  imagemagick_source_.arg (inherited::sessionData_);
-//#else
-//  source_.arg (inherited::sessionData_);
-//#endif // IMAGEMAGICK_SUPPORT
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))

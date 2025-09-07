@@ -47,10 +47,8 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          ////////////////////////////////
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename MediaType>
@@ -64,9 +62,8 @@ template <ACE_SYNCH_DECL,
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
@@ -80,9 +77,8 @@ template <ACE_SYNCH_DECL,
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
@@ -102,9 +98,8 @@ template <ACE_SYNCH_DECL,
                                     StreamControlType,
                                     StreamNotificationType,
                                     StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
                                     StatisticContainerType,
+                                    SessionManagerType,
                                     TimerManagerType,
                                     struct Stream_UserData>::initialize;
 
@@ -136,9 +131,8 @@ template <ACE_SYNCH_DECL,
                                          StreamControlType,
                                          StreamNotificationType,
                                          StreamStateType,
-                                         SessionDataType,
-                                         SessionDataContainerType,
                                          StatisticContainerType,
+                                         SessionManagerType,
                                          TimerManagerType,
                                          MediaType> OWN_TYPE_T;
 

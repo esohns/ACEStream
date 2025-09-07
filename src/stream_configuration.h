@@ -50,6 +50,7 @@
 #include "stream_defines.h"
 #include "stream_inotify.h"
 #include "stream_isessionnotify.h"
+#include "stream_istreamcontrol.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_common.h"
@@ -341,6 +342,15 @@ class Stream_Configuration_T
 
   ConfigurationType* configuration_;
   bool               isInitialized_;
+};
+
+struct Stream_SessionManager_Configuration
+{
+  Stream_SessionManager_Configuration ()
+   : stream (NULL)
+  {}
+
+  Stream_IStreamControlBase* stream;
 };
 
 // include template definition

@@ -82,8 +82,15 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfigura
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   struct Test_I_Stream_SessionData* session_data_p = NULL;
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<Test_I_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   Test_I_HTTPParser* HTTPParser_impl_p = NULL;
+  Test_I_SessionManager_t* session_manager_p =
+    Test_I_SessionManager_t::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline =
@@ -99,13 +106,10 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfigura
   const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  ACE_ASSERT (inherited::sessionData_);
+
   session_data_p =
-      &const_cast<struct Test_I_Stream_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<struct Test_I_Stream_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
-  iterator =
-      const_cast<Test_I_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.end ());
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 //  configuration_in.moduleConfiguration.streamState = &state_;
 
@@ -124,12 +128,6 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfigura
                 ACE_TEXT (stream_name_string_)));
     goto failed;
   } // end IF
-  HTTPParser_impl_p->setP (&(inherited::state_));
-
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  HTTPMarshal_.arg (inherited::sessionData_);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup ())
@@ -164,12 +162,15 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (struct Stream_Statistic& data_o
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::collect"));
 
+  Test_I_SessionManager_t* session_manager_p =
+    Test_I_SessionManager_t::SINGLETON_T::instance ();
+
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
+  ACE_ASSERT (session_manager_p);
 
   int result = -1;
   struct Test_I_Stream_SessionData& session_data_r =
-      const_cast<struct Test_I_Stream_SessionData&> (inherited::sessionData_->getR ());
+    const_cast<struct Test_I_Stream_SessionData&> (session_manager_p->getR ());
 
   //Test_I_Statistic_WriterTask_t* statistic_impl =
   //  dynamic_cast<Test_I_Statistic_WriterTask_t*> (statisticReport_.writer ());
@@ -205,7 +206,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (struct Stream_Statistic& data_o
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
                 ACE_TEXT (stream_name_string_)));
   }
-  if (!result)
+  if (!result_2)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));

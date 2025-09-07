@@ -356,7 +356,6 @@ stream_processing_thread (void* arg_in)
   ACE_ASSERT (thread_data_p);
   ACE_ASSERT (thread_data_p->CBData);
 
-  const Stream_ImageScreen_SessionData_t* session_data_container_p = NULL;
   const Stream_ImageScreen_SessionData* session_data_p = NULL;
   Stream_IStreamControlBase* stream_p = NULL;
   Stream_SessionId_t session_id = 0;
@@ -370,10 +369,10 @@ stream_processing_thread (void* arg_in)
                 ACE_TEXT ("failed to initialize stream, aborting\n")));
     goto error;
   } // end IF
+
+  // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
   stream_p = thread_data_p->CBData->stream;
-  session_data_container_p = &thread_data_p->CBData->stream->getR_2 ();
-  ACE_ASSERT (session_data_container_p);
-  session_data_p = &session_data_container_p->getR ();
+  session_data_p = &thread_data_p->CBData->stream->getR_2 ();
   ACE_ASSERT (session_data_p);
   thread_data_p->CBData->progressData.sessionId = session_data_p->sessionId;
 

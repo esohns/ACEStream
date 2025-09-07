@@ -47,9 +47,6 @@
 #include "test_u_mp4_player_common.h"
 #include "test_u_session_message.h"
 
-// forward declarations
-class Stream_IAllocator;
-
 extern const char stream_name_string_[];
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -64,8 +61,7 @@ class Test_U_DirectShow_Stream
                         struct Test_U_MP4Player_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,
-                        Test_U_MP4Player_DirectShow_SessionData,
-                        Test_U_MP4Player_DirectShow_SessionData_t,
+                        Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_DirectShow_Message_t,
                         Test_U_DirectShow_SessionMessage_t>
@@ -80,8 +76,7 @@ class Test_U_DirectShow_Stream
                         struct Test_U_MP4Player_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,
-                        Test_U_MP4Player_DirectShow_SessionData,
-                        Test_U_MP4Player_DirectShow_SessionData_t,
+                        Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_DirectShow_Message_t,
                         Test_U_DirectShow_SessionMessage_t> inherited;
@@ -142,8 +137,7 @@ class Test_U_MediaFoundation_Stream
                         struct Test_U_MP4Player_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_U_MP4Player_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_U_MP4Player_MediaFoundation_SessionData,
-                        Test_U_MP4Player_MediaFoundation_SessionData_t,
+                        Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_MediaFoundation_Message_t,
                         Test_U_MediaFoundation_SessionMessage_t>
@@ -159,8 +153,7 @@ class Test_U_MediaFoundation_Stream
                         struct Test_U_MP4Player_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_U_MP4Player_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_U_MP4Player_MediaFoundation_SessionData,
-                        Test_U_MP4Player_MediaFoundation_SessionData_t,
+                        Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_MediaFoundation_Message_t,
                         Test_U_MediaFoundation_SessionMessage_t> inherited;
@@ -224,8 +217,7 @@ class Test_U_Stream
                         struct Test_U_MP4Player_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_U_FFMPEG_ModuleHandlerConfiguration,
-                        Test_U_MP4Player_SessionData,
-                        Test_U_MP4Player_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message_t,
                         Test_U_SessionMessage_t>
@@ -240,8 +232,7 @@ class Test_U_Stream
                         struct Test_U_MP4Player_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_U_FFMPEG_ModuleHandlerConfiguration,
-                        Test_U_MP4Player_SessionData,
-                        Test_U_MP4Player_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message_t,
                         Test_U_SessionMessage_t> inherited;

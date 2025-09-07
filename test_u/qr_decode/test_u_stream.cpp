@@ -138,9 +138,18 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_Stream::initialize"));
 
+  // sanity check(s)
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_U_DirectShow_SessionManager_t* session_manager_p =
+    Test_U_DirectShow_SessionManager_t::SINGLETON_T::instance ();
+#else
+  Test_U_SessionManager_t* session_manager_p =
+    Test_U_SessionManager_t::SINGLETON_T::instance ();
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (session_manager_p);
 
   // ---------------------------------------------------------------------------
   // step1: allocate a new session state, reset stream
@@ -159,16 +168,12 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
     setup_pipeline;
 //  reset_setup_pipeline = false;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-  // ACE_ASSERT ((*iterator).second.second->direct3DConfiguration);
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   QRDecode_DirectShow_SessionData* session_data_p =
-    &const_cast<QRDecode_DirectShow_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<QRDecode_DirectShow_SessionData&> (session_manager_p->getR ());
 #else
   QRDecode_SessionData* session_data_p =
-    &const_cast<QRDecode_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<QRDecode_SessionData&> (session_manager_p->getR ());
 #endif // ACE_WIN32 || ACE_WIN64
 
   // ---------------------------------------------------------------------------
@@ -181,6 +186,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   struct Stream_MediaFramework_V4L_MediaType media_type_s =
     configuration_in.configuration_->format;
 #endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (media_type_s);
 
   // step7: assemble stream

@@ -61,10 +61,8 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          ////////////////////////////////
           typename StatisticContainerType,
+          typename SessionManagerType,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename MediaType>
@@ -78,9 +76,8 @@ class Stream_Dev_Mic_Source_WaveIn_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
@@ -95,9 +92,8 @@ class Stream_Dev_Mic_Source_WaveIn_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       TimerManagerType,
                                       struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
@@ -117,9 +113,8 @@ class Stream_Dev_Mic_Source_WaveIn_T
                                     StreamControlType,
                                     StreamNotificationType,
                                     StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
                                     StatisticContainerType,
+                                    SessionManagerType,
                                     TimerManagerType,
                                     struct Stream_UserData>::initialize;
 
@@ -148,9 +143,8 @@ class Stream_Dev_Mic_Source_WaveIn_T
                                          StreamControlType,
                                          StreamNotificationType,
                                          StreamStateType,
-                                         SessionDataType,
-                                         SessionDataContainerType,
                                          StatisticContainerType,
+                                         SessionManagerType,
                                          TimerManagerType,
                                          MediaType> OWN_TYPE_T;
 

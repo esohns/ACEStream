@@ -157,6 +157,8 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
   ULONG reference_count = 0;
   std::string log_file_name;
   struct _AMMediaType media_type_s;
+  Test_U_DirectShow_SessionManager_t* session_manager_p =
+    Test_U_DirectShow_SessionManager_t::SINGLETON_T::instance ();
 
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -165,6 +167,7 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
   // sanity check(s)
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
   ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
+  ACE_ASSERT (session_manager_p);
 
   // ---------------------------------------------------------------------------
   // step3: allocate a new session state, reset stream
@@ -183,11 +186,8 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
   reset_setup_pipeline = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-  //ACE_ASSERT ((*iterator).second.second->direct3DConfiguration);
-
   session_data_p =
-    &const_cast<Test_U_CaptureWindow_DirectShow_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Test_U_CaptureWindow_DirectShow_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
   //if ((*iterator).second.second->direct3DConfiguration->handle)
   //{
@@ -205,6 +205,7 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format,
                                                 media_type_s);
+  ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (media_type_s);
   session_data_p->stream = this;
   session_data_p->targetFileName =
@@ -436,10 +437,6 @@ Test_U_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (mediaSession_);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
-  ACE_ASSERT (inherited::sessionData_);
-
-  //Test_U_SessionData& session_data_r =
-  //  const_cast<Test_U_SessionData&> (inherited::sessionData_->get ());
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = mediaSession_->EndGetEvent (result_in, &media_event_p);
@@ -641,8 +638,14 @@ Test_U_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& con
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Test_U_CaptureWindow_MediaFoundation_SessionData* session_data_p = NULL;
-  inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  //Test_U_MediaFoundation_WindowSource* source_impl_p = NULL;
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  Test_U_MediaFoundation_SessionManager_t* session_manager_p =
+    Test_U_MediaFoundation_SessionManager_t::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -660,15 +663,10 @@ Test_U_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& con
   reset_setup_pipeline = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
+  ACE_ASSERT (session_manager_p);
 
   session_data_p =
-    &const_cast<Test_U_CaptureWindow_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
-  iterator =
-      const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-
-  // sanity check(s)
-  ACE_ASSERT (iterator != configuration_in.end ());
+    &const_cast<Test_U_CaptureWindow_MediaFoundation_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
   //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 

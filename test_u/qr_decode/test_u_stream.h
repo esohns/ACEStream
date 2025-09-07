@@ -33,9 +33,6 @@
 #include "test_u_session_message.h"
 #include "test_u_stream_common.h"
 
-// forward declarations
-class Stream_IAllocator;
-
 extern const char stream_name_string_[];
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -50,8 +47,7 @@ class Test_U_Stream
                         struct QRDecode_StreamConfiguration,
                         struct Stream_Statistic,
                         struct QRDecode_ModuleHandlerConfiguration,
-                        QRDecode_DirectShow_SessionData,
-                        QRDecode_DirectShow_SessionData_t,
+                        Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message,
                         Test_U_DirectShow_SessionMessage>
@@ -66,8 +62,7 @@ class Test_U_Stream
                         struct QRDecode_StreamConfiguration,
                         struct Stream_Statistic,
                         struct QRDecode_ModuleHandlerConfiguration,
-                        QRDecode_DirectShow_SessionData,
-                        QRDecode_DirectShow_SessionData_t,
+                        Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message,
                         Test_U_DirectShow_SessionMessage> inherited;

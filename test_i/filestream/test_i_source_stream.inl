@@ -102,11 +102,18 @@ Test_I_Source_Stream_T<ConnectionManagerType,
 
   // sanity check(s)
   ACE_ASSERT (!inherited::isRunning ());
-
-//  bool result = false;
   ACE_ASSERT (configuration_in.configuration_);
+
+
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
+  struct Test_I_Source_SessionData* session_data_p = NULL;
+  Test_I_Source_StreamConfiguration_t::CONST_ITERATOR_T iterator =
+    configuration_in.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
+  Test_I_SessionManager_t* session_manager_p =
+    Test_I_SessionManager_t::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<Test_I_Source_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline =
@@ -122,51 +129,8 @@ Test_I_Source_Stream_T<ConnectionManagerType,
   const_cast<Test_I_Source_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  ACE_ASSERT (inherited::sessionData_);
-
-  // things to be done here:
-  // [- initialize base class]
-  // ------------------------------------
-  // - initialize modules
-  // - push them onto the stream (tail-first) !
-  // ------------------------------------
-
-  //  configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------
-
-  // ---------------------------------------------------------------------------
-
-  Test_I_FileReader* fileReader_impl_p = NULL;
-  struct Test_I_Source_SessionData* session_data_p = NULL;
-  Test_I_Source_StreamConfiguration_t::CONST_ITERATOR_T iterator;
-
-  // ******************* File Reader ************************
-  Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("FileReader")));
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT ("FileReader")));
-    goto failed;
-  } // end IF
-  fileReader_impl_p =
-    dynamic_cast<Test_I_FileReader*> (module_p->writer ());
-  if (!fileReader_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Test_I_Module_FileReader> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto failed;
-  } // end IF
-  fileReader_impl_p->setP (&(inherited::state_));
-  //fileReader_impl_p->reset ();
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  module_p->arg (inherited::sessionData_);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup ())
@@ -179,13 +143,11 @@ Test_I_Source_Stream_T<ConnectionManagerType,
 
   // -------------------------------------------------------------
 
-  // *TODO*: remove type inferences
   session_data_p =
-      &const_cast<struct Test_I_Source_SessionData&> (inherited::sessionData_->getR ());
-  iterator = configuration_in.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.end ());
+    &const_cast<struct Test_I_Source_SessionData&> (session_manager_p->getR ());
+  // *TODO*: remove type inferences
   session_data_p->sourceFileName =
-      (*iterator).second.second->fileIdentifier.identifier;
+    (*iterator).second.second->fileIdentifier.identifier;
   session_data_p->size =
     Common_File_Tools::size ((*iterator).second.second->fileIdentifier.identifier);
 
@@ -215,15 +177,17 @@ Test_I_Source_Stream_T<ConnectionManagerType,
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
+  Test_I_SessionManager_t* session_manager_p =
+    Test_I_SessionManager_t::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
 
   int result = -1;
   struct Test_I_Source_SessionData& session_data_r =
-      const_cast<struct Test_I_Source_SessionData&> (inherited::sessionData_->getR ());
+    const_cast<struct Test_I_Source_SessionData&> (session_manager_p->getR ());
 
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
-  if (!module_p)
+  if (unlikely (!module_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
@@ -231,15 +195,9 @@ Test_I_Source_Stream_T<ConnectionManagerType,
                 ACE_TEXT (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
     return false;
   } // end IF
-  //Test_I_Source_Module_Statistic_WriterTask_t* statistic_report_impl_p =
-  //  dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t*> (module_p->writer ());
-  //if (!statistic_report_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t> failed, aborting\n"),
-  //              ACE_TEXT (stream_name_string_)));
-  //  return false;
-  //} // end IF
+  Test_I_Source_Module_Statistic_WriterTask_t* statistic_report_impl_p =
+    static_cast<Test_I_Source_Module_Statistic_WriterTask_t*> (module_p->writer ());
+  ACE_ASSERT (statistic_report_impl_p);
 
   // synch access
   if (session_data_r.lock)
@@ -259,13 +217,13 @@ Test_I_Source_Stream_T<ConnectionManagerType,
   // delegate to the statistic module
   bool result_2 = false;
   try {
-    //result_2 = statistic_report_impl_p->collect (data_out);
+    result_2 = statistic_report_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
                 ACE_TEXT (stream_name_string_)));
   }
-  if (!result)
+  if (!result_2)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));

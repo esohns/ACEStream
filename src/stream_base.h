@@ -96,8 +96,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename HandlerConfigurationType, // module-
           ////////////////////////////////
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionManagerType,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
@@ -120,8 +119,7 @@ class Stream_Base_T
                                                       HandlerConfigurationType> >
  , public Common_ISubscribe_T<Stream_IEvent_T<NotificationType> >
  , public Common_IStatistic_T<StatisticContainerType>
- , public Common_IGetR_2_T<SessionDataContainerType>
- , public Common_ISetPR_T<SessionDataContainerType>
+ , public Common_IGetR_2_T<typename SessionMessageType::DATA_T::DATA_T>
  , public Common_IGetR_3_T<Stream_MessageQueue_T<ACE_SYNCH_USE,
                                                  TimePolicyType,
                                                  SessionMessageType> >
@@ -148,7 +146,9 @@ class Stream_Base_T
                             ControlType,
                             NotificationType,
                             struct Stream_UserData> STREAM_TASK_BASE_T; // *TODO*: make Stream_UserData a template parameter
-  typedef Stream_IModule_T<SessionDataType,
+  typedef typename SessionMessageType::DATA_T SESSION_DATA_CONTAINER_T;
+  typedef typename SessionMessageType::DATA_T::DATA_T SESSION_DATA_T;
+  typedef Stream_IModule_T<SESSION_DATA_T,
                            NotificationType,
                            ACE_SYNCH_USE,
                            TimePolicyType,
@@ -160,17 +160,17 @@ class Stream_Base_T
                                                         ControlMessageType,
                                                         DataMessageType,
                                                         SessionMessageType,
-                                                        SessionDataContainerType> DISTRIBUTOR_READER_TASK_T;
+                                                        SESSION_DATA_CONTAINER_T> DISTRIBUTOR_READER_TASK_T;
   typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
                                                         TimePolicyType,
                                                         HandlerConfigurationType,
                                                         ControlMessageType,
                                                         DataMessageType,
                                                         SessionMessageType,
-                                                        SessionDataContainerType> DISTRIBUTOR_WRITER_TASK_T;
+                                                        SESSION_DATA_CONTAINER_T> DISTRIBUTOR_WRITER_TASK_T;
   typedef Stream_StreamModule_T<ACE_SYNCH_USE,
                                 TimePolicyType,
-                                SessionDataType,
+                                SESSION_DATA_T,
                                 NotificationType,
                                 struct Stream_ModuleConfiguration,
                                 HandlerConfigurationType,
@@ -203,15 +203,13 @@ class Stream_Base_T
   typedef Common_IInitialize_T<CONFIGURATION_T> IINITIALIZE_T;
   typedef Stream_ILock_T<ACE_SYNCH_USE> ILOCK_T;
   typedef StateType STATE_T;
-  typedef SessionDataContainerType SESSION_DATA_CONTAINER_T;
-  typedef SessionDataType SESSION_DATA_T;
   typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 SessionMessageType> MESSAGE_QUEUE_T;
   typedef ControlMessageType CONTROL_MESSAGE_T;
   typedef DataMessageType MESSAGE_T;
   typedef SessionMessageType SESSION_MESSAGE_T;
-  typedef Stream_ISessionDataNotify_T<SessionDataType,
+  typedef Stream_ISessionDataNotify_T<SESSION_DATA_T,
                                       NotificationType,
                                       DataMessageType,
                                       SessionMessageType> IDATA_NOTIFY_T;
@@ -231,7 +229,7 @@ class Stream_Base_T
   virtual void stop (bool = true,   // wait for completion ?
                      bool = true,   // recurse upstream (if any) ?
                      bool = false); // high priority ?
-  inline virtual Stream_SessionId_t id () const { return (state_.sessionData ? state_.sessionData->sessionId : -1); }
+  inline virtual Stream_SessionId_t id () const { return (state_.sessionData ? state_.sessionData->sessionId : 0); }
   virtual bool isRunning () const;
   virtual void finished (bool = true); // recurse upstream (if any) ?
   virtual unsigned int flush (bool = true,   // flush inbound data ?
@@ -298,9 +296,9 @@ class Stream_Base_T
   virtual void dump_state () const;
 
   // implement Common_IGet/Set_T
-  inline virtual const SessionDataContainerType& getR_2 () const { ACE_ASSERT (sessionData_); return *sessionData_; }
-  // *IMPORTANT NOTE*: this is a 'fire-and-forget' API
-  virtual void setPR (SessionDataContainerType*&);
+  virtual const SESSION_DATA_T& getR_2 () const;
+  //// *IMPORTANT NOTE*: this is a 'fire-and-forget' API
+  //virtual void setPR (SessionDataContainerType*&);
   inline virtual const Stream_MessageQueue_T<ACE_SYNCH_USE,
                                              TimePolicyType,
                                              SessionMessageType>& getR_3 () const { return messageQueue_; }
@@ -358,7 +356,7 @@ class Stream_Base_T
                                   NotificationType> HEAD_WRITER_T;
   typedef ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType> TAIL_READER_T;
-  typedef Common_IGetR_T<SessionDataContainerType> ISESSION_DATA_T;
+  typedef Common_IGetR_T<SESSION_DATA_T> ISESSION_DATA_T;
   typedef Stream_IModuleHandler_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   HandlerConfigurationType> IMODULE_HANDLER_T;
@@ -374,9 +372,8 @@ class Stream_Base_T
                                       ControlType,
                                       NotificationType,
                                       StateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
+                                      SessionManagerType,
                                       Common_Timer_Manager_t,
                                       struct Stream_UserData> HEAD_TASK_T;
 
@@ -401,8 +398,8 @@ class Stream_Base_T
   LAYOUT_T                  layout_;
   MESSAGE_QUEUE_T           messageQueue_; // ('outbound'-) queue
   std::string               name_;
-  SessionDataContainerType* sessionData_;
-  ACE_SYNCH_MUTEX_T         sessionDataLock_;
+  //SessionDataContainerType* sessionData_;
+  //ACE_SYNCH_MUTEX_T         sessionDataLock_;
   StateType                 state_;
   StatisticContainerType    statistic_;
 
@@ -418,8 +415,7 @@ class Stream_Base_T
                         ConfigurationType,
                         StatisticContainerType,
                         HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
+                        SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType> OWN_TYPE_T;

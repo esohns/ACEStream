@@ -204,7 +204,6 @@ struct Stream_SessionData
    , lock (NULL)
    , sessionId (0)
    , startOfSession (ACE_Time_Value::zero)
-   , state (NULL)
    , statistic ()
    , userData (NULL)
   {}
@@ -216,7 +215,6 @@ struct Stream_SessionData
    , lock (data_in.lock)
    , sessionId (data_in.sessionId)
    , startOfSession (data_in.startOfSession)
-   , state (data_in.state)
    , statistic (data_in.statistic)
    , userData (data_in.userData)
   {}
@@ -235,10 +233,9 @@ struct Stream_SessionData
         (startOfSession >= rhs_in.startOfSession ? startOfSession
                                                  : rhs_in.startOfSession);
 
-    state = rhs_in.state;
     statistic += rhs_in.statistic;
 
-    userData = rhs_in.userData;
+    userData = userData ? userData : rhs_in.userData; // retain own user data (if any)
 
     return *this;
   }
@@ -253,7 +250,6 @@ struct Stream_SessionData
   ACE_SYNCH_MUTEX*        lock;
   Stream_SessionId_t      sessionId;
   ACE_Time_Value          startOfSession;
-  struct Stream_State*    state;
   struct Stream_Statistic statistic; // *TODO*: type should be a template parameter
 
   struct Stream_UserData* userData;

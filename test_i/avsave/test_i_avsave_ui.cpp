@@ -437,16 +437,11 @@ stream_processing_thread (void* arg_in)
   ACE_ASSERT (thread_data_p->CBData);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  const Stream_AVSave_DirectShow_SessionData_t* directshow_session_data_container_p =
-    NULL;
-  const Stream_AVSave_MediaFoundation_SessionData_t* mediafoundation_session_data_container_p =
-    NULL;
   const Stream_AVSave_DirectShow_SessionData* directshow_session_data_p =
     NULL;
   const Stream_AVSave_MediaFoundation_SessionData* mediafoundation_session_data_p =
     NULL;
 #else
-  const Stream_AVSave_ALSA_V4L_SessionData_t* session_data_container_p = NULL;
   const Stream_AVSave_ALSA_V4L_SessionData* session_data_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
   Stream_IStreamControlBase* stream_p = NULL, *stream_2 = NULL;
@@ -515,11 +510,10 @@ stream_processing_thread (void* arg_in)
       } // end IF
       stream_p = directshow_cb_data_p->audioStream;
       stream_2 = directshow_cb_data_p->videoStream;
-      directshow_session_data_container_p =
+      directshow_session_data_p =
         &directshow_cb_data_p->videoStream->getR_2 ();
-      ACE_ASSERT (directshow_session_data_container_p);
-      directshow_session_data_p = &directshow_session_data_container_p->getR ();
       ACE_ASSERT (directshow_session_data_p);
+      // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
       session_id = directshow_session_data_p->sessionId;
       directshow_cb_data_p->progressData.sessionId = session_id;
       break;
@@ -540,12 +534,10 @@ stream_processing_thread (void* arg_in)
       } // end IF
       stream_p = mediafoundation_cb_data_p->audioStream;
       stream_2 = mediafoundation_cb_data_p->videoStream;
-      mediafoundation_session_data_container_p =
-        &mediafoundation_cb_data_p->videoStream->getR_2 ();
-      ACE_ASSERT (mediafoundation_session_data_container_p);
       mediafoundation_session_data_p =
-        &mediafoundation_session_data_container_p->getR ();
+        &mediafoundation_cb_data_p->videoStream->getR_2 ();
       ACE_ASSERT (mediafoundation_session_data_p);
+      // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
       session_id = mediafoundation_session_data_p->sessionId;
       mediafoundation_cb_data_p->progressData.sessionId = session_id;
       break;
@@ -573,10 +565,9 @@ stream_processing_thread (void* arg_in)
   } // end IF
   stream_p = cb_data_p->audioStream;
   stream_2 = cb_data_p->videoStream;
-  session_data_container_p = &cb_data_p->videoStream->getR_2 ();
-  ACE_ASSERT (session_data_container_p);
-  session_data_p = &session_data_container_p->getR ();
+  session_data_p = &cb_data_p->videoStream->getR_2 ();
   ACE_ASSERT (session_data_p);
+  // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
   session_id = session_data_p->sessionId;
   cb_data_p->progressData.sessionId = session_id;
 #endif // ACE_WIN32 || ACE_WIN64

@@ -82,7 +82,6 @@ stream_processing_function (void* arg_in)
     static_cast<struct Stream_POPReceive_UI_CBData*> (thread_data_p->CBData);
   ACE_ASSERT (cb_data_p->configuration);
   ACE_ASSERT (cb_data_p->stream);
-  const POP_Stream_SessionData_t* session_data_container_p = NULL;
   const struct POP_Stream_SessionData* session_data_p = NULL;
 
   iterator =
@@ -112,8 +111,8 @@ stream_processing_function (void* arg_in)
     goto error;
   } // end IF
   stream_p = cb_data_p->stream;
-  session_data_container_p = &cb_data_p->stream->getR_2 ();
-  session_data_p = &session_data_container_p->getR ();
+  session_data_p = &cb_data_p->stream->getR_2 ();
+  // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
   cb_data_p->progressData.sessionId = session_data_p->sessionId;
   converter << session_data_p->sessionId;
 

@@ -180,11 +180,9 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
-          ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           ////////////////////////////////
           typename MediaType>
 class Stream_Module_SplitterH_T
@@ -197,10 +195,9 @@ class Stream_Module_SplitterH_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      SessionManagerType,
+                                      TimerManagerType,
                                       struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
@@ -213,10 +210,9 @@ class Stream_Module_SplitterH_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      SessionManagerType,
+                                      TimerManagerType,
                                       struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
@@ -239,10 +235,9 @@ class Stream_Module_SplitterH_T
                                     StreamControlType,
                                     StreamNotificationType,
                                     StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    SessionManagerType,
+                                    TimerManagerType,
                                     struct Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T

@@ -117,7 +117,7 @@ stream_processing_function (void* arg_in)
   ACE_ASSERT (thread_data_p->CBData);
 
   Common_UI_GTK_BuildersIterator_t iterator;
-    //  GtkProgressBar* progress_bar_p = NULL;
+//  GtkProgressBar* progress_bar_p = NULL;
   GtkStatusbar* statusbar_p = NULL;
   std::ostringstream converter;
   Stream_IStreamControlBase* stream_p = NULL;
@@ -131,6 +131,9 @@ stream_processing_function (void* arg_in)
   ACE_ASSERT (cb_data_p->configuration);
   ACE_ASSERT (cb_data_p->stream);
   Stream_Module_t* module_p = NULL;
+  Test_I_SessionManager_t* session_manager_p =
+    Test_I_SessionManager_t::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
 
   iterator =
     thread_data_p->CBData->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
@@ -180,8 +183,8 @@ stream_processing_function (void* arg_in)
     goto error;
   } // end IF
   stream_p = cb_data_p->stream;
-  session_data_container_p = &cb_data_p->stream->getR_2 ();
-  session_data_p = &session_data_container_p->getR ();
+  session_data_p = &session_manager_p->getR ();
+  // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
   cb_data_p->progressData.sessionId = session_data_p->sessionId;
   converter << session_data_p->sessionId;
 
