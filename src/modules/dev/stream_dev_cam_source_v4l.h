@@ -56,11 +56,9 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
-          ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           ////////////////////////////////
           typename UserDataType>
 class Stream_Module_CamSource_V4L_T
@@ -73,10 +71,9 @@ class Stream_Module_CamSource_V4L_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      SessionManagerType,
+                                      TimerManagerType,
                                       UserDataType>
  , public Stream_MediaFramework_MediaTypeConverter_T<struct Stream_MediaFramework_V4L_MediaType>
 {
@@ -89,10 +86,9 @@ class Stream_Module_CamSource_V4L_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      SessionManagerType,
+                                      TimerManagerType,
                                       UserDataType> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<struct Stream_MediaFramework_V4L_MediaType> inherited2;
 

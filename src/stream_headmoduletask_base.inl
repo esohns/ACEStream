@@ -2412,6 +2412,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       typename SessionMessageType::DATA_T::DATA_T* session_data_p =
         &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR ());
 
+      ACE_ASSERT (session_data_p->lock);
+      inherited::sessionDataLock_ = session_data_p->lock;
+
       ACE_ASSERT (!inherited::sessionData_);
       ACE_NEW_NORETURN (inherited::sessionData_,
                         typename SessionMessageType::DATA_T (session_data_p,
@@ -2423,9 +2426,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         return false;
       } // end IF
-
-      ACE_ASSERT (session_data_p->lock);
-      inherited::sessionDataLock_ = session_data_p->lock;
 
       // *NOTE*: if the object is 'passive/concurrent', the session-begin
       //         message may be processed earlier than 'this' returns, i.e.

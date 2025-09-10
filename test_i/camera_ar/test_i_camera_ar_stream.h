@@ -199,8 +199,7 @@ class Stream_CameraAR_Stream
                         struct Stream_CameraAR_V4L_StreamConfiguration,
                         struct Stream_CameraAR_StatisticData,
                         struct Stream_CameraAR_V4L_ModuleHandlerConfiguration,
-                        Stream_CameraAR_V4L_SessionData,
-                        Stream_CameraAR_V4L_SessionData_t,
+                        Test_I_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraAR_Message_t,
                         Stream_CameraAR_SessionMessage_t>
@@ -215,8 +214,7 @@ class Stream_CameraAR_Stream
                         struct Stream_CameraAR_V4L_StreamConfiguration,
                         struct Stream_CameraAR_StatisticData,
                         struct Stream_CameraAR_V4L_ModuleHandlerConfiguration,
-                        Stream_CameraAR_V4L_SessionData,
-                        Stream_CameraAR_V4L_SessionData_t,
+                        Test_I_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraAR_Message_t,
                         Stream_CameraAR_SessionMessage_t> inherited;

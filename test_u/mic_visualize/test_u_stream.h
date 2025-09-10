@@ -197,8 +197,7 @@ class Test_U_ALSA_Stream
                         struct Test_U_MicVisualize_ALSA_StreamConfiguration,
                         struct Test_U_MicVisualize_Statistic,
                         struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration,
-                        Test_U_MicVisualize_SessionData,
-                        Test_U_MicVisualize_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message,
                         Test_U_SessionMessage>
@@ -216,8 +215,7 @@ class Test_U_ALSA_Stream
                         struct Test_U_MicVisualize_ALSA_StreamConfiguration,
                         struct Test_U_MicVisualize_Statistic,
                         struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration,
-                        Test_U_MicVisualize_SessionData,
-                        Test_U_MicVisualize_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message,
                         Test_U_SessionMessage> inherited;

@@ -2028,8 +2028,17 @@ Test_I_ALSA_Stream::initialize (const CONFIGURATION_T& configuration_in)
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Test_I_SpeechCommand_ALSA_SessionData* session_data_p = NULL;
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
+  Test_I_ALSA_SessionManager_2* session_manager_p =
+    Test_I_ALSA_SessionManager_2::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (iterator_2 != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -2045,17 +2054,11 @@ Test_I_ALSA_Stream::initialize (const CONFIGURATION_T& configuration_in)
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  ACE_ASSERT (inherited::sessionData_);
+
   session_data_p =
-    &const_cast<Test_I_SpeechCommand_ALSA_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Test_I_SpeechCommand_ALSA_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
-  // sanity check(s)
-  iterator =
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.end ());
-  iterator_2 =
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
-  ACE_ASSERT (iterator_2 != configuration_in.end ());
+  ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
   session_data_p->targetFileName =
     (*iterator_2).second.second->fileIdentifier.identifier;
@@ -2074,7 +2077,6 @@ Test_I_ALSA_Stream::initialize (const CONFIGURATION_T& configuration_in)
   // ---------------------------------------------------------------------------
 
   inherited::isInitialized_ = true;
-  //inherited::dump_state ();
 
   return true;
 

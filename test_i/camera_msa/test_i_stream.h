@@ -196,8 +196,7 @@ class Test_I_Stream
                         struct Test_I_V4L_StreamConfiguration,
                         struct Test_I_StatisticData,
                         struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
-                        Test_I_CameraMSA_V4L_SessionData,
-                        Test_I_CameraMSA_V4L_SessionData_t,
+                        Test_I_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Message_t,
                         Test_I_SessionMessage_t>
@@ -212,8 +211,7 @@ class Test_I_Stream
                         struct Test_I_V4L_StreamConfiguration,
                         struct Test_I_StatisticData,
                         struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
-                        Test_I_CameraMSA_V4L_SessionData,
-                        Test_I_CameraMSA_V4L_SessionData_t,
+                        Test_I_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Message_t,
                         Test_I_SessionMessage_t> inherited;

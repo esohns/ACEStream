@@ -96,6 +96,13 @@ typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                 enum Stream_SessionMessageType,
                                 struct Stream_UserData> Test_U_DirectShow_TaskBaseAsynch_t;
 #else
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 QRDecode_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_U_SessionManager_t;
+
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                struct QRDecode_ModuleHandlerConfiguration,
@@ -210,9 +217,8 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       struct Test_U_StreamState,
-                                      struct QRDecode_SessionData,
-                                      QRDecode_SessionData_t,
                                       struct Stream_Statistic,
+                                      Test_U_SessionManager_t,
                                       Common_Timer_Manager_t,
                                       struct Stream_UserData> Test_U_V4L_Source;
 DATASTREAM_MODULE_INPUT_ONLY (struct QRDecode_SessionData,                                // session data type

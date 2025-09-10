@@ -146,6 +146,29 @@ typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                 enum Stream_SessionMessageType,
                                 struct Stream_UserData> Test_U_MediaFoundation_TaskBaseAsynch_t;
 #else
+#if defined (LIBCAMERA_SUPPORT)
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Stream_CamSave_LibCamera_SessionData,
+                                 struct Stream_CamSave_StatisticData,
+                                 struct Stream_UserData> Test_U_LibCamera_SessionManager_t;
+#endif // LIBCAMERA_SUPPORT
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Stream_CamSave_V4L_SessionData,
+                                 struct Stream_CamSave_StatisticData,
+                                 struct Stream_UserData> Test_U_V4L_SessionManager_t;
+// #if defined (LIBPIPEWIRE_SUPPORT)
+// typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+//                                  enum Stream_SessionMessageType,
+//                                  struct Stream_SessionManager_Configuration,
+//                                  Stream_CamSave_V4L_SessionData,
+//                                  struct Stream_CamSave_StatisticData,
+//                                  struct Stream_UserData> Test_U_Pipewire_SessionManager_t;
+// #endif // LIBPIPEWIRE_SUPPORT
+
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
@@ -271,9 +294,8 @@ typedef Stream_Module_CamSource_LibCamera_T<ACE_MT_SYNCH,
                                             enum Stream_ControlType,
                                             enum Stream_SessionMessageType,
                                             struct Stream_CamSave_LibCamera_StreamState,
-                                            Stream_CamSave_LibCamera_SessionData,
-                                            Stream_CamSave_LibCamera_SessionData_t,
                                             struct Stream_CamSave_StatisticData,
+                                            Test_U_LibCamera_SessionManager_t,
                                             Common_Timer_Manager_t,
                                             struct Stream_UserData> Stream_CamSave_LibCamera_Source;
 #endif // LIBCAMERA_SUPPORT
@@ -286,9 +308,8 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       struct Stream_CamSave_V4L_StreamState,
-                                      Stream_CamSave_V4L_SessionData,
-                                      Stream_CamSave_V4L_SessionData_t,
                                       struct Stream_CamSave_StatisticData,
+                                      Test_U_V4L_SessionManager_t,
                                       Common_Timer_Manager_t,
                                       struct Stream_UserData> Stream_CamSave_V4L_Source;
 
@@ -337,6 +358,7 @@ typedef Stream_Dev_Cam_Source_Pipewire_T<ACE_MT_SYNCH,
                                          enum Stream_SessionMessageType,
                                          struct Stream_CamSave_V4L_StreamState,
                                          struct Stream_CamSave_StatisticData,
+                                         Test_U_V4L_SessionManager_t,
                                          Common_Timer_Manager_t> Stream_CamSave_Pipewire_Source;
 #endif // LIBPIPEWIRE_SUPPORT
 

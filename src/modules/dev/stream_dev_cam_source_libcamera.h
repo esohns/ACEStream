@@ -62,11 +62,9 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
-          ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           ////////////////////////////////
           typename UserDataType>
 class Stream_Module_CamSource_LibCamera_T
@@ -79,10 +77,9 @@ class Stream_Module_CamSource_LibCamera_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      SessionManagerType,
+                                      TimerManagerType,
                                       UserDataType>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -94,10 +91,9 @@ class Stream_Module_CamSource_LibCamera_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      SessionManagerType,
+                                      TimerManagerType,
                                       UserDataType> inherited;
 
  public:
@@ -133,10 +129,9 @@ class Stream_Module_CamSource_LibCamera_T
                                               StreamControlType,
                                               StreamNotificationType,
                                               StreamStateType,
-                                              SessionDataType,
-                                              SessionDataContainerType,
                                               StatisticContainerType,
-                                              StatisticHandlerType,
+                                              SessionManagerType,
+                                              TimerManagerType,
                                               UserDataType> OWN_TYPE_T;
 
   virtual int svc (void);

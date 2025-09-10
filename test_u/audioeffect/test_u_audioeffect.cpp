@@ -1118,7 +1118,18 @@ do_work (
   Common_IAsynchTask* itask_p = NULL;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_AllocatorConfiguration> heap_allocator;
+  struct Stream_SessionManager_Configuration session_manager_configuration_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_U_AudioEffect_DirectShow_SessionData directshow_session_data;
+  Test_U_AudioEffect_MediaFoundation_SessionData mediafoundation_session_data;
+
+  Test_U_DirectShow_SessionManager_t* directshow_session_manager_p =
+    Test_U_DirectShow_SessionManager_t::SINGLETON_T::instance ();
+  directshow_session_manager_p->set (directshow_session_data);
+  Test_U_MediaFoundation_SessionManager_t* mediafoundation_session_manager_p =
+    Test_U_MediaFoundation_SessionManager_t::SINGLETON_T::instance ();
+  mediafoundation_session_manager_p->set (mediafoundation_session_data);
+
   Test_U_AudioEffect_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                  &heap_allocator,     // heap allocator handle
                                                                                  true);               // block ?
@@ -1126,6 +1137,12 @@ do_work (
                                                                                            &heap_allocator,     // heap allocator handle
                                                                                            true);               // block ?
 #else
+  Test_U_AudioEffect_SessionData session_data;
+
+  Test_U_SessionManager_t* session_manager_p =
+    Test_U_SessionManager_t::SINGLETON_T::instance ();
+  session_manager_p->set (session_data);
+
   Test_U_AudioEffect_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                            &heap_allocator,     // heap allocator handle
                                                            true);               // block ?
@@ -1213,6 +1230,9 @@ do_work (
   CBData_in.OpenGLInstructionsLock = &stream.instructionsLock_;
 #endif // GTKGL_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+
+  session_manager_configuration_s.stream = istream_control_p;
+
   ACE_Time_Value one_second (1, 0);
 #if defined (GTK_SUPPORT)
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -1229,6 +1249,9 @@ do_work (
   ACE_ASSERT (allocator_configuration_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  directshow_session_manager_p->initialize (session_manager_configuration_s);
+  mediafoundation_session_manager_p->initialize (session_manager_configuration_s);
+
   Test_U_AudioEffect_DirectShow_EventHandler directshow_ui_event_handler (
                                                                           &directShowCBData_in
                                                                          );
@@ -1242,6 +1265,8 @@ do_work (
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
 #else
+  session_manager_p->initialize (session_manager_configuration_s);
+
   Test_U_AudioEffect_EventHandler ui_event_handler (
                                                     &CBData_in
                                                    );

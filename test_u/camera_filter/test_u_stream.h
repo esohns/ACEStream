@@ -332,8 +332,7 @@ class Test_U_Stream
                         struct Test_U_CameraFilter_V4L_StreamConfiguration,
                         struct Test_U_StatisticData,
                         struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration,
-                        Test_U_CameraFilter_V4L_SessionData,
-                        Test_U_CameraFilter_V4L_SessionData_t,
+                        Test_U_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message_t,
                         Test_U_SessionMessage_t>
@@ -348,8 +347,7 @@ class Test_U_Stream
                         struct Test_U_CameraFilter_V4L_StreamConfiguration,
                         struct Test_U_StatisticData,
                         struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration,
-                        Test_U_CameraFilter_V4L_SessionData,
-                        Test_U_CameraFilter_V4L_SessionData_t,
+                        Test_U_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message_t,
                         Test_U_SessionMessage_t> inherited;

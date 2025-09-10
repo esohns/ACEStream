@@ -183,6 +183,13 @@ typedef Stream_Visualization_LibAVResize_T<Test_U_DirectShow_TaskBaseSynch_t,
                                            struct _AMMediaType> Stream_CameraML_DirectShow_LibAVResize;
 #endif // FFMPEG_SUPPORT
 #else
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Stream_CameraML_V4L_SessionData,
+                                 struct Stream_CameraML_StatisticData,
+                                 struct Stream_UserData> Test_I_V4L_SessionManager_t;
+
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                struct Stream_CameraML_V4L_ModuleHandlerConfiguration,
@@ -210,9 +217,8 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       struct Stream_CameraML_StreamState,
-                                      Stream_CameraML_V4L_SessionData,
-                                      Stream_CameraML_V4L_SessionData_t,
                                       struct Stream_CameraML_StatisticData,
+                                      Test_I_V4L_SessionManager_t,
                                       Common_Timer_Manager_t,
                                       struct Stream_UserData> Stream_CameraML_V4L_Source;
 

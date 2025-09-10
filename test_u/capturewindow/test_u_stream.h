@@ -184,8 +184,7 @@ class Test_U_Stream
                         struct Test_U_CaptureWindow_StreamConfiguration,
                         struct Test_U_StatisticData,
                         struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,
-                        Test_U_CaptureWindow_SessionData,
-                        Test_U_CaptureWindow_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message_t,
                         Test_U_SessionMessage_t>
@@ -200,8 +199,7 @@ class Test_U_Stream
                         struct Test_U_CaptureWindow_StreamConfiguration,
                         struct Test_U_StatisticData,
                         struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,
-                        Test_U_CaptureWindow_SessionData,
-                        Test_U_CaptureWindow_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message_t,
                         Test_U_SessionMessage_t> inherited;

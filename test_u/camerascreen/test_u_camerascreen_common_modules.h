@@ -87,13 +87,13 @@ typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
                                  enum Stream_SessionMessageType,
                                  struct Stream_SessionManager_Configuration,
                                  Stream_CameraScreen_DirectShow_SessionData,
-                                 struct Stream_Statistic,
+                                 struct Stream_CameraScreen_StatisticData,
                                  struct Stream_UserData> Test_U_DirectShow_SessionManager_t;
 typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
                                  enum Stream_SessionMessageType,
                                  struct Stream_SessionManager_Configuration,
                                  Stream_CameraScreen_MediaFoundation_SessionData,
-                                 struct Stream_Statistic,
+                                 struct Stream_CameraScreen_StatisticData,
                                  struct Stream_UserData> Test_U_MediaFoundation_SessionManager_t;
 
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
@@ -152,6 +152,13 @@ typedef Stream_Visualization_LibAVResize_T<Test_U_DirectShow_TaskBaseSynch_t,
                                            struct _AMMediaType> Stream_CameraScreen_DirectShow_LibAVResize;
 #endif // FFMPEG_SUPPORT
 #else
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Stream_CameraScreen_V4L_SessionData,
+                                 struct Stream_CameraScreen_StatisticData,
+                                 struct Stream_UserData> Test_U_V4L_SessionManager_t;
+
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
@@ -179,9 +186,8 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       struct Stream_CameraScreen_StreamState,
-                                      Stream_CameraScreen_V4L_SessionData,
-                                      Stream_CameraScreen_V4L_SessionData_t,
                                       struct Stream_CameraScreen_StatisticData,
+                                      Test_U_V4L_SessionManager_t,
                                       Common_Timer_Manager_t,
                                       struct Stream_UserData> Stream_CameraScreen_V4L_Source;
 

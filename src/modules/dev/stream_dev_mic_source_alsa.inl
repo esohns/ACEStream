@@ -44,10 +44,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              ControlMessageType,
                              DataMessageType,
@@ -56,10 +55,9 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              StreamControlType,
                              StreamNotificationType,
                              StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
                              StatisticContainerType,
-                             StatisticHandlerType>::Stream_Dev_Mic_Source_ALSA_T (ISTREAM_T* stream_in)
+                             SessionManagerType,
+                             TimerManagerType>::Stream_Dev_Mic_Source_ALSA_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
  , CBData_ ()
@@ -85,10 +83,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              ControlMessageType,
                              DataMessageType,
@@ -97,10 +94,9 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              StreamControlType,
                              StreamNotificationType,
                              StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
                              StatisticContainerType,
-                             StatisticHandlerType>::~Stream_Dev_Mic_Source_ALSA_T ()
+                             SessionManagerType,
+                             TimerManagerType>::~Stream_Dev_Mic_Source_ALSA_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::~Stream_Dev_Mic_Source_ALSA_T"));
 
@@ -141,10 +137,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 bool
 Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              ControlMessageType,
@@ -154,11 +149,10 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              StreamControlType,
                              StreamNotificationType,
                              StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
                              StatisticContainerType,
-                             StatisticHandlerType>::initialize (const ConfigurationType& configuration_in,
-                                                                Stream_IAllocator* allocator_in)
+                             SessionManagerType,
+                             TimerManagerType>::initialize (const ConfigurationType& configuration_in,
+                                                            Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::initialize"));
 
@@ -231,10 +225,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 void
 Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              ControlMessageType,
@@ -244,11 +237,10 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              StreamControlType,
                              StreamNotificationType,
                              StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
                              StatisticContainerType,
-                             StatisticHandlerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                          bool& passMessageDownstream_out)
+                             SessionManagerType,
+                             TimerManagerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                      bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::handleSessionMessage"));
 
@@ -267,8 +259,8 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     { // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
-      SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       ACE_ASSERT (!session_data_r.formats.empty ());
       struct Stream_MediaFramework_ALSA_MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
@@ -577,10 +569,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 bool
 Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              ControlMessageType,
@@ -590,10 +581,9 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              StreamControlType,
                              StreamNotificationType,
                              StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
                              StatisticContainerType,
-                             StatisticHandlerType>::collect (StatisticContainerType& data_out)
+                             SessionManagerType,
+                             TimerManagerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::collect"));
 
@@ -625,10 +615,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 int
 Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              ControlMessageType,
@@ -638,10 +627,9 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              StreamControlType,
                              StreamNotificationType,
                              StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
                              StatisticContainerType,
-                             StatisticHandlerType>::svc (void)
+                             SessionManagerType,
+                             TimerManagerType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::svc"));
 
@@ -670,12 +658,12 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
   int error = 0;
   bool has_finished = false;
   ACE_Message_Block* message_block_p = NULL;
-  ACE_Time_Value no_wait = COMMON_TIME_NOW;
+  ACE_Time_Value no_wait = ACE_OS::gettimeofday ();
   bool release_lock = false;
   int result = -1;
   int result_2 = -1;
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   bool stop_processing = false;
   typename inherited::ISTREAM_T* stream_p =
     const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());

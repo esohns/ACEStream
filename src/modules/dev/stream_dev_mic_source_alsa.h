@@ -59,11 +59,9 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 class Stream_Dev_Mic_Source_ALSA_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -74,10 +72,9 @@ class Stream_Dev_Mic_Source_ALSA_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      SessionManagerType,
+                                      TimerManagerType,
                                       struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<struct Stream_MediaFramework_ALSA_MediaType>
 {
@@ -90,10 +87,9 @@ class Stream_Dev_Mic_Source_ALSA_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      SessionManagerType,
+                                      TimerManagerType,
                                       struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<struct Stream_MediaFramework_ALSA_MediaType> inherited2;
 
@@ -130,10 +126,9 @@ class Stream_Dev_Mic_Source_ALSA_T
                                        StreamControlType,
                                        StreamNotificationType,
                                        StreamStateType,
-                                       SessionDataType,
-                                       SessionDataContainerType,
                                        StatisticContainerType,
-                                       StatisticHandlerType> OWN_TYPE_T;
+                                       SessionManagerType,
+                                       TimerManagerType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_ALSA_T (const Stream_Dev_Mic_Source_ALSA_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_ALSA_T& operator= (const Stream_Dev_Mic_Source_ALSA_T&))

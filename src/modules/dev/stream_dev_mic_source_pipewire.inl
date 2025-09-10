@@ -39,7 +39,8 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  ControlMessageType,
                                  DataMessageType,
@@ -49,7 +50,8 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  StreamNotificationType,
                                  StreamStateType,
                                  StatisticContainerType,
-                                 StatisticHandlerType>::Stream_Dev_Mic_Source_Pipewire_T (ISTREAM_T* stream_in)
+                                 SessionManagerType,
+                                 TimerManagerType>::Stream_Dev_Mic_Source_Pipewire_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
  , CBData_ ()
@@ -79,7 +81,8 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  ControlMessageType,
                                  DataMessageType,
@@ -89,7 +92,8 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  StreamNotificationType,
                                  StreamStateType,
                                  StatisticContainerType,
-                                 StatisticHandlerType>::~Stream_Dev_Mic_Source_Pipewire_T ()
+                                 SessionManagerType,
+                                 TimerManagerType>::~Stream_Dev_Mic_Source_Pipewire_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_Pipewire_T::~Stream_Dev_Mic_Source_Pipewire_T"));
 
@@ -108,7 +112,8 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 bool
 Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  ControlMessageType,
@@ -119,8 +124,9 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  StreamNotificationType,
                                  StreamStateType,
                                  StatisticContainerType,
-                                 StatisticHandlerType>::initialize (const ConfigurationType& configuration_in,
-                                                                    Stream_IAllocator* allocator_in)
+                                 SessionManagerType,
+                                 TimerManagerType>::initialize (const ConfigurationType& configuration_in,
+                                                                Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_Pipewire_T::initialize"));
 
@@ -199,7 +205,8 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 void
 Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  ControlMessageType,
@@ -210,8 +217,9 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  StreamNotificationType,
                                  StreamStateType,
                                  StatisticContainerType,
-                                 StatisticHandlerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                              bool& passMessageDownstream_out)
+                                 SessionManagerType,
+                                 TimerManagerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                          bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_Pipewire_T::handleSessionMessage"));
 
@@ -335,7 +343,8 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 bool
 Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  ControlMessageType,
@@ -346,7 +355,8 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  StreamNotificationType,
                                  StreamStateType,
                                  StatisticContainerType,
-                                 StatisticHandlerType>::collect (StatisticContainerType& data_out)
+                                 SessionManagerType,
+                                 TimerManagerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_Pipewire_T::collect"));
 
@@ -379,7 +389,8 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 int
 Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  ControlMessageType,
@@ -390,7 +401,8 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  StreamNotificationType,
                                  StreamStateType,
                                  StatisticContainerType,
-                                 StatisticHandlerType>::svc (void)
+                                 SessionManagerType,
+                                 TimerManagerType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_Pipewire_T::svc"));
 

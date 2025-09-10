@@ -290,6 +290,12 @@ typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
                                  struct Test_I_Statistic,
                                  struct Stream_UserData> Test_I_MediaFoundation_SessionManager_2;
 #else
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 struct Test_I_SpeechCommand_ALSA_SessionData,
+                                 struct Test_I_Statistic,
+                                 struct Stream_UserData> Test_I_ALSA_SessionManager_2;
 #endif // ACE_WIN32 || ACE_WIN64
 
 typedef Stream_Miscellaneous_Input_Stream_T<ACE_MT_SYNCH,

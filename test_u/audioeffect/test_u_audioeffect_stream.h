@@ -198,8 +198,7 @@ class Test_U_AudioEffect_ALSA_Stream
                         struct Test_U_AudioEffect_ALSA_StreamConfiguration,
                         struct Test_U_AudioEffect_Statistic,
                         struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
-                        Test_U_AudioEffect_SessionData,
-                        Test_U_AudioEffect_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_Message,
                         Test_U_AudioEffect_SessionMessage>
@@ -217,8 +216,7 @@ class Test_U_AudioEffect_ALSA_Stream
                         struct Test_U_AudioEffect_ALSA_StreamConfiguration,
                         struct Test_U_AudioEffect_Statistic,
                         struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
-                        Test_U_AudioEffect_SessionData,
-                        Test_U_AudioEffect_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_Message,
                         Test_U_AudioEffect_SessionMessage> inherited;

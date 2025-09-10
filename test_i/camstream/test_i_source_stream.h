@@ -261,7 +261,7 @@ class Test_I_Source_V4L_Stream_T
                         struct Test_I_Source_V4L_StreamConfiguration,
                         struct Stream_Statistic,
                         HandlerConfigurationType,
-                        Test_I_SessionManager_t,
+                        Test_I_V4L_SessionManager_t,
                         ControlMessageType,
                         MessageType,
                         SessionMessageType>
@@ -276,7 +276,7 @@ class Test_I_Source_V4L_Stream_T
                         struct Test_I_Source_V4L_StreamConfiguration,
                         struct Stream_Statistic,
                         HandlerConfigurationType,
-                        Test_I_SessionManager_t,
+                        Test_I_V4L_SessionManager_t,
                         ControlMessageType,
                         MessageType,
                         SessionMessageType> inherited;

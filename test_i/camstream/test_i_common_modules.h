@@ -230,6 +230,13 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 struct Stream_UserData,
                                                 IMFMediaType*> Test_I_Stream_MediaFoundation_CamSource;
 #else
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_I_Source_V4L_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_I_V4L_SessionManager_t;
+
 typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Stream_ControlMessage_t,
                                       Test_I_Source_V4L_Stream_Message,
@@ -238,9 +245,8 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       struct Test_I_Source_V4L_StreamState,
-                                      Test_I_Source_V4L_SessionData,
-                                      Test_I_Source_V4L_SessionData_t,
                                       struct Stream_Statistic,
+                                      Test_I_V4L_SessionManager_t,
                                       Common_Timer_Manager_t,
                                       struct Stream_UserData> Test_I_Source_V4L_CamSource;
 #endif // ACE_WIN32 || ACE_WIN64

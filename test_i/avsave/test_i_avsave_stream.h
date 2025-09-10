@@ -319,8 +319,7 @@ class Stream_AVSave_V4L_Stream
                         struct Stream_AVSave_ALSA_V4L_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
                         struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
-                        Stream_AVSave_ALSA_V4L_SessionData,
-                        Stream_AVSave_ALSA_V4L_SessionData_t,
+                        Test_I_ALSA_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_Message_t,
                         Stream_AVSave_ALSA_V4L_SessionMessage_t>
@@ -335,8 +334,7 @@ class Stream_AVSave_V4L_Stream
                         struct Stream_AVSave_ALSA_V4L_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
                         struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
-                        Stream_AVSave_ALSA_V4L_SessionData,
-                        Stream_AVSave_ALSA_V4L_SessionData_t,
+                        Test_I_ALSA_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_Message_t,
                         Stream_AVSave_ALSA_V4L_SessionMessage_t> inherited;
@@ -395,8 +393,7 @@ class Stream_AVSave_ALSA_Stream
                         struct Stream_AVSave_ALSA_V4L_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
                         struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
-                        Stream_AVSave_ALSA_V4L_SessionData,
-                        Stream_AVSave_ALSA_V4L_SessionData_t,
+                        Test_I_ALSA_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_Message_t,
                         Stream_AVSave_ALSA_V4L_SessionMessage_t>
@@ -411,8 +408,7 @@ class Stream_AVSave_ALSA_Stream
                         struct Stream_AVSave_ALSA_V4L_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
                         struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
-                        Stream_AVSave_ALSA_V4L_SessionData,
-                        Stream_AVSave_ALSA_V4L_SessionData_t,
+                        Test_I_ALSA_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_Message_t,
                         Stream_AVSave_ALSA_V4L_SessionMessage_t> inherited;

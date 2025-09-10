@@ -1325,6 +1325,14 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
 
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
+  typename ConfigurationType::ITERATOR_T iterator =
+    const_cast<ConfigurationType&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  Test_I_V4L_SessionManager_t* session_manager_p =
+    Test_I_V4L_SessionManager_t::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<ConfigurationType&> (configuration_in).configuration_->setupPipeline =
@@ -1340,13 +1348,10 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
   const_cast<ConfigurationType&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
   reset_setup_pipeline = false;
-  ACE_ASSERT (inherited::sessionData_);
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
-  typename ConfigurationType::ITERATOR_T iterator =
-      const_cast<ConfigurationType&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.end ());
   ACE_ASSERT (session_data_r.formats.empty ());
   session_data_r.formats.push_back (configuration_in.configuration_->format);
 

@@ -45,7 +45,7 @@ class Stream_IStreamControlBase
                      bool = true,       // recurse upstream (if any) ?
                      bool = false) = 0; // high priority ?
 
-  virtual Stream_SessionId_t id () const = 0; // current session- : -1
+  virtual Stream_SessionId_t id () const = 0; // current session- : 0
   // *NOTE*: the semantic really is: is there activity on the stream (i.e. is
   //         there currently data being processed by active components)
   virtual bool isRunning () const = 0;

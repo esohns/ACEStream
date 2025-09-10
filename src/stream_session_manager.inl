@@ -88,7 +88,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename StatisticContainerType,
           typename UserDataType>
-bool
+void
 Stream_Session_Manager_T<ACE_SYNCH_USE,
                          NotificationType,
                          ConfigurationType,
@@ -100,7 +100,23 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
 
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
 
-  return true;
+  // *TODO*: remove type inferences
+  if (likely (configuration_->stream))
+  { Common_ISubscribe_T<Stream_IEvent_T<NotificationType> >* isubscribe_p =
+      dynamic_cast<Common_ISubscribe_T<Stream_IEvent_T<NotificationType> >*> (configuration_->stream);
+    if (likely (isubscribe_p))
+      isubscribe_p->subscribe (this);
+    else
+    { ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (configuration_->stream);
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s%sfailed to dynamic_cast<Common_ISubscribe_T<Stream_IEvent_T<NotificationType> >*>(%@), cannot subscribe to stream events, continuing\n"),
+                  istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""), istream_p ? ACE_TEXT (": ") : ACE_TEXT (""),
+                  configuration_->stream));
+    } // end ELSE
+  } // end IF
+  else
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("no stream handle supplied, cannot subscribe to stream events, continuing\n")));
 }
 
 template <ACE_SYNCH_DECL,
@@ -261,12 +277,14 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
-                         UserDataType>::set (const SessionDataType& sessionData_in)
+                         UserDataType>::set (SessionDataType& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::set"));
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
-    sessionData_ = &const_cast<SessionDataType&> (sessionData_in);
+    sessionData_ = &sessionData_in;
+
+    // *TODO*: remove type inferences
     if (likely (!sessionData_->lock))
       sessionData_->lock = &lock_;
   } // end lock scope
@@ -302,7 +320,7 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (sessionData_);
 
-      try {
+      try { // *TODO*: remove type inferences
         onSessionBegin (sessionData_->sessionId);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
@@ -316,7 +334,7 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (sessionData_);
 
-      try {
+      try { // *TODO*: remove type inferences
         onSessionEnd (sessionData_->sessionId);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,

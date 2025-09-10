@@ -213,6 +213,13 @@ typedef Stream_Visualization_LibAVResize_T<Test_U_DirectShow_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_FFMPEG_MediaType> Test_U_DirectShow_LibAVResize;
 #endif // FFMPEG_SUPPORT
 #else
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_U_MP4Player_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_U_SessionManager_t;
+
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                struct Test_U_FFMPEG_ModuleHandlerConfiguration,
@@ -240,9 +247,8 @@ typedef Stream_LibAV_Source_T<ACE_MT_SYNCH,
                               enum Stream_ControlType,
                               enum Stream_SessionMessageType,
                               struct Test_U_StreamState,
-                              Test_U_MP4Player_SessionData,
-                              Test_U_MP4Player_SessionData_t,
                               struct Stream_Statistic,
+                              Test_U_SessionManager_t,
                               Common_Timer_Manager_t,
                               struct Stream_UserData> Test_U_LibAVSource;
 

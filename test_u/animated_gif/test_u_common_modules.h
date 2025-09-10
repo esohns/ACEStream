@@ -243,6 +243,7 @@ typedef Stream_File_ImageMagick_Source_T<ACE_MT_SYNCH,
                                          Test_U_SessionMessage,
                                          struct Test_U_StreamState,
                                          struct Stream_Statistic,
+                                         Test_U_SessionManager_t,
                                          Common_Timer_Manager_t,
                                          struct Stream_UserData,
                                          struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_U_ImageMagick_Source;

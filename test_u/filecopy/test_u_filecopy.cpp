@@ -25,7 +25,7 @@
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/Init_ACE.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #include "ace/Log_Msg.h"
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
@@ -389,8 +389,17 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (CBData_in.configuration);
 
   // step0a: initialize configuration
-  Stream_Filecopy_EventHandler ui_event_handler (&CBData_in);
+  struct Stream_Filecopy_SessionData session_data_s;
+  Test_U_SessionManager_t* session_manager_p =
+    Test_U_SessionManager_t::SINGLETON_T::instance ();
+  session_manager_p->set (session_data_s);
+
   Stream_Filecopy_Stream stream;
+  struct Stream_SessionManager_Configuration session_manager_configuration_s;
+  session_manager_configuration_s.stream = &stream;
+  session_manager_p->initialize (session_manager_configuration_s);
+
+  Stream_Filecopy_EventHandler ui_event_handler (&CBData_in);
   struct Stream_ModuleConfiguration module_configuration;
   struct Stream_AllocatorConfiguration allocator_configuration;
   Stream_Filecopy_Module_EventHandler_Module event_handler (&stream,

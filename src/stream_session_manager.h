@@ -39,7 +39,7 @@
 
 template <ACE_SYNCH_DECL,
           typename NotificationType, // session-
-          typename ConfigurationType, // session-
+          typename ConfigurationType,
           typename SessionDataType, // inherits Stream_SessionData
           typename StatisticContainerType,
           ////////////////////////////////
@@ -73,8 +73,8 @@ class Stream_Session_Manager_T
                                                  UserDataType>,
                         ACE_SYNCH_MUTEX_T> SINGLETON_T;
 
-  // configuration / initialization
-  bool initialize (const ConfigurationType&); // configuration
+  // initialization
+  void initialize (const ConfigurationType&);
 
   // implement (part of) Stream_IStreamControlBase
   virtual void start ();
@@ -96,14 +96,13 @@ class Stream_Session_Manager_T
   inline virtual void rewind () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   // implement Stream_ISessionCB
-  inline virtual void onSessionBegin (Stream_SessionId_t) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-  inline virtual void onSessionEnd (Stream_SessionId_t) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  inline virtual void onSessionBegin (Stream_SessionId_t) { ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  inline virtual void onSessionEnd (Stream_SessionId_t) { ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   // implement Common_IGetR_T
   inline virtual const SessionDataType& getR () const { ACE_ASSERT (sessionData_); return *sessionData_; }
 
-  // *WARNING*: this method is NOT (!) re-entrant
-  virtual void set (const SessionDataType&); // session data
+  virtual void set (SessionDataType&); // session data
 
  protected:
   // *NOTE*: support derived classes
@@ -115,19 +114,14 @@ class Stream_Session_Manager_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Session_Manager_T& operator= (const Stream_Session_Manager_T&))
 
   // convenient types
-  typedef Stream_Session_Manager_T<ACE_SYNCH_USE,
-                                   NotificationType,
-                                   ConfigurationType,
-                                   SessionDataType,
-                                   StatisticContainerType,
-                                   UserDataType> OWN_TYPE_T;
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           Common_TimePolicy_t> ISTREAM_T;
 
   // implement Stream_IEvent_T
   virtual void onEvent (NotificationType);
 
   // implement Common_ICounter
-  // *NOTE*: visits each connection updating its statistic to support throughput
-  //         measurement
+  // *TODO*: visit stream head module to collect throughput data
   virtual void reset ();
 
   // timer

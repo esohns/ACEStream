@@ -484,6 +484,13 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Test_I_CommandSpeech_MediaFoundation_SessionData,
                                        struct Stream_UserData> Test_I_MediaFoundation_MessageHandler;
 #else
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_I_CommandSpeech_ALSA_SessionData,
+                                 struct Strean_Statistic,
+                                 struct Stream_UserData> Test_I_ALSA_SessionManager_t;
+
 typedef Stream_Module_QueueReader_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,
                                     Test_I_Message,
@@ -492,9 +499,8 @@ typedef Stream_Module_QueueReader_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Test_I_CommandSpeech_ALSA_StreamState,
-                                    Test_I_CommandSpeech_ALSA_SessionData,
-                                    Test_I_CommandSpeech_ALSA_SessionData_t,
                                     struct Stream_Statistic,
+                                    Test_I_ALSA_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Test_I_ALSA_QueueReader;
 
@@ -506,9 +512,8 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Test_I_CommandSpeech_ALSA_StreamState,
-                                    Test_I_CommandSpeech_ALSA_SessionData,
-                                    Test_I_CommandSpeech_ALSA_SessionData_t,
                                     struct Stream_Statistic,
+                                    Test_I_ALSA_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Test_I_ALSA_FileReader;
 

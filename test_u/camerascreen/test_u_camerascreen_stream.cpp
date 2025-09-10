@@ -1336,8 +1336,14 @@ Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Stream_CameraScreen_V4L_SessionData* session_data_p = NULL;
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-//  Stream_CameraScreen_V4L_Source* source_impl_p = NULL;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  Test_U_V4L_SessionManager_t* session_manager_p =
+    Test_U_V4L_SessionManager_t::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -1354,38 +1360,13 @@ Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_
     setup_pipeline;
   reset_setup_pipeline = false;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
   session_data_p =
-    &const_cast<Stream_CameraScreen_V4L_SessionData&> (inherited::sessionData_->getR ());
-  iterator =
-      const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-
-  // sanity check(s)
-  ACE_ASSERT (iterator != configuration_in.end ());
+    &const_cast<Stream_CameraScreen_V4L_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
 
   // ---------------------------------------------------------------------------
-
-  // ******************* Camera Source ************************
-//  source_impl_p =
-//    dynamic_cast<Stream_CameraScreen_V4L_Source*> (source_.writer ());
-//  if (!source_impl_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_V4L_CamSource> failed, aborting\n"),
-//                ACE_TEXT (stream_name_string_)));
-//    goto error;
-//  } // end IF
-//  source_impl_p->setP (&(inherited::state_));
-
-//  // *NOTE*: push()ing the module will open() it
-//  //         --> set the argument that is passed along (head module expects a
-//  //             handle to the session data)
-//  source_.arg (inherited::sessionData_);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))

@@ -32,10 +32,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           typename UserDataType>
 Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
                                     ControlMessageType,
@@ -45,10 +44,9 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
                                     StreamControlType,
                                     StreamNotificationType,
                                     StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    SessionManagerType,
+                                    TimerManagerType,
                                     UserDataType>::Stream_Module_CamSource_LibCamera_T (ISTREAM_T* stream_in)
  : inherited (stream_in) // stream handle
  , camera_ (NULL)
@@ -69,10 +67,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           typename UserDataType>
 Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
                                     ControlMessageType,
@@ -82,10 +79,9 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
                                     StreamControlType,
                                     StreamNotificationType,
                                     StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    SessionManagerType,
+                                    TimerManagerType,
                                     UserDataType>::~Stream_Module_CamSource_LibCamera_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_LibCamera_T::~Stream_Module_CamSource_LibCamera_T"));
@@ -111,10 +107,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           typename UserDataType>
 void
 Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
@@ -125,10 +120,9 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
                                     StreamControlType,
                                     StreamNotificationType,
                                     StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    SessionManagerType,
+                                    TimerManagerType,
                                     UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                          bool& passMessageDownstream_out)
 {
@@ -153,8 +147,8 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
       ACE_ASSERT (camera_);
 
-      SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       struct Stream_MediaFramework_LibCamera_MediaType media_type_s;
 
       // step1: set capture format ?
@@ -418,10 +412,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           typename UserDataType>
 bool
 Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
@@ -432,10 +425,9 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
                                     StreamControlType,
                                     StreamNotificationType,
                                     StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    SessionManagerType,
+                                    TimerManagerType,
                                     UserDataType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_LibCamera_T::collect"));
@@ -464,31 +456,6 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
   return true;
 }
 
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename DataMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//void
-//Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
-//                                    SessionMessageType,
-//                                    DataMessageType,
-//                                    ConfigurationType,
-//                                    StreamStateType,
-//                                    SessionDataType,
-//                                    SessionDataContainerType,
-//                                    StatisticContainerType>::report () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_LibCamera_T::report"));
-
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP;
-//  ACE_NOTREACHED (return;)
-//}
-
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
@@ -497,10 +464,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           typename UserDataType>
 bool
 Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
@@ -511,10 +477,9 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
                                     StreamControlType,
                                     StreamNotificationType,
                                     StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    SessionManagerType,
+                                    TimerManagerType,
                                     UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                                Stream_IAllocator* allocator_in)
 {
@@ -594,10 +559,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           typename UserDataType>
 int
 Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
@@ -608,10 +572,9 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
                                     StreamControlType,
                                     StreamNotificationType,
                                     StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    SessionManagerType,
+                                    TimerManagerType,
                                     UserDataType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_LibCamera_T::svc"));
@@ -632,10 +595,11 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
   bool release_lock = false;
   int result = -1;
   int result_2 = -1;
-  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+  const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    inherited::sessionData_->getR ();
   bool stop_processing = false;
   typename inherited::ISTREAM_T* stream_p =
-      const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
+    const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
 
   do
   {
@@ -735,12 +699,10 @@ continue_:
       if (session_data_r.aborted &&
           !has_finished)
       {
-#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: session %u aborted\n"),
                     inherited::mod_->name (),
                     session_data_r.sessionId));
-#endif // _DEBUG
         has_finished = true;
         // enqueue(/process) STREAM_SESSION_END
         inherited::STATE_MACHINE_T::finished ();
@@ -761,10 +723,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           typename UserDataType>
 void
 Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
@@ -775,10 +736,9 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
                                     StreamControlType,
                                     StreamNotificationType,
                                     StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    SessionManagerType,
+                                    TimerManagerType,
                                     UserDataType>::requestComplete (libcamera::Request* request_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_LibCamera_T::requestComplete"));

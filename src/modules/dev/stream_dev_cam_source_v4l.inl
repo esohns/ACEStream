@@ -34,10 +34,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           typename UserDataType>
 Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               ControlMessageType,
@@ -47,10 +46,9 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               StreamControlType,
                               StreamNotificationType,
                               StreamStateType,
-                              SessionDataType,
-                              SessionDataContainerType,
                               StatisticContainerType,
-                              StatisticHandlerType,
+                              SessionManagerType,
+                              TimerManagerType,
                               UserDataType>::Stream_Module_CamSource_V4L_T (ISTREAM_T* stream_in)
  : inherited (stream_in) // stream handle
  , inherited2 ()
@@ -71,10 +69,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           typename UserDataType>
 Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               ControlMessageType,
@@ -84,10 +81,9 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               StreamControlType,
                               StreamNotificationType,
                               StreamStateType,
-                              SessionDataType,
-                              SessionDataContainerType,
                               StatisticContainerType,
-                              StatisticHandlerType,
+                              SessionManagerType,
+                              TimerManagerType,
                               UserDataType>::~Stream_Module_CamSource_V4L_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::~Stream_Module_CamSource_V4L_T"));
@@ -123,10 +119,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           typename UserDataType>
 void
 Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
@@ -137,10 +132,9 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               StreamControlType,
                               StreamNotificationType,
                               StreamStateType,
-                              SessionDataType,
-                              SessionDataContainerType,
                               StatisticContainerType,
-                              StatisticHandlerType,
+                              SessionManagerType,
+                              TimerManagerType,
                               UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                    bool& passMessageDownstream_out)
 {
@@ -160,8 +154,8 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
 
-      SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       int toggle = 1;
       struct Stream_MediaFramework_V4L_MediaType media_type_s;
 
@@ -382,10 +376,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           typename UserDataType>
 bool
 Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
@@ -396,10 +389,9 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               StreamControlType,
                               StreamNotificationType,
                               StreamStateType,
-                              SessionDataType,
-                              SessionDataContainerType,
                               StatisticContainerType,
-                              StatisticHandlerType,
+                              SessionManagerType,
+                              TimerManagerType,
                               UserDataType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::collect"));
@@ -428,31 +420,6 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   return true;
 }
 
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename DataMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//void
-//Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
-//                              SessionMessageType,
-//                              DataMessageType,
-//                              ConfigurationType,
-//                              StreamStateType,
-//                              SessionDataType,
-//                              SessionDataContainerType,
-//                              StatisticContainerType>::report () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::report"));
-
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP;
-//  ACE_NOTREACHED (return;)
-//}
-
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
@@ -461,10 +428,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           typename UserDataType>
 bool
 Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
@@ -475,10 +441,9 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               StreamControlType,
                               StreamNotificationType,
                               StreamStateType,
-                              SessionDataType,
-                              SessionDataContainerType,
                               StatisticContainerType,
-                              StatisticHandlerType,
+                              SessionManagerType,
+                              TimerManagerType,
                               UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                          Stream_IAllocator* allocator_in)
 {
@@ -612,10 +577,9 @@ template <ACE_SYNCH_DECL,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
           typename UserDataType>
 int
 Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
@@ -626,10 +590,9 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               StreamControlType,
                               StreamNotificationType,
                               StreamStateType,
-                              SessionDataType,
-                              SessionDataContainerType,
                               StatisticContainerType,
-                              StatisticHandlerType,
+                              SessionManagerType,
+                              TimerManagerType,
                               UserDataType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_V4L_T::svc"));
@@ -651,7 +614,8 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   bool release_lock = false;
   int result = -1;
   int result_2 = -1;
-  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+  const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+      inherited::sessionData_->getR ();
   bool stop_processing = false;
 
   struct v4l2_buffer buffer_s;

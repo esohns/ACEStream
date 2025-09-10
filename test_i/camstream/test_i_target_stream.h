@@ -349,6 +349,13 @@ class Test_I_Target_MediaFoundation_UDPStream
   ULONG            referenceCount_;
 };
 #else
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_I_Target_SessionData,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> Test_I_SessionManager_2;
+
 class Test_I_Target_TCPStream
  : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
@@ -361,8 +368,7 @@ class Test_I_Target_TCPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
-                                        Test_I_Target_SessionData,
-                                        Test_I_Target_SessionData_t,
+                                        Test_I_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_SessionMessage,
@@ -381,8 +387,7 @@ class Test_I_Target_TCPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
-                                        Test_I_Target_SessionData,
-                                        Test_I_Target_SessionData_t,
+                                        Test_I_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_SessionMessage,
@@ -398,12 +403,7 @@ class Test_I_Target_TCPStream
   virtual bool load (Stream_ILayout*, // return value: module list
                      bool&);          // return value: delete modules ?
 
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  virtual bool initialize (const CONFIGURATION_T&,
-#else
   virtual bool initialize (const typename inherited::CONFIGURATION_T&,
-#endif
                            ACE_HANDLE);                                // socket handle
 
   // *TODO*: re-consider this API
@@ -413,6 +413,7 @@ class Test_I_Target_TCPStream
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_TCPStream (const Test_I_Target_TCPStream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_TCPStream& operator= (const Test_I_Target_TCPStream&))
 };
+
 class Test_I_Target_UDPStream
  : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
@@ -425,8 +426,7 @@ class Test_I_Target_UDPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
-                                        Test_I_Target_SessionData,
-                                        Test_I_Target_SessionData_t,
+                                        Test_I_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_SessionMessage,
@@ -445,8 +445,7 @@ class Test_I_Target_UDPStream
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
-                                        Test_I_Target_SessionData,
-                                        Test_I_Target_SessionData_t,
+                                        Test_I_SessionManager_2,
                                         Stream_ControlMessage_t,
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_SessionMessage,
@@ -462,12 +461,7 @@ class Test_I_Target_UDPStream
   virtual bool load (Stream_ILayout*, // return value: module list
                      bool&);          // return value: delete modules ?
 
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  virtual bool initialize (const CONFIGURATION_T&,
-#else
   virtual bool initialize (const typename inherited::CONFIGURATION_T&,
-#endif
                            ACE_HANDLE);                                // socket handle
 
   // *TODO*: re-consider this API

@@ -135,6 +135,13 @@ typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                 enum Stream_SessionMessageType,
                                 struct Stream_UserData> Test_I_MediaFoundation_TaskBaseAsynch_t;
 #else
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Stream_AVSave_ALSA_V4L_SessionData,
+                                 struct Stream_AVSave_StatisticData,
+                                 struct Stream_UserData> Test_I_ALSA_V4L_SessionManager_t;
+
 typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
@@ -268,9 +275,8 @@ typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Stream_AVSave_ALSA_V4L_StreamState,
-                                     Stream_AVSave_ALSA_V4L_SessionData,
-                                     Stream_AVSave_ALSA_V4L_SessionData_t,
                                      struct Stream_AVSave_StatisticData,
+                                     Test_I_ALSA_V4L_SessionManager_t,
                                      Common_Timer_Manager_t> Stream_AVSave_ALSA_Source;
 typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Stream_ControlMessage_t,
@@ -280,9 +286,8 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       struct Stream_AVSave_ALSA_V4L_StreamState,
-                                      Stream_AVSave_ALSA_V4L_SessionData,
-                                      Stream_AVSave_ALSA_V4L_SessionData_t,
                                       struct Stream_AVSave_StatisticData,
+                                      Test_I_ALSA_V4L_SessionManager_t,
                                       Common_Timer_Manager_t,
                                       struct Stream_UserData> Stream_AVSave_V4L_Source;
 

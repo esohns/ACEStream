@@ -2399,10 +2399,17 @@ Test_U_ALSA_Stream::initialize (const typename inherited::CONFIGURATION_T& confi
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Test_U_MicVisualize_SessionData* session_data_p = NULL;
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2;
-//  typename inherited::ISTREAM_T::MODULE_T* module_p = NULL;
-//  Stream_Statistic_IDispatch_t* idispatch_p = NULL;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
+  Test_U_SessionManager_t* session_manager_p =
+      Test_U_SessionManager_t::SINGLETON_T::instance ();
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (iterator_2 != configuration_in.end ());
+  ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -2418,18 +2425,10 @@ Test_U_ALSA_Stream::initialize (const typename inherited::CONFIGURATION_T& confi
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
+
   session_data_p =
-    &const_cast<Test_U_MicVisualize_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Test_U_MicVisualize_SessionData&> (session_manager_p->getR ());
   // *TODO*: remove type inferences
-  // sanity check(s)
-  iterator =
-      const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.end ());
-  iterator_2 =
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
-  ACE_ASSERT (iterator_2 != configuration_in.end ());
   (*iterator).second.second->outputFormat =
     configuration_in.configuration_->format;
   if (inherited::configuration_->configuration_->sourceType != MICVISUALIZE_SOURCE_FILE)

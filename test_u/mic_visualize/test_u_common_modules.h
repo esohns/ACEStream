@@ -290,6 +290,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_MediaFoundation_SessionData,  
                               Stream_INotify_t,                                                     // stream notification interface type
                               Test_U_Dev_Mic_Source_WaveIn2);                                       // writer type
 #else
+typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_SessionManager_Configuration,
+                                 Test_U_MicVisualize_SessionData,
+                                 struct Test_U_MicVisualize_Statistic,
+                                 struct Stream_UserData> Test_U_SessionManager_t;
+
 typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,
                                     Test_U_Message,
@@ -298,9 +305,8 @@ typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Test_U_MicVisualize_StreamState,
-                                    Test_U_MicVisualize_SessionData,
-                                    Test_U_MicVisualize_SessionData_t,
                                     struct Test_U_MicVisualize_Statistic,
+                                    Test_U_SessionManager_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData,
                                     struct Stream_MediaFramework_ALSA_MediaType> Test_U_Dec_MP3Decoder_ALSA;
@@ -319,9 +325,8 @@ typedef Stream_Dec_Noise_Source_T<ACE_MT_SYNCH,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Test_U_MicVisualize_StreamState,
-                                  Test_U_MicVisualize_SessionData,
-                                  Test_U_MicVisualize_SessionData_t,
                                   struct Test_U_MicVisualize_Statistic,
+                                  Test_U_SessionManager_t,
                                   Common_Timer_Manager_t,
                                   struct Stream_MediaFramework_ALSA_MediaType> Test_U_Dec_Noise_Source_ALSA;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_SessionData,                            // session data type
@@ -339,9 +344,8 @@ typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_U_MicVisualize_StreamState,
-                                     Test_U_MicVisualize_SessionData,
-                                     Test_U_MicVisualize_SessionData_t,
                                      struct Test_U_MicVisualize_Statistic,
+                                     Test_U_SessionManager_t,
                                      Common_Timer_Manager_t> Test_U_Dev_Mic_Source_ALSA;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                       // session event type

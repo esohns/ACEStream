@@ -94,8 +94,7 @@ class Test_U_Stream
                         struct QRDecode_StreamConfiguration,
                         struct Stream_Statistic,
                         struct QRDecode_ModuleHandlerConfiguration,
-                        QRDecode_SessionData,
-                        QRDecode_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message,
                         Test_U_SessionMessage>
@@ -110,8 +109,7 @@ class Test_U_Stream
                         struct QRDecode_StreamConfiguration,
                         struct Stream_Statistic,
                         struct QRDecode_ModuleHandlerConfiguration,
-                        QRDecode_SessionData,
-                        QRDecode_SessionData_t,
+                        Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message,
                         Test_U_SessionMessage> inherited;

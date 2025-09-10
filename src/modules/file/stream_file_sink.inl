@@ -1316,8 +1316,9 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       const typename SessionMessageType::DATA_T& session_data_container_r =
-          message_inout->get ();
-      const SessionDataType& session_data_r = session_data_container_r.get ();
+        message_inout->get ();
+      const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        session_data_container_r.get ();
       ACE_FILE_Connector file_connector;
 
       // sanity check(s)

@@ -2121,7 +2121,6 @@ stream_processing_function (void* arg_in)
     ACE_ASSERT (libcamera_cb_data_p->configuration);
     ACE_ASSERT (libcamera_cb_data_p->stream);
     stream_p = libcamera_cb_data_p->stream;
-    const Stream_CamSave_LibCamera_SessionData_t* session_data_container_p = NULL;
     const Stream_CamSave_LibCamera_SessionData* session_data_p = NULL;
     if (!libcamera_cb_data_p->stream->initialize (libcamera_cb_data_p->configuration->libCamera_streamConfiguration))
     {
@@ -2137,8 +2136,8 @@ stream_processing_function (void* arg_in)
       dynamic_cast<Common_IDispatch*> (module_p->writer ());
     ACE_ASSERT (libcamera_cb_data_p->dispatch);
 
-    session_data_container_p = &libcamera_cb_data_p->stream->getR_2 ();
-    session_data_p = &session_data_container_p->getR ();
+    session_data_p = &libcamera_cb_data_p->stream->getR_2 ();
+    // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
     libcamera_cb_data_p->progressData.sessionId = session_data_p->sessionId;
     converter << session_data_p->sessionId;
 #else

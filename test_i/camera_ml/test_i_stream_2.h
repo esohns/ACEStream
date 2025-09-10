@@ -209,8 +209,7 @@ class Stream_CameraML_Stream_2
                         struct Stream_CameraML_V4L_StreamConfiguration,
                         struct Stream_CameraML_StatisticData,
                         struct Stream_CameraML_V4L_ModuleHandlerConfiguration,
-                        Stream_CameraML_V4L_SessionData,
-                        Stream_CameraML_V4L_SessionData_t,
+                        Test_I_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraML_Message_t,
                         Stream_CameraML_SessionMessage_t>
@@ -225,8 +224,7 @@ class Stream_CameraML_Stream_2
                         struct Stream_CameraML_V4L_StreamConfiguration,
                         struct Stream_CameraML_StatisticData,
                         struct Stream_CameraML_V4L_ModuleHandlerConfiguration,
-                        Stream_CameraML_V4L_SessionData,
-                        Stream_CameraML_V4L_SessionData_t,
+                        Test_I_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraML_Message_t,
                         Stream_CameraML_SessionMessage_t> inherited;

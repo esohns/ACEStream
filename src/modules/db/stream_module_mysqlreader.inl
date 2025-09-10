@@ -243,10 +243,10 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::initialized_);
 
-  const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
-      message_inout->get ();
-  SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (session_data_container_r.get ());
+  const typename SessionMessageType::DATA_T& session_data_container_r =
+    message_inout->get ();
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:

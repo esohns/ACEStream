@@ -180,8 +180,7 @@ class Test_I_ALSA_Stream
                         struct Test_I_ALSA_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration,
-                        Test_I_CommandSpeech_ALSA_SessionData,
-                        Test_I_CommandSpeech_ALSA_SessionData_t,
+                        Test_I_ALSA_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Message,
                         Test_I_ALSA_SessionMessage_t>
@@ -196,8 +195,7 @@ class Test_I_ALSA_Stream
                         struct Test_I_ALSA_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration,
-                        Test_I_CommandSpeech_ALSA_SessionData,
-                        Test_I_CommandSpeech_ALSA_SessionData_t,
+                        Test_I_ALSA_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Message,
                         Test_I_ALSA_SessionMessage_t> inherited;

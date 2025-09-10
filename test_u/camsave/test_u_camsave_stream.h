@@ -216,8 +216,7 @@ class Stream_CamSave_LibCamera_Stream
                         struct Stream_CamSave_LibCamera_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
-                        Stream_CamSave_LibCamera_SessionData,
-                        Stream_CamSave_LibCamera_SessionData_t,
+                        Test_U_LibCamera_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_LibCamera_Message_t,
                         Stream_CamSave_LibCamera_SessionMessage_t>
@@ -232,8 +231,7 @@ class Stream_CamSave_LibCamera_Stream
                         struct Stream_CamSave_LibCamera_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
-                        Stream_CamSave_LibCamera_SessionData,
-                        Stream_CamSave_LibCamera_SessionData_t,
+                        Test_U_LibCamera_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_LibCamera_Message_t,
                         Stream_CamSave_LibCamera_SessionMessage_t> inherited;
@@ -285,8 +283,7 @@ class Stream_CamSave_V4L_Stream
                         struct Stream_CamSave_V4L_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
-                        Stream_CamSave_V4L_SessionData,
-                        Stream_CamSave_V4L_SessionData_t,
+                        Test_U_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_V4L_Message_t,
                         Stream_CamSave_V4L_SessionMessage_t>
@@ -301,8 +298,7 @@ class Stream_CamSave_V4L_Stream
                         struct Stream_CamSave_V4L_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
-                        Stream_CamSave_V4L_SessionData,
-                        Stream_CamSave_V4L_SessionData_t,
+                        Test_U_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_V4L_Message_t,
                         Stream_CamSave_V4L_SessionMessage_t> inherited;

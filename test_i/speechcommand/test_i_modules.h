@@ -553,9 +553,8 @@ typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_I_SpeechCommand_ALSA_StreamState,
-                                     Test_I_SpeechCommand_ALSA_SessionData,
-                                     Test_I_SpeechCommand_ALSA_SessionData_t,
                                      struct Test_I_Statistic,
+                                     Test_I_ALSA_SessionManager_2,
                                      Common_Timer_Manager_t> Test_I_Mic_Source_ALSA;
 
 //////////////////////////////////////////

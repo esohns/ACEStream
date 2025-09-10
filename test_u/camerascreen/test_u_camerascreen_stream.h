@@ -220,8 +220,7 @@ class Stream_CameraScreen_Stream
                         struct Stream_CameraScreen_V4L_StreamConfiguration,
                         struct Stream_CameraScreen_StatisticData,
                         struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
-                        Stream_CameraScreen_V4L_SessionData,
-                        Stream_CameraScreen_V4L_SessionData_t,
+                        Test_U_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraScreen_Message_t,
                         Stream_CameraScreen_SessionMessage_t>
@@ -236,8 +235,7 @@ class Stream_CameraScreen_Stream
                         struct Stream_CameraScreen_V4L_StreamConfiguration,
                         struct Stream_CameraScreen_StatisticData,
                         struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
-                        Stream_CameraScreen_V4L_SessionData,
-                        Stream_CameraScreen_V4L_SessionData_t,
+                        Test_U_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraScreen_Message_t,
                         Stream_CameraScreen_SessionMessage_t> inherited;

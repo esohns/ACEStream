@@ -55,7 +55,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename SessionManagerType,
+          typename TimerManagerType>
 class Stream_Dev_Cam_Source_Pipewire_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -66,10 +67,9 @@ class Stream_Dev_Cam_Source_Pipewire_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      typename SessionMessageType::DATA_T::DATA_T,
-                                      typename SessionMessageType::DATA_T,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      SessionManagerType,
+                                      TimerManagerType,
                                       struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<struct spa_video_info>
 {
@@ -82,10 +82,9 @@ class Stream_Dev_Cam_Source_Pipewire_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      typename SessionMessageType::DATA_T::DATA_T,
-                                      typename SessionMessageType::DATA_T,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      SessionManagerType,
+                                      TimerManagerType,
                                       struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<struct spa_video_info> inherited2;
 
