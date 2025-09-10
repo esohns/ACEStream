@@ -221,7 +221,8 @@ do_work (int argc_in,
 
   session_manager_p = Test_U_SessionManager_t::SINGLETON_T::instance ();
   ACE_ASSERT (session_manager_p);
-  session_manager_p->set (session_data_s);
+  session_manager_p->setR (session_data_s,
+                           parser_stream.id ());
 
   if (!parser_stream.initialize (stream_configuration_2))
   {

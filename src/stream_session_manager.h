@@ -21,6 +21,9 @@
 #ifndef STREAM_SESSION_MANAGER_T_H
 #define STREAM_SESSION_MANAGER_T_H
 
+#include <map>
+#include <string>
+
 #include "ace/Condition_Recursive_Thread_Mutex.h"
 #include "ace/Containers_T.h"
 #include "ace/Recursive_Thread_Mutex.h"
@@ -29,7 +32,7 @@
 #include "ace/Time_Value.h"
 
 #include "common_icounter.h"
-#include "common_iget.h"
+//#include "common_iget.h"
 #include "common_istatistic.h"
 
 #include "common_timer_resetcounterhandler.h"
@@ -49,7 +52,7 @@ class Stream_Session_Manager_T
  , public Stream_IEvent_T<NotificationType>
  , public Stream_ISessionCB
  , public Common_ICounter
- , public Common_IGetR_T<SessionDataType>
+ //, public Common_IGetR_T<SessionDataType>
 {
   // singleton has access to the ctor/dtors
   friend class ACE_Singleton<Stream_Session_Manager_T<ACE_SYNCH_USE,
@@ -81,7 +84,6 @@ class Stream_Session_Manager_T
   virtual void stop (bool = true,   // wait for completion ?
                      bool = true,   // recurse upstream (if any) ?
                      bool = false); // high priority ?
-  inline virtual Stream_SessionId_t id () const { ACE_ASSERT (sessionData_); return sessionData_->sessionId; }
   inline virtual bool isRunning () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
   inline virtual void finished (bool = true) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   virtual unsigned int flush (bool = true,   // flush inbound data ?
@@ -99,10 +101,10 @@ class Stream_Session_Manager_T
   inline virtual void onSessionBegin (Stream_SessionId_t) { ACE_NOTSUP; ACE_NOTREACHED (return;) }
   inline virtual void onSessionEnd (Stream_SessionId_t) { ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
-  // implement Common_IGetR_T
-  inline virtual const SessionDataType& getR () const { ACE_ASSERT (sessionData_); return *sessionData_; }
-
-  virtual void set (SessionDataType&); // session data
+  virtual Stream_SessionId_t sessionId (const std::string& = ACE_TEXT_ALWAYS_CHAR ("")) const; // stream id
+  virtual const SessionDataType& getR (const std::string& = ACE_TEXT_ALWAYS_CHAR ("")) const; // stream id
+  virtual void setR (SessionDataType&,                               // session data
+                    const std::string& = ACE_TEXT_ALWAYS_CHAR ("")); // stream id
 
  protected:
   // *NOTE*: support derived classes
@@ -116,9 +118,16 @@ class Stream_Session_Manager_T
   // convenient types
   typedef Stream_IStream_T<ACE_SYNCH_USE,
                            Common_TimePolicy_t> ISTREAM_T;
+  typedef std::map<std::string, SessionDataType*> SESSIONDATA_MAP_T;
+  typedef typename SESSIONDATA_MAP_T::const_iterator SESSIONDATA_MAP_CONST_ITERATOR_T;
+  typedef typename SESSIONDATA_MAP_T::iterator SESSIONDATA_MAP_ITERATOR_T;
+
+  // implement (part of) Stream_IStreamControlBase
+  inline virtual Stream_SessionId_t sessionId () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (0); ACE_NOTREACHED (return 0;) }
 
   // implement Stream_IEvent_T
-  virtual void onEvent (NotificationType);
+  virtual void onEvent (const std::string&, // stream id
+                        NotificationType);  // event
 
   // implement Common_ICounter
   // *TODO*: visit stream head module to collect throughput data
@@ -131,7 +140,7 @@ class Stream_Session_Manager_T
 
   ConfigurationType*                           configuration_;
   mutable ACE_SYNCH_MUTEX                      lock_;
-  SessionDataType*                             sessionData_; // default-
+  SESSIONDATA_MAP_T                            sessionData_;
 };
 
 // include template definition

@@ -39,10 +39,12 @@ Stream_HeadReaderTask_T<ACE_SYNCH_USE,
                         SessionMessageType,
                         NotificationType>::Stream_HeadReaderTask_T (IEVENT_T* event_in,
                                                                     Stream_IMessageQueue* messageQueue_in,
-                                                                    bool queueIncomingMessages_in)
+                                                                    bool queueIncomingMessages_in,
+                                                                    const std::string& streamId_in)
  : inherited ()
  , enqueue_ (queueIncomingMessages_in)
  , event_ (event_in)
+ , streamId_ (streamId_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadReaderTask_T::Stream_HeadReaderTask_T"));
 
@@ -124,7 +126,8 @@ Stream_HeadReaderTask_T<ACE_SYNCH_USE,
       SessionMessageType* session_message_p =
         static_cast<SessionMessageType*> (messageBlock_in);
       try {
-        event_->onEvent (session_message_p->type ());
+        event_->onEvent (streamId_,
+                         session_message_p->type ());
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in Stream_IEvent_T::onEvent(), aborting\n"),

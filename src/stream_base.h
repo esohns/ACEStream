@@ -229,7 +229,7 @@ class Stream_Base_T
   virtual void stop (bool = true,   // wait for completion ?
                      bool = true,   // recurse upstream (if any) ?
                      bool = false); // high priority ?
-  inline virtual Stream_SessionId_t id () const { return (state_.sessionData ? state_.sessionData->sessionId : 0); }
+  virtual Stream_SessionId_t sessionId () const;
   virtual bool isRunning () const;
   virtual void finished (bool = true); // recurse upstream (if any) ?
   virtual unsigned int flush (bool = true,   // flush inbound data ?
@@ -286,7 +286,8 @@ class Stream_Base_T
   inline virtual void onUnlink () {}
 
   // implement Stream_IEvent_T
-  virtual void onEvent (NotificationType);
+  virtual void onEvent (const std::string&, // stream id
+                        NotificationType);  // event
 
   // implement Stream_ISessionCB
   inline virtual void onSessionBegin (Stream_SessionId_t) {}
@@ -336,6 +337,7 @@ class Stream_Base_T
                bool = true,  // lock ?
                bool = true); // close()/reset() removed module(s) for re-use ?
 
+  inline std::string id () const { return id_; }
   inline bool isInitialized () const { return isInitialized_; }
 
  protected:
@@ -356,7 +358,7 @@ class Stream_Base_T
                                   NotificationType> HEAD_WRITER_T;
   typedef ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType> TAIL_READER_T;
-  typedef Common_IGetR_T<SESSION_DATA_T> ISESSION_DATA_T;
+  typedef Common_IGetR_2_T<SESSION_DATA_T> ISESSION_DATA_T;
   typedef Stream_IModuleHandler_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   HandlerConfigurationType> IMODULE_HANDLER_T;
@@ -398,8 +400,6 @@ class Stream_Base_T
   LAYOUT_T                  layout_;
   MESSAGE_QUEUE_T           messageQueue_; // ('outbound'-) queue
   std::string               name_;
-  //SessionDataContainerType* sessionData_;
-  //ACE_SYNCH_MUTEX_T         sessionDataLock_;
   StateType                 state_;
   StatisticContainerType    statistic_;
 
@@ -481,6 +481,7 @@ class Stream_Base_T
                           int) const; // indentation
 
   bool                      delete_; // delete modules ?
+  std::string               id_; // hash of 'this'
   SUBSCRIBERS_T             subscribers_;
 };
 

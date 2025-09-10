@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <functional>
+
 #include "ace/Log_Msg.h"
 
 #include "stream_data_base.h"
@@ -70,6 +72,7 @@ Stream_Base_T<ACE_SYNCH_USE,
  , statistic_ ()
  /////////////////////////////////////////
  , delete_ (false)
+ , id_ ()
  , subscribers_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
@@ -77,6 +80,12 @@ Stream_Base_T<ACE_SYNCH_USE,
   { //ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
     state_.statistic = &statistic_;
   } // end lock scope
+
+  // generate "unique" id
+  // *TODO*: incorporate timestamp ?
+  std::hash<void*> ptr_hash;
+  std::ostringstream converter (ptr_hash (this));
+  id_ = converter.str ();
 
   if (unlikely (!initializeHeadTail ()))
   {
@@ -720,7 +729,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   ACE_NEW_NORETURN (head_reader_p,
                     HEAD_READER_T (this,
                                    &messageQueue_,
-                                   false)); // enqueue incoming messages ? : release()
+                                   false, // enqueue incoming messages ? : release()
+                                   id_));
   if (unlikely (!head_writer_p || !head_reader_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -1005,6 +1015,45 @@ continue_:
     wait (true,   // wait for any worker thread(s) ?
           false,  // wait for upstream (if any) ?
           false); // wait for downstream (if any) ?
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename HandlerConfigurationType,
+          typename SessionManagerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+Stream_SessionId_t
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              StreamName,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              HandlerConfigurationType,
+              SessionManagerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::sessionId () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::sessionId"));
+
+  SessionManagerType* session_manager_p =
+    SessionManagerType::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
+
+  return session_manager_p->getR (id_).sessionId;
 }
 
 template <ACE_SYNCH_DECL,
@@ -1324,9 +1373,12 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::onEvent (NotificationType notification_in)
+              SessionMessageType>::onEvent (const std::string& streamId_in,
+                                            NotificationType notification_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::onEvent"));
+
+  ACE_UNUSED_ARG (streamId_in);
 
   MODULE_T* module_p = NULL;
   int result = inherited::top (module_p);
@@ -1500,7 +1552,8 @@ session_end:
          )
     {
       try {
-        (*iterator++)->onEvent (notification_in);
+        (*iterator++)->onEvent (id_,
+                                notification_in);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in Stream_IEvent_T::onEvent(%d), continuing\n"),
@@ -3216,14 +3269,14 @@ Stream_Base_T<ACE_SYNCH_USE,
       return dummy;
     } // end IF
 
-    return iget_p->getR ();
+    return iget_p->getR_2 ();
   } // end IF
 
   SessionManagerType* session_manager_p =
     SessionManagerType::SINGLETON_T::instance ();
   ACE_ASSERT (session_manager_p);
 
-  return session_manager_p->getR ();
+  return session_manager_p->getR (id_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -3918,9 +3971,9 @@ continue_2:
 //                  inherited::linked_us_in));
       goto continue_3;
     } // end IF
-    session_data_p = &const_cast<SESSION_DATA_T&> (iget_p->getR ());
+    session_data_p = &const_cast<SESSION_DATA_T&> (iget_p->getR_2 ());
     ACE_ASSERT (session_manager_p);
-    session_data_2 = &const_cast<SESSION_DATA_T&> (session_manager_p->getR ());
+    session_data_2 = &const_cast<SESSION_DATA_T&> (session_manager_p->getR (id_));
     ACE_ASSERT (session_data_2->lock);
     { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_2->lock, -1);
       ACE_ASSERT (session_data_p->lock);

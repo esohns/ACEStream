@@ -257,7 +257,7 @@ class Stream_HeadModuleTaskBase_T
   virtual void onUnlink ();
 
   // implement/hide (part of) Stream_IStreamControl_T
-  virtual Stream_SessionId_t id () const;
+  inline virtual Stream_SessionId_t sessionId () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (0); ACE_NOTREACHED (return 0;) }
   virtual unsigned int flush (bool = true,   // N/A
                               bool = false,  // N/A
                               bool = false); // N/A

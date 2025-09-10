@@ -30,7 +30,8 @@ class Stream_IEvent_T
 {
  public:
   ////////////////////////////////////////
-  virtual void onEvent (NotificationType) = 0;
+  virtual void onEvent (const std::string&,    // stream id
+                        NotificationType) = 0;
 };
 
 template <typename NotificationType>

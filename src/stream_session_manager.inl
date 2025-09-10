@@ -47,7 +47,7 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
  , resetTimeoutInterval_ (0, STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL_MS * 1000)
  , configuration_ (NULL)
  , lock_ ()
- , sessionData_ (NULL)
+ , sessionData_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::Stream_Session_Manager_T"));
 
@@ -211,6 +211,36 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename StatisticContainerType,
           typename UserDataType>
+Stream_SessionId_t
+Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
+                         ConfigurationType,
+                         SessionDataType,
+                         StatisticContainerType,
+                         UserDataType>::sessionId (const std::string& streamId_in) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::sessionId"));
+
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, lock_, 0);
+    SESSIONDATA_MAP_CONST_ITERATOR_T iterator = sessionData_.find (streamId_in);
+    if (likely (iterator != sessionData_.end ()))
+      return iterator->second->sessionId;
+  } // end lock scope
+
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("invalid stream id (was: \"%s\"), aborting\n"),
+              ACE_TEXT (streamId_in.c_str ())));
+  ACE_ASSERT (false);
+
+  return 0;
+}
+
+template <ACE_SYNCH_DECL,
+          typename NotificationType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename StatisticContainerType,
+          typename UserDataType>
 unsigned int
 Stream_Session_Manager_T<ACE_SYNCH_USE,
                          NotificationType,
@@ -271,22 +301,70 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename StatisticContainerType,
           typename UserDataType>
+const SessionDataType&
+Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
+                         ConfigurationType,
+                         SessionDataType,
+                         StatisticContainerType,
+                         UserDataType>::getR (const std::string& streamId_in) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::getR"));
+
+  static SessionDataType dummy;
+
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, lock_, dummy);
+    SESSIONDATA_MAP_CONST_ITERATOR_T iterator = sessionData_.find (streamId_in);
+    if (likely (iterator != sessionData_.end ()))
+      return *(iterator->second);
+  } // end lock scope
+
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("invalid stream id (was: \"%s\"), aborting\n"),
+              ACE_TEXT (streamId_in.c_str ())));
+  ACE_ASSERT (false);
+
+  return dummy;
+}
+
+template <ACE_SYNCH_DECL,
+          typename NotificationType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename StatisticContainerType,
+          typename UserDataType>
 void
 Stream_Session_Manager_T<ACE_SYNCH_USE,
                          NotificationType,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
-                         UserDataType>::set (SessionDataType& sessionData_in)
+                         UserDataType>::setR (SessionDataType& sessionData_in,
+                                              const std::string& streamId_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::set"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::setR"));
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
-    sessionData_ = &sessionData_in;
-
     // *TODO*: remove type inferences
-    if (likely (!sessionData_->lock))
-      sessionData_->lock = &lock_;
+    if (likely (!sessionData_in.lock))
+      sessionData_in.lock = &lock_;
+
+    // sanity check(s)
+    SESSIONDATA_MAP_ITERATOR_T iterator = sessionData_.find (streamId_in);
+    if (iterator != sessionData_.end ())
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("resetting session data (stream id: \"%s\"), continuing\n"),
+                  ACE_TEXT (streamId_in.c_str ())));
+
+      // update map entry
+      (*iterator).second = &sessionData_in;
+
+      return;
+    } // end IF
+
+    // create map entry
+    sessionData_.insert (std::make_pair (streamId_in, &sessionData_in));
   } // end lock scope
 }
 
@@ -302,9 +380,12 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
-                         UserDataType>::onEvent (NotificationType notification_in)
+                         UserDataType>::onEvent (const std::string& streamId_in,
+                                                 NotificationType notification_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::onEvent"));
+
+  Stream_SessionId_t session_id_i = sessionId (streamId_in);
 
   switch (notification_in)
   {
@@ -317,11 +398,8 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
       break;
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      // sanity check(s)
-      ACE_ASSERT (sessionData_);
-
-      try { // *TODO*: remove type inferences
-        onSessionBegin (sessionData_->sessionId);
+      try {
+        onSessionBegin (session_id_i);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("caught exception in Stream_ISessionCB::onSessionBegin(), continuing\n")));
@@ -331,11 +409,8 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      // sanity check(s)
-      ACE_ASSERT (sessionData_);
-
-      try { // *TODO*: remove type inferences
-        onSessionEnd (sessionData_->sessionId);
+      try {
+        onSessionEnd (session_id_i);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("caught exception in Stream_ISessionCB::onSessionEnd(), continuing\n")));

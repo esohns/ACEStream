@@ -21,6 +21,7 @@
 #ifndef STREAM_HEAD_TASK_H
 #define STREAM_HEAD_TASK_H
 
+#include <string>
 #include <vector>
 
 #include "ace/Global_Macros.h"
@@ -59,7 +60,8 @@ class Stream_HeadReaderTask_T
 
   Stream_HeadReaderTask_T (IEVENT_T*,             // event handle
                            Stream_IMessageQueue*, // message queue handle
-                           bool);                 // queue incoming messages ? : release()
+                           bool,                  // queue incoming messages ? : release()
+                           const std::string&);   // stream id
   inline virtual ~Stream_HeadReaderTask_T () {}
 
   // implement Common_ISet_T
@@ -78,8 +80,9 @@ class Stream_HeadReaderTask_T
   typedef ACE_Message_Queue<ACE_SYNCH_USE,
                             TimePolicyType> MESSAGE_QUEUE_T;
 
-  bool      enqueue_;
-  IEVENT_T* event_;
+  bool        enqueue_;
+  IEVENT_T*   event_;
+  std::string streamId_;
 };
 
 template <ACE_SYNCH_DECL,

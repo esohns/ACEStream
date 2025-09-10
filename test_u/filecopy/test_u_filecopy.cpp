@@ -389,12 +389,14 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (CBData_in.configuration);
 
   // step0a: initialize configuration
+  Stream_Filecopy_Stream stream;
+
   struct Stream_Filecopy_SessionData session_data_s;
   Test_U_SessionManager_t* session_manager_p =
     Test_U_SessionManager_t::SINGLETON_T::instance ();
-  session_manager_p->set (session_data_s);
+  session_manager_p->setR (session_data_s,
+                           stream.id ());
 
-  Stream_Filecopy_Stream stream;
   struct Stream_SessionManager_Configuration session_manager_configuration_s;
   session_manager_configuration_s.stream = &stream;
   session_manager_p->initialize (session_manager_configuration_s);

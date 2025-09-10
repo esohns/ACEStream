@@ -1120,15 +1120,20 @@ do_work (
                          struct Common_AllocatorConfiguration> heap_allocator;
   struct Stream_SessionManager_Configuration session_manager_configuration_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_U_AudioEffect_DirectShow_Stream directshow_stream;
+  Test_U_AudioEffect_MediaFoundation_Stream mediafoundation_stream;
+
   Test_U_AudioEffect_DirectShow_SessionData directshow_session_data;
   Test_U_AudioEffect_MediaFoundation_SessionData mediafoundation_session_data;
 
   Test_U_DirectShow_SessionManager_t* directshow_session_manager_p =
     Test_U_DirectShow_SessionManager_t::SINGLETON_T::instance ();
-  directshow_session_manager_p->set (directshow_session_data);
+  directshow_session_manager_p->setR (directshow_session_data,
+                                      directshow_stream.id ());
   Test_U_MediaFoundation_SessionManager_t* mediafoundation_session_manager_p =
     Test_U_MediaFoundation_SessionManager_t::SINGLETON_T::instance ();
-  mediafoundation_session_manager_p->set (mediafoundation_session_data);
+  mediafoundation_session_manager_p->setR (mediafoundation_session_data,
+                                           mediafoundation_stream.id ());
 
   Test_U_AudioEffect_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                  &heap_allocator,     // heap allocator handle
@@ -1141,7 +1146,7 @@ do_work (
 
   Test_U_SessionManager_t* session_manager_p =
     Test_U_SessionManager_t::SINGLETON_T::instance ();
-  session_manager_p->set (session_data);
+  session_manager_p->setR (session_data);
 
   Test_U_AudioEffect_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                            &heap_allocator,     // heap allocator handle
@@ -1162,8 +1167,6 @@ do_work (
   struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_4; // file writer module
   struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_5; // resampler module
   struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
-  Test_U_AudioEffect_DirectShow_Stream directshow_stream;
-  Test_U_AudioEffect_MediaFoundation_Stream mediafoundation_stream;
   std::string renderer_modulename_string;
   switch (mediaFramework_in)
   {
