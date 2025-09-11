@@ -39,6 +39,7 @@ struct Stream_StatisticBase
 
     return *this;
   }
+
   struct Stream_StatisticBase operator+= (const struct Stream_StatisticBase& rhs_in)
   {
     bytes += rhs_in.bytes;
@@ -46,6 +47,8 @@ struct Stream_StatisticBase
 
     return *this;
   }
+
+  inline virtual void reset () { Stream_StatisticBase::operator~(); }
 
   ACE_UINT64     bytes; // amount of processed data
 
@@ -83,6 +86,7 @@ struct Stream_Statistic
 
     return *this;
   }
+
   struct Stream_Statistic operator+= (const struct Stream_Statistic& rhs_in)
   {
     Stream_StatisticBase::operator+= (rhs_in);
@@ -97,6 +101,13 @@ struct Stream_Statistic
     totalFrames += rhs_in.totalFrames;
 
     return *this;
+  }
+
+  virtual void reset ()
+  {
+    Stream_StatisticBase::reset ();
+
+    Stream_Statistic::operator~();
   }
 
   ACE_UINT32 dataMessages;      // data messages

@@ -55,6 +55,7 @@ class Stream_SessionDataMediaBase_T
   // convenient types
   typedef MediaFormatType MEDIAFORMAT_T;
   typedef std::deque<MediaFormatType> MEDIAFORMATS_T;
+  typedef typename MEDIAFORMATS_T::const_iterator MEDIAFORMATS_CONST_ITERATOR_T;
   typedef typename MEDIAFORMATS_T::iterator MEDIAFORMATS_ITERATOR_T;
   typedef Stream_SessionDataMediaBase_T<BaseType,
                                         MediaFormatType,
@@ -71,6 +72,8 @@ class Stream_SessionDataMediaBase_T
   // *NOTE*: the idea is to 'merge' the data
   //         --> this ought (!) to be overriden by derived classes
   OWN_TYPE_T& operator+= (const OWN_TYPE_T&);
+
+  virtual void clear ();
 
 #if defined (FFMPEG_SUPPORT)
   Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMap_t codecConfiguration;

@@ -202,6 +202,7 @@ struct Stream_SessionData
    , bytes (0)
    , lastCollectionTimeStamp (ACE_Time_Value::zero)
    , lock (NULL)
+   , managed (false)
    , sessionId (0)
    , startOfSession (ACE_Time_Value::zero)
    , statistic ()
@@ -213,6 +214,7 @@ struct Stream_SessionData
    , bytes (data_in.bytes)
    , lastCollectionTimeStamp (data_in.lastCollectionTimeStamp)
    , lock (data_in.lock)
+   , managed (data_in.managed)
    , sessionId (data_in.sessionId)
    , startOfSession (data_in.startOfSession)
    , statistic (data_in.statistic)
@@ -240,6 +242,8 @@ struct Stream_SessionData
     return *this;
   }
 
+  inline virtual void clear () { statistic.reset (); }
+
   // *NOTE*: set when/iff:
   //         - modules notify initialization/processing errors
   //         - stream processing ends 'early' (i.e. user abort, connection
@@ -248,6 +252,7 @@ struct Stream_SessionData
   size_t                  bytes; // progress, i.e. STREAM_SESSION_MESSAGE_STEP_DATA
   ACE_Time_Value          lastCollectionTimeStamp;
   ACE_SYNCH_MUTEX*        lock;
+  bool                    managed; // lifetime of 'this' managed by session manager ?
   Stream_SessionId_t      sessionId;
   ACE_Time_Value          startOfSession;
   struct Stream_Statistic statistic; // *TODO*: type should be a template parameter
@@ -283,7 +288,6 @@ struct Stream_State
    : linked_ds_ (false)
    , module (NULL)
    , moduleIsClone (false)
-   , sessionData (NULL)
    , stateMachineLock (NULL)
    , statistic (NULL)
    , userData (NULL)
@@ -295,7 +299,6 @@ struct Stream_State
 
     //deleteModule = (deleteModule ? deleteModule : rhs_in.deleteModule);
     //module = (module ? module : rhs_in.module);
-    //sessionData = (sessionData ? sessionData : rhs_in.sessionData);
     //stateMachineLock =
       //(stateMachineLock ? stateMachineLock : rhs_in.stateMachineLock);
 
@@ -309,7 +312,6 @@ struct Stream_State
   bool                       linked_ds_; // to downstream
   Stream_Module_t*           module; // final-
   bool                       moduleIsClone; // final-
-  struct Stream_SessionData* sessionData;
   ACE_SYNCH_MUTEX*           stateMachineLock;
   struct Stream_Statistic*   statistic;
 

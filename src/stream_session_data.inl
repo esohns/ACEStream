@@ -21,6 +21,7 @@
 #include "ace/Log_Msg.h"
 
 #include "common_macros.h"
+#include "common_tools.h"
 
 #include "common_timer_tools.h"
 
@@ -28,6 +29,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_defines.h"
+#include "stream_lib_directshow_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 template <typename BaseType,
@@ -137,9 +139,7 @@ Stream_SessionDataMediaBase_T<BaseType,
   for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::const_iterator iterator = codecConfiguration.begin ();
        iterator != codecConfiguration.end ();
        ++iterator)
-  {
     delete[] (*iterator).second.data;
-  } // end FOR
   codecConfiguration.clear ();
   codecConfiguration = rhs_in.codecConfiguration;
   for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::iterator iterator = codecConfiguration.begin ();
@@ -159,15 +159,40 @@ Stream_SessionDataMediaBase_T<BaseType,
 #endif // FFMPEG_SUPPORT
 
   // *NOTE*: the idea is to 'merge' the data
-  // *TODO*: this is problematic on windows
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (formats.empty ())
+  {
+    // *CONSIDER*: use template specialization instead ?
+    if (Common_Tools::equalType ((MediaFormatType*)NULL, (struct _AMMediaType*)NULL))
+      for (MEDIAFORMATS_CONST_ITERATOR_T iterator = rhs_in.formats.begin ();
+           iterator != rhs_in.formats.end ();
+           ++iterator)
+      { // *NOTE*: this should be safe because of the check above
+        struct _AMMediaType* media_type_p = (struct _AMMediaType*)&(*iterator);
+        struct _AMMediaType* media_type_2 =
+          Stream_MediaFramework_DirectShow_Tools::copy (*media_type_p);
+        formats.push_back (*(MediaFormatType*)media_type_2);
+      } // end FOR
+    else if (Common_Tools::equalType ((MediaFormatType*)NULL, (IMFMediaType**)NULL))
+      for (MEDIAFORMATS_CONST_ITERATOR_T iterator = rhs_in.formats.begin ();
+           iterator != rhs_in.formats.end ();
+           ++iterator)
+      { // *NOTE*: this should be safe because of the check above
+        IMFMediaType* media_type_p = *(IMFMediaType**)&(*iterator);
+        media_type_p->AddRef ();
+        formats.push_back (*(MediaFormatType*)&media_type_p);
+      } // end FOR
+  } // end IF
+#else
   formats = (formats.empty () ? rhs_in.formats : formats);
+#endif // ACE_WIN32 || ACE_WIN64
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework = rhs_in.mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
   state = rhs_in.state;
   statistic =
-      ((statistic.timeStamp >= rhs_in.statistic.timeStamp) ? statistic
-                                                           : rhs_in.statistic);
+    ((statistic.timeStamp >= rhs_in.statistic.timeStamp) ? statistic : rhs_in.statistic);
   sourceFileName = rhs_in.sourceFileName;
   targetFileName = rhs_in.targetFileName;
   userData = (userData ? userData : rhs_in.userData);
@@ -203,9 +228,7 @@ Stream_SessionDataMediaBase_T<BaseType,
   for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::const_iterator iterator = codecConfiguration.begin ();
        iterator != codecConfiguration.end ();
        ++iterator)
-  {
     delete[] (*iterator).second.data;
-  } // end FOR
   codecConfiguration.clear ();
   codecConfiguration = rhs_in.codecConfiguration;
   for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::iterator iterator = codecConfiguration.begin ();
@@ -224,8 +247,49 @@ Stream_SessionDataMediaBase_T<BaseType,
   } // end FOR
 #endif // FFMPEG_SUPPORT
 
-  // *TODO*: this is problematic on windows
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *CONSIDER*: use template specialization instead ?
+  if (Common_Tools::equalType ((MediaFormatType*)NULL, (struct _AMMediaType*)NULL))
+    for (MEDIAFORMATS_ITERATOR_T iterator = formats.begin ();
+         iterator != formats.end ();
+         ++iterator)
+    { // *NOTE*: this should be safe because of the check above
+      struct _AMMediaType* media_type_p = (struct _AMMediaType*)&(*iterator);
+      Stream_MediaFramework_DirectShow_Tools::free (*media_type_p);
+    } // end FOR
+  else if (Common_Tools::equalType ((MediaFormatType*)NULL, (IMFMediaType**)NULL))
+    for (MEDIAFORMATS_ITERATOR_T iterator = formats.begin ();
+         iterator != formats.end ();
+         ++iterator)
+    { // *NOTE*: this should be safe because of the check above
+      IMFMediaType* media_type_p = *(IMFMediaType**)&(*iterator);
+      media_type_p->Release ();
+    } // end FOR
+  formats.clear ();
+  // *CONSIDER*: use template specialization instead ?
+  if (Common_Tools::equalType ((MediaFormatType*)NULL, (struct _AMMediaType*)NULL))
+    for (MEDIAFORMATS_CONST_ITERATOR_T iterator = rhs_in.formats.begin ();
+         iterator != rhs_in.formats.end ();
+         ++iterator)
+    { // *NOTE*: this should be safe because of the check above
+      struct _AMMediaType* media_type_p = (struct _AMMediaType*)&(*iterator);
+      struct _AMMediaType* media_type_2 =
+        Stream_MediaFramework_DirectShow_Tools::copy (*media_type_p);
+      formats.push_back (*(MediaFormatType*)media_type_2);
+    } // end FOR
+  else if (Common_Tools::equalType ((MediaFormatType*)NULL, (IMFMediaType**)NULL))
+    for (MEDIAFORMATS_CONST_ITERATOR_T iterator = rhs_in.formats.begin ();
+         iterator != rhs_in.formats.end ();
+         ++iterator)
+    { // *NOTE*: this should be safe because of the check above
+      IMFMediaType* media_type_p = *(IMFMediaType**)&(*iterator);
+      media_type_p->AddRef ();
+      formats.push_back (*(MediaFormatType*)&media_type_p);
+    } // end FOR
+#else
   formats = rhs_in.formats;
+#endif // ACE_WIN32 || ACE_WIN64
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework = rhs_in.mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -236,6 +300,54 @@ Stream_SessionDataMediaBase_T<BaseType,
   userData = (userData ? userData : rhs_in.userData);
 
   return *this;
+}
+
+template <typename BaseType,
+          typename MediaFormatType,
+          typename StreamStateType,
+          typename StatisticType,
+          typename UserDataType>
+void
+Stream_SessionDataMediaBase_T<BaseType,
+                              MediaFormatType,
+                              StreamStateType,
+                              StatisticType,
+                              UserDataType>::clear ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::clear"));
+
+#if defined (FFMPEG_SUPPORT)
+  for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::const_iterator iterator = codecConfiguration.begin ();
+       iterator != codecConfiguration.end ();
+       ++iterator)
+    delete[] (*iterator).second.data;
+  codecConfiguration.clear ();
+#endif // FFMPEG_SUPPORT
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *CONSIDER*: use template specialization instead ?
+  if (Common_Tools::equalType ((MediaFormatType*)NULL, (struct _AMMediaType*)NULL))
+    for (MEDIAFORMATS_ITERATOR_T iterator = formats.begin ();
+         iterator != formats.end ();
+         ++iterator)
+    { // *NOTE*: this should be safe because of the check above
+      struct _AMMediaType* media_type_p = (struct _AMMediaType*)&(*iterator);
+      Stream_MediaFramework_DirectShow_Tools::free (*media_type_p);
+    } // end FOR
+  else if (Common_Tools::equalType ((MediaFormatType*)NULL, (IMFMediaType**)NULL))
+    for (MEDIAFORMATS_ITERATOR_T iterator = formats.begin ();
+         iterator != formats.end ();
+         ++iterator)
+    { // *NOTE*: this should be safe because of the check above
+      IMFMediaType* media_type_p = *(IMFMediaType**)&(*iterator);
+      media_type_p->Release ();
+    } // end FOR
+#endif // ACE_WIN32 || ACE_WIN64
+  formats.clear ();
+
+  statistic.reset ();
+
+  inherited::clear ();
 }
 
 //////////////////////////////////////////

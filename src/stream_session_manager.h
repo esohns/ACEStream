@@ -84,27 +84,31 @@ class Stream_Session_Manager_T
   virtual void stop (bool = true,   // wait for completion ?
                      bool = true,   // recurse upstream (if any) ?
                      bool = false); // high priority ?
-  inline virtual bool isRunning () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
+  inline virtual bool isRunning () const { return (resetTimeoutHandlerId_ != -1); }
   inline virtual void finished (bool = true) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-  virtual unsigned int flush (bool = true,   // flush inbound data ?
-                              bool = false,  // flush session messages ?
-                              bool = false); // flush upstream (if any) ?
-  virtual void idle (bool = true,        // wait forever ?
-                     bool = true) const; // recurse upstream (if any) ?
-  virtual void wait (bool = true,         // wait for any worker thread(s) ?
-                     bool = false,        // wait for upstream (if any) ?
-                     bool = false) const; // wait for downstream (if any) ?
+  inline virtual unsigned int flush (bool = true,                                                                            // flush inbound data ?
+                                     bool = false,                                                                           // flush session messages ?
+                                     bool = false) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (0); ACE_NOTREACHED (return 0;) } // flush upstream (if any) ?
+  inline virtual void idle (bool = true,                                                                    // wait forever ?
+                            bool = true) const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) } // recurse upstream (if any) ?
+  inline virtual void wait (bool = true,                                                                     // wait for any worker thread(s) ?
+                            bool = false,                                                                    // wait for upstream (if any) ?
+                            bool = false) const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) } // wait for downstream (if any) ?
   inline virtual void pause () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   inline virtual void rewind () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   // implement Stream_ISessionCB
   inline virtual void onSessionBegin (Stream_SessionId_t) { ACE_NOTSUP; ACE_NOTREACHED (return;) }
-  inline virtual void onSessionEnd (Stream_SessionId_t) { ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  virtual void onSessionEnd (Stream_SessionId_t);
 
   virtual Stream_SessionId_t sessionId (const std::string& = ACE_TEXT_ALWAYS_CHAR ("")) const; // stream id
   virtual const SessionDataType& getR (const std::string& = ACE_TEXT_ALWAYS_CHAR ("")) const; // stream id
+
+  // *NOTE*: allocates (and manages the lifetime of-) the session data
+  virtual void create (const std::string& = ACE_TEXT_ALWAYS_CHAR ("")); // stream id
+  virtual void destroy (const std::string& = ACE_TEXT_ALWAYS_CHAR ("")); // stream id
   virtual void setR (SessionDataType&,                               // session data
-                    const std::string& = ACE_TEXT_ALWAYS_CHAR ("")); // stream id
+                     const std::string& = ACE_TEXT_ALWAYS_CHAR ("")); // stream id
 
  protected:
   // *NOTE*: support derived classes

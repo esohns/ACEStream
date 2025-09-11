@@ -68,6 +68,13 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::~Stream_Session_Manager_T"));
 
+  // clean up
+  for (typename SESSIONDATA_MAP_T::const_iterator iterator = sessionData_.begin ();
+       iterator != sessionData_.end ();
+       ++iterator)
+    if ((*iterator).second->managed)
+      delete (*iterator).second;
+
   if (unlikely (resetTimeoutHandlerId_ != -1))
   {
     Common_ITimer_Manager_t* timer_interface_p =
@@ -99,6 +106,9 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::initialize"));
 
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
+
+  // create default (managed) session data
+  create ();
 
   // *TODO*: remove type inferences
   if (likely (configuration_->stream))
@@ -181,9 +191,9 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
-                         UserDataType>::stop (bool waitForCompletion_in,
-                                              bool recurseUpstream_in,
-                                              bool highPriority_in)
+                         UserDataType>::stop (bool,
+                                              bool,
+                                              bool)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::stop"));
 
@@ -200,9 +210,35 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
                   resetTimeoutHandlerId_));
     resetTimeoutHandlerId_ = -1;
   } // end IF
+}
 
-  if (waitForCompletion_in)
-    wait (true); // N/A
+template <ACE_SYNCH_DECL,
+          typename NotificationType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename StatisticContainerType,
+          typename UserDataType>
+void
+Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
+                         ConfigurationType,
+                         SessionDataType,
+                         StatisticContainerType,
+                         UserDataType>::onSessionEnd (Stream_SessionId_t sessionId_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::onSessionEnd"));
+
+  // *NOTE*: look up and reset the session data
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
+    for (typename SESSIONDATA_MAP_T::iterator iterator = sessionData_.begin ();
+         iterator != sessionData_.end ();
+         ++iterator)
+      if ((*iterator).second->sessionId == sessionId_in)
+      {
+        (*iterator).second->clear ();
+        break; // done
+      } // end IF
+  } // end lock scope
 }
 
 template <ACE_SYNCH_DECL,
@@ -233,66 +269,6 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
   ACE_ASSERT (false);
 
   return 0;
-}
-
-template <ACE_SYNCH_DECL,
-          typename NotificationType,
-          typename ConfigurationType,
-          typename SessionDataType,
-          typename StatisticContainerType,
-          typename UserDataType>
-unsigned int
-Stream_Session_Manager_T<ACE_SYNCH_USE,
-                         NotificationType,
-                         ConfigurationType,
-                         SessionDataType,
-                         StatisticContainerType,
-                         UserDataType>::flush (bool flushInbound_in,
-                                               bool flushSessionMessages_in,
-                                               bool flushUpstream_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::flush"));
-
-  return 0;
-}
-
-template <ACE_SYNCH_DECL,
-          typename NotificationType,
-          typename ConfigurationType,
-          typename SessionDataType,
-          typename StatisticContainerType,
-          typename UserDataType>
-void
-Stream_Session_Manager_T<ACE_SYNCH_USE,
-                         NotificationType,
-                         ConfigurationType,
-                         SessionDataType,
-                         StatisticContainerType,
-                         UserDataType>::idle (bool waitForCompletion_in,
-                                              bool recurseUpstream_in) const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::idle"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename NotificationType,
-          typename ConfigurationType,
-          typename SessionDataType,
-          typename StatisticContainerType,
-          typename UserDataType>
-void
-Stream_Session_Manager_T<ACE_SYNCH_USE,
-                         NotificationType,
-                         ConfigurationType,
-                         SessionDataType,
-                         StatisticContainerType,
-                         UserDataType>::wait (bool waitForThreads_in,
-                                              bool waitForUpstream_in,
-                                              bool waitForDownstream_in) const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::wait"));
-
 }
 
 template <ACE_SYNCH_DECL,
@@ -339,6 +315,63 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
                          ConfigurationType,
                          SessionDataType,
                          StatisticContainerType,
+                         UserDataType>::create (const std::string& streamId_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::create"));
+
+  SessionDataType* session_data_p = NULL;
+  ACE_NEW_NORETURN (session_data_p,
+                    SessionDataType ());
+  ACE_ASSERT (session_data_p);
+  session_data_p->managed = true;
+
+  setR (*session_data_p, streamId_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename NotificationType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename StatisticContainerType,
+          typename UserDataType>
+void
+Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
+                         ConfigurationType,
+                         SessionDataType,
+                         StatisticContainerType,
+                         UserDataType>::destroy (const std::string& streamId_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Session_Manager_T::destroy"));
+
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
+    SESSIONDATA_MAP_ITERATOR_T iterator = sessionData_.find (streamId_in);
+    if (iterator != sessionData_.end ())
+    {
+      if (unlikely ((*iterator).second->managed))
+        delete (*iterator).second;
+
+      sessionData_.erase (iterator);
+    } // end IF
+    else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid stream id (was: \"%s\"), cannot destroy session data, continuing\n"),
+                  ACE_TEXT (streamId_in.c_str ())));
+  } // end lock scope
+}
+
+template <ACE_SYNCH_DECL,
+          typename NotificationType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename StatisticContainerType,
+          typename UserDataType>
+void
+Stream_Session_Manager_T<ACE_SYNCH_USE,
+                         NotificationType,
+                         ConfigurationType,
+                         SessionDataType,
+                         StatisticContainerType,
                          UserDataType>::setR (SessionDataType& sessionData_in,
                                               const std::string& streamId_in)
 {
@@ -353,6 +386,9 @@ Stream_Session_Manager_T<ACE_SYNCH_USE,
     SESSIONDATA_MAP_ITERATOR_T iterator = sessionData_.find (streamId_in);
     if (iterator != sessionData_.end ())
     {
+      if (unlikely ((*iterator).second->managed))
+        delete (*iterator).second;
+
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("resetting session data (stream id: \"%s\"), continuing\n"),
                   ACE_TEXT (streamId_in.c_str ())));

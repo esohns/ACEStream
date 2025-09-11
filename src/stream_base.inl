@@ -87,6 +87,12 @@ Stream_Base_T<ACE_SYNCH_USE,
   std::ostringstream converter (ptr_hash (this));
   id_ = converter.str ();
 
+  // create session data instance (managed by session manager)
+  SessionManagerType* session_manager_p =
+    SessionManagerType::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
+  session_manager_p->create (id_);
+
   if (unlikely (!initializeHeadTail ()))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -126,6 +132,12 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionMessageType>::~Stream_Base_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::~Stream_Base_T"));
+
+  // destroy session data instance (iff managed by session manager)
+  SessionManagerType* session_manager_p =
+    SessionManagerType::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
+  session_manager_p->destroy (id_);
 
   // deregister messageQueue_; it falls off the stack before
   // inherited::stream_head_
@@ -496,17 +508,15 @@ Stream_Base_T<ACE_SYNCH_USE,
   ACE_ASSERT (configuration_);
   ACE_ASSERT (configuration_->configuration_);
 
-  // step1: allocate session data ?
+  // step1: reset session data ?
   if (resetSessionData_in)
   {
     SessionManagerType* session_manager_p =
       SessionManagerType::SINGLETON_T::instance ();
     ACE_ASSERT (session_manager_p);
     typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-      const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR ());
-    { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
-      state_.sessionData = &session_data_r;
-    } // end lock scope
+      const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (id_));
+    session_data_r.clear ();
   } // end IF
 
   // step2: load modules
@@ -1390,7 +1400,6 @@ Stream_Base_T<ACE_SYNCH_USE,
     return;
   } // end IF
   ACE_ASSERT (module_p);
-
   ISTATE_MACHINE_T* istatemachine_p =
     dynamic_cast<ISTATE_MACHINE_T*> (module_p->writer ());
   if (unlikely (!istatemachine_p))
@@ -1402,13 +1411,16 @@ Stream_Base_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
+  SessionManagerType* session_manager_p =
+    SessionManagerType::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
+  const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    session_manager_p->getR (id_);
+
   switch (notification_in)
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
-      // sanity check(s)
-      ACE_ASSERT (state_.sessionData);
-
       enum Stream_StateMachine_ControlState state_e =
         istatemachine_p->current ();
 
@@ -1418,7 +1430,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       //         - session abort is complete
       //           --> end session normally
       if ((state_e == STREAM_STATE_SESSION_STARTING) &&
-          !state_.sessionData->aborted)
+          !session_data_r.aborted)
       { // == first case; handled by head module writer task
         notify (notification_in,
                 false); // recurse upstream ?
@@ -1485,9 +1497,6 @@ Stream_Base_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      // sanity check(s)
-      ACE_ASSERT (state_.sessionData);
-
       try {
         istatemachine_p->change (STREAM_STATE_RUNNING);
       } catch (...) {
@@ -1499,7 +1508,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       }
 
       try {
-        onSessionBegin (state_.sessionData->sessionId);
+        onSessionBegin (session_data_r.sessionId);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: caught exception in Stream_ISessionCB::onSessionBegin(), continuing\n"),
@@ -1528,11 +1537,8 @@ session_end:
         return;
       }
 
-      // sanity check(s)
-      ACE_ASSERT (state_.sessionData);
-
       try {
-        onSessionEnd (state_.sessionData->sessionId);
+        onSessionEnd (session_data_r.sessionId);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: caught exception in Stream_ISessionCB::onSessionEnd(), continuing\n"),
@@ -3453,7 +3459,6 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::collect"));
 
-//  int result = -1;
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (find (ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING),
                                         true,
@@ -3492,10 +3497,15 @@ Stream_Base_T<ACE_SYNCH_USE,
   else
   {
     // update session data as well
-    ACE_ASSERT (state_.sessionData->lock);
-    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *state_.sessionData->lock, false);
-      state_.sessionData->statistic = data_out;
-      state_.sessionData->statistic.timeStamp = COMMON_TIME_NOW;
+    SessionManagerType* session_manager_p =
+      SessionManagerType::SINGLETON_T::instance ();
+    ACE_ASSERT (session_manager_p);
+    typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+      const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (id_));
+    ACE_ASSERT (session_data_r.lock);
+    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock, false);
+      session_data_r.statistic = data_out;
+      session_data_r.statistic.timeStamp = ACE_OS::gettimeofday ();
     } // end lock scope
   } // end ELSE
 
@@ -3629,13 +3639,18 @@ Stream_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT (name_.c_str ())));
   }
 
+  SessionManagerType* session_manager_p =
+    SessionManagerType::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
+  const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    session_manager_p->getR (id_);
   ACE_DEBUG ((LM_INFO,
-              ACE_TEXT ("*** [session: %d] RUNTIME STATISTIC ***\n--> stream statistic @ %#D<--\n (data) messages: %u\n dropped messages: %u\n bytes total: %Q\n*** RUNTIME STATISTIC ***\\END\n"),
-              (state_.sessionData ? static_cast<int> (state_.sessionData->sessionId) : -1),
-              &state_.sessionData->lastCollectionTimeStamp,
-              state_.sessionData->statistic.dataMessages,
-              state_.sessionData->statistic.droppedFrames,
-              state_.sessionData->statistic.bytes));
+              ACE_TEXT ("*** [session: %u] RUNTIME STATISTIC ***\n--> stream statistic @ %#D<--\n (data) messages: %u\n dropped messages: %u\n bytes total: %Q\n*** RUNTIME STATISTIC ***\\END\n"),
+              session_data_r.sessionId,
+              &session_data_r.lastCollectionTimeStamp,
+              session_data_r.statistic.dataMessages,
+              session_data_r.statistic.droppedFrames,
+              session_data_r.statistic.bytes));
 }
 
 template <ACE_SYNCH_DECL,
