@@ -393,6 +393,7 @@ class Stream_Base_T
   using inherited::remove;
 
   CONFIGURATION_T*          configuration_;
+  std::string               id_; // hash of 'this'
   // *NOTE*: derived classes set this iff (!) their initialization succeeded;
   //         otherwise the dtor will NOT join any worker threads before
   //         close()ing the modules
@@ -481,7 +482,6 @@ class Stream_Base_T
                           int) const; // indentation
 
   bool                      delete_; // delete modules ?
-  std::string               id_; // hash of 'this'
   SUBSCRIBERS_T             subscribers_;
 };
 

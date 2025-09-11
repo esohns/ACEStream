@@ -63,6 +63,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               NULL, // --> allocate head module
               NULL) // --> allocate tail module
  , configuration_ (NULL)
+ , id_ ()
  , isInitialized_ (false)
  , layout_ ()
  , messageQueue_ (STREAM_QUEUE_MAX_SLOTS,
@@ -72,7 +73,6 @@ Stream_Base_T<ACE_SYNCH_USE,
  , statistic_ ()
  /////////////////////////////////////////
  , delete_ (false)
- , id_ ()
  , subscribers_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
