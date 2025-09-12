@@ -881,15 +881,14 @@ Stream_Base_T<ACE_SYNCH_USE,
     SessionManagerType::SINGLETON_T::instance ();
   ACE_ASSERT (session_manager_p);
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR ());
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (id_));
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_r.lock);
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
     session_data_r.sessionId =
       (configuration_->configuration_->sessionId ? configuration_->configuration_->sessionId
                                                  : ++inherited2::currentSessionId);
-    session_data_r.startOfSession = COMMON_TIME_NOW;
-    //session_data_r.state = &state_;
+    session_data_r.startOfSession = ACE_OS::gettimeofday ();
   } // end lock scope
 
   // delegate to the head module
@@ -4491,7 +4490,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     SessionManagerType::SINGLETON_T::instance ();
   ACE_ASSERT (session_manager_p);
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR ());
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (id_));
   typename SessionMessageType::DATA_T* session_data_container_p = NULL;
   typename SessionMessageType::DATA_T::DATA_T* session_data_p = &session_data_r;
   ACE_NEW_NORETURN (session_data_container_p,

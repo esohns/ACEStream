@@ -504,7 +504,7 @@ continue_:
 
   // sanity check(s)
   session_data_p =
-    &const_cast<Stream_CameraScreen_DirectShow_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_CameraScreen_DirectShow_SessionData&> (session_manager_p->getR (inherited::id_));
   //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
@@ -976,7 +976,7 @@ Stream_CameraScreen_MediaFoundation_Stream::initialize (const inherited::CONFIGU
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<Stream_CameraScreen_MediaFoundation_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_CameraScreen_MediaFoundation_SessionData&> (session_manager_p->getR (inherited::id_));
   // sanity check(s)
   // *TODO*: remove type inferences
   //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
@@ -1361,7 +1361,7 @@ Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<Stream_CameraScreen_V4L_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_CameraScreen_V4L_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);

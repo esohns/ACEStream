@@ -408,7 +408,7 @@ continue_:
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<Stream_CameraAR_DirectShow_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_CameraAR_DirectShow_SessionData&> (session_manager_p->getR (inherited::id_));
 
   // ---------------------------------------------------------------------------
   // step4: initialize module(s)
@@ -914,7 +914,7 @@ Stream_CameraAR_MediaFoundation_Stream::initialize (const inherited::CONFIGURATI
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<Stream_CameraAR_MediaFoundation_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_CameraAR_MediaFoundation_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
@@ -1223,7 +1223,7 @@ Stream_CameraAR_Stream::initialize (const typename inherited::CONFIGURATION_T& c
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<Stream_CameraAR_V4L_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_CameraAR_V4L_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);

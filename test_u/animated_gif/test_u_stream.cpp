@@ -188,7 +188,7 @@ Test_U_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 
   // sanity check(s)
   session_data_p =
-    &const_cast<Test_U_AnimatedGIF_SessionData&> (session_manager_p->getR ());
+    &const_cast<Test_U_AnimatedGIF_SessionData&> (session_manager_p->getR (inherited::id_));
   ACE_ASSERT (session_data_p->formats.empty ());
   iterator = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());

@@ -97,7 +97,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   ACE_ASSERT (stream_in);
   ISTREAM_CONTROL_T* istream_control_p =
-      dynamic_cast<ISTREAM_CONTROL_T*> (stream_in);
+    dynamic_cast<ISTREAM_CONTROL_T*> (stream_in);
   ACE_ASSERT (istream_control_p);
   streamState_ = &const_cast<StreamStateType&> (istream_control_p->state ());
 }

@@ -108,7 +108,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfigura
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<struct Test_I_Stream_SessionData&> (session_manager_p->getR ());
+    &const_cast<struct Test_I_Stream_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 //  configuration_in.moduleConfiguration.streamState = &state_;
@@ -170,7 +170,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (struct Stream_Statistic& data_o
 
   int result = -1;
   struct Test_I_Stream_SessionData& session_data_r =
-    const_cast<struct Test_I_Stream_SessionData&> (session_manager_p->getR ());
+    const_cast<struct Test_I_Stream_SessionData&> (session_manager_p->getR (inherited::id_));
 
   //Test_I_Statistic_WriterTask_t* statistic_impl =
   //  dynamic_cast<Test_I_Statistic_WriterTask_t*> (statisticReport_.writer ());

@@ -197,7 +197,7 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 
   // sanity check(s)
   session_data_p =
-    &const_cast<Test_I_ImageSave_SessionData&> (session_manager_p->getR ());
+    &const_cast<Test_I_ImageSave_SessionData&> (session_manager_p->getR (inherited::id_));
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------

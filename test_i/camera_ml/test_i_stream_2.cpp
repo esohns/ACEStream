@@ -467,7 +467,7 @@ continue_:
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<Stream_CameraML_DirectShow_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_CameraML_DirectShow_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   //if ((*iterator).second.second->direct3DConfiguration->handle)
   //{
@@ -967,7 +967,7 @@ Stream_CameraML_MediaFoundation_Stream_2::initialize (const inherited::CONFIGURA
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<Stream_CameraML_MediaFoundation_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_CameraML_MediaFoundation_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
@@ -1314,7 +1314,7 @@ Stream_CameraML_Stream_2::initialize (const typename inherited::CONFIGURATION_T&
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<Stream_CameraML_V4L_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_CameraML_V4L_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);

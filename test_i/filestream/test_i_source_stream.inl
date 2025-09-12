@@ -144,7 +144,7 @@ Test_I_Source_Stream_T<ConnectionManagerType,
   // -------------------------------------------------------------
 
   session_data_p =
-    &const_cast<struct Test_I_Source_SessionData&> (session_manager_p->getR ());
+    &const_cast<struct Test_I_Source_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   session_data_p->sourceFileName =
     (*iterator).second.second->fileIdentifier.identifier;
@@ -183,7 +183,7 @@ Test_I_Source_Stream_T<ConnectionManagerType,
 
   int result = -1;
   struct Test_I_Source_SessionData& session_data_r =
-    const_cast<struct Test_I_Source_SessionData&> (session_manager_p->getR ());
+    const_cast<struct Test_I_Source_SessionData&> (session_manager_p->getR (inherited::id_));
 
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));

@@ -109,7 +109,7 @@ Stream_Filecopy_Stream::initialize (const inherited::CONFIGURATION_T& configurat
   session_manager_p = Test_U_SessionManager_t::SINGLETON_T::instance ();
   ACE_ASSERT (session_manager_p);
   session_data_p =
-    &const_cast<struct Stream_Filecopy_SessionData&> (session_manager_p->getR ());
+    &const_cast<struct Stream_Filecopy_SessionData&> (session_manager_p->getR (inherited::id_));
   iterator = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
 

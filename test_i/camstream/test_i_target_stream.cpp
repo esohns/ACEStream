@@ -161,7 +161,7 @@ Test_I_Target_DirectShow_TCPStream::initialize (const CONFIGURATION_T& configura
   reset_setup_pipeline = false;
 
   Test_I_Target_DirectShow_SessionData& session_data_r =
-    const_cast<Test_I_Target_DirectShow_SessionData&> (session_manager_p->getR ());
+    const_cast<Test_I_Target_DirectShow_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   //session_data_r.lock = &(inherited::sessionDataLock_);
   //inherited::state_.sessionData = &session_data_r;
@@ -392,7 +392,7 @@ Test_I_Target_DirectShow_UDPStream::initialize (const CONFIGURATION_T& configura
   reset_setup_pipeline = false;
 
   Test_I_Target_DirectShow_SessionData& session_data_r =
-    const_cast<Test_I_Target_DirectShow_SessionData&> (session_manager_p->getR ());
+    const_cast<Test_I_Target_DirectShow_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   //session_data_r.lock = &(inherited::sessionDataLock_);
   //inherited::state_.sessionData = &session_data_r;
@@ -629,7 +629,7 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
   reset_setup_pipeline = false;
 
   Test_I_Target_MediaFoundation_SessionData& session_data_r =
-    const_cast<Test_I_Target_MediaFoundation_SessionData&> (session_manager_p->getR ());
+    const_cast<Test_I_Target_MediaFoundation_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   //session_data_r.lock = &(inherited::sessionDataLock_);
   //inherited::state_.sessionData = &session_data_r;
@@ -991,7 +991,7 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
   reset_setup_pipeline = false;
 
   Test_I_Target_MediaFoundation_SessionData& session_data_r =
-    const_cast<Test_I_Target_MediaFoundation_SessionData&> (session_manager_p->getR ());
+    const_cast<Test_I_Target_MediaFoundation_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   //session_data_r.lock = &(inherited::sessionDataLock_);
   //inherited::state_.sessionData = &session_data_r;
@@ -1255,7 +1255,7 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
   reset_setup_pipeline = false;
 
   Test_I_Target_SessionData& session_data_r =
-    const_cast<Test_I_Target_SessionData&> (session_manager_p->getR ());
+    const_cast<Test_I_Target_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   // inherited::state_.sessionData = &session_data_r;
   ACE_ASSERT (session_data_r.formats.empty ());
@@ -1389,7 +1389,7 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
   reset_setup_pipeline = false;
 
   Test_I_Target_SessionData& session_data_r =
-    const_cast<Test_I_Target_SessionData&> (session_manager_p->getR ());
+    const_cast<Test_I_Target_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   // inherited::state_.sessionData = &session_data_r;
   ACE_ASSERT (session_data_r.formats.empty ());

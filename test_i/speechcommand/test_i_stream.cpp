@@ -387,7 +387,7 @@ Test_I_DirectShow_Stream::initialize (const CONFIGURATION_T& configuration_in)
   // sanity check(s)
   ACE_ASSERT (session_manager_p);
   Test_I_SpeechCommand_DirectShow_SessionData& session_data_r =
-    const_cast<Test_I_SpeechCommand_DirectShow_SessionData&> (session_manager_p->getR ());
+    const_cast<Test_I_SpeechCommand_DirectShow_SessionData&> (session_manager_p->getR (inherited::id_));
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
@@ -1218,7 +1218,7 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
 
   // sanity check(s)
   Test_I_SpeechCommand_MediaFoundation_SessionData& session_data_r =
-    const_cast<Test_I_SpeechCommand_MediaFoundation_SessionData&> (session_manager_p->getR ());
+    const_cast<Test_I_SpeechCommand_MediaFoundation_SessionData&> (session_manager_p->getR (inherited::id_));
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
@@ -2056,7 +2056,7 @@ Test_I_ALSA_Stream::initialize (const CONFIGURATION_T& configuration_in)
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<Test_I_SpeechCommand_ALSA_SessionData&> (session_manager_p->getR ());
+    &const_cast<Test_I_SpeechCommand_ALSA_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);

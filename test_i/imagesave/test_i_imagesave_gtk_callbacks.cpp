@@ -183,7 +183,7 @@ stream_processing_function (void* arg_in)
     goto error;
   } // end IF
   stream_p = cb_data_p->stream;
-  session_data_p = &session_manager_p->getR ();
+  session_data_p = &session_manager_p->getR (cb_data_p->stream->id ());
   // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
   cb_data_p->progressData.sessionId = session_data_p->sessionId;
   converter << session_data_p->sessionId;

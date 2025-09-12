@@ -108,7 +108,7 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<struct Test_I_Target_SessionData&> (session_manager_p->getR ());
+    &const_cast<struct Test_I_Target_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   session_data_p->targetFileName =
       (*iterator).second.second->fileIdentifier.identifier;
@@ -152,7 +152,7 @@ Test_I_Target_TCPStream::collect (struct Stream_Statistic& data_out)
   bool release_lock = false;
 
   struct Test_I_Target_SessionData& session_data_r =
-    const_cast<struct Test_I_Target_SessionData&> (session_manager_p->getR ());
+    const_cast<struct Test_I_Target_SessionData&> (session_manager_p->getR (inherited::id_));
 
   // synch access
   if (session_data_r.lock)
@@ -302,7 +302,7 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<struct Test_I_Target_SessionData&> (session_manager_p->getR ());
+    &const_cast<struct Test_I_Target_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   session_data_p->targetFileName = (*iterator).second.second->fileIdentifier.identifier;
 
@@ -345,7 +345,7 @@ Test_I_Target_UDPStream::collect (struct Stream_Statistic& data_out)
   bool release_lock = false;
 
   struct Test_I_Target_SessionData& session_data_r =
-    const_cast<struct Test_I_Target_SessionData&> (session_manager_p->getR ());
+    const_cast<struct Test_I_Target_SessionData&> (session_manager_p->getR (inherited::id_));
 
   // synch access
   if (session_data_r.lock)

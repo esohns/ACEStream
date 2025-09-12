@@ -187,7 +187,7 @@ Branch_Stream_2::initialize (const typename inherited::CONFIGURATION_T& configur
   session_manager_p = Test_U_SessionManager_t::SINGLETON_T::instance ();
   ACE_ASSERT (session_manager_p);
   session_data_p =
-    &const_cast<struct Branch_SessionData&> (session_manager_p->getR ());
+    &const_cast<struct Branch_SessionData&> (session_manager_p->getR (inherited::id_));
   session_data_p->stream = this;
 
   // ---------------------------------------------------------------------------

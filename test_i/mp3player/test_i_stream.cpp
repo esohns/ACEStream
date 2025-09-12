@@ -166,7 +166,7 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<struct Test_I_MP3Player_SessionData&> (session_manager_p->getR ());
+    &const_cast<struct Test_I_MP3Player_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
@@ -222,7 +222,7 @@ Test_I_Stream::collect (struct Stream_Statistic& data_out)
 
   int result = -1;
   struct Test_I_MP3Player_SessionData& session_data_r =
-    const_cast<struct Test_I_MP3Player_SessionData&> (session_manager_p->getR ());
+    const_cast<struct Test_I_MP3Player_SessionData&> (session_manager_p->getR (inherited::id_));
 
   //Test_I_Statistic_WriterTask_t* statistic_impl =
   //  dynamic_cast<Test_I_Statistic_WriterTask_t*> (statisticReport_.writer ());

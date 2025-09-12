@@ -128,7 +128,7 @@ HTTPGet_Stream_T<TCPConnectorType,
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<struct HTTPGet_SessionData&> (session_manager_p->getR ());
+    &const_cast<struct HTTPGet_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 

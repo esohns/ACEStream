@@ -187,7 +187,7 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
 
   // sanity check(s)
   session_data_p =
-    &const_cast<Test_U_CaptureWindow_DirectShow_SessionData&> (session_manager_p->getR ());
+    &const_cast<Test_U_CaptureWindow_DirectShow_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   //if ((*iterator).second.second->direct3DConfiguration->handle)
   //{
@@ -666,7 +666,7 @@ Test_U_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& con
   ACE_ASSERT (session_manager_p);
 
   session_data_p =
-    &const_cast<Test_U_CaptureWindow_MediaFoundation_SessionData&> (session_manager_p->getR ());
+    &const_cast<Test_U_CaptureWindow_MediaFoundation_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
@@ -947,7 +947,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<Test_U_CaptureWindow_SessionData&> (session_manager_p->getR ());
+    &const_cast<Test_U_CaptureWindow_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);

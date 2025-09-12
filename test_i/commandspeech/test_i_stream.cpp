@@ -659,7 +659,7 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
 
   // sanity check(s)
   Test_I_CommandSpeech_MediaFoundation_SessionData& session_data_r =
-    const_cast<Test_I_CommandSpeech_MediaFoundation_SessionData&> (session_manager_p->getR ());
+    const_cast<Test_I_CommandSpeech_MediaFoundation_SessionData&> (session_manager_p->getR (inherited::id_));
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
@@ -1454,7 +1454,7 @@ Test_I_ALSA_Stream::initialize (const CONFIGURATION_T& configuration_in)
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<Test_I_CommandSpeech_ALSA_SessionData&> (session_manager_p->getR ());
+    &const_cast<Test_I_CommandSpeech_ALSA_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   session_data_p->targetFileName =
     (*iterator_2).second.second->fileIdentifier.identifier;

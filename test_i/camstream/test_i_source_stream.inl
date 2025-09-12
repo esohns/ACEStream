@@ -514,7 +514,7 @@ continue_:
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR ());
+    &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   //(*iterator).second.second->direct3DConfiguration->handle->AddRef ();
   //session_data_p->direct3DDevice =
@@ -905,7 +905,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   reset_setup_pipeline = false;
 
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR ());
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (inherited::id_));
   bool input_mediatype_was_null = false;
   IMFMediaType* media_type_p = NULL;
 
@@ -1350,7 +1350,7 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
   reset_setup_pipeline = false;
 
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR ());
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_r.formats.empty ());
   session_data_r.formats.push_back (configuration_in.configuration_->format);

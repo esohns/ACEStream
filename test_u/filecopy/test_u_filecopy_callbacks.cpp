@@ -1087,7 +1087,7 @@ action_start_activate_cb (GtkAction* action_in,
     Test_U_SessionManager_t::SINGLETON_T::instance ();
   ACE_ASSERT (session_manager_p);
   const struct Stream_Filecopy_SessionData& session_data_r =
-    session_manager_p->getR ();
+    session_manager_p->getR (data_p->stream->id ());
   // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
   data_p->progressData.sessionId = session_data_r.sessionId;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

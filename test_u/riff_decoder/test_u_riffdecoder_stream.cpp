@@ -91,7 +91,7 @@ Test_U_RIFFDecoder_Stream::initialize (const inherited::CONFIGURATION_T& configu
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<struct Test_U_RIFFDecoder_SessionData&> (session_manager_p->getR ());
+    &const_cast<struct Test_U_RIFFDecoder_SessionData&> (session_manager_p->getR (inherited::id_));
   session_data_p->fileSize =
     Common_File_Tools::size (iterator->second.second->fileIdentifier.identifier);
 

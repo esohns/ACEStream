@@ -202,7 +202,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
 
   // sanity check(s)
   session_data_p =
-    &const_cast<Stream_ImageScreen_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_ImageScreen_SessionData&> (session_manager_p->getR (inherited::id_));
   ACE_ASSERT (session_data_p->formats.empty ());
   // *TODO*: remove type inferences
 //  session_data_p->formats.push_back (configuration_in.configuration->format);

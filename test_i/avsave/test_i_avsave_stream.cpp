@@ -470,7 +470,7 @@ continue_:
   //              inherited::configuration_->configuration_->module_2->name ()));
 
   session_data_p =
-    &const_cast<Stream_AVSave_DirectShow_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_AVSave_DirectShow_SessionData&> (session_manager_p->getR (inherited::id_));
   Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format,
                                                 media_type_s);
   session_data_p->formats.push_back (media_type_s);
@@ -964,7 +964,7 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
   ACE_ASSERT (session_manager_p);
 
   session_data_p =
-    &const_cast<Stream_AVSave_MediaFoundation_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_AVSave_MediaFoundation_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
@@ -1259,7 +1259,7 @@ Stream_AVSave_DirectShow_Audio_Stream::initialize (const typename inherited::CON
   ACE_ASSERT (session_manager_p);
 
   session_data_p =
-    &const_cast<Stream_AVSave_DirectShow_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_AVSave_DirectShow_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
@@ -1391,7 +1391,7 @@ Stream_AVSave_MediaFoundation_Audio_Stream::initialize (const typename inherited
   ACE_ASSERT (session_manager_p);
 
   session_data_p =
-    &const_cast<Stream_AVSave_MediaFoundation_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_AVSave_MediaFoundation_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
@@ -1592,7 +1592,7 @@ Stream_AVSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T&
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<Stream_AVSave_ALSA_V4L_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_AVSave_ALSA_V4L_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
@@ -1725,7 +1725,7 @@ Stream_AVSave_ALSA_Stream::initialize (const typename inherited::CONFIGURATION_T
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<Stream_AVSave_ALSA_V4L_SessionData&> (session_manager_p->getR ());
+    &const_cast<Stream_AVSave_ALSA_V4L_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);

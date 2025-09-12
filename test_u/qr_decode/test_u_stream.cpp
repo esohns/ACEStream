@@ -170,10 +170,10 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   QRDecode_DirectShow_SessionData* session_data_p =
-    &const_cast<QRDecode_DirectShow_SessionData&> (session_manager_p->getR ());
+    &const_cast<QRDecode_DirectShow_SessionData&> (session_manager_p->getR (inherited::id_));
 #else
   QRDecode_SessionData* session_data_p =
-    &const_cast<QRDecode_SessionData&> (session_manager_p->getR ());
+    &const_cast<QRDecode_SessionData&> (session_manager_p->getR (inherited::id_));
 #endif // ACE_WIN32 || ACE_WIN64
 
   // ---------------------------------------------------------------------------

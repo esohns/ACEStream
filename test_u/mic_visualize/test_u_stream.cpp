@@ -447,7 +447,7 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
 
   // sanity check(s)
   Test_U_MicVisualize_DirectShow_SessionData& session_data_r =
-    const_cast<Test_U_MicVisualize_DirectShow_SessionData&> (session_manager_p->getR ());
+    const_cast<Test_U_MicVisualize_DirectShow_SessionData&> (session_manager_p->getR (inherited::id_));
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
@@ -1515,7 +1515,7 @@ Test_U_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& con
 
   // sanity check(s)
   Test_U_MicVisualize_MediaFoundation_SessionData& session_data_r =
-    const_cast<Test_U_MicVisualize_MediaFoundation_SessionData&> (session_manager_p->getR ());
+    const_cast<Test_U_MicVisualize_MediaFoundation_SessionData&> (session_manager_p->getR (inherited::id_));
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
@@ -2427,7 +2427,7 @@ Test_U_ALSA_Stream::initialize (const typename inherited::CONFIGURATION_T& confi
   reset_setup_pipeline = false;
 
   session_data_p =
-    &const_cast<Test_U_MicVisualize_SessionData&> (session_manager_p->getR ());
+    &const_cast<Test_U_MicVisualize_SessionData&> (session_manager_p->getR (inherited::id_));
   // *TODO*: remove type inferences
   (*iterator).second.second->outputFormat =
     configuration_in.configuration_->format;
