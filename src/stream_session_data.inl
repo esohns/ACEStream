@@ -182,6 +182,8 @@ Stream_SessionDataMediaBase_T<BaseType,
         media_type_p->AddRef ();
         formats.push_back (*(MediaFormatType*)&media_type_p);
       } // end FOR
+    else
+     formats = rhs_in.formats;
   } // end IF
 #else
   formats = (formats.empty () ? rhs_in.formats : formats);
@@ -248,8 +250,10 @@ Stream_SessionDataMediaBase_T<BaseType,
 #endif // FFMPEG_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool clear_b = false;
   // *CONSIDER*: use template specialization instead ?
   if (Common_Tools::equalType ((MediaFormatType*)NULL, (struct _AMMediaType*)NULL))
+  { clear_b = true;
     for (MEDIAFORMATS_ITERATOR_T iterator = formats.begin ();
          iterator != formats.end ();
          ++iterator)
@@ -257,7 +261,9 @@ Stream_SessionDataMediaBase_T<BaseType,
       struct _AMMediaType* media_type_p = (struct _AMMediaType*)&(*iterator);
       Stream_MediaFramework_DirectShow_Tools::free (*media_type_p);
     } // end FOR
+  } // end IF
   else if (Common_Tools::equalType ((MediaFormatType*)NULL, (IMFMediaType**)NULL))
+  { clear_b = true;
     for (MEDIAFORMATS_ITERATOR_T iterator = formats.begin ();
          iterator != formats.end ();
          ++iterator)
@@ -265,7 +271,11 @@ Stream_SessionDataMediaBase_T<BaseType,
       IMFMediaType* media_type_p = *(IMFMediaType**)&(*iterator);
       media_type_p->Release ();
     } // end FOR
-  formats.clear ();
+  } // end ELSE IF
+  else
+    formats = rhs_in.formats;
+  if (clear_b)
+    formats.clear ();
   // *CONSIDER*: use template specialization instead ?
   if (Common_Tools::equalType ((MediaFormatType*)NULL, (struct _AMMediaType*)NULL))
     for (MEDIAFORMATS_CONST_ITERATOR_T iterator = rhs_in.formats.begin ();

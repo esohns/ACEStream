@@ -237,6 +237,18 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
                     inherited::mod_->name (),
                     result));
+
+      //inherited::sessionData_->increase ();
+      //typename SessionMessageType::DATA_T* session_data_container_p = inherited::sessionData_;
+      //if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_ABORT,
+      //                                             session_data_container_p,
+      //                                             NULL,
+      //                                             false))) // expedited ?
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
+      //              inherited::mod_->name (),
+      //              STREAM_SESSION_MESSAGE_ABORT));
+
       break;
     }
     default:
@@ -340,12 +352,44 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::handleSessionMessage"));
 
   int result = -1;
+  bool high_priority_b = false;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      unsigned int result = 0; 
+      typename inherited::MESSAGE_QUEUE_T* queue_p =
+        dynamic_cast<typename inherited::MESSAGE_QUEUE_T*> (inherited::msg_queue_);
+      if (likely (queue_p))
+        result = queue_p->flush (false); // flush all data messages
+      else
+      { ACE_ASSERT (false); // *TODO*
+        result = inherited::msg_queue_->flush ();
+      } // end ELSE
+      if (unlikely (result == static_cast<unsigned int> (-1)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        return;
+      } // end IF
+      else if (result)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
+                    inherited::mod_->name (),
+                    result));
+      else
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborting\n"),
+                    inherited::mod_->name ()));
+
+      high_priority_b = true;
+      goto end;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       const typename SessionMessageType::DATA_T& session_data_container_r =
@@ -585,6 +629,22 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
+      //if (likely (inherited::thr_count_ > 0))
+      //{
+      //  if (high_priority_b || !inherited::configuration_->waitForDataOnEnd)
+      //  {
+      //    typename inherited::MESSAGE_QUEUE_T* queue_p =
+      //      dynamic_cast<typename inherited::MESSAGE_QUEUE_T*> (inherited::msg_queue_);
+      //    if (likely (queue_p))
+      //      result = queue_p->flush (false); // flush all data messages
+      //    else
+      //    { ACE_ASSERT (false); // *TODO*
+      //      result = inherited::msg_queue_->flush ();
+      //    } // end ELSE
+      //  } // end IF
+      //} // end IF
+
       if (likely (isOpen_))
       {
         result = stream_.get_local_addr (path_);

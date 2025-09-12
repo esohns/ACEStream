@@ -431,6 +431,29 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: auto-starting...\n"),
                 inherited::mod_->name ()));
+
+    // initialize 'this'
+    SessionManagerType* session_manager_p =
+      SessionManagerType::SINGLETON_T::instance ();
+    ACE_ASSERT (session_manager_p);
+    typename SessionMessageType::DATA_T::DATA_T* session_data_p =
+      &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (streamId_));
+
+    ACE_ASSERT (session_data_p->lock);
+    inherited::sessionDataLock_ = session_data_p->lock;
+
+    ACE_ASSERT (!inherited::sessionData_);
+    ACE_NEW_NORETURN (inherited::sessionData_,
+                      typename SessionMessageType::DATA_T (session_data_p,
+                                                           false)); // *NOTE*: do NOT delete the session data when the container is destroyed
+    if (unlikely (!inherited::sessionData_))
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
+                  inherited::mod_->name ()));
+      return -1;
+    } // end IF
+
     try {
       inherited::start (NULL);
     } catch (...) {

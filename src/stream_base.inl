@@ -1022,9 +1022,9 @@ continue_:
   }
 
   if (wait_in)
-    wait (true,   // wait for any worker thread(s) ?
-          false,  // wait for upstream (if any) ?
-          false); // wait for downstream (if any) ?
+    wait (true,               // wait for any worker thread(s) ?
+          recurseUpstream_in, // wait for upstream (if any) ?
+          false);             // wait for downstream (if any) ?
 }
 
 template <ACE_SYNCH_DECL,
