@@ -219,6 +219,7 @@ class Stream_HeadModuleTaskBase_T
   bool                                sessionEndProcessed_;
   bool                                sessionEndSent_;
   ACE_SYNCH_MUTEX_T                   stateMachineLock_;
+  std::string                         streamId_;
   ILOCK_T*                            streamLock_;
   StreamStateType*                    streamState_;
   // timer

@@ -120,6 +120,8 @@ class Stream_IStream_T
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> STREAM_T;
 
+  virtual std::string id () const = 0;
+
   virtual std::string name () const = 0;
   virtual void name (const std::string&) = 0;
 

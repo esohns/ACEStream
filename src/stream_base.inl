@@ -82,9 +82,10 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end lock scope
 
   // generate "unique" id
+  std::ostringstream converter;
   // *TODO*: incorporate timestamp ?
   std::hash<void*> ptr_hash;
-  std::ostringstream converter (ptr_hash (this));
+  converter << ptr_hash (this);
   id_ = converter.str ();
 
   // create session data instance (managed by session manager)

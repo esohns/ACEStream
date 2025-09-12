@@ -74,6 +74,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
  , sessionEndSent_ (false)
  , stateMachineLock_ (NULL, // name
                       NULL) // attributes
+ , streamId_ (stream_in->id ())
  , streamLock_ (stream_in)
  , streamState_ (NULL)
  , statistic_ ()
@@ -2412,7 +2413,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         SessionManagerType::SINGLETON_T::instance ();
       ACE_ASSERT (session_manager_p);
       typename SessionMessageType::DATA_T::DATA_T* session_data_p =
-        &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR ());
+        &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (streamId_));
 
       ACE_ASSERT (session_data_p->lock);
       inherited::sessionDataLock_ = session_data_p->lock;

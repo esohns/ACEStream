@@ -269,6 +269,8 @@ class Stream_Base_T
   virtual const typename ISTREAM_T::MODULE_T* find (const std::string&,  // module name
                                                     bool = false,        // sanitize module names ?
                                                     bool = false) const; // recurse upstream (if any) ?
+
+  inline virtual std::string id () const { return id_; }
   inline virtual std::string name () const { return name_; }
   inline virtual void name (const std::string& name_in) { name_ = name_in; }
   virtual bool link (typename ISTREAM_T::STREAM_T*); // upstream
@@ -337,7 +339,6 @@ class Stream_Base_T
                bool = true,  // lock ?
                bool = true); // close()/reset() removed module(s) for re-use ?
 
-  inline std::string id () const { return id_; }
   inline bool isInitialized () const { return isInitialized_; }
 
  protected:
