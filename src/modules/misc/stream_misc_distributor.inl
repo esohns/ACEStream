@@ -381,7 +381,8 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
           } // end IF
           *session_data_p = session_data_r;
           ACE_NEW_NORETURN (session_data_container_p,
-                            typename SessionMessageType::DATA_T (session_data_p));
+                            typename SessionMessageType::DATA_T (session_data_p,
+                                                                 true)); // delete data in dtor ?
           if (unlikely (!session_data_container_p))
           {
             ACE_DEBUG ((LM_CRITICAL,

@@ -214,41 +214,10 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::setP"));
 
   // sanity check(s)
-  ACE_ASSERT (isInitialized_);
   ACE_ASSERT (data_in);
 
   if (likely (data_))
-  {
-    const typename SessionDataType::DATA_T& session_data_r =
-        data_->getR ();
-    typename SessionDataType::DATA_T& session_data_2 =
-        const_cast<typename SessionDataType::DATA_T&> (data_in->getR ());
-    ACE_ASSERT (session_data_r.lock && session_data_2.lock);
-    int result = -1;
-    bool release_lock_b = false;
-//    ACE_ASSERT (session_data_r.lock != session_data_2.lock);
-    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-//      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, *session_data_2.lock);
-      if (session_data_r.lock != session_data_2.lock)
-      {
-        result = session_data_2.lock->acquire ();
-        if (unlikely (result == -1))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
-        else
-          release_lock_b = true;
-      } // end IF
-      session_data_2 += session_data_r;
-      if (likely (release_lock_b))
-      {
-        result = session_data_2.lock->release ();
-        if (unlikely (result == -1))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
-      } // end IF
-    } // end lock scope
     data_->decrease ();
-  } // end IF
 
   data_ = data_in;
 }

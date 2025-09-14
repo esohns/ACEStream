@@ -341,7 +341,13 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
-      // update session data
+      // update session data ?
+
+      // sanity check(s)
+      ACE_ASSERT (configuration_);
+      if (!configuration_->handleResize)
+        break;
+
       if (likely (freeSessionData_ || isHeadTask_))
       { ACE_ASSERT (sessionData_);
         sessionData_->decrease ();

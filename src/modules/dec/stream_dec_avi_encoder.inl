@@ -2143,11 +2143,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   // clean up
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
 
   goto continue_2;
 
 error:
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
 
   return false;
 
