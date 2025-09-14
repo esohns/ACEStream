@@ -809,7 +809,12 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   } // end IF
 
   if (inherited::configuration_->configuration_->sourceType != AUDIOEFFECT_SOURCE_FILE)
-    session_data_r.formats.push_back (configuration_in.configuration_->format);
+  {
+    ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+    Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format,
+                                                  media_type_s);
+    session_data_r.formats.push_back (media_type_s);
+  } // end IF
 
   // ---------------------------------------------------------------------------
 
