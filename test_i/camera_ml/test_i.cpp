@@ -178,7 +178,7 @@ do_print_usage (const std::string& programName_in)
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   // *NOTE*: model file needs to be relative to cwd
   path = ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_DIRECTORY_SEPARATOR_STR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [PATH]   : model file [\"")
             << path
@@ -270,11 +270,9 @@ do_process_arguments (int argc_in,
   deviceIdentifier_out.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
-  //modelFile_out = Common_File_Tools::getWorkingDirectory ();
-  //modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   // *NOTE*: model file needs to be relative to cwd
   modelFile_out = ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
-  modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  modelFile_out += ACE_DIRECTORY_SEPARATOR_STR_A;
   modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE);
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1424,12 +1422,10 @@ ACE_TMAIN (int argc_in,
   device_identifier.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
-  //std::string model_file = Common_File_Tools::getWorkingDirectory ();
-  //model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   // *NOTE*: model file needs to be relative to cwd
   std::string model_file =
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
-  model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  model_file += ACE_DIRECTORY_SEPARATOR_STR_A;
   model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE);
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -236,26 +236,16 @@ Stream_Module_Tensorflow_2<ConfigurationType,
   //                                     Common_File_Tools::directory (configuration_in.model),
   //                                     {tensorflow::kSavedModelTagServe},
   //                                     &bundle);
-  if (!status.ok ())
-  {
+  if (unlikely (!status.ok ()))
+  { std::string error_string = status.ToString ();
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to LoadSavedModel() (model was: \"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to tensorflow::ReadBinaryProto() (model was: \"%s\"): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (configuration_in.model.c_str ()),
-                ACE_TEXT (status.ToString ().c_str ())));
+                ACE_TEXT (error_string.c_str ())));
     return false;
   } // end IF
   //graph_def = bundle.meta_graph_def.graph_def ();
-  //status = tensorflow::NewSession (tensorflow::SessionOptions (),
-  //                                 &session_);
-  //if (!status.ok () || !session_)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to NewSession(): \"%s\", aborting\n"),
-  //              inherited::mod_->name (),
-  //              ACE_TEXT (status.ToString ().c_str ())));
-  //  return false;
-  //} // end IF
   session_ = tensorflow::NewSession (tensorflow::SessionOptions ());
   ACE_ASSERT (session_);
   status = session_->Create (graph_def);

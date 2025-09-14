@@ -2366,8 +2366,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::G
   // sanity check(s)
   CheckPointer (prtLatency_out, E_POINTER);
 
-  *prtLatency_out =
-    MILLISECONDS_TO_100NS_UNITS(STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS);
+  *prtLatency_out = 0;
+  //  MILLISECONDS_TO_100NS_UNITS (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS);
 
   return NOERROR;
 }
@@ -2413,7 +2413,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::SetStreamOffset"));
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s/%s: set stream offset to %qms, continuing\n"),
+              ACE_TEXT ("%s/%s: setting stream offset to %qms, continuing\n"),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
               ConvertToMilliseconds (rtOffset_in)));
@@ -2456,7 +2456,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::SetMaxStreamOffset"));
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s/%s: set max stream offset to %qms, continuing\n"),
+              ACE_TEXT ("%s/%s: setting max stream offset to %qms, continuing\n"),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
               ConvertToMilliseconds (rtMaxOffset_in)));

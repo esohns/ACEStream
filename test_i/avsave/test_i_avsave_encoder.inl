@@ -599,7 +599,7 @@ continue_2:
       inherited::videoStream_ =
         avformat_new_stream (inherited::formatContext_,
                              inherited::formatContext_->video_codec);
-      if (!inherited::videoStream_)
+      if (unlikely (!inherited::videoStream_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avformat_new_stream() failed, aborting\n"),
@@ -615,7 +615,7 @@ continue_2:
       inherited::audioStream_ =
         avformat_new_stream (inherited::formatContext_,
                              inherited::formatContext_->audio_codec);
-      if (!inherited::audioStream_)
+      if (unlikely (!inherited::audioStream_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avformat_new_stream() failed, aborting\n"),
@@ -628,8 +628,8 @@ continue_2:
       avcodec_parameters_from_context (inherited::audioStream_->codecpar,
                                        inherited::audioCodecContext_);
 
-      // *NOTE*: on windows, vlc does not show an image at all, unless this is set (the images appear upside down though :-()
-      // *TODO*: is this required on linux too ?
+      // *NOTE*: on windows, vlc does not show an image at all, unless this is
+      //         set
       result =
         av_opt_set (inherited::formatContext_->priv_data,
                     ACE_TEXT_ALWAYS_CHAR ("flipped_raw_rgb"), ACE_TEXT_ALWAYS_CHAR ("true"),
