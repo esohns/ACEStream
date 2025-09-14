@@ -1252,9 +1252,6 @@ do_work (
   ACE_ASSERT (allocator_configuration_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  directshow_session_manager_p->initialize (session_manager_configuration_s);
-  mediafoundation_session_manager_p->initialize (session_manager_configuration_s);
-
   Test_U_AudioEffect_DirectShow_EventHandler directshow_ui_event_handler (
                                                                           &directShowCBData_in
                                                                          );
@@ -1309,6 +1306,8 @@ do_work (
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      directshow_session_manager_p->initialize (session_manager_configuration_s);
+
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
       directshow_modulehandler_configuration.delayConfiguration =
@@ -1457,6 +1456,8 @@ do_work (
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      mediafoundation_session_manager_p->initialize (session_manager_configuration_s);
+
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
       //mediaFoundationConfiguration_in.delayConfiguration.averageTokensPerInterval =

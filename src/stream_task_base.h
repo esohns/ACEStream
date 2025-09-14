@@ -197,6 +197,7 @@ class Stream_TaskBase_T
   inline virtual int put (ACE_Message_Block* messageBlock_in, ACE_Time_Value* timeValue_in) { ACE_ASSERT (false); return inherited::put_next (messageBlock_in, timeValue_in); }
 
   bool                                 freeSessionData_;
+  bool                                 isHeadTask_;
   // *NOTE*: these apply to 'downstream', iff linked, only
   // *TODO*: move all of this to Stream_HeadModuleTaskBase_T; it's easier to do
   //         the switch in this class though

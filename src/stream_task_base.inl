@@ -62,6 +62,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
  , sessionDataLock_ (NULL)
  /////////////////////////////////////////
  , freeSessionData_ (false)
+ , isHeadTask_ (false)
  , sessionData_2 (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
@@ -91,8 +92,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::~Stream_TaskBase_T"));
 
-  if (freeSessionData_ &&
-      sessionData_)
+  if (freeSessionData_)
     sessionData_->decrease ();
   if (unlikely (sessionData_2))
     sessionData_2->decrease ();
@@ -125,12 +125,12 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   {
     isInitialized_ = false;
 
-    if (freeSessionData_ &&
-        sessionData_)
+    if (freeSessionData_)
     {
       sessionData_->decrease (); sessionData_ = NULL;
     } // end IF
     freeSessionData_ = false;
+    isHeadTask_ = false;
     if (unlikely (sessionData_2))
     {
       sessionData_2->decrease (); sessionData_2 = NULL;
@@ -342,11 +342,12 @@ continue_:
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
       // update session data
-      if (likely (freeSessionData_ && sessionData_))
+      if (likely (freeSessionData_ || isHeadTask_))
+      { ACE_ASSERT (sessionData_);
         sessionData_->decrease ();
+      } // end IF
       sessionData_ = &const_cast<typename SessionMessageType::DATA_T&> (message_inout->getR ());
       sessionData_->increase ();
-      freeSessionData_ = true;
 
       const typename SessionMessageType::DATA_T::DATA_T* session_data_p =
         &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->getR ());
@@ -459,15 +460,17 @@ continue_2:
 
       if (unlikely (aggregate_))
       {
-        if (freeSessionData_ &&
-            sessionData_)
+        if (freeSessionData_ && sessionData_)
           sessionData_->decrease ();
         sessionData_ = NULL;
       } // end IF
 
       // sanity check(s)
-      if (unlikely (sessionData_)) // --> head modules initialize this in open()
+      if (unlikely (sessionData_)) // --> head modules initialize this in start()
+      {
+        isHeadTask_ = true;
         goto continue_3;
+      } // end IF
 
       sessionData_ =
         &const_cast<typename SessionMessageType::DATA_T&> (message_inout->getR ());
@@ -496,7 +499,7 @@ continue_3:
       }
 
       if (!linked_         &&
-          freeSessionData_) // --> head modules finalize this in close()
+          freeSessionData_) // --> head modules finalize this in close()/onChange()
       { ACE_ASSERT (sessionData_);
         sessionData_->decrease (); sessionData_ = NULL;
         freeSessionData_ = false;
@@ -996,7 +999,7 @@ retry:
   } // end IF
   else
     ACE_NEW_NORETURN (session_message_p,
-                      SessionMessageType ((session_data_p ? session_data_p->sessionId : -1),
+                      SessionMessageType ((session_data_p ? session_data_p->sessionId : 0),
                                           eventType_in,
                                           sessionData_inout,
                                           userData_in,
@@ -1017,7 +1020,7 @@ retry:
     goto error;
   } // end IF
   if (likely (allocator_))
-    session_message_p->initialize ((session_data_p ? session_data_p->sessionId : -1),
+    session_message_p->initialize ((session_data_p ? session_data_p->sessionId : 0),
                                    eventType_in,
                                    sessionData_inout,
                                    userData_in,

@@ -143,7 +143,6 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
   // increment reference counter
-  // *TODO*: clean this up
   if (data_)
     data_->increase ();
 

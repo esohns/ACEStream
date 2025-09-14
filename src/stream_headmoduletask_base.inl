@@ -512,12 +512,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
       ACE_thread_t handle = ACE_OS::thr_self ();
       bool is_last_thread_b = false;
+      bool free_session_data_b = false;
       switch (inherited::configuration_->concurrency)
       {
         case STREAM_HEADMODULECONCURRENCY_ACTIVE:
         {
           is_last_thread_b = ACE_OS::thr_equal (handle,
                                                 inherited::last_thread ());
+          free_session_data_b = is_last_thread_b;
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
@@ -589,8 +591,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       result_2));
 
 continue_:
-        if (likely (inherited::sessionData_))
-        {
+        if (free_session_data_b)
+        { ACE_ASSERT (inherited::sessionData_);
           inherited::sessionData_->decrease (); inherited::sessionData_ = NULL;
         } // end IF
       } // end IF
@@ -766,11 +768,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   bool release_lock_b = false;
   int result_i = 0;
-  typename SessionMessageType::DATA_T* session_data_container_p =
-    inherited::sessionData_;
-  const typename SessionMessageType::DATA_T::DATA_T* session_data_p =
-    &inherited::sessionData_->getR ();
-  Stream_SessionId_t prev_id = session_data_p->sessionId;
   bool stop_processing_b = false;
   bool done_b = false;
 
@@ -898,19 +895,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                         inherited::mod_->name ()));
             return -1;
           }
-        } // end IF
-
-        // *IMPORTANT NOTE*: as the session data may change when this stream is
-        //                   (un-)link()ed (e.g. inbound network data
-        //                   processing)
-        session_data_p = &inherited::sessionData_->getR ();
-        if (unlikely (prev_id != session_data_p->sessionId))
-        {
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: updated session data (session id: %u --> %u)\n"),
-                      inherited::mod_->name (),
-                      prev_id, session_data_p->sessionId));
-          prev_id = session_data_p->sessionId;
         } // end IF
 
         if (unlikely (stop_processing_b)) // <-- SESSION_END has been processed || finished || serious error

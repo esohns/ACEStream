@@ -5019,10 +5019,10 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_quit_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
-    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
 
   // sanity check(s)
+  struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
 
   enum Stream_StateMachine_ControlState status_e = STREAM_STATE_INVALID;
@@ -5065,34 +5065,40 @@ button_quit_clicked_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 
-  //// step1: remove event sources
-  //{ ACE_Guard<ACE_Thread_Mutex> aGuard (data_p->lock);
-  //  for (Common_UI_GTKEventSourceIdsIterator_t iterator = data_p->eventSourceIds.begin ();
-  //       iterator != data_p->eventSourceIds.end ();
-  //       iterator++)
-  //    if (!g_source_remove (*iterator))
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-  //                  *iterator));
-  //  data_p->eventSourceIds.clear ();
-  //} // end lock scope
+  // step1: remove event sources
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, ui_cb_data_base_p->UIState->lock, TRUE);
+    for (Common_UI_GTK_EventSourceIdsIterator_t iterator = ui_cb_data_base_p->UIState->eventSourceIds.begin ();
+         iterator != ui_cb_data_base_p->UIState->eventSourceIds.end ();
+         iterator++)
+      if (!g_source_remove (*iterator))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+                    *iterator));
+    ui_cb_data_base_p->UIState->eventSourceIds.clear ();
+  } // end lock scope
 
-  // stop stream ?
+  // step2: stop stream ?
+  bool wait_for_processing_thread_b = false;
   if ((status_e == STREAM_STATE_RUNNING) ||
       (status_e == STREAM_STATE_PAUSED))
+  {
+    wait_for_processing_thread_b = true;
     stream_p->stop (false, true, true);
+  } // end IF
 
-  // wait for processing thread(s)
+  // step3: wait for processing thread(s)
   //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock, FALSE);
+  if (wait_for_processing_thread_b)
     while (ui_cb_data_base_p->progressData.completedActions.empty ())
       ACE_OS::sleep (ACE_Time_Value (1, 0)); // wait for completion
       //ui_cb_data_base_p->UIState->condition.wait (NULL);
   //} // end lock scope
 
+  // step4: stop GTK event processing
   COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
                                                       true); // high priority ?
 
-  // step2: initiate shutdown sequence
+  // step5: initiate shutdown sequence
   int result = ACE_OS::raise (SIGINT);
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
