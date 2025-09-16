@@ -4008,7 +4008,7 @@ stream_processing_function (void* arg_in)
     iinitialize_p->initialize (ui_cb_data_p->configuration->streamConfiguration);
   istream_p = dynamic_cast<Stream_IStream_t*> (ui_cb_data_p->stream);
   istream_control_p = ui_cb_data_p->stream;
-  Common_IGetR_2_T<Test_U_AudioEffect_SessionData_t>* iget_p = NULL;
+  Common_IGetR_2_T<Test_U_AudioEffect_SessionData>* iget_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {

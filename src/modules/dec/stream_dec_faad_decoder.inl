@@ -50,6 +50,8 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
  , buffer_ (NULL)
  , configuration_ ()
  , context_ (NULL)
+ , channels_ (9)
+ , sampleRate_ (0)
  , sampleSize_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_FAAD_T::Stream_Decoder_FAAD_T"));
@@ -111,6 +113,19 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
       NeAACDecClose (context_); context_ = NULL;
     } // end IF
   } // end IF
+  else
+  {
+    char* id_p = NULL;
+    char* copyright_p = NULL;
+    NeAACDecGetVersion (&id_p, &copyright_p);
+    ACE_ASSERT (id_p && copyright_p);
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: using libfaad2 %s; copyright \"%s\"...\n"),
+                inherited::mod_->name (),
+                //ACE_TEXT (FAAD2_VERSION),
+                ACE_TEXT (id_p),
+                ACE_TEXT (copyright_p)));
+  } // end ELSE
 
   context_ = NeAACDecOpen ();
   if (unlikely (!context_))
@@ -225,7 +240,7 @@ reinitialize:
                        reinterpret_cast<unsigned char*> (message_block_p->rd_ptr ()),
                        static_cast<unsigned long> (message_block_p->length ()),
                        &data_p,
-                       static_cast<unsigned long> (buffer_->size ()));
+                       static_cast<unsigned long> (buffer_->space ()));
     if (unlikely (!result_p || frame_info_s.error > 0))
     {
       // ACE_DEBUG ((LM_ERROR,
@@ -271,6 +286,10 @@ reinitialize:
     if (likely (frame_info_s.samples))
     {
       buffer_->wr_ptr (frame_info_s.samples * sampleSize_);
+      // float duration_f =
+      //   buffer_->length () / static_cast<float> (sampleRate_ * sampleSize_ * channels_);
+      // if (likely (duration_f < STREAM_DEC_DEFAULT_FAAD_BUFFER_DURATION_F)) // second(s)
+      //   goto continue_;
 
       result = inherited::put_next (buffer_, NULL);
       if (unlikely (result == -1))
@@ -284,10 +303,10 @@ reinitialize:
       buffer_ = NULL;
     } // end IF
 
+// continue_:
     if (message_block_p->length () > 0)
       continue; // continue with same (!) buffer
 
-//continue_:
     message_block_p = message_block_p->cont ();
   } // end WHILE
 
@@ -336,10 +355,7 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
         inherited::sessionData_->getR ();
       ACE_ASSERT (!session_data_r.formats.empty ());
       ACE_ASSERT (context_);
-      unsigned long sample_rate = 0;
-      unsigned char channels = 0;
       unsigned char faad_format = 0;
-//      long result = 0;
       unsigned char result_2 = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
@@ -350,8 +366,8 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
       struct tWAVEFORMATEX* waveformatex_p =
         Stream_MediaFramework_DirectShow_Tools::toWaveFormatEx (media_type_s);
       ACE_ASSERT (waveformatex_p);
-      sample_rate = waveformatex_p->nSamplesPerSec;
-      channels = static_cast<unsigned char> (waveformatex_p->nChannels);
+      channels_ = waveformatex_p->nChannels;
+      sampleRate_ = waveformatex_p->nSamplesPerSec;
       sampleSize_ = (waveformatex_p->wBitsPerSample / 8);
 
       switch (waveformatex_p->wFormatTag)
@@ -402,8 +418,8 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
-      sample_rate = media_type_s.rate;
-      channels = media_type_s.channels;
+      channels_ = media_type_s.channels;
+      sampleRate_ = media_type_s.rate;
       sampleSize_ = (snd_pcm_format_width (media_type_s.format) / 8);
 
       switch (media_type_s.format)
@@ -442,10 +458,9 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
         }
       } // end SWITCH
 #endif // ACE_WIN32 || ACE_WIN64
-      ACE_ASSERT (sampleSize_);
 
       configuration_.defObjectType = LC;
-      configuration_.defSampleRate = sample_rate;
+      configuration_.defSampleRate = sampleRate_;
       configuration_.outputFormat = faad_format;
       configuration_.downMatrix = 0;
       configuration_.useOldADTSFormat = 0;
@@ -461,19 +476,6 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
                     ACE_TEXT (NeAACDecGetErrorMessage (result_2))));
         goto error;
       } // end IF
-
-//      result = NeAACDecInit (context_,
-//                             NULL,
-//                             0,
-//                             &sample_rate,
-//                             &channels);
-//      if (unlikely (result))
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("%s: failed to NeAACDecInit(), aborting\n"),
-//                    inherited::mod_->name ()));
-//        goto error;
-//      } // end IF
 
       break;
 

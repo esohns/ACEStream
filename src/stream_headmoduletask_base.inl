@@ -1945,8 +1945,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::flush"));
 
-  Stream_SessionId_t session_id = static_cast<Stream_SessionId_t> (-1);
-
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
   const typename SessionMessageType::DATA_T::DATA_T& session_data_r =

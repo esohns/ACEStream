@@ -96,7 +96,10 @@ class Stream_Decoder_FAAD_T
   ACE_Message_Block*           buffer_;
   struct NeAACDecConfiguration configuration_;
   NeAACDecHandle               context_;
-  uint32_t                     sampleSize_; // out-
+
+  uint32_t                     channels_;
+  uint32_t                     sampleRate_;
+  uint32_t                     sampleSize_;
 };
 
 // include template definition

@@ -277,8 +277,8 @@ struct Stream_Device_ALSA_Playback_AsynchCBData
 {
 //  struct _snd_pcm_channel_area* areas;
   ACE_Message_Block*      currentBuffer;
+  unsigned int            frameSize;
   ACE_Message_Queue_Base* queue;
-  unsigned int            sampleSize;
 };
 
 #if defined (LIBPIPEWIRE_SUPPORT)

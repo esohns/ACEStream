@@ -142,6 +142,9 @@
 
 // ---------------------------------------
 
+// faad
+#define STREAM_DEC_DEFAULT_FAAD_BUFFER_DURATION_F                   0.25f // second(s)
+
 #if defined (FFMPEG_SUPPORT)
 // libav/ffmpeg
 #define STREAM_DEC_DEFAULT_LIBAV_OUTPUT_SAMPLE_FORMAT                AV_SAMPLE_FMT_S16

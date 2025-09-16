@@ -237,19 +237,19 @@ Stream_Module_Tensorflow_2<ConfigurationType,
   //                                     {tensorflow::kSavedModelTagServe},
   //                                     &bundle);
   if (unlikely (!status.ok ()))
-  { std::string error_string = status.ToString ();
+  {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to tensorflow::ReadBinaryProto() (model was: \"%s\"): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (configuration_in.model.c_str ()),
-                ACE_TEXT (error_string.c_str ())));
+                ACE_TEXT (status.ToString ().c_str ())));
     return false;
   } // end IF
   //graph_def = bundle.meta_graph_def.graph_def ();
   session_ = tensorflow::NewSession (tensorflow::SessionOptions ());
   ACE_ASSERT (session_);
   status = session_->Create (graph_def);
-  if (!status.ok ())
+  if (unlikely (!status.ok ()))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Session::Create() (model was: \"%s\"): \"%s\", aborting\n"),

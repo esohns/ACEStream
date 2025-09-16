@@ -55,6 +55,10 @@
 
 #define STREAM_DEV_DEFAULT_AUDIO_DEVICE                           "dsp"
 #define STREAM_DEV_DEFAULT_VIDEO_DEVICE                           "video0"
+
+#define STREAM_DEV_PIPEWIRE_DEFAULT_POD_BUFFER_SIZE               4096 // bytes
+
+#define STREAM_DEV_AUDIO_DEFAULT_RENDERER                         STREAM_DEVICE_RENDERER_ALSA
 #endif // ACE_WIN32 || ACE_WIN64
 
 // *TODO*: move all of this somewhere else ASAP
@@ -70,7 +74,5 @@
 #define STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE                    16
 #define STREAM_DEV_MIC_DEFAULT_CHANNELS                           2 // i.e. stereo
 #define STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE                        48000 // Hz
-
-#define STREAM_DEV_PIPEWIRE_DEFAULT_POD_BUFFER_SIZE               4096 // bytes
 
 #endif

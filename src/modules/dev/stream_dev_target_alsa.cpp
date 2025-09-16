@@ -78,7 +78,7 @@ stream_dev_target_alsa_async_cb (snd_async_handler_t* handler_in)
     } // end IF
     ACE_ASSERT (data_p->currentBuffer);
 
-    frames_to_write = data_p->currentBuffer->length () / data_p->sampleSize;
+    frames_to_write = data_p->currentBuffer->length () / data_p->frameSize;
     frames_to_write =
       (frames_to_write > static_cast<snd_pcm_uframes_t> (available_frames) ? available_frames
                                                                            : frames_to_write);
@@ -96,7 +96,7 @@ stream_dev_target_alsa_async_cb (snd_async_handler_t* handler_in)
                   ACE_TEXT (snd_strerror (result))));
       goto error;
     } // end IF
-    data_p->currentBuffer->rd_ptr (frames_written * data_p->sampleSize);
+    data_p->currentBuffer->rd_ptr (frames_written * data_p->frameSize);
 
     if (!data_p->currentBuffer->length ())
     {

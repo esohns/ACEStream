@@ -52,10 +52,11 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
  , debugOutput_ (NULL)
 #endif // _DEBUG
  , deviceHandle_ (NULL)
+ , frameSize_ (0)
  , isPassive_ (false)
  , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
            NULL)                   // notification handle
- , sampleSize_ (0)
+ , sampleRate_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::Stream_Dev_Target_ALSA_T"));
 
@@ -387,8 +388,9 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
-      sampleSize_ =
-          (snd_pcm_format_width (media_type_s.format) / 8) * media_type_s.channels;
+      frameSize_ =
+        (snd_pcm_format_width (media_type_s.format) / 8) * media_type_s.channels;
+      sampleRate_ = media_type_s.rate;
 
       bool stop_device = false;
 //      size_t initial_buffer_size = 0;
@@ -505,7 +507,7 @@ open:
       {
         //  asynchCBData_.areas = areas;
         asynchCBData_.queue = &queue_;
-        asynchCBData_.sampleSize = sampleSize_;
+        asynchCBData_.frameSize = frameSize_;
         result =
             snd_async_add_pcm_handler (&asynchHandler_,
                                        deviceHandle_,
@@ -955,10 +957,9 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
         continue;
       } // end IF
 
-      frames_to_write = bytes_to_write / sampleSize_;
+      frames_to_write = bytes_to_write / frameSize_;
       frames_to_write =
-        (frames_to_write > static_cast<snd_pcm_uframes_t> (available_frames) ? available_frames
-                                                                             : frames_to_write);
+        std::min (static_cast<snd_pcm_uframes_t> (available_frames), frames_to_write);
       frames_written = snd_pcm_writei (deviceHandle_,
                                        message_block_p->rd_ptr (),
                                        frames_to_write);
@@ -977,8 +978,8 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
         head_p->release (); head_p = NULL;
         return -1;
       } // end IF
-      bytes_to_write -= (frames_written * sampleSize_);
-      message_block_p->rd_ptr (frames_written * sampleSize_);
+      bytes_to_write -= (frames_written * frameSize_);
+      message_block_p->rd_ptr (frames_written * frameSize_);
 
       if (bytes_to_write == 0)
       {
@@ -997,29 +998,50 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       continue;
 
 recover:
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: buffer underrun, recovering\n"),
-                  inherited::mod_->name ()));
-
-      result = snd_pcm_recover (deviceHandle_,
-                                error_i,
-#if defined (_DEBUG)
-                                0);
-#else
-                                1);
-#endif // _DEBUG
-      if (unlikely (result < 0))
+      switch (error_i)
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to snd_pcm_recover(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (snd_strerror (result))));
-        head_p->release (); head_p = NULL;
-        return -1;
-      } // end IF
+        case -EPIPE:
+        {
+          // ACE_DEBUG ((LM_WARNING,
+          //             ACE_TEXT ("%s: buffer underrun, recovering\n"),
+          //             inherited::mod_->name ()));
 
-      // result = snd_pcm_prepare (deviceHandle_);
-      // ACE_ASSERT (result == 0);
+          result = snd_pcm_prepare (deviceHandle_);
+          if (unlikely (result < 0))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to snd_pcm_prepare(): \"%s\", aborting\n"),
+                        inherited::mod_->name (),
+                        ACE_TEXT (snd_strerror (result))));
+            head_p->release (); head_p = NULL;
+            return -1;
+          } // end IF
+
+          queueSilence ();
+
+          break;
+        }
+        default:
+        {
+          result = snd_pcm_recover (deviceHandle_,
+                                    error_i,
+#if defined (_DEBUG)
+                                    0);
+#else
+                                    1);
+#endif // _DEBUG
+          if (unlikely (result < 0))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to snd_pcm_recover(): \"%s\", aborting\n"),
+                        inherited::mod_->name (),
+                        ACE_TEXT (snd_strerror (result))));
+            head_p->release (); head_p = NULL;
+            return -1;
+          } // end IF
+          break;
+        }
+      } // end SWITCH
     } while (true);
   } while (true);
 
@@ -1029,4 +1051,61 @@ recover:
   } // end IF
 
   return result;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+void
+Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
+                         TimePolicyType,
+                         ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
+                         SessionDataType>::queueSilence ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::queueSilence"));
+
+  int result = -1;
+  ACE_Message_Block* message_block_p = NULL;
+
+  // enqueue a message of 'silence'
+  size_t size_i = static_cast<size_t> (sampleRate_ * frameSize_ * 0.5f); // 0.5 second(s)
+  ACE_NEW_NORETURN (message_block_p,
+                    ACE_Message_Block (size_i, // size
+                                       ACE_Message_Block::MB_DATA, // type
+                                       NULL, // continuation
+                                       NULL, // data
+                                       NULL, // buffer allocator
+                                       NULL, // locking strategy
+                                       ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
+                                       ACE_Time_Value::zero, // execution time
+                                       ACE_Time_Value::max_time, // deadline time
+                                       NULL, // data block allocator
+                                       NULL)); // message allocator
+  if (unlikely (!message_block_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    return;
+  } // end IF
+  uint8_t silence_a[size_i];
+  ACE_OS::memset (silence_a, 0, size_i);
+  result = message_block_p->copy (reinterpret_cast<char*> (silence_a), size_i);
+  ACE_ASSERT (result == 0);
+
+  result = inherited::putq (message_block_p, NULL);
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", continuing\n"),
+                inherited::mod_->name ()));
+    message_block_p->release (); message_block_p = NULL;
+  } // end IF
 }

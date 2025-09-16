@@ -95,6 +95,8 @@ class Stream_Dev_Target_ALSA_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_ALSA_T& operator= (const Stream_Dev_Target_ALSA_T&))
 
   // helper methods
+  void queueSilence ();
+
   // enqueue MB_STOP --> stop worker thread(s)
   virtual void stop (bool = true,   // wait for completion ?
                      bool = false); // high priority ? (i.e. do not wait for queued messages)
@@ -107,9 +109,10 @@ class Stream_Dev_Target_ALSA_T
   struct _snd_output*                             debugOutput_;
 #endif // _DEBUG
   struct _snd_pcm*                                deviceHandle_;
+  unsigned int                                    frameSize_;
   bool                                            isPassive_;
   typename inherited::MESSAGE_QUEUE_T             queue_;
-  unsigned int                                    sampleSize_;
+  unsigned int                                    sampleRate_;
 };
 
 // include template definition
