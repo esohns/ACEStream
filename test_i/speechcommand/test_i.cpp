@@ -216,6 +216,13 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-w          : use pipewire [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : use framework source [") // ? (directshow|mediafoundation) capture : WASAPI|waveIn
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -251,6 +258,10 @@ do_processArguments (int argc_in,
                      bool& traceInformation_out,
                      bool& mute_out,
                      bool& printVersionAndExit_out
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+                     ,bool& usePipewire_out
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      ,bool& useFrameworkSource_out,
                      bool& useFrameworkRenderer_out
@@ -302,6 +313,10 @@ do_processArguments (int argc_in,
   mute_out = false;
   printVersionAndExit_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  usePipewire_out = false;
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   useFrameworkSource_out = false;
   useFrameworkRenderer_out = false;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -315,6 +330,8 @@ do_processArguments (int argc_in,
 #endif // GTK_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("mxy");
+#else
+  options_string += ACE_TEXT_ALWAYS_CHAR ("w");
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
@@ -443,6 +460,14 @@ do_processArguments (int argc_in,
         printVersionAndExit_out = true;
         break;
       }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+      case 'w':
+      {
+        usePipewire_out = true;
+        break;
+      }
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       case 'x':
       {
@@ -1155,6 +1180,10 @@ do_work (const std::string& scorerFile_in,
          bool mute_in,
          enum Test_I_STTBackend STT_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+         bool usePipewire_in,
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool useFrameworkSource_in,
          bool useFrameworkRenderer_in,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1826,6 +1855,8 @@ do_work (const std::string& scorerFile_in,
     }
   } // end SWITCH
 #else
+  if (usePipewire_in)
+    stream_configuration.capturer = STREAM_DEVICE_CAPTURER_PIPEWIRE;
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module = &event_handler_module;
   stream_configuration.moduleBranch =
@@ -2381,6 +2412,9 @@ ACE_TMAIN (int argc_in,
   Common_Tools::initialize (true,   // COM ?
                             false); // RNG ?
 #else
+#if defined (LIBPIPEWIRE_SUPPORT)
+  pw_init (&argc_in, &argv_in);
+#endif // LIBPIPEWIRE_SUPPORT
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -2429,6 +2463,10 @@ ACE_TMAIN (int argc_in,
   enum Test_I_STTBackend STT_backend_e = TEST_I_DEFAULT_STT_BACKEND;
   //enum Test_I_STTBackend STT_backend_e = STT_DEEPSPEECH;
   bool print_version_and_exit = false;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  bool use_pipewire_b = false;
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool use_framework_source = false;
   bool use_framework_renderer = false;
@@ -2492,6 +2530,10 @@ ACE_TMAIN (int argc_in,
                             trace_information,
                             mute,
                             print_version_and_exit
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+                            ,use_pipewire_b
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             ,use_framework_source,
                             use_framework_renderer))
@@ -2734,6 +2776,10 @@ ACE_TMAIN (int argc_in,
            mute,
            STT_backend_e,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+           use_pipewire_b,
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
            use_framework_source,
            use_framework_renderer,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2818,6 +2864,14 @@ ACE_TMAIN (int argc_in,
                                  previous_signal_mask);
   Common_Log_Tools::finalize ();
   Common_Tools::finalize ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (LIBPIPEWIRE_SUPPORT)
+  pw_deinit ();
+#endif // LIBPIPEWIRE_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *PORTABILITY*: on Windows, finalize ACE...
   result = ACE::fini ();

@@ -344,10 +344,10 @@ typedef Test_I_CameraAR_Module_PGE_T<Test_U_MediaFoundation_TaskBaseAsynch_t,
 //                                       Stream_CameraAR_V4L_SessionData,
 //                                       struct Stream_UserData> Stream_CameraAR_MessageHandler;
 
-//#if defined (OLC_PGE_SUPPORT)
-//typedef Test_I_CameraAR_Module_PGE_T<Test_U_TaskBaseAsynch_t,
-//                                     struct Stream_MediaFramework_V4L_MediaType> Stream_CameraAR_PGE;
-//#endif // OLC_PGE_SUPPORT
+#if defined (OLC_PGE_SUPPORT)
+typedef Test_I_CameraAR_Module_PGE_T<Test_U_TaskBaseAsynch_t,
+                                    struct Stream_MediaFramework_V4L_MediaType> Stream_CameraAR_PGE;
+#endif // OLC_PGE_SUPPORT
 
 #if defined (OLC_CGE_SUPPORT)
 typedef Test_I_CameraAR_Module_CGE_T<Test_U_TaskBaseAsynch_t,
@@ -530,14 +530,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_MediaFoundation_SessionData,      
 //                              Stream_INotify_t,                                     // stream notification interface type
 //                              Stream_CameraAR_MessageHandler);                       // writer type
 
-//#if defined (OLC_PGE_SUPPORT)
-//DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                       // session data type
-//                              enum Stream_SessionMessageType,                        // session event type
-//                              struct Stream_CameraAR_V4L_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_pge_module_name_string,
-//                              Stream_INotify_t,                                      // stream notification interface type
-//                              Stream_CameraAR_PGE);                                  // writer type
-//#endif // OLC_PGE_SUPPORT
+#if defined (OLC_PGE_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                       // session data type
+                             enum Stream_SessionMessageType,                        // session event type
+                             struct Stream_CameraAR_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                             libacestream_default_pge_module_name_string,
+                             Stream_INotify_t,                                      // stream notification interface type
+                             Stream_CameraAR_PGE);                                  // writer type
+#endif // OLC_PGE_SUPPORT
 
 #if defined (OLC_CGE_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraAR_V4L_SessionData,                       // session data type

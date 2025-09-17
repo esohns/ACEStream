@@ -306,11 +306,6 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   bool release_lock_b = false;
   int result_i = 0;
-  typename SessionMessageType::DATA_T* session_data_container_p =
-    inherited::sessionData_;
-  const typename SessionMessageType::DATA_T::DATA_T* session_data_p =
-    &inherited::sessionData_->getR ();
-  Stream_SessionId_t prev_id = session_data_p->sessionId;
   bool stop_processing_b = false;
   bool done_b = false;
 
@@ -439,19 +434,6 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                         inherited::mod_->name ()));
             return -1;
           }
-        } // end IF
-
-        // *IMPORTANT NOTE*: as the session data may change when this stream is
-        //                   (un-)link()ed (e.g. inbound network data
-        //                   processing), the handle may have to be updated
-        session_data_p = &inherited::sessionData_->getR ();
-        if (unlikely (prev_id != session_data_p->sessionId))
-        {
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: updated session data (session id: %u --> %u)\n"),
-                      inherited::mod_->name (),
-                      prev_id, session_data_p->sessionId));
-          prev_id = session_data_p->sessionId;
         } // end IF
 
         if (unlikely (stop_processing_b)) // <-- SESSION_END has been processed || serious error

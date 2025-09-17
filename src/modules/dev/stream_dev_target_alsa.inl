@@ -82,17 +82,6 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  result = queue_.deactivate ();
-  if (unlikely (result == -1))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
-                inherited::mod_->name ()));
-  result = queue_.flush ();
-  if (unlikely (result == -1))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
-                inherited::mod_->name ()));
-
   if (unlikely (asynchCBData_.currentBuffer))
     asynchCBData_.currentBuffer->release ();
 
@@ -148,23 +137,6 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       asynchCBData_.currentBuffer->release (); asynchCBData_.currentBuffer = NULL;
     } // end IF
 
-    result = queue_.deactivate ();
-    if (unlikely (result == -1))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", aborting\n"),
-                  inherited::mod_->name ()));
-      return false;
-    } // end IF
-    result = queue_.flush ();
-    if (unlikely (result == -1))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Message_Queue::flush(): \"%m\", aborting\n"),
-                  inherited::mod_->name ()));
-      return false;
-    } // end IF
-
 #if defined (_DEBUG)
     if (debugOutput_)
     {
@@ -192,16 +164,6 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
     isPassive_ = false;
   } // end IF
 
-  ACE_ASSERT (configuration_in.ALSAConfiguration);
-  result = queue_.activate ();
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Queue::activate(): \"%m\", aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
-
 #if defined (_DEBUG)
   result =
 //     snd_output_stdio_attach (&debugOutput_,
@@ -217,6 +179,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                 ACE_TEXT (snd_strerror (result))));
 #endif // _DEBUG
 
+  ACE_ASSERT (configuration_in.ALSAConfiguration);
   deviceHandle_ = configuration_in.ALSAConfiguration->handle;
   if (deviceHandle_)
     isPassive_ = true;
@@ -399,6 +362,16 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       snd_pcm_status_t* status_p = NULL;
 #endif // _DEBUG
       bool reset_format = false;
+
+      result = queue_.activate ();
+      if (unlikely (result == -1))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Message_Queue::activate(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+      queue_.flush (false); // flush all data messages
 
       if (!isPassive_)
       { ACE_ASSERT (!deviceHandle_);
@@ -667,36 +640,38 @@ end:
       {
         if (high_priority_b)
           queue_.flush (false); // flush all data messages
-        stop (inherited::configuration_->waitForDataOnEnd, // wait ?
-              high_priority_b);                            // high priority ?
+        stop (true,                                                                   // wait ?
+              inherited::configuration_->waitForDataOnEnd ? false : high_priority_b); // high priority ?
       } // end ELSE IF
 
       if (likely (deviceHandle_))
       {
-        result = snd_pcm_nonblock (deviceHandle_, 0);
+        result = snd_pcm_nonblock (deviceHandle_, 1);
         if (unlikely (result < 0))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to snd_pcm_nonblock(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (snd_strerror (result))));
-        result = snd_pcm_drain (deviceHandle_);
+        result =
+          inherited::configuration_->waitForDataOnEnd ? snd_pcm_drain (deviceHandle_)
+                                                      : snd_pcm_drop (deviceHandle_);
         if (unlikely (result < 0))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to snd_pcm_drain(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to snd_pcm_drain|drop(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (snd_strerror (result))));
         ACE_Time_Value delay (0, 100000); // 100 ms
         snd_pcm_state_t state_e = snd_pcm_state (deviceHandle_);
-        while ((state_e == SND_PCM_STATE_RUNNING) ||
-               (state_e == SND_PCM_STATE_DRAINING))
+        while ((state_e == SND_PCM_STATE_DRAINING) ||
+               (state_e == SND_PCM_STATE_RUNNING))
         {
           ACE_OS::sleep (delay);
           state_e = snd_pcm_state (deviceHandle_);
         } // end WHILE
         ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: \"%s\": stopped playback device...\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (snd_pcm_name (deviceHandle_))));
+                    ACE_TEXT ("%s: \"%s\": stopped playback device...\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (snd_pcm_name (deviceHandle_))));
       } // end IF
 
       if (asynchHandler_)
@@ -754,17 +729,6 @@ end:
         debugOutput_ = NULL;
       } // end IF
 #endif // _DEBUG
-
-      // result = queue_.deactivate ();
-      // if (unlikely (result == -1))
-      //   ACE_DEBUG ((LM_ERROR,
-      //               ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
-      //               inherited::mod_->name ()));
-      // result = queue_.flush ();
-      // if (unlikely (result == -1))
-      //   ACE_DEBUG ((LM_ERROR,
-      //               ACE_TEXT ("%s: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
-      //               inherited::mod_->name ()));
 
       break;
     }
@@ -857,6 +821,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
               ACE_TEXT (inherited::threadName_.c_str ()),
               inherited::grp_id_));
 
+  ACE_Time_Value nowait = ACE_OS::gettimeofday ();
   ACE_Message_Block *message_block_p = NULL, *head_p = NULL;
   int result = -1;
   int result_2 = -1;
@@ -866,17 +831,24 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
   unsigned int bytes_to_write = 0;
 
   do
-  { ACE_ASSERT (!message_block_p);
-    result = inherited::getq (message_block_p, NULL);
+  {
+deque:
+    ACE_ASSERT (!message_block_p);
+    result = inherited::getq (message_block_p, &nowait);
     if (unlikely (result == -1))
     {
       error_i = ACE_OS::last_error ();
-      if (error_i != ESHUTDOWN)
+      if (error_i == EAGAIN)
+      {
+        queueSilence ();
+        goto deque;
+      } // end IF
+      else if (error_i == ESHUTDOWN)
+        result = 0; // OK, queue has been close()d
+      else
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: worker thread %t failed to ACE_Task::getq(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
-      else
-        result = 0; // OK, queue has been close()d
       break;
     } // end IF
     ACE_ASSERT (message_block_p);
@@ -895,6 +867,17 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
         } // end IF
         message_block_p = NULL;
       } // end IF
+      else
+      {
+        result_2 = queue_.deactivate ();
+        if (unlikely (result_2 == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Message_Queue_T::deactivate(): \"%m\", aborting\n"),
+                      inherited::mod_->name ()));
+          result = -1;
+        } // end IF
+      } // end ELSE
       // clean up ?
       if (message_block_p)
       {
@@ -1016,9 +999,6 @@ recover:
             head_p->release (); head_p = NULL;
             return -1;
           } // end IF
-
-          queueSilence ();
-
           break;
         }
         default:
@@ -1049,6 +1029,7 @@ recover:
   {
     head_p->release (); head_p = NULL;
   } // end IF
+  queue_.flush (false); // flush all data messages
 
   return result;
 }
@@ -1075,7 +1056,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
 
   // enqueue a message of 'silence'
-  size_t size_i = static_cast<size_t> (sampleRate_ * frameSize_ * 0.5f); // 0.5 second(s)
+  size_t size_i = static_cast<size_t> (sampleRate_ * frameSize_ * 0.25f); // 0.25 second(s)
   ACE_NEW_NORETURN (message_block_p,
                     ACE_Message_Block (size_i, // size
                                        ACE_Message_Block::MB_DATA, // type

@@ -604,11 +604,7 @@ stream_processing_function (void* arg_in)
   struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
-  const Test_I_SpeechCommand_DirectShow_SessionData_t* directshow_session_data_container_p =
-    NULL;
   Test_I_SpeechCommand_DirectShow_SessionData* directshow_session_data_p =
-    NULL;
-  const Test_I_SpeechCommand_MediaFoundation_SessionData_t* mediafoundation_session_data_container_p =
     NULL;
   Test_I_SpeechCommand_MediaFoundation_SessionData* mediafoundation_session_data_p =
     NULL;
@@ -660,8 +656,6 @@ stream_processing_function (void* arg_in)
   } // end SWITCH
 #else
   struct Test_I_ALSA_UI_ThreadData* thread_data_p = NULL;
-  const Test_I_SpeechCommand_ALSA_SessionData_t* session_data_container_p =
-    NULL;
 
   // sanity check(s)
   thread_data_p =
@@ -713,12 +707,11 @@ stream_processing_function (void* arg_in)
       istream_p =
         dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
       istream_control_p = directshow_ui_cb_data_p->stream;
-      Common_IGetR_2_T<Test_I_SpeechCommand_DirectShow_SessionData_t>* iget_p =
-        dynamic_cast<Common_IGetR_2_T<Test_I_SpeechCommand_DirectShow_SessionData_t>*> (directshow_ui_cb_data_p->stream);
+      Common_IGetR_2_T<Test_I_SpeechCommand_DirectShow_SessionData>* iget_p =
+        dynamic_cast<Common_IGetR_2_T<Test_I_SpeechCommand_DirectShow_SessionData>*> (directshow_ui_cb_data_p->stream);
       ACE_ASSERT (iget_p);
-      directshow_session_data_container_p = &iget_p->getR_2 ();
       directshow_session_data_p =
-        &const_cast<Test_I_SpeechCommand_DirectShow_SessionData&> (directshow_session_data_container_p->getR ());
+        &const_cast<Test_I_SpeechCommand_DirectShow_SessionData&> (iget_p->getR_2 ());
       session_data_p = directshow_session_data_p;
       directshow_ui_cb_data_p->progressData.sessionId =
         session_data_p->sessionId;
@@ -734,12 +727,11 @@ stream_processing_function (void* arg_in)
       istream_p =
         dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
       istream_control_p = mediafoundation_ui_cb_data_p->stream;
-      Common_IGetR_2_T<Test_I_SpeechCommand_MediaFoundation_SessionData_t>* iget_p =
-        dynamic_cast<Common_IGetR_2_T<Test_I_SpeechCommand_MediaFoundation_SessionData_t>*> (mediafoundation_ui_cb_data_p->stream);
+      Common_IGetR_2_T<Test_I_SpeechCommand_MediaFoundation_SessionData>* iget_p =
+        dynamic_cast<Common_IGetR_2_T<Test_I_SpeechCommand_MediaFoundation_SessionData>*> (mediafoundation_ui_cb_data_p->stream);
       ACE_ASSERT (iget_p);
-      mediafoundation_session_data_container_p = &iget_p->getR_2 ();
       mediafoundation_session_data_p =
-        &const_cast<Test_I_SpeechCommand_MediaFoundation_SessionData&> (mediafoundation_session_data_container_p->getR ());
+        &const_cast<Test_I_SpeechCommand_MediaFoundation_SessionData&> (iget_p->getR_2 ());
       session_data_p = mediafoundation_session_data_p;
       mediafoundation_ui_cb_data_p->progressData.sessionId =
         session_data_p->sessionId;
@@ -761,12 +753,11 @@ stream_processing_function (void* arg_in)
     iinitialize_p->initialize (ui_cb_data_p->configuration->streamConfiguration);
   istream_p = dynamic_cast<Stream_IStream_t*> (ui_cb_data_p->stream);
   istream_control_p = ui_cb_data_p->stream;
-  Common_IGetR_2_T<Test_I_SpeechCommand_ALSA_SessionData_t>* iget_p =
-    dynamic_cast<Common_IGetR_2_T<Test_I_SpeechCommand_ALSA_SessionData_t>*> (ui_cb_data_p->stream);
+  Common_IGetR_2_T<Test_I_SpeechCommand_ALSA_SessionData>* iget_p =
+    dynamic_cast<Common_IGetR_2_T<Test_I_SpeechCommand_ALSA_SessionData>*> (ui_cb_data_p->stream);
   ACE_ASSERT (iget_p);
-  session_data_container_p = &iget_p->getR_2 ();
   session_data_p =
-    &const_cast<Test_I_SpeechCommand_ALSA_SessionData&> (session_data_container_p->getR ());
+    &const_cast<Test_I_SpeechCommand_ALSA_SessionData&> (iget_p->getR_2 ());
   ui_cb_data_p->progressData.sessionId = session_data_p->sessionId;
 #endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!result_2))

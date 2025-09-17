@@ -220,6 +220,7 @@ struct Stream_SessionData
    , statistic (data_in.statistic)
    , userData (data_in.userData)
   {}
+  inline virtual ~Stream_SessionData () {}
 
   // *NOTE*: the idea is to 'merge' the data
   struct Stream_SessionData& operator+= (const struct Stream_SessionData& rhs_in)

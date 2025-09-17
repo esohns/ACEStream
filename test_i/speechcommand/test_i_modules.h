@@ -62,6 +62,10 @@
 #else
 #include "stream_dev_mic_source_alsa.h"
 #include "stream_dev_target_alsa.h"
+
+#if defined (LIBPIPEWIRE_SUPPORT)
+#include "stream_dev_mic_source_pipewire.h"
+#endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_misc_distributor.h"
 
@@ -557,6 +561,20 @@ typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      Test_I_ALSA_SessionManager_2,
                                      Common_Timer_Manager_t> Test_I_Mic_Source_ALSA;
 
+#if defined (LIBPIPEWIRE_SUPPORT)
+typedef Stream_Dev_Mic_Source_Pipewire_T<ACE_MT_SYNCH,
+                                         Stream_ControlMessage_t,
+                                         Test_I_Message,
+                                         Test_I_ALSA_SessionMessage_t,
+                                         struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
+                                         enum Stream_ControlType,
+                                         enum Stream_SessionMessageType,
+                                         struct Test_I_SpeechCommand_ALSA_StreamState,
+                                         struct Test_I_Statistic,
+                                         Test_I_ALSA_SessionManager_2,
+                                         Common_Timer_Manager_t> Test_I_Mic_Source_Pipewire;
+#endif // LIBPIPEWIRE_SUPPORT
+
 //////////////////////////////////////////
 
 #if defined (SOX_SUPPORT)
@@ -1017,6 +1035,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,            
                               libacestream_default_dev_mic_source_alsa_module_name_string,
                               Stream_INotify_t,                                          // stream notification interface type
                               Test_I_Mic_Source_ALSA);                                   // writer type
+#if defined (LIBPIPEWIRE_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,                           // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,     // module handler configuration type
+                              libacestream_default_dev_mic_source_pipewire_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_I_Mic_Source_Pipewire);                                     // writer type
+#endif // LIBPIPEWIRE_SUPPORT
 
 //////////////////////////////////////////
 

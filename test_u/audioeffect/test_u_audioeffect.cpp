@@ -1717,9 +1717,9 @@ do_work (
 
     stream_configuration.capturer = STREAM_DEVICE_CAPTURER_PIPEWIRE;
     // *TODO*: remove these temporary settings
-    stream_configuration.format.format = SND_PCM_FORMAT_FLOAT_LE;
-    stream_configuration.sourceType = AUDIOEFFECT_SOURCE_DEVICE;
-    stream_configuration.UIFramework = COMMON_UI_FRAMEWORK_CONSOLE;
+    // stream_configuration.format.format = SND_PCM_FORMAT_FLOAT_LE;
+    // stream_configuration.sourceType = AUDIOEFFECT_SOURCE_DEVICE;
+    // stream_configuration.UIFramework = COMMON_UI_FRAMEWORK_CONSOLE;
 
     configuration_in.signalHandlerConfiguration.stream = &stream;
   } // end IF

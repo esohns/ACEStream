@@ -1472,7 +1472,7 @@ Stream_AVSave_V4L_Stream::Stream_AVSave_V4L_Stream ()
 
 bool
 Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
-                                 bool& delete_out)
+                                bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_V4L_Stream::load"));
 
@@ -1521,7 +1521,9 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
     {
       branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
 
-      // layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
+      if ((codec_id == AV_CODEC_ID_NONE) &&
+          (configuration_->configuration_->format.video.format.pixelformat != V4L2_PIX_FMT_BGR24))
+        layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
 #if defined (GTK_USE)
 //      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)

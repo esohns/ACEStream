@@ -1892,10 +1892,35 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   Stream_Branches_t branches_a;
   Stream_Module_t* module_p = NULL;
 
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Mic_Source_ALSA_Module (this,
-                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING)),
-                  false);
+  switch (inherited::configuration_->configuration_->capturer)
+  {
+    case STREAM_DEVICE_CAPTURER_ALSA:
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_I_Mic_Source_ALSA_Module (this,
+                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING)),
+                      false);
+      break;
+    }
+    case STREAM_DEVICE_CAPTURER_PIPEWIRE:
+    {
+#if defined (LIBPIPEWIRE_SUPPORT)
+      ACE_NEW_RETURN (module_p,
+                      Test_I_Mic_Source_Pipewire_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_PIPEWIRE_DEFAULT_NAME_STRING)),
+                      false);
+#endif // LIBPIPEWIRE_SUPPORT
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown capturer type (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->capturer));
+      return false;
+    }
+  } // end SWITCH
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
