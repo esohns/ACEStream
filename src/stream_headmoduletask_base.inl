@@ -1400,7 +1400,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     case STREAM_CONTROL_RESET:
     case STREAM_CONTROL_STEP:
     case STREAM_CONTROL_STEP_2:
-    { 
+    {
       const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         inherited::sessionData_->getR ();
       if (!inherited::putControlMessage (session_data_r.sessionId,
@@ -1539,6 +1539,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         sessionEndProcessed_ = true;
       } // end lock scope
 
+      if (likely (!abortSent_))
+        control (STREAM_CONTROL_ABORT,
+                 false); // forward upstream ?
+
       // *WARNING*: falls through
       ACE_FALLTHROUGH;
     }
@@ -1658,7 +1662,7 @@ retry:
           if (likely (!abortSent_))
             control (STREAM_CONTROL_ABORT,
                      false); // forward upstream ?
-        }                    // end IF
+        } // end IF
 
         return; // nothing to do
       }

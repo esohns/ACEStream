@@ -168,7 +168,7 @@ elseif (WIN32)
                            ${ACE_PATH})
  create_target_launcher (${EXECUTABLE}
                          COMMAND ${COMMAND}
-                         ARGS "-f D:\\\\test.mp3 -l -o D:\\\\output.wav -t"
+                         ARGS "-f F:\\\\test.mp3 -l -o F:\\\\output.wav -t"
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/${EXECUTABLE}
