@@ -809,12 +809,7 @@ load_all_sample_resolutions (GtkListStore* listStore_in)
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-  std::vector<unsigned int> resolutions_a = {8, 16};
-  //if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IEEE_FLOAT))
-  //{
-  //  resolutions_a.clear ();
-  //  resolutions_a.push_back (32);
-  //} // end IF
+  std::vector<unsigned int> resolutions_a = {8, 16, 32};
   std::ostringstream converter;
   GtkTreeIter iterator;
   for (std::vector<unsigned int>::const_iterator iterator_2 = resolutions_a.begin ();
@@ -11298,6 +11293,10 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 
       Stream_MediaFramework_DirectShow_Tools::setFormat (GUID_s,
                                                          directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->bytesPerSample =
+        Stream_MediaFramework_DirectShow_Tools::toFrameBits (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format) / 8;
+
       sample_rate_i = audio_info_header_p->nSamplesPerSec;
 
       if (load_all_formats_b)
@@ -11845,7 +11844,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
         }
         case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
         {
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
           ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->session);
           if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second->session,
                                                                             media_source_p))
@@ -11854,7 +11853,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
                         ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
             return;
           } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
       //if (!load_sample_resolutions (data_p->configuration->moduleHandlerConfiguration.sourceReader,
           result_2 = load_sample_resolutions (media_source_p,
@@ -12782,6 +12781,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
       //         If the audio contains 16 bits per sample or higher, the audio
       //         samples are signed values. ..."
       is_signed_format = !(sample_size == 1);
+      is_float_format = Stream_MediaFramework_DirectSound_Tools::isFloat (*waveformatex_p);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -12852,9 +12852,9 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
   mode =
     (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode;
   is_signed_format =
-      snd_pcm_format_signed (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
+    snd_pcm_format_signed (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
   sample_size =
-      (snd_pcm_format_width (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format) / 8);
+    (snd_pcm_format_width (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format) / 8);
   channels =
     ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -12893,31 +12893,18 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
     (is_float_format ? 1 : Common_Tools::max<uint64_t> (sample_size,
                                                         is_signed_format));
   std::ostringstream converter;
+  if (is_float_format)
+    converter << static_cast<float> (((half_height - y_in) * static_cast<int64_t> (maximum_value)) / half_height);
+  else if (is_signed_format)
+    converter << static_cast<int64_t> (((half_height - y_in) * static_cast<int64_t> (maximum_value)) / half_height);
+  else
+    converter << (static_cast<uint64_t> (allocation.height - y_in) * maximum_value) / static_cast<uint64_t> (allocation.height);
   switch (mode)
   {
     case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE:
-    {
-      // *TODO*: the value type depends on the format, so this isn't accurate
-      if (is_signed_format)
-        converter <<
-          static_cast<int64_t> (((half_height - y_in) * static_cast<int64_t> (maximum_value)) / half_height);
-      else
-        converter <<
-          static_cast<uint64_t> (((half_height - y_in) * maximum_value) / half_height);
       break;
-    }
     case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM:
     {
-      // *TODO*: the value type depends on the format, so this isn't accurate
-      if (is_float_format)
-        converter <<
-          (static_cast<float> (allocation.height - y_in) * maximum_value) / static_cast<float> (allocation.height);
-      else if (is_signed_format)
-        converter <<
-          static_cast<int64_t> (((half_height - y_in) * static_cast<int64_t> (maximum_value)) / half_height);
-      else
-        converter <<
-          static_cast<uint64_t> (((half_height - y_in) * maximum_value) / half_height);
       unsigned int allocation_per_channel = (allocation.width / channels);
       unsigned int slot =
         static_cast<unsigned int> ((x_in % allocation_per_channel) * (math_fft_p->Slots () / static_cast<double> (allocation_per_channel)));

@@ -1403,7 +1403,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
           //magnitude_d = inherited2::Magnitude (j, i, true);
           //y = static_cast<double> (height_) * magnitude_d;
           // magnitude_d = inherited2::Magnitude (j, i, false) / 5.0;
-          magnitude_d = inherited2::Magnitude (j, i, false);
+          magnitude_d = inherited2::Magnitude2 (j, i, false);
           y =
             sampleIterator_.isSignedSampleFormat_ ? magnitude_d * scaleFactorY_
                                                   : magnitude_d * scaleFactorY_2;

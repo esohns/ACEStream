@@ -293,7 +293,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       is_floating_point_b = (snd_pcm_format_linear (media_type_s.format) == 0);
 
       sampleIsSigned_ =
-          (snd_pcm_format_signed (media_type_s.format) == 1);
+        (snd_pcm_format_signed (media_type_s.format) == 1) || is_floating_point_b;
 #endif // ACE_WIN32 || ACE_WIN64
       result_2 = iterator_.initialize (frame_size,
                                        sample_size,
@@ -309,7 +309,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       } // end IF
 
       signedSampleModifier_ =
-        static_cast<ValueType> ((1ULL << ((8 * sample_size) - 1)) - 1);
+        is_floating_point_b ? static_cast<ValueType> (1.0)
+                            : static_cast<ValueType> ((1ULL << ((8 * sample_size) - 1)) - 1);
 
       result_2 =
         inherited3::Initialize (num_channels,
