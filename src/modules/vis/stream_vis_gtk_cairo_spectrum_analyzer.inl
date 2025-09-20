@@ -568,7 +568,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         width_ / static_cast<double> (inherited2::channels_ * ((inherited2::slots_ / 2) - 1));
       max_value_d = static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, is_signed_format));
       scaleFactorY_ =
-        (is_floating_point_format ? static_cast<double> (height_)
+        (is_floating_point_format ? static_cast<double> (halfHeight_)
                                   : is_signed_format ? static_cast<double> (halfHeight_) / max_value_d
                                                      : static_cast<double> (height_) / max_value_d);
       scaleFactorY_2 = scaleFactorY_ * 2.0;
@@ -710,7 +710,8 @@ error:
       is_signed_format = (snd_pcm_format_signed (media_type_s.format) == 1);
       is_floating_point_format =
         (snd_pcm_format_linear (media_type_s.format) == 0);
-
+      if (is_floating_point_format)
+        is_signed_format = true;
       channels = media_type_s.channels;
       sample_rate = media_type_s.rate;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1271,7 +1272,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   double max_value_d =
     static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, sampleIterator_.isSignedSampleFormat_));
   scaleFactorY_ =
-    (is_floating_point_format ? static_cast<double> (height_)
+    (is_floating_point_format ? static_cast<double> (halfHeight_)
                               : sampleIterator_.isSignedSampleFormat_ ? static_cast<double> (halfHeight_) / max_value_d
                                                                       : static_cast<double> (height_) / max_value_d);
   scaleFactorY_2 = scaleFactorY_ * 2.0;
@@ -1401,9 +1402,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
           // method1: (normalized-) magnitude
           //magnitude_d = inherited2::Magnitude (j, i, true);
           //y = static_cast<double> (height_) * magnitude_d;
-          magnitude_d = inherited2::Magnitude2 (j, i, false);
-          y = sampleIterator_.isSignedSampleFormat_ ? magnitude_d * scaleFactorY_2
-                                                    : magnitude_d * scaleFactorY_;
+          // magnitude_d = inherited2::Magnitude (j, i, false) / 5.0;
+          magnitude_d = inherited2::Magnitude (j, i, false);
+          y =
+            sampleIterator_.isSignedSampleFormat_ ? magnitude_d * scaleFactorY_
+                                                  : magnitude_d * scaleFactorY_2;
           cairo_line_to (context_p,
                          x, static_cast<double> (height_) - y);
         } // end FOR

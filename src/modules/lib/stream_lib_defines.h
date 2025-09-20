@@ -159,7 +159,7 @@
 
 // Noise generator(s)
 // *IMPORTANT NOTE*: alpha >= 0 ('white' noise) && alpha <= 2.0 ('brown' noise)
-#define STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_ALPHA                  1.0
+#define STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_ALPHA_LD               1.0l
 // *IMPORTANT NOTE*: #IIR filters
 #define STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_POLES                  5
 

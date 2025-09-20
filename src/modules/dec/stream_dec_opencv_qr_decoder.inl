@@ -152,13 +152,16 @@ Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
                         message_inout->rd_ptr (),
                         cv::Mat::AUTO_STEP);
 
-  // step1: convert to BGR (why ?)
-  //cv::Mat frame_BGR;
-  //cv::cvtColor (frame_matrix, frame_BGR, cv::COLOR_RGB2BGR);
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  // step1: convert to BGR
+//  cv::Mat frame_BGR;
+//  cv::cvtColor (frame_matrix, frame_BGR, cv::COLOR_RGB2BGR);
+//  frame_matrix = frame_BGR;
+//#endif // ACE_WIN32 || ACE_WIN64
 
   // step2: detect QR code(s)
   cv::Mat bbox, rectified_image;
-  std::string data = detector_.detectAndDecode (frame_matrix,//frame_BGR,
+  std::string data = detector_.detectAndDecode (frame_matrix,
                                                 bbox,
                                                 rectified_image);
   if (data.size () > 0)
@@ -172,8 +175,6 @@ Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
     //rectified_image.convertTo (rectified_image, CV_8UC3);
     //cv::imshow ("Rectified QRCode", rectified_image);
   } // end IF
-  //else
-  //  std::cerr << "QR Code not detected" << std::endl;
 
   cv::imshow (ACE_TEXT_ALWAYS_CHAR ("ACEStream OpenCV display"),
               frame_matrix);

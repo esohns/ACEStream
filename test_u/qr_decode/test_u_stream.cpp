@@ -80,19 +80,12 @@ Test_U_Stream::load (Stream_ILayout* layout_inout,
   //module_p = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //ACE_NEW_RETURN (module_p,
-  //                Test_U_DirectShow_LibAVConverter_Module (this,
-  //                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)),
-  //                false);
-  //ACE_ASSERT (module_p);
-  //layout_inout->append (module_p, NULL, 0);
-
+#if defined (FFMPEG_SUPPORT)
   ACE_NEW_RETURN (module_p,
-                  Test_U_DirectShow_RGB24Flip_Module (this,
-                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING)),
+                  Test_U_DirectShow_LibAVConverter_Module (this,
+                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)),
                   false);
-  ACE_ASSERT (module_p);
-  layout_inout->append (module_p, NULL, 0);
+#endif // FFMPEG_SUPPORT
 #else
 #if defined (FFMPEG_SUPPORT)
   if ((*iterator).second.second->codecConfiguration->codecId != AV_CODEC_ID_NONE)
@@ -105,11 +98,19 @@ Test_U_Stream::load (Stream_ILayout* layout_inout,
                     Test_U_LibAVConverter_Module (this,
                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)),
                     false);
-  ACE_ASSERT (module_p);
-  layout_inout->append (module_p, NULL, 0);
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (module_p);
+  layout_inout->append (module_p, NULL, 0);
   module_p = NULL;
+
+  //ACE_NEW_RETURN (module_p,
+  //                Test_U_DirectShow_RGB24Flip_Module (this,
+  //                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING)),
+  //                false);
+  //ACE_ASSERT (module_p);
+  //layout_inout->append (module_p, NULL, 0);
+
 #if defined (OPENCV_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_NEW_RETURN (module_p,

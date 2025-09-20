@@ -45,11 +45,13 @@ Stream_Module_Decoder_Noise_Tools::noise (unsigned int sampleRate_in,
   typename DistributionType::result_type value;
   for (unsigned int i = 0; i < samplesToWrite_in; ++i)
   {
-    value =
-      static_cast<typename DistributionType::result_type> (static_cast<double> (Common_Tools::getRandomNumber (distribution_inout)) * amplitude_in);
     for (unsigned int j = 0;
          j < channels_in;
          ++j, data_p += bytesPerSample_in)
+    {
+      value =
+        static_cast<typename DistributionType::result_type> (static_cast<double> (Common_Tools::getRandomNumber (distribution_inout)) * amplitude_in);
+
       switch (bytesPerSample_in)
       {
         case 1:
@@ -173,5 +175,6 @@ Stream_Module_Decoder_Noise_Tools::noise (unsigned int sampleRate_in,
           return;
         }
       } // end SWITCH
+    } // end FOR
   } // end FOR
 }

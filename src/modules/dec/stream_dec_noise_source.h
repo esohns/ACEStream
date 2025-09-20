@@ -168,10 +168,10 @@ class Stream_Dec_Noise_Source_T
   typedef std::uniform_int_distribution<int64_t> SIGNED_INTEGER_DISTRIBUTION_T;
   SIGNED_INTEGER_DISTRIBUTION_T               signedIntegerDistribution_;
   // pink noise generator state
-  double                                      alpha_;
+  long double                                 alpha_;
   int                                         numberOfPoles_;
-  double*                                     multipliers_;
-  double*                                     history_;
+  long double*                                multipliers_;
+  long double*                                history_;
 #if defined (LIBNOISE_SUPPORT)
   // perlin noise generator state
   noise::module::Perlin                       noiseModule_;

@@ -81,7 +81,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
  , realDistribution_ ()
  , integerDistribution_ ()
  , signedIntegerDistribution_ ()
- , alpha_ (STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_ALPHA)
+ , alpha_ (STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_ALPHA_LD)
  , numberOfPoles_ (STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_POLES)
  , multipliers_ (NULL)
  , history_ (NULL)
@@ -206,8 +206,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
     {
       ACE_ASSERT (inherited::configuration_);
       typename TimerManagerType::INTERFACE_T* itimer_manager_p =
-        (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
-         : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
+        (inherited::configuration_->timerManager ? inherited::configuration_->timerManager : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
       ACE_ASSERT (itimer_manager_p);
 
       const void* act_p = NULL;
@@ -291,7 +290,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       ACE_Time_Value interval;
       long timer_id = -1;
       suseconds_t buffer_time_us = 0;
-      double a = 1.0;
+      long double a = 1.0l;
 
       // schedule regular statistic collection
       if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
@@ -471,8 +470,8 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
         {
           case 4:
           { ACE_ASSERT (ACE_SIZEOF_FLOAT == 4);
-            REAL_DISTRIBUTION_T::param_type parameters_s (-1.0F,
-                                                          1.0F);
+            REAL_DISTRIBUTION_T::param_type parameters_s (-1.0f,
+                                                          1.0f);
             realDistribution_.param (parameters_s);
             break;
           }
@@ -485,8 +484,8 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
           }
           case 16:
           { ACE_ASSERT (ACE_SIZEOF_LONG_DOUBLE == 16);
-            REAL_DISTRIBUTION_T::param_type parameters_s (-1.0,
-                                                          1.0);
+            REAL_DISTRIBUTION_T::param_type parameters_s (-1.0l,
+                                                          1.0l);
             realDistribution_.param (parameters_s);
             break;
           }
@@ -500,20 +499,19 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
           }
         } // end SWITCH
 
-      ACE_NEW_NORETURN (multipliers_, double[numberOfPoles_]);
+      ACE_NEW_NORETURN (multipliers_, long double[numberOfPoles_]);
       ACE_ASSERT (multipliers_);
       for (int i = 0; i < numberOfPoles_; i++)
       {
-        a = (i - alpha_ / 2) * a / (i + 1);
+        a = (i - alpha_ / 2.0l) * a / (i + 1);
         multipliers_[i] = a;
       } // end FOR
-      ACE_NEW_NORETURN (history_, double[numberOfPoles_]);
+      ACE_NEW_NORETURN (history_, long double[numberOfPoles_]);
       ACE_ASSERT (history_);
-      ACE_OS::memset (history_, 0, sizeof (double) * numberOfPoles_);
+      ACE_OS::memset (history_, 0, sizeof (long double) * numberOfPoles_);
       for (int i = 0; i < numberOfPoles_; i++)
       {
-        double x =
-          static_cast<double> (Common_Tools::getRandomNumber (realDistribution_)) - 0.5;
+        long double x = Common_Tools::getRandomNumber (realDistribution_) - 0.5l;
         for (int j = 0; j < numberOfPoles_; j++)
           x -= multipliers_[j] * history_[j];
         history_[i] = x;
@@ -577,6 +575,15 @@ error:
           break; // done
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
+
+      if (multipliers_)
+      {
+        delete [] multipliers_; multipliers_ = NULL;
+      } // end IF
+      if (history_)
+      {
+        delete [] history_; history_ = NULL;
+      } // end IF
 
       long timer_id = handler_.get_2 ();
       if (likely (timer_id != -1))

@@ -25,6 +25,8 @@
 
 #include "ace/Log_Msg.h"
 
+#include "common_math_tools.h"
+
 //#define MAXIMUM_PHASE_D 2.0 * M_PI
 static double acestream_noise_maximum_phase_d = 2.0 * M_PI;
 
@@ -38,11 +40,11 @@ Stream_Module_Decoder_Noise_Tools::pink_noise (unsigned int sampleRate_in,
                                                ACE_UINT8* buffer_in,
                                                unsigned int samplesToWrite_in,
                                                double amplitude_in,
-                                               double alpha_in,
+                                               long double alpha_in,
                                                int numPoles_in,
                                                std::uniform_real_distribution<long double>& distribution_inout,
-                                               double multipliers_inout[],
-                                               double history_inout[])
+                                               long double multipliers_inout[],
+                                               long double history_inout[])
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Noise_Tools::pink_noise"));
 
@@ -50,21 +52,21 @@ Stream_Module_Decoder_Noise_Tools::pink_noise (unsigned int sampleRate_in,
     (formatIsLittleEndian_in ? (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
                              : (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN));
   uint8_t* data_p = buffer_in;
-  double value;
+  long double value;
   for (unsigned int i = 0; i < samplesToWrite_in; ++i)
   {
-    value =
-      static_cast<double> (Common_Tools::getRandomNumber (distribution_inout)) -0.5;
-    for (int j = 0; j < numPoles_in; ++j)
-    {
-      value -= multipliers_inout[j] * history_inout[j];
-    } // end FOR
-    ACE_OS::memmove (&history_inout[1], &history_inout[0], (numPoles_in - 1) * sizeof (double));
-    history_inout[0] = value;
-    value *= amplitude_in;
     for (unsigned int j = 0;
          j < channels_in;
          ++j, data_p += bytesPerSample_in)
+    {
+      value = Common_Tools::getRandomNumber (distribution_inout) - 0.5l;
+      for (int k = 0; k < numPoles_in; ++k)
+        value -= multipliers_inout[k] * history_inout[k];
+      ACE_OS::memmove (&history_inout[1], &history_inout[0], (numPoles_in - 1) * sizeof (long double));
+      history_inout[0] = value;
+      // value = std::max (std::min (value, 1.0l), -1.0l);
+      value *= static_cast<long double> (amplitude_in);
+
       switch (bytesPerSample_in)
       {
         case 1:
@@ -72,7 +74,7 @@ Stream_Module_Decoder_Noise_Tools::pink_noise (unsigned int sampleRate_in,
           if (formatIsSigned_in)
             *reinterpret_cast<int8_t*> (data_p) = static_cast<int8_t> (value * Common_Tools::max<int8_t> (1, true));
           else
-            *data_p = static_cast<uint8_t> (value * Common_Tools::max<uint8_t> (1, false));
+            *data_p = static_cast<uint8_t> (std::abs (value) * Common_Tools::max<uint8_t> (1, false));
           break;
         }
         case 2:
@@ -80,20 +82,16 @@ Stream_Module_Decoder_Noise_Tools::pink_noise (unsigned int sampleRate_in,
           if (formatIsSigned_in)
           {
             if (byte_swap_b)
-              *reinterpret_cast<int16_t*> (data_p) =
-                Common_Tools::byteSwap (static_cast<int16_t> (value * Common_Tools::max<int16_t> (2, true)));
+              *reinterpret_cast<int16_t*> (data_p) = Common_Tools::byteSwap (static_cast<int16_t> (value * Common_Tools::max<int16_t> (2, true)));
             else
-              *reinterpret_cast<int16_t*> (data_p) =
-                static_cast<int16_t> (value * Common_Tools::max<int16_t> (2, true));
+              *reinterpret_cast<int16_t*> (data_p) = static_cast<int16_t> (value * Common_Tools::max<int16_t> (2, true));
           } // end IF
           else
           {
             if (byte_swap_b)
-              *reinterpret_cast<uint16_t*> (data_p) =
-                Common_Tools::byteSwap (static_cast<uint16_t> (value * Common_Tools::max<uint16_t> (2, false)));
+              *reinterpret_cast<uint16_t*> (data_p) = Common_Tools::byteSwap (static_cast<uint16_t> (std::abs (value) * Common_Tools::max<uint16_t> (2, false)));
             else
-              *reinterpret_cast<uint16_t*> (data_p) =
-                static_cast<uint16_t> (value * Common_Tools::max<uint16_t> (2, false));
+              *reinterpret_cast<uint16_t*> (data_p) = static_cast<uint16_t> (std::abs (value) * Common_Tools::max<uint16_t> (2, false));
           } // end ELSE
           break;
         }
@@ -104,31 +102,25 @@ Stream_Module_Decoder_Noise_Tools::pink_noise (unsigned int sampleRate_in,
             if (formatIsSigned_in)
             {
               if (byte_swap_b)
-                *reinterpret_cast<int32_t*> (data_p) =
-                  Common_Tools::byteSwap (static_cast<int32_t> (value * Common_Tools::max<int32_t> (4, true)));
+                *reinterpret_cast<int32_t*> (data_p) = Common_Tools::byteSwap (static_cast<int32_t> (value * Common_Tools::max<int32_t> (4, true)));
               else
-                *reinterpret_cast<int32_t*> (data_p) =
-                  static_cast<int32_t> (value * Common_Tools::max<int32_t> (4, true));
+                *reinterpret_cast<int32_t*> (data_p) = static_cast<int32_t> (value * Common_Tools::max<int32_t> (4, true));
             } // end IF
             else
             {
               if (byte_swap_b)
-                *reinterpret_cast<uint32_t*> (data_p) =
-                  Common_Tools::byteSwap (static_cast<uint32_t> (value * Common_Tools::max<uint32_t> (4, false)));
+                *reinterpret_cast<uint32_t*> (data_p) = Common_Tools::byteSwap (static_cast<uint32_t> (std::abs (value) * Common_Tools::max<uint32_t> (4, false)));
               else
-                *reinterpret_cast<uint32_t*> (data_p) =
-                  static_cast<uint32_t> (value * Common_Tools::max<uint32_t> (4, false));
+                *reinterpret_cast<uint32_t*> (data_p) = static_cast<uint32_t> (std::abs (value) * Common_Tools::max<uint32_t> (4, false));
             } // end ELSE
           } // end IF
           else
           { ACE_ASSERT (ACE_SIZEOF_FLOAT == 4);
-            float value_d = static_cast<float> (value);
+            float value_f = static_cast<float> (value);
             if (byte_swap_b)
-              *reinterpret_cast<int32_t*> (data_p) =
-                Common_Tools::byteSwap (*reinterpret_cast<int32_t*> (&value_d));
+              *reinterpret_cast<float*> (data_p) = Common_Tools::byteSwap (value_f);
             else
-              *reinterpret_cast<int32_t*> (data_p) =
-                *reinterpret_cast<int32_t*> (&value_d);
+              *reinterpret_cast<float*> (data_p) = value_f;
           } // end ELSE
           break;
         }
@@ -139,45 +131,35 @@ Stream_Module_Decoder_Noise_Tools::pink_noise (unsigned int sampleRate_in,
             if (formatIsSigned_in)
             {
               if (byte_swap_b)
-                *reinterpret_cast<int64_t*> (data_p) =
-                  Common_Tools::byteSwap (static_cast<int64_t> (value * Common_Tools::max<int64_t> (8, true)));
+                *reinterpret_cast<int64_t*> (data_p) = Common_Tools::byteSwap (static_cast<int64_t> (value * Common_Tools::max<int64_t> (8, true)));
               else
-                *reinterpret_cast<int64_t*> (data_p) =
-                  static_cast<int64_t> (value * Common_Tools::max<int64_t> (8, true));
+                *reinterpret_cast<int64_t*> (data_p) = static_cast<int64_t> (value * Common_Tools::max<int64_t> (8, true));
             } // end IF
             else
             {
               if (byte_swap_b)
-                *reinterpret_cast<uint64_t*> (data_p) =
-                  Common_Tools::byteSwap (static_cast<uint64_t> (value * Common_Tools::max<uint64_t> (8, false)));
+                *reinterpret_cast<uint64_t*> (data_p) = Common_Tools::byteSwap (static_cast<uint64_t> (std::abs (value) * Common_Tools::max<uint64_t> (8, false)));
               else
-                *reinterpret_cast<uint64_t*> (data_p) =
-                  static_cast<uint64_t> (value * Common_Tools::max<uint64_t> (8, false));
+                *reinterpret_cast<uint64_t*> (data_p) = static_cast<uint64_t> (std::abs (value) * Common_Tools::max<uint64_t> (8, false));
             } // end ELSE
           } // end IF
           else
           { ACE_ASSERT (ACE_SIZEOF_DOUBLE == 8);
             double value_d = static_cast<double> (value);
             if (byte_swap_b)
-              *reinterpret_cast<int64_t*> (data_p) =
-                Common_Tools::byteSwap (*reinterpret_cast<int64_t*> (&value_d));
+              *reinterpret_cast<double*> (data_p) = Common_Tools::byteSwap (value_d);
             else
-              *reinterpret_cast<int64_t*> (data_p) =
-                *reinterpret_cast<int64_t*> (&value_d);
+              *reinterpret_cast<double*> (data_p) = value_d;
           } // end ELSE
           break;
         }
         case 16:
         { ACE_ASSERT (formatIsFloatingPoint_in);
           ACE_ASSERT (ACE_SIZEOF_LONG_DOUBLE == 16);
-          ACE_ASSERT (false); // *TODO*: int64_t will not work here
-          long double value_d = static_cast<long double> (value);
           if (byte_swap_b)
-            *reinterpret_cast<int64_t*> (data_p) =
-              Common_Tools::byteSwap (*reinterpret_cast<int64_t*> (&value_d));
+            *reinterpret_cast<long double*> (data_p) = Common_Tools::byteSwap (value);
           else
-            *reinterpret_cast<int64_t*> (data_p) =
-              *reinterpret_cast<int64_t*> (&value_d);
+            *reinterpret_cast<long double*> (data_p) = value;
           break;
         }
         default:
@@ -188,6 +170,7 @@ Stream_Module_Decoder_Noise_Tools::pink_noise (unsigned int sampleRate_in,
           return;
         }
       } // end SWITCH
+    } // end FOR
   } // end FOR
 }
 
