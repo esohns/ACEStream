@@ -4910,13 +4910,13 @@ continue_:
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
       default_noise_frequency_d =
-        (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency;
+        (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->waveform_frequency;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
       default_noise_frequency_d =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->waveform_frequency;
       break;
     }
     default:
@@ -4929,7 +4929,7 @@ continue_:
   } // end SWITCH
 #else
   default_noise_frequency_d =
-    (*modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency;
+    (*modulehandler_configuration_iterator).second.second->generatorConfiguration->waveform_frequency;
 #endif // ACE_WIN32 || ACE_WIN64
   gtk_range_set_value (GTK_RANGE (scale_p),
                        default_noise_frequency_d);
@@ -8120,7 +8120,7 @@ hscale_frequency_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
-      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency =
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->waveform_frequency =
         gtk_range_get_value (range_in);
       break;
     }
@@ -8136,7 +8136,7 @@ hscale_frequency_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency =
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->waveform_frequency =
         gtk_range_get_value (range_in);
       break;
     }
@@ -8159,7 +8159,7 @@ hscale_frequency_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
-  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency =
+  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->waveform_frequency =
     gtk_range_get_value (range_in);
 #endif // ACE_WIN32 || ACE_WIN64
 } // hscale_frequency_value_changed_cb
@@ -8198,6 +8198,15 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (directshow_ui_cb_data_p->stream);
       istream_p =
         dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
+
+            ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->perlin_frequency =
+        gtk_range_get_value (range_in);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8209,6 +8218,15 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
       istream_p =
         dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
+
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->perlin_frequency =
+        gtk_range_get_value (range_in);
       break;
     }
     default:
@@ -8226,6 +8244,15 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->stream);
   istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
+
+  ACE_ASSERT (cb_data_p->configuration);
+  Test_U_MicVisualize_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->perlin_frequency =
+    gtk_range_get_value (range_in);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 

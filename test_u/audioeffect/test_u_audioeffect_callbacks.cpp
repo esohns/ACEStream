@@ -4863,13 +4863,13 @@ continue_:
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
       default_noise_frequency_d =
-        (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency;
+        (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->waveform_frequency;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
       default_noise_frequency_d =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->waveform_frequency;
       break;
     }
     default:
@@ -4882,7 +4882,7 @@ continue_:
   } // end SWITCH
 #else
   default_noise_frequency_d =
-    (*modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency;
+    (*modulehandler_configuration_iterator).second.second->generatorConfiguration->waveform_frequency;
 #endif // ACE_WIN32 || ACE_WIN64
   gtk_range_set_value (GTK_RANGE (scale_p),
                        default_noise_frequency_d);
@@ -7734,18 +7734,18 @@ hscale_device_boost_change_value_cb (GtkRange* range_in,
   for (long i = min_level_i;
        i <= max_level_i;
        ++i)
-      values_a.push_back (i);
+    values_a.push_back (i);
   std::vector<long>::const_iterator iterator =
-      std::find (values_a.begin (), values_a.end (),
-                 static_cast<long> (value_in));
+    std::find (values_a.begin (), values_a.end (),
+               static_cast<long> (value_in));
   if (iterator != values_a.end ())
-      return FALSE; // propagate the event
+    return FALSE; // propagate the event
   iterator =
-      std::lower_bound (values_a.begin (), values_a.end (),
-                       static_cast<long> (value_in));
+    std::lower_bound (values_a.begin (), values_a.end (),
+                      static_cast<long> (value_in));
   long value_i = values_a.back ();
   if (iterator != values_a.end ())
-      value_i = *iterator;
+    value_i = *iterator;
   g_signal_emit_by_name (G_OBJECT (range_in),
                          ACE_TEXT_ALWAYS_CHAR ("change-value"),
                          scrollType_in, static_cast<gdouble> (value_i), userData_in,
@@ -7898,8 +7898,6 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
         directshow_ui_cb_data_p->renderVolumeControl->SetMasterVolume (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
                                                                        NULL);
       ACE_ASSERT (SUCCEEDED (result));
-      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->amplitude =
-        gtk_range_get_value (range_in) / 100.0;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -7918,8 +7916,6 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
         mediafoundation_ui_cb_data_p->renderVolumeControl->SetMasterVolume (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
                                                                             NULL);
       ACE_ASSERT (SUCCEEDED (result));
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->amplitude =
-        gtk_range_get_value (range_in) / 100.0;
       break;
     }
     default:
@@ -7953,8 +7949,6 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
                  static_cast<long> (gtk_range_get_value (range_in))));
     return;
   } // end IF
-  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->amplitude =
-    gtk_range_get_value (range_in) / 100.0;
 #endif // ACE_WIN32 || ACE_WIN64
 } // hscale_volume_value_changed_cb
 
@@ -8066,7 +8060,7 @@ hscale_frequency_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
-      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency =
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->waveform_frequency =
         gtk_range_get_value (range_in);
       break;
     }
@@ -8082,7 +8076,7 @@ hscale_frequency_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency =
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->waveform_frequency =
         gtk_range_get_value (range_in);
       break;
     }
@@ -8105,10 +8099,162 @@ hscale_frequency_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
-  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency =
+  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->waveform_frequency =
     gtk_range_get_value (range_in);
 #endif // ACE_WIN32 || ACE_WIN64
 } // hscale_frequency_value_changed_cb
+
+void
+hscale_pink_alpha_value_changed_cb (GtkRange* range_in,
+                                    gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::hscale_pink_alpha_value_changed_cb"));
+
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->alpha =
+        gtk_range_get_value (range_in);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->alpha =
+        gtk_range_get_value (range_in);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBData* cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->configuration);
+  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->alpha =
+    gtk_range_get_value (range_in);
+#endif // ACE_WIN32 || ACE_WIN64
+}
+
+void
+hscale_pink_poles_value_changed_cb (GtkRange* range_in,
+                                    gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::hscale_pink_poles_value_changed_cb"));
+
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->poles =
+        static_cast<int> (gtk_range_get_value (range_in));
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->poles =
+        static_cast<int> (gtk_range_get_value (range_in));
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBData* cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->configuration);
+  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->poles =
+    static_cast<int> (gtk_range_get_value (range_in));
+#endif // ACE_WIN32 || ACE_WIN64
+}
 
 void
 hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
@@ -8131,8 +8277,8 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
     NULL;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
-  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -8144,6 +8290,15 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (directshow_ui_cb_data_p->stream);
       istream_p =
         dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
+
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->perlin_frequency =
+        gtk_range_get_value (range_in);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8155,6 +8310,15 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
       istream_p =
         dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
+
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->perlin_frequency =
+        gtk_range_get_value (range_in);
       break;
     }
     default:
@@ -8172,6 +8336,15 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->stream);
   istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
+
+  ACE_ASSERT (cb_data_p->configuration);
+  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->perlin_frequency =
+    gtk_range_get_value (range_in);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 
@@ -8179,12 +8352,7 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
   module_p =
     istream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING));
   if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_IStream::find(%s), returning\n"),
-                ACE_TEXT (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING)));
-    return;
-  } // end IF
+    return; // stream not running ?
   iget_p =
     dynamic_cast<Common_IGetR_3_T<noise::module::Perlin>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
   ACE_ASSERT (iget_p);
@@ -8210,7 +8378,7 @@ hscale_perlin_octaves_value_changed_cb (GtkRange* range_in,
 #if defined (LIBNOISE_SUPPORT)
   Common_IGetR_3_T<noise::module::Perlin>* iget_p = NULL;
 #endif // LIBNOISE_SUPPORT
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
@@ -8228,6 +8396,15 @@ hscale_perlin_octaves_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (directshow_ui_cb_data_p->stream);
       istream_p =
         dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
+
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->octaves =
+        static_cast<int> (gtk_range_get_value (range_in));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8239,6 +8416,15 @@ hscale_perlin_octaves_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
       istream_p =
         dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
+
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->octaves =
+        static_cast<int> (gtk_range_get_value (range_in));
       break;
     }
     default:
@@ -8256,6 +8442,15 @@ hscale_perlin_octaves_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->stream);
   istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
+
+  ACE_ASSERT (cb_data_p->configuration);
+  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->octaves =
+    static_cast<int> (gtk_range_get_value (range_in));
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 
@@ -8263,12 +8458,7 @@ hscale_perlin_octaves_value_changed_cb (GtkRange* range_in,
   module_p =
     istream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING));
   if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_IStream::find(%s), returning\n"),
-                ACE_TEXT (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING)));
-    return;
-  } // end IF
+    return; // stream not running ?
   iget_p =
     dynamic_cast<Common_IGetR_3_T<noise::module::Perlin>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
   ACE_ASSERT (iget_p);
@@ -8312,6 +8502,15 @@ hscale_perlin_persistence_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (directshow_ui_cb_data_p->stream);
       istream_p =
         dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
+
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->persistence =
+        gtk_range_get_value (range_in);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8323,6 +8522,15 @@ hscale_perlin_persistence_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
       istream_p =
         dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
+
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->persistence =
+        gtk_range_get_value (range_in);
       break;
     }
     default:
@@ -8340,6 +8548,15 @@ hscale_perlin_persistence_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->stream);
   istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
+
+  ACE_ASSERT (cb_data_p->configuration);
+  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->persistence =
+    gtk_range_get_value (range_in);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 
@@ -8347,12 +8564,7 @@ hscale_perlin_persistence_value_changed_cb (GtkRange* range_in,
   module_p =
     istream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING));
   if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_IStream::find(%s), returning\n"),
-                ACE_TEXT (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING)));
-    return;
-  } // end IF
+    return; // stream not running ?
   iget_p =
     dynamic_cast<Common_IGetR_3_T<noise::module::Perlin>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
   ACE_ASSERT (iget_p);
@@ -8396,6 +8608,15 @@ hscale_perlin_lacunarity_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (directshow_ui_cb_data_p->stream);
       istream_p =
         dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
+
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->lacunarity =
+        gtk_range_get_value (range_in);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8407,6 +8628,15 @@ hscale_perlin_lacunarity_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
       istream_p =
         dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
+
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->lacunarity =
+        gtk_range_get_value (range_in);
       break;
     }
     default:
@@ -8424,6 +8654,15 @@ hscale_perlin_lacunarity_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->stream);
   istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
+
+  ACE_ASSERT (cb_data_p->configuration);
+  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->lacunarity =
+    gtk_range_get_value (range_in);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 
@@ -8431,12 +8670,7 @@ hscale_perlin_lacunarity_value_changed_cb (GtkRange* range_in,
   module_p =
     istream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING));
   if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_IStream::find(%s), returning\n"),
-                ACE_TEXT (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING)));
-    return;
-  } // end IF
+    return; // stream not running ?
   iget_p =
     dynamic_cast<Common_IGetR_3_T<noise::module::Perlin>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
   ACE_ASSERT (iget_p);
@@ -9142,8 +9376,23 @@ radiobutton_noise_toggled_cb (GtkToggleButton* toggleButton_in,
       break;
     }
     case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE:
-    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PINK_NOISE:
+    {
+      frame_p =
+        GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_NOISE_DEFAULT_NAME)));
+      ACE_ASSERT (frame_p);
+      gtk_widget_unparent (GTK_WIDGET (frame_p));
       break;
+    }
+    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PINK_NOISE:
+    {
+      frame_p =
+        GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_PINK_NAME)));
+      ACE_ASSERT (frame_p);
+      gtk_widget_unparent (GTK_WIDGET (frame_p));
+      break;
+    }
 #if defined (LIBNOISE_SUPPORT)
     case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PERLIN_NOISE:
     {
@@ -9170,6 +9419,162 @@ radiobutton_noise_toggled_cb (GtkToggleButton* toggleButton_in,
                         TRUE, // fill
                         0);   // padding
 } // radiobutton_noise_toggled_cb
+
+void
+radiobutton_quality_toggled_cb (GtkToggleButton* toggleButton_in,
+                                gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::radiobutton_quality_toggled_cb"));
+
+  // sanity check(s)
+  ACE_ASSERT (toggleButton_in);
+  if (!gtk_toggle_button_get_active (toggleButton_in))
+    return;
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_r.builders.end ());
+  GtkRadioButton* radio_button_p =
+    GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_QUALITY_FAST_NAME)));
+  ACE_ASSERT (radio_button_p);
+  GtkRadioButton* radio_button_2 =
+    GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_QUALITY_STANDARD_NAME)));
+  ACE_ASSERT (radio_button_2);
+  GtkRadioButton* radio_button_3 =
+    GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_QUALITY_BEST_NAME)));
+  ACE_ASSERT (radio_button_3);
+#if defined (LIBNOISE_SUPPORT)
+  noise::NoiseQuality noise_quality_e =
+    (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_p) ? noise::QUALITY_FAST
+  : (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_2) ? noise::QUALITY_STD
+  : (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_3) ? noise::QUALITY_BEST
+  : noise::QUALITY_STD;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->quality =
+        noise_quality_e;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->quality =
+        noise_quality_e;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+
+  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->quality =
+    noise_quality_e;
+#endif // ACE_WIN32 || ACE_WIN64
+#endif // LIBNOISE_SUPPORT
+
+  Stream_IStream_t* istream_p = NULL;
+  const Stream_Module_t* module_p = NULL;
+#if defined (LIBNOISE_SUPPORT)
+  Common_IGetR_3_T<noise::module::Perlin>* iget_p = NULL;
+#endif // LIBNOISE_SUPPORT
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      ACE_ASSERT (directshow_ui_cb_data_p->stream);
+      istream_p =
+        dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
+      istream_p =
+        dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  ACE_ASSERT (cb_data_p->stream);
+  istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (istream_p);
+
+#if defined (LIBNOISE_SUPPORT)
+  module_p =
+    istream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING));
+  if (!module_p)
+    return; // stream not running ?
+  iget_p =
+    dynamic_cast<Common_IGetR_3_T<noise::module::Perlin>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  ACE_ASSERT (iget_p);
+  noise::module::Perlin& module_r =
+    const_cast<noise::module::Perlin&> (iget_p->getR_3 ());
+  module_r.SetNoiseQuality (noise_quality_e);
+#endif // LIBNOISE_SUPPORT
+}
 
 void
 togglebutton_3d_toggled_cb (GtkToggleButton* toggleButton_in,
@@ -10307,6 +10712,11 @@ continue_:
             GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_NOISE_NAME)));
           break;
+        case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PINK_NOISE:
+          radio_button_p =
+            GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_PINK_NAME)));
+          break;
 #if defined (LIBNOISE_SUPPORT)
         case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PERLIN_NOISE:
           radio_button_p =
@@ -11287,15 +11697,17 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     { ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
       ACE_ASSERT (InlineIsEqualGUID (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.formattype, FORMAT_WaveFormatEx));
+      Stream_MediaFramework_DirectShow_Tools::setFormat (GUID_s,
+                                                         directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
       struct tWAVEFORMATEX* audio_info_header_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
       ACE_ASSERT (audio_info_header_p);
 
-      Stream_MediaFramework_DirectShow_Tools::setFormat (GUID_s,
-                                                         directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
       (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->bytesPerSample =
         Stream_MediaFramework_DirectShow_Tools::toFrameBits (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format) / 8;
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->isFloatFormat =
+        Stream_MediaFramework_DirectSound_Tools::isFloat (*audio_info_header_p);
 
       sample_rate_i = audio_info_header_p->nSamplesPerSec;
 

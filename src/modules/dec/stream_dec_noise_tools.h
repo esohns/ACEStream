@@ -23,12 +23,12 @@
 
 #include <random>
 
-#include "ace/Basic_Types.h"
-#include "ace/Global_Macros.h"
-
 #if defined (LIBNOISE_SUPPORT)
 #include "noise/noise.h"
 #endif // LIBNOISE_SUPPORT
+
+#include "ace/Basic_Types.h"
+#include "ace/Global_Macros.h"
 
 class Stream_Module_Decoder_Noise_Tools
 {
@@ -46,6 +46,7 @@ class Stream_Module_Decoder_Noise_Tools
                      double,             // amplitude [0.0-1.0]
                      DistributionType&); // in/out: float/integer distribution handle
 
+  // *NOTE*: see also: https://sampo.kapsi.fi/PinkNoise/PinkNoise.java
   static void pink_noise (unsigned int,    // sample rate (Hz)
                           unsigned int,    // #bytes/(mono-)sample
                           unsigned int,    // #channels
@@ -55,7 +56,6 @@ class Stream_Module_Decoder_Noise_Tools
                           ACE_UINT8*,      // target buffer
                           unsigned int,    // #'data' samples to write
                           double,          // amplitude [0.0-1.0]
-                          long double,     // in: alpha
                           int,             // in: #poles
                           std::uniform_real_distribution<long double>&, // in/out: RNG
                           long double[],   // in/out: multipliers

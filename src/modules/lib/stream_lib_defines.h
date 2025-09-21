@@ -21,8 +21,6 @@
 #ifndef STREAM_LIB_DEFINES_H
 #define STREAM_LIB_DEFINES_H
 
-#include "ace/config-lite.h"
-
 #define STREAM_LIB_TAGGER_DEFAULT_NAME_STRING                          "Tagger"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -158,13 +156,18 @@
 #endif // ACE_WIN32 || ACE_WIN64
 
 // Noise generator(s)
-// *IMPORTANT NOTE*: alpha >= 0 ('white' noise) && alpha <= 2.0 ('brown' noise)
-#define STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_ALPHA_LD               1.0l
-// *IMPORTANT NOTE*: #IIR filters
-#define STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_POLES                  5
+// *NOTE*: alpha >= 0.0 ('white' noise) && alpha <= 2.0 ('brown' noise)
+#define STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_ALPHA_LD               1.0l // --> 'pink' noise
+#define STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_POLES                  5 // [2-x] #IIR filters
 
-#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_STEP                 0.01
-#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_X                    1.25
-#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Y                    0.75
-#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Z                    0.5
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_FREQUENCY_D          1.0 // noise::module::DEFAULT_PERLIN_FREQUENCY // Hz of first octave
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_LACUNARITY_D         2.0 // noise::module::DEFAULT_PERLIN_LACUNARITY
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_OCTAVES              6 // noise::module::DEFAULT_PERLIN_OCTAVE_COUNT
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_PERSISTENCE_D        0.5 // noise::module::DEFAULT_PERLIN_PERSISTENCE
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_QUALITY              1 // noise::module::DEFAULT_PERLIN_QUALITY
+
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_STEP_D               0.01
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_X_D                  1.25
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Y_D                  0.75
+#define STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Z_D                  0.5
 #endif

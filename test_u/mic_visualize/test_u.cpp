@@ -2285,37 +2285,15 @@ ACE_TMAIN (int argc_in,
   struct Test_U_MicVisualize_DirectShow_Configuration directshow_configuration;
   directshow_configuration.filterConfiguration.pinConfiguration =
     &directshow_configuration.pinConfiguration;
-  directshow_configuration.generatorConfiguration.amplitude = 1.0;
-  directshow_configuration.generatorConfiguration.frequency =
+  directshow_configuration.generatorConfiguration.waveform_frequency =
     TEST_U_NOISE_DEFAULT_FREQUENCY_D;
-#if defined (LIBNOISE_SUPPORT)
-  directshow_configuration.generatorConfiguration.step =
-    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_STEP;
-  directshow_configuration.generatorConfiguration.x =
-    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_X;
-  directshow_configuration.generatorConfiguration.y =
-    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Y;
-  directshow_configuration.generatorConfiguration.z =
-    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Z;
-#endif // LIBNOISE_SUPPORT
   directshow_configuration.generatorConfiguration.type =
     TEST_U_NOISE_DEFAULT_TYPE;
   struct Test_U_MicVisualize_DirectShow_UI_CBData directshow_ui_cb_data;
 
   struct Test_U_MicVisualize_MediaFoundation_Configuration mediafoundation_configuration;
-  mediafoundation_configuration.generatorConfiguration.amplitude = 1.0;
-  mediafoundation_configuration.generatorConfiguration.frequency =
+  mediafoundation_configuration.generatorConfiguration.waveform_frequency =
     TEST_U_NOISE_DEFAULT_FREQUENCY_D;
-#if defined (LIBNOISE_SUPPORT)
-  mediafoundation_configuration.generatorConfiguration.step =
-    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_STEP;
-  mediafoundation_configuration.generatorConfiguration.x =
-    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_X;
-  mediafoundation_configuration.generatorConfiguration.y =
-    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Y;
-  mediafoundation_configuration.generatorConfiguration.z =
-    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Z;
-#endif // LIBNOISE_SUPPORT
   mediafoundation_configuration.generatorConfiguration.type =
     TEST_U_NOISE_DEFAULT_TYPE;
   struct Test_U_MicVisualize_MediaFoundation_UI_CBData mediafoundation_ui_cb_data;
@@ -2392,19 +2370,8 @@ ACE_TMAIN (int argc_in,
   } // end SWITCH
 #else
   struct Test_U_MicVisualize_Configuration configuration;
-  configuration.generatorConfiguration.amplitude = 1.0;
-  configuration.generatorConfiguration.frequency =
+  configuration.generatorConfiguration.waveform_frequency =
     TEST_U_NOISE_DEFAULT_FREQUENCY_D;
-#if defined (LIBNOISE_SUPPORT)
-  configuration.generatorConfiguration.step =
-    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_STEP;
-  configuration.generatorConfiguration.x =
-    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_X;
-  configuration.generatorConfiguration.y =
-    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Y;
-  configuration.generatorConfiguration.z =
-    STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Z;
-#endif // LIBNOISE_SUPPORT
   configuration.generatorConfiguration.type = TEST_U_NOISE_DEFAULT_TYPE;
   struct Test_U_MicVisualize_UI_CBData ui_cb_data;
   ui_cb_data.configuration = &configuration;

@@ -21,7 +21,6 @@
 #ifndef STREAM_LIB_COMMON_H
 #define STREAM_LIB_COMMON_H
 
-#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <map>
 #include <string>
@@ -33,11 +32,17 @@
 
 #include <set>
 
+//#if defined (LIBNOISE_SUPPORT)
+//#include "noise/noise.h"
+//#endif // LIBNOISE_SUPPORT
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "stream_lib_alsa_common.h"
 #include "stream_lib_v4l_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
+
+#include "stream_lib_defines.h"
 
 enum Stream_MediaType_Type
 {
@@ -84,6 +89,27 @@ enum Stream_MediaFramework_SoundGeneratorType
 
 struct Stream_MediaFramework_SoundGeneratorConfiguration
 {
+  Stream_MediaFramework_SoundGeneratorConfiguration ()
+  {
+    amplitude = 1.0;
+
+    alpha = STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_ALPHA_LD;
+    poles = STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_POLES;
+
+#if defined (LIBNOISE_SUPPORT)
+    perlin_frequency = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_FREQUENCY_D;
+    octaves = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_OCTAVES;
+    persistence = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_PERSISTENCE_D;
+    lacunarity = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_LACUNARITY_D;
+    quality = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_QUALITY;
+
+    step = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_STEP_D;
+    x = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_X_D;
+    y = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Y_D;
+    z = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Z_D;
+#endif // LIBNOISE_SUPPORT
+  }
+
   // media type
   unsigned int                                  samplesPerSecond;
   unsigned int                                  bytesPerSample; // #bytes/(mono-)-
@@ -95,10 +121,21 @@ struct Stream_MediaFramework_SoundGeneratorConfiguration
   double                                        amplitude; // [0.0-1.0]
 
   // waveform generators
-  double                                        frequency;
+  double                                        waveform_frequency;
 
   // noise generators
+  // pink noise
+  long double                                   alpha; // [0.0l-2.0l] 0.0l: white noise; 1.0l: pink noise; 2.0l: brown noise
+  int                                           poles; // number of-
+
 #if defined (LIBNOISE_SUPPORT)
+  // perlin noise generators
+  double                                        perlin_frequency; // Hz of first octave
+  int                                           octaves; // [1-noise::module::PERLIN_MAX_OCTAVE]
+  double                                        persistence; // [0.0-1.0]
+  double                                        lacunarity; // [1.5-3.5]
+  int                                           quality; // [0-2] noise::QUALITY_FAST, noise::QUALITY_STD, noise::QUALITY_BEST
+
   double                                        step;
   double                                        x; // coordinates
   double                                        y;

@@ -81,15 +81,11 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
  , realDistribution_ ()
  , integerDistribution_ ()
  , signedIntegerDistribution_ ()
- , alpha_ (STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_ALPHA_LD)
- , numberOfPoles_ (STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_POLES)
+ , realDistribution_2 ()
  , multipliers_ (NULL)
  , history_ (NULL)
 #if defined (LIBNOISE_SUPPORT)
  , noiseModule_ ()
- , x_ (0.0)
- , y_ (0.0)
- , z_ (0.0)
 #endif // LIBNOISE_SUPPORT
  , bufferSize_ (0)
  , frameSize_ (0)
@@ -197,6 +193,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
     realDistribution_.reset ();
     integerDistribution_.reset ();
     signedIntegerDistribution_.reset ();
+    realDistribution_2.reset ();
 
     bufferSize_ = 0;
     frameSize_ = 0;
@@ -498,30 +495,44 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
             goto error;
           }
         } // end SWITCH
+     
+      // *NOTE*: see also: https://sampo.kapsi.fi/PinkNoise/PinkNoise.java
+      REAL_DISTRIBUTION_T::param_type parameters_s (0.0l, 1.0l);
+      realDistribution_2.param (parameters_s);
 
-      ACE_NEW_NORETURN (multipliers_, long double[numberOfPoles_]);
+      ACE_NEW_NORETURN (multipliers_,
+                        long double[inherited::configuration_->generatorConfiguration->poles]);
       ACE_ASSERT (multipliers_);
-      for (int i = 0; i < numberOfPoles_; i++)
+      for (int i = 0;
+           i < inherited::configuration_->generatorConfiguration->poles;
+           i++)
       {
-        a = (i - alpha_ / 2.0l) * a / (i + 1);
+        a =
+          (i - inherited::configuration_->generatorConfiguration->alpha / 2.0l) * a / (i + 1);
         multipliers_[i] = a;
       } // end FOR
-      ACE_NEW_NORETURN (history_, long double[numberOfPoles_]);
+      ACE_NEW_NORETURN (history_,
+                        long double[inherited::configuration_->generatorConfiguration->poles]);
       ACE_ASSERT (history_);
-      ACE_OS::memset (history_, 0, sizeof (long double) * numberOfPoles_);
-      for (int i = 0; i < numberOfPoles_; i++)
+      ACE_OS::memset (history_, 0, sizeof (long double) * inherited::configuration_->generatorConfiguration->poles);
+      for (int i = 0;
+           i < inherited::configuration_->generatorConfiguration->poles;
+           i++)
       {
-        long double x = Common_Tools::getRandomNumber (realDistribution_) - 0.5l;
-        for (int j = 0; j < numberOfPoles_; j++)
+        long double x = Common_Tools::getRandomNumber (realDistribution_2) - 0.5l;
+        for (int j = 0;
+             j < inherited::configuration_->generatorConfiguration->poles;
+             j++)
           x -= multipliers_[j] * history_[j];
         history_[i] = x;
       } // end FOR
 
 #if defined (LIBNOISE_SUPPORT)
-      //noiseModule_.SetFrequency (inherited::configuration_->generatorConfiguration->frequency);
-      x_ = inherited::configuration_->generatorConfiguration->x;
-      y_ = inherited::configuration_->generatorConfiguration->y;
-      z_ = inherited::configuration_->generatorConfiguration->z;
+      noiseModule_.SetFrequency (inherited::configuration_->generatorConfiguration->perlin_frequency);
+      noiseModule_.SetOctaveCount (inherited::configuration_->generatorConfiguration->octaves);
+      noiseModule_.SetPersistence (inherited::configuration_->generatorConfiguration->persistence);
+      noiseModule_.SetLacunarity (inherited::configuration_->generatorConfiguration->lacunarity);
+      noiseModule_.SetNoiseQuality ((noise::NoiseQuality)inherited::configuration_->generatorConfiguration->quality);
 #endif // LIBNOISE_SUPPORT
 
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -708,7 +719,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                                    reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
                                                    bufferSize_ / frameSize_,
                                                    inherited::configuration_->generatorConfiguration->amplitude,
-                                                   inherited::configuration_->generatorConfiguration->frequency, 
+                                                   inherited::configuration_->generatorConfiguration->waveform_frequency, 
                                                    phase_);
       break;
     }
@@ -723,7 +734,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                                 reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
                                                 bufferSize_ / frameSize_,
                                                 inherited::configuration_->generatorConfiguration->amplitude,
-                                                inherited::configuration_->generatorConfiguration->frequency, 
+                                                inherited::configuration_->generatorConfiguration->waveform_frequency, 
                                                 phase_);
       break;
     }
@@ -738,7 +749,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                                  reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
                                                  bufferSize_ / frameSize_,
                                                  inherited::configuration_->generatorConfiguration->amplitude,
-                                                 inherited::configuration_->generatorConfiguration->frequency, 
+                                                 inherited::configuration_->generatorConfiguration->waveform_frequency, 
                                                  phase_);
       break;
     }
@@ -753,7 +764,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                                    reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
                                                    bufferSize_ / frameSize_,
                                                    inherited::configuration_->generatorConfiguration->amplitude,
-                                                   inherited::configuration_->generatorConfiguration->frequency, 
+                                                   inherited::configuration_->generatorConfiguration->waveform_frequency, 
                                                    phase_);
       break;
     }
@@ -802,9 +813,8 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                                      reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
                                                      bufferSize_ / frameSize_,
                                                      inherited::configuration_->generatorConfiguration->amplitude,
-                                                     alpha_,
-                                                     numberOfPoles_,
-                                                     realDistribution_,
+                                                     inherited::configuration_->generatorConfiguration->poles,
+                                                     realDistribution_2,
                                                      multipliers_,
                                                      history_);
       break;
@@ -822,7 +832,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                                        bufferSize_ / frameSize_,
                                                        inherited::configuration_->generatorConfiguration->amplitude,
                                                        inherited::configuration_->generatorConfiguration->step,
-                                                       x_, y_, z_);
+                                                       inherited::configuration_->generatorConfiguration->x, inherited::configuration_->generatorConfiguration->y, inherited::configuration_->generatorConfiguration->z);
       break;
     }
 #endif // LIBNOISE_SUPPORT

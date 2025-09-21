@@ -103,12 +103,12 @@ extern "C"
   G_MODULE_EXPORT gboolean drawingarea_query_tooltip_cb (GtkWidget*, gint, gint, gboolean, GtkTooltip*, gpointer);
   G_MODULE_EXPORT void drawingarea_realize_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
   G_MODULE_EXPORT gboolean drawingarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
   G_MODULE_EXPORT gboolean drawingarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
 #else
   G_MODULE_EXPORT gboolean drawingarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
   G_MODULE_EXPORT void filechooserbutton_file_file_set_cb (GtkFileChooserButton*, gpointer);
   G_MODULE_EXPORT void filechooserbutton_save_file_set_cb (GtkFileChooserButton*, gpointer);
   //G_MODULE_EXPORT void filechooserdialog_response_cb (GtkDialog*, int, gpointer);
@@ -118,6 +118,8 @@ extern "C"
   G_MODULE_EXPORT void hscale_device_volume_value_changed_cb (GtkRange*, gpointer);
   G_MODULE_EXPORT void hscale_amplitude_value_changed_cb (GtkRange*, gpointer);
   G_MODULE_EXPORT void hscale_frequency_value_changed_cb (GtkRange*, gpointer);
+  G_MODULE_EXPORT void hscale_pink_alpha_value_changed_cb (GtkRange*, gpointer);
+  G_MODULE_EXPORT void hscale_pink_poles_value_changed_cb (GtkRange*, gpointer);
   G_MODULE_EXPORT void hscale_perlin_frequency_value_changed_cb (GtkRange*, gpointer);
   G_MODULE_EXPORT void hscale_perlin_octaves_value_changed_cb (GtkRange*, gpointer);
   G_MODULE_EXPORT void hscale_perlin_persistence_value_changed_cb (GtkRange*, gpointer);
@@ -128,6 +130,7 @@ extern "C"
 #endif // ACE_WIN32 || ACE_WIN64
   G_MODULE_EXPORT void radiobutton_2d_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void radiobutton_noise_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void radiobutton_quality_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void togglebutton_3d_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void togglebutton_effect_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void togglebutton_mute_toggled_cb (GtkToggleButton*, gpointer);
