@@ -6256,6 +6256,15 @@ idle_session_end_cb (gpointer userData_in)
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
 
+  GtkScale* scale_p =
+    GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_PINK_ALPHA_NAME)));
+  gtk_widget_set_sensitive (GTK_WIDGET (scale_p), TRUE);
+  scale_p =
+    GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_PINK_POLES_NAME)));
+  gtk_widget_set_sensitive (GTK_WIDGET (scale_p), TRUE);
+
   return G_SOURCE_REMOVE;
 }
 
@@ -6990,6 +6999,15 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_SAVE_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
+
+  GtkScale* scale_p =
+    GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_PINK_ALPHA_NAME)));
+  gtk_widget_set_sensitive (GTK_WIDGET (scale_p), FALSE);
+  scale_p =
+    GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_PINK_POLES_NAME)));
+  gtk_widget_set_sensitive (GTK_WIDGET (scale_p), FALSE);
 
   // step1: set up progress reporting
   ui_cb_data_base_p->progressData.bytesPerFrame = bytes_per_frame_i;

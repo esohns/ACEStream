@@ -2125,13 +2125,13 @@ ACE_TMAIN (int argc_in,
   process_profile.start ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Common_Tools::initialize (true,   // COM ?
-                            false); // RNG ?
+  Common_Tools::initialize (true,  // COM ?
+                            true); // RNG ?
 #else
 #if defined (LIBPIPEWIRE_SUPPORT)
   pw_init (&argc_in, &argv_in);
 #endif // LIBPIPEWIRE_SUPPORT
-  Common_Tools::initialize (false); // RNG ?
+  Common_Tools::initialize (true); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
   Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (argv_in[0]));
 

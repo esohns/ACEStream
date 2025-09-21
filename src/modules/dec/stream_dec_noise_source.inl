@@ -98,6 +98,9 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dec_Noise_Source_T::Stream_Dec_Noise_Source_T"));
 
+#if defined (LIBNOISE_SUPPORT)
+  noiseModule_.SetSeed (static_cast<int> (Common_Tools::randomSeed));
+#endif // LIBNOISE_SUPPORT
 }
 
 template <ACE_SYNCH_DECL,
@@ -678,7 +681,6 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::allocator_);
-  //ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::configuration_->generatorConfiguration);
 
   ACE_Message_Block* message_block_p = NULL;
@@ -687,13 +689,11 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
   // step1: allocate buffer
   try {
     message_block_p =
-      //static_cast<ACE_Message_Block*> (inherited::allocator_->malloc (inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       static_cast<ACE_Message_Block*> (inherited::allocator_->malloc (bufferSize_));
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
                 inherited::mod_->name (),
-                //inherited::configuration_->allocatorConfiguration->defaultBufferSize));
                 bufferSize_));
     message_block_p = NULL;
   }

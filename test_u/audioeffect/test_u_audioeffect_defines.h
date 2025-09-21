@@ -114,6 +114,8 @@
 #define TEST_U_STREAM_UI_GTK_HBOX_VISUALIZATION_NAME           "hbox_visualization_2"
 #define TEST_U_STREAM_UI_GTK_HSCALE_DEVICE_BOOST_NAME          "hscale_device_boost"
 #define TEST_U_STREAM_UI_GTK_HSCALE_DEVICE_VOLUME_NAME         "hscale_device_volume"
+#define TEST_U_STREAM_UI_GTK_HSCALE_PINK_ALPHA_NAME            "hscale_pink_alpha"
+#define TEST_U_STREAM_UI_GTK_HSCALE_PINK_POLES_NAME            "hscale_pink_poles"
 #define TEST_U_STREAM_UI_GTK_HSCALE_SINUS_FREQUENCY_NAME       "hscale_sinus_frequency"
 #define TEST_U_STREAM_UI_GTK_HSCALE_VOLUME_NAME                "hscale_volume"
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_CHANNELS_NAME           "liststore_channels"

@@ -196,23 +196,25 @@ Stream_Module_Decoder_Noise_Tools::perlin_noise (noise::module::Perlin& module_i
   ACE_ASSERT (bytesPerSample_in <= 16);
   ACE_ASSERT (amplitude_in >= 0.0 && amplitude_in <= 1.0);
 
-  ACE_UINT64 maximum_value_i =
-    Common_Tools::max<ACE_UINT64> (bytesPerSample_in,
-                                   formatIsSigned_in);
+  long double maximum_value_ld =
+    static_cast<long double> (Common_Tools::max<ACE_UINT64> (bytesPerSample_in,
+                                                             formatIsSigned_in));
   bool byte_swap_b =
     (formatIsLittleEndian_in ? (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
                              : (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN));
-  long double value_ld = 0.0;
+  long double value_ld;
   ACE_UINT8* data_p = buffer_in;
   for (unsigned int i = 0; i < samplesToWrite_in; ++i)
   {
     for (unsigned int j = 0; j < channels_in; ++j, data_p += bytesPerSample_in)
     {
-      value_ld = module_in.GetValue (x_inout, y_inout, z_inout);
+      value_ld = static_cast<long double> (module_in.GetValue (x_inout, y_inout, z_inout));
+      // *NOTE*: sometimes the values are just outside the range of [-1.0,1.0] --> clamp
+      value_ld = std::max (std::min (value_ld, 1.0l), -1.0l);
       value_ld =
-      (formatIsFloat_in ? value_ld * amplitude_in
-                        : (formatIsSigned_in ? value_ld * static_cast<long double> (maximum_value_i) * amplitude_in
-                                             : (value_ld + 1.0) * (static_cast<long double> (maximum_value_i) / 2.0) * amplitude_in));
+        (formatIsFloat_in ? value_ld * static_cast<long double> (amplitude_in)
+                          : (formatIsSigned_in ? value_ld * maximum_value_ld * static_cast<long double> (amplitude_in)
+                                               : (value_ld + 1.0l) * (maximum_value_ld / 2.0l) * static_cast<long double> (amplitude_in)));
 
       switch (bytesPerSample_in)
       {
