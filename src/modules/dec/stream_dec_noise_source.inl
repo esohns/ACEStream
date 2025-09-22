@@ -706,145 +706,151 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
   } // end IF
 
   // step2: write frames
-  switch (inherited::configuration_->generatorConfiguration->type)
-  {
-    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH:
-    {
-      Stream_Module_Decoder_Noise_Tools::sawtooth (inherited::configuration_->generatorConfiguration->samplesPerSecond,
-                                                   inherited::configuration_->generatorConfiguration->bytesPerSample,
-                                                   inherited::configuration_->generatorConfiguration->numberOfChannels,
-                                                   inherited::configuration_->generatorConfiguration->isFloatFormat,
-                                                   inherited::configuration_->generatorConfiguration->isSignedFormat,
-                                                   inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
-                                                   reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                                   bufferSize_ / frameSize_,
-                                                   inherited::configuration_->generatorConfiguration->amplitude,
-                                                   inherited::configuration_->generatorConfiguration->waveform_frequency, 
-                                                   phase_);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE:
-    {
-      Stream_Module_Decoder_Noise_Tools::sinus (inherited::configuration_->generatorConfiguration->samplesPerSecond,
-                                                inherited::configuration_->generatorConfiguration->bytesPerSample,
+  if (unlikely (inherited::configuration_->mute))
+    Stream_Module_Decoder_Noise_Tools::silence (inherited::configuration_->generatorConfiguration->bytesPerSample,
                                                 inherited::configuration_->generatorConfiguration->numberOfChannels,
-                                                inherited::configuration_->generatorConfiguration->isFloatFormat,
-                                                inherited::configuration_->generatorConfiguration->isSignedFormat,
-                                                inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
                                                 reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                                bufferSize_ / frameSize_,
-                                                inherited::configuration_->generatorConfiguration->amplitude,
-                                                inherited::configuration_->generatorConfiguration->waveform_frequency, 
-                                                phase_);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE:
+                                                bufferSize_ / frameSize_);
+  else
+    switch (inherited::configuration_->generatorConfiguration->type)
     {
-      Stream_Module_Decoder_Noise_Tools::square (inherited::configuration_->generatorConfiguration->samplesPerSecond,
-                                                 inherited::configuration_->generatorConfiguration->bytesPerSample,
-                                                 inherited::configuration_->generatorConfiguration->numberOfChannels,
-                                                 inherited::configuration_->generatorConfiguration->isFloatFormat,
-                                                 inherited::configuration_->generatorConfiguration->isSignedFormat,
-                                                 inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
-                                                 reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                                 bufferSize_ / frameSize_,
-                                                 inherited::configuration_->generatorConfiguration->amplitude,
-                                                 inherited::configuration_->generatorConfiguration->waveform_frequency, 
-                                                 phase_);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_TRIANGLE:
-    {
-      Stream_Module_Decoder_Noise_Tools::triangle (inherited::configuration_->generatorConfiguration->samplesPerSecond,
-                                                   inherited::configuration_->generatorConfiguration->bytesPerSample,
-                                                   inherited::configuration_->generatorConfiguration->numberOfChannels,
-                                                   inherited::configuration_->generatorConfiguration->isFloatFormat,
-                                                   inherited::configuration_->generatorConfiguration->isSignedFormat,
-                                                   inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
-                                                   reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                                   bufferSize_ / frameSize_,
-                                                   inherited::configuration_->generatorConfiguration->amplitude,
-                                                   inherited::configuration_->generatorConfiguration->waveform_frequency, 
-                                                   phase_);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE:
-    {
-      if (inherited::configuration_->generatorConfiguration->isFloatFormat)
-        Stream_Module_Decoder_Noise_Tools::noise (inherited::configuration_->generatorConfiguration->samplesPerSecond,
-                                                  inherited::configuration_->generatorConfiguration->bytesPerSample,
-                                                  inherited::configuration_->generatorConfiguration->numberOfChannels,
-                                                  inherited::configuration_->generatorConfiguration->isSignedFormat,
-                                                  inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
-                                                  reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                                  bufferSize_ / frameSize_,
-                                                  inherited::configuration_->generatorConfiguration->amplitude,
-                                                  realDistribution_);
-      else if (inherited::configuration_->generatorConfiguration->isSignedFormat)
-        Stream_Module_Decoder_Noise_Tools::noise (inherited::configuration_->generatorConfiguration->samplesPerSecond,
-                                                  inherited::configuration_->generatorConfiguration->bytesPerSample,
-                                                  inherited::configuration_->generatorConfiguration->numberOfChannels,
-                                                  inherited::configuration_->generatorConfiguration->isSignedFormat,
-                                                  inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
-                                                  reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                                  bufferSize_ / frameSize_,
-                                                  inherited::configuration_->generatorConfiguration->amplitude,
-                                                  signedIntegerDistribution_);
-      else
-        Stream_Module_Decoder_Noise_Tools::noise (inherited::configuration_->generatorConfiguration->samplesPerSecond,
-                                                  inherited::configuration_->generatorConfiguration->bytesPerSample,
-                                                  inherited::configuration_->generatorConfiguration->numberOfChannels,
-                                                  inherited::configuration_->generatorConfiguration->isSignedFormat,
-                                                  inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
-                                                  reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                                  bufferSize_ / frameSize_,
-                                                  inherited::configuration_->generatorConfiguration->amplitude,
-                                                  integerDistribution_);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PINK_NOISE:
-    {
-      Stream_Module_Decoder_Noise_Tools::pink_noise (inherited::configuration_->generatorConfiguration->samplesPerSecond,
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH:
+      {
+        Stream_Module_Decoder_Noise_Tools::sawtooth (inherited::configuration_->generatorConfiguration->samplesPerSecond,
                                                      inherited::configuration_->generatorConfiguration->bytesPerSample,
                                                      inherited::configuration_->generatorConfiguration->numberOfChannels,
+                                                     inherited::configuration_->generatorConfiguration->isFloatFormat,
                                                      inherited::configuration_->generatorConfiguration->isSignedFormat,
                                                      inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
-                                                     inherited::configuration_->generatorConfiguration->isFloatFormat,
                                                      reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
                                                      bufferSize_ / frameSize_,
                                                      inherited::configuration_->generatorConfiguration->amplitude,
-                                                     inherited::configuration_->generatorConfiguration->poles,
-                                                     realDistribution_2,
-                                                     multipliers_,
-                                                     history_);
-      break;
-    }
-#if defined (LIBNOISE_SUPPORT)
-    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PERLIN_NOISE:
-    {
-      Stream_Module_Decoder_Noise_Tools::perlin_noise (noiseModule_,
+                                                     inherited::configuration_->generatorConfiguration->waveform_frequency, 
+                                                     phase_);
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE:
+      {
+        Stream_Module_Decoder_Noise_Tools::sinus (inherited::configuration_->generatorConfiguration->samplesPerSecond,
+                                                  inherited::configuration_->generatorConfiguration->bytesPerSample,
+                                                  inherited::configuration_->generatorConfiguration->numberOfChannels,
+                                                  inherited::configuration_->generatorConfiguration->isFloatFormat,
+                                                  inherited::configuration_->generatorConfiguration->isSignedFormat,
+                                                  inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
+                                                  reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                                  bufferSize_ / frameSize_,
+                                                  inherited::configuration_->generatorConfiguration->amplitude,
+                                                  inherited::configuration_->generatorConfiguration->waveform_frequency, 
+                                                  phase_);
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE:
+      {
+        Stream_Module_Decoder_Noise_Tools::square (inherited::configuration_->generatorConfiguration->samplesPerSecond,
+                                                   inherited::configuration_->generatorConfiguration->bytesPerSample,
+                                                   inherited::configuration_->generatorConfiguration->numberOfChannels,
+                                                   inherited::configuration_->generatorConfiguration->isFloatFormat,
+                                                   inherited::configuration_->generatorConfiguration->isSignedFormat,
+                                                   inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
+                                                   reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                                   bufferSize_ / frameSize_,
+                                                   inherited::configuration_->generatorConfiguration->amplitude,
+                                                   inherited::configuration_->generatorConfiguration->waveform_frequency, 
+                                                   phase_);
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_TRIANGLE:
+      {
+        Stream_Module_Decoder_Noise_Tools::triangle (inherited::configuration_->generatorConfiguration->samplesPerSecond,
+                                                     inherited::configuration_->generatorConfiguration->bytesPerSample,
+                                                     inherited::configuration_->generatorConfiguration->numberOfChannels,
+                                                     inherited::configuration_->generatorConfiguration->isFloatFormat,
+                                                     inherited::configuration_->generatorConfiguration->isSignedFormat,
+                                                     inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
+                                                     reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                                     bufferSize_ / frameSize_,
+                                                     inherited::configuration_->generatorConfiguration->amplitude,
+                                                     inherited::configuration_->generatorConfiguration->waveform_frequency, 
+                                                     phase_);
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE:
+      {
+        if (inherited::configuration_->generatorConfiguration->isFloatFormat)
+          Stream_Module_Decoder_Noise_Tools::noise (inherited::configuration_->generatorConfiguration->samplesPerSecond,
+                                                    inherited::configuration_->generatorConfiguration->bytesPerSample,
+                                                    inherited::configuration_->generatorConfiguration->numberOfChannels,
+                                                    inherited::configuration_->generatorConfiguration->isSignedFormat,
+                                                    inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
+                                                    reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                                    bufferSize_ / frameSize_,
+                                                    inherited::configuration_->generatorConfiguration->amplitude,
+                                                    realDistribution_);
+        else if (inherited::configuration_->generatorConfiguration->isSignedFormat)
+          Stream_Module_Decoder_Noise_Tools::noise (inherited::configuration_->generatorConfiguration->samplesPerSecond,
+                                                    inherited::configuration_->generatorConfiguration->bytesPerSample,
+                                                    inherited::configuration_->generatorConfiguration->numberOfChannels,
+                                                    inherited::configuration_->generatorConfiguration->isSignedFormat,
+                                                    inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
+                                                    reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                                    bufferSize_ / frameSize_,
+                                                    inherited::configuration_->generatorConfiguration->amplitude,
+                                                    signedIntegerDistribution_);
+        else
+          Stream_Module_Decoder_Noise_Tools::noise (inherited::configuration_->generatorConfiguration->samplesPerSecond,
+                                                    inherited::configuration_->generatorConfiguration->bytesPerSample,
+                                                    inherited::configuration_->generatorConfiguration->numberOfChannels,
+                                                    inherited::configuration_->generatorConfiguration->isSignedFormat,
+                                                    inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
+                                                    reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                                    bufferSize_ / frameSize_,
+                                                    inherited::configuration_->generatorConfiguration->amplitude,
+                                                    integerDistribution_);
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PINK_NOISE:
+      {
+        Stream_Module_Decoder_Noise_Tools::pink_noise (inherited::configuration_->generatorConfiguration->samplesPerSecond,
                                                        inherited::configuration_->generatorConfiguration->bytesPerSample,
                                                        inherited::configuration_->generatorConfiguration->numberOfChannels,
-                                                       inherited::configuration_->generatorConfiguration->isFloatFormat,
                                                        inherited::configuration_->generatorConfiguration->isSignedFormat,
                                                        inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
+                                                       inherited::configuration_->generatorConfiguration->isFloatFormat,
                                                        reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
                                                        bufferSize_ / frameSize_,
                                                        inherited::configuration_->generatorConfiguration->amplitude,
-                                                       inherited::configuration_->generatorConfiguration->step,
-                                                       inherited::configuration_->generatorConfiguration->x, inherited::configuration_->generatorConfiguration->y, inherited::configuration_->generatorConfiguration->z);
-      break;
-    }
+                                                       inherited::configuration_->generatorConfiguration->poles,
+                                                       realDistribution_2,
+                                                       multipliers_,
+                                                       history_);
+        break;
+      }
+#if defined (LIBNOISE_SUPPORT)
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_PERLIN_NOISE:
+      {
+        Stream_Module_Decoder_Noise_Tools::perlin_noise (noiseModule_,
+                                                         inherited::configuration_->generatorConfiguration->bytesPerSample,
+                                                         inherited::configuration_->generatorConfiguration->numberOfChannels,
+                                                         inherited::configuration_->generatorConfiguration->isFloatFormat,
+                                                         inherited::configuration_->generatorConfiguration->isSignedFormat,
+                                                         inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
+                                                         reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                                         bufferSize_ / frameSize_,
+                                                         inherited::configuration_->generatorConfiguration->amplitude,
+                                                         inherited::configuration_->generatorConfiguration->step,
+                                                         inherited::configuration_->generatorConfiguration->x, inherited::configuration_->generatorConfiguration->y, inherited::configuration_->generatorConfiguration->z);
+        break;
+      }
 #endif // LIBNOISE_SUPPORT
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unkown noise type (was: %d), aborting\n"),
-                  inherited::mod_->name (),
-                  inherited::configuration_->generatorConfiguration->type));
-      goto error;
-    }
-  } // end SWITCH
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unkown noise type (was: %d), aborting\n"),
+                    inherited::mod_->name (),
+                    inherited::configuration_->generatorConfiguration->type));
+        goto error;
+      }
+    } // end SWITCH
   message_block_p->wr_ptr (bufferSize_);
 
   // step3: push data downstream

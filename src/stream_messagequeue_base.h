@@ -51,10 +51,6 @@ class Stream_MessageQueueBase_T
   virtual int dequeue_head (ACE_Message_Block*&,  // return value: first item
                             ACE_Time_Value* = 0); // timeout [NULL: block]
 
-  // *WARNING*: caller needs to hold inherited::lock_ !
-  virtual int dequeue_head_i (ACE_Message_Block*&,  // return value: first item
-                              ACE_Time_Value* = 0); // timeout [NULL: block]
-
   // implement Stream_IMessageQueue
   // *WARNING*: caller needs to hold inherited::lock_ !
   virtual int enqueue_head_i (ACE_Message_Block*,   // message block handle
@@ -75,6 +71,11 @@ class Stream_MessageQueueBase_T
                             TimePolicyType> MESSAGE_QUEUE_T;
   typedef ACE_Message_Queue_Iterator<ACE_SYNCH_USE,
                                      TimePolicyType> MESSAGE_QUEUE_ITERATOR_T;
+
+  // override (part of) ACE_Message_Queue_T
+  // *WARNING*: caller needs to hold inherited::lock_ !
+  virtual int dequeue_head_i (ACE_Message_Block*&,  // return value: first item
+                              ACE_Time_Value* = 0); // timeout [NULL: block]
 
   // *IMPORTANT NOTE*: override so that the queue considers the # of enqueued
   //                   messages (instead of the amount of enqueued bytes) to

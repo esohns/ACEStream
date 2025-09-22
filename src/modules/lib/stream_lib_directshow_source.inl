@@ -387,7 +387,6 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
 
   int result = -1;
-  //ULONG reference_count = sample_in->AddRef (); // *TODO*: is this necessary ?
   DataMessageType* message_p = NULL;
   if (inherited::configuration_->sampleIsDataMessage)
   {

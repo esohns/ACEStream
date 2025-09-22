@@ -25,7 +25,7 @@
 
 #include "ace/Log_Msg.h"
 
-#include "common_math_tools.h"
+//#include "common_math_tools.h"
 
 //#define MAXIMUM_PHASE_D 2.0 * M_PI
 static double acestream_noise_maximum_phase_d = 2.0 * M_PI;
@@ -164,7 +164,7 @@ Stream_Module_Decoder_Noise_Tools::pink_noise (unsigned int sampleRate_in,
         default:
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown value size (was: %u), returning\n"),
+                      ACE_TEXT ("invalid/unknown sample size (was: %u), returning\n"),
                       bytesPerSample_in));
           return;
         }
@@ -272,7 +272,7 @@ Stream_Module_Decoder_Noise_Tools::perlin_noise (noise::module::Perlin& module_i
         default:
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown value size (was: %u), returning\n"),
+                      ACE_TEXT ("invalid/unknown sample size (was: %u), returning\n"),
                       bytesPerSample_in));
           return;
         }
@@ -378,7 +378,7 @@ Stream_Module_Decoder_Noise_Tools::sawtooth (unsigned int sampleRate_in,
         default:
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown value size (was: %u), returning\n"),
+                      ACE_TEXT ("invalid/unknown sample size (was: %u), returning\n"),
                       bytesPerSample_in));
           return;
         }
@@ -481,7 +481,7 @@ Stream_Module_Decoder_Noise_Tools::sinus (unsigned int sampleRate_in,
         default:
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown value size (was: %u), returning\n"),
+                      ACE_TEXT ("invalid/unknown sample size (was: %u), returning\n"),
                       bytesPerSample_in));
           return;
         }
@@ -588,7 +588,7 @@ Stream_Module_Decoder_Noise_Tools::square (unsigned int sampleRate_in,
         default:
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown value size (was: %u), returning\n"),
+                      ACE_TEXT ("invalid/unknown sample size (was: %u), returning\n"),
                       bytesPerSample_in));
           return;
         }
@@ -694,7 +694,7 @@ Stream_Module_Decoder_Noise_Tools::triangle (unsigned int sampleRate_in,
         default:
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown value size (was: %u), returning\n"),
+                      ACE_TEXT ("invalid/unknown sample size (was: %u), returning\n"),
                       bytesPerSample_in));
           return;
         }
@@ -703,4 +703,50 @@ Stream_Module_Decoder_Noise_Tools::triangle (unsigned int sampleRate_in,
     if (unlikely (phase_inout >= acestream_noise_maximum_phase_d))
       phase_inout -= acestream_noise_maximum_phase_d;
   } // end FOR
+}
+
+void
+Stream_Module_Decoder_Noise_Tools::silence (unsigned int bytesPerSample_in,
+                                            unsigned int channels_in,
+                                            ACE_UINT8* buffer_in,
+                                            unsigned int samplesToWrite_in)
+{
+  // sanity check(s)
+  ACE_ASSERT (bytesPerSample_in <= 16);
+
+  switch (bytesPerSample_in)
+  {
+    case 1:
+    {
+      ACE_OS::memset (buffer_in, 0, samplesToWrite_in * channels_in * sizeof (ACE_UINT8));
+      break;
+    }
+    case 2:
+    {
+      ACE_OS::memset (buffer_in, 0, samplesToWrite_in * channels_in * sizeof (ACE_UINT16));
+      break;
+    }
+    case 4:
+    {
+      ACE_OS::memset (buffer_in, 0, samplesToWrite_in * channels_in * sizeof (ACE_UINT32));
+      break;
+    }
+    case 8:
+    {
+      ACE_OS::memset (buffer_in, 0, samplesToWrite_in * channels_in * sizeof (ACE_UINT64));
+      break;
+    }
+    case 16:
+    { ACE_ASSERT (ACE_SIZEOF_LONG_DOUBLE == 16);
+      ACE_OS::memset (buffer_in, 0, samplesToWrite_in * channels_in * sizeof (long double));
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown sample size (was: %u), returning\n"),
+                  bytesPerSample_in));
+      return;
+    }
+  } // end SWITCH
 }

@@ -417,8 +417,8 @@ Stream_MediaFramework_DirectShow_Tools::dump (const Stream_MediaFramework_Direct
     {
       graph_layout_string += ACE_TEXT_ALWAYS_CHAR (" -- ");
       graph_layout_string +=
-        ((*iterator_2).mediaType ? Stream_MediaFramework_DirectShow_Tools::toString (*(*iterator_2).mediaType, true)
-                                 : std::string (ACE_TEXT_ALWAYS_CHAR ("NULL")));
+        ((*iterator).mediaType ? Stream_MediaFramework_DirectShow_Tools::toString (*(*iterator).mediaType, true)
+                               : std::string (ACE_TEXT_ALWAYS_CHAR ("NULL")));
       graph_layout_string += ACE_TEXT_ALWAYS_CHAR (" --> ");
     } // end IF
   } // end FOR
@@ -3229,7 +3229,7 @@ Stream_MediaFramework_DirectShow_Tools::copy (const struct _AMMediaType& mediaTy
   struct _AMMediaType* result_p = NULL;
   ACE_NEW_NORETURN (result_p,
                     struct _AMMediaType ());
-  if (!result_p)
+  if (unlikely (!result_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory, aborting\n")));
@@ -3239,7 +3239,7 @@ Stream_MediaFramework_DirectShow_Tools::copy (const struct _AMMediaType& mediaTy
 
   HRESULT result = CopyMediaType (result_p,
                                   &mediaType_in);
-  if (FAILED (result))
+  if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CopyMediaType(): \"%s\", aborting\n"),
@@ -3263,7 +3263,7 @@ Stream_MediaFramework_DirectShow_Tools::copy (const struct _AMMediaType& mediaTy
 
   HRESULT result = CopyMediaType (&mediaType_out,
                                   &mediaType_in);
-  if (FAILED (result))
+  if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CopyMediaType(): \"%s\", aborting\n"),
@@ -3283,7 +3283,7 @@ Stream_MediaFramework_DirectShow_Tools::delete_ (struct _AMMediaType*& mediaType
   // sanity check(s)
   ACE_ASSERT (mediaType_inout);
 
-  if (useDeleteMediaType_in)
+  if (likely (useDeleteMediaType_in))
   {
     DeleteMediaType (mediaType_inout); mediaType_inout = NULL;
   } // end IF

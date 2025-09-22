@@ -783,10 +783,11 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::i
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::initialize"));
 
   if (mediaType_)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_, false);
-  mediaType_ =
-    Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
-  if (!mediaType_)
+  {
+    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_, false); mediaType_ = NULL;
+  } // end IF
+  mediaType_ = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
+  if (unlikely (!mediaType_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(): \"%m\", aborting\n")));
@@ -1512,8 +1513,8 @@ continue_:
     return S_FALSE; // --> stop
   } // end IF
 
-  bytes_to_write_i = std::min (configuration_->buffer->length (),
-                               static_cast<size_t> (available_buffer_size_i));
+  bytes_to_write_i =
+    std::min (configuration_->buffer->length (), static_cast<size_t> (available_buffer_size_i));
   // *NOTE*: ideally, the message buffers should derive from IMediaSample to
   //         avoid this copy; this is how asynchronous 'push' source filters can
   //         be more efficient in 'capture' pipelines
@@ -1620,7 +1621,7 @@ continue_2:
     return S_FALSE; // --> stop
   } // end IF
 
-  if (isFirstFrame_)
+  if (unlikely (isFirstFrame_))
   {
     isFirstFrame_ = false;
     result = mediaSample_in->SetDiscontinuity (TRUE);

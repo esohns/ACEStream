@@ -135,6 +135,12 @@ class Stream_Module_Decoder_Noise_Tools
                         double,       // frequency (Hz)
                         double&);     // in/out: current phase
 
+  // *NOTE*: write silence into the target buffer in the specified audio format
+  static void silence (unsigned int,  // #bytes/(mono-)sample
+                       unsigned int,  // #channels
+                       ACE_UINT8*,    // target buffer
+                       unsigned int); // #'data' samples to write
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Noise_Tools ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Noise_Tools (const Stream_Module_Decoder_Noise_Tools&))

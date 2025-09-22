@@ -189,13 +189,11 @@ Stream_MediaFramework_DirectShow_Target_T<TaskType,
   } // end IF
 
   // *TODO*: remove type inference
-  if (configuration_in.filterConfiguration)
-  { //ACE_ASSERT (!configuration_in.filterConfiguration->module);
-    configuration_in.filterConfiguration->module = inherited::mod_;
-    ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration);
-    //ACE_ASSERT (!configuration_in.filterConfiguration->pinConfiguration->queue);
-    configuration_in.filterConfiguration->pinConfiguration->queue = &queue_;
-  } // end IF
+  ACE_ASSERT (configuration_in.filterConfiguration);
+  configuration_in.filterConfiguration->module = inherited::mod_;
+  ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration);
+  //ACE_ASSERT (!configuration_in.filterConfiguration->pinConfiguration->queue);
+  configuration_in.filterConfiguration->pinConfiguration->queue = &queue_;
 
   if (COM_initialized)
     Common_Tools::finalizeCOM ();

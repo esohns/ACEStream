@@ -567,7 +567,10 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
 
     ACE_ASSERT ((*iterator).second.second->filterConfiguration);
     ACE_ASSERT ((*iterator).second.second->filterConfiguration->pinConfiguration);
-    ACE_ASSERT (!(*iterator).second.second->filterConfiguration->pinConfiguration->format);
+    if ((*iterator).second.second->filterConfiguration->pinConfiguration->format)
+    {
+      Stream_MediaFramework_DirectShow_Tools::delete_ ((*iterator).second.second->filterConfiguration->pinConfiguration->format, false); (*iterator).second.second->filterConfiguration->pinConfiguration->format = NULL;
+    } // end IF
     (*iterator).second.second->filterConfiguration->pinConfiguration->format =
       Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format);
     ACE_ASSERT ((*iterator).second.second->filterConfiguration->pinConfiguration->format);

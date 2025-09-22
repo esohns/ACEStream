@@ -2062,9 +2062,7 @@ continue_3:
   //  return false;
   //} // end IF
 
-#if defined (_DEBUG)
   Stream_MediaFramework_DirectShow_Tools::dump (graphConfiguration_out);
-#endif // _DEBUG
 
   return true;
 

@@ -62,10 +62,11 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
   if (unlikely (inherited::wait_not_empty_cond (timeout_in) == -1))
     return -1;
 
-  int result = inherited::dequeue_head_i (message_out);
+  int result = dequeue_head_i (message_out);
   if (unlikely (result == -1))
     return -1;
   ACE_ASSERT (message_out);
+
   if (unlikely (message_out->msg_type () == ACE_Message_Block::MB_STOP))
     isShuttingDown_ = true;
 
@@ -83,14 +84,14 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
 
 //  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock (), -1);
 
-  if (unlikely (inherited::state_ == ACE_Message_Queue_Base::DEACTIVATED))
-  {
-    errno = ESHUTDOWN;
-    return -1;
-  } // end IF
+  //if (unlikely (inherited::state_ == ACE_Message_Queue_Base::DEACTIVATED))
+  //{
+  //  errno = ESHUTDOWN;
+  //  return -1;
+  //} // end IF
 
-  if (unlikely (inherited::wait_not_empty_cond (timeout_in) == -1))
-    return -1;
+  //if (unlikely (inherited::wait_not_empty_cond (timeout_in) == -1))
+  //  return -1;
 
   message_out = this->head_;
   this->head_ = this->head_->next ();
@@ -123,12 +124,12 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
 
   // Only signal enqueueing threads if we've fallen below the low
   // water mark.
-  if (this->cur_bytes_ <= this->low_water_mark_
+  if (this->cur_count_ <= this->low_water_mark_
        && this->signal_enqueue_waiters () == -1)
     return -1;
 
-  if (unlikely (message_out->msg_type () == ACE_Message_Block::MB_STOP))
-    isShuttingDown_ = true;
+  //if (unlikely (message_out->msg_type () == ACE_Message_Block::MB_STOP))
+  //  isShuttingDown_ = true;
 
   return ACE_Utils::truncate_cast<int> (this->cur_count_);
 }
