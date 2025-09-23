@@ -1932,7 +1932,7 @@ continue_2:
           ACE_ASSERT (waveformatextensible_p->Samples.wValidBitsPerSample == 32);
           waveformatextensible_p->Format.wBitsPerSample = 16;
           waveformatextensible_p->Format.nBlockAlign =
-              (waveformatextensible_p->Format.wBitsPerSample / 8) * waveformatextensible_p->Format.nChannels;
+            (waveformatextensible_p->Format.wBitsPerSample / 8) * waveformatextensible_p->Format.nChannels;
           waveformatextensible_p->Format.nAvgBytesPerSec =
             waveformatextensible_p->Format.nBlockAlign * waveformatextensible_p->Format.nSamplesPerSec;
           ACE_DEBUG ((LM_WARNING,

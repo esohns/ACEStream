@@ -703,7 +703,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
   { ACE_ASSERT (!graph_configuration.empty ());
     // *NOTE*: this seems to require lSampleSize of 1 to connect successfully....
-    graph_configuration.front ().mediaType->lSampleSize = 1;
+    //graph_configuration.front ().mediaType->lSampleSize = 1;
   } // end IF
 
   if (has_directshow_source_filter_b)

@@ -439,7 +439,7 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
       message_p->release (); message_p = NULL;
       return result_2;
     } // end IF
-    unsigned int size = static_cast<unsigned int> (sample_in->GetSize ());
+    size_t size = static_cast<size_t> (sample_in->GetSize ());
     message_p->base (reinterpret_cast<char*> (buffer_p),
                      size,
                      ACE_Message_Block::DONT_DELETE);

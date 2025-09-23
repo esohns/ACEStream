@@ -1133,8 +1133,7 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
   IPin* pin_p = NULL, *pin_2 = NULL;
   Stream_MediaFramework_DirectShow_GraphConfigurationConstIterator_t iterator_2;
   IAMStreamConfig* stream_config_p = NULL;
-  struct _AMMediaType* media_type_p = NULL; // previous-
-  struct _AMMediaType* media_type_2 = NULL; // current-
+  struct _AMMediaType* media_type_p = NULL;
   for (Stream_MediaFramework_DirectShow_GraphConfigurationConstIterator_t iterator = graphConfiguration_in.begin ();
        iterator != graphConfiguration_in.end ();
        ++iterator)
@@ -1144,7 +1143,6 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
       break; // done
 
     media_type_p = ((*iterator).mediaType ? (*iterator).mediaType : media_type_p);
-    media_type_2 = ((*iterator_2).mediaType ? (*iterator_2).mediaType : media_type_p);
 
     result =
       builder_in->FindFilterByName ((*iterator).filterName.c_str (),
@@ -1210,9 +1208,9 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
     result =
       ((*iterator).connectDirect ? builder_in->ConnectDirect (pin_p,
                                                               pin_2,
-                                                              media_type_2)
+                                                              media_type_p)
                                  : pin_p->Connect (pin_2,
-                                                   media_type_2));
+                                                   media_type_p));
     if (FAILED (result)) // 0x80040200: VFW_E_INVALIDMEDIATYPE
                          // 0x80040207: VFW_E_NO_ACCEPTABLE_TYPES
                          // 0x80040217: VFW_E_CANNOT_CONNECT
@@ -1227,7 +1225,7 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()), 0,
                   0, ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_2).c_str ()),
                   ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).filterName.c_str ()),
-                  (media_type_2 ? ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*media_type_2, true).c_str ()) : ACE_TEXT ("NULL")),
+                  (media_type_p ? ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*media_type_p, true).c_str ()) : ACE_TEXT ("NULL")),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()), result));
 
       result = builder_in->Connect (pin_p, pin_2);

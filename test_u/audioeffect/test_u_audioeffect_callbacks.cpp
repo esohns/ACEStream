@@ -10240,9 +10240,9 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
       {
         struct _DSFXFlanger effect_options;
         effect_options.fDelay = 2.0F;
-        effect_options.fDepth = 100.0F;
-        effect_options.fFeedback = -50.0F;
-        effect_options.fFrequency = 0.25F;
+        effect_options.fDepth = 50.0F;
+        effect_options.fFeedback = 0.0F;
+        effect_options.fFrequency = 5.0F;
         effect_options.fWetDryMix = 50.0F;
         effect_options.lPhase = DSFXFLANGER_PHASE_ZERO;
         effect_options.lWaveform = DSFXFLANGER_WAVE_SIN;
