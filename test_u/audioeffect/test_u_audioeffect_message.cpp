@@ -71,8 +71,7 @@ Test_U_AudioEffect_DirectShow_Message::~Test_U_AudioEffect_DirectShow_Message ()
   // release media sample ?
   //if (inherited::data_.sample)
   //{
-  //  inherited::data_.sample->Release ();
-  //  inherited::data_.sample = NULL;
+  //  inherited::data_.sample->Release (); inherited::data_.sample = NULL;
   //} // end IF
 }
 

@@ -766,11 +766,16 @@ continue_4:
                                                                       IGraphBuilder_out,
                                                                       GUID_NULL,
                                                                       effect_options,
+                                                                      buffer_negotiation_p,
                                                                       graph_configuration)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Decoder_Tools::loadAudioRendererGraph(), aborting\n")));
     goto error;
+  } // end IF
+  if (buffer_negotiation_p)
+  {
+    buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
   } // end IF
 
   if (unlikely (!Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder_out,

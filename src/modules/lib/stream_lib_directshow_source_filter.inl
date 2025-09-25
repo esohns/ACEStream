@@ -458,7 +458,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
   properties_out->cbBuffer =
     std::min (requestedProperties_in->cbBuffer, configuration_->allocatorProperties->cbBuffer);
   // *TODO*: cannot align buffers at this time
-  ACE_ASSERT (requestedProperties_in->cbAlign <= 1);
+  ACE_ASSERT (requestedProperties_in->cbAlign == 1);
   properties_out->cbPrefix =
     std::min (requestedProperties_in->cbPrefix, configuration_->allocatorProperties->cbPrefix);
 
@@ -727,6 +727,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
  , sampleNumber_ (0)
  , sampleSize_ (0)
  , sampleTime_ (0)
+ , streamOffset_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T"));
 
@@ -1136,11 +1137,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::D
   filter_p = Stream_MediaFramework_DirectShow_Tools::toFilter (pin_p);
   ACE_ASSERT (filter_p);
 
-  struct _AllocatorProperties allocator_requirements;
-  ACE_OS::memset (&allocator_requirements,
-                  0,
-                  sizeof (struct _AllocatorProperties));
-  result = inputPin_in->GetAllocatorRequirements (&allocator_requirements);
+  struct _AllocatorProperties allocator_requirements_s;
+  ACE_OS::memset (&allocator_requirements_s, 0, sizeof (struct _AllocatorProperties));
+  result = inputPin_in->GetAllocatorRequirements (&allocator_requirements_s);
   if (FAILED (result))
   {
     if (result != E_NOTIMPL) // E_NOTIMPL: 0x80004001
@@ -1170,10 +1169,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::D
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-                allocator_requirements.cBuffers,
-                allocator_requirements.cbBuffer,
-                allocator_requirements.cbAlign,
-                allocator_requirements.cbPrefix));
+                allocator_requirements_s.cBuffers,
+                allocator_requirements_s.cbBuffer,
+                allocator_requirements_s.cbAlign,
+                allocator_requirements_s.cbPrefix));
   } // end ELSE
 
   // *NOTE*: see also: https://msdn.microsoft.com/en-us/library/windows/desktop/dd319039(v=vs.85).aspx
@@ -1234,7 +1233,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::D
 
 decide:
   result = DecideBufferSize (*allocator_out,
-                             &allocator_requirements);
+                             &allocator_requirements_s);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1264,10 +1263,10 @@ decide:
               ACE_TEXT ("%s/%s: set allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
-              allocator_requirements.cBuffers,
-              allocator_requirements.cbBuffer,
-              allocator_requirements.cbAlign,
-              allocator_requirements.cbPrefix));
+              allocator_requirements_s.cBuffers,
+              allocator_requirements_s.cbBuffer,
+              allocator_requirements_s.cbAlign,
+              allocator_requirements_s.cbPrefix));
 
   pin_p->Release (); pin_p = NULL;
   filter_p->Release (); filter_p = NULL;
@@ -1557,15 +1556,16 @@ continue_:
     return S_FALSE; // --> stop
   } // end IF
 
-  REFERENCE_TIME start_time = sampleTime_;
+  REFERENCE_TIME start_time = sampleTime_ + streamOffset_;
   ACE_ASSERT (sampleSize_);
   ACE_ASSERT ((total_buffer_size_i % sampleSize_) == 0);
-  long samples_written_i = (total_buffer_size_i / sampleSize_);
-  sampleTime_ += (frameInterval_ * samples_written_i);
+  long frames_written_i = (total_buffer_size_i / sampleSize_);
+  sampleTime_ += (frameInterval_ * frames_written_i);
+  REFERENCE_TIME end_time = sampleTime_ + streamOffset_;
   // *NOTE*: this sets the samples' "stream" time (== "presentation" time)
   result =
     mediaSample_in->SetTime ((configuration_->setSampleTimes ? &start_time : NULL),
-                             (configuration_->setSampleTimes ? &sampleTime_ : NULL));
+                             (configuration_->setSampleTimes ? &end_time : NULL));
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1580,7 +1580,7 @@ continue_:
     goto continue_2;
   // *NOTE*: this sets the samples' "media" time (== frame/sample number)
   start_time = sampleNumber_;
-  sampleNumber_ += samples_written_i;
+  sampleNumber_ += frames_written_i;
   result = mediaSample_in->SetMediaTime (&start_time,
                                          &sampleNumber_);
   if (unlikely (FAILED (result)))
@@ -2026,11 +2026,11 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::G
 
   if (pcbReturned_in)
     *pcbReturned_in = sizeof (struct _GUID);
-  if (pPropData_in == NULL)  // Caller just wants to know the size.
+  if (pPropData_in == NULL)  // caller just wants to know the size
     return S_OK;
 
   // sanity check(s)
-  if (cbPropData_in < sizeof (struct _GUID)) // The buffer is too small.
+  if (cbPropData_in < sizeof (struct _GUID)) // the buffer is too small
     return E_UNEXPECTED;
 
   *reinterpret_cast<struct _GUID*> (pPropData_in) = PIN_CATEGORY_CAPTURE;
@@ -2059,19 +2059,15 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::Q
   return S_OK;
 }
 
-//template <typename ConfigurationType,
-//          typename FilterType,
-//          typename MediaType>
+//template <typename ConfigurationType>
 //STDMETHODIMP
-//Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
-//                                                           FilterType,
-//                                                           MediaType>::Get (REFGUID rguidPropSet_in,
-//                                                                            ULONG ulId_in,
-//                                                                            LPVOID pInstanceData_in,
-//                                                                            ULONG ulInstanceLength_in,
-//                                                                            LPVOID pPropertyData_in,
-//                                                                            ULONG ulDataLength_in,
-//                                                                            PULONG pulBytesReturned_in)
+//Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::Get (REFGUID rguidPropSet_in,
+//                                                                                    ULONG ulId_in,
+//                                                                                    LPVOID pInstanceData_in,
+//                                                                                    ULONG ulInstanceLength_in,
+//                                                                                    LPVOID pPropertyData_in,
+//                                                                                    ULONG ulDataLength_in,
+//                                                                                    PULONG pulBytesReturned_in)
 //{
 //  return Get (rguidPropSet_in,
 //              static_cast<DWORD> (ulId_in),
@@ -2367,8 +2363,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::G
   // sanity check(s)
   CheckPointer (prtLatency_out, E_POINTER);
 
-  *prtLatency_out = 0;
-  //  MILLISECONDS_TO_100NS_UNITS (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS);
+  *prtLatency_out =
+    MILLISECONDS_TO_100NS_UNITS (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS);
 
   return NOERROR;
 }
@@ -2418,6 +2414,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
               ConvertToMilliseconds (rtOffset_in)));
+
+  streamOffset_ = rtOffset_in;
 
   return S_OK;
 }

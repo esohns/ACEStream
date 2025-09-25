@@ -579,11 +579,9 @@ error:
 
       bool COM_initialized = Common_Tools::initializeCOM ();
 
-#if defined (_DEBUG)
       if (IGraphBuilder_)
         Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder_,
                                                        ACE_TEXT_ALWAYS_CHAR (""));
-#endif // _DEBUG
 
       if (likely (inherited::timerId_ != -1))
       {

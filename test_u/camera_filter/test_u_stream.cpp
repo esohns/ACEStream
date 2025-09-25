@@ -665,8 +665,7 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
   {
     // *NOTE*: Stream_Device_Tools::loadRendererGraph() resets the graph
     //         (see below)
-    if (!Stream_MediaFramework_DirectShow_Tools::reset ((*iterator).second.second->builder,
-                                                        CLSID_VideoInputDeviceCategory))
+    if (!Stream_MediaFramework_DirectShow_Tools::reset ((*iterator).second.second->builder))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::reset(), aborting\n"),

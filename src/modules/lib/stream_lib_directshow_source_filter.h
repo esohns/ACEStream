@@ -252,19 +252,19 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
                                        DWORD,   // dwPropID
                                        DWORD*); // pTypeSupport
   // this is the version from <dsound.h>
-  //inline STDMETHODIMP Set (REFGUID, // rguidPropSet
-  //                         ULONG,   // ulId
-  //                         LPVOID,  // pInstanceData
-  //                         ULONG,   // ulInstanceLength
-  //                         LPVOID,  // pPropertyData
-  //                         ULONG) { return E_NOTIMPL; }; // ulDataLength
-  //STDMETHODIMP Get (REFGUID, // rguidPropSet
-  //                  ULONG,   // ulId
-  //                  LPVOID,  // pInstanceData
-  //                  ULONG,   // ulInstanceLength
-  //                  LPVOID,  // pPropertyData
-  //                  ULONG,   // ulDataLength
-  //                  PULONG); // pulBytesReturned
+  //inline virtual STDMETHODIMP Set (REFGUID, // rguidPropSet
+  //                                 ULONG,   // ulId
+  //                                 LPVOID,  // pInstanceData
+  //                                 ULONG,   // ulInstanceLength
+  //                                 LPVOID,  // pPropertyData
+  //                                 ULONG) { return E_NOTIMPL; }; // ulDataLength
+  //virtual STDMETHODIMP Get (REFGUID, // rguidPropSet
+  //                          ULONG,   // ulId
+  //                          LPVOID,  // pInstanceData
+  //                          ULONG,   // ulInstanceLength
+  //                          LPVOID,  // pPropertyData
+  //                          ULONG,   // ulDataLength
+  //                          PULONG); // pulBytesReturned
   virtual STDMETHODIMP QuerySupport (REFGUID, // rguidPropSet
                                      ULONG,   // ulId
                                      PULONG); // pulTypeSupport
@@ -320,6 +320,7 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
   REFERENCE_TIME       sampleNumber_;
   unsigned int         sampleSize_;            // bytes (i.e. sizeof(video_frame)/sizeof(audio_frame))
   REFERENCE_TIME       sampleTime_;            // (*100ns)
+  REFERENCE_TIME       streamOffset_;          // (*100ns)
 }; // Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
 
 // include template definition

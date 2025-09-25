@@ -3506,11 +3506,15 @@ get_buffer_size (gpointer userData_in)
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
 
+  enum Test_U_AudioEffect_SourceType source_type_e;
+  bool has_effect_b = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -3520,6 +3524,16 @@ get_buffer_size (gpointer userData_in)
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
+
+      source_type_e =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType;
+
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      has_effect_b =
+        !InlineIsEqualGUID ((*directshow_modulehandler_configuration_iterator).second.second->effect, GUID_NULL);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -3529,6 +3543,10 @@ get_buffer_size (gpointer userData_in)
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_);
+
+      source_type_e =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType;
       break;
     }
     default:
@@ -3545,6 +3563,10 @@ get_buffer_size (gpointer userData_in)
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p->configuration->streamConfiguration.configuration_);
+
+  source_type_e =
+    ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType;
 #endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersConstIterator_t iterator =
@@ -3564,7 +3586,7 @@ get_buffer_size (gpointer userData_in)
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
@@ -3582,7 +3604,7 @@ get_buffer_size (gpointer userData_in)
                             2, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
   enum _snd_pcm_format format_e =
-      static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
+    static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -3650,8 +3672,15 @@ get_buffer_size (gpointer userData_in)
   g_value_unset (&value);
 
   unsigned int bps = (sample_rate * (bits_per_sample / 8) * channels);
+
   // *IMPORTANT NOTE*: lower buffer sizes result in lower latency
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *NOTE*: "...Effects might not work smoothly on very small buffers, and
+  //         Microsoft DirectSound does not permit the creation of
+  //         effects-capable buffers that hold less than 150 (BufferSize.FxMin)
+  //         milliseconds of data..."
+  if (has_effect_b)
+    return static_cast<unsigned int> ((150 * bps) / (float)1000);
   // *TODO*: the modifier is needed to prevent crackle on Win32... :-(
   return static_cast<unsigned int> ((STREAM_DEC_NOISE_BUFFER_LATENCY_MS * bps * 2.0f) / (float)1000);
 #else
@@ -6842,6 +6871,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
         static_cast<long> (value_i);
       directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
         value_i;
+      (*directshow_modulehandler_configuration_iterator).second.second->allocatorConfiguration->defaultBufferSize =
+        value_i;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8878,9 +8909,10 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_configuration_iterator).second.second->effect =
-    effect_string;
+  (*modulehandler_configuration_iterator).second.second->effect = effect_string;
 #endif // ACE_WIN32 || ACE_WIN64
+
+  update_buffer_size (userData_in);
 } // togglebutton_effect_toggled_cb
 
 void
@@ -10373,6 +10405,8 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
                         TRUE, // expand
                         TRUE, // fill
                         0);   // padding
+
+  update_buffer_size (userData_in);
 } // combobox_effect_changed_cb
 
 void

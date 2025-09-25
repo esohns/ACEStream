@@ -1134,9 +1134,10 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
   Stream_MediaFramework_DirectShow_GraphConfigurationConstIterator_t iterator_2;
   IAMStreamConfig* stream_config_p = NULL;
   struct _AMMediaType* media_type_p = NULL;
+  int i = 0;
   for (Stream_MediaFramework_DirectShow_GraphConfigurationConstIterator_t iterator = graphConfiguration_in.begin ();
        iterator != graphConfiguration_in.end ();
-       ++iterator)
+       ++iterator, ++i)
   {
     iterator_2 = iterator; std::advance (iterator_2, 1);
     if (unlikely (iterator_2 == graphConfiguration_in.end ()))
@@ -1182,24 +1183,27 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
                                                          PINDIR_OUTPUT,
                                                          0);
     ACE_ASSERT (pin_p);
-    result = pin_p->QueryInterface (IID_PPV_ARGS (&stream_config_p));
-    if (FAILED (result))
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: failed to IPin::QueryInterface(IAMStreamConfig): \"%s\", continuing\n"),
-                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    else
-    { ACE_ASSERT (stream_config_p);
-      result = stream_config_p->SetFormat (media_type_p); // *NOTE*: 'NULL' should reset the filter
+    if (i == 0)
+    {
+      result = pin_p->QueryInterface (IID_PPV_ARGS (&stream_config_p));
       if (FAILED (result))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s/%s: failed to IAMStreamConfig::SetFormat(): \"%s\" (media type was: %s), continuing\n"),
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: failed to IPin::QueryInterface(IAMStreamConfig): \"%s\", continuing\n"),
                     ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()),
-                    (media_type_p ? ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*media_type_p, true).c_str ()) : ACE_TEXT ("NULL"))));
-      stream_config_p->Release (); stream_config_p = NULL;
-    } // end ELSE
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+      else
+      { ACE_ASSERT (stream_config_p);
+        result = stream_config_p->SetFormat (media_type_p); // *NOTE*: 'NULL' should reset the filter
+        if (FAILED (result))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s/%s: failed to IAMStreamConfig::SetFormat(): \"%s\" (media type was: %s), continuing\n"),
+                      ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
+                      ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()),
+                      (media_type_p ? ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*media_type_p, true).c_str ()) : ACE_TEXT ("NULL"))));
+        stream_config_p->Release (); stream_config_p = NULL;
+      } // end ELSE
+    } // end IF
 
     pin_2 = Stream_MediaFramework_DirectShow_Tools::pin (filter_2,
                                                          PINDIR_INPUT,
@@ -2308,8 +2312,7 @@ Stream_MediaFramework_DirectShow_Tools::shutdown (IGraphBuilder* builder_in)
 }
 
 bool
-Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder* builder_in,
-                                               REFGUID deviceCategory_in)
+Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder* builder_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::reset"));
 
@@ -2320,11 +2323,13 @@ Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder* builder_in,
   IBaseFilter* filter_p = NULL;
   HRESULT result = E_FAIL;
 
-  if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
+  if (Stream_MediaFramework_DirectShow_Tools::has (builder_in,
+                                                   STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO_L))
     filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO_L;
-  else if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
+  else if (Stream_MediaFramework_DirectShow_Tools::has (builder_in,
+                                                        STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L))
     filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO_L;
-  else if (InlineIsEqualGUID (deviceCategory_in, GUID_NULL))
+  else
   { // retrieve the first filter that has no input pin
     IEnumFilters* enumerator_p = NULL;
     result = builder_in->EnumFilters (&enumerator_p);
@@ -2370,13 +2375,6 @@ Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder* builder_in,
       break;
     } // end WHILE
     enumerator_p->Release ();
-  } // end ELSE IF
-  else
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
-                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceCategory_in).c_str ())));
-    return false;
   } // end ELSE
 
   if (!Stream_MediaFramework_DirectShow_Tools::disconnect (builder_in))
@@ -3334,6 +3332,24 @@ Stream_MediaFramework_DirectShow_Tools::match (const struct tagBITMAPINFOHEADER&
 }
 
 bool
+Stream_MediaFramework_DirectShow_Tools::match (const struct tWAVEFORMATEX& audioInfo_in,
+                                               const struct tWAVEFORMATEX& audioInfo2_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::match"));
+
+  if (audioInfo_in.wFormatTag != audioInfo2_in.wFormatTag)
+    return false;
+  if (audioInfo_in.nChannels != audioInfo2_in.nChannels)
+    return false;
+  if (audioInfo_in.nSamplesPerSec != audioInfo2_in.nSamplesPerSec)
+    return false;
+  if (audioInfo_in.wBitsPerSample != audioInfo2_in.wBitsPerSample)
+    return false;
+
+  return true;
+}
+
+bool
 Stream_MediaFramework_DirectShow_Tools::match (const struct tagVIDEOINFOHEADER& videoInfo_in,
                                                const struct tagVIDEOINFOHEADER& videoInfo2_in)
 {
@@ -3451,6 +3467,26 @@ Stream_MediaFramework_DirectShow_Tools::match (const struct _AMMediaType& mediaT
         goto fallback;
       }
     } // end IF
+    else if (InlineIsEqualGUID (mediaType_in.majortype, MEDIATYPE_Audio))
+    {
+      if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx))
+      {
+        struct tWAVEFORMATEX* wave_format_ex_p =
+          reinterpret_cast<struct tWAVEFORMATEX*> (mediaType_in.pbFormat);
+        struct tWAVEFORMATEX* wave_format_ex_2 =
+          reinterpret_cast<struct tWAVEFORMATEX*> (mediaType2_in.pbFormat);
+        if (!Stream_MediaFramework_DirectShow_Tools::match (*wave_format_ex_p,
+                                                            *wave_format_ex_2))
+          return false;
+      } // end IF
+      else
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), falling back\n"),
+                    ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
+        goto fallback;
+      }
+    } // end ELSE IF
 
     goto continue_;
 

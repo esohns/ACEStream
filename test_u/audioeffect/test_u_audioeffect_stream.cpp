@@ -527,10 +527,18 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   int render_device_id_i = -1;
   bool has_directshow_source_filter_b = false;
   bool grab_samples_b = false;
+  struct _AllocatorProperties allocator_properties_s;
+  ACE_OS::memset (&allocator_properties_s, 0, sizeof (struct _AllocatorProperties));
 
   has_directshow_source_filter_b =
-    (inherited::configuration_->configuration_->capturer != STREAM_DEVICE_CAPTURER_DIRECTSHOW) &&
-    !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL);
+    ((inherited::configuration_->configuration_->capturer != STREAM_DEVICE_CAPTURER_DIRECTSHOW) &&
+     !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL)) ||
+    ((inherited::configuration_->configuration_->sourceType != AUDIOEFFECT_SOURCE_DEVICE) &&
+     !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL)) ||
+    ((inherited::configuration_->configuration_->capturer != STREAM_DEVICE_CAPTURER_DIRECTSHOW) &&
+     (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW)) ||
+    ((inherited::configuration_->configuration_->sourceType != AUDIOEFFECT_SOURCE_DEVICE) &&
+     (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW));
   if (has_directshow_source_filter_b)
   {
     if ((*iterator).second.second->builder)
@@ -639,7 +647,11 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
         break;
       }
       case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+      {
+        Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format,
+                                                      media_type_s);
         break;
+      }
       default:
       {
         ACE_DEBUG ((LM_ERROR,
@@ -683,7 +695,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     }
   } // end SWITCH
   if ((*iterator).second.second->builder)
-    if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (((configuration_in.configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW) ? CLSID_AudioInputDeviceCategory
+    if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (((configuration_in.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE &&
+                                                                configuration_in.configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW) ? CLSID_AudioInputDeviceCategory
                                                                                                                                                 : GUID_NULL),
                                                               configuration_in.configuration_->format,
                                                               media_type_s,
@@ -692,6 +705,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
                                                               (*iterator).second.second->builder,
                                                               (*iterator).second.second->effect,
                                                               (*iterator).second.second->effectOptions,
+                                                              buffer_negotiation_p,
                                                               graph_configuration))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -776,6 +790,33 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
       goto error;
     } // end IF
     graph_streams_p->Release (); graph_streams_p = NULL;
+
+    if (buffer_negotiation_p)
+    {
+      //result_2 = buffer_negotiation_p->GetAllocatorProperties (&allocator_properties_s);
+      //if (FAILED (result_2))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", aborting\n"),
+      //              ACE_TEXT (stream_name_string_),
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      //  goto error;
+      //} // end IF
+
+      //allocator_properties_s.cbBuffer =
+      //  configuration_in.configuration_->allocatorConfiguration->defaultBufferSize;
+
+      //result_2 = buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties_s);
+      //if (FAILED (result_2))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
+      //              ACE_TEXT (stream_name_string_),
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      //  goto error;
+      //} // end IF
+      buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+    } // end IF
 
     if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second->builder,
                                                           graph_configuration))

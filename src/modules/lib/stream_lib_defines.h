@@ -47,7 +47,7 @@
 // DirectShow
 // *NOTE*: max. in-flight #'frames' (== #((bits/sample / 8) * #channels))
 //         --> (buffer size / frame size) * #SOURCE_BUFFERS
-#define STREAM_LIB_DIRECTSHOW_AUDIO_DEFAULT_SOURCE_BUFFERS             15
+#define STREAM_LIB_DIRECTSHOW_AUDIO_DEFAULT_SOURCE_BUFFERS             60
 #define STREAM_LIB_DIRECTSHOW_VIDEO_DEFAULT_SOURCE_BUFFERS             30 // --> max. in-flight #frames
 
 // *IMPORTANT NOTE*: with DirectShow, lower buffer sizes result in lower latency

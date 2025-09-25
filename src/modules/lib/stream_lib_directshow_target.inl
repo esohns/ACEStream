@@ -672,12 +672,17 @@ Stream_MediaFramework_DirectShow_Target_T<TaskType,
                                                               IGraphBuilder_out,
                                                               GUID_NULL,
                                                               effect_options_u,
+                                                              buffer_negotiation_p,
                                                               graph_configuration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadAudioRendererGraph(), aborting\n"),
                   inherited::mod_->name ()));
       goto error;
+    } // end IF
+    if (buffer_negotiation_p)
+    {
+      buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
     } // end IF
   } // end ELSE
   release_configuration = true;
@@ -689,7 +694,7 @@ Stream_MediaFramework_DirectShow_Target_T<TaskType,
     // *TODO*: remove type inference
     ACE_ASSERT (filterConfiguration_in.allocatorProperties);
     result =
-        buffer_negotiation_p->SuggestAllocatorProperties (filterConfiguration_in.allocatorProperties);
+      buffer_negotiation_p->SuggestAllocatorProperties (filterConfiguration_in.allocatorProperties);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,

@@ -1315,6 +1315,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
                                                      IGraphBuilder* IGraphBuilder_in,
                                                      REFGUID effect_in,
                                                      const union Stream_MediaFramework_DirectSound_AudioEffectOptions& effectOptions_in,
+                                                     IAMBufferNegotiation*& IAMBufferNegotiation_out,
                                                      Stream_MediaFramework_DirectShow_GraphConfiguration_t& graphConfiguration_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::loadAudioRendererGraph"));
@@ -1335,8 +1336,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
   // sanity check(s)
   ACE_ASSERT (IGraphBuilder_in);
 
-  if (!Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder_in,
-                                                      deviceCategory_in))
+  if (!Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::reset(), aborting\n")));
@@ -1429,7 +1429,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
   graph_entry.mediaType =
     Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
   ACE_ASSERT (graph_entry.mediaType);
-  //// *NOTE*: this effects seems to require lSampleSize of 1 to connect
+  // *NOTE*: this effect seems to require lSampleSize of 1 to connect
   //graph_entry.mediaType->lSampleSize = 1;
   waveformatex_p =
     reinterpret_cast<struct tWAVEFORMATEX*> (graph_entry.mediaType->pbFormat);
@@ -1837,6 +1837,7 @@ continue_:
   } // end IF
   graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO_L;
   graphConfiguration_out.push_back (graph_entry);
+  graph_entry.connectDirect = false;
   graph_entry.mediaType = NULL;
   filter_p->Release (); filter_p = NULL;
   ACE_DEBUG ((LM_DEBUG,
@@ -1849,7 +1850,8 @@ continue_2:
     goto continue_3;
 
   // step2a: add (second) resampler ?
-  if (InlineIsEqualGUID (outputMediaType_in.majortype, GUID_NULL))
+  if (InlineIsEqualGUID (outputMediaType_in.majortype, GUID_NULL) ||
+      Stream_MediaFramework_DirectShow_Tools::match (mediaType_in, outputMediaType_in))
     goto continue_4;
   // *NOTE*: "...Decompression is only to PCM audio. ..."
   ACE_ASSERT (InlineIsEqualGUID (outputMediaType_in.majortype, MEDIATYPE_Audio));
@@ -2047,20 +2049,15 @@ continue_3:
               ACE_TEXT ("added \"%s\"\n"),
               ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
-  //result =
-  //  ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
-  //                                          &PIN_CATEGORY_CAPTURE, NULL,
-  //                                          filter_p,
-  //                                          filter_2,
-  //                                          //NULL,
-  //                                          filter_4);
-  //if (FAILED (result)) // E_INVALIDARG = 0x80070057, 0x80040217 = VFW_E_CANNOT_CONNECT ?
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to ICaptureGraphBuilder::RenderStream(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-  //  return false;
-  //} // end IF
+  if (!Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation (IGraphBuilder_in,
+                                                                     graphConfiguration_out.front ().filterName,
+                                                                     IAMBufferNegotiation_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation(), aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (IAMBufferNegotiation_out);
 
   Stream_MediaFramework_DirectShow_Tools::dump (graphConfiguration_out);
 
@@ -2120,8 +2117,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererGraph (REFGUID deviceCategory_in,
     goto error;
   } // end ELSE
 
-  if (!Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder_in,
-                                                      deviceCategory_in))
+  if (!Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::reset(), aborting\n")));

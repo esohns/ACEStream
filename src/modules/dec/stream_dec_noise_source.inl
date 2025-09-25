@@ -291,6 +291,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       long timer_id = -1;
       suseconds_t buffer_time_us = 0;
       long double a = 1.0l;
+      REAL_DISTRIBUTION_T::param_type parameters_s (0.0l, 1.0l);
 
       // schedule regular statistic collection
       if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
@@ -389,30 +390,30 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
           {
             case 1:
             {
-              SIGNED_INTEGER_DISTRIBUTION_T::param_type parameters_s (std::numeric_limits<int8_t>::min (),
+              SIGNED_INTEGER_DISTRIBUTION_T::param_type parameters_2 (std::numeric_limits<int8_t>::min (),
                                                                       std::numeric_limits<int8_t>::max ());
-              signedIntegerDistribution_.param (parameters_s);
+              signedIntegerDistribution_.param (parameters_2);
               break;
             }
             case 2:
             {
-              SIGNED_INTEGER_DISTRIBUTION_T::param_type parameters_s (std::numeric_limits<int16_t>::min (),
+              SIGNED_INTEGER_DISTRIBUTION_T::param_type parameters_2 (std::numeric_limits<int16_t>::min (),
                                                                       std::numeric_limits<int16_t>::max ());
-              signedIntegerDistribution_.param (parameters_s);
+              signedIntegerDistribution_.param (parameters_2);
               break;
             }
             case 4:
             {
-              SIGNED_INTEGER_DISTRIBUTION_T::param_type parameters_s (std::numeric_limits<int32_t>::min (),
+              SIGNED_INTEGER_DISTRIBUTION_T::param_type parameters_2 (std::numeric_limits<int32_t>::min (),
                                                                       std::numeric_limits<int32_t>::max ());
-              signedIntegerDistribution_.param (parameters_s);
+              signedIntegerDistribution_.param (parameters_2);
               break;
             }
             case 8:
             {
-              SIGNED_INTEGER_DISTRIBUTION_T::param_type parameters_s (std::numeric_limits<int64_t>::min (),
+              SIGNED_INTEGER_DISTRIBUTION_T::param_type parameters_2 (std::numeric_limits<int64_t>::min (),
                                                                       std::numeric_limits<int64_t>::max ());
-              signedIntegerDistribution_.param (parameters_s);
+              signedIntegerDistribution_.param (parameters_2);
               break;
             }
             default:
@@ -429,30 +430,30 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
           {
             case 1:
             {
-              INTEGER_DISTRIBUTION_T::param_type parameters_s (0,
+              INTEGER_DISTRIBUTION_T::param_type parameters_2 (0,
                                                                std::numeric_limits<uint8_t>::max ());
-              integerDistribution_.param (parameters_s);
+              integerDistribution_.param (parameters_2);
               break;
             }
             case 2:
             {
-              INTEGER_DISTRIBUTION_T::param_type parameters_s (0,
+              INTEGER_DISTRIBUTION_T::param_type parameters_2 (0,
                                                                std::numeric_limits<uint16_t>::max ());
-              integerDistribution_.param (parameters_s);
+              integerDistribution_.param (parameters_2);
               break;
             }
             case 4:
             {
-              INTEGER_DISTRIBUTION_T::param_type parameters_s (0,
+              INTEGER_DISTRIBUTION_T::param_type parameters_2 (0,
                                                                std::numeric_limits<uint32_t>::max ());
-              integerDistribution_.param (parameters_s);
+              integerDistribution_.param (parameters_2);
               break;
             }
             case 8:
             {
-              INTEGER_DISTRIBUTION_T::param_type parameters_s (0,
+              INTEGER_DISTRIBUTION_T::param_type parameters_2 (0,
                                                                std::numeric_limits<uint64_t>::max ());
-              integerDistribution_.param (parameters_s);
+              integerDistribution_.param (parameters_2);
               break;
             }
             default:
@@ -470,23 +471,23 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
         {
           case 4:
           { ACE_ASSERT (ACE_SIZEOF_FLOAT == 4);
-            REAL_DISTRIBUTION_T::param_type parameters_s (-1.0f,
+            REAL_DISTRIBUTION_T::param_type parameters_2 (-1.0f,
                                                           1.0f);
-            realDistribution_.param (parameters_s);
+            realDistribution_.param (parameters_2);
             break;
           }
           case 8:
           { ACE_ASSERT (ACE_SIZEOF_DOUBLE == 8);
-            REAL_DISTRIBUTION_T::param_type parameters_s (-1.0,
+            REAL_DISTRIBUTION_T::param_type parameters_2 (-1.0,
                                                           1.0);
-            realDistribution_.param (parameters_s);
+            realDistribution_.param (parameters_2);
             break;
           }
           case 16:
           { ACE_ASSERT (ACE_SIZEOF_LONG_DOUBLE == 16);
-            REAL_DISTRIBUTION_T::param_type parameters_s (-1.0l,
+            REAL_DISTRIBUTION_T::param_type parameters_2 (-1.0l,
                                                           1.0l);
-            realDistribution_.param (parameters_s);
+            realDistribution_.param (parameters_2);
             break;
           }
           default:
@@ -500,7 +501,6 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
         } // end SWITCH
      
       // *NOTE*: see also: https://sampo.kapsi.fi/PinkNoise/PinkNoise.java
-      REAL_DISTRIBUTION_T::param_type parameters_s (0.0l, 1.0l);
       realDistribution_2.param (parameters_s);
 
       ACE_NEW_NORETURN (multipliers_,
@@ -556,10 +556,10 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       // start sample generator timer
       interval.set (0, buffer_time_us);
       timer_id =
-        itimer_manager_p->schedule_timer (&handler_,       // event handler handle
-                                          NULL,            // asynchronous completion token
-                                          COMMON_TIME_NOW, // first wakeup time
-                                          interval);       // interval
+        itimer_manager_p->schedule_timer (&handler_,               // event handler handle
+                                          NULL,                    // asynchronous completion token
+                                          ACE_OS::gettimeofday (), // first wakeup time
+                                          interval);               // interval
       if (unlikely (timer_id == -1))
       {
         ACE_DEBUG ((LM_ERROR,

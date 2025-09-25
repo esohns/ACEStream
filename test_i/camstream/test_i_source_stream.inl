@@ -253,8 +253,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 
   if ((*iterator).second.second->builder)
   {
-    if (!Stream_MediaFramework_DirectShow_Tools::reset ((*iterator).second.second->builder,
-                                                        CLSID_VideoInputDeviceCategory))
+    if (!Stream_MediaFramework_DirectShow_Tools::reset ((*iterator).second.second->builder))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::reset(), aborting\n"),

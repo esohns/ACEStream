@@ -100,6 +100,7 @@
   </object>
   <object class="GtkAdjustment" id="adjustment_win32_ds_flanger_wetdrymix">
     <property name="upper">100</property>
+    <property name="value">50</property>
     <property name="step-increment">1</property>
     <property name="page-increment">10</property>
   </object>
@@ -125,7 +126,7 @@
                     <property name="can-focus">False</property>
                     <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkScale" id="hscale_win32_ds_flanger_wetdrymix">
+                      <object class="GtkHScale" id="hscale_win32_ds_flanger_wetdrymix">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="tooltip-text" translatable="yes">wetdrymix</property>

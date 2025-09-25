@@ -620,12 +620,17 @@ Test_I_DirectShow_Stream::initialize (const CONFIGURATION_T& configuration_in)
                                                               (*iterator).second.second->builder,
                                                               GUID_NULL,
                                                               effect_options_u,
+                                                              buffer_negotiation_p,
                                                               graph_configuration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadAudioRendererGraph(), aborting\n"),
                   ACE_TEXT (stream_name_string_)));
       goto error;
+    } // end IF
+    if (buffer_negotiation_p)
+    {
+      buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
     } // end IF
   } // end IF
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);

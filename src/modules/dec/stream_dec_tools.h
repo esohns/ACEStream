@@ -118,6 +118,7 @@ class Stream_Module_Decoder_Tools
                                       IGraphBuilder*,                                                    // graph handle
                                       REFGUID,                                                           // DMO effect CLSID [GUID_NULL: no effect]
                                       const union Stream_MediaFramework_DirectSound_AudioEffectOptions&, // DMO effect options
+                                      IAMBufferNegotiation*&,                                            // return value: buffer negotiation handle
                                       Stream_MediaFramework_DirectShow_GraphConfiguration_t&);           // return value: graph layout
   static bool loadVideoRendererGraph (REFGUID,                                                 // device category (GUID_NULL: retain first filter w/o input pins)
                                       const struct _AMMediaType&,                              // capture media type (i.e. capture device output)

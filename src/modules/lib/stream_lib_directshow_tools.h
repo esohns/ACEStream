@@ -175,8 +175,7 @@ class Stream_MediaFramework_DirectShow_Tools
                                IAMBufferNegotiation*&, // return value: source filter output pin buffer allocator configuration handle
                                IAMStreamConfig*&);     // return value: format configuration handle
   // *NOTE*: disconnects the graph and removes all (but a specific source-) filters
-  static bool reset (IGraphBuilder*, // filter graph handle
-                     REFGUID);       // retain (device) category source (GUID_NULL: retain first filter w/o input pins)
+  static bool reset (IGraphBuilder*); // filter graph handle
 
   // -------------------------------------
 
@@ -188,6 +187,9 @@ class Stream_MediaFramework_DirectShow_Tools
 
   static bool match (const struct tagBITMAPINFOHEADER&,  // bitmap info
                      const struct tagBITMAPINFOHEADER&); // bitmap info
+
+  static bool match (const struct tWAVEFORMATEX&,  // audio info
+                     const struct tWAVEFORMATEX&); // audio info
 
   static bool match (const struct tagVIDEOINFOHEADER&,  // video info
                      const struct tagVIDEOINFOHEADER&); // video info

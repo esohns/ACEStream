@@ -677,6 +677,7 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
     }
   } // end SWITCH
   if ((*iterator).second.second->builder)
+  {
     if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (((configuration_in.configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW) ? CLSID_AudioInputDeviceCategory
                                                                                                                                                 : GUID_NULL),
                                                               configuration_in.configuration_->format,
@@ -686,6 +687,7 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
                                                               (*iterator).second.second->builder,
                                                               (*iterator).second.second->effect,
                                                               (*iterator).second.second->effectOptions,
+                                                              buffer_negotiation_p,
                                                               graph_configuration))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -693,6 +695,11 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
                   ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
+    if (buffer_negotiation_p)
+    {
+      buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
+    } // end IF
+  } // end IF
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
   if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
   { ACE_ASSERT (!graph_configuration.empty ());
