@@ -641,8 +641,10 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     goto error;
   } // end IF
 
-  if (!useDirectShowSource_in)
+  if (!useDirectShowSource_in && !useDirectShowDestination_in)
     goto continue_3;
+  else if (!useDirectShowSource_in && useDirectShowDestination_in)
+    goto continue_2;
 
   if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (deviceIdentifier_in,
                                                         CLSID_AudioInputDeviceCategory,
@@ -664,7 +666,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
 
   goto continue_3;
 
-//continue_2:
+continue_2:
   result = CoCreateInstance (CLSID_FilterGraph, NULL,
                              CLSCTX_INPROC_SERVER,
                              IID_PPV_ARGS (&IGraphBuilder_out));
@@ -688,7 +690,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
 
   ACE_ASSERT (!configuration_in.filterConfiguration.pinConfiguration->format);
   configuration_in.filterConfiguration.pinConfiguration->format =
-    &captureMediaType_out;
+    Stream_MediaFramework_DirectShow_Tools::copy (captureMediaType_out);
   Common_IInitialize_T<struct Test_U_AudioEffect_DirectShow_FilterConfiguration>* iinitialize_p = filter_p;
   if (!iinitialize_p->initialize (configuration_in.filterConfiguration))
   {
@@ -782,14 +784,14 @@ continue_4:
     goto error;
   } // end IF
   ACE_ASSERT (media_filter_p);
-  result = media_filter_p->SetSyncSource (NULL);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
+  //result = media_filter_p->SetSyncSource (NULL);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+  //  goto error;
+  //} // end IF
   media_filter_p->Release (); media_filter_p = NULL;
 
 continue_5:

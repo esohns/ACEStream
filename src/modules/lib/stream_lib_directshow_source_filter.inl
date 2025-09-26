@@ -1556,16 +1556,29 @@ continue_:
     return S_FALSE; // --> stop
   } // end IF
 
-  REFERENCE_TIME start_time = sampleTime_ + streamOffset_;
+  if (!configuration_->setSampleTimes)
+    goto continue_2;
+
+  CRefTime start_time;
+  result = inherited::m_pFilter->StreamTime (start_time);
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IBaseFilter::StreamTime(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    return S_FALSE; // --> stop
+  } // end IF
+  REFERENCE_TIME start_time_2 = start_time.GetUnits ();
+
   ACE_ASSERT (sampleSize_);
   ACE_ASSERT ((total_buffer_size_i % sampleSize_) == 0);
   long frames_written_i = (total_buffer_size_i / sampleSize_);
   sampleTime_ += (frameInterval_ * frames_written_i);
-  REFERENCE_TIME end_time = sampleTime_ + streamOffset_;
+  REFERENCE_TIME end_time = start_time_2 + (frameInterval_ * frames_written_i);
   // *NOTE*: this sets the samples' "stream" time (== "presentation" time)
-  result =
-    mediaSample_in->SetTime ((configuration_->setSampleTimes ? &start_time : NULL),
-                             (configuration_->setSampleTimes ? &end_time : NULL));
+  result = mediaSample_in->SetTime (&start_time_2,
+                                    &end_time);
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1576,12 +1589,10 @@ continue_:
     return S_FALSE; // --> stop
   } // end IF
 
-  if (!configuration_->setSampleTimes)
-    goto continue_2;
   // *NOTE*: this sets the samples' "media" time (== frame/sample number)
-  start_time = sampleNumber_;
+  start_time_2 = sampleNumber_;
   sampleNumber_ += frames_written_i;
-  result = mediaSample_in->SetMediaTime (&start_time,
+  result = mediaSample_in->SetMediaTime (&start_time_2,
                                          &sampleNumber_);
   if (unlikely (FAILED (result)))
   {
@@ -2379,12 +2390,13 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::G
   CheckPointer (pFlags_out, E_POINTER);
   ACE_ASSERT (configuration_);
 
-  ULONG flags_i = AM_PUSHSOURCECAPS_PRIVATE_CLOCK;
-  if (configuration_->setSampleTimes)
-    flags_i |= AM_PUSHSOURCECAPS_NOT_LIVE;
-  else
-    flags_i |= AM_PUSHSOURCECAPS_INTERNAL_RM;
-    
+  //ULONG flags_i = AM_PUSHSOURCECAPS_PRIVATE_CLOCK;
+  //if (configuration_->setSampleTimes)
+  //  flags_i |= AM_PUSHSOURCECAPS_NOT_LIVE;
+  //else
+  //  flags_i |= AM_PUSHSOURCECAPS_INTERNAL_RM;
+  ULONG flags_i = 0;
+
   *pFlags_out = flags_i;
 
   return NOERROR;

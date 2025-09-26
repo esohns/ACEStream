@@ -682,6 +682,7 @@ struct Test_U_AudioEffect_DirectShow_Configuration
     filterConfiguration.allocatorProperties = &allocatorProperties;
     filterConfiguration.pinConfiguration = &pinConfiguration;
     pinConfiguration.allocatorProperties = &allocatorProperties;
+    pinConfiguration.setSampleTimes = true; // playback
   }
 
   struct _AllocatorProperties                                    allocatorProperties; // IMediaSample-

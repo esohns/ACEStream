@@ -680,9 +680,11 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
       break;
     }
     case STREAM_DEVICE_RENDERER_DIRECTSHOW:
-    { ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
-      render_device_id_i =
-        (*iterator_3).second.second->deviceIdentifier.identifier._id;
+    { 
+      if ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID)
+        render_device_id_i = (*iterator_3).second.second->deviceIdentifier.identifier._id;
+      else if ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID)
+        render_device_id_i = static_cast<int> (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId ((*iterator_3).second.second->deviceIdentifier.identifier._guid));
       break;
     }
     default:
@@ -838,15 +840,15 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
       goto error;
     } // end IF
     ACE_ASSERT (media_filter_p);
-    result_2 = media_filter_p->SetSyncSource (NULL);
-    if (FAILED (result_2))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-                  ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-      goto error;
-    } // end IF
+    //result_2 = media_filter_p->SetSyncSource (NULL);
+    //if (FAILED (result_2))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("%s: failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
+    //              ACE_TEXT (stream_name_string_),
+    //              ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    //  goto error;
+    //} // end IF
     media_filter_p->Release (); media_filter_p = NULL;
 
     if ((*iterator_2).second.second->builder)
