@@ -319,7 +319,7 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
 
   REFERENCE_TIME       sampleNumber_;
   unsigned int         sampleSize_;            // bytes (i.e. sizeof(video_frame)/sizeof(audio_frame))
-  REFERENCE_TIME       sampleTime_;            // (*100ns)
+  //REFERENCE_TIME       sampleTime_;            // (*100ns)
   REFERENCE_TIME       streamOffset_;          // (*100ns)
 }; // Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
 

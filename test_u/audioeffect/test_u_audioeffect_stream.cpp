@@ -772,25 +772,25 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
       goto error;
     } // end IF
     ACE_ASSERT (graph_streams_p);
-    result_2 = graph_streams_p->SyncUsingStreamOffset (TRUE);
-    if (FAILED (result_2))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IAMGraphStreams::SyncUsingStreamOffset(FALSE): \"%s\", aborting\n"),
-                  ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-      goto error;
-    } // end IF
-    result_2 = graph_streams_p->SetMaxGraphLatency (max_latency_i);
-    if (FAILED (result_2))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IAMGraphStreams::SetMaxGraphLatency(%q): \"%s\", aborting\n"),
-                  ACE_TEXT (stream_name_string_),
-                  max_latency_i,
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-      goto error;
-    } // end IF
+    //result_2 = graph_streams_p->SyncUsingStreamOffset (TRUE);
+    //if (FAILED (result_2))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("%s: failed to IAMGraphStreams::SyncUsingStreamOffset(FALSE): \"%s\", aborting\n"),
+    //              ACE_TEXT (stream_name_string_),
+    //              ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    //  goto error;
+    //} // end IF
+    //result_2 = graph_streams_p->SetMaxGraphLatency (max_latency_i);
+    //if (FAILED (result_2))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("%s: failed to IAMGraphStreams::SetMaxGraphLatency(%q): \"%s\", aborting\n"),
+    //              ACE_TEXT (stream_name_string_),
+    //              max_latency_i,
+    //              ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    //  goto error;
+    //} // end IF
     graph_streams_p->Release (); graph_streams_p = NULL;
 
     if (buffer_negotiation_p)

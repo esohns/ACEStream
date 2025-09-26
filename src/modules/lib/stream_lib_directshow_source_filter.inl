@@ -726,7 +726,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
  , directShowHasEnded_ (false)
  , sampleNumber_ (0)
  , sampleSize_ (0)
- , sampleTime_ (0)
+ //, sampleTime_ (0)
  , streamOffset_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T"));
@@ -1569,13 +1569,13 @@ continue_:
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return S_FALSE; // --> stop
   } // end IF
-  REFERENCE_TIME start_time_2 = start_time.GetUnits ();
+  REFERENCE_TIME start_time_2 = start_time.GetUnits () /* + streamOffset_*/;
 
   ACE_ASSERT (sampleSize_);
   ACE_ASSERT ((total_buffer_size_i % sampleSize_) == 0);
   long frames_written_i = (total_buffer_size_i / sampleSize_);
-  sampleTime_ += (frameInterval_ * frames_written_i);
-  REFERENCE_TIME end_time = start_time_2 + (frameInterval_ * frames_written_i);
+  //sampleTime_ += (frameInterval_ * frames_written_i);
+  REFERENCE_TIME end_time = start_time_2 + (frameInterval_ * frames_written_i) /* + streamOffset_*/;
   // *NOTE*: this sets the samples' "stream" time (== "presentation" time)
   result = mediaSample_in->SetTime (&start_time_2,
                                     &end_time);
@@ -2005,10 +2005,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::N
     //  frameInterval_ = 10;      // We don't go faster than 100/sec
   } // end ELSE
 
-  // skip forwards
+  // skip forwards ?
   // *TODO*: verify that tagQuality.Late has 'unit' (i.e. *100ns) format
-  if (quality_in.Late > 0)
-    sampleTime_ = sampleTime_ + quality_in.Late;
+  //if (quality_in.Late > 0)
+  //  sampleTime_ = sampleTime_ + quality_in.Late;
 
   return NOERROR;
 } // Notify
@@ -2441,7 +2441,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::G
   // sanity check(s)
   CheckPointer (prtOffset_out, E_POINTER);
 
-  *prtOffset_out = sampleTime_;
+  //*prtOffset_out = sampleTime_;
+  *prtOffset_out = 0;
 
   return S_OK;
 }

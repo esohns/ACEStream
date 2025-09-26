@@ -1916,6 +1916,7 @@ Stream_MediaFramework_DirectShow_Tools::clear (IGraphBuilder* builder_in)
       enumerator_p->Release (); enumerator_p = NULL;
       return false;
     } // end IF
+    // *IMPORTANT NOTE*: throws in ~CSampleGrabber() (*TODO*: why ?)
     filter_p->Release (); filter_p = NULL;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("removed \"%s\"...\n"),
@@ -1947,7 +1948,7 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
   IEnumPins* enumerator_p = NULL;
   IPin* pin_p = NULL, *pin_2 = NULL;
   HRESULT result = filter_in->EnumPins (&enumerator_p);
-  if (FAILED (result))
+  if (FAILED (result) || !enumerator_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
@@ -1999,15 +2000,7 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
 
     if (filter_info.pGraph)
     { // *IMPORTANT NOTE*: throws in ~CMediaSample() (*TODO*: why ?)
-      try {
-        result = filter_info.pGraph->Disconnect (pin_p);
-      } catch (...) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("caught exception in CFilterGraph::Disconnect(%@) (filter pin was: \"%s\"), continuing\n"),
-                    pin_p,
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
-        result = S_OK;
-      }
+      result = filter_info.pGraph->Disconnect (pin_p);
     } // end IF
     else
       result = pin_p->Disconnect ();
@@ -2022,15 +2015,16 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
         filter_info.pGraph->Release ();
       return false;
     } // end IF
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("disconnected \"%s\"...\n"),
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
     pin_p->Release (); pin_p = NULL;
   } // end WHILE
   enumerator_p->Release (); enumerator_p = NULL;
   if (filter_info.pGraph)
     filter_info.pGraph->Release ();
-  
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("disconnected \"%s\"...\n"),
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
+
   return true;
 }
 
