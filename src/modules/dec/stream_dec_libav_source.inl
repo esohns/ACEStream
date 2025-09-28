@@ -332,12 +332,16 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
         media_type_s.video.frameRate = context_->streams[i]->avg_frame_rate;
         break;
       }
+      case AVMEDIA_TYPE_SUBTITLE:
+      case AVMEDIA_TYPE_DATA:
+      case AVMEDIA_TYPE_ATTACHMENT:
+        break;
       default:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid/unknown codec type (was: %d), aborting\n"),
                     inherited::mod_->name (),
-                    context_->streams[inherited::configuration_->streamIndex]->codecpar->codec_type));
+                    context_->streams[i]->codecpar->codec_type));
         return -1;
       }
     } // end SWITCH
