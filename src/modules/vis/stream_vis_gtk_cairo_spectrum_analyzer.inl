@@ -376,8 +376,7 @@ next:
       // make space for inbound samples at the end of the buffer,
       // shifting previous samples towards the beginning
       tail_slot = inherited2::slots_ - samples_to_write;
-      ACE_OS::memmove (&(inherited2::buffer_[i][0]), &(inherited2::buffer_[i][samples_to_write]),
-                       tail_slot * sizeof (ValueType));
+      ACE_OS::memmove (&(inherited2::buffer_[i][0]), &(inherited2::buffer_[i][samples_to_write]), tail_slot * sizeof (ValueType));
 
       // copy the sample data to the tail end of the buffer as ValueType
       for (unsigned int j = 0; j < samples_to_write; ++j)

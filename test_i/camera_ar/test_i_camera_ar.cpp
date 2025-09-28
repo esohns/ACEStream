@@ -554,9 +554,9 @@ do_finalize_directshow (IAMStreamConfig*& streamConfiguration_inout)
 bool
 do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                HWND windowHandle_in,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                                IMFMediaSession*& IMFMediaSession_out,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                                bool loadDevice_in,
                                IMFMediaType*& captureFormat_out,
                                IMFMediaType*& outputFormat_out)
