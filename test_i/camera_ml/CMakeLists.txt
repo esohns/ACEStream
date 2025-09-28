@@ -102,6 +102,8 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_session_message.cpp
      test_i_session_message.h
      test_i_session_message.inl
+     test_i_signalhandler.cpp
+     test_i_signalhandler.h
      test_i_stream.cpp
      test_i_stream.h)
 if (TENSORFLOW_SUPPORT OR TENSORFLOW_CC_SUPPORT)
@@ -164,6 +166,8 @@ if (MEDIAPIPE_SUPPORT)
       test_i_session_message.cpp
       test_i_session_message.h
       test_i_session_message.inl
+      test_i_signalhandler.cpp
+      test_i_signalhandler.h
       test_i_stream_2.cpp
       test_i_stream_2.h)
  if (OLC_PGE_SUPPORT)

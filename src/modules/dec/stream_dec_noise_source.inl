@@ -556,10 +556,10 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       // start sample generator timer
       interval.set (0, buffer_time_us);
       timer_id =
-        itimer_manager_p->schedule_timer (&handler_,               // event handler handle
-                                          NULL,                    // asynchronous completion token
-                                          ACE_OS::gettimeofday (), // first wakeup time
-                                          interval);               // interval
+        itimer_manager_p->schedule_timer (&handler_,       // event handler handle
+                                          NULL,            // asynchronous completion token
+                                          COMMON_TIME_NOW, // first wakeup time
+                                          interval);       // interval
       if (unlikely (timer_id == -1))
       {
         ACE_DEBUG ((LM_ERROR,

@@ -133,7 +133,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #else
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : capture device [\"")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [VALUE]  : capture device [\"")
             << Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                                 SND_PCM_STREAM_CAPTURE)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
@@ -190,7 +190,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-p [STRING] : playback device [\"")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-p [VALUE]  : playback device [\"")
             << Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                                 SND_PCM_STREAM_PLAYBACK)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
@@ -282,8 +282,8 @@ do_processArguments (int argc_in,
   showConsole_out = false;
 #else
   captureDeviceIdentifier_out =
-      Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
-                                                       SND_PCM_STREAM_CAPTURE);
+    Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                     SND_PCM_STREAM_CAPTURE);
   captureDeviceIdentifierSet_out = false;
   effect_out.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
@@ -371,8 +371,15 @@ do_processArguments (int argc_in,
 #else
       case 'd':
       {
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << argument_parser.opt_arg ();
+        int card_id_i = 0;
+        converter >> card_id_i;
+
         captureDeviceIdentifier_out =
-            ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+          Stream_MediaFramework_ALSA_Tools::getDeviceName (card_id_i,
+                                                           SND_PCM_STREAM_CAPTURE);
         captureDeviceIdentifierSet_out = true;
         break;
       }
@@ -446,8 +453,15 @@ do_processArguments (int argc_in,
 #else
       case 'p':
       {
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << argument_parser.opt_arg ();
+        int card_id_i = 0;
+        converter >> card_id_i;
+
         playbackDeviceIdentifier_out =
-          ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+          Stream_MediaFramework_ALSA_Tools::getDeviceName (card_id_i,
+                                                           SND_PCM_STREAM_PLAYBACK);
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1656,7 +1670,6 @@ do_work (
 
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.ALSAConfiguration = &ALSA_configuration_2;
-  //Stream_MediaFramework_ALSA_Tools::listCards ();
   modulehandler_configuration_2.deviceIdentifier.identifier =
     playbackDeviceIdentifier_in;
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING),

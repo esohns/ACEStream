@@ -851,7 +851,6 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
                     inherited::mod_->name ()));
         return -1;
       } // end IF
-      stop_processing = true;
 
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
     } // end IF
@@ -952,19 +951,19 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   fixtureDef.restitution =
     TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RESTITUTION;
   b2CircleShape circleShape;
-  circleShape.m_radius = TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS;
+  circleShape.m_radius = TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS;
   fixtureDef.shape = &circleShape;
 
 #if defined (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_REVOLUTE_JOINTS)
   b2RevoluteJointDef jointDef;
   //jointDef.collideConnected = false;
-  jointDef.localAnchorA.Set (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
-  jointDef.localAnchorB.Set (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
+  jointDef.localAnchorA.Set (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS, 0.0f);
+  jointDef.localAnchorB.Set (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS, 0.0f);
 #elif defined (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_DISTANCE_JOINTS)
    b2DistanceJointDef jointDef;
    jointDef.collideConnected = false;
-  //jointDef.localAnchorA.Set (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
-  //jointDef.localAnchorB.Set (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS, 0.0f);
+  //jointDef.localAnchorA.Set (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS, 0.0f);
+  //jointDef.localAnchorB.Set (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS, 0.0f);
    jointDef.length =
      TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
    jointDef.dampingRatio =
@@ -1008,7 +1007,7 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   jointDef_2.localAnchorA.SetZero ();
   jointDef_2.localAnchorB.SetZero ();
   //jointDef_2.collideConnected = false;
-  jointDef_2.maxLength = (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS - 1) * (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS * 2.0f);
+  jointDef_2.maxLength = (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS - 1) * (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS * 2.0f);
   bridgeRope_ = world_->CreateJoint (&jointDef_2);
   ACE_ASSERT (bridgeRope_);
 }

@@ -859,8 +859,8 @@ continue_:
     position_i = device_type.find (':', 0);
     if (position_i != std::string::npos)
       device_type = device_type.substr (0, position_i);
-    if (ACE_OS::strcmp (device_type.c_str (),
-                        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_SYSDEFAULT_DEVICE_PREFIX)))
+    if (!ACE_OS::strcmp (device_type.c_str (),
+                         ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_SYSDEFAULT_DEVICE_PREFIX)))
       continue;
     result_string = hint_string;
 

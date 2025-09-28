@@ -8246,7 +8246,7 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
   istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
 
   ACE_ASSERT (cb_data_p->configuration);
-  Test_U_MicVisualize_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_MicVisualize_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);

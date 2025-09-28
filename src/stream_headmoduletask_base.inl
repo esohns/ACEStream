@@ -2758,14 +2758,18 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       } // end lock scope
       inherited2::signal ();
 
-      ACE_ASSERT (inherited::sessionData_);
-      const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-          inherited::sessionData_->getR ();
-      bool aborted_b = false;
-      // *TODO*: remove type inferences
-      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock, false);
-        aborted_b = session_data_r.aborted;
-      } // end lock scope
+      // *WARNING*: if the stream contains an asynchronous module, the session
+      //            data may already have been reset at this stage !
+      bool aborted_b = abortSent_;
+      if (likely (!aborted_b))
+      { ACE_ASSERT (inherited::sessionData_);
+        const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+            inherited::sessionData_->getR ();
+        // *TODO*: remove type inferences
+        { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock, false);
+          aborted_b = session_data_r.aborted;
+        } // end lock scope
+      } // end IF
 
       bool release_lock = false;
       typename SessionMessageType::DATA_T* session_data_container_p = NULL;

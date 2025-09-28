@@ -183,11 +183,29 @@ error:
       inherited::stop (false,  // wait for completion ?
                        false); // high priority ?
 
-      // sanity check(s)
-      ACE_ASSERT (cbData_.display);
-
-      if (cbData_.surface || shellSurface_)
-      { ACE_ASSERT (cbData_.display);
+      if (cbData_.shm_data)
+      {
+        ACE_OS::munmap (cbData_.shm_data, static_cast<size_t> (frameSize_)); cbData_.shm_data = NULL;
+      } // end IF
+      if (topLevel_)
+      {
+        xdg_toplevel_destroy (topLevel_); topLevel_ = NULL;
+      } // end IF
+      if (shellSurface_)
+      {
+        xdg_surface_destroy (shellSurface_); shellSurface_ = NULL;
+      }
+      if (cbData_.surface)
+      {
+        wl_surface_destroy (cbData_.surface); cbData_.surface = NULL;
+      } // end IF
+      if (cbData_.shm)
+      {
+        wl_shm_destroy (cbData_.shm); cbData_.shm = NULL;
+      } // end IF
+      if (cbData_.compositor)
+      {
+        wl_compositor_destroy (cbData_.compositor); cbData_.compositor = NULL;
       } // end IF
       if (closeDisplay_)
       { ACE_ASSERT (cbData_.display);
@@ -349,7 +367,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   else
   {
     cbData_.surface = wl_compositor_create_surface (cbData_.compositor);
-    if (!cbData_.surface)
+    if (unlikely (!cbData_.surface))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to wl_compositor_create_surface(%@): \"%m\", aborting\n"),
@@ -366,9 +384,9 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 //    ACE_ASSERT (cbData_.shell);
 //    shellSurface_ = wl_shell_get_shell_surface (cbData_.shell, surface_);
     ACE_ASSERT (cbData_.wm_base);
-    shellSurface_ =
-        xdg_wm_base_get_xdg_surface (cbData_.wm_base, cbData_.surface);
-    if (!shellSurface_)
+    shellSurface_ = xdg_wm_base_get_xdg_surface (cbData_.wm_base,
+                                                 cbData_.surface);
+    if (unlikely (!shellSurface_))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to xdg_wm_base_get_xdg_surface(%@,%@): \"%m\", aborting\n"),
@@ -595,9 +613,8 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   {
     result = inherited::getq (message_block_p,
                               NULL/*&no_wait*/);
-    if (result == 0)
-    {
-      ACE_ASSERT (message_block_p);
+    if (likely (result == 0))
+    { ACE_ASSERT (message_block_p);
       ACE_Message_Block::ACE_Message_Type message_type =
         message_block_p->msg_type ();
       if (message_type == ACE_Message_Block::MB_STOP)
@@ -620,12 +637,23 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
       if (error != EWOULDBLOCK) // Win32: 10035
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
+                    ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
         break;
       } // end IF
     } // end ELSE IF
 
-    wl_display_roundtrip (cbData_.display);
+    // session end complete ?
+    if (unlikely (!cbData_.display))
+      continue;
+    result = wl_display_roundtrip (cbData_.display);
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to wl_display_roundtrip(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
+      break;
+    } // end IF
   } while (true);
 
 //done:

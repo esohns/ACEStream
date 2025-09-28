@@ -1556,10 +1556,12 @@ continue_:
     return S_FALSE; // --> stop
   } // end IF
 
+  CRefTime start_time;
+  REFERENCE_TIME start_time_2, end_time;
+  long frames_written_i;
   if (!configuration_->setSampleTimes)
     goto continue_2;
 
-  CRefTime start_time;
   result = inherited::m_pFilter->StreamTime (start_time);
   if (unlikely (FAILED (result)))
   {
@@ -1569,13 +1571,13 @@ continue_:
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return S_FALSE; // --> stop
   } // end IF
-  REFERENCE_TIME start_time_2 = start_time.GetUnits () /* + streamOffset_*/;
+  start_time_2 = start_time.GetUnits () /* + streamOffset_*/;
 
   ACE_ASSERT (sampleSize_);
   ACE_ASSERT ((total_buffer_size_i % sampleSize_) == 0);
-  long frames_written_i = (total_buffer_size_i / sampleSize_);
+  frames_written_i = (total_buffer_size_i / sampleSize_);
   //sampleTime_ += (frameInterval_ * frames_written_i);
-  REFERENCE_TIME end_time = start_time_2 + (frameInterval_ * frames_written_i) /* + streamOffset_*/;
+  end_time = start_time_2 + (frameInterval_ * frames_written_i) /* + streamOffset_*/;
   // *NOTE*: this sets the samples' "stream" time (== "presentation" time)
   result = mediaSample_in->SetTime (&start_time_2,
                                     &end_time);

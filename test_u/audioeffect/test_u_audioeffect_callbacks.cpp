@@ -8221,7 +8221,7 @@ hscale_pink_alpha_value_changed_cb (GtkRange* range_in,
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->configuration);
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
@@ -8297,7 +8297,7 @@ hscale_pink_poles_value_changed_cb (GtkRange* range_in,
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->configuration);
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
@@ -8389,7 +8389,7 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
   istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
 
   ACE_ASSERT (cb_data_p->configuration);
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
@@ -8495,7 +8495,7 @@ hscale_perlin_octaves_value_changed_cb (GtkRange* range_in,
   istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
 
   ACE_ASSERT (cb_data_p->configuration);
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
@@ -8601,7 +8601,7 @@ hscale_perlin_persistence_value_changed_cb (GtkRange* range_in,
   istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
 
   ACE_ASSERT (cb_data_p->configuration);
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
@@ -8707,7 +8707,7 @@ hscale_perlin_lacunarity_value_changed_cb (GtkRange* range_in,
   istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
 
   ACE_ASSERT (cb_data_p->configuration);
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
@@ -9562,13 +9562,13 @@ radiobutton_quality_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end SWITCH
 #else
   // sanity check(s)
-  struct Test_U_AudioEffect_UI_CBData* data_p =
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   (*modulehandler_configuration_iterator).second.second->generatorConfiguration->quality =
     noise_quality_e;
@@ -9609,8 +9609,8 @@ radiobutton_quality_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end SWITCH
 #else
   // sanity check(s)
-  ACE_ASSERT (cb_data_p->stream);
-  istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
+  ACE_ASSERT (ui_cb_data_p->stream);
+  istream_p = dynamic_cast<Stream_IStream_t*> (ui_cb_data_p->stream);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 
@@ -10386,6 +10386,17 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
     (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.3"));  // decay (% gain in)
     (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("200"));  // delay (ms)
     (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.25")); // decay (% gain in)
+  } // end ELSE IF
+  else if (effect_string == ACE_TEXT_ALWAYS_CHAR ("flanger"))
+  {
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0"));      // delay (ms)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("2"));      // depth (ms)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0"));      // regen (%)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("71"));     // width (%)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.5"));    // speed (Hz sweeps per sec)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("sine"));   // shape (sine|triangle)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("25"));     // phase (%)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("linear")); // interp (linear|quadratic)
   } // end ELSE IF
   else if (effect_string == ACE_TEXT_ALWAYS_CHAR ("phaser"))
   {

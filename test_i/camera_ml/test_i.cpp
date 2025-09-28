@@ -92,6 +92,7 @@
 #include "test_i_camera_ml_defines.h"
 #include "test_i_camera_ml_stream_common.h"
 #include "test_i_eventhandler.h"
+#include "test_i_signalhandler.h"
 #include "test_i_stream.h"
 
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CameraMLStream");
@@ -417,6 +418,61 @@ do_process_arguments (int argc_in,
   } // end WHILE
 
   return true;
+}
+
+void
+do_initialize_signals (ACE_Sig_Set& signals_out,
+                       ACE_Sig_Set& ignoredSignals_out)
+{
+  STREAM_TRACE (ACE_TEXT ("::do_initialize_signals"));
+
+  int result = -1;
+
+  // initialize return value(s)
+  result = signals_out.empty_set ();
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Sig_Set::empty_set(): \"%m\", returning\n")));
+    return;
+  } // end IF
+  result = ignoredSignals_out.empty_set ();
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Sig_Set::empty_set(): \"%m\", returning\n")));
+    return;
+  } // end IF
+
+  // *PORTABILITY*: on Windows(TM) platforms most signals are not defined, and
+  //                ACE_Sig_Set::fill_set() doesn't really work as specified
+  // --> add valid signals (see <signal.h>)...
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  result = signals_out.sig_add (SIGINT);            // 2       /* interrupt */
+  ACE_ASSERT (result == 0);
+  result = signals_out.sig_add (SIGILL);            // 4       /* illegal instruction - invalid function image */
+  ACE_ASSERT (result == 0);
+  result = signals_out.sig_add (SIGFPE);            // 8       /* floating point exception */
+  ACE_ASSERT (result == 0);
+  //result = signals_out.sig_add (SIGSEGV);           // 11      /* segment violation */
+  //ACE_ASSERT (result == 0);
+  result = signals_out.sig_add (SIGTERM);           // 15      /* Software termination signal from kill */
+  ACE_ASSERT (result == 0);
+  result = signals_out.sig_add (SIGBREAK);          // 21      /* Ctrl-Break sequence */
+  ACE_ASSERT (result == 0);
+  result = signals_out.sig_add (SIGABRT);           // 22      /* abnormal termination triggered by abort call */
+  ACE_ASSERT (result == 0);
+  result = signals_out.sig_add (SIGABRT_COMPAT);    // 6       /* SIGABRT compatible with other platforms, same as SIGABRT */
+  ACE_ASSERT (result == 0);
+#else
+  result = signals_out.fill_set ();
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Sig_Set::fill_set(): \"%m\", returning\n")));
+    return;
+  } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -890,7 +946,11 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #else
          struct Stream_CameraML_Configuration& configuration_in,
 #endif // ACE_WIN32 || ACE_WIN64
-         enum Stream_CameraML_ProgramMode mode_in)
+         enum Stream_CameraML_ProgramMode mode_in,
+         ACE_Sig_Set& signalSet_in,
+         const ACE_Sig_Set& ignoredSignalSet_in,
+         Common_SignalActions_t& previousSignalActions_inout,
+         ACE_Sig_Set& previousSignalMask_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
@@ -915,6 +975,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_CameraML_V4L_ModuleHandlerConfiguration modulehandler_configuration_4; // converter_2
   Stream_CameraML_EventHandler_t ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
+  Test_I_SignalHandler signal_handler;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //Stream_CameraML_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
@@ -1183,6 +1244,9 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_4)));
 
+      directShowConfiguration_in.signalHandlerConfiguration.stream = stream_p;
+      signal_handler.initialize (directShowConfiguration_in.signalHandlerConfiguration);
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1206,6 +1270,10 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &mediafoundation_modulehandler_configuration_2)));
+
+
+      mediaFoundationConfiguration_in.signalHandlerConfiguration.stream = stream_p;
+      signal_handler.initialize (mediaFoundationConfiguration_in.signalHandlerConfiguration);
 
       break;
     }
@@ -1245,8 +1313,22 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_4)));
+
+  configuration_in.signalHandlerConfiguration.stream = stream_p;
+  signal_handler.initialize (configuration_in.signalHandlerConfiguration);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
+
+  if (unlikely (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
+                                                  signalSet_in,
+                                                  ignoredSignalSet_in,
+                                                  &signal_handler,
+                                                  previousSignalActions_inout)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Signal_Tools::initialize(), returning\n")));
+    goto clean;
+  } // end IF
 
   // intialize timers
   timer_manager_p = COMMON_TIMERMANAGER_SINGLETON::instance ();
@@ -1307,6 +1389,9 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   // step3: clean up
 clean:
   timer_manager_p->stop ();
+  Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
+                                 previousSignalActions_inout,
+                                 previousSignalMask_in);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
@@ -1443,6 +1528,10 @@ ACE_TMAIN (int argc_in,
   bool trace_information = false;
   enum Stream_CameraML_ProgramMode program_mode_e =
       STREAM_CAMERA_ML_PROGRAMMODE_NORMAL;
+  ACE_Sig_Set signal_set (false); // fill ?
+  ACE_Sig_Set ignored_signal_set (false); // fill ?
+  Common_SignalActions_t previous_signal_actions;
+  ACE_Sig_Set previous_signal_mask (false); // fill ?
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
@@ -1522,6 +1611,31 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
+  // step1e: pre-initialize signal handling
+  do_initialize_signals (signal_set,
+                         ignored_signal_set);
+  if (unlikely (!Common_Signal_Tools::preInitialize (signal_set,
+                                                     COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
+                                                     false, // using networking ?
+                                                     false, // using asynch timers ?
+                                                     previous_signal_actions,
+                                                     previous_signal_mask)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
+
+    Common_Log_Tools::finalize ();
+    Common_Tools::finalize ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    // *PORTABILITY*: on Windows, finalize ACE...
+    result = ACE::fini ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
+#endif // ACE_WIN32 || ACE_WIN64
+    return EXIT_FAILURE;
+  } // end IF
+
   // step1f: handle specific program modes
   switch (program_mode_e)
   {
@@ -1590,10 +1704,13 @@ ACE_TMAIN (int argc_in,
 #else
            configuration,
 #endif // ACE_WIN32 || ACE_WIN64
-           program_mode_e);
+           program_mode_e,
+           signal_set,
+           ignored_signal_set,
+           previous_signal_actions,
+           previous_signal_mask);
   timer.stop ();
 
-  // debug info
   std::string working_time_string;
   ACE_Time_Value working_time;
   timer.elapsed_time (working_time);

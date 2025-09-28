@@ -147,8 +147,15 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
 
   int result = -1;
+  bool high_priority_b = false;
+
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      high_priority_b = true;
+      goto end;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -278,15 +285,13 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      int toggle = 0;
-      //bool shutdown = true;
-
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         if (inherited::sessionEndProcessed_)
           break; // done
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
+end:
       // step1: empty buffer queue(s)
       if (likely (captureFileDescriptor_ != -1))
         Stream_Device_Tools::finalizeBuffers<DataMessageType> (captureFileDescriptor_,
@@ -294,6 +299,7 @@ error:
                                                                bufferMap_);
 
       // step2: stop stream
+      int toggle = 0;
       if (unlikely (overlayFileDescriptor_ != -1))
       {
         result = v4l2_ioctl (overlayFileDescriptor_,
@@ -338,27 +344,35 @@ error:
                     inherited::mod_->name (),
                     inherited::configuration_->buffers));
 
-//      if (likely (captureFileDescriptor_ != -1))
-//      {
-//        result = v4l2_close (captureFileDescriptor_);
-//        if (unlikely (result == -1))
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-//                      captureFileDescriptor_));
-//      } // end IF
-//      if (unlikely (overlayFileDescriptor_ != -1))
-//      {
-//        result = v4l2_close (overlayFileDescriptor_);
-//        if (result == -1)
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-//                      overlayFileDescriptor_));
-//      } // end IF
+     if (!isPassive_)
+      if (likely (captureFileDescriptor_ != -1))
+      {
+        result = v4l2_close (captureFileDescriptor_);
+        if (unlikely (result == -1))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
+                      captureFileDescriptor_));
+        else
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: closed v4l device (fd was: %d)\n"),
+                      inherited::mod_->name (),
+                      captureFileDescriptor_));
+        captureFileDescriptor_ = -1;
+      } // end IF
+     if (unlikely (overlayFileDescriptor_ != -1))
+     {
+       result = v4l2_close (overlayFileDescriptor_);
+       if (result == -1)
+         ACE_DEBUG ((LM_ERROR,
+                     ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
+                     overlayFileDescriptor_));
+       overlayFileDescriptor_ = -1;
+     } // end IF
 
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       { Common_ITask* itask_p = this;
-        itask_p->stop (false,  // wait ?
-                       false); // high priority ?
+        itask_p->stop (false,            // wait ?
+                       high_priority_b); // high priority ?
       } // end IF
 
       break;
@@ -499,8 +513,8 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   {
     // *TODO*: remove type inference
     captureFileDescriptor_ =
-        v4l2_open (configuration_in.deviceIdentifier.identifier.c_str (),
-                   open_mode_i);
+      v4l2_open (configuration_in.deviceIdentifier.identifier.c_str (),
+                 open_mode_i);
     if (unlikely (captureFileDescriptor_ == -1))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -522,8 +536,8 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   if (unlikely (Stream_Device_Tools::canOverlay (captureFileDescriptor_)))
   {
     overlayFileDescriptor_ =
-        v4l2_open (configuration_in.deviceIdentifier.identifier.c_str (),
-                   open_mode_i);
+      v4l2_open (configuration_in.deviceIdentifier.identifier.c_str (),
+                 open_mode_i);
     if (overlayFileDescriptor_ == -1)
     {
       ACE_DEBUG ((LM_ERROR,
