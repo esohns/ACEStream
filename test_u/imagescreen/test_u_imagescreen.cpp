@@ -28,9 +28,7 @@
 #include "ace/Init_ACE.h"
 #include "ace/OS.h"
 #include "ace/Profile_Timer.h"
-//#include "ace/Synch.h"
 #include "ace/Time_Value.h"
-#include "stream_lib_ffmpeg_common.h"
 
 #if defined (HAVE_CONFIG_H)
 #include "Common_config.h"
@@ -48,8 +46,6 @@
 #if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
-
-#include "test_u_imagescreen_gtk_callbacks.h"
 #elif defined (WXWIDGETS_USE)
 #include "common_ui_wxwidgets_application.h"
 #include "common_ui_wxwidgets_tools.h"
@@ -61,6 +57,8 @@
 
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"
+
+#include "stream_lib_ffmpeg_common.h"
 
 #include "stream_misc_defines.h"
 
@@ -375,7 +373,6 @@ do_work (int argc_in,
   struct Stream_ImageScreen_ModuleHandlerConfiguration modulehandler_configuration;
   struct Stream_ImageScreen_StreamConfiguration stream_configuration;
 
-//  Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_configuration_iterator;
   modulehandler_configuration.allocatorConfiguration =
     &allocator_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -457,6 +454,7 @@ do_work (int argc_in,
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.slurpFiles = true;
+  modulehandler_configuration.waitForDataOnEnd = true;
 
   Stream_ImageScreen_EventHandler_t ui_event_handler (
                                                       &ui_cb_data

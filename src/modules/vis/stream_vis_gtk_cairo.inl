@@ -168,7 +168,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #endif // GTK_CHECK_VERSION (4,0,0)
   if (!window_h)
     return inherited::initialize (configuration_in,
-                                  allocator_in); // nothing to do
+                                  allocator_in);
 
 #if GTK_CHECK_VERSION (3,6,0)
 #else
@@ -188,13 +188,13 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   cairoRegion_ = cairo_region_create ();
   ACE_ASSERT (cairoRegion_);
 #elif GTK_CHECK_VERSION (2,8,0)
-  //context_ = gdk_cairo_create (window_h);
-  //if (unlikely (!context_))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to gdk_cairo_create(%@), aborting\n"),
-  //              inherited::mod_->name (),
-  //              window_h));
+//  context_ = gdk_cairo_create (window_h);
+//  if (unlikely (!context_))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to gdk_cairo_create(%@), aborting\n"),
+//                inherited::mod_->name (),
+//                window_h));
 //#if GTK_CHECK_VERSION (3,6,0)
 //#else
 //    GDK_THREADS_LEAVE ();
@@ -247,7 +247,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
-  ACE_ASSERT (!surface_);
+  if (surface_)
+  {
+    g_object_unref (surface_); surface_ = NULL;
+  } // end IF
   ACE_ASSERT (window_in);
 
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();
@@ -336,13 +339,12 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     return;
   } // end IF
 #elif GTK_CHECK_VERSION (3,0,0)
-    //gdk_pixbuf_get_from_window (window_in,
-    //                            0, 0,
-    //                            gdk_window_get_width (window_in),
-    //                            gdk_window_get_height (window_in));
+        // gdk_pixbuf_get_from_window (window_in,
+        //                             0, 0,
+        //                             gdk_window_get_width (window_in),
+        //                             gdk_window_get_height (window_in));
     gdk_pixbuf_new (GDK_COLORSPACE_RGB,
-                    (n_channels_i == 4) ? TRUE : FALSE,
-                    8,
+                    (n_channels_i == 4) ? TRUE : FALSE, 8,
                     gdk_window_get_width (window_in),
                     gdk_window_get_height (window_in));
   if (unlikely (!surface_))
@@ -357,6 +359,18 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #endif // GTK_CHECK_VERSION (3,6,0)
     return;
   } // end IF
+  GdkPixbuf* scaled_pixbuf_p = gdk_pixbuf_scale_simple (surface_,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                        resolution_s.cx,
+                                                        resolution_s.cy,
+#else
+                                                        resolution_s.width,
+                                                        resolution_s.height,
+#endif // ACE_WIN32 || ACE_WIN64
+                                                        GDK_INTERP_NEAREST);
+  ACE_ASSERT (scaled_pixbuf_p);
+  g_object_unref (surface_);
+  surface_ = scaled_pixbuf_p;
 #elif GTK_CHECK_VERSION (2,0,0)
     gdk_pixbuf_get_from_drawable (NULL,
                                   GDK_DRAWABLE (window_in),
@@ -608,13 +622,15 @@ error_2:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (likely (surface_))
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, surfaceLock_);
+        if (likely (surface_))
 #if GTK_CHECK_VERSION (3,10,0)
-        cairo_surface_destroy (surface_);
+          cairo_surface_destroy (surface_);
 #else
-        g_object_unref (surface_);
+          g_object_unref (surface_);
 #endif // GTK_CHECK_VERSION(3,10,0)
-      surface_ = NULL;
+        surface_ = NULL;
+      } // end lock scope
 
       break;
     }

@@ -360,6 +360,20 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
 end:
+      if (inherited::configuration_->waitForDataOnEnd)
+      {
+        queue_.waitForIdleState ();
+        // wait for the next (i.e. at least one-) dispatch cycle to complete
+        int result;
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+          result = condition_.wait (NULL);
+          if (unlikely (result == -1))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_SYNCH_CONDITION::wait(): \"%m\", continuing\n"),
+                        inherited::mod_->name ()));
+        } // end lock scope
+      } // end IF
+
       // *NOTE*: this is done in svc() to allow ordered shutdown
       //if (likely (resetTimeoutHandlerId_ != -1))
       //{

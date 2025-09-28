@@ -34,6 +34,7 @@
 #include "wx/apptrait.h"
 #endif // WXWIDGETS_SUPPORT
 
+#include "common_inotify.h"
 #include "common_isubscribe.h"
 
 #include "common_ui_windowtype_converter.h"
@@ -273,6 +274,8 @@ struct Stream_ImageScreen_UI_CBData
   Stream_ImageScreen_UI_CBData ()
    : Test_U_UI_CBData ()
    , configuration (NULL)
+   , dispatch (NULL)
+   , eventSourceId (0)
    , isFirst (true)
    , progressData ()
    , stream (NULL)
@@ -284,6 +287,8 @@ struct Stream_ImageScreen_UI_CBData
   }
 
   struct Stream_ImageScreen_Configuration* configuration;
+  Common_IDispatch*                        dispatch;
+  guint                                    eventSourceId; // drawing area update-
   bool                                     isFirst; // first activation ?
   struct Stream_ImageScreen_ProgressData   progressData;
   Stream_ImageScreen_Stream*               stream;

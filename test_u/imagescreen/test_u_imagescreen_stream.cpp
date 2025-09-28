@@ -103,14 +103,14 @@ Stream_ImageScreen_Stream::load (Stream_ILayout* layout_in,
 #endif // FFMPEG_SUPPORT
 #endif // IMAGEMAGICK_SUPPORT
   layout_in->append (&delay_, NULL, 0);
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   layout_in->append (&displayGTK_, NULL, 0);
 #elif defined (ACE_WIN32) || defined (ACE_WIN64)
   layout_in->append (&display2D_, NULL, 0);
   //layout_in->append (&display3D_, NULL, 0);
 #else
   layout_in->append (&displayX11_, NULL, 0);
-#endif // GTK_SUPPORT || ACE_WIN32 || ACE_WIN64
+#endif // GTK_USE || ACE_WIN32 || ACE_WIN64
 
   return true;
 }
