@@ -18,9 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
-#include "mtype.h"
-#endif // DIRECTSHOW_BASECLASSES_SUPPORT
+//#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
+//#include "mtype.h"
+//#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 #include "cmulex/cmu_lex.h"
 #include "usenglish/usenglish.h"
@@ -154,10 +154,8 @@ Stream_Decoder_FliteDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (!voice_);
   //voice_ = flite_voice_select (configuration_in.voice.c_str ());
   std::string filename_string = configuration_in.voiceDirectory;
-  filename_string += ACE_DIRECTORY_SEPARATOR_CHAR;
+  filename_string += ACE_DIRECTORY_SEPARATOR_STR_A;
   filename_string += configuration_in.voice;
-  filename_string +=
-    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_FLITE_VOICE_FILENAME_EXTENSION_STRING);
   voice_ = flite_voice_load (filename_string.c_str ());
   if (unlikely (!voice_))
   {
@@ -312,6 +310,7 @@ Stream_Decoder_FliteDecoder_T<ACE_SYNCH_USE,
     message_inout->release (); message_inout = NULL;
     goto error;
   } // end IF
+  message_inout->release (); message_inout = NULL;
 
   return;
 
@@ -368,19 +367,8 @@ Stream_Decoder_FliteDecoder_T<ACE_SYNCH_USE,
       waveformatex_s.nAvgBytesPerSec =
         (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
       // waveformatex_s.cbSize = 0;
-#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
-      HRESULT result = CreateAudioMediaType (&waveformatex_s,
-                                             &media_type_2,
-                                             TRUE); // set format ?
-      if (unlikely (FAILED (result)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CreateAudioMediaType(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-        goto error;
-      } // end IF
-#endif // DIRECTSHOW_BASECLASSES_SUPPORT
+      Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (waveformatex_s,
+                                                                media_type_2);
       ACE_OS::memset (&media_type, 0, sizeof (MediaType));
 #else
       struct Stream_MediaFramework_ALSA_MediaType media_type_2;
@@ -400,7 +388,7 @@ Stream_Decoder_FliteDecoder_T<ACE_SYNCH_USE,
       break;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-error:
+//error:
       Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
 #endif // ACE_WIN32 || ACE_WIN64
 

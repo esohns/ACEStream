@@ -277,7 +277,7 @@ do_processArguments (int argc_in,
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   voice_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
   voiceDirectory_out = configuration_path;
-  voiceDirectory_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  voiceDirectory_out += ACE_DIRECTORY_SEPARATOR_STR_A;
   voiceDirectory_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE_DIRECTORY);
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2142,7 +2142,7 @@ ACE_TMAIN (int argc_in,
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   std::string voice_string = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
   std::string voice_directory = path;
-  voice_directory += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //voice_directory += ACE_DIRECTORY_SEPARATOR_STR_A;
   voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE_DIRECTORY);
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

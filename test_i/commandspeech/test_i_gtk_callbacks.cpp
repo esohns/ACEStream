@@ -102,6 +102,7 @@ load_voices (GtkListStore* listStore_in,
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
                         0, filename_string.c_str (),
+                        1, (*iterator_2).identifier.c_str (),
                         -1);
   } // end FOR
 
@@ -1204,6 +1205,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
                                   //"cell-background", 0,
                                   ACE_TEXT_ALWAYS_CHAR ("text"), 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("file path"), 1,
                                   NULL);
 
   list_store_p =
@@ -1571,7 +1573,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_VOICE_NAME)));
   ACE_ASSERT (combo_box_p);
-#if GTK_CHECK_VERSION(2, 30, 0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
@@ -2688,11 +2690,11 @@ combobox_target_changed_cb (GtkWidget* widget_in,
   std::ostringstream converter;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_DirectShow_Source* directshow_source_impl_2 = NULL;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
   IMFSampleGrabberSinkCallback2* sample_grabber_p = NULL;
 #else
   IMFSampleGrabberSinkCallback* sample_grabber_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
   IMFTopology* topology_p = NULL;
  
   switch (ui_cb_data_base_p->mediaFramework)
@@ -2724,7 +2726,7 @@ combobox_target_changed_cb (GtkWidget* widget_in,
         break;
       
       ACE_ASSERT (media_source_p);
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology ((*mediafoundation_modulehandler_configuration_iterator_2).second.second->deviceIdentifier,
                                                                     MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                     media_source_p,
@@ -2739,11 +2741,11 @@ combobox_target_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (false);
       ACE_NOTSUP;
       ACE_NOTREACHED (return;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
       ACE_ASSERT (topology_p);
 
       // sanity check(s)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second->session);
       if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                      (*mediafoundation_modulehandler_configuration_iterator).second.second->session,
@@ -2754,7 +2756,7 @@ combobox_target_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::setTopology(), aborting\n")));
         goto error;
       } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       topology_p->Release (); topology_p = NULL;
       break;
     }
@@ -2972,6 +2974,10 @@ combobox_voice_changed_cb (GtkWidget* widget_in,
   ACE_UNUSED_ARG (widget_in);
 
   // sanity check(s)
+  GtkTreeIter iterator_2;
+  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                      &iterator_2))
+    return; // <-- nothing selected
   struct Test_I_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Test_I_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
@@ -2979,6 +2985,84 @@ combobox_voice_changed_cb (GtkWidget* widget_in,
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VOICE_NAME)));
+  ACE_ASSERT (list_store_p);
+  std::string voice_string;
+#if GTK_CHECK_VERSION (2,30,0)
+  GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+#endif // GTK_CHECK_VERSION (2,30,0)
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  voice_string = g_value_get_string (&value);
+  g_value_unset (&value);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
+  Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  HRESULT result = E_FAIL;
+  IMFMediaSource* media_source_p = NULL;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      (*directshow_modulehandler_configuration_iterator).second.second->voice =
+        voice_string;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->voice =
+        voice_string;
+
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_I_ALSA_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+
+  (*modulehandler_configuration_iterator).second.second->voice = voice_string;
+#endif // ACE_WIN32 || ACE_WIN64
 } // combobox_voice_changed_cb
 
 #if GTK_CHECK_VERSION (3,0,0)

@@ -23,7 +23,7 @@
 
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
 #define TEST_I_DEFAULT_VOICE_DIRECTORY                 ""
-#define TEST_I_DEFAULT_VOICE                           "cmu_us_slt"
+#define TEST_I_DEFAULT_VOICE                           "cmu_us_slt.flitevox"
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #define TEST_I_DEFAULT_OUTPUT_FILE                     "output.wav"
 

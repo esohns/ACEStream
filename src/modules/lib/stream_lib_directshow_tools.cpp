@@ -3900,12 +3900,12 @@ Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (const struct tWAVEFORM
                 ACE_TEXT ("failed to CoTaskMemAlloc(%u), aborting\n"),
                 mediaType_inout.cbFormat));
     goto continue_;
-  }
+  } // end IF
   if (format_in.wFormatTag == WAVE_FORMAT_PCM)
   {
     CopyMemory (mediaType_inout.pbFormat, &format_in, sizeof (PCMWAVEFORMAT));
     ((WAVEFORMATEX*)mediaType_inout.pbFormat)->cbSize = 0;
-  }
+  } // end IF
   else
     CopyMemory (mediaType_inout.pbFormat, &format_in, mediaType_inout.cbFormat);
 
