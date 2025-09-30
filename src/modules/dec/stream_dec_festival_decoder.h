@@ -22,6 +22,7 @@
 #define STREAM_DEC_FESTIVAL_DECODER_T_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#undef getch
 #include "festival.h"
 #else
 #include "festival/festival.h"

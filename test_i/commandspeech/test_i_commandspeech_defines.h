@@ -21,6 +21,14 @@
 #ifndef TEST_I_COMMANDSPEECH_DEFINES_H
 #define TEST_I_COMMANDSPEECH_DEFINES_H
 
+#if defined (FESTIVAL_SUPPORT)
+#define TEST_I_DEFAULT_TTS_BACKEND                     TTS_FESTIVAL
+#elif defined (FLITE_SUPPORT)
+#define TEST_I_DEFAULT_TTS_BACKEND                     TTS_FLITE
+#else
+#define TEST_I_DEFAULT_TTS_BACKEND                     TTS_INVALID
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
 #define TEST_I_DEFAULT_VOICE_DIRECTORY                 ""
 #define TEST_I_DEFAULT_VOICE                           "cmu_us_slt.flitevox"

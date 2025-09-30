@@ -177,9 +177,9 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} PUBLIC strmiids.lib)
 
  if (FESTIVAL_SUPPORT)
-#  target_link_libraries (${EXECUTABLE} PUBLIC ${FESTIVAL_LIBRARIES})
+  target_link_libraries (${EXECUTABLE} PUBLIC ${FESTIVAL_LIBRARIES})
 # *WARNING*: linking libFestival.lib requires "/FORCE:MULTIPLE"
-#  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
  endif (FESTIVAL_SUPPORT)
  if (FLITE_SUPPORT)
 # *WARNING*: linking libflite.lib requires "/FORCE:MULTIPLE"

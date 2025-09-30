@@ -49,6 +49,7 @@
 #include "test_i_common.h"
 #include "test_i_configuration.h"
 
+#include "test_i_commandspeech_defines.h"
 #include "test_i_session_message.h"
 
 // forward declarations
@@ -58,6 +59,17 @@ class Test_I_MediaFoundation_Message;
 #else
 class Test_I_Message;
 #endif // ACE_WIN32 || ACE_WIN64
+
+//////////////////////////////////////////
+
+enum Test_I_TTSBackend
+{
+  TTS_FESTIVAL = 0,
+  TTS_FLITE,
+  //
+  TTS_MAX = TTS_FLITE,
+  TTS_INVALID = -1
+};
 
 //////////////////////////////////////////
 
@@ -249,6 +261,7 @@ struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , effect ()
    , effectOptions ()
+   , manageFestival (false)
    , manageFlite (false)
    , manageSoX (false)
    , mute (false)
@@ -266,6 +279,7 @@ struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration
   struct Stream_Device_Identifier                   deviceIdentifier; // render-
   std::string                                       effect;
   std::vector<std::string>                          effectOptions;
+  bool                                              manageFestival;
   bool                                              manageFlite;
   bool                                              manageSoX;
   bool                                              mute;
@@ -286,6 +300,7 @@ struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , effect ()
    , effectOptions ()
+   , manageFestival (false)
    , manageFlite (false)
    , manageSoX (false)
    , mute (false)
@@ -303,6 +318,7 @@ struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
   struct Stream_Device_Identifier                   deviceIdentifier; // render-
   std::string                                       effect;
   std::vector<std::string>                          effectOptions;
+  bool                                              manageFestival;
   bool                                              manageFlite;
   bool                                              manageSoX;
   bool                                              mute;
@@ -323,6 +339,7 @@ struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , effect ()
    , effectOptions ()
+   , manageFestival (false)
    , manageFlite (false)
    , manageSoX (false)
    , mute (false)
@@ -340,6 +357,7 @@ struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
   struct Stream_Device_Identifier                   deviceIdentifier; // render-
   std::string                                       effect;
   std::vector<std::string>                          effectOptions;
+  bool                                              manageFestival;
   bool                                              manageFlite;
   bool                                              manageSoX;
   bool                                              mute;
@@ -362,12 +380,14 @@ struct Test_I_DirectShow_StreamConfiguration
    : Test_I_StreamConfiguration ()
    , filterGraphConfiguration ()
    , renderer (STREAM_DEVICE_RENDERER_INVALID)
+   , TTSBackend (TEST_I_DEFAULT_TTS_BACKEND)
   {
     renderer = STREAM_DEVICE_RENDERER_DIRECTSHOW;
   }
 
   Stream_MediaFramework_DirectShow_Graph_t filterGraphConfiguration;
   enum Stream_Device_Renderer              renderer;
+  enum Test_I_TTSBackend                   TTSBackend;
 };
 
 struct Test_I_MediaFoundation_StreamConfiguration
@@ -376,11 +396,13 @@ struct Test_I_MediaFoundation_StreamConfiguration
   Test_I_MediaFoundation_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , renderer (STREAM_DEVICE_RENDERER_INVALID)
+   , TTSBackend (TEST_I_DEFAULT_TTS_BACKEND)
   {
     renderer = STREAM_DEVICE_RENDERER_MEDIAFOUNDATION;
   }
 
   enum Stream_Device_Renderer renderer;
+  enum Test_I_TTSBackend      TTSBackend;
 };
 
 typedef Stream_Configuration_T<//stream_name_string_,
@@ -403,11 +425,13 @@ struct Test_I_ALSA_StreamConfiguration
   Test_I_ALSA_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , renderer (STREAM_DEVICE_RENDERER_INVALID)
+   , TTSBackend (TEST_I_DEFAULT_TTS_BACKEND)
   {
     renderer = STREAM_DEVICE_RENDERER_ALSA;
   }
 
   enum Stream_Device_Renderer renderer;
+  enum Test_I_TTSBackend      TTSBackend;
 };
 
 typedef Stream_Configuration_T<//stream_name_string_,
