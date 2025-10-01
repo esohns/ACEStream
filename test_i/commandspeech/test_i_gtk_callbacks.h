@@ -48,6 +48,7 @@ G_MODULE_EXPORT void button_report_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void button_voice_reset_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void button_quit_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_adapter_changed_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void combobox_backend_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_display_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_target_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_voice_changed_cb (GtkWidget*, gpointer);

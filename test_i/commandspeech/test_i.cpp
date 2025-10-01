@@ -132,7 +132,7 @@ do_printUsage (const std::string& programName_in)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-  std::string voice = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
+  std::string voice = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-b [STRING] : voice [\"")
             << voice
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
@@ -144,7 +144,7 @@ do_printUsage (const std::string& programName_in)
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   std::string voice_directory = path;
   // voice_directory += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE_DIRECTORY);
+  voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-c [STRING] : voice directory [\"")
             << voice_directory
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
@@ -275,10 +275,10 @@ do_processArguments (int argc_in,
 
   // initialize results
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-  voice_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
+  voice_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
   voiceDirectory_out = configuration_path;
   voiceDirectory_out += ACE_DIRECTORY_SEPARATOR_STR_A;
-  voiceDirectory_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE_DIRECTORY);
+  voiceDirectory_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY);
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   deviceIdentifier_out = 0;
@@ -937,15 +937,15 @@ continue_2:
   ACE_ASSERT (SUCCEEDED (result));
   //result_2 = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
   //ACE_ASSERT (SUCCEEDED (result_2));
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   result = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
   ACE_ASSERT (SUCCEEDED (result));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   if (unlikely (session_out))
   {
     session_out->Release (); session_out = NULL;
   } // end IF
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateMediaSession (attributes_p,
                                  &session_out);
   if (unlikely (FAILED (result)))
@@ -955,11 +955,11 @@ continue_2:
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   ACE_ASSERT (session_out);
   attributes_p->Release (); attributes_p = NULL;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (unlikely (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                            session_out,
                                                                            false,  // is partial ?
@@ -970,7 +970,7 @@ continue_2:
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   topology_p->Release (); topology_p = NULL;
 
 continue_4:
@@ -1276,6 +1276,8 @@ do_work (
       directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+      directshow_modulehandler_configuration.manageFestival = true;
+      directshow_modulehandler_configuration.manageFlite = true;
       directshow_modulehandler_configuration.voice =
         voice_in;
       directshow_modulehandler_configuration.voiceDirectory =
@@ -1874,17 +1876,17 @@ do_work (
     CBData_in.stream = &stream;
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    HWND window_p = GetConsoleWindow ();
-    if (unlikely (!window_p))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
-      goto error;
-    } // end IF
-    BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
-    ACE_UNUSED_ARG (was_visible_b);
-#endif // ACE_WIN32 || ACE_WIN64
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//    HWND window_p = GetConsoleWindow ();
+//    if (unlikely (!window_p))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
+//      goto error;
+//    } // end IF
+//    BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
+//    ACE_UNUSED_ARG (was_visible_b);
+//#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GTK_USE)
     itask_p = gtk_manager_p;
@@ -2140,10 +2142,10 @@ ACE_TMAIN (int argc_in,
 
   // step1a set defaults
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-  std::string voice_string = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
+  std::string voice_string = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
   std::string voice_directory = path;
   //voice_directory += ACE_DIRECTORY_SEPARATOR_STR_A;
-  voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE_DIRECTORY);
+  voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY);
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   unsigned int device_id = 0;

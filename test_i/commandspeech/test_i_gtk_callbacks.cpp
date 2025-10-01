@@ -59,6 +59,27 @@
 // global variables
 bool untoggling_record_button = false;
 
+void
+load_backends (GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_backends"));
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  GtkTreeIter iterator;
+  gtk_list_store_append (listStore_in, &iterator);
+  gtk_list_store_set (listStore_in, &iterator,
+                      0, ACE_TEXT_ALWAYS_CHAR ("Festival"),
+                      1, 0,
+                      -1);
+  gtk_list_store_append (listStore_in, &iterator);
+  gtk_list_store_set (listStore_in, &iterator,
+                      0, ACE_TEXT_ALWAYS_CHAR ("Flite"),
+                      1, 1,
+                      -1);
+}
+
 int
 acestream_test_i_commandspeech_selector (const dirent* dirEntry_in)
 {
@@ -1031,6 +1052,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   Common_UI_GTK_BuildersIterator_t iterator;
   std::string voices_directory_string, voice_string;
   bool mute_b = false;
+  enum Test_I_TTSBackend backend_e;
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
   struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
@@ -1075,6 +1097,9 @@ idle_initialize_UI_cb (gpointer userData_in)
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
       mute_b =
         ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifier._id == -1);
+      backend_e =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->TTSBackend;
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1108,6 +1133,9 @@ idle_initialize_UI_cb (gpointer userData_in)
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
       mute_b =
         InlineIsEqualGUID ((*mediafoundation_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifier._guid, GUID_NULL);
+      backend_e =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->TTSBackend;
+
       break;
     }
     default:
@@ -1144,6 +1172,8 @@ idle_initialize_UI_cb (gpointer userData_in)
     (*modulehandler_configuration_iterator).second.second->voice;
   mute_b =
     (*modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifier.empty ();
+  backend_e =
+    ui_cb_data_p->configuration->streamConfiguration.configuration_->TTSBackend;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step1: initialize widgets
@@ -1177,18 +1207,12 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VOICE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_BACKEND_NAME)));
   ACE_ASSERT (list_store_p);
-  if (!load_voices (list_store_p,
-                    voices_directory_string))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ::load_voices(), aborting\n")));
-    return G_SOURCE_REMOVE;
-  } // end IF
+  load_backends (list_store_p);
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_VOICE_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_BACKEND_NAME)));
   ACE_ASSERT (combo_box_p);
   GtkCellRenderer* cell_renderer_p = gtk_cell_renderer_text_new ();
   if (!cell_renderer_p)
@@ -1205,7 +1229,38 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
                                   //"cell-background", 0,
                                   ACE_TEXT_ALWAYS_CHAR ("text"), 0,
-                                  ACE_TEXT_ALWAYS_CHAR ("file path"), 1,
+                                  NULL);
+
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VOICE_NAME)));
+  ACE_ASSERT (list_store_p);
+  if (!load_voices (list_store_p,
+                    voices_directory_string))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::load_voices(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_VOICE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  cell_renderer_p = gtk_cell_renderer_text_new ();
+  if (!cell_renderer_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                              TRUE);
+  // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
+  //         is GInitiallyUnowned and the floating reference has been
+  //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                                  //"cell-background", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   list_store_p =
@@ -1571,12 +1626,29 @@ idle_initialize_UI_cb (gpointer userData_in)
   // step11: activate some widgets
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_VOICE_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_BACKEND_NAME)));
   ACE_ASSERT (combo_box_p);
 #if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+#endif // GTK_CHECK_VERSION (2,30,0)
+  g_value_init (&value, G_TYPE_INT);
+  g_value_set_int (&value,
+                   backend_e);
+  Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                    value,
+                                    1);
+  g_value_unset (&value);
+
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_VOICE_NAME)));
+  ACE_ASSERT (combo_box_p);
+#if GTK_CHECK_VERSION (2,30,0)
+  value = G_VALUE_INIT;
+#else
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
   g_value_init (&value, G_TYPE_STRING);
@@ -1806,13 +1878,19 @@ idle_session_end_cb (gpointer userData_in)
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), FALSE);
 
+  GtkComboBox* combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_BACKEND_NAME)));
+  ACE_ASSERT (combo_box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
+
   GtkFrame* frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_VOICE_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
 
-  GtkComboBox* combo_box_p =
+  combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_TARGET_NAME)));
   ACE_ASSERT (combo_box_p);
@@ -2450,6 +2528,92 @@ combobox_adapter_changed_cb (GtkWidget* widget_in,
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 } // combobox_adapter_changed_cb
+
+void
+combobox_backend_changed_cb (GtkWidget* widget_in,
+                             gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::combobox_backend_changed_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+
+  // sanity check(s)
+  GtkTreeIter iterator_2;
+  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                      &iterator_2))
+    return; // <-- nothing selected
+  struct Test_I_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Test_I_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+  ACE_ASSERT (ui_cb_data_base_p->UIState);
+  Common_UI_GTK_BuildersIterator_t iterator =
+    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_BACKEND_NAME)));
+  ACE_ASSERT (list_store_p);
+  enum Test_I_TTSBackend selected_e;
+#if GTK_CHECK_VERSION (2,30,0)
+  GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+#endif // GTK_CHECK_VERSION (2,30,0)
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
+  selected_e = static_cast<enum Test_I_TTSBackend> (g_value_get_int (&value));
+  g_value_unset (&value);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
+  HRESULT result = E_FAIL;
+  IMFMediaSource* media_source_p = NULL;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
+      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->TTSBackend = selected_e;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_);
+      mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->TTSBackend = selected_e;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_I_ALSA_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p->configuration->streamConfiguration.configuration_);
+  ui_cb_data_p->configuration->streamConfiguration.configuration_->TTSBackend = selected_e;
+#endif // ACE_WIN32 || ACE_WIN64
+} // combobox_backend_changed_cb
 
 void
 combobox_display_changed_cb (GtkWidget* widget_in,
@@ -4323,13 +4487,19 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
 
+  GtkComboBox* combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_BACKEND_NAME)));
+  ACE_ASSERT (combo_box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), FALSE);
+
   GtkFrame* frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_VOICE_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
 
-  GtkComboBox* combo_box_p =
+  combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_TARGET_NAME)));
   ACE_ASSERT (combo_box_p);
@@ -4416,6 +4586,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                 ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
     return;
   } // end IF
+  thread_data_p->CBData = ui_cb_data_base_p;
   ACE_ASSERT (progress_data_p);
   // progress_data_p->bytesPerFrame = bytes_per_frame_i;
   ACE_OS::memset (&progress_data_p->statistic, 0, sizeof (struct Stream_Statistic));

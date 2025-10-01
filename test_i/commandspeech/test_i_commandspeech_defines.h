@@ -29,10 +29,14 @@
 #define TEST_I_DEFAULT_TTS_BACKEND                     TTS_INVALID
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-#define TEST_I_DEFAULT_VOICE_DIRECTORY                 ""
-#define TEST_I_DEFAULT_VOICE                           "cmu_us_slt.flitevox"
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+#if defined (FESTIVAL_SUPPORT)
+#define TEST_I_DEFAULT_FESTIVAL_VOICE_DIRECTORY        ""
+#define TEST_I_DEFAULT_FESTVIAL_VOICE                  "cmu_us_slt_cg"
+#endif // FESTIVAL_SUPPORT
+#if defined (FLITE_SUPPORT)
+#define TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY           ""
+#define TEST_I_DEFAULT_FLITE_VOICE                     "cmu_us_slt.flitevox"
+#endif // FLITE_SUPPORT
 #define TEST_I_DEFAULT_OUTPUT_FILE                     "output.wav"
 
 //----------------------------------------
@@ -50,6 +54,7 @@
 #define TEST_I_UI_GTK_BUTTON_VOICE_RESET_NAME          "button_voice_reset"
 #define TEST_I_UI_GTK_BUTTONBOX_DISPLAY_NAME           "buttonbox_display"
 #define TEST_I_UI_GTK_COMBOBOX_ADAPTER_NAME            "combobox_adapter"
+#define TEST_I_UI_GTK_COMBOBOX_BACKEND_NAME            "combobox_backend"
 #define TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME            "combobox_display"
 #define TEST_I_UI_GTK_COMBOBOX_TARGET_NAME             "combobox_target"
 #define TEST_I_UI_GTK_COMBOBOX_VOICE_NAME              "combobox_voice"
@@ -66,6 +71,7 @@
 #define TEST_I_UI_GTK_FRAME_VOICE_NAME                 "frame_voice"
 #define TEST_I_UI_GTK_HSCALE_VOLUME_NAME               "hscale_volume"
 #define TEST_I_UI_GTK_LISTSTORE_ADAPTER_NAME           "liststore_adapter"
+#define TEST_I_UI_GTK_LISTSTORE_BACKEND_NAME           "liststore_backend"
 #define TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME           "liststore_display"
 #define TEST_I_UI_GTK_LISTSTORE_TARGET_NAME            "liststore_target"
 #define TEST_I_UI_GTK_LISTSTORE_VOICE_NAME             "liststore_voice"

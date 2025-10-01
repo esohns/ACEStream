@@ -95,8 +95,21 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
       festival_tidy_up ();
   } // end IF
 
-  if (configuration_in.manageFestival)
-    festival_initialize (1, FESTIVAL_HEAP_SIZE);
+  static bool is_first_b = true;
+  if (configuration_in.manageFestival && is_first_b)
+  {
+    is_first_b = false;
+    festival_initialize (1,
+                         FESTIVAL_HEAP_SIZE);
+  } // end IF
+  int result = festival_eval_command (ACE_TEXT_ALWAYS_CHAR ("(voice_cmu_us_slt_cg)"));
+  if (unlikely (result == 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to festival_eval_command(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -126,11 +139,11 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
   passMessageDownstream_out = false;
 
   EST_String string (message_inout->rd_ptr ());
-  EST_Wave wave;
+  EST_Wave wave (1000000, 1, 16000);
 
   int result = festival_text_to_wave (string,
                                       wave);
-  if (unlikely (result == -1))
+  if (unlikely (result == 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to festival_text_to_wave(): \"%m\", aborting\n"),
@@ -142,6 +155,7 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
 
   // step1: allocate message block
   ACE_ASSERT (inherited::configuration_->messageAllocator);
+  ACE_ASSERT (wave.num_samples () > 0);
   ACE_Message_Block* message_block_p =
     static_cast<ACE_Message_Block*> (inherited::configuration_->messageAllocator->malloc (wave.num_samples () * sizeof (short)));
   if (unlikely (!message_block_p))
