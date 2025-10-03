@@ -8199,14 +8199,16 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
       istream_p =
         dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
 
-            ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
       (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->perlin_frequency =
         gtk_range_get_value (range_in);
+#endif // LIBNOISE_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8225,8 +8227,10 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
       (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->perlin_frequency =
         gtk_range_get_value (range_in);
+#endif // LIBNOISE_SUPPORT
       break;
     }
     default:
@@ -8251,8 +8255,10 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
   (*modulehandler_configuration_iterator).second.second->generatorConfiguration->perlin_frequency =
     gtk_range_get_value (range_in);
+#endif // LIBNOISE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 

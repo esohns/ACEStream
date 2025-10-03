@@ -9510,6 +9510,7 @@ radiobutton_quality_toggled_cb (GtkToggleButton* toggleButton_in,
   : (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_2) ? noise::QUALITY_STD
   : (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_3) ? noise::QUALITY_BEST
   : noise::QUALITY_STD;
+#endif // LIBNOISE_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
@@ -9532,8 +9533,10 @@ radiobutton_quality_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
       (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->quality =
         noise_quality_e;
+#endif // LIBNOISE_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -9548,8 +9551,10 @@ radiobutton_quality_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
       (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->quality =
         noise_quality_e;
+#endif // LIBNOISE_SUPPORT
       break;
     }
     default:
@@ -9570,10 +9575,11 @@ radiobutton_quality_toggled_cb (GtkToggleButton* toggleButton_in,
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
+#if defined (LIBNOISE_SUPPORT)
   (*modulehandler_configuration_iterator).second.second->generatorConfiguration->quality =
     noise_quality_e;
-#endif // ACE_WIN32 || ACE_WIN64
 #endif // LIBNOISE_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
   Stream_IStream_t* istream_p = NULL;
   const Stream_Module_t* module_p = NULL;
