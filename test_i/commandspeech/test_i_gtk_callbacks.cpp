@@ -78,6 +78,13 @@ load_backends (GtkListStore* listStore_in)
                       0, ACE_TEXT_ALWAYS_CHAR ("Flite"),
                       1, 1,
                       -1);
+#if defined (SAPI_SUPPORT)
+  gtk_list_store_append (listStore_in, &iterator);
+  gtk_list_store_set (listStore_in, &iterator,
+                      0, ACE_TEXT_ALWAYS_CHAR ("SAPI"),
+                      1, 2,
+                      -1);
+#endif // SAPI_SUPPORT
 }
 
 int
@@ -1030,7 +1037,8 @@ continue_:
   delete thread_data_base_p; thread_data_base_p = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (COM_initialized) Common_Tools::finalizeCOM ();
+  if (COM_initialized)
+    Common_Tools::finalizeCOM ();
 #endif // ACE_WIN32 || ACE_WIN64
 
   return result;
@@ -1656,7 +1664,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                       voice_string.c_str ());
   Common_UI_GTK_Tools::selectValue (combo_box_p,
                                     value,
-                                    0);
+                                    1);
   g_value_unset (&value);
 
   GtkToggleButton* toggle_button_p =
@@ -4630,28 +4638,16 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     // step3: start progress reporting
     //ACE_ASSERT (!data_p->progressEventSourceId);
     progress_data_p->eventSourceId =
-      g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
-                       idle_update_progress_cb,
-                       progress_data_p,
-                       NULL);
-      //g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,            // _LOW doesn't work (on Win32)
-      //                    COMMON_UI_REFRESH_DEFAULT_PROGRESS, // ms (?)
-      //                    idle_update_progress_cb,
-      //                    &ui_cb_data_base_p->progressData,
-      //                    NULL);
-    if (!progress_data_p->eventSourceId)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_cb): \"%m\", returning\n")));
-
-      // clean up
-      ACE_THR_FUNC_RETURN exit_status;
-      result = thread_manager_p->join (thread_id, &exit_status);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Thread_Manager::join(): \"%m\", continuing\n")));
-      return;
-    } // end IF
+      //g_idle_add_full (G_PRIORITY_LOW, // _LOW doesn't work (on Win32)
+      //                 idle_update_progress_cb,
+      //                 progress_data_p,
+      //                 NULL);
+      g_timeout_add_full (G_PRIORITY_LOW,            // _LOW doesn't work (on Win32)
+                          COMMON_UI_REFRESH_DEFAULT_PROGRESS_MS, // ms (?)
+                          idle_update_progress_cb,
+                          progress_data_p,
+                          NULL);
+    ACE_ASSERT (progress_data_p->eventSourceId);
     thread_data_p->eventSourceId = progress_data_p->eventSourceId;
     progress_data_p->pendingActions[progress_data_p->eventSourceId] =
       ACE_Thread_ID (thread_id, thread_handle);

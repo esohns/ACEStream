@@ -644,9 +644,9 @@ drawingarea_resize_end (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  (*stream_configuration_iterator).second.second->outputFormat.video.format.height =
+  (*stream_configuration_iterator).second.second->outputFormat.resolution.height =
     allocation_s.height;
-  (*stream_configuration_iterator).second.second->outputFormat.video.format.width =
+  (*stream_configuration_iterator).second.second->outputFormat.resolution.width =
     allocation_s.width;
 
   if (!ui_cb_data_p->stream->isRunning ())

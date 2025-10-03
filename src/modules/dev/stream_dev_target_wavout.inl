@@ -155,10 +155,9 @@ continue_:
   if (unlikely (result_2 == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Queue_Ex::dequeue(): \"%m\", returning\n"),
+                ACE_TEXT ("%s: failed to ACE_Message_Queue_Ex::dequeue(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
-    message_inout->release (); message_inout = NULL;
-    return;
+    goto error;
   } // end IF
   ACE_ASSERT (header_p);
 
@@ -174,7 +173,7 @@ continue_:
   { char error_msg_a[BUFSIZ];
     waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to waveOutUnprepareHeader(): \"%s\", returning\n"),
+                ACE_TEXT ("%s: failed to waveOutUnprepareHeader(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (error_msg_a)));
     goto error;
@@ -184,8 +183,7 @@ continue_:
   header_p->lpData = message_block_p->rd_ptr ();
   header_p->dwBufferLength = static_cast<DWORD> (message_block_p->length ());
   header_p->dwUser =
-    (!message_block_p->cont () ? reinterpret_cast<DWORD_PTR> (static_cast<ACE_Message_Block*> (message_inout))
-                               : NULL);
+    reinterpret_cast<DWORD_PTR> (static_cast<ACE_Message_Block*> (message_inout->duplicate ()));
   header_p->dwFlags = 0;
   result = waveOutPrepareHeader (handle_,
                                  header_p,
@@ -194,7 +192,7 @@ continue_:
   { char error_msg_a[BUFSIZ];
     waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to waveOutPrepareHeader(): \"%s\", returning\n"),
+                ACE_TEXT ("%s: failed to waveOutPrepareHeader(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (error_msg_a)));
     goto error;
@@ -208,7 +206,7 @@ continue_:
   { char error_msg_a[BUFSIZ];
     waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to waveOutWrite(): \"%s\", returning\n"),
+                ACE_TEXT ("%s: failed to waveOutWrite(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (error_msg_a)));
     waveOutUnprepareHeader (handle_,
@@ -223,18 +221,23 @@ continue_:
   if (unlikely (message_block_p))
     goto continue_;
 
+  message_inout->release (); message_inout = NULL;
+
   return;
 
 error:
+  message_inout->release (); message_inout = NULL;
   if (header_p)
   {
     result_2 = queue_.enqueue (header_p,
                                NULL);
     if (unlikely (result_2 == -1))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Message_Queue_Ex::enqueue(): \"%m\", returning\n"),
+                  ACE_TEXT ("%s: failed to ACE_Message_Queue_Ex::enqueue(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
   } // end IF
+
+  this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,
@@ -378,6 +381,7 @@ error:
 
       int result_2 = -1;
       struct wavehdr_tag* buffer_p = NULL;
+      ACE_Message_Block* message_block_p = NULL;
       while (!queue_.is_empty ())
       {
         result_2 = queue_.dequeue (buffer_p,
@@ -390,6 +394,9 @@ error:
           continue;
         } // end IF
         ACE_ASSERT (buffer_p);
+        message_block_p = reinterpret_cast<ACE_Message_Block*> (buffer_p->dwUser);
+        if (likely (message_block_p))
+          message_block_p->release ();
         delete buffer_p; buffer_p = NULL;
       } // end WHILE
 

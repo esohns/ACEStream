@@ -12,6 +12,9 @@ include (sox)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
 include (festival)
+if (WIN32)
+ include (ms_speech)
+endif (WIN32)
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
@@ -177,7 +180,6 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} PUBLIC strmiids.lib)
 
  if (FESTIVAL_SUPPORT)
-  target_link_libraries (${EXECUTABLE} PUBLIC ${FESTIVAL_LIBRARIES})
 # *WARNING*: linking libFestival.lib requires "/FORCE:MULTIPLE"
   target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
  endif (FESTIVAL_SUPPORT)
@@ -186,6 +188,9 @@ elseif (WIN32)
   target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
  endif (FLITE_SUPPORT)
 endif ()
+if (FESTIVAL_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${FESTIVAL_LIBRARIES})
+endif (FESTIVAL_SUPPORT)
 if (FLITE_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${FLITE_LIBRARIES})
 endif (FLITE_SUPPORT)
@@ -281,7 +286,7 @@ endif ()
 
 set (VOICE_DIRECTORY "$ENV{LIB_ROOT}/flite/voices")
 file (TO_NATIVE_PATH "${VOICE_DIRECTORY}" VOICE_DIRECTORY)
-set (VOICE "cmu_us_slt")
+set (VOICE "cmu_us_slt.flitevox")
 if (DEFINED CMAKE_BUILD_TYPE)
  if (${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR
      ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
@@ -351,6 +356,7 @@ elseif (WIN32)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                             ${SOX_PATH})
  endif (SOX_SUPPORT)
+ set (ENVIRONMENT "FESTLIBDIR=E:\\\\lib\\\\festival\\\\lib")
 endif ()
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}

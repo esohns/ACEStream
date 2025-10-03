@@ -19,6 +19,9 @@ include (faad)
 include (festival)
 include (mpg123)
 include (opencv)
+if (WIN32)
+ include (ms_speech)
+endif (WIN32)
 include (whisper_cpp)
 include (zlib)
 
@@ -58,10 +61,17 @@ if (IMAGEMAGICK_SUPPORT)
                       ${MAGICK_LD_FLAGS})
 endif (IMAGEMAGICK_SUPPORT)
 
-if (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${DS_BASECLASSES_INCLUDE_DIRS}>)
-endif (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
+if (WIN32)
+ if (DIRECTSHOW_BASECLASSES_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:${DS_BASECLASSES_INCLUDE_DIRS}>)
+ endif (DIRECTSHOW_BASECLASSES_SUPPORT)
+ if (SAPI_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              ${SAPI_INCLUDE_DIRS})
+ endif (SAPI_SUPPORT)
+endif (WIN32)
+
 if (SOX_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${SOX_INCLUDE_DIRS}>)
@@ -208,6 +218,14 @@ if (WIN32)
       stream_dec_avi_encoder.cpp
       stream_dec_avi_encoder.h
       stream_dec_avi_encoder.inl)
+
+ if (SAPI_SUPPORT)
+  set (source_files
+       ${source_files}
+       stream_dec_ms_speech_decoder.cpp
+       stream_dec_ms_speech_decoder.h
+       stream_dec_ms_speech_decoder.inl)
+ endif (SAPI_SUPPORT)
 endif (WIN32)
 if (FAAD_SUPPORT)
  set (source_files
@@ -465,6 +483,12 @@ if (WIN32)
       ${${PROJECT_NAME}_Decoder_LIB_HDRS}
       stream_dec_avi_encoder.h
       stream_dec_avi_encoder.inl)
+ if (SAPI_SUPPORT)
+  set (${PROJECT_NAME}_Decoder_LIB_HDRS
+       ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+       stream_dec_ms_speech_decoder.h
+       stream_dec_ms_speech_decoder.inl)
+ endif (SAPI_SUPPORT)
 endif (WIN32)
 if (FAAD_SUPPORT)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS

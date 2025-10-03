@@ -1096,6 +1096,7 @@ do_work (
 
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration spectrumanalyzer_configuration;
   struct Stream_AllocatorConfiguration allocator_configuration;
+  allocator_configuration.defaultBufferSize = 65536;
   struct Stream_AllocatorConfiguration* allocator_configuration_p = NULL;
   Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
@@ -1278,8 +1279,7 @@ do_work (
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       directshow_modulehandler_configuration.manageFestival = true;
       directshow_modulehandler_configuration.manageFlite = true;
-      directshow_modulehandler_configuration.voice =
-        voice_in;
+      directshow_modulehandler_configuration.voice = voice_in;
       directshow_modulehandler_configuration.voiceDirectory =
         voiceDirectory_in;
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
@@ -1390,8 +1390,7 @@ do_work (
       mediafoundation_modulehandler_configuration.subscriber =
         &mediafoundation_ui_event_handler;
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-      mediafoundation_modulehandler_configuration.voice =
-        voice_in;
+      mediafoundation_modulehandler_configuration.voice = voice_in;
       mediafoundation_modulehandler_configuration.voiceDirectory =
         voiceDirectory_in;
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
@@ -1488,6 +1487,8 @@ do_work (
                                       Common_TimePolicy_t,
                                       Test_I_ALSA_SessionMessage_t>&> (stream.getR_3 ());
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  modulehandler_configuration.manageFestival = true;
+  modulehandler_configuration.manageFlite = true;
   modulehandler_configuration.voice = voice_in;
   modulehandler_configuration.voiceDirectory = voiceDirectory_in;
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT

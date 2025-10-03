@@ -91,17 +91,20 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   { ACE_ASSERT (inherited::configuration_);
-    if (inherited::configuration_->manageFestival)
-      festival_tidy_up ();
+    //if (inherited::configuration_->manageFestival)
+    //  festival_tidy_up ();
   } // end IF
 
   static bool is_first_b = true;
   if (configuration_in.manageFestival && is_first_b)
-  {
-    is_first_b = false;
+  { is_first_b = false;
+    //festival_libdir = ACE_TEXT_ALWAYS_CHAR ("E:\\lib\\festival\\lib");
     festival_initialize (1,
                          FESTIVAL_HEAP_SIZE);
+    //festival_init_modules ();
   } // end IF
+
+  // festival_eval_command ("(load \"voices/us/cmu_us_slt_cg/festvox/cmu_us_slt_cg.scm\")");
   int result = festival_eval_command (ACE_TEXT_ALWAYS_CHAR ("(voice_cmu_us_slt_cg)"));
   if (unlikely (result == 0))
   {
@@ -110,6 +113,7 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return false;
   } // end IF
+  //festival_init_lang (ACE_TEXT_ALWAYS_CHAR ("american_english"));
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -139,7 +143,8 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
   passMessageDownstream_out = false;
 
   EST_String string (message_inout->rd_ptr ());
-  EST_Wave wave (1000000, 1, 16000);
+  EST_Wave wave;
+  ACE_Message_Block* message_block_p = NULL;
 
   int result = festival_text_to_wave (string,
                                       wave);
@@ -156,7 +161,7 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
   // step1: allocate message block
   ACE_ASSERT (inherited::configuration_->messageAllocator);
   ACE_ASSERT (wave.num_samples () > 0);
-  ACE_Message_Block* message_block_p =
+  message_block_p =
     static_cast<ACE_Message_Block*> (inherited::configuration_->messageAllocator->malloc (wave.num_samples () * sizeof (short)));
   if (unlikely (!message_block_p))
   {
@@ -211,8 +216,6 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
                                                                    bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_FestivalDecoder_T::handleSessionMessage"));
-
-  int result = -1;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -278,8 +281,8 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
 //    }
     case STREAM_SESSION_MESSAGE_END:
     { ACE_ASSERT (inherited::configuration_);
-      if (inherited::configuration_->manageFestival)
-        festival_tidy_up ();
+      // if (inherited::configuration_->manageFestival)
+      //   festival_tidy_up ();
 
       break;
     }

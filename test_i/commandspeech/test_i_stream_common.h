@@ -66,8 +66,13 @@ enum Test_I_TTSBackend
 {
   TTS_FESTIVAL = 0,
   TTS_FLITE,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (SAPI_SUPPORT)
+  TTS_SAPI,
+#endif // SAPI_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
   //
-  TTS_MAX = TTS_FLITE,
+  TTS_MAX,
   TTS_INVALID = -1
 };
 

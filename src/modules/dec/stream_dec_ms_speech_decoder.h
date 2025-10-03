@@ -18,15 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DEC_FESTIVAL_DECODER_T_H
-#define STREAM_DEC_FESTIVAL_DECODER_T_H
+#ifndef STREAM_DEC_SAPI_DECODER_T_H
+#define STREAM_DEC_SAPI_DECODER_T_H
 
-#undef getch
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "festival.h"
-#else
-#include "festival/festival.h"
-#endif // ACE_WIN32 || ACE_WIN64
+#include "sapi.h"
+#include "sphelper.h"
+
+#include <string>
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -41,7 +39,7 @@
 class ACE_Message_Block;
 class Stream_IAllocator;
 
-extern const char libacestream_default_dec_festival_decoder_module_name_string[];
+extern const char libacestream_default_dec_sapi_decoder_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -54,7 +52,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataContainerType,
           typename MediaType> // session data-
-class Stream_Decoder_FestivalDecoder_T
+class Stream_Decoder_SAPIDecoder_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -78,8 +76,8 @@ class Stream_Decoder_FestivalDecoder_T
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  Stream_Decoder_FestivalDecoder_T (typename inherited::ISTREAM_T*); // stream handle
-  virtual ~Stream_Decoder_FestivalDecoder_T ();
+  Stream_Decoder_SAPIDecoder_T (typename inherited::ISTREAM_T*); // stream handle
+  virtual ~Stream_Decoder_SAPIDecoder_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -92,12 +90,17 @@ class Stream_Decoder_FestivalDecoder_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_FestivalDecoder_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_FestivalDecoder_T (const Stream_Decoder_FestivalDecoder_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_FestivalDecoder_T& operator= (const Stream_Decoder_FestivalDecoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SAPIDecoder_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SAPIDecoder_T (const Stream_Decoder_SAPIDecoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SAPIDecoder_T& operator= (const Stream_Decoder_SAPIDecoder_T&))
+
+  CSpStreamFormat format_;
+  ISpStream*      stream_;
+  std::string     tempFilePath_;
+  ISpVoice*       voice_;
 };
 
 // include template definition
-#include "stream_dec_festival_decoder.inl"
+#include "stream_dec_ms_speech_decoder.inl"
 
 #endif
