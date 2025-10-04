@@ -8323,7 +8323,7 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
 #if defined (LIBNOISE_SUPPORT)
   Common_IGetR_3_T<noise::module::Perlin>* iget_p = NULL;
 #endif // LIBNOISE_SUPPORT
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
@@ -8348,8 +8348,10 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
       (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->perlin_frequency =
         gtk_range_get_value (range_in);
+#endif // LIBNOISE_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8368,8 +8370,10 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
       (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->perlin_frequency =
         gtk_range_get_value (range_in);
+#endif // LIBNOISE_SUPPORT
       break;
     }
     default:
@@ -8394,8 +8398,10 @@ hscale_perlin_frequency_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
   (*modulehandler_configuration_iterator).second.second->generatorConfiguration->perlin_frequency =
     gtk_range_get_value (range_in);
+#endif // LIBNOISE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 
@@ -8454,8 +8460,10 @@ hscale_perlin_octaves_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
       (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->octaves =
         static_cast<int> (gtk_range_get_value (range_in));
+#endif // LIBNOISE_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8474,8 +8482,10 @@ hscale_perlin_octaves_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
       (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->octaves =
         static_cast<int> (gtk_range_get_value (range_in));
+#endif // LIBNOISE_SUPPORT
       break;
     }
     default:
@@ -8500,8 +8510,10 @@ hscale_perlin_octaves_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
   (*modulehandler_configuration_iterator).second.second->generatorConfiguration->octaves =
     static_cast<int> (gtk_range_get_value (range_in));
+#endif // LIBNOISE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 
@@ -8560,8 +8572,10 @@ hscale_perlin_persistence_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
       (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->persistence =
         gtk_range_get_value (range_in);
+#endif // LIBNOISE_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8580,8 +8594,10 @@ hscale_perlin_persistence_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
       (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->persistence =
         gtk_range_get_value (range_in);
+#endif // LIBNOISE_SUPPORT
       break;
     }
     default:
@@ -8606,8 +8622,10 @@ hscale_perlin_persistence_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
   (*modulehandler_configuration_iterator).second.second->generatorConfiguration->persistence =
     gtk_range_get_value (range_in);
+#endif // LIBNOISE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 
@@ -8666,8 +8684,10 @@ hscale_perlin_lacunarity_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
       (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->lacunarity =
         gtk_range_get_value (range_in);
+#endif // LIBNOISE_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8686,8 +8706,10 @@ hscale_perlin_lacunarity_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
       (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->lacunarity =
         gtk_range_get_value (range_in);
+#endif // LIBNOISE_SUPPORT
       break;
     }
     default:
@@ -8712,8 +8734,10 @@ hscale_perlin_lacunarity_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (modulehandler_configuration_iterator != cb_data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
+#if defined (LIBNOISE_SUPPORT)
   (*modulehandler_configuration_iterator).second.second->generatorConfiguration->lacunarity =
     gtk_range_get_value (range_in);
+#endif // LIBNOISE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 

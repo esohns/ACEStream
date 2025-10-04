@@ -119,7 +119,7 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
     std::is_integral<ValueType>::value ? 1.0f / static_cast<float> (std::numeric_limits<ValueType>::max ()) : 1.0f;
 
   iterator_.buffer_ = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
-  ACE_UINT32 frames_i = message_inout->length () / frameSize_;
+  ACE_UINT32 frames_i = static_cast<ACE_UINT32> (message_inout->length ()) / frameSize_;
 
   /* move cursor up */
   // ACE_OS::fprintf (stdout, "%c[%dA", 0x1b, channels_ + 1);
