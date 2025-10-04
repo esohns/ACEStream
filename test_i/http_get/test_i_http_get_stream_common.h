@@ -279,10 +279,7 @@ struct Test_I_HTTPGet_StreamState
 {
   Test_I_HTTPGet_StreamState ()
    : Stream_State ()
-   , sessionData (NULL)
   {}
-
-  struct Test_I_Stream_SessionData* sessionData;
 };
 
 //typedef Stream_IModuleHandler_T<Test_I_Stream_ModuleHandlerConfiguration> Test_I_IModuleHandler_t;
