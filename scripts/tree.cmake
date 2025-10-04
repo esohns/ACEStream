@@ -1,0 +1,21 @@
+if (DEFINED ENV{LIB_ROOT})
+ set (TREE_HH_DIR "$ENV{LIB_ROOT}/tree.hh/src")
+else ()
+ set (TREE_HH_DIR "${CMAKE_SOURCE_DIR}/3rd_party/tree")
+endif (DEFINED ENV{LIB_ROOT})
+find_path (TREE_HH_INCLUDE_DIR
+           tree.hh
+           HINTS ${TREE_HH_DIR})
+if (NOT TREE_HH_INCLUDE_DIR)
+ message (FATAL "could not find tree.hh, aborting")
+else ()
+ message (STATUS "Found tree.hh header @ \"${TREE_HH_INCLUDE_DIR}\"")
+ set (TREE_HH_FOUND TRUE)
+endif (NOT TREE_HH_INCLUDE_DIR)
+
+if (TREE_HH_FOUND)
+ option (TREE_HH_SUPPORT "enable tree.hh support" ON)
+ if (TREE_HH_SUPPORT)
+  add_definitions (-DTREE_HH_SUPPORT)
+ endif (TREE_HH_SUPPORT)
+endif (TREE_HH_FOUND)

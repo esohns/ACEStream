@@ -115,9 +115,8 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui>)
 endif ()
-include_directories (${CMAKE_BINARY_DIR})
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/tree>)
+                            $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>)
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../include>)
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC

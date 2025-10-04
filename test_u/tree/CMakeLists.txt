@@ -5,8 +5,6 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 
-#include_directories ($ENV{LIB_ROOT}/tree.hh/src)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/tree)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
@@ -64,20 +62,20 @@ if (WIN32)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${ACE_LIB_PATH})
 
-#  if (GTK_SUPPORT)
-#   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
-#   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-#                             ${GTK_PATH})
-#  endif (GTK_SUPPORT)
-#  if (WXWIDGETS_SUPPORT)
-#   file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
-#   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-#                             ${WXWIDGETS_PATH})
-#  endif (WXWIDGETS_SUPPORT)
+ if (GTK_SUPPORT)
+  file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${GTK_PATH})
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
+  file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${WXWIDGETS_PATH})
+ endif (WXWIDGETS_SUPPORT)
 endif (WIN32)
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}
-                        ARGS "-l -m 1 -t"
+                        ARGS "-l -m 0 -t"
 #                         FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/tree

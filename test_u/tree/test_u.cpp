@@ -11,7 +11,6 @@
 #include "ace/Init_ACE.h"
 #include "ace/OS.h"
 #include "ace/Profile_Timer.h"
-//#include "ace/Synch.h"
 #include "ace/Time_Value.h"
 
 #if defined (HAVE_CONFIG_H)

@@ -20,7 +20,6 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/parser/benc
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
 
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/tree)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)

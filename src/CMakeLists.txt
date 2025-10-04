@@ -3,6 +3,9 @@ include (SetCppExceptions)
 
 include (Threads)
 
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../scripts")
+include (tree)
+
 if (VCPKG_USE)
  include (ImageMagick)
  set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/gl/scripts")
@@ -25,7 +28,6 @@ if (NOT EXISTS ${Common_DIR})
 else ()
  message (STATUS "found package \"Common\": \"${Common_DIR}\"")
 endif ()
-#add_definitions (-DCOMMON_HAS_DLL)
 
 if (UNIX)
  add_link_options ("LINKER:--as-needed")
@@ -34,6 +36,11 @@ endif (UNIX)
 # ........................................
 
 add_library (${PROJECT_NAME} STATIC "")
+
+if (TREE_HH_SUPPORT)
+ target_include_directories (${PROJECT_NAME} PUBLIC
+                             ${TREE_HH_INCLUDE_DIR})
+endif (TREE_HH_SUPPORT)
 
 if (FFMPEG_SUPPORT)
  target_include_directories (${PROJECT_NAME} PUBLIC
@@ -80,8 +87,6 @@ target_include_directories (${PROJECT_NAME} PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>)
 target_include_directories (${PROJECT_NAME} PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
-target_include_directories (${PROJECT_NAME} PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/tree>)
 target_include_directories (${PROJECT_NAME} PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/lib>)
 target_include_directories (${PROJECT_NAME} PUBLIC
