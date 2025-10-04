@@ -73,7 +73,7 @@
     <property name="program_name">filestream target</property>
     <property name="version">0.1</property>
     <property name="copyright" translatable="yes">Copyright (C) 2016 by Erik Sohns</property>
-    <property name="website">http://www.github.com/esohns/libACEStream</property>
+    <property name="website">https://www.github.com/esohns/ACEStream</property>
     <property name="website_label" translatable="yes">github project site</property>
     <property name="authors">Erik Sohns</property>
     <property name="wrap_license">True</property>
@@ -575,19 +575,17 @@
                                       <object class="GtkFileChooserButton" id="filechooserbutton_destination">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
+                                        <property name="focus_on_click">False</property>
+                                        <property name="tooltip_text" translatable="yes">destination directory</property>
                                         <property name="can_default">True</property>
                                         <property name="receives_default">True</property>
                                         <property name="action">select-folder</property>
-                                        <property name="create_folders">False</property>
+                                        <property name="do_overwrite_confirmation">True</property>
                                         <property name="local_only">False</property>
                                         <property name="preview_widget_active">False</property>
                                         <property name="show_hidden">True</property>
-                                        <property name="use_preview_label">False</property>
-                                        <property name="focus_on_click">False</property>
-                                        <property name="title" translatable="yes">choose a directory</property>
-                                        <signal name="selection-changed" handler="filechooserbutton_cb" swapped="no"/>
-                                        <signal name="file-set" handler="filechooserbutton_cb" swapped="no"/>
-                                        <signal name="current-folder-changed" handler="filechooserbutton_cb" swapped="no"/>
+                                        <property name="title" translatable="yes">select destination directory...</property>
+                                        <signal name="current-folder-changed" handler="filechooser_target_cb" swapped="no"/>
                                       </object>
                                     </child>
                                   </object>

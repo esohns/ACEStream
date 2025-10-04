@@ -3013,7 +3013,7 @@ idle_update_progress_source_cb (gpointer userData_in)
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 
   // synch access
-//  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
 
   int result = -1;
   Common_UI_GTK_BuildersConstIterator_t iterator =
@@ -3080,6 +3080,10 @@ idle_update_progress_source_cb (gpointer userData_in)
     //  gdk_window_set_cursor (window_2, cursor_p);
     //  ui_cb_data_p->cursorType = GDK_LAST_CURSOR;
     //} // end IF
+    int result = progress_data_p->state->condition.broadcast ();
+    if (unlikely (result == -1))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Condition::broadcast(): \"%m\", continuing\n")));
 
     done = true;
   } // end IF
@@ -6500,8 +6504,14 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->UIState);
 
+  // wait for processing thread(s)
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState->lock, FALSE);
+    while (!ui_cb_data_p->progressData.pendingActions.empty ())
+      ui_cb_data_p->UIState->condition.wait (NULL);
+  } // end lock scope
+
   // step1: remove event sources
-  { ACE_Guard<ACE_Thread_Mutex> aGuard (ui_cb_data_p->UIState->lock);
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, ui_cb_data_p->UIState->lock, FALSE);
     for (Common_UI_GTK_EventSourceIdsIterator_t iterator = ui_cb_data_p->UIState->eventSourceIds.begin ();
          iterator != ui_cb_data_p->UIState->eventSourceIds.end ();
          iterator++)

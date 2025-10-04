@@ -4740,8 +4740,14 @@ button_quit_clicked_cb (GtkWidget* widget_in,
       (status_e == STREAM_STATE_PAUSED))
     stream_p->stop (false, true, true);
 
+  // wait for processing thread(s)
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, cb_data_base_p->UIState->lock, FALSE);
+    while (!cb_data_base_p->progressData.pendingActions.empty ())
+      cb_data_base_p->UIState->condition.wait (NULL);
+  } // end lock scope
+
   // step1: remove event sources
-  { ACE_Guard<ACE_Thread_Mutex> aGuard (cb_data_base_p->UIState->lock);
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, cb_data_base_p->UIState->lock, FALSE);
     for (Common_UI_GTK_EventSourceIdsIterator_t iterator = cb_data_base_p->UIState->eventSourceIds.begin ();
          iterator != cb_data_base_p->UIState->eventSourceIds.end ();
          iterator++)

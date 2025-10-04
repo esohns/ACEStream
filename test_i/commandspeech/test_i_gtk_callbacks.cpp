@@ -2186,6 +2186,10 @@ idle_update_progress_cb (gpointer userData_in)
       //  gdk_window_set_cursor (window_2, cursor_p);
       //  data_p->cursorType = GDK_LAST_CURSOR;
       //} // end IF
+      int result = progress_data_p->state->condition.broadcast ();
+      if (unlikely (result == -1))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Condition::broadcast(): \"%m\", continuing\n")));
 
       done = true;
     } // end IF

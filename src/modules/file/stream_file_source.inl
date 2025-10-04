@@ -667,7 +667,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    aborted_  = NULL;
+    aborted_ = NULL;
     //fileName_ = ACE_Addr::sap_any;
     if (isOpen_)
     {
@@ -676,6 +676,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_FILE_IO::close(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
+      isOpen_ = false;
     } // end IF
     passDownstream_ = false;
   } // end IF

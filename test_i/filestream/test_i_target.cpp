@@ -30,7 +30,6 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -112,8 +111,11 @@ do_printUsage (const std::string& programName_in)
             << gtk_rc_file
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
+  std::string output_file = Common_File_Tools::getTempDirectory ();
+  output_file += ACE_DIRECTORY_SEPARATOR_STR_A;
+  output_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : (target) file name [\"")
-            << ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE)
+            << output_file
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   std::string UI_file = path;
@@ -200,7 +202,9 @@ do_processArguments (int argc_in,
   gtkRcFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
   maximumNumberOfConnections_out =
     TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS;
-  outputFile_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
+  outputFile_out = Common_File_Tools::getTempDirectory ();
+  outputFile_out += ACE_DIRECTORY_SEPARATOR_STR_A;
+  outputFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   gtkGladeFile_out = path;
   gtkGladeFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtkGladeFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
@@ -1022,7 +1026,9 @@ ACE_TMAIN (int argc_in,
   std::string gtk_rc_file = path;
   gtk_rc_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtk_rc_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
-  std::string output_file = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
+  std::string output_file = Common_File_Tools::getTempDirectory ();
+  output_file += ACE_DIRECTORY_SEPARATOR_STR_A;
+  output_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   std::string gtk_glade_file = path;
   gtk_glade_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtk_glade_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
@@ -1088,27 +1094,17 @@ ACE_TMAIN (int argc_in,
 //    use_thread_pool = true;
 //  } // end IF
   if ((gtk_glade_file.empty () &&
-       !Common_File_Tools::isReadable (output_file))                       ||
+       !Common_File_Tools::isValidFilename (output_file))                  ||
       (!gtk_glade_file.empty () &&
        !Common_File_Tools::isReadable (gtk_glade_file))                    ||
       (!gtk_rc_file.empty () &&
        !Common_File_Tools::isReadable (gtk_rc_file))
 //      (use_thread_pool && !use_reactor)                                    ||
 //      (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool)
-      )
+     )
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
-
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s\n"),
-                output_file.c_str ()));
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s\n"),
-                gtk_glade_file.c_str ()));
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s\n"),
-                gtk_rc_file.c_str ()));
 
     do_printUsage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
     // *PORTABILITY*: on Windows, finalize ACE

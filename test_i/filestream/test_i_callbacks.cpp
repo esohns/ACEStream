@@ -840,6 +840,10 @@ idle_update_progress_source_cb (gpointer userData_in)
     //  gdk_window_set_cursor (window_2, cursor_p);
     //  progress_data_p->cursorType = GDK_LAST_CURSOR;
     //} // end IF
+    int result = progress_data_p->state->condition.broadcast ();
+    if (unlikely (result == -1))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Condition::broadcast(): \"%m\", continuing\n")));
 
     done = true;
   } // end IF
@@ -1019,57 +1023,13 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     } // end ELSE
   } // end IF
   if (Common_File_Tools::isDirectory (file_name))
-    file_name =
-      ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
+    file_name = ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
   else if (Common_File_Tools::isValidFilename (file_name))
-    file_name =
-      ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
+    file_name = ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
   file_name = directory +
-              ACE_DIRECTORY_SEPARATOR_CHAR_A +
+              ACE_DIRECTORY_SEPARATOR_STR_A +
               file_name;
   ACE_ASSERT (Common_File_Tools::isValidFilename (file_name));
-  file_p = g_file_new_for_path (file_name.c_str ());
-  ACE_ASSERT (file_p);
-  //GFile* file_2 = g_file_get_parent (file_p);
-  //if (!file_2)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to g_file_get_parent(), aborting\n")));
-
-  //  // clean up
-  //  g_object_unref (file_p);
-
-  //  return G_SOURCE_REMOVE;
-  //} // end IF
-  //g_object_unref (file_p);
-  //char* string_p = g_file_get_path (file_2);
-  char* string_p = g_file_get_path (file_p);
-  if (!string_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to g_file_get_path(), aborting\n")));
-
-    // clean up
-    //g_object_unref (file_2);
-    g_object_unref (file_p);
-
-    return G_SOURCE_REMOVE;
-  } // end IF
-  //g_object_unref (file_2);
-  g_object_unref (file_p);
-  //if (!gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
-  if (!gtk_file_chooser_select_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                         string_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_file_chooser_set_filename(), aborting\n")));
-
-    // clean up
-    g_free (string_p);
-
-    return G_SOURCE_REMOVE;
-  } // end IF
-  g_free (string_p);
 
   spin_button_p =
       GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -1212,157 +1172,33 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   } // end lock scope
 
   // step6: (auto-)connect signals/slots
-  // *NOTE*: glade_xml_signal_autoconnect does not work reliably
-  //glade_xml_signal_autoconnect(userData_out.xml);
-
   // step6a: connect default signals
+  // *NOTE*: glade_xml_signal_autoconnect does not work reliably
+  // glade_xml_signal_autoconnect (userData_in.xml);
+  gtk_builder_connect_signals ((*iterator).second.second,
+                               userData_in);
+
+  // step6b: connect custom signals
   gulong result_2 =
     g_signal_connect (dialog_p,
                       ACE_TEXT_ALWAYS_CHAR ("destroy"),
                       G_CALLBACK (gtk_widget_destroyed),
                       NULL);
   ACE_ASSERT (result_2);
-  result_2 =
-    g_signal_connect (file_chooser_button_p,
-                      ACE_TEXT_ALWAYS_CHAR ("file-set"),
-                      G_CALLBACK (filechooserbutton_target_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  result_2 =
-    g_signal_connect (GTK_FILE_CHOOSER (file_chooser_button_p),
-                      //ACE_TEXT_ALWAYS_CHAR ("current-folder-changed"),
-                      ACE_TEXT_ALWAYS_CHAR ("selection-changed"),
-                      G_CALLBACK (filechooser_target_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-
-  GtkFileChooserDialog* file_chooser_dialog_p =
-    GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERDIALOG_OPEN_NAME)));
-  ACE_ASSERT (file_chooser_dialog_p);
-  result_2 =
-    g_signal_connect (file_chooser_dialog_p,
-                      ACE_TEXT_ALWAYS_CHAR ("file-activated"),
-                      G_CALLBACK (filechooserdialog_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-
-  // step6b: connect custom signals
-  //gtk_builder_connect_signals ((*iterator).second.second,
-  //                             userData_in);
-
-  GObject* object_p =
-  //  gtk_builder_get_object ((*iterator).second.second,
-  //                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_TCP_NAME));
-  //ACE_ASSERT (object_p);
-  //result_2 = g_signal_connect (object_p,
-  //                             ACE_TEXT_ALWAYS_CHAR ("toggled"),
-  //                             G_CALLBACK (togglebutton_protocol_toggled_cb),
-  //                             userData_in);
-  //object_p =
-  //  gtk_builder_get_object ((*iterator).second.second,
-  //                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_UDP_NAME));
-  //ACE_ASSERT (object_p);
-  //result_2 = g_signal_connect (object_p,
-  //                             ACE_TEXT_ALWAYS_CHAR ("toggled"),
-  //                             G_CALLBACK (togglebutton_protocol_toggled_cb),
-  //                             userData_in);
-
-  //object_p =
-  //    gtk_builder_get_object ((*iterator).second.second,
-  //                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME));
-  //ACE_ASSERT (object_p);
-  //result_2 = g_signal_connect (object_p,
-  //                           ACE_TEXT_ALWAYS_CHAR ("value-changed"),
-  //                           G_CALLBACK (spinbutton_port_value_changed_cb),
-  //                           userData_in);
-  //ACE_ASSERT (result_2);
-  //object_p =
-  //    gtk_builder_get_object ((*iterator).second.second,
-  //                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_STOP_NAME));
-  //ACE_ASSERT (object_p);
-  //result_2 =
-  //    g_signal_connect (object_p,
-  //                      ACE_TEXT_ALWAYS_CHAR ("clicked"),
-  //                      G_CALLBACK (button_stop_clicked_cb),
-  //                      userData_in);
-  //ACE_ASSERT (result_2);
-  //object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TOGGLEACTION_LISTEN_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("toggled"),
-                      G_CALLBACK (action_listen_activate_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME));
-  ACE_ASSERT (object_p);
-  result_2 = g_signal_connect (object_p,
-                               ACE_TEXT_ALWAYS_CHAR ("activate"),
-                               G_CALLBACK (action_close_all_activate_cb),
-                               userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_REPORT_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("activate"),
-                      G_CALLBACK (action_report_activate_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR(TEST_I_STREAM_UI_GTK_TEXTVIEW_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("size-allocate"),
-                      G_CALLBACK (textview_size_allocate_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-
-  //-------------------------------------
-
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_CLEAR_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("clicked"),
-                      G_CALLBACK (button_clear_clicked_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-      gtk_builder_get_object ((*iterator).second.second,
-                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_ABOUT_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-      g_signal_connect (object_p,
-                        ACE_TEXT_ALWAYS_CHAR ("clicked"),
-                        G_CALLBACK (button_about_clicked_cb),
-                        userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-      gtk_builder_get_object ((*iterator).second.second,
-                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_QUIT_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-      g_signal_connect (object_p,
-                        ACE_TEXT_ALWAYS_CHAR ("clicked"),
-                        G_CALLBACK (button_quit_clicked_cb),
-                        userData_in);
-  ACE_ASSERT (result_2);
-  ACE_UNUSED_ARG (result_2);
 
   // step7: set defaults
+  gchar* string_p = Common_UI_GTK_Tools::localeToUTF8 (directory);
+  if (!gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                            string_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder(\"%s\"), aborting\n"),
+                ACE_TEXT (directory.c_str ())));
+    g_free (string_p);
+    return G_SOURCE_REMOVE;
+  } // end IF
+  g_free (string_p); string_p = NULL;
+
   struct _GtkAction* action_p =
     //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_CLOSE_NAME)));
@@ -1370,23 +1206,6 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TOGGLEACTION_LISTEN_NAME)));
   ACE_ASSERT (action_p);
   gtk_action_activate (action_p);
-
-  //file_chooser_button_p =
-  //  GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-  //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
-  ACE_ASSERT (file_chooser_button_p);
-  std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri += (*iterator_2).second.second->fileIdentifier.identifier;
-  gboolean result =
-    gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                             default_folder_uri.c_str ());
-  if (!result)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (default_folder_uri.c_str ())));
-    return G_SOURCE_REMOVE;
-  } // end IF
 
   //   // step8: use correct screen
   //   if (parentWidget_in)
@@ -2846,57 +2665,10 @@ action_listen_activate_cb (GtkAction* action_in,
 } // action_listen_activate_cb
 
 void
-filechooserbutton_target_cb (GtkFileChooserButton* button_in,
-                             gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_target_cb"));
-
-  // sanity check(s)
-  struct Test_I_Target_UI_CBData* ui_cb_data_p =
-    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_p);
-  ACE_ASSERT (ui_cb_data_p->configuration);
-
-  Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
-    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-
-  GFile* file_p = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button_in));
-  ACE_ASSERT (file_p);
-  char* string_p = g_file_get_path (file_p);
-  if (!string_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to g_file_get_path(%@): \"%m\", returning\n"),
-                file_p));
-
-    // clean up
-    g_object_unref (file_p);
-
-    return;
-  } // end IF
-  g_object_unref (file_p);
-
-  (*iterator).second.second->fileIdentifier.identifier =
-    Common_UI_GTK_Tools::UTF8ToLocale (string_p, -1);
-  if ((*iterator).second.second->fileIdentifier.identifier.empty ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_UI_GTK_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),
-                ACE_TEXT (string_p)));
-
-    // clean up
-    g_free (string_p);
-
-    return;
-  } // end IF
-  g_free (string_p);
-} // filechooserbutton_target_cb
-void
 filechooser_target_cb (GtkFileChooser* fileChooser_in,
                        gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_target_cb"));
+  STREAM_TRACE (ACE_TEXT ("::filechooser_target_cb"));
 
   // sanity check(s)
   struct Test_I_Target_UI_CBData* ui_cb_data_p =
@@ -2908,7 +2680,7 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
-  GFile* file_p = gtk_file_chooser_get_file (fileChooser_in);
+  GFile* file_p = gtk_file_chooser_get_current_folder_file (fileChooser_in);
   ACE_ASSERT (file_p);
   char* string_p = g_file_get_path (file_p);
   if (!string_p)
@@ -3139,8 +2911,14 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->UIState);
 
+  // wait for processing thread(s)
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState->lock, FALSE);
+    while (!ui_cb_data_p->progressData.pendingActions.empty ())
+      ui_cb_data_p->UIState->condition.wait (NULL);
+  } // end lock scope
+
   // step1: remove event sources
-  { ACE_Guard<ACE_Thread_Mutex> aGuard (ui_cb_data_p->UIState->lock);
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, ui_cb_data_p->UIState->lock, FALSE);
     for (Common_UI_GTK_EventSourceIdsIterator_t iterator = ui_cb_data_p->UIState->eventSourceIds.begin ();
          iterator != ui_cb_data_p->UIState->eventSourceIds.end ();
          iterator++)

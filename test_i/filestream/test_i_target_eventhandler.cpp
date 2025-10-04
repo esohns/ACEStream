@@ -195,8 +195,16 @@ Test_I_Target_EventHandler::notify (Stream_SessionId_t sessionId_in,
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_SESSION;
   switch (sessionMessage_in.type ())
   {
+    case STREAM_SESSION_MESSAGE_CONNECT:
+    {
+      event_e = COMMON_UI_EVENT_CONNECT;
+      break;
+    }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
-      return;
+    {
+      event_e = COMMON_UI_EVENT_DISCONNECT;
+      break;
+    }
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
       // sanity check(s)

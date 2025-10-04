@@ -67,7 +67,7 @@ G_MODULE_EXPORT void toggle_action_start_toggled_cb (GtkToggleAction*, gpointer)
 
 G_MODULE_EXPORT void action_close_all_activate_cb (GtkAction*, gpointer);
 G_MODULE_EXPORT void action_listen_activate_cb (GtkAction*, gpointer);
-G_MODULE_EXPORT void filechooserbutton_target_cb (GtkFileChooserButton*, gpointer);
+//G_MODULE_EXPORT void filechooserbutton_target_cb (GtkFileChooserButton*, gpointer);
 G_MODULE_EXPORT void filechooser_target_cb (GtkFileChooser*, gpointer);
 
 //////////////////////////////////////////
