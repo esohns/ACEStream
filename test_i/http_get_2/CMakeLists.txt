@@ -222,9 +222,8 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_LIBRARY_PATH)
-# file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libiconv/bin ICONV_LIBRARY_PATH)
-# file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libmysql/lib LIBMYSQL_LIBRARY_PATH)
-# file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libxml2/bin LIBXML_LIBRARY_PATH)
+ file (TO_CMAKE_PATH ${LIBICONV_LIB_DIR} ICONV_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${LIBXML2_LIB_DIR}" LIBXML_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${LIBREOFFICE_LIB_DIRS}" OO_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_LIBRARY_PATH)
@@ -234,8 +233,8 @@ elseif (WIN32)
                            ${VCPKG_PATH}
                            ${FFMPEG_LIBRARY_PATH}
                            ${IMAGEMAGICK_LIBRARY_PATH}
-#                           ${ICONV_LIBRARY_PATH}
- #                          ${LIBXML_LIBRARY_PATH}
+                           ${ICONV_LIBRARY_PATH}
+                           ${LIBXML_LIBRARY_PATH}
   #                         ${LIBMYSQL_LIBRARY_PATH}
                            ${SSL_LIBRARY_PATH}
                            ${ZLIB_LIBRARY_PATH}
