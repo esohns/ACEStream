@@ -89,7 +89,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  iterator = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  iterator = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
@@ -217,7 +217,9 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (media_type_s);
   session_data_p->stream = this;
-  session_data_p->targetFileName =
+  session_data_p->targetFileName = Common_File_Tools::getTempDirectory ();
+  session_data_p->targetFileName += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  session_data_p->targetFileName +=
     ACE_TEXT_ALWAYS_CHAR (TEST_U_CAPTUREWINDOW_DEFAULT_FILENAME);
 
   // ---------------------------------------------------------------------------

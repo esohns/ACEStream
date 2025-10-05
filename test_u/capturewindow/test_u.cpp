@@ -213,8 +213,7 @@ do_process_arguments (int argc_in,
     {
       case 'f':
       {
-        executableName_out =
-          ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        executableName_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         break;
       }
       case 'i':
@@ -321,7 +320,7 @@ do_initialize_directshow (HWND windowHandle_in,
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
   // sanity check(s)
-  ACE_ASSERT (!GetParent (windowHandle_in));
+  //ACE_ASSERT (!GetParent (windowHandle_in));
 
   struct tagRECT window_size_s;
   BOOL result_2 = GetClientRect (windowHandle_in, &window_size_s);
@@ -760,8 +759,10 @@ do_work (
 #if defined (FFMPEG_SUPPORT)
       directshow_modulehandler_configuration.codecConfiguration = &codec_configuration;
 #endif // FFMPEG_SUPPORT
-      directshow_modulehandler_configuration.fileFormat = ACE_TEXT_ALWAYS_CHAR ("mp4");
-      directshow_modulehandler_configuration.window.win32_hwnd = windowHandle_in;
+      directshow_modulehandler_configuration.fileFormat =
+        ACE_TEXT_ALWAYS_CHAR ("mp4");
+      directshow_modulehandler_configuration.window.win32_hwnd =
+        windowHandle_in;
       directshow_modulehandler_configuration.window.type =
         Common_UI_Window::TYPE_WIN32;
 
@@ -961,12 +962,10 @@ do_work (
       delete media_type_p; media_type_p = NULL;
       directshow_modulehandler_configuration_2.outputFormat.subtype =
         MEDIASUBTYPE_NV12; // *NOTE*: required by H264
-        //MEDIASUBTYPE_IMC1; // *NOTE*: maps to AV_PIX_FMT_YUV420P, required for H263
-      //Common_Image_Resolution_t resolution_s;
-      //resolution_s.cx = 704;
-      //resolution_s.cy = 576;
-      //Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-      //                                                       directshow_modulehandler_configuration_2.outputFormat);
+      //MEDIASUBTYPE_IMC1; // *NOTE*: maps to AV_PIX_FMT_YUV420P, required for H263
+      Common_Image_Resolution_t resolution_s = {1280, 720};
+      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                             directshow_modulehandler_configuration_2.outputFormat);
 
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format);
