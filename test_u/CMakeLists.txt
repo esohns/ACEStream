@@ -45,7 +45,7 @@ endif ()
 
 if (TREE_HH_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                             ${TREE_HH_INCLUDE_DIR})
+                             $<BUILD_INTERFACE:${TREE_HH_INCLUDE_DIR}>)
 endif (TREE_HH_SUPPORT)
 
 if (FFMPEG_SUPPORT)

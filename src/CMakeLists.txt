@@ -39,7 +39,7 @@ add_library (${PROJECT_NAME} STATIC "")
 
 if (TREE_HH_SUPPORT)
  target_include_directories (${PROJECT_NAME} PUBLIC
-                             ${TREE_HH_INCLUDE_DIR})
+                             $<BUILD_INTERFACE:${TREE_HH_INCLUDE_DIR}>)
 endif (TREE_HH_SUPPORT)
 
 if (FFMPEG_SUPPORT)
