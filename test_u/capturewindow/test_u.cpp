@@ -372,6 +372,7 @@ do_initialize_directshow (HWND windowHandle_in,
 
   allocatorConfiguration_inout.defaultBufferSize =
     video_info_header_p->bmiHeader.biSizeImage;
+  ACE_ASSERT (allocatorConfiguration_inout.defaultBufferSize);
 
   return true;
 
@@ -1207,6 +1208,9 @@ ACE_TMAIN (int argc_in,
 
   // step1a set defaults
   std::string configuration_path = Common_File_Tools::getWorkingDirectory ();
+  std::vector<pid_t> process_ids_a;
+  std::vector<pid_t>::const_iterator process_ids_iterator =
+    process_ids_a.begin ();
   pid_t process_id = 0;
   std::string executable_name_string;
   bool log_to_file = false;
@@ -1261,8 +1265,8 @@ ACE_TMAIN (int argc_in,
     goto continue_;
   if (!executable_name_string.empty ())
   {
-    process_id = Common_Process_Tools::id (executable_name_string);
-    if (!process_id)
+    process_ids_a = Common_Process_Tools::id (executable_name_string);
+    if (process_ids_a.empty ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Common_Process_Tools::id(\"%s\"), aborting\n"),
@@ -1277,8 +1281,10 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
       return EXIT_FAILURE;
     } // end IF
+    process_ids_iterator = process_ids_a.begin ();
+    process_id = *process_ids_iterator;
   } // end IF
-  if (unlikely (!process_id))
+  else if (unlikely (!process_id))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid process id, aborting\n")));
@@ -1292,28 +1298,51 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
+next_process_id:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   window_handles_a = Common_Process_Tools::window (process_id);
-  ACE_ASSERT (!window_handles_a.empty ());
-  window_handle_h = window_handles_a[0]; // *TODO*: how to choose the right one ?
+  if (window_handles_a.empty ())
+    goto no_window_handles;
+  BOOL result_2;
+  struct tagRECT window_size_s;
+  for (std::vector<HWND>::const_iterator iterator = window_handles_a.begin ();
+       iterator != window_handles_a.end ();
+       ++iterator)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("found window handle %@ for process id %d\n"),
+                *iterator,
+                process_id));
+
+    result_2 = GetClientRect (*iterator, &window_size_s);
+    ACE_ASSERT (result_2);
+    if ((window_size_s.right - window_size_s.left) && (window_size_s.bottom - window_size_s.top))
+    {
+      window_handle_h = *iterator; 
+      break;
+    } // end IF
+  } // end FOR
+no_window_handles:
+  if (!window_handle_h && process_ids_iterator != process_ids_a.end ())
+  {
+    ++process_ids_iterator;
+    if (process_ids_iterator != process_ids_a.end ())
+    {
+      process_id = *process_ids_iterator;
+      goto next_process_id;
+    } // end IF
+  } // end IF
 #else
   window_handle_h = Common_Process_Tools::window (process_id);
-#endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!window_handle_h))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Process_Tools::window(\"%d\"), aborting\n"),
+                ACE_TEXT ("failed to Common_Process_Tools::window(%d), aborting\n"),
                 process_id));
     Common_Tools::finalize ();
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    // *PORTABILITY*: on Windows, finalize ACE...
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
 continue_:
   if (!window_handle_h)
   {
@@ -1423,7 +1452,6 @@ continue_:
           );
   timer.stop ();
 
-  // debug info
   std::string working_time_string;
   ACE_Time_Value working_time;
   timer.elapsed_time (working_time);

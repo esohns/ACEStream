@@ -392,6 +392,8 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+      goto end;
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -722,6 +724,7 @@ continue_3:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       int result = -1;
 
       // *IMPORTANT NOTE*: finalize the format context only once

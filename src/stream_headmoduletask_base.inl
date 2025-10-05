@@ -1877,46 +1877,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   }
 }
 
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename ConfigurationType,
-//          typename StreamControlType,
-//          typename SessionEventType,
-//          typename StreamStateType,
-//          typename StatisticContainerType,
-//          typename SessionManagerType,
-//          typename TimerManagerType,
-//          typename UserDataType>
-//Stream_SessionId_t
-//Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-//                            TimePolicyType,
-//                            ControlMessageType,
-//                            DataMessageType,
-//                            SessionMessageType,
-//                            ConfigurationType,
-//                            StreamControlType,
-//                            SessionEventType,
-//                            StreamStateType,
-//                            StatisticContainerType,
-//                            SessionManagerType,
-//                            TimerManagerType,
-//                            UserDataType>::sessionId (const std::string& streamId_in) const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::sessionId"));
-//
-//  ACE_UNUSED_ARG (streamId_in);
-//
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::sessionData_);
-//  const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-//    inherited::sessionData_->getR ();
-//
-//  return session_data_r.sessionId;
-//}
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,

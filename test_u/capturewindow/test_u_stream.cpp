@@ -88,10 +88,14 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  iterator = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
   Stream_Branches_t branches_a;
+
 
   layout_in->append (&source_, NULL, 0);
   layout_in->append (&statisticReport_, NULL, 0);
@@ -133,7 +137,12 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   // save branch
   layout_in->append (&convert_, branch_p, index_i);
-  layout_in->append (&resize_, branch_p, index_i);
+  Common_Image_Resolution_t resolution_s =
+    Stream_MediaFramework_DirectShow_Tools::toResolution (inherited::configuration_->configuration_->format);
+  Common_Image_Resolution_t resolution_2 =
+    Stream_MediaFramework_DirectShow_Tools::toResolution ((*iterator).second.second->outputFormat);
+  if (resolution_s.cx != resolution_2.cx || resolution_s.cy != resolution_2.cy)
+    layout_in->append (&resize_, branch_p, index_i);
   layout_in->append (&encode_, branch_p, index_i);
 
   return true;

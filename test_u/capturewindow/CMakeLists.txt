@@ -188,6 +188,7 @@ if (UNIX)
 elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
+ set (ARGS "${ARGS} -f chrome.exe")
 # file (TO_CMAKE_PATH "${OPENGL_LIB_DIR}" OPENGL_PATH)
 # file (TO_CMAKE_PATH "${GLUT_LIB_DIR}" GLUT_PATH)
 # file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
@@ -196,12 +197,12 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
-# if (GTK_SUPPORT)
-#  file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
-# endif (GTK_SUPPORT)
-# if (WXWIDGETS_SUPPORT)
-#  file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
-# endif (WXWIDGETS_SUPPORT)
+ if (GTK_SUPPORT)
+  file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
+  file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
+ endif (WXWIDGETS_SUPPORT)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
 #                           ${OPENGL_PATH}
@@ -212,14 +213,14 @@ elseif (WIN32)
 #                           ${ASSIMP_PATH}
                            ${LIBPNG_PATH}
                            ${ACE_LIBRARY_PATH})
-# if (GTK_SUPPORT)
-#  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-#                            ${GTK_PATH})
-# endif (GTK_SUPPORT)
-# if (WXWIDGETS_SUPPORT)
-#  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-#                            ${WXWIDGETS_PATH})
-# endif (WXWIDGETS_SUPPORT)
+ if (GTK_SUPPORT)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${GTK_PATH})
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${WXWIDGETS_PATH})
+ endif (WXWIDGETS_SUPPORT)
 endif ()
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}

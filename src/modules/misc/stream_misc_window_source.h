@@ -159,6 +159,7 @@ class Stream_Module_Window_Source_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Window_Source_T& operator= (const Stream_Module_Window_Source_T&))
 
   Common_Timer_Handler      handler_;
+  Stream_SessionId_t        sessionId_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HDC                       captureContext_;
   HBITMAP                   captureBitmap_;

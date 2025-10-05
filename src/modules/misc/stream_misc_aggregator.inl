@@ -1278,6 +1278,7 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         goto error;
       }
+      session_id = control_message_p->sessionId ();
 
       break;
 

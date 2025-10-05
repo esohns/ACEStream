@@ -123,11 +123,12 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   // kill soffice.bin ?
   if (manageProcess_)
   {
-    pid_t process_id =
+    std::vector<pid_t> process_ids_a =
       Common_Process_Tools::id (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_PROCESS_EXE));
-//    ACE_ASSERT (process_id);
-    if (process_id)
-      Common_Process_Tools::kill (process_id);
+    for (std::vector<pid_t>::const_iterator iterator = process_ids_a.begin ();
+         iterator != process_ids_a.end ();
+         ++iterator)
+      Common_Process_Tools::kill (*iterator);
   } // end IF
 }
 
@@ -402,14 +403,14 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   std::string stdout_string;
 
   // sanity check(s)
-  pid_t process_id =
+  std::vector<pid_t> process_ids_a =
     Common_Process_Tools::id (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_PROCESS_EXE));
-  if (process_id != 0)
+  if (!process_ids_a.empty ())
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: LibreOffice already running (PID was: %d), continuing\n"),
                 inherited::mod_->name (),
-                process_id));
+                process_ids_a.front ()));
     manageProcess_ = false;
     goto continue_;
   } // end IF
@@ -425,13 +426,13 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                      stdout_string,
                                      false)) // don't care about stdout
   {
-    process_id =
+    process_ids_a =
       Common_Process_Tools::id (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_PROCESS_EXE));
-    ACE_ASSERT (process_id != 0);
+    ACE_ASSERT (!process_ids_a.empty ());
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: started LibreOffice server process (PID: %d)\n"),
                 inherited::mod_->name (),
-                process_id));
+                process_ids_a.front ()));
   } // end IF
   else
     ACE_DEBUG ((LM_ERROR,

@@ -76,6 +76,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
  : inherited (stream_in) // stream handle
  , handler_ (this,  // callee
              false) // one-shot ?
+ , sessionId_ (0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , captureContext_ (NULL)
  , captureBitmap_ (NULL)
@@ -292,11 +293,14 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
+      inherited::isHighPriorityStop_ = true;
       inherited::change (STREAM_STATE_SESSION_STOPPING);
-      break;
+      goto end;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     { ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+
+      sessionId_ = session_data_r.sessionId;
 
       ACE_Time_Value interval;
       long timer_id = -1;
@@ -353,7 +357,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
       ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
       frames_per_second_i = 10000000 / static_cast<int> (video_info_header_p->AvgTimePerFrame);
 
-      ACE_ASSERT (inherited::configuration_->allocatorConfiguration->defaultBufferSize >= video_info_header_p->bmiHeader.biSizeImage);
+      ACE_ASSERT (inherited::configuration_->allocatorConfiguration->defaultBufferSize && inherited::configuration_->allocatorConfiguration->defaultBufferSize >= video_info_header_p->bmiHeader.biSizeImage);
 
       ACE_ASSERT (inherited::configuration_->window.type != Common_UI_Window::TYPE_INVALID);
       HWND window_h = inherited3::convert (inherited::configuration_->window);
@@ -439,6 +443,7 @@ error:
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
+end:
       long timer_id = handler_.get_2 ();
       if (likely (timer_id != -1))
       {
@@ -476,8 +481,8 @@ error:
 
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
-        itask_p->stop (false,  // wait for completion ?
-                       false); // high priority ?
+        itask_p->stop (false,                           // wait for completion ?
+                       inherited::isHighPriorityStop_); // high priority ?
       } // end IF
 
       break;
@@ -521,12 +526,11 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::allocator_);
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
-  ACE_ASSERT (inherited::sessionData_);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+  ACE_ASSERT (sessionId_);
 
   ACE_Message_Block* message_block_p = NULL;
   DataMessageType* message_p = NULL;
-  const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-    inherited::sessionData_->getR ();
   int result = -1;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -554,7 +558,7 @@ Stream_Module_Window_Source_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
   message_p = static_cast<DataMessageType*> (message_block_p);
-  message_p->initialize (session_data_r.sessionId,
+  message_p->initialize (sessionId_,
                          NULL);
 
   // step2: fill buffer
@@ -624,5 +628,6 @@ error:
   if (message_block_p)
     message_block_p->release ();
 
-  this->notify (STREAM_SESSION_MESSAGE_ABORT);
+  if (!inherited::abortSent_)
+    this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }

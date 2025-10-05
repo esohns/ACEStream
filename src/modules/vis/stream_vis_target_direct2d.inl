@@ -223,6 +223,8 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+      goto end;
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -252,7 +254,7 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
         inherited::start (NULL);
         inherited::threadCount_ = 0;
 
-        while (inherited::thr_count_ && !inherited::window_ && !renderTarget_ && !bitmap_); // *TODO*: never do this
+        while (!inherited::thr_count_ || !inherited::window_ || !renderTarget_ || !bitmap_); // *TODO*: never do this
       } // end IF
       else
       {
@@ -283,6 +285,7 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       if (inherited::window_)
       {
         inherited::notify_ = false;
@@ -545,7 +548,11 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
 
   BOOL result;
   struct tagMSG message_s;
-  while (result = GetMessage (&message_s, inherited::window_, 0, 0) != 0)
+  bool running_b = true;
+  while ((result = GetMessage (&message_s,
+                              inherited::window_,
+                              0,
+                              0) != 0) && running_b)
   {
     if (unlikely (result == -1))
     {
@@ -558,12 +565,29 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
     } // end IF
 
     TranslateMessage (&message_s);
+    switch (message_s.message)
+    {
+      case WM_CLOSE:
+      case WM_DESTROY:
+        PostMessage (inherited::window_, WM_QUIT, 0, 0);
+        break;
+      case WM_QUIT:
+        running_b = false;
+        break;
+      default:
+        break;
+    } // end SWITCH
     DispatchMessage (&message_s);
+
+    if (!running_b)
+      break;
   } // end WHILE
   DestroyWindow (inherited::window_); inherited::window_ = NULL;
 
   if (unlikely (inherited::notify_))
+  { inherited::notify_ = false;
     inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+  } // end IF
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: spawned thread (id: %t, group id: %d) leaving\n"),
