@@ -1,6 +1,8 @@
 if (UNIX)
  include (OS) # *TODO*: why is this necessary ?
-endif (UNIX)
+elseif (WIN32)
+ include (directxsdk)
+endif ()
 
 include (ffmpeg)
 include (ImageMagick)

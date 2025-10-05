@@ -602,16 +602,14 @@ idle_initialize_UI_cb (gpointer userData_in)
   //  GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
   //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-//  std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-//  default_folder_uri += filename_string;
   gboolean result =
     gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                         ACE_TEXT_ALWAYS_CHAR (ACE::dirname (filename_string.c_str ())));
+                                         Common_File_Tools::directory (filename_string).c_str ());
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gtk_file_chooser_set_current_folder(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (ACE::dirname (filename_string.c_str ()))));
+                ACE_TEXT (Common_File_Tools::directory (filename_string).c_str ())));
     return G_SOURCE_REMOVE;
   } // end IF
 

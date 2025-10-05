@@ -3275,8 +3275,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   // sanity check(s)
   if (!Common_File_Tools::isDirectory (directory))
   {
-    directory =
-      ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
+    directory = Common_File_Tools::directory (directory);
     if (Common_File_Tools::isValidPath (directory))
     {
       if (!Common_File_Tools::isDirectory (directory))
@@ -3290,8 +3289,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     } // end IF
     else if (Common_File_Tools::isValidFilename (directory))
     {
-      directory =
-        ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
+      directory = Common_File_Tools::directory (directory);
       if (!Common_File_Tools::isDirectory (directory))
         if (!Common_File_Tools::createDirectory (directory))
         {

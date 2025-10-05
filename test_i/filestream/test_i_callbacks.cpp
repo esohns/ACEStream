@@ -988,8 +988,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   // sanity check(s)
   if (!Common_File_Tools::isDirectory (directory))
   {
-    directory =
-      ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
+    directory = Common_File_Tools::directory (directory);
     if (Common_File_Tools::isValidPath (directory))
     {
       if (!Common_File_Tools::isDirectory (directory))
@@ -1003,8 +1002,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     } // end IF
     else if (Common_File_Tools::isValidFilename (directory))
     {
-      directory =
-        ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
+      directory = Common_File_Tools::directory (directory);
       if (!Common_File_Tools::isDirectory (directory))
         if (!Common_File_Tools::createDirectory (directory))
         {
@@ -1026,9 +1024,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     file_name = ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
   else if (Common_File_Tools::isValidFilename (file_name))
     file_name = ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
-  file_name = directory +
-              ACE_DIRECTORY_SEPARATOR_STR_A +
-              file_name;
+  file_name = directory + ACE_DIRECTORY_SEPARATOR_STR_A + file_name;
   ACE_ASSERT (Common_File_Tools::isValidFilename (file_name));
 
   spin_button_p =

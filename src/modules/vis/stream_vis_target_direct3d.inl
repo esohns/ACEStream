@@ -35,6 +35,7 @@
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
+#include "common_file_tools.h"
 #include "common_ui_tools.h"
 
 #include "stream_macros.h"
@@ -346,13 +347,11 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_Image_Tools::save(), continuing\n"),
                 inherited::mod_->name ()));
-#if defined (_DEBUG)
   else
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: saved screenshot \"%s\"\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (filename_string.c_str ())));
-#endif // _DEBUG
 #endif // DIRECTXSDK_SUPPORT
   snapShotNextFrame_ = false;
 
@@ -1987,9 +1986,8 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
     goto continue_;
   ACE_ASSERT (inherited::configuration_);
   filename_string =
-    ACE_TEXT_ALWAYS_CHAR (ACE::dirname (inherited::configuration_->fileIdentifier.identifier.c_str (),
-                                        ACE_DIRECTORY_SEPARATOR_CHAR));
-  filename_string += ACE_DIRECTORY_SEPARATOR_CHAR;
+    Common_File_Tools::directory (inherited::configuration_->fileIdentifier.identifier);
+  filename_string += ACE_DIRECTORY_SEPARATOR_STR_A;
   filename_string +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DEFAULT_SCREENSHOT_FILENAME_PREFIX_STRING);
   enum _D3DXIMAGE_FILEFORMAT format_e =
@@ -2003,13 +2001,11 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_Image_Tools::save(), continuing\n"),
                 inherited::mod_->name ()));
-#if defined (_DEBUG)
   else
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: saved screenshot \"%s\"...\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (filename_string.c_str ())));
-#endif // _DEBUG
 #endif // DIRECTXSDK_SUPPORT
   inherited::snapShotNextFrame_ = false;
 

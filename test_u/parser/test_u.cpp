@@ -191,7 +191,7 @@ do_work (int argc_in,
   Stream_MessageQueueBase_T<ACE_MT_SYNCH, Common_TimePolicy_t> message_queue (STREAM_QUEUE_MAX_SLOTS,
                                                                               NULL);
   Parser_Stream parser_stream;
-  std::string file_path_2 = ACE::dirname (sourceFilePath_in.c_str (), '\\');
+  std::string file_path_2 = Common_File_Tools::directory (sourceFilePath_in);
   file_path_2 += ACE_DIRECTORY_SEPARATOR_STR;
   file_path_2 += ACE_TEXT ("test_2.txt");
   int result = -1;

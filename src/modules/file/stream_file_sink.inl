@@ -442,13 +442,12 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
         // *NOTE*: ACE::dirname() returns drivename: for root directories on
         //         Win32, which cannot be stat()ed successfully
         //         --> append slash(es)
-        directory =
-          ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
+        directory = Common_File_Tools::directory (directory);
         if (Common_File_Tools::isValidPath (directory))
         {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           if ((directory.size () == 2) && (directory[1] == ':'))
-            directory += ACE_DIRECTORY_SEPARATOR_STR;
+            directory += ACE_DIRECTORY_SEPARATOR_STR_A;
 #endif // ACE_WIN32 || ACE_WIN64
           if (!Common_File_Tools::isDirectory (directory))
             if (unlikely (!Common_File_Tools::createDirectory (directory)))
@@ -462,8 +461,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
         } // end IF
         else if (Common_File_Tools::isValidFilename (directory))
         {
-          directory =
-            ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
+          directory = Common_File_Tools::directory (directory);
           if (!Common_File_Tools::isDirectory (directory))
             if (unlikely (!Common_File_Tools::createDirectory (directory)))
             {
@@ -484,14 +482,10 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
         } // end ELSE
       } // end IF
       if (Common_File_Tools::isDirectory (file_name))
-        file_name =
-          ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
+        file_name = ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
       else if (Common_File_Tools::isValidFilename (file_name))
-        file_name =
-          ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
-      file_name = directory +
-                  ACE_DIRECTORY_SEPARATOR_CHAR_A +
-                  file_name;
+        file_name = Common_File_Tools::basename (file_name, false);
+      file_name = directory + ACE_DIRECTORY_SEPARATOR_STR_A + file_name;
 
       if (Common_File_Tools::isReadable (file_name))
         ACE_DEBUG ((LM_WARNING,
@@ -904,8 +898,7 @@ Stream_Module_FileWriter_2<TimePolicyType,
       {
         // *TODO*: ACE::dirname() returns '.' on an empty argument, this isn't
         //         entirely accurate
-        directory =
-          ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
+        directory = Common_File_Tools::directory (directory);
         if (Common_File_Tools::isValidPath (directory))
         {
           if (!Common_File_Tools::isDirectory (directory))
@@ -920,8 +913,7 @@ Stream_Module_FileWriter_2<TimePolicyType,
         } // end IF
         else if (Common_File_Tools::isValidFilename (directory))
         {
-          directory =
-            ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ()), ACE_DIRECTORY_SEPARATOR_CHAR));
+          directory = Common_File_Tools::directory (directory);
           if (!Common_File_Tools::isDirectory (directory))
             if (unlikely (!Common_File_Tools::createDirectory (directory)))
             {
@@ -942,14 +934,10 @@ Stream_Module_FileWriter_2<TimePolicyType,
         } // end ELSE
       } // end IF
       if (Common_File_Tools::isDirectory (file_name))
-        file_name =
-          ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
+        file_name = ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
       else if (Common_File_Tools::isValidFilename (file_name))
-        file_name =
-          ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
-      file_name = directory +
-                  ACE_DIRECTORY_SEPARATOR_CHAR_A +
-                  file_name;
+        file_name = Common_File_Tools::basename (file_name, false);
+      file_name = directory + ACE_DIRECTORY_SEPARATOR_STR_A + file_name;
 
       if (Common_File_Tools::isReadable (file_name))
         ACE_DEBUG ((LM_WARNING,
@@ -1408,8 +1396,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
       // sanity check(s)
       if (!Common_File_Tools::isDirectory (directory))
       {
-        directory =
-          ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
+        directory = Common_File_Tools::directory (directory);
         if (Common_File_Tools::isValidPath (directory))
         {
           if (!Common_File_Tools::isDirectory (directory))
@@ -1424,8 +1411,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
         } // end IF
         else if (Common_File_Tools::isValidFilename (directory))
         {
-          directory =
-            ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
+          directory = Common_File_Tools::directory (directory);
           if (!Common_File_Tools::isDirectory (directory))
             if (unlikely (!Common_File_Tools::createDirectory (directory)))
             {
@@ -1446,14 +1432,10 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
         } // end ELSE
       } // end IF
       if (Common_File_Tools::isDirectory (file_name))
-        file_name =
-          ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
+        file_name = ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
       else if (Common_File_Tools::isValidFilename (file_name))
-        file_name =
-          ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ()), ACE_DIRECTORY_SEPARATOR_CHAR));
-      file_name = directory +
-                  ACE_DIRECTORY_SEPARATOR_CHAR_A +
-                  file_name;
+        file_name = Common_File_Tools::basename (file_name, false);
+      file_name = directory + ACE_DIRECTORY_SEPARATOR_STR_A + file_name;
 
       if (Common_File_Tools::isReadable (file_name))
         ACE_DEBUG ((LM_WARNING,
