@@ -323,7 +323,7 @@ clean:
       ACE_OS::sleep (ACE_Time_Value (1, 0));
       ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("one...")));
       ACE_OS::sleep (ACE_Time_Value (1, 0));
-      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("STOP !")));
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("STOP !\n")));
 
       branch_stream.stop (false,  // wait ?
                           false,  // recurse ?
@@ -390,7 +390,7 @@ clean:
       ACE_OS::sleep (ACE_Time_Value (1, 0));
       ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("one...")));
       ACE_OS::sleep (ACE_Time_Value (1, 0));
-      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("STOP !")));
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("STOP !\n")));
 
       branch_stream.stop (false,  // wait ?
                           false,  // recurse ?

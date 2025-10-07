@@ -96,7 +96,6 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   unsigned int index_i = 0;
   Stream_Branches_t branches_a;
 
-
   layout_in->append (&source_, NULL, 0);
   layout_in->append (&statisticReport_, NULL, 0);
 
