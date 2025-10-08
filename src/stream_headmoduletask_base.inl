@@ -360,10 +360,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
   } // end IF
 
-  // signal the controller ?
   bool is_error_state_b = false;
   { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-    is_error_state_b = stop_processing && !sessionEndSent_;
+    is_error_state_b = stop_processing && !sessionEndProcessed_;
   } // end lock scope
   if (unlikely (is_error_state_b))
     finished (false); // recurse upstream ?
