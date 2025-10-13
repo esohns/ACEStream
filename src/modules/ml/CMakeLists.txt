@@ -1,4 +1,5 @@
 include (tensorflow)
+include (libtorch)
 
 add_library (${PROJECT_NAME}_MachineLearning STATIC "")
 
@@ -17,6 +18,10 @@ if (TENSORFLOW_CC_SUPPORT)
  target_include_directories (${PROJECT_NAME}_MachineLearning PUBLIC
                              "$<BUILD_INTERFACE:${tensorflow_cc_INCLUDE_DIRS}>")
 endif (TENSORFLOW_CC_SUPPORT)
+if (LIBTORCH_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_MachineLearning PUBLIC
+                             "$<BUILD_INTERFACE:${LIBTORCH_INCLUDE_DIRS}>")
+endif (LIBTORCH_SUPPORT)
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_MachineLearning PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
@@ -50,6 +55,13 @@ if (TENSORFLOW_SUPPORT)
       stream_module_tensorflow.h
       stream_module_tensorflow.inl)
 endif (TENSORFLOW_SUPPORT)
+if (LIBTORCH_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_module_libtorch.cpp
+      stream_module_libtorch.h
+      stream_module_libtorch.inl)
+endif (LIBTORCH_SUPPORT)
 
 # Include dir for installed targets
 #set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
@@ -78,11 +90,11 @@ add_dependencies (${PROJECT_NAME}_MachineLearning ${PROJECT_NAME})
 #if (TENSORFLOW_SUPPORT)
 # target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC ${tensorflow_LIBRARIES})
 #endif (TENSORFLOW_SUPPORT)
+#if (LIBTORCH_SUPPORT)
+# target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC ${LIBTORCH_LIBRARIES})
+#endif (LIBTORCH_SUPPORT)
 target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC Common)
 target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC ${PROJECT_NAME})
-
-#set_target_properties (${PROJECT_NAME}_MachineLearning PROPERTIES DEFINE_SYMBOL STREAM_DB_BUILD_DLL)
-#set_target_properties (${PROJECT_NAME}_MachineLearning PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_MachineLearning
@@ -90,7 +102,6 @@ export (TARGETS ${PROJECT_NAME}_MachineLearning
 
 ############### install files ################
 set (source_files
-#     stream_db_exports.h
      stream_module_ml_common.h
      stream_module_ml_defines.h
      stream_module_ml_tools.h)
@@ -100,6 +111,12 @@ if (TENSORFLOW_SUPPORT)
       stream_module_tensorflow.h
       stream_module_tensorflow.inl)
 endif (TENSORFLOW_SUPPORT)
+if (LIBTORCH_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_module_libtorch.h
+      stream_module_libtorch.inl)
+endif (LIBTORCH_SUPPORT)
 install (FILES
          ${source_files}
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"

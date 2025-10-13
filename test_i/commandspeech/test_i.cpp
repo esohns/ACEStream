@@ -1141,7 +1141,7 @@ do_work (
       istream_control_p = &directshow_stream;
       directshow_stream_configuration.renderer =
         (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_DIRECTSHOW
-                                 : STREAM_DEVICE_RENDERER_WAVEOUT);
+                                 : STREAM_DEV_AUDIO_DEFAULT_RENDERER);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2315,11 +2315,11 @@ ACE_TMAIN (int argc_in,
       directshow_configuration.GTKConfiguration.eventHooks.initHook =
         idle_initialize_UI_cb;
       directshow_configuration.GTKConfiguration.definition = &gtk_ui_definition;
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
       if (!UI_CSS_file.empty ())
         directshow_configuration.GTKConfiguration.CSSProviders[UI_CSS_file] =
           NULL;
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
       gtk_configuration_p = &directshow_configuration.GTKConfiguration;
 #endif // GTK_SUPPORT
       cb_data_base_p = &directshow_ui_cb_data;
@@ -2343,11 +2343,11 @@ ACE_TMAIN (int argc_in,
         idle_initialize_UI_cb;
       mediafoundation_configuration.GTKConfiguration.definition =
         &gtk_ui_definition;
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
       if (!UI_CSS_file.empty ())
         mediafoundation_configuration.GTKConfiguration.CSSProviders[UI_CSS_file] =
           NULL;
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
       gtk_configuration_p = &mediafoundation_configuration.GTKConfiguration;
 #endif // GTK_SUPPORT
       cb_data_base_p = &mediafoundation_ui_cb_data;
