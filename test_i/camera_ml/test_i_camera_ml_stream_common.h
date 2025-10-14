@@ -65,6 +65,8 @@ extern "C"
 #include "test_i_common.h"
 #include "test_i_configuration.h"
 
+#include "test_i_camera_ml_defines.h"
+
 // forward declarations
 template <typename DataType,
           typename SessionDataType>
@@ -531,13 +533,10 @@ struct Stream_CameraML_DirectShow_StreamState
 {
   Stream_CameraML_DirectShow_StreamState ()
    : Stream_State ()
-   , sessionData (NULL)
    , userData (NULL)
   {}
 
-  Stream_CameraML_DirectShow_SessionData* sessionData;
-
-  struct Stream_UserData*        userData;
+  struct Stream_UserData* userData;
 };
 
 struct Stream_CameraML_MediaFoundation_StreamState
@@ -545,13 +544,10 @@ struct Stream_CameraML_MediaFoundation_StreamState
 {
   Stream_CameraML_MediaFoundation_StreamState ()
    : Stream_State ()
-   , sessionData (NULL)
    , userData (NULL)
   {}
 
-  Stream_CameraML_MediaFoundation_SessionData* sessionData;
-
-  struct Stream_UserData*             userData;
+  struct Stream_UserData* userData;
 };
 #else
 struct Stream_CameraML_StreamState
@@ -559,10 +555,8 @@ struct Stream_CameraML_StreamState
 {
   Stream_CameraML_StreamState ()
    : Stream_State ()
-   , sessionData (NULL)
   {}
 
-  Stream_CameraML_V4L_SessionData* sessionData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -571,11 +565,13 @@ struct Stream_CameraML_StreamConfiguration
 {
   Stream_CameraML_StreamConfiguration ()
    : Stream_Configuration ()
+   , backend (TEST_I_CAMERA_ML_DEFAULT_ML_BACKEND)
    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_INVALID)
   {
     printFinalReport = true;
   }
 
+  enum Stream_MachineLearning_BackendType backend;
   enum Stream_Visualization_VideoRenderer renderer;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

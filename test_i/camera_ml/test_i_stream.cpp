@@ -34,6 +34,7 @@
 #include "stream_dev_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "stream_module_ml_common.h"
 #include "stream_module_ml_defines.h"
 
 #include "stream_stat_defines.h"
@@ -69,6 +70,10 @@ Stream_CameraML_DirectShow_Stream::Stream_CameraML_DirectShow_Stream ()
  , tensorflow_cc_ (this,
                    ACE_TEXT_ALWAYS_CHAR (MODULE_ML_TENSORFLOW_DEFAULT_NAME_STRING))
 #endif // TENSORFLOW_CC_SUPPORT
+#if defined (LIBTORCH_SUPPORT)
+ , libtorch_ (this,
+              ACE_TEXT_ALWAYS_CHAR (MODULE_ML_LIBTORCH_DEFAULT_NAME_STRING))
+#endif // LIBTORCH_SUPPORT
  , convert_2 (this,
               ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
 #if defined (GTK_SUPPORT)
@@ -111,11 +116,34 @@ Stream_CameraML_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 #endif // FFMPEG_SUPPORT
   layout_in->append (&flip_, NULL, 0);
+
+  switch (inherited::configuration_->configuration_->backend)
+  {
+    case STREAM_ML_BACKEND_TENSORFLOW:
+#if defined (TENSORFLOW_SUPPORT)
+      layout_in->append (&tensorflow_, NULL, 0);
+#endif // TENSORFLOW_SUPPORT
+      break;
+    case STREAM_ML_BACKEND_TENSORFLOW_CC:
 #if defined (TENSORFLOW_CC_SUPPORT)
-  layout_in->append (&tensorflow_cc_, NULL, 0);
-#elif defined (TENSORFLOW_SUPPORT)
-  layout_in->append (&tensorflow_, NULL, 0);
-#endif // TENSORFLOW_CC_SUPPORT || TENSORFLOW_SUPPORT
+      layout_in->append (&tensorflow_cc_, NULL, 0);
+#endif // TENSORFLOW_CC_SUPPORT
+      break;
+    case STREAM_ML_BACKEND_LIBTORCH:
+#if defined (LIBTORCH_SUPPORT)
+      layout_in->append (&libtorch_, NULL, 0);
+#endif // LIBTORCH_SUPPORT
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown ML backend (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->backend));
+      return false;
+    }
+  } // end SWITCH
+
   switch (inherited::configuration_->configuration_->renderer)
   {
 #if defined (GTK_SUPPORT)

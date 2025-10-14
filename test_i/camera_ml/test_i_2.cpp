@@ -200,7 +200,7 @@ do_print_usage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-p          : program mode [")
-            << STREAM_CAMERA_ML_PROGRAMMODE_FACE
+            << STREAM_CAMERA_ML_PROGRAMMODE_MP_FACE
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
@@ -286,7 +286,7 @@ do_process_arguments (int argc_in,
   renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND;
 #endif // ACE_WIN32 || ACE_WIN64
   traceInformation_out = false;
-  mode_out = STREAM_CAMERA_ML_PROGRAMMODE_FACE;
+  mode_out = STREAM_CAMERA_ML_PROGRAMMODE_MP_FACE;
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:lo:p:tv");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -979,7 +979,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 
   switch (mode_in)
   {
-    case STREAM_CAMERA_ML_PROGRAMMODE_FACE:
+    case STREAM_CAMERA_ML_PROGRAMMODE_MP_FACE:
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       switch (mediaFramework_in)
@@ -1016,7 +1016,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
       break;
     }
-    case STREAM_CAMERA_ML_PROGRAMMODE_HANDS:
+    case STREAM_CAMERA_ML_PROGRAMMODE_MP_HANDS:
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       switch (mediaFramework_in)
@@ -1567,7 +1567,7 @@ ACE_TMAIN (int argc_in,
     Common_UI_Tools::getDefaultDisplay ();
   bool trace_information = false;
   enum Stream_CameraML_ProgramMode program_mode_e =
-    STREAM_CAMERA_ML_PROGRAMMODE_FACE;
+    STREAM_CAMERA_ML_PROGRAMMODE_MP_FACE;
   ACE_Sig_Set signal_set (false); // fill ?
   ACE_Sig_Set ignored_signal_set (false); // fill ?
   Common_SignalActions_t previous_signal_actions;
@@ -1694,8 +1694,8 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
       return EXIT_SUCCESS;
     }
-    case STREAM_CAMERA_ML_PROGRAMMODE_FACE:
-    case STREAM_CAMERA_ML_PROGRAMMODE_HANDS:
+    case STREAM_CAMERA_ML_PROGRAMMODE_MP_FACE:
+    case STREAM_CAMERA_ML_PROGRAMMODE_MP_HANDS:
       break;
     default:
     {

@@ -18,52 +18,49 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_LIBTORCH_H
-#define STREAM_MODULE_LIBTORCH_H
-
-#undef slots
-#undef N_
-#include "torch/torch.h"
+#ifndef TEST_I_CAMERA_ML_MODULE_LIBTORCH_H
+#define TEST_I_CAMERA_ML_MODULE_LIBTORCH_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_time_common.h"
+#include "common_image_common.h"
 
 #include "stream_common.h"
-#include "stream_task_base_synch.h"
 
-extern const char libacestream_default_ml_libtorch_module_name_string[];
+#include "stream_lib_mediatype_converter.h"
+
+#include "stream_module_libtorch.h"
 
 template <typename ConfigurationType,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
-class Stream_Module_Libtorch_T
- : public Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
-                                 Common_TimePolicy_t,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData>
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename MediaType>
+class Test_I_CameraML_Module_Libtorch_T
+ : public Stream_Module_Libtorch_T<ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
-  typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
-                                 Common_TimePolicy_t,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
+  typedef Stream_Module_Libtorch_T<ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  Stream_Module_Libtorch_T (typename inherited::ISTREAM_T*); // stream handle
-  virtual ~Stream_Module_Libtorch_T ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  typedef typename inherited::ISTREAM_T ISTREAM_T;
+  Test_I_CameraML_Module_Libtorch_T (ISTREAM_T*); // stream handle
+#else
+  Test_I_CameraML_Module_Libtorch_T (typename inherited::ISTREAM_T*); // stream handle
+#endif // ACE_WIN32 || ACE_WIN64
+  inline virtual ~Test_I_CameraML_Module_Libtorch_T () {}
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -72,23 +69,24 @@ class Stream_Module_Libtorch_T
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
                                   bool&);            // return value: pass message downstream ?
-  inline virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                            bool&) {}             // return value: pass message downstream ?
-
- protected:
-  torch::Device      device_;
-  torch::jit::Module module_;
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Libtorch_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Libtorch_T (const Stream_Module_Libtorch_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Libtorch_T& operator= (const Stream_Module_Libtorch_T&))
-};
+  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_Libtorch_T ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_Libtorch_T (const Test_I_CameraML_Module_Libtorch_T&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_Libtorch_T& operator= (const Test_I_CameraML_Module_Libtorch_T&))
 
+  std::vector<std::string>   labels_;
+  Common_Image_Resolution_t  resolution_;
+
+  bool loadImageNetLabels (const std::string&,
+                           std::vector<std::string>&);
+};
 
 //////////////////////////////////////////
 
 // include template definition
-#include "stream_module_libtorch.inl"
+#include "test_i_camera_ml_module_libtorch.inl"
 
 #endif

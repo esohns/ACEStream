@@ -44,7 +44,6 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -180,7 +179,7 @@ do_print_usage (const std::string& programName_in)
   // *NOTE*: model file needs to be relative to cwd
   path = ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
   path += ACE_DIRECTORY_SEPARATOR_STR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE);
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_MODEL_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [PATH]   : model file [\"")
             << path
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
@@ -202,7 +201,7 @@ do_print_usage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-p          : program mode [")
-            << STREAM_CAMERA_ML_PROGRAMMODE_NORMAL
+            << STREAM_CAMERA_ML_PROGRAMMODE_TENSORFLOW
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
@@ -274,7 +273,7 @@ do_process_arguments (int argc_in,
   // *NOTE*: model file needs to be relative to cwd
   modelFile_out = ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
   modelFile_out += ACE_DIRECTORY_SEPARATOR_STR_A;
-  modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE);
+  modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_MODEL_FILE);
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -286,7 +285,7 @@ do_process_arguments (int argc_in,
   renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND;
 #endif // ACE_WIN32 || ACE_WIN64
   traceInformation_out = false;
-  mode_out = STREAM_CAMERA_ML_PROGRAMMODE_NORMAL;
+  mode_out = STREAM_CAMERA_ML_PROGRAMMODE_TENSORFLOW;
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:f:lo:p:tv");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -978,10 +977,6 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   Test_I_SignalHandler signal_handler;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Stream_CameraML_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
-  //Stream_CameraML_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
-  //Stream_CameraML_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-  //Stream_CameraML_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1021,8 +1016,12 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
       directshow_modulehandler_configuration.labelFile +=
         ACE_DIRECTORY_SEPARATOR_CHAR_A;
-      directshow_modulehandler_configuration.labelFile +=
-        ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LABEL_FILE);
+      if (mode_in == STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH)
+        directshow_modulehandler_configuration.labelFile +=
+          ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LT_LABEL_FILE);
+      else
+        directshow_modulehandler_configuration.labelFile +=
+          ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_LABEL_FILE);
       directshow_modulehandler_configuration.model = modelFile_in;
 
       //if (statisticReportingInterval_in)
@@ -1116,6 +1115,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_stream_configuration.messageAllocator =
           &directshow_message_allocator;
+      if (mode_in == STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH)
+        directshow_stream_configuration.backend = STREAM_ML_BACKEND_LIBTORCH;
       directshow_stream_configuration.renderer = renderer_in;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
@@ -1511,7 +1512,7 @@ ACE_TMAIN (int argc_in,
   std::string model_file =
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
   model_file += ACE_DIRECTORY_SEPARATOR_STR_A;
-  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE);
+  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_MODEL_FILE);
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
@@ -1527,7 +1528,7 @@ ACE_TMAIN (int argc_in,
     Common_UI_Tools::getDefaultDisplay ();
   bool trace_information = false;
   enum Stream_CameraML_ProgramMode program_mode_e =
-      STREAM_CAMERA_ML_PROGRAMMODE_NORMAL;
+      STREAM_CAMERA_ML_PROGRAMMODE_TENSORFLOW;
   ACE_Sig_Set signal_set (false); // fill ?
   ACE_Sig_Set ignored_signal_set (false); // fill ?
   Common_SignalActions_t previous_signal_actions;
@@ -1654,7 +1655,8 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
       return EXIT_SUCCESS;
     }
-    case STREAM_CAMERA_ML_PROGRAMMODE_NORMAL:
+    case STREAM_CAMERA_ML_PROGRAMMODE_TENSORFLOW:
+    case STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH:
       break;
     default:
     {

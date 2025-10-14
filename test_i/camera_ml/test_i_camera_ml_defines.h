@@ -21,8 +21,13 @@
 #ifndef TEST_I_CAMERA_ML_DEFINES_H
 #define TEST_I_CAMERA_ML_DEFINES_H
 
-#define TEST_I_CAMERA_ML_DEFAULT_MODEL_FILE            "model.pb"
-#define TEST_I_CAMERA_ML_DEFAULT_LABEL_FILE            "labels_map.pbtxt"
+#define TEST_I_CAMERA_ML_DEFAULT_ML_BACKEND            STREAM_ML_BACKEND_TENSORFLOW
+
+// tensorflow
+#define TEST_I_CAMERA_ML_DEFAULT_TF_MODEL_FILE         "model.pb"
+#define TEST_I_CAMERA_ML_DEFAULT_TF_LABEL_FILE         "labels_map.pbtxt"
+// libtorch
+#define TEST_I_CAMERA_ML_DEFAULT_LT_LABEL_FILE         "labels_resnet18.txt"
 
 #define TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I      100
 #define TEST_I_CAMERA_ML_DEFAULT_THRESHOLD_SCORE_F     0.5f

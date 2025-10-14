@@ -8,6 +8,7 @@ enum Stream_MachineLearning_BackendType : int
 #endif // __llvm__
 {
   STREAM_ML_BACKEND_TENSORFLOW = 0,
+  STREAM_ML_BACKEND_TENSORFLOW_CC,
   STREAM_ML_BACKEND_LIBTORCH,
   ////////////////////////////////////////
   STREAM_ML_BACKEND_MAX,

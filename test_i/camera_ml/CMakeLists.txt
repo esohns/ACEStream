@@ -18,6 +18,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../s
 include (opencv)
 
 include (tensorflow)
+include (libtorch)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis/scripts")
 include (wayland)
@@ -29,15 +30,14 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts
 include (mediapipe)
 include (box2d)
 
-if (UNIX)
-elseif (WIN32)
+if (WIN32)
 # set (CMAKE_CXX_STANDARD 17)
  if (MSVC)
-  if (TENSORFLOW_CC_SUPPORT)
+  if (TENSORFLOW_CC_SUPPORT OR LIBTORCH_SUPPORT)
    add_compile_options ("/std:c++17")
-  endif (TENSORFLOW_CC_SUPPORT)
+  endif (TENSORFLOW_CC_SUPPORT OR LIBTORCH_SUPPORT)
  endif (MSVC)
-endif ()
+endif (WIN32)
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
@@ -51,6 +51,9 @@ endif (OPENCV_SUPPORT)
 #if (TENSORFLOW_CC_SUPPORT)
 # include_directories (${tensorflow_cc_INCLUDE_DIRS})
 #endif (TENSORFLOW_CC_SUPPORT)
+#if (LIBTORCH_SUPPORT)
+# include_directories (${LIBTORCH_INCLUDE_DIRS})
+#endif (LIBTORCH_SUPPORT)
 if (UNIX)
  include_directories (${PKG_V4L_INCLUDE_DIRS})
 
@@ -113,6 +116,13 @@ if (TENSORFLOW_SUPPORT OR TENSORFLOW_CC_SUPPORT)
       test_i_camera_ml_module_tensorflow.h
       test_i_camera_ml_module_tensorflow.inl)
 endif (TENSORFLOW_SUPPORT OR TENSORFLOW_CC_SUPPORT)
+if (LIBTORCH_SUPPORT)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
+      test_i_camera_ml_module_libtorch.cpp
+      test_i_camera_ml_module_libtorch.h
+      test_i_camera_ml_module_libtorch.inl)
+endif (LIBTORCH_SUPPORT)
 if (OLC_PGE_SUPPORT)
  set (${EXECUTABLE}_EXE_SRCS
       ${${EXECUTABLE}_EXE_SRCS}
@@ -235,6 +245,9 @@ endif (TENSORFLOW_SUPPORT)
 if (TENSORFLOW_CC_SUPPORT)
  target_include_directories (${EXECUTABLE} PUBLIC ${tensorflow_cc_INCLUDE_DIRS})
 endif (TENSORFLOW_CC_SUPPORT)
+if (LIBTORCH_SUPPORT)
+ target_include_directories (${EXECUTABLE} PUBLIC ${LIBTORCH_INCLUDE_DIRS})
+endif (LIBTORCH_SUPPORT)
 
 if (MEDIAPIPE_SUPPORT)
  add_executable (${EXECUTABLE_2}
@@ -306,14 +319,18 @@ if (UNIX)
  elseif (TENSORFLOW_SUPPORT)
   target_link_libraries (${EXECUTABLE} PUBLIC ${tensorflow_LIBRARIES})
  endif ()
-else ()
+elseif (WIN32)
  if (TENSORFLOW_SUPPORT)
   target_link_libraries (${EXECUTABLE} PUBLIC ${tensorflow_LIBRARIES})
  endif (TENSORFLOW_SUPPORT)
  if (TENSORFLOW_CC_SUPPORT)
   target_link_libraries (${EXECUTABLE} PUBLIC ${tensorflow_cc_LIBRARIES})
  endif (TENSORFLOW_CC_SUPPORT)
-endif (UNIX)
+endif ()
+if (LIBTORCH_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${LIBTORCH_LIBRARIES})
+endif (LIBTORCH_SUPPORT)
+
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 # target_link_libraries (${EXECUTABLE} PUBLIC stdc++fs)
@@ -505,6 +522,9 @@ elseif (WIN32)
  if (TENSORFLOW_CC_SUPPORT)
   file (TO_CMAKE_PATH "${tensorflow_cc_LIB_DIR}" TENSORFLOW_CC_PATH)
  endif (TENSORFLOW_CC_SUPPORT)
+ if (LIBTORCH_SUPPORT)
+  file (TO_CMAKE_PATH "${LIBTORCH_LIB_DIR}" LIBTORCH_PATH)
+ endif (LIBTORCH_SUPPORT)
  if (GTK_SUPPORT)
   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
  endif (GTK_SUPPORT)
@@ -519,6 +539,7 @@ elseif (WIN32)
                            ${OPENCV_PATH}
                            ${TENSORFLOW_PATH}
                            ${TENSORFLOW_CC_PATH}
+                           ${LIBTORCH_PATH}
                            ${ACE_LIBRARY_PATH})
  if (GTK_SUPPORT)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}

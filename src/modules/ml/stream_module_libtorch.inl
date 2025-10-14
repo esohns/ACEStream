@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "torch/script.h"
+
 #include "ace/Log_Msg.h"
 
 #include "stream_defines.h"
@@ -33,13 +35,13 @@ Stream_Module_Libtorch_T<ConfigurationType,
                           SessionMessageType>::Stream_Module_Libtorch_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , device_ (torch::kCPU)
- , module_ (NULL)
+ , module_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Libtorch_T::Stream_Module_Libtorch_T"));
 
   if (torch::cuda::is_available ())
   {
-_   device_ = torch::Device (torch::kCUDA);
+    device_ = torch::Device (torch::kCUDA);
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: CUDA is available, using GPU\n"),
                 inherited::mod_->name ()));
@@ -64,8 +66,8 @@ Stream_Module_Libtorch_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Libtorch_T::~Stream_Module_Libtorch_T"));
 
-  if (module_)
-    delete module_;
+  //if (module_)
+  //  delete module_;
 }
 
 template <typename ConfigurationType,
@@ -83,22 +85,25 @@ Stream_Module_Libtorch_T<ConfigurationType,
 
   if (inherited::isInitialized_)
   {
-    if (module_)
-    {
-      delete module_; module_ = NULL;
-    } // end IF
   } // end IF
 
-  module_ = torch::jit::load (configuration_in.model.c_str ());
-  if (unlikely (!module_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to load model (was: \"%s\"), aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (configuration_in.model.c_str ())));
-    return false;
-  } // end IF
-  module_->to (device_);
+  bool load_debug_files_b = false;
+#if defined (_DEBUG)
+  load_debug_files_b = true;
+#endif // _DEBUG
+
+  module_ = torch::jit::load (configuration_in.model.c_str (),
+                              device_,
+                              load_debug_files_b);
+  //if (unlikely (!module_))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to load model (was: \"%s\"), aborting\n"),
+  //              inherited::mod_->name (),
+  //              ACE_TEXT (configuration_in.model.c_str ())));
+  //  return false;
+  //} // end IF
+  //module_.to (device_);
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -118,7 +123,7 @@ Stream_Module_Libtorch_T<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Libtorch_T::handleDataMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (module_);
+  //ACE_ASSERT (module_);
 
   static int nFrames = 30; // i.e. recompute fps roughly every second of footage
   static int iFrame = 0;
@@ -138,8 +143,7 @@ Stream_Module_Libtorch_T<ConfigurationType,
   inputs.push_back (torch::ones ({1, 3, 224, 224}).to (device_));
 
   // execute the model and turn its output into a tensor
-  at::Tensor output = module_->forward (inputs).toTensor ();
-
+  at::Tensor output = module_.forward (inputs).toTensor ();
   std::cout << output.slice (/*dim=*/1, /*start=*/0, /*end=*/5) << std::endl;
 
   // step3b: draw fps

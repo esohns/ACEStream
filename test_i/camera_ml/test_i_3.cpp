@@ -281,7 +281,7 @@ do_process_arguments (int argc_in,
   renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND;
 #endif // ACE_WIN32 || ACE_WIN64
   traceInformation_out = false;
-  mode_out = STREAM_CAMERA_ML_PROGRAMMODE_NORMAL;
+  mode_out = STREAM_CAMERA_ML_PROGRAMMODE_MP_HANDS;
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:lo:tv");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1427,7 +1427,7 @@ ACE_TMAIN (int argc_in,
     Common_UI_Tools::getDefaultDisplay ();
   bool trace_information = false;
   enum Stream_CameraML_ProgramMode program_mode_e =
-    STREAM_CAMERA_ML_PROGRAMMODE_NORMAL;
+    STREAM_CAMERA_ML_PROGRAMMODE_MP_HANDS;
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
@@ -1525,7 +1525,7 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
       return EXIT_SUCCESS;
     }
-    case STREAM_CAMERA_ML_PROGRAMMODE_NORMAL:
+    case STREAM_CAMERA_ML_PROGRAMMODE_MP_HANDS:
       break;
     default:
     {

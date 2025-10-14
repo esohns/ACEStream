@@ -113,6 +113,9 @@ class Stream_CameraML_DirectShow_Stream
 #if defined (TENSORFLOW_CC_SUPPORT)
   Stream_CameraML_DirectShow_Tensorflow_2_Module       tensorflow_cc_;
 #endif // TENSORFLOW_CC_SUPPORT
+#if defined (LIBTORCH_SUPPORT)
+  Stream_CameraML_DirectShow_Libtorch_Module           libtorch_;
+#endif // LIBTORCH_SUPPORT
   Stream_CameraML_DirectShow_LibAVConvert_Module       convert_2; // --> BGRA (Direct3D)
 #if defined (GTK_SUPPORT)
   Stream_CameraML_DirectShow_GTK_Display_Module        GTKDisplay_;

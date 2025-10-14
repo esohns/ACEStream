@@ -75,12 +75,10 @@
 #if defined (TENSORFLOW_SUPPORT) || defined (TENSORFLOW_CC_SUPPORT)
 #include "test_i_camera_ml_module_tensorflow.h"
 #endif // TENSORFLOW_SUPPORT || TENSORFLOW_CC_SUPPORT
-// #if defined (MEDIAPIPE_SUPPORT)
-// #include "test_i_camera_ml_module_mediapipe.h"
-// #if defined (BOX2D_SUPPORT) && defined (OLC_PGE_SUPPORT)
-// #include "test_i_camera_ml_module_mediapipe_3.h"
-// #endif // BOX2D_SUPPORT && OLC_PGE_SUPPORT
-// #endif // MEDIAPIPE_SUPPORT
+#if defined (LIBTORCH_SUPPORT)
+#include "test_i_camera_ml_module_libtorch.h"
+#endif // LIBTORCH_SUPPORT
+
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
@@ -507,6 +505,14 @@ typedef Test_I_CameraML_Module_Tensorflow_2<struct Stream_CameraML_MediaFoundati
                                             Stream_CameraML_MediaFoundation_SessionMessage_t,
                                             IMFMediaType*> Stream_CameraML_MediaFoundation_Tensorflow_2;
 #endif // TENSORFLOW_CC_SUPPORT
+
+#if defined (LIBTORCH_SUPPORT)
+typedef Test_I_CameraML_Module_Libtorch_T<struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration,
+                                          Stream_ControlMessage_t,
+                                          Stream_CameraML_DirectShow_Message_t,
+                                          Stream_CameraML_DirectShow_SessionMessage_t,
+                                          struct _AMMediaType> Stream_CameraML_DirectShow_Libtorch;
+#endif // LIBTORCH_SUPPORT
 #else
 //typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
 //                                       Common_TimePolicy_t,
@@ -828,6 +834,15 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_MediaFoundation_SessionData,      
                               Stream_INotify_t,                                                  // stream notification interface type
                               Stream_CameraML_MediaFoundation_Tensorflow_2);                       // writer type
 #endif // TENSORFLOW_CC_SUPPORT
+
+#if defined (LIBTORCH_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                               // session event type
+                              struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_ml_libtorch_module_name_string,
+                              Stream_INotify_t,                                             // stream notification interface type
+                              Stream_CameraML_DirectShow_Libtorch);                         // writer type
+#endif // LIBTORCH_SUPPORT
 #else
 //DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                           // session data type
 //                              enum Stream_SessionMessageType,                       // session event type
