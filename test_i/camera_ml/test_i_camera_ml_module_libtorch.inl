@@ -149,17 +149,17 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
 
   // step1: preprocess image matrix
   cv::Mat frame_matrix_normalized;
-  cv::resize (frame_matrix, frame_matrix_normalized, cv::Size (224, 224), 0, 0, cv::INTER_LINEAR);
-  cv::cvtColor (frame_matrix_normalized, frame_matrix_normalized, cv::COLOR_BGR2RGB);
+  //cv::resize (frame_matrix, frame_matrix_normalized, cv::Size (224, 224), 0, 0, cv::INTER_LINEAR);
+  cv::cvtColor (frame_matrix, frame_matrix_normalized, cv::COLOR_BGR2RGB);
   frame_matrix_normalized.convertTo (frame_matrix_normalized, CV_32FC3, 1.0f / 255.0f);
 
   // step2: create input tensor from matrix
   torch::Tensor tensor_image =
     torch::from_blob (frame_matrix_normalized.data, {1, frame_matrix_normalized.rows, frame_matrix_normalized.cols, 3}, torch::kFloat);
   tensor_image = tensor_image.permute ({0, 3, 1, 2});
-  tensor_image[0][0] = tensor_image[0][0].sub_ (0.485).div_ (0.229);
-  tensor_image[0][1] = tensor_image[0][1].sub_ (0.456).div_ (0.224);
-  tensor_image[0][2] = tensor_image[0][2].sub_ (0.406).div_ (0.225);
+  tensor_image[0][0] = tensor_image[0][0].sub_ (0.485f).div_ (0.229f);
+  tensor_image[0][1] = tensor_image[0][1].sub_ (0.456f).div_ (0.224f);
+  tensor_image[0][2] = tensor_image[0][2].sub_ (0.406f).div_ (0.225f);
   // to GPU ?
   tensor_image = tensor_image.to (inherited::device_);
 
@@ -187,7 +187,7 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
   converter << fps;
   cv::putText (frame_matrix,
                ACE_TEXT_ALWAYS_CHAR ("fps: ") + converter.str ().substr (0, 5),
-               cv::Point (3, frame_matrix.rows - 3),
+               cv::Point (15, frame_matrix.rows - 15),
                cv::FONT_HERSHEY_SIMPLEX,
                0.5,
                cv::Scalar (255, 255, 255));

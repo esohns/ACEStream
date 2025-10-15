@@ -113,27 +113,35 @@ Stream_CameraML_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //modules_out.push_back (&statisticReport_);
 #if defined (FFMPEG_SUPPORT)
   layout_in->append (&convert_, NULL, 0);
-  //layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 #endif // FFMPEG_SUPPORT
   layout_in->append (&flip_, NULL, 0);
 
   switch (inherited::configuration_->configuration_->backend)
   {
     case STREAM_ML_BACKEND_TENSORFLOW:
+    {
 #if defined (TENSORFLOW_SUPPORT)
       layout_in->append (&tensorflow_, NULL, 0);
 #endif // TENSORFLOW_SUPPORT
       break;
+    }
     case STREAM_ML_BACKEND_TENSORFLOW_CC:
+    {
 #if defined (TENSORFLOW_CC_SUPPORT)
       layout_in->append (&tensorflow_cc_, NULL, 0);
 #endif // TENSORFLOW_CC_SUPPORT
       break;
+    }
     case STREAM_ML_BACKEND_LIBTORCH:
+    {
+#if defined (FFMPEG_SUPPORT)
+      layout_in->append (&resize_, NULL, 0); // output is 224,224 (ResNet18)
+#endif // FFMPEG_SUPPORT
 #if defined (LIBTORCH_SUPPORT)
       layout_in->append (&libtorch_, NULL, 0);
 #endif // LIBTORCH_SUPPORT
       break;
+    }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
