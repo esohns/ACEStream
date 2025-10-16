@@ -102,13 +102,14 @@ class Test_I_CameraML_Module_MediaPipe_3
     {
       b2BodyDef body_def;
       body_def.allowSleep = false;
+      //body_def.bullet = true;
       body_def.type = b2_dynamicBody;
       body_def.position.Set (Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_X_OFFSET, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_X_OFFSET),
                              -halfDimension_in + 20.0f);
       body_def.angularVelocity =
         Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL);
       body_def.linearVelocity.Set (Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL),
-                                   Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL));
+                                   Common_Tools::getRandomNumber (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL, 6.0f * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL));
       body_ = world_in->CreateBody (&body_def);
       ACE_ASSERT (body_);
       b2CircleShape shape;
@@ -193,6 +194,8 @@ class Test_I_CameraML_Module_MediaPipe_3
   std::vector<ball*>        balls_;
   b2Vec2                    positionThumb_;
   b2Vec2                    positionIndex_;
+
+  //olc::Sprite               sprite_; // for rendering camera image
 };
 
 // include template definition

@@ -75,6 +75,7 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
  , balls_ ()
  , positionThumb_ (b2Vec2_zero)
  , positionIndex_ (b2Vec2_zero)
+ //, sprite_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::Test_I_CameraML_Module_MediaPipe_3"));
 
@@ -89,7 +90,7 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 
   b2Vec2 gravity (0.0f, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_GRAVITY);
   world_ = new b2World (gravity);
-  world_->SetAllowSleeping (true);
+  world_->SetAllowSleeping (false);
   world_->SetDebugDraw (this);
 }
 
@@ -177,33 +178,32 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
                                    MediaType>::DrawPolygon (const b2Vec2* vertices, int32 vertexCount, const b2Color& color)
 {
   float x1, x2, y1, y2;
+  static float max_x_f = static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1);
+  static float max_y_f = static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1);
 
-  for (int32 i = 0; i < vertexCount; ++i)
+  for (int32 i = 0; i < vertexCount - 1; ++i)
   {
-    if (i == vertexCount - 1)
-      break;
-
     x1 =
-      Common_GL_Tools::map (vertices[i].x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1));
+      Common_GL_Tools::map (vertices[i].x, -halfDimension_, halfDimension_, 0.0f, max_x_f);
     y1 =
-      Common_GL_Tools::map (vertices[i].y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1));
+      Common_GL_Tools::map (vertices[i].y, -halfDimension_, halfDimension_, 0.0f, max_y_f);
     x2 =
-      Common_GL_Tools::map (vertices[i + 1].x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1));
+      Common_GL_Tools::map (vertices[i + 1].x, -halfDimension_, halfDimension_, 0.0f, max_x_f);
     y2 =
-      Common_GL_Tools::map (vertices[i + 1].y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1));
+      Common_GL_Tools::map (vertices[i + 1].y, -halfDimension_, halfDimension_, 0.0f, max_y_f);
     olc::PixelGameEngine::DrawLine (static_cast<int32_t> (x1), static_cast<int32_t> (y1),
                                     static_cast<int32_t> (x2), static_cast<int32_t> (y2),
                                     {static_cast<uint8_t> (color.r * 255.0f), static_cast<uint8_t> (color.g * 255.0f), static_cast<uint8_t> (color.b * 255.0f), 255},
                                     0xFFFFFFFF);
   } // end FOR
   x1 =
-    Common_GL_Tools::map (vertices[vertexCount - 1].x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1));
+    Common_GL_Tools::map (vertices[vertexCount - 1].x, -halfDimension_, halfDimension_, 0.0f, max_x_f);
   y1 =
-    Common_GL_Tools::map (vertices[vertexCount - 1].y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1));
+    Common_GL_Tools::map (vertices[vertexCount - 1].y, -halfDimension_, halfDimension_, 0.0f, max_y_f);
   x2 =
-    Common_GL_Tools::map (vertices[0].x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1));
+    Common_GL_Tools::map (vertices[0].x, -halfDimension_, halfDimension_, 0.0f, max_x_f);
   y2 =
-    Common_GL_Tools::map (vertices[0].y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1));
+    Common_GL_Tools::map (vertices[0].y, -halfDimension_, halfDimension_, 0.0f, max_y_f);
   olc::PixelGameEngine::DrawLine (static_cast<int32_t> (x1), static_cast<int32_t> (y1),
                                   static_cast<int32_t> (x2), static_cast<int32_t> (y2),
                                   {static_cast<uint8_t> (color.r * 255.0f), static_cast<uint8_t> (color.g * 255.0f), static_cast<uint8_t> (color.b * 255.0f), 255},
@@ -239,10 +239,13 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
                                    MediaType>::DrawCircle (const b2Vec2& center, float32 radius, const b2Color& color)
 {
   float x, y;
+  static float max_x_f = static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1);
+  static float max_y_f = static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1);
+
   x =
-    Common_GL_Tools::map (center.x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth() - 1));
+    Common_GL_Tools::map (center.x, -halfDimension_, halfDimension_, 0.0f, max_x_f);
   y =
-    Common_GL_Tools::map (center.y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1));
+    Common_GL_Tools::map (center.y, -halfDimension_, halfDimension_, 0.0f, max_y_f);
   olc::PixelGameEngine::DrawCircle (static_cast<int32_t> (x), static_cast<int32_t> (y),
                                     static_cast<int32_t> (radius),
                                     {static_cast<uint8_t> (color.r * 255.0f), static_cast<uint8_t> (color.g * 255.0f), static_cast<uint8_t> (color.b * 255.0f), 255},
@@ -262,10 +265,13 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
                                    MediaType>::DrawSolidCircle (const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color)
 {
   float x, y;
+  static float max_x_f = static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1);
+  static float max_y_f = static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1);
+
   x =
-    Common_GL_Tools::map (center.x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth() - 1));
+    Common_GL_Tools::map (center.x, -halfDimension_, halfDimension_, 0.0f, max_x_f);
   y =
-    Common_GL_Tools::map (center.y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1));
+    Common_GL_Tools::map (center.y, -halfDimension_, halfDimension_, 0.0f, max_y_f);
   olc::PixelGameEngine::FillCircle (static_cast<int32_t> (x), static_cast<int32_t> (y),
                                     static_cast<int32_t> (radius),
                                     {static_cast<uint8_t> (color.r * 255.0f), static_cast<uint8_t> (color.g * 255.0f), static_cast<uint8_t> (color.b * 255.0f), 255});
@@ -292,13 +298,15 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
                                    MediaType>::DrawParticles (const b2Vec2* centers, float32 radius, const b2ParticleColor* colors, int32 count)
 {
   float x, y;
+  static float max_x_f = static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1);
+  static float max_y_f = static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1);
 
   for (int32 i = 0; i < count; ++i)
   {
     x =
-      Common_GL_Tools::map (centers[i].x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth() - 1));
+      Common_GL_Tools::map (centers[i].x, -halfDimension_, halfDimension_, 0.0f, max_x_f);
     y =
-      Common_GL_Tools::map (centers[i].y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1));
+      Common_GL_Tools::map (centers[i].y, -halfDimension_, halfDimension_, 0.0f, max_y_f);
     olc::PixelGameEngine::DrawCircle (static_cast<int32_t> (x), static_cast<int32_t> (y),
                                       static_cast<int32_t> (radius),
                                       colors ? olc::Pixel (static_cast<uint8_t> (colors[i].r * 255.0f), static_cast<uint8_t> (colors[i].g * 255.0f), static_cast<uint8_t> (colors[i].b * 255.0f), 255) : olc::WHITE,
@@ -319,14 +327,17 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
                                    MediaType>::DrawSegment (const b2Vec2& p1, const b2Vec2& p2, const b2Color& color)
 {
   float x1, y1, x2, y2;
+  static float max_x_f = static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1);
+  static float max_y_f = static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1);
+
   x1 =
-    Common_GL_Tools::map (p1.x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth() - 1));
+    Common_GL_Tools::map (p1.x, -halfDimension_, halfDimension_, 0.0f, max_x_f);
   y1 =
-    Common_GL_Tools::map (p1.y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1));
+    Common_GL_Tools::map (p1.y, -halfDimension_, halfDimension_, 0.0f, max_y_f);
   x2 =
-    Common_GL_Tools::map (p2.x, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth() - 1));
+    Common_GL_Tools::map (p2.x, -halfDimension_, halfDimension_, 0.0f, max_x_f);
   y2 =
-    Common_GL_Tools::map (p2.y, -halfDimension_, halfDimension_, 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1));
+    Common_GL_Tools::map (p2.y, -halfDimension_, halfDimension_, 0.0f, max_y_f);
   olc::PixelGameEngine::DrawLine (static_cast<int32_t> (x1), static_cast<int32_t> (y1),
                                   static_cast<int32_t> (x2), static_cast<int32_t> (y2),
                                   {static_cast<uint8_t> (color.r * 255.0f), static_cast<uint8_t> (color.g * 255.0f), static_cast<uint8_t> (color.b * 255.0f), 255},
@@ -400,6 +411,9 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   // auto t0 = std::chrono::high_resolution_clock::now ();
 
   // feed RGB frame into MP graph (image data is COPIED internally by LibMP)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  //cv::cvtColor (frame_matrix, frame_matrix, cv::COLOR_BGR2RGB);
+#endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!graph_->Process (frame_matrix.data,
                                   frame_matrix.cols, frame_matrix.rows,
                                   mediapipe::ImageFormat::SRGB)))
@@ -429,6 +443,8 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   std::vector<std::vector<std::array<float, 3> > > normalized_landmarks =
     getLandmarks (graph_);
 
+  static float max_x_f = static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1);
+  static float max_y_f = static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1);
   size_t num_objs = normalized_landmarks.size ();
   for (int i = 0; i < static_cast<int> (num_objs); i++)
   {
@@ -443,9 +459,9 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
       if (j == 4 || j == 8) // thumb 'n index finger
       {
         x_translated_f =
-          Common_GL_Tools::map (static_cast<float> (x), 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1), -halfDimension_, halfDimension_);
+          Common_GL_Tools::map (static_cast<float> (x), 0.0f, max_x_f, -halfDimension_, halfDimension_);
         y_translated_f =
-          Common_GL_Tools::map (static_cast<float> (y), 0.0f, static_cast<float> (olc::PixelGameEngine::ScreenHeight() - 1), -halfDimension_, halfDimension_);
+          Common_GL_Tools::map (static_cast<float> (y), 0.0f, max_y_f, -halfDimension_, halfDimension_);
         if (j == 4)
           positionThumb_.Set (x_translated_f, y_translated_f);
         else
@@ -467,18 +483,17 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   //cv::putText (frame_matrix, converter.str ().substr (0, 5) + ACE_TEXT_ALWAYS_CHAR (" fps"),
   //             cv::Point (10, frame_matrix.rows - 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar (255, 255, 255));
 
-  // update frame data
+  // update frame data and draw frame
   uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   static int screen_width_i = inherited3::ScreenWidth (), screen_height_i = inherited3::ScreenHeight ();
-
   for (int y = 0; y < screen_height_i; y++)
     for (int x = 0; x < screen_width_i; x++)
     {
-      // draw image
       inherited3::Draw (x, y, olc::Pixel (data_p[0], data_p[1], data_p[2], 255U));
-
+      //sprite_.SetPixel (x, y, olc::Pixel (data_p[0], data_p[1], data_p[2], 255U));
       data_p += 3;
     } // end FOR
+  //inherited3::DrawSprite (0, 0, &sprite_, 1, olc::Sprite::NONE);
 }
 
 template <typename ConfigurationType,
@@ -642,6 +657,14 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 
   halfDimension_ =
     std::min (olc::PixelGameEngine::ScreenWidth (), olc::PixelGameEngine::ScreenHeight ()) / 2.0f;
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  sprite_.SetSize (resolution_.cx,
+//                   resolution_.cy);
+//#else
+//  sprite_.SetSize (resolution_.width,
+//                   resolution_.height);
+//#endif // ACE_WIN32 || ACE_WIN64
+
   initializeBox2d ();
 
   return true;
