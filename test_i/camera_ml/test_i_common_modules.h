@@ -539,6 +539,13 @@ typedef Test_I_CameraML_Module_Tensorflow_2<struct Stream_CameraML_V4L_ModuleHan
                                             struct Stream_MediaFramework_V4L_MediaType> Stream_CameraML_Tensorflow_2;
 #endif // TENSORFLOW_CC_SUPPORT
 
+#if defined (LIBTORCH_SUPPORT)
+typedef Test_I_CameraML_Module_Libtorch_T<struct Stream_CameraML_V4L_ModuleHandlerConfiguration,
+                                          Stream_ControlMessage_t,
+                                          Stream_CameraML_Message_t,
+                                          Stream_CameraML_SessionMessage_t,
+                                          struct Stream_MediaFramework_V4L_MediaType> Stream_CameraML_Libtorch;
+#endif // LIBTORCH_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 // #if defined (MEDIAPIPE_SUPPORT)
@@ -868,6 +875,15 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                  
                               Stream_INotify_t,                                      // stream notification interface type
                               Stream_CameraML_Tensorflow_2);                         // writer type
 #endif // TENSORFLOW_CC_SUPPORT
+
+#if defined (LIBTORCH_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                        // session event type
+                              struct Stream_CameraML_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_ml_libtorch_module_name_string,
+                              Stream_INotify_t,                                      // stream notification interface type
+                              Stream_CameraML_Libtorch);                             // writer type
+#endif // LIBTORCH_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 // #if defined (MEDIAPIPE_SUPPORT)

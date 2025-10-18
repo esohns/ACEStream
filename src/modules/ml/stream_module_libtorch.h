@@ -23,6 +23,7 @@
 
 #undef slots
 #undef N_
+#undef Bool
 #include "torch/torch.h"
 
 #include "ace/Global_Macros.h"

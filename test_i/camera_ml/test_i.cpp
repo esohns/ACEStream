@@ -970,6 +970,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #else
   struct Stream_CameraML_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   struct Stream_CameraML_V4L_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
+  struct Stream_CameraML_V4L_ModuleHandlerConfiguration modulehandler_configuration_2b; // resize
   struct Stream_CameraML_V4L_ModuleHandlerConfiguration modulehandler_configuration_3; // display
   struct Stream_CameraML_V4L_ModuleHandlerConfiguration modulehandler_configuration_4; // converter_2
   Stream_CameraML_EventHandler_t ui_event_handler;
@@ -1075,8 +1076,12 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   modulehandler_configuration.labelFile += ACE_DIRECTORY_SEPARATOR_STR;
   modulehandler_configuration.labelFile += COMMON_LOCATION_DATA_SUBDIRECTORY;
   modulehandler_configuration.labelFile += ACE_DIRECTORY_SEPARATOR_CHAR;
-  modulehandler_configuration.labelFile +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LABEL_FILE);
+  if (mode_in == STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH)
+    modulehandler_configuration.labelFile +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LT_LABEL_FILE);
+  else
+    modulehandler_configuration.labelFile +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_LABEL_FILE);
   modulehandler_configuration.model = modelFile_in;
 //  modulehandler_configuration.display = displayDevice_in;
 //  // *TODO*: turn these into an option
@@ -1167,6 +1172,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                                                         &heap_allocator,     // heap allocator handle
                                                         true);               // block ?
   Stream_CameraML_Stream stream;
+  if (mode_in == STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH)
+    stream_configuration.backend = STREAM_ML_BACKEND_LIBTORCH;
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.renderer = renderer_in;
   configuration_in.streamConfiguration.initialize (module_configuration,
@@ -1320,6 +1327,17 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
+
+  if (mode_in == STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH)
+  {
+    modulehandler_configuration_2b = modulehandler_configuration_2;
+    modulehandler_configuration_2b.outputFormat.format.width = 224;
+    modulehandler_configuration_2b.outputFormat.format.height = 224;
+    configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                 std::make_pair (&module_configuration,
+                                                                                 &modulehandler_configuration_2b)));
+  } // end IF
+
   modulehandler_configuration_3 = modulehandler_configuration_2;
   configuration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (renderer_in),
                                                                std::make_pair (&module_configuration,

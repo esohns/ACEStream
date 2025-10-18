@@ -411,9 +411,6 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   // auto t0 = std::chrono::high_resolution_clock::now ();
 
   // feed RGB frame into MP graph (image data is COPIED internally by LibMP)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //cv::cvtColor (frame_matrix, frame_matrix, cv::COLOR_BGR2RGB);
-#endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!graph_->Process (frame_matrix.data,
                                   frame_matrix.cols, frame_matrix.rows,
                                   mediapipe::ImageFormat::SRGB)))

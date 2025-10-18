@@ -39,20 +39,14 @@ Stream_Module_Libtorch_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Libtorch_T::Stream_Module_Libtorch_T"));
 
+  torch::set_num_threads (Common_Tools::getNumberOfCPUs (true));
+
   if (torch::cuda::is_available ())
   {
     device_ = torch::Device (torch::kCUDA);
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: CUDA is available, using GPU\n"),
-                inherited::mod_->name ()));
+                ACE_TEXT ("CUDA is available, using GPU\n")));
   } // end IF
-  //else if (torch::hip::is_available ())
-  //{
-  //  device_ = torch::Device (torch::kHIP);
-  //  ACE_DEBUG ((LM_DEBUG,
-  //              ACE_TEXT ("%s: HIP is available, using GPU\n"),
-  //              inherited::mod_->name ()));
-  //} // end ELSE IF
 }
 
 template <typename ConfigurationType,
@@ -104,6 +98,7 @@ Stream_Module_Libtorch_T<ConfigurationType,
   //  return false;
   //} // end IF
   //module_.to (device_);
+  module_.eval ();
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

@@ -153,6 +153,8 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
   cv::cvtColor (frame_matrix, frame_matrix_normalized, cv::COLOR_BGR2RGB);
   frame_matrix_normalized.convertTo (frame_matrix_normalized, CV_32FC3, 1.0f / 255.0f);
 
+  torch::NoGradGuard no_grad;
+
   // step2: create input tensor from matrix
   torch::Tensor tensor_image =
     torch::from_blob (frame_matrix_normalized.data, {1, frame_matrix_normalized.rows, frame_matrix_normalized.cols, 3}, torch::kFloat);
@@ -175,11 +177,11 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
   for (int i = 0; i < 3; ++i)
   {
     int idx = indexs[i].item<int> ();
-    std::cout << "    ============= Top-" << i + 1
-              << " =============" << std::endl;
-    std::cout << "    Label:  " << labels_[idx] << std::endl;
-    std::cout << "    With Probability:  "
-              << softmaxs[i].item<float> () * 100.0f << "%" << std::endl;
+    std::cout << ACE_TEXT_ALWAYS_CHAR ("    ============= Top-") << i + 1
+              << ACE_TEXT_ALWAYS_CHAR (" =============") << std::endl;
+    std::cout << ACE_TEXT_ALWAYS_CHAR ("    Label:  ") << labels_[idx] << std::endl;
+    std::cout << ACE_TEXT_ALWAYS_CHAR ("    With Probability:  ")
+              << softmaxs[i].item<float> () * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
   } // end FOR
 
   // step6: draw fps
@@ -187,10 +189,13 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
   converter << fps;
   cv::putText (frame_matrix,
                ACE_TEXT_ALWAYS_CHAR ("fps: ") + converter.str ().substr (0, 5),
-               cv::Point (15, frame_matrix.rows - 15),
+               cv::Point (12, frame_matrix.rows - 25),
                cv::FONT_HERSHEY_SIMPLEX,
-               0.5,
-               cv::Scalar (255, 255, 255));
+               0.4,
+               cv::Scalar (255, 255, 255),
+               1, 
+               cv::LineTypes::LINE_8,
+               false);
 }
 
 template <typename ConfigurationType,

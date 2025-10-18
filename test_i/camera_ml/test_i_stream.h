@@ -264,6 +264,9 @@ class Stream_CameraML_Stream
 #if defined (TENSORFLOW_CC_SUPPORT)
   Stream_CameraML_Tensorflow_2_Module    tensorflow_cc_;
 #endif // TENSORFLOW_CC_SUPPORT
+#if defined (LIBTORCH_SUPPORT)
+  Stream_CameraML_Libtorch_Module        libtorch_;
+#endif // LIBTORCH_SUPPORT
 #if defined (GTK_SUPPORT)
   Stream_CameraML_GTK_Display_Module     GTKDisplay_;
 #endif // GTK_SUPPORT

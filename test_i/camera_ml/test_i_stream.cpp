@@ -1263,6 +1263,10 @@ Stream_CameraML_Stream::Stream_CameraML_Stream ()
  , tensorflow_cc_ (this,
                    ACE_TEXT_ALWAYS_CHAR (MODULE_ML_TENSORFLOW_DEFAULT_NAME_STRING))
 #endif // TENSORFLOW_CC_SUPPORT
+#if defined (TENSORFLOW_CC_SUPPORT)
+ , libtorch_ (this,
+              ACE_TEXT_ALWAYS_CHAR (MODULE_ML_LIBTORCH_DEFAULT_NAME_STRING))
+#endif // TENSORFLOW_CC_SUPPORT
 #if defined (GTK_SUPPORT)
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
@@ -1295,12 +1299,43 @@ Stream_CameraML_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&convert_, NULL, 0);
   // layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
   layout_in->append (&flip_, NULL, 0);
+
+  switch (inherited::configuration_->configuration_->backend)
+  {
+    case STREAM_ML_BACKEND_TENSORFLOW:
+    {
 #if defined (TENSORFLOW_SUPPORT)
-  // layout_in->append (&tensorflow_, NULL, 0);
+      layout_in->append (&tensorflow_, NULL, 0);
 #endif // TENSORFLOW_SUPPORT
+      break;
+    }
+    case STREAM_ML_BACKEND_TENSORFLOW_CC:
+    {
 #if defined (TENSORFLOW_CC_SUPPORT)
-  layout_in->append (&tensorflow_cc_, NULL, 0);
+      layout_in->append (&tensorflow_cc_, NULL, 0);
 #endif // TENSORFLOW_CC_SUPPORT
+      break;
+    }
+    case STREAM_ML_BACKEND_LIBTORCH:
+    {
+#if defined (FFMPEG_SUPPORT)
+      layout_in->append (&resize_, NULL, 0); // output is 224,224 (ResNet18)
+#endif // FFMPEG_SUPPORT
+#if defined (LIBTORCH_SUPPORT)
+      layout_in->append (&libtorch_, NULL, 0);
+#endif // LIBTORCH_SUPPORT
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown ML backend (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->backend));
+      return false;
+    }
+  } // end SWITCH
+
   switch (inherited::configuration_->configuration_->renderer)
   {
 #if defined (GTK_SUPPORT)
