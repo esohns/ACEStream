@@ -181,12 +181,20 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
                         message_inout->rd_ptr (),
                         cv::Mat::AUTO_STEP);
 
+  // step1: preprocess image matrix
+  cv::Mat frame_matrix_normalized;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  cv::cvtColor (frame_matrix, frame_matrix_normalized, cv::COLOR_BGR2RGB);
+#else
+  frame_matrix_normalized = frame_matrix.clone ();
+#endif // ACE_WIN32 || ACE_WIN64
+
   // step1: run the graph on the image frame
   // start inference clock
   auto t0 = std::chrono::high_resolution_clock::now ();
 
   // feed RGB frame into MP graph (image data is COPIED internally by LibMP)
-  if (unlikely (!graph_->Process (frame_matrix.data,
+  if (unlikely (!graph_->Process (frame_matrix_normalized.data,
                                   frame_matrix.cols, frame_matrix.rows,
                                   mediapipe::ImageFormat::SRGB)))
   {
@@ -233,7 +241,7 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
   std::ostringstream converter;
   converter << fps;
   cv::putText (frame_matrix, converter.str ().substr (0, 5) + ACE_TEXT_ALWAYS_CHAR (" fps"),
-               cv::Point (10, frame_matrix.rows - 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar (255, 255, 255));
+               cv::Point (10, frame_matrix.rows - 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar (255, 255, 255));
 }
 
 template <typename ConfigurationType,

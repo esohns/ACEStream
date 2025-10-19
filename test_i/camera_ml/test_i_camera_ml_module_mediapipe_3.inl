@@ -406,6 +406,10 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
                         message_inout->rd_ptr (),
                         cv::Mat::AUTO_STEP);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  cv::cvtColor (frame_matrix, frame_matrix, cv::COLOR_BGR2RGB);
+#endif // ACE_WIN32 || ACE_WIN64
+
   // step1: run the graph on the image frame
   // start inference clock
   // auto t0 = std::chrono::high_resolution_clock::now ();

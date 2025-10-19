@@ -150,7 +150,11 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
   // step1: preprocess image matrix
   cv::Mat frame_matrix_normalized;
   //cv::resize (frame_matrix, frame_matrix_normalized, cv::Size (224, 224), 0, 0, cv::INTER_LINEAR);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   cv::cvtColor (frame_matrix, frame_matrix_normalized, cv::COLOR_BGR2RGB);
+#else
+  frame_matrix_normalized = frame_matrix.clone ();
+#endif // ACE_WIN32 || ACE_WIN64
   frame_matrix_normalized.convertTo (frame_matrix_normalized, CV_32FC3, 1.0f / 255.0f);
 
   torch::NoGradGuard no_grad;
