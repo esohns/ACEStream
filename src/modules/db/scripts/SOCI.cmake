@@ -34,7 +34,7 @@ elseif (WIN32)
   endif (soci_FOUND)
  endif (VCPKG_SUPPORT)
  if (NOT SOCI_FOUND)
-  set (SOCI_LIB_FILE libsoci_core_4_1.lib)
+  set (SOCI_LIB_FILE soci_core_4_2.lib)
   find_library (SOCI_LIBRARY ${SOCI_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/soci/build/msvc/lib
                 PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
@@ -45,7 +45,7 @@ elseif (WIN32)
   else ()
    message (STATUS "Found ${SOCI_LIB_FILE} library \"${SOCI_LIBRARY}\"")
    set (SOCI_FOUND TRUE)
-   set (SOCI_INCLUDE_DIRS "$ENV{LIB_ROOT}/soci/include")
+   set (SOCI_INCLUDE_DIRS "$ENV{LIB_ROOT}/soci/include;$ENV{LIB_ROOT}/soci/build/msvc/include")
    set (SOCI_LIBRARIES "${SOCI_LIBRARY}")
    set (SOCI_LIB_DIR "$ENV{LIB_ROOT}/soci/build/msvc/bin/${CMAKE_BUILD_TYPE}")
   endif (NOT SOCI_LIBRARY)

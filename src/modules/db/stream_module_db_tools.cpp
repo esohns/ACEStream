@@ -21,12 +21,30 @@
 
 #include "stream_module_db_tools.h"
 
+#if defined (SOCI_SUPPORT)
+#if defined (MYSQL_SUPPORT)
+#include "soci/mysql/soci-mysql.h"
+#endif // MYSQL_SUPPORT
+#endif // SOCI_SUPPORT
+
 #include <sstream>
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
 #include "stream_macros.h"
+
+void
+Stream_Module_DataBase_Tools::initialize()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_DataBase_Tools::initialize"));
+
+#if defined (SOCI_SUPPORT)
+#if defined (MYSQL_SUPPORT)
+  soci::register_factory_mysql ();
+#endif // MYSQL_SUPPORT
+#endif // SOCI_SUPPORT
+}
 
 std::string
 Stream_Module_DataBase_Tools::timestampToDatabaseString (const ACE_Time_Value& timestamp_in)

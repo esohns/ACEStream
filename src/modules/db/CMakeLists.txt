@@ -5,14 +5,12 @@ include (SOCI)
 add_library (${PROJECT_NAME}_Database STATIC "")
 
 if (MYSQL_SUPPORT)
-# message (STATUS "MYSQL_INCLUDE_DIRS: \"${MYSQL_INCLUDE_DIRS}\"")
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              "$<BUILD_INTERFACE:${MYSQL_INCLUDE_DIRS}>")
 endif (MYSQL_SUPPORT)
 if (SOCI_SUPPORT)
-# message (STATUS "SOCI_INCLUDE_DIRS: \"${SOCI_INCLUDE_DIRS}\"")
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
-                             $<BUILD_INTERFACE:${SOCI_INCLUDE_DIRS}>)
+                             "$<BUILD_INTERFACE:${SOCI_INCLUDE_DIRS}>")
 endif (SOCI_SUPPORT)
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
@@ -55,6 +53,16 @@ if (MYSQL_SUPPORT)
       stream_module_mysqlwriter.h
       stream_module_mysqlwriter.inl)
 endif (MYSQL_SUPPORT)
+if (SOCI_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_module_soci_reader.cpp
+      stream_module_soci_reader.h
+      stream_module_soci_reader.inl
+      stream_module_soci_writer.cpp
+      stream_module_soci_writer.h
+      stream_module_soci_writer.inl)
+endif (SOCI_SUPPORT)
 
 # Include dir for installed targets
 #set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
@@ -83,6 +91,9 @@ add_dependencies (${PROJECT_NAME}_Database ${PROJECT_NAME})
 if (MYSQL_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Database PUBLIC ${MYSQL_LIBRARIES})
 endif (MYSQL_SUPPORT)
+if (SOCI_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Database PUBLIC ${SOCI_LIBRARIES})
+endif (SOCI_SUPPORT)
 if (WIN32)
  if (MSVC)
   if (MSVC_VERSION GREATER 1600)
@@ -94,13 +105,6 @@ if (WIN32)
 endif ()
 target_link_libraries (${PROJECT_NAME}_Database PUBLIC Common)
 target_link_libraries (${PROJECT_NAME}_Database PUBLIC ${PROJECT_NAME})
-
-#set_target_properties (${PROJECT_NAME}_Database PROPERTIES DEFINE_SYMBOL STREAM_DB_BUILD_DLL)
-#set_target_properties (${PROJECT_NAME}_Database PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
-
-# add PCH
-#set_target_properties (${PROJECT_NAME}_Database PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${PROJECT_NAME}_Database)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Database
@@ -120,6 +124,14 @@ if (MYSQL_SUPPORT)
       stream_module_mysqlwriter.h
       stream_module_mysqlwriter.inl)
 endif (MYSQL_SUPPORT)
+if (SOCI_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_module_soci_reader.h
+      stream_module_soci_reader.inl
+      stream_module_soci_writer.h
+      stream_module_soci_writer.inl)
+endif (SOCI_SUPPORT)
 install (FILES
          ${source_files}
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"

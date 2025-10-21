@@ -7,6 +7,24 @@
 
 #include "stream_module_db_defines.h"
 
+#if defined (__llvm__)
+enum Stream_Module_DataBase_BackendType
+#else
+enum Stream_Module_DataBase_BackendType : int
+#endif // __llvm__
+{
+  STREAM_DATABASE_BACKEND_DB2 = 0,
+  STREAM_DATABASE_BACKEND_FIREBIRD,
+  STREAM_DATABASE_BACKEND_MYSQL,
+  STREAM_DATABASE_BACKEND_ODBC,
+  STREAM_DATABASE_BACKEND_ORACLE,
+  STREAM_DATABASE_BACKEND_POSTGRESQL,
+  STREAM_DATABASE_BACKEND_SQLITE,
+  ////////////////////////////////////////
+  STREAM_DATABASE_BACKEND_MAX,
+  STREAM_DATABASE_BACKEND_INVALID
+};
+
 struct Stream_Module_DataBase_LoginOptionsBase
 {
   Stream_Module_DataBase_LoginOptionsBase ()

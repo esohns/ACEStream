@@ -17,39 +17,12 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "stdafx.h"
 
-#ifndef STREAM_MODULE_DB_TOOLS_H
-#define STREAM_MODULE_DB_TOOLS_H
+#include "stream_module_soci_reader.h"
 
-#include <string>
+#include "stream_module_db_defines.h"
 
-#include "ace/Global_Macros.h"
-#include "ace/Time_Value.h"
-
-// definitions
-// *TODO*: remove ASAP
-#define STREAM_MODULE_DB_TOOLS_STRFTIME_FORMAT "%Y-%m-%d %H:%M:%S"
-// *NOTE*: '\0' doesn't count: 4 + 2 + 2 + 2 + 2 + 2 + 5 whitespaces
-#define STREAM_MODULE_DB_TOOLS_STRFTIME_SIZE   19
-
-class Stream_Module_DataBase_Tools
-{
- public:
-  void initialize ();
-
-  // *IMPORTANT NOTE*: uses localtime() (i.e. returns a 'wall clock'
-  //                   representation). Note that databases are 'mobile assets'
-  //                   --> verify that:
-  //                       - a (standardized) value (UTC/...) is stored
-  //                       [- the DBMS supports timezone configuration]
-  //                       [- the application supports timezone configuration]
-  //                       so the application can interpret this information
-  static std::string timestampToDatabaseString (const ACE_Time_Value&); // timestamp
-
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_DataBase_Tools ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_DataBase_Tools (const Stream_Module_DataBase_Tools&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_DataBase_Tools& operator= (const Stream_Module_DataBase_Tools&))
-};
-
-#endif
+//STREAM_Db_Export const char libacestream_default_db_soci_source_module_name_string[] =
+const char libacestream_default_db_soci_source_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_DB_SOCI_SOURCE_DEFAULT_NAME_STRING);
