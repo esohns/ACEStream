@@ -34,7 +34,8 @@ elseif (WIN32)
   endif (soci_FOUND)
  endif (VCPKG_SUPPORT)
  if (NOT SOCI_FOUND)
-  set (SOCI_LIB_FILE soci_core_4_2.lib)
+  set (SOCI_VERSION "4_2")
+  set (SOCI_LIB_FILE soci_core_${SOCI_VERSION}.lib)
   find_library (SOCI_LIBRARY ${SOCI_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/soci/build/msvc/lib
                 PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
@@ -44,11 +45,24 @@ elseif (WIN32)
    message (WARNING "could not find ${SOCI_LIB_FILE}, continuing")
   else ()
    message (STATUS "Found ${SOCI_LIB_FILE} library \"${SOCI_LIBRARY}\"")
+  endif (NOT SOCI_LIBRARY)
+  set (SOCI_MYSQL_LIB_FILE soci_mysql_${SOCI_VERSION}.lib)
+  find_library (SOCI_MYSQL_LIBRARY ${SOCI_MYSQL_LIB_FILE}
+                PATHS $ENV{LIB_ROOT}/soci/build/msvc/lib
+                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                DOC "searching for ${SOCI_MYSQL_LIB_FILE}"
+                NO_DEFAULT_PATH)
+  if (NOT SOCI_MYSQL_LIBRARY)
+   message (WARNING "could not find ${SOCI_MYSQL_LIB_FILE}, continuing")
+  else ()
+   message (STATUS "Found ${SOCI_MYSQL_LIB_FILE} library \"${SOCI_MYSQL_LIBRARY}\"")
+  endif (NOT SOCI_MYSQL_LIBRARY)
+  if (SOCI_LIBRARY AND SOCI_MYSQL_LIBRARY)
    set (SOCI_FOUND TRUE)
    set (SOCI_INCLUDE_DIRS "$ENV{LIB_ROOT}/soci/include;$ENV{LIB_ROOT}/soci/build/msvc/include")
-   set (SOCI_LIBRARIES "${SOCI_LIBRARY}")
+   set (SOCI_LIBRARIES "${SOCI_LIBRARY};${SOCI_MYSQL_LIBRARY}")
    set (SOCI_LIB_DIR "$ENV{LIB_ROOT}/soci/build/msvc/bin/${CMAKE_BUILD_TYPE}")
-  endif (NOT SOCI_LIBRARY)
+  endif (SOCI_LIBRARY AND SOCI_MYSQL_LIBRARY)
  endif (NOT SOCI_FOUND)
 endif ()
 if (SOCI_FOUND)
