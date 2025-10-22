@@ -52,8 +52,7 @@ class Test_I_Module_DataBaseWriter
                                       struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                                       Stream_ControlMessage_t,
                                       Test_I_Stream_Message,
-                                      Test_I_Stream_SessionMessage,
-                                      struct Test_I_Stream_SessionData>
+                                      Test_I_Stream_SessionMessage>
 #else
  : public Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                  Common_TimePolicy_t,
@@ -72,8 +71,7 @@ class Test_I_Module_DataBaseWriter
                                       struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                                       Stream_ControlMessage_t,
                                       Test_I_Stream_Message,
-                                      Test_I_Stream_SessionMessage,
-                                      struct Test_I_Stream_SessionData> inherited;
+                                      Test_I_Stream_SessionMessage> inherited;
 #else
   typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                  Common_TimePolicy_t,

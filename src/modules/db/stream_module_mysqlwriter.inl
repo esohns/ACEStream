@@ -33,15 +33,13 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionMessageType>
 Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType,
-                            SessionDataType>::Stream_Module_MySQLWriter_T (typename inherited::ISTREAM_T* stream_in)
+                            SessionMessageType>::Stream_Module_MySQLWriter_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , state_ (NULL)
  , manageLibrary_ (false)
@@ -67,15 +65,13 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionMessageType>
 Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType,
-                            SessionDataType>::~Stream_Module_MySQLWriter_T ()
+                            SessionMessageType>::~Stream_Module_MySQLWriter_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::~Stream_Module_MySQLWriter_T"));
 
@@ -86,16 +82,153 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
     mysql_library_end ();
 }
 
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+bool
+Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType>::initialize (const ConfigurationType& configuration_in,
+                                                             Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::initialize"));
+
+  int result = -1;
+
+  // step0: initialize library ?
+  static bool first_run = true;
+  if (first_run && manageLibrary_)
+  {
+    result = mysql_library_init (0,     // argc
+                                 NULL,  // argv
+                                 NULL); // groups
+    if (unlikely (result))
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: failed to mysql_library_init(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (mysql_error (NULL))));
+      return false;
+    } // end IF
+    first_run = false;
+  } // end IF
+
+  if (inherited::isInitialized_)
+  {
+    if (state_)
+      mysql_close (state_);
+    state_ = NULL;
+  } // end IF
+  ACE_ASSERT (!state_);
+
+//  mysql_thread_init ();
+//  my_init ();
+  state_ = mysql_init (NULL);
+  if (unlikely (!state_))
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: failed to mysql_init(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (mysql_error (NULL))));
+    return false;
+  } // end IF
+
+  // [MYSQL_DEFAULT_AUTH [/ MYSQL_ENABLE_CLEARTEXT_PLUGIN]]
+  // [MYSQL_OPT_BIND]
+  // MYSQL_OPT_CONNECT_TIMEOUT
+  // [MYSQL_OPT_NAMED_PIPE] // win32
+  // MYSQL_OPT_PROTOCOL
+  // MYSQL_OPT_READ_TIMEOUT
+  // MYSQL_OPT_RECONNECT
+  // MYSQL_OPT_WRITE_TIMEOUT
+  // [MYSQL_READ_DEFAULT_FILE / MYSQL_READ_DEFAULT_GROUP]
+  // [MYSQL_SET_CHARSET_NAME / MYSQL_AUTODETECT_CHARSET_NAME]
+//  char* argument_p = configuration_.DBOptionFileName.c_str ();
+  unsigned int timeout = MODULE_DB_MYSQL_DEFAULT_TIMEOUT_CONNECT;
+  mysql_option option = MYSQL_OPT_CONNECT_TIMEOUT;
+  bool value_b = false;
+//  my_bool value_b = false;
+  //result = mysql_options (state_,
+  //                        option,
+  //                        &timeout);
+  //if (unlikely (result))
+  //  goto error;
+  //mysql_protocol_type protocol = MYSQL_PROTOCOL_TCP;
+  //      switch (configuration_.transportLayer)
+  //      {
+  //        case NET_TRANSPORT_LAYER_TCP:
+  //          protocol = MYSQL_PROTOCOL_TCP; break;
+  //        case NET_TRANSPORT_LAYER_UDP:
+  //        default:
+  //        {
+  //          ACE_DEBUG ((LM_ERROR,
+  //                      ACE_TEXT ("invalid/unknown transport layer type (was: %d), aborting\n")));
+  //          return false;
+  //        }
+  //      } // end SWITCH
+  //option = MYSQL_OPT_PROTOCOL;
+  //result = mysql_options (state_,
+  //                        option,
+  //                        &protocol);
+  //if (unlikely (result))
+  //  goto error;
+  timeout = MODULE_DB_MYSQL_DEFAULT_TIMEOUT_READ;
+  option = MYSQL_OPT_READ_TIMEOUT;
+  result = mysql_options (state_,
+                          option,
+                          &timeout);
+  if (unlikely (result))
+    goto error;
+  value_b = MODULE_DB_MYSQL_DEFAULT_RECONNECT;
+  option = MYSQL_OPT_RECONNECT;
+  result = mysql_options (state_,
+                          option,
+                          &value_b);
+  if (unlikely (result))
+    goto error;
+  timeout = MODULE_DB_MYSQL_DEFAULT_TIMEOUT_WRITE;
+  option = MYSQL_OPT_WRITE_TIMEOUT;
+  result = mysql_options (state_,
+                          option,
+                          &timeout);
+  if (unlikely (result))
+    goto error;
+  if (!configuration_in.dataBaseOptionsFileName.empty ())
+  {
+    option = MYSQL_READ_DEFAULT_FILE;
+    result = mysql_options (state_,
+                            option,
+                            configuration_in.dataBaseOptionsFileName.c_str ());
+    if (unlikely (result))
+      goto error;
+  } // end IF
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
+
+error:
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: failed to mysql_options(%d): \"%s\", aborting\n"),
+              inherited::mod_->name (),
+              option,
+              ACE_TEXT (mysql_error (state_))));
+  return false;
+}
+
 //template <typename SessionMessageType,
 //          typename MessageType,
-//          typename ModuleHandlerConfigurationType,
-//          typename SessionDataType>
+//          typename ModuleHandlerConfigurationType>
 //void
 //Stream_Module_MySQLWriter_T<SessionMessageType,
 //                            MessageType,
-//                            ModuleHandlerConfigurationType,
-//                            SessionDataType>::handleDataMessage (MessageType*& message_inout,
-//                                                                 bool& passMessageDownstream_out)
+//                            ModuleHandlerConfigurationType>::handleDataMessage (MessageType*& message_inout,
+//                                                                                bool& passMessageDownstream_out)
 //{
 //  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::handleDataMessage"));
 //
@@ -118,17 +251,15 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionMessageType>
 void
 Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType,
-                            SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                    bool& passMessageDownstream_out)
+                            SessionMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                       bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::handleSessionMessage"));
 
@@ -142,8 +273,9 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
 
   const typename SessionMessageType::DATA_T& session_data_container_r =
       message_inout->getR ();
-  SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (session_data_container_r.getR ());
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+      const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_r.getR ());
+
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -176,8 +308,8 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
       const char* database_name_string_p = NULL;
       MYSQL* result_2 = NULL;
       const char* result_p =
-          inherited::configuration_->peerAddress.get_host_addr (host_address_string,
-                                                                sizeof (ACE_TCHAR[BUFSIZ]));
+        inherited::configuration_->peerAddress.get_host_addr (host_address_string,
+                                                              sizeof (ACE_TCHAR[BUFSIZ]));
       if (unlikely (!result_p || (result_p != host_address_string)))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -187,32 +319,32 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
       } // end IF
 
       client_flags =
-          (//CAN_HANDLE_EXPIRED_PASSWORDS | // handle expired passwords
-           //CLIENT_COMPRESS              | // use compression protocol
-           //CLIENT_FOUND_ROWS            | // return #found (matched) rows
-                                            // instead of #changed rows
-           CLIENT_IGNORE_SIGPIPE        | // do not install a SIGPIPE handler
-           CLIENT_IGNORE_SPACE          | // permit spaces after function
-                                          // names
-           //CLIENT_INTERACTIVE           | // permit interactive_timeout
-                                            // seconds (instead of wait_timeout
-                                            // seconds) of inactivity
-           //CLIENT_LOCAL_FILES           | // enable LOAD_LOCAL_DATA handling
-           CLIENT_MULTI_RESULTS         | // client can handle multiple result
-                                            // sets from multiple-statement
-                                            // executions/stored procedures
-           //CLIENT_MULTI_STATEMENTS      | // client may send multiple
-                                            // statements in a single string
-                                            // (separated by ';')
-           //CLIENT_NO_SCHEMA             | // do not permit
-                                            // 'db_name.tbl_name.col_name'
-                                            // syntax (ODBC)
-           //CLIENT_ODBC                  | // unused
-           //CLIENT_SSL                   | // use SSL. Do NOT set this
-                                            // manually, use mysql_ssl_set()
-                                            // instead
-           CLIENT_REMEMBER_OPTIONS);        // remember options specified by
-                                            // calls to mysql_options()
+        (//CAN_HANDLE_EXPIRED_PASSWORDS | // handle expired passwords
+         //CLIENT_COMPRESS              | // use compression protocol
+         //CLIENT_FOUND_ROWS            | // return #found (matched) rows
+                                          // instead of #changed rows
+         CLIENT_IGNORE_SIGPIPE        | // do not install a SIGPIPE handler
+         CLIENT_IGNORE_SPACE          | // permit spaces after function
+                                        // names
+         //CLIENT_INTERACTIVE           | // permit interactive_timeout
+                                          // seconds (instead of wait_timeout
+                                          // seconds) of inactivity
+         //CLIENT_LOCAL_FILES           | // enable LOAD_LOCAL_DATA handling
+         CLIENT_MULTI_RESULTS         | // client can handle multiple result
+                                        // sets from multiple-statement
+                                        // executions/stored procedures
+         //CLIENT_MULTI_STATEMENTS      | // client may send multiple
+                                          // statements in a single string
+                                          // (separated by ';')
+         //CLIENT_NO_SCHEMA             | // do not permit
+                                          // 'db_name.tbl_name.col_name'
+                                          // syntax (ODBC)
+         //CLIENT_ODBC                  | // unused
+         //CLIENT_SSL                   | // use SSL. Do NOT set this
+                                          // manually, use mysql_ssl_set()
+                                          // instead
+         CLIENT_REMEMBER_OPTIONS);        // remember options specified by
+                                          // calls to mysql_options()
       user_name_string_p =
         (inherited::configuration_->loginOptions.user.empty () ? NULL // <-- current user (Unix) : options file (?)
                                                                : inherited::configuration_->loginOptions.user.c_str ());
@@ -355,145 +487,4 @@ close:
     default:
       break;
   } // end SWITCH
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
-bool
-Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ConfigurationType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            SessionDataType>::initialize (const ConfigurationType& configuration_in,
-                                                          Stream_IAllocator* allocator_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::initialize"));
-
-  int result = -1;
-
-  // step0: initialize library ?
-  static bool first_run = true;
-  if (first_run && manageLibrary_)
-  {
-    result = mysql_library_init (0,     // argc
-                                 NULL,  // argv
-                                 NULL); // groups
-    if (unlikely (result))
-    {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: failed to mysql_library_init(): \"%s\", aborting\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (mysql_error (NULL))));
-      return false;
-    } // end IF
-    first_run = false;
-  } // end IF
-
-  if (inherited::isInitialized_)
-  {
-    if (state_)
-      mysql_close (state_);
-    state_ = NULL;
-  } // end IF
-  ACE_ASSERT (!state_);
-
-//  mysql_thread_init ();
-//  my_init ();
-  state_ = mysql_init (NULL);
-  if (unlikely (!state_))
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: failed to mysql_init(): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (mysql_error (NULL))));
-    return false;
-  } // end IF
-
-  // [MYSQL_DEFAULT_AUTH [/ MYSQL_ENABLE_CLEARTEXT_PLUGIN]]
-  // [MYSQL_OPT_BIND]
-  // MYSQL_OPT_CONNECT_TIMEOUT
-  // [MYSQL_OPT_NAMED_PIPE] // win32
-  // MYSQL_OPT_PROTOCOL
-  // MYSQL_OPT_READ_TIMEOUT
-  // MYSQL_OPT_RECONNECT
-  // MYSQL_OPT_WRITE_TIMEOUT
-  // [MYSQL_READ_DEFAULT_FILE / MYSQL_READ_DEFAULT_GROUP]
-  // [MYSQL_SET_CHARSET_NAME / MYSQL_AUTODETECT_CHARSET_NAME]
-//  char* argument_p = configuration_.DBOptionFileName.c_str ();
-  unsigned int timeout = MODULE_DB_MYSQL_DEFAULT_TIMEOUT_CONNECT;
-  mysql_option option = MYSQL_OPT_CONNECT_TIMEOUT;
-  bool value_b = false;
-//  my_bool value_b = false;
-  //result = mysql_options (state_,
-  //                        option,
-  //                        &timeout);
-  //if (unlikely (result))
-  //  goto error;
-  //mysql_protocol_type protocol = MYSQL_PROTOCOL_TCP;
-  //      switch (configuration_.transportLayer)
-  //      {
-  //        case NET_TRANSPORT_LAYER_TCP:
-  //          protocol = MYSQL_PROTOCOL_TCP; break;
-  //        case NET_TRANSPORT_LAYER_UDP:
-  //        default:
-  //        {
-  //          ACE_DEBUG ((LM_ERROR,
-  //                      ACE_TEXT ("invalid/unknown transport layer type (was: %d), aborting\n")));
-  //          return false;
-  //        }
-  //      } // end SWITCH
-  //option = MYSQL_OPT_PROTOCOL;
-  //result = mysql_options (state_,
-  //                        option,
-  //                        &protocol);
-  //if (unlikely (result))
-  //  goto error;
-  timeout = MODULE_DB_MYSQL_DEFAULT_TIMEOUT_READ;
-  option = MYSQL_OPT_READ_TIMEOUT;
-  result = mysql_options (state_,
-                          option,
-                          &timeout);
-  if (unlikely (result))
-    goto error;
-  value_b = MODULE_DB_MYSQL_DEFAULT_RECONNECT;
-  option = MYSQL_OPT_RECONNECT;
-  result = mysql_options (state_,
-                          option,
-                          &value_b);
-  if (unlikely (result))
-    goto error;
-  timeout = MODULE_DB_MYSQL_DEFAULT_TIMEOUT_WRITE;
-  option = MYSQL_OPT_WRITE_TIMEOUT;
-  result = mysql_options (state_,
-                          option,
-                          &timeout);
-  if (unlikely (result))
-    goto error;
-  if (!configuration_in.dataBaseOptionsFileName.empty ())
-  {
-    option = MYSQL_READ_DEFAULT_FILE;
-    result = mysql_options (state_,
-                            option,
-                            configuration_in.dataBaseOptionsFileName.c_str ());
-    if (unlikely (result))
-      goto error;
-  } // end IF
-
-  return inherited::initialize (configuration_in,
-                                allocator_in);
-
-error:
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: failed to mysql_options(%d): \"%s\", aborting\n"),
-              inherited::mod_->name (),
-              option,
-              ACE_TEXT (mysql_error (state_))));
-  return false;
 }

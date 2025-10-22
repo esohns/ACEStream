@@ -73,7 +73,7 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
 #if defined (MYSQL_SUPPORT)
       ACE_ASSERT (inherited::state_);
 
-      ACE_TCHAR host_address[BUFSIZ];
+      char host_address_a[BUFSIZ];
       const char* result_p = NULL;
       unsigned long client_flags = 0;
       const char* host_p = NULL;
@@ -92,11 +92,11 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
         goto error;
       } // end IF
 
-      ACE_OS::memset (host_address, 0, sizeof (host_address));
+      ACE_OS::memset (host_address_a, 0, sizeof (char[BUFSIZ]));
       result_p =
-        inherited::configuration_->loginOptions.host.get_host_addr (host_address,
-                                                                    sizeof (host_address));
-      if (unlikely (!result_p || (result_p != host_address)))
+        inherited::configuration_->loginOptions.host.get_host_addr (host_address_a,
+                                                                    sizeof (char[BUFSIZ]));
+      if (unlikely (!result_p || (result_p != host_address_a)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
@@ -134,7 +134,7 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
                                           // calls to mysql_options()
       host_p =
         (inherited::configuration_->loginOptions.host.is_loopback () ? NULL // localhost ([Unix]socket file/[Win32]shared memory : TCP) : options file (?)
-                                                                     : ACE_TEXT_ALWAYS_CHAR (host_address));
+                                                                     : host_address_a);
         //(inherited::configuration_.loginOptions.host.is_loopback () ? NULL // localhost ([Unix]socket file/[Win32]shared memory : TCP) : options file (?)
         //                                                            : ACE_TEXT_ALWAYS_CHAR (host_address));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -250,7 +250,7 @@ error:
       query_string += inherited::configuration_->dataBaseTable;
       query_string += ACE_TEXT_ALWAYS_CHAR (" VALUES (");
       std::string timestamp_string;
-      char buffer[BUFSIZ];
+      char buffer_a[BUFSIZ];
       unsigned int number_of_records = 0;
       my_ulonglong result_3 = false;
       for (Test_I_PageDataIterator_t iterator = session_data_r.data.pageData.begin ();
@@ -264,28 +264,27 @@ error:
           query_string += ACE_TEXT_ALWAYS_CHAR (",'");
           timestamp_string =
             Stream_Module_DataBase_Tools::timestampToDatabaseString ((*iterator).first);
-          query_string +=
-            ACE_TEXT_ALWAYS_CHAR (timestamp_string.c_str ()); // date
+          query_string += timestamp_string; // date
           query_string += ACE_TEXT_ALWAYS_CHAR ("','");
           //mysql_real_escape_string_quote (inherited::state_,
           //                                buffer,
           //                                (*iterator_2).URI.c_str (),
           //                                (*iterator_2).URI.size (),
           //                                '\'');
-          mysql_escape_string (buffer,
+          mysql_escape_string (buffer_a,
                                (*iterator_2).URI.c_str (),
                                (*iterator_2).URI.size ());
-          query_string += buffer; // URI
+          query_string += buffer_a; // URI
           query_string += ACE_TEXT_ALWAYS_CHAR ("','");
           //mysql_real_escape_string_quote (inherited::state_,
           //                                buffer,
           //                                (*iterator_2).description.c_str (),
           //                                (*iterator_2).description.size (),
           //                                '\'');
-          mysql_escape_string (buffer,
+          mysql_escape_string (buffer_a,
                                (*iterator_2).description.c_str (),
                                (*iterator_2).description.size ());
-          query_string += buffer; // description
+          query_string += buffer_a; // description
           query_string += ACE_TEXT_ALWAYS_CHAR ("',");
           query_string += ACE_TEXT_ALWAYS_CHAR ("DEFAULT"); // last_valid
 

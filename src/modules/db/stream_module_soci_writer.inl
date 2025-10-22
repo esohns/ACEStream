@@ -31,15 +31,13 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionMessageType>
 Stream_Module_SOCI_Writer_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType,
-                            SessionDataType>::Stream_Module_SOCI_Writer_T (typename inherited::ISTREAM_T* stream_in)
+                            SessionMessageType>::Stream_Module_SOCI_Writer_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , session_ ()
  , transaction_ (session_)
@@ -53,15 +51,13 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionMessageType>
 Stream_Module_SOCI_Writer_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType,
-                            SessionDataType>::~Stream_Module_SOCI_Writer_T ()
+                            SessionMessageType>::~Stream_Module_SOCI_Writer_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SOCI_Writer_T::~Stream_Module_SOCI_Writer_T"));
 
@@ -74,17 +70,15 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionMessageType>
 bool
 Stream_Module_SOCI_Writer_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType,
-                            SessionDataType>::initialize (const ConfigurationType& configuration_in,
-                                                          Stream_IAllocator* allocator_in)
+                            SessionMessageType>::initialize (const ConfigurationType& configuration_in,
+                                                             Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SOCI_Writer_T::initialize"));
 
@@ -156,17 +150,15 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionMessageType>
 void
 Stream_Module_SOCI_Writer_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType,
-                            SessionDataType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                 bool& passMessageDownstream_out)
+                            SessionMessageType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                    bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SOCI_Writer_T::handleDataMessage"));
 
@@ -198,17 +190,15 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionMessageType>
 void
 Stream_Module_SOCI_Writer_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType,
-                            SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                    bool& passMessageDownstream_out)
+                            SessionMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                       bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SOCI_Writer_T::handleSessionMessage"));
 
