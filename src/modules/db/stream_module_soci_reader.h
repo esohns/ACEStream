@@ -80,9 +80,7 @@ class Stream_Module_SOCI_Reader_T
  public:
   Stream_Module_SOCI_Reader_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
                                bool = false,              // auto-start ?
-                               bool = true,               // generate session messages ?
-                               ///////////
-                               bool = false);             // manage library ?
+                               bool = true);              // generate session messages ?
   virtual ~Stream_Module_SOCI_Reader_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)

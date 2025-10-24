@@ -10,14 +10,29 @@ if (UNIX)
  else ()
   set (SOCI_LIB_FILE libsoci_core.so)
   find_library (SOCI_LIBRARY ${SOCI_LIB_FILE}
-                PATHS /usr/lib64
-                PATH_SUFFIXES soci
+                PATHS $ENV{LIB_ROOT}/soci/build/gcc
+                PATH_SUFFIXES lib
                 DOC "searching for ${SOCI_LIB_FILE}")
-  if (SOCI_LIBRARY)
+  if (NOT SOCI_LIBRARY)
+   message (WARNING "could not find ${SOCI_LIB_FILE}, continuing")
+  else ()
+   message (STATUS "Found ${SOCI_LIB_FILE} library \"${SOCI_LIBRARY}\"")
+  endif (NOT SOCI_LIBRARY)
+  set (SOCI_MYSQL_LIB_FILE libsoci_mysql.so)
+  find_library (SOCI_MYSQL_LIBRARY ${SOCI_MYSQL_LIB_FILE}
+                PATHS $ENV{LIB_ROOT}/soci/build/gcc
+                PATH_SUFFIXES lib
+                DOC "searching for ${SOCI_MYSQL_LIB_FILE}")
+  if (NOT SOCI_MYSQL_LIBRARY)
+   message (WARNING "could not find ${SOCI_MYSQL_LIB_FILE}, continuing")
+  else ()
+   message (STATUS "Found ${SOCI_MYSQL_LIB_FILE} library \"${SOCI_MYSQL_LIBRARY}\"")
+  endif (NOT SOCI_MYSQL_LIBRARY)
+  if (SOCI_LIBRARY AND SOCI_MYSQL_LIBRARY)
    set (SOCI_FOUND TRUE)
-   set (SOCI_INCLUDE_DIRS "/usr/include/soci")
-   set (SOCI_LIBRARIES "${SOCI_LIBRARY}")
-  endif (SOCI_LIBRARY)
+   set (SOCI_INCLUDE_DIRS "$ENV{LIB_ROOT}/soci/include;$ENV{LIB_ROOT}/soci/build/gcc/include")
+   set (SOCI_LIBRARIES "${SOCI_LIBRARY};${SOCI_MYSQL_LIBRARY}")
+  endif (SOCI_LIBRARY AND SOCI_MYSQL_LIBRARY)
  endif (PKG_SOCI_FOUND)
 elseif (WIN32)
  if (VCPKG_SUPPORT)

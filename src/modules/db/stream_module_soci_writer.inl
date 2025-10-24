@@ -18,7 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#if defined (MYSQL_SUPPORT)
 #include "soci/mysql/soci-mysql.h"
+#endif // MYSQL_SUPPORT
 
 #include "ace/Log_Msg.h"
 
@@ -82,8 +84,6 @@ Stream_Module_SOCI_Writer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SOCI_Writer_T::initialize"));
 
-  int result = -1;
-
   // step0: initialize library ?
   static bool first_run = true;
   if (first_run)
@@ -102,7 +102,9 @@ Stream_Module_SOCI_Writer_T<ACE_SYNCH_USE,
   {
     case STREAM_DATABASE_BACKEND_MYSQL:
     {
+#if defined (MYSQL_SUPPORT)
       backend_factory_p = soci::factory_mysql ();
+#endif // MYSQL_SUPPORT
       break;
     }
     default:
@@ -135,14 +137,6 @@ Stream_Module_SOCI_Writer_T<ACE_SYNCH_USE,
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
-
-error:
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: failed to mysql_options(%d): \"%s\", aborting\n"),
-              inherited::mod_->name (),
-              option,
-              ACE_TEXT (mysql_error (state_))));
-  return false;
 }
 
 template <ACE_SYNCH_DECL,

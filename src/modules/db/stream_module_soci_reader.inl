@@ -18,7 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#if defined (MYSQL_SUPPORT)
 #include "soci/mysql/soci-mysql.h"
+#endif // MYSQL_SUPPORT
 
 #include "ace/Log_Msg.h"
 
@@ -48,8 +50,7 @@ Stream_Module_SOCI_Reader_T<ACE_SYNCH_USE,
                             SessionManagerType,
                             TimerManagerType>::Stream_Module_SOCI_Reader_T (ACE_SYNCH_MUTEX_T* lock_in,
                                                                             bool autoStart_in,
-                                                                            bool generateSessionMessages_in,
-                                                                            bool manageLibrary_in)
+                                                                            bool generateSessionMessages_in)
  : inherited (lock_in,                    // lock handle
               autoStart_in,               // auto-start ?
               generateSessionMessages_in) // generate sesssion messages ?
@@ -115,8 +116,6 @@ Stream_Module_SOCI_Reader_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SOCI_Reader_T::initialize"));
 
-  int result = -1;
-
   // step0: initialize library ?
   static bool first_run = true;
   if (first_run)
@@ -135,7 +134,9 @@ Stream_Module_SOCI_Reader_T<ACE_SYNCH_USE,
   {
     case STREAM_DATABASE_BACKEND_MYSQL:
     {
+#if defined (MYSQL_SUPPORT)
       backend_factory_p = soci::factory_mysql ();
+#endif // MYSQL_SUPPORT
       break;
     }
     default:
