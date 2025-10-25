@@ -42,6 +42,11 @@ extern const char libacestream_default_vis_gtk_window_module_name_string[];
 
 //////////////////////////////////////////
 
+#if GTK_CHECK_VERSION (3,0,0)
+gboolean acestream_gtk_window_draw_cb (GtkWidget*, cairo_t*, gpointer);
+#else
+gboolean acestream_gtk_window_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
+#endif // GTK_CHECK_VERSION (3,0,0)
 void acestream_gtk_window_destroy_cb (GtkWidget*, gpointer);
 gboolean acestream_gtk_window_delete_event_cb (GtkWidget*, GdkEvent*, gpointer);
 
@@ -106,8 +111,13 @@ class Stream_Module_Vis_GTK_Window_T
   virtual void toggle ();
 
  protected:
-//  GMainLoop* mainLoop_;
-  GtkWindow* window_;
+  GtkWindow*       window_;
+#if GTK_CHECK_VERSION (3,22,0)
+  // GdkWindow*       window_2_;
+#endif // GTK_CHECK_VERSION (3,22,0)
+#if GTK_CHECK_VERSION (3,22,0)
+  // cairo_region_t*  cairo_region_;
+#endif // GTK_CHECK_VERSION (4,0,0)
 
   // *WARNING*: this calls into gtk --> enclose in gdk_threads_enter/leave
   bool initialize_GTK (const Common_Image_Resolution_t&); // window size

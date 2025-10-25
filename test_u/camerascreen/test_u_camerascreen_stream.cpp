@@ -1224,10 +1224,14 @@ Stream_CameraScreen_Stream::Stream_CameraScreen_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+#if defined (FFMPEG_SUPPORT)
  , convert_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
+ , decode_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+#endif // FFMPEG_SUPPORT
  , videoWall_ (this,
                ACE_TEXT_ALWAYS_CHAR ("VideoWall"))
 #if defined (CURSES_SUPPORT)
@@ -1238,10 +1242,14 @@ Stream_CameraScreen_Stream::Stream_CameraScreen_Stream ()
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
 #endif // GTK_SUPPORT
+#if defined (WAYLAND_SUPPORT)
  , WaylandDisplay_ (this,
                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING))
+#endif // WAYLAND_SUPPORT
+#if defined (X11_SUPPORT)
  , X11Display_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
+#endif // X11_SUPPORT
 #if defined (GLUT_SUPPORT)
  , OpenGLDisplay_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
@@ -1262,54 +1270,66 @@ Stream_CameraScreen_Stream::load (Stream_ILayout* layout_in,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
 
   layout_in->append (&source_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
-  layout_in->append (&convert_, NULL, 0);
-  if (inherited::configuration_->configuration_->fullscreen ||
+
+#if defined (FFMPEG_SUPPORT)
+  enum AVCodecID codec_id =
+    Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId ((*iterator).second.second->outputFormat.format.pixelformat);
+  if (codec_id != AV_CODEC_ID_NONE)
+    layout_in->append (&decode_, NULL, 0);
+  else
+    layout_in->append (&convert_, NULL, 0);
+  if (inherited::configuration_->configuration_->renderer == STREAM_VISUALIZATION_VIDEORENDERER_CURSES ||
+      inherited::configuration_->configuration_->fullscreen                                            ||
       inherited::configuration_->configuration_->useVideoWall)
     layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+#endif // FFMPEG_SUPPORT
+
+  if (inherited::configuration_->configuration_->useVideoWall)
+    layout_in->append (&videoWall_, NULL, 0);
+
   switch (inherited::configuration_->configuration_->renderer)
   {
-#if defined (CURSES_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
     {
+#if defined (CURSES_SUPPORT)
       layout_in->append (&CursesDisplay_, NULL, 0);
+#endif // CURSES_SUPPORT
       break;
     }
-#endif // CURSES_SUPPORT
-#if defined (GTK_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
     {
-      if (inherited::configuration_->configuration_->useVideoWall)
-        layout_in->append (&videoWall_, NULL, 0);
+#if defined (GTK_SUPPORT)
       layout_in->append (&GTKDisplay_, NULL, 0);
+#endif // GTK_SUPPORT
       break;
     }
-#endif // GTK_SUPPORT
     case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
     {
-      if (inherited::configuration_->configuration_->useVideoWall)
-        layout_in->append (&videoWall_, NULL, 0);
+#if defined (WAYLAND_SUPPORT)
       layout_in->append (&WaylandDisplay_, NULL, 0);
+#endif // WAYLAND_SUPPORT
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
     {
-      if (inherited::configuration_->configuration_->useVideoWall)
-        layout_in->append (&videoWall_, NULL, 0);
+#if defined (X11_SUPPORT)
       layout_in->append (&X11Display_, NULL, 0);
+#endif // X11_SUPPORT
       break;
     }
-#if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
     {
-      if (inherited::configuration_->configuration_->useVideoWall)
-        layout_in->append (&videoWall_, NULL, 0);
+#if defined (GLUT_SUPPORT)
       layout_in->append (&OpenGLDisplay_, NULL, 0);
+#endif // GLUT_SUPPORT
       break;
     }
-#endif // GLUT_SUPPORT
     default:
     {
       ACE_DEBUG ((LM_ERROR,

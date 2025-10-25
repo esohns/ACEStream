@@ -259,12 +259,10 @@ class Stream_CamSave_LibCamera_Stream
   ////////////////////////////////////////
   Stream_CamSave_LibCamera_LibAVConverter_Module converter_; // --> 24-bit RGB (display format)
   Stream_CamSave_LibCamera_LibAVResize_Module    resizer_; // --> window size/fullscreen
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 //  Stream_CamSave_GTKCairoDisplay_Module GTKCairoDisplay_;
-//  Stream_CamSave_LibCamera_Display_Module        display_;
-//  Stream_CamSave_Display_2_Module       display_2_;
-#endif // GTK_USE
   Stream_CamSave_LibCamera_GTKPixbufDisplay_Module display_2_;
+#endif // GTK_SUPPORT
   ////////////////////////////////////////
   Stream_CamSave_LibCamera_LibAVConverter_Module converter_2; // --> 32-bit RGB (AVI format)
   Stream_CamSave_LibCamera_AVIEncoder_Module     encoder_; // --> AVI
@@ -329,11 +327,11 @@ class Stream_CamSave_V4L_Stream
   ////////////////////////////////////////
   Stream_CamSave_V4L_LibAVConverter_Module   converter_; // --> 24-bit RGB (display format)
   Stream_CamSave_V4L_LibAVResize_Module      resizer_; // --> window size/fullscreen
-#if defined (GTK_SUPPORT) && defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   Stream_CamSave_V4L_GTKCairoDisplay_Module  GTKCairoDisplay_;
   Stream_CamSave_V4L_GTKPixbufDisplay_Module GTKPixbufDisplay_;
 //  Stream_CamSave_GTKWindowDisplay_Module   GTKWindowDisplay_;
-#endif // GTK_SUPPORT && defined (GTK_USE)
+#endif // GTK_SUPPORT
 //  Stream_CamSave_V4L_X11Display_Module       X11Display_;
   ////////////////////////////////////////
   Stream_CamSave_V4L_LibAVConverter_Module   converter_2; // --> 32-bit RGB (AVI format)

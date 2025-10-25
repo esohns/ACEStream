@@ -33,6 +33,7 @@ include (opencv)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 if (UNIX)
  include (wayland)
+ include (x11)
 elseif (WIN32)
  include (directx)
 endif ()
@@ -112,13 +113,18 @@ if (OPENCV_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              "$<BUILD_INTERFACE:${OPENCV_INCLUDE_DIRS}>")
 endif (OPENCV_SUPPORT)
-if (WAYLAND_SUPPORT)
- target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${WAYLAND_INCLUDE_DIRS}>)
- target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
-endif (WAYLAND_SUPPORT)
 if (UNIX)
+ if (WAYLAND_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${WAYLAND_INCLUDE_DIRS}>)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+ endif (WAYLAND_SUPPORT)
+ if (X11_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${X11_INCLUDE_DIRS}>)
+ endif (X11_SUPPORT)
+
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -257,20 +263,22 @@ if (OPENCV_SUPPORT)
       stream_vis_opencv_classifier.h
       stream_vis_opencv_classifier.inl)
 endif (OPENCV_SUPPORT)
-if (WAYLAND_SUPPORT)
- set (source_files
-      ${source_files}
-      include/xdg-shell.cpp
-      stream_vis_wayland_window.cpp
-      stream_vis_wayland_window.h
-      stream_vis_wayland_window.inl)
-endif (WAYLAND_SUPPORT)
 if (UNIX)
- set (source_files
-      ${source_files}
-      stream_vis_x11_window.cpp
-      stream_vis_x11_window.h
-      stream_vis_x11_window.inl)
+ if (WAYLAND_SUPPORT)
+  set (source_files
+       ${source_files}
+       include/xdg-shell.cpp
+       stream_vis_wayland_window.cpp
+       stream_vis_wayland_window.h
+       stream_vis_wayland_window.inl)
+ endif (WAYLAND_SUPPORT)
+ if (X11_SUPPORT)
+  set (source_files
+       ${source_files}
+       stream_vis_x11_window.cpp
+       stream_vis_x11_window.h
+       stream_vis_x11_window.inl)
+ endif (X11_SUPPORT)
 elseif (WIN32)
  set (source_files
       ${source_files}
@@ -315,6 +323,7 @@ target_sources (${PROJECT_NAME}_Visualization
 #                PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
                 PRIVATE ${absolute_source_files})
+
 target_precompile_headers (${PROJECT_NAME}_Visualization
                            PUBLIC stdafx.h)
 
@@ -349,11 +358,13 @@ endif (GTK_SUPPORT)
 if (OPENCV_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${OPENCV_LIBRARIES})
 endif (OPENCV_SUPPORT)
-if (WAYLAND_SUPPORT)
- target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${WAYLAND_LIBRARIES})
-endif (WAYLAND_SUPPORT)
 if (UNIX)
- target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC X11)
+ if (WAYLAND_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${WAYLAND_LIBRARIES})
+ endif (WAYLAND_SUPPORT)
+ if (X11_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${X11_LIBRARIES})
+ endif (X11_SUPPORT)
 elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC Advapi32.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC Evr.lib)
@@ -361,8 +372,6 @@ elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC mfplat.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC mfuuid.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC strmiids.lib)
-# target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ucrt${LIB_FILE_SUFFIX}.lib)
-# target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC uuids.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC User32.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC D2d1.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC d3d11.lib)
@@ -377,9 +386,6 @@ if (OPENGL_SUPPORT)
 endif (OPENGL_SUPPORT)
 
 target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${PROJECT_NAME})
-
-#set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES DEFINE_SYMBOL STREAM_VIS_BUILD_DLL)
-#set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Visualization
@@ -446,17 +452,19 @@ if (OPENCV_SUPPORT)
       stream_vis_opencv_classifier.h
       stream_vis_opencv_classifier.inl)
 endif (OPENCV_SUPPORT)
-if (WAYLAND_SUPPORT)
- set (header_files
-      ${header_files}
-      stream_vis_wayland_window.h
-      stream_vis_wayland_window.inl)
-endif (WAYLAND_SUPPORT)
 if (UNIX)
- set (header_files
+ if (WAYLAND_SUPPORT)
+  set (header_files
+       ${header_files}
+       stream_vis_wayland_window.h
+       stream_vis_wayland_window.inl)
+ endif (WAYLAND_SUPPORT)
+ if (X11_SUPPORT)
+  set (header_files
       ${header_files}
       stream_vis_x11_window.h
       stream_vis_x11_window.inl)
+ endif (X11_SUPPORT)
 elseif (WIN32)
  set (header_files
       ${header_files}

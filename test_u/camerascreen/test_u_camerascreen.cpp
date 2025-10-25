@@ -998,8 +998,8 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
   // *TODO*: auto-determine color depth of selected (default) screen (i.e.
   //         'Display' ":0")
   outputFormat_out = captureFormat_out;
-  if (!Stream_MediaFramework_Tools::isRGB (captureFormat_out.format.pixelformat))
-    outputFormat_out.format.pixelformat = V4L2_PIX_FMT_RGB32;
+  // if (!Stream_MediaFramework_Tools::isRGB (captureFormat_out.format.pixelformat))
+  //   outputFormat_out.format.pixelformat = V4L2_PIX_FMT_RGB32;
 
   return true;
 
@@ -1170,6 +1170,9 @@ do_work (int argc_in,
   //} // end IF
 
   // ********************** module configuration data **************************
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
+#endif // FFMPEG_SUPPORT
   struct Stream_AllocatorConfiguration allocator_configuration;
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1257,6 +1260,9 @@ do_work (int argc_in,
 //  Stream_CameraScreen_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator_2;
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.buffers = STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
+#if defined (FFMPEG_SUPPORT)
+  modulehandler_configuration.codecConfiguration = &codec_configuration;
+#endif // FFMPEG_SUPPORT
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
 //  modulehandler_configuration.display = displayDevice_in;
 //  // *TODO*: turn these into an option
@@ -1380,6 +1386,7 @@ do_work (int argc_in,
     return;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
+
   struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
   Stream_IStreamControlBase* stream_p = NULL;
@@ -1508,8 +1515,13 @@ do_work (int argc_in,
                 ACE_TEXT ("failed to ::do_initialize_v4l(), returning\n")));
     return;
   } // end IF
+
+  codec_configuration.codecId =
+    Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (modulehandler_configuration.outputFormat.format.pixelformat);
+
   stream_p = &stream;
 
+  modulehandler_configuration_2 = modulehandler_configuration;
   switch (renderer_in)
   {
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
@@ -1518,38 +1530,37 @@ do_work (int argc_in,
       //                   Xlib; XCreateImage() only 'likes' 32-bit data, regardless
       //                   of what 'depth' values are set (in fact, it requires BGRA
       //                   on little-endian platforms) --> convert
-      modulehandler_configuration_2 = modulehandler_configuration;
       modulehandler_configuration_2.outputFormat.format.pixelformat =
         V4L2_PIX_FMT_BGRA32;
       break;
     }
-#if defined (GLUT_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
     {
-      modulehandler_configuration_2 = modulehandler_configuration;
       modulehandler_configuration_2.outputFormat.format.pixelformat =
         V4L2_PIX_FMT_RGBA32;
       break;
     }
-#endif // GLUT_SUPPORT
     default:
       break;
   } // end SWITCH
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_2)));
 
+  modulehandler_configuration_2b = modulehandler_configuration;
   if (useVideoWall_in)
   {
-    modulehandler_configuration_2b = modulehandler_configuration;
     modulehandler_configuration_2b.outputFormat.format.width /=
       TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X;
     modulehandler_configuration_2b.outputFormat.format.height /=
       TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
-    configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
-                                                                 std::make_pair (&module_configuration,
-                                                                                 &modulehandler_configuration_2b)));
   } // end IF
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_2b)));
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 
@@ -1683,9 +1694,9 @@ do_work (int argc_in,
       modulehandler_configuration.window.curses_window = state_r.std_window;
       ACE_ASSERT (modulehandler_configuration.window.curses_window);
       modulehandler_configuration.window.type = Common_UI_Window::TYPE_CURSES;
-      modulehandler_configuration.outputFormat.format.width =
+      modulehandler_configuration_2b.outputFormat.format.width =
         getmaxx (state_r.std_window);
-      modulehandler_configuration.outputFormat.format.height =
+      modulehandler_configuration_2b.outputFormat.format.height =
         getmaxy (state_r.std_window);
       modulehandler_configuration_2.outputFormat.format.pixelformat =
         V4L2_PIX_FMT_RGB24;
@@ -1762,13 +1773,7 @@ do_work (int argc_in,
         }
       } // end SWITCH
 #else
-      modulehandler_configuration_2.outputFormat.format.pixelformat = V4L2_PIX_FMT_RGB24;
-      configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
-                                                                   std::make_pair (&module_configuration,
-                                                                                   &modulehandler_configuration_2)));
-      configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
-                                                                   std::make_pair (&module_configuration,
-                                                                                   &modulehandler_configuration_2b)));
+      modulehandler_configuration_2.outputFormat.format.pixelformat = V4L2_PIX_FMT_RGB32;
 #endif // ACE_WIN32 || ACE_WIN64
       break;
     }
@@ -2149,13 +2154,13 @@ ACE_TMAIN (int argc_in,
   if (log_to_file)
     log_file_name =
         Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                          ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initialize (ACE::basename (argv_in[0]),                   // program name
-                                     log_file_name,                                // log file name
-                                     false,                                        // log to syslog ?
-                                     false,                                        // trace messages ?
-                                     trace_information,                            // debug messages ?
-                                     NULL))                                        // (ui) logger ?
+                                          ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
+  if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])), // program name
+                                     log_file_name,                                     // log file name
+                                     false,                                             // log to syslog ?
+                                     false,                                             // trace messages ?
+                                     trace_information,                                 // debug messages ?
+                                     NULL))                                             // (ui) logger ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Log_Tools::initialize(), aborting\n")));

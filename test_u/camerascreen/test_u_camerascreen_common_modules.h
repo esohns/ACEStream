@@ -41,6 +41,7 @@
 
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_converter.h"
+#include "stream_dec_libav_decoder.h"
 #endif // FFMPEG_SUPPORT
 
 #if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
@@ -70,8 +71,12 @@
 #include "stream_vis_target_gdi.h"
 #include "stream_vis_target_mediafoundation.h"
 #else
+#if defined (WAYLAND_SUPPORT)
 #include "stream_vis_wayland_window.h"
+#endif // WAYLAND_SUPPORT
+#if defined (X11_SUPPORT)
 #include "stream_vis_x11_window.h"
+#endif // X11_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GLUT_SUPPORT)
 #include "stream_vis_opengl_glut.h"
@@ -194,6 +199,14 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVConverter_T<Test_U_TaskBaseSynch_t,
                                         struct Stream_MediaFramework_V4L_MediaType> Stream_CameraScreen_LibAVConvert;
+typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Stream_CameraScreen_Message_t,
+                                      Stream_CameraScreen_SessionMessage_t,
+                                      Stream_CameraScreen_V4L_SessionData_t,
+                                      struct Stream_MediaFramework_V4L_MediaType> Stream_CameraScreen_LibAVDecode;
 
 typedef Stream_Visualization_LibAVResize_T<Test_U_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_V4L_MediaType> Stream_CameraScreen_LibAVResize;
@@ -435,6 +448,7 @@ typedef Stream_Module_Vis_GTK_Window_T<ACE_MT_SYNCH,
                                        Stream_CameraScreen_SessionMessage_t,
                                        struct Stream_MediaFramework_V4L_MediaType> Stream_CameraScreen_GTK_Display;
 #endif // GTK_SUPPORT
+#if defined (WAYLAND_SUPPORT)
 typedef Stream_Module_Vis_Wayland_Window_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
                                            struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
@@ -443,6 +457,8 @@ typedef Stream_Module_Vis_Wayland_Window_T<ACE_MT_SYNCH,
                                            Stream_CameraScreen_SessionMessage_t,
                                            Stream_CameraScreen_V4L_SessionData_t,
                                            struct Stream_MediaFramework_V4L_MediaType> Stream_CameraScreen_Wayland_Display;
+#endif // WAYLAND_SUPPORT
+#if defined (X11_SUPPORT)
 typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
@@ -451,6 +467,7 @@ typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Stream_CameraScreen_SessionMessage_t,
                                        Stream_CameraScreen_V4L_SessionData_t,
                                        struct Stream_MediaFramework_V4L_MediaType> Stream_CameraScreen_X11_Display;
+#endif // X11_SUPPORT
 #if defined (GLUT_SUPPORT)
 typedef Stream_Visualization_OpenGL_GLUT_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
@@ -533,12 +550,18 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,              
                               Stream_CameraScreen_V4L_Source);                       // writer type
 
 #if defined (FFMPEG_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                         // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,   // module handler configuration type
                               libacestream_default_dec_libav_converter_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CameraScreen_LibAVConvert);                      // writer type
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Stream_CameraScreen_LibAVConvert);                           // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_libav_decoder_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Stream_CameraScreen_LibAVDecode);                          // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
@@ -685,18 +708,22 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,              
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CameraScreen_GTK_Display);                        // writer type
 #endif // GTK_SUPPORT
+#if defined (WAYLAND_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_wayland_window_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CameraScreen_Wayland_Display);                          // writer type
+#endif // WAYLAND_SUPPORT
+#if defined (X11_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_x11_window_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CameraScreen_X11_Display);                          // writer type
+#endif // X11_SUPPORT
 #if defined (GLUT_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,       // session data type
                               enum Stream_SessionMessageType,                   // session event type

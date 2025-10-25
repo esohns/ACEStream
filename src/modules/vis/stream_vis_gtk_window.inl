@@ -49,8 +49,13 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , inherited2 ()
  , inherited3 ()
- // , mainLoop_ (NULL)
  , window_ (NULL)
+// #if GTK_CHECK_VERSION (3,22,0)
+//  , window_2_ (NULL)
+// #endif // GTK_CHECK_VERSION (3,22,0)
+// #if GTK_CHECK_VERSION (3,22,0)
+//  , cairo_region_ (NULL)
+// #endif // GTK_CHECK_VERSION (4,0,0)
 #if GTK_CHECK_VERSION (3,0,0)
  , context_ (NULL)
 #endif // GTK_CHECK_VERSION (3,0,0)
@@ -90,8 +95,10 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 #endif // GTK_CHECK_VERSION (3,10,0)
   } // end IF
 
-//  if (mainLoop_)
-//    g_main_loop_unref (mainLoop_);
+// #if GTK_CHECK_VERSION (3,22,0)
+//   if (cairo_region_)
+//     cairo_region_destroy (cairo_region_);
+// #endif // GTK_CHECK_VERSION (3,22,0)
 
 #if GTK_CHECK_VERSION (4,0,0)
   if (context_)
@@ -132,12 +139,12 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (window_);
-  if (unlikely (!pixbuf_))
-    return;
-#if GTK_CHECK_VERSION (3,0,0)
-  if (unlikely (!context_))
-    return;
-#endif // GTK_CHECK_VERSION (3,0,0)
+  ACE_ASSERT (pixbuf_);
+#if GTK_CHECK_VERSION (4,0,0)
+#elif GTK_CHECK_VERSION (3,22,0)
+#elif GTK_CHECK_VERSION (3,0,0)
+  ACE_ASSERT (context_);
+#endif // GTK_CHECK_VERSION (4,0,0)
 
 #if GTK_CHECK_VERSION (3,6,0)
 #else
@@ -151,31 +158,27 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
                   message_inout->length ());
 
 #if GTK_CHECK_VERSION (4,0,0)
-  GdkCairoContext* context_p = context_;
-  cairo_region_t* cairo_region_p = cairo_region_create ();
-  ACE_ASSERT (cairo_region_p);
-  gdk_draw_context_begin_frame (GDK_DRAW_CONTEXT (context_p), cairo_region_p);
-  cairo_t* context_2 = gdk_cairo_context_cairo_create (context_p);
-  ACE_ASSERT (context_2);
+  // ACE_ASSERT (cairo_region_);
+  // gdk_draw_context_begin_frame (GDK_DRAW_CONTEXT (context_), cairo_region_);
+  // cairo_t* context_p = gdk_cairo_context_cairo_create (context_);
+  gtk_widget_queue_draw (GTK_WIDGET (window_));
+#elif GTK_CHECK_VERSION (3,22,0)
+  // ACE_ASSERT (window_2_);
+  // ACE_ASSERT (cairo_region_);
+  // GdkDrawingContext* drawing_context_p =
+  //   gdk_window_begin_draw_frame (window_2_, cairo_region_);
+  // ACE_ASSERT (drawing_context_p);
+  // cairo_t* context_p =
+  //   gdk_drawing_context_get_cairo_context (drawing_context_p);
+  gtk_widget_queue_draw (GTK_WIDGET (window_));
 #elif GTK_CHECK_VERSION (3,0,0)
   cairo_t* context_p = context_;
-#if GTK_CHECK_VERSION (3,22,0)
-  cairo_region_t* cairo_region_p = cairo_region_create ();
-  ACE_ASSERT (cairo_region_p);
-  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (window_));
-  ACE_ASSERT (window_p);
-  GdkDrawingContext* drawing_context_p =
-    gdk_window_begin_draw_frame (window_p, cairo_region_p);
-  ACE_ASSERT (drawing_context_p);
-  context_p =
-    gdk_drawing_context_get_cairo_context (drawing_context_p);
-#endif // GTK_CHECK_VERSION (3,22,0)
-#endif // GTK_CHECK_VERSION
+#endif // GTK_CHECK_VERSION (4,0,0)
 
 #if GTK_CHECK_VERSION (4,0,0)
-  gdk_cairo_set_source_pixbuf (context_2, pixbuf_, 0.0, 0.0);
-  cairo_paint (context_2);
+#elif GTK_CHECK_VERSION (3,22,0)
 #elif GTK_CHECK_VERSION (3,0,0)
+  ACE_ASSERT (context_p);
   gdk_cairo_set_source_pixbuf (context_p, pixbuf_, 0.0, 0.0);
   cairo_paint (context_p);
 #else
@@ -187,11 +190,9 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 #endif // GTK_CHECK_VERSION
 
 #if GTK_CHECK_VERSION (4,0,0)
-  gdk_draw_context_end_frame (GDK_DRAW_CONTEXT (context_p));
-  cairo_region_destroy (cairo_region_p);
+  // gdk_draw_context_end_frame (GDK_DRAW_CONTEXT (context_));
 #elif GTK_CHECK_VERSION (3,22,0)
-  gdk_window_end_draw_frame (window_p, drawing_context_p);
-  cairo_region_destroy (cairo_region_p);
+  // gdk_window_end_draw_frame (window_2_, drawing_context_p);
 #endif // GTK_CHECK_VERSION
 
 #if GTK_CHECK_VERSION (3,6,0)
@@ -243,19 +244,11 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 #endif // GTK_CHECK_VERSION (3,10,0)
       } // end IF
 
-//      if (likely (mainLoop_ &&
-//                  g_main_loop_is_running (mainLoop_)))
-//        g_main_loop_quit (mainLoop_);
       if (inherited::thr_count_ > 0)
       {
         gtk_main_quit ();
         inherited::wait (false); // do not wait for the message queue to idle
       } // end IF
-
-//      if (likely (mainLoop_))
-//      {
-//        g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
-//      } // end IF
 
 #if GTK_CHECK_VERSION (3,0,0)
       if (context_)
@@ -358,19 +351,11 @@ error:
 #endif // GTK_CHECK_VERSION (3,10,0)
       } // end IF
 
-//      if (likely (mainLoop_ &&
-//                  g_main_loop_is_running (mainLoop_)))
-//        g_main_loop_quit (mainLoop_);
       if (inherited::thr_count_ > 0)
       {
         gtk_main_quit ();
         inherited::wait (false); // do not wait for the message queue to idle
       } // end IF
-
-//      if (likely (mainLoop_))
-//      {
-//        g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
-//      } // end IF
 
 #if GTK_CHECK_VERSION (4,0,0)
       if (context_)
@@ -426,10 +411,6 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
     GDK_THREADS_ENTER ();
 #endif // GTK_CHECK_VERSION (3,6,0)
 
-//    if (mainLoop_)
-//    {
-//      g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
-//    } // end IF
     if (window_)
     {
 #if GTK_CHECK_VERSION (3,10,0)
@@ -508,18 +489,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (Common_UI_GTK_Tools::GTKInitialized);
-//  ACE_ASSERT (!mainLoop_);
   ACE_ASSERT (!window_);
-
-//  mainLoop_ = g_main_loop_new (NULL,
-//                               FALSE); // is running ?
-//  if (unlikely (!mainLoop_))
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("%s: failed to g_main_loop_new(NULL,FALSE), aborting\n"),
-//                inherited::mod_->name ()));
-//    return false;
-//  } // end IF
 
   gint width_i, height_i;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -535,38 +505,17 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to gtk_window_new(), aborting\n"),
                 inherited::mod_->name ()));
-//    g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
     return false;
   } // end IF
   gtk_window_set_title (window_,
                         ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DEFAULT_WINDOW_TITLE));
-  //  gtk_widget_set_size_request (GTK_WIDGET (window_),
-  gtk_window_resize (window_,
-                     width_i, height_i);
+  gtk_widget_set_size_request (GTK_WIDGET (window_),
+                               width_i, height_i);
 
-  // *TODO*: subscribe to more signals (realize, configure, expose, ...)
+  // *NOTE*: subscribe to more signals (realize, configure, expose, ...) in svc()
   g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("destroy"), G_CALLBACK (acestream_gtk_window_destroy_cb), NULL);
-  //ACE_ASSERT (inherited::mod_);
-  //IGET_T* iget_p = dynamic_cast<IGET_T*> (inherited::mod_);
-  //if (unlikely (!iget_p))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: dynamic_cast<Common_IGetR_T<ACE_Stream>>(0x%@) failed --> check implementation !, aborting\n"),
-  //              inherited::mod_->name (),
-  //              inherited::mod_));
-  //  return false;
-  //} // end IF
-  //STREAM_T& stream_r = const_cast<STREAM_T&> (iget_p->getR ());
-  //Stream_IStreamControlBase* istream_control_base_p =
-  //  dynamic_cast<Stream_IStreamControlBase*> (&stream_r);
-  //ACE_ASSERT (istream_control_base_p);
   Common_INotify* inotify_p = this;
   g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("delete-event"), G_CALLBACK (acestream_gtk_window_delete_event_cb), (gpointer)inotify_p);
-
-#if GTK_CHECK_VERSION (3,0,0)
-  context_ = gdk_cairo_create (gtk_widget_get_window (GTK_WIDGET (window_)));
-  ACE_ASSERT (context_);
-#endif // GTK_CHECK_VERSION (3,0,0)
 
   return true;
 }
@@ -590,7 +539,6 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Window_T::svc"));
 
   // sanity check(s)
-//  ACE_ASSERT (mainLoop_);
   ACE_ASSERT (window_);
 
 #if GTK_CHECK_VERSION (3,6,0)
@@ -644,12 +592,15 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (gdk_pixbuf_get_colorspace (pixbuf_) == GDK_COLORSPACE_RGB);
   ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (pixbuf_) == 8);
-  ACE_ASSERT (gdk_pixbuf_get_n_channels (pixbuf_) == 3);
+  ACE_ASSERT (gdk_pixbuf_get_n_channels (pixbuf_) == 4);
 
-#if GTK_CHECK_VERSION (3,0,0)
-  ACE_ASSERT (!context_);
 #if GTK_CHECK_VERSION (3,22,0)
-#else
+  // window_2_ = gtk_widget_get_window (GTK_WIDGET (window_));
+  // ACE_ASSERT (window_2_);
+  // cairo_region_ = gdk_window_get_clip_region (window_2_);
+  // ACE_ASSERT (cairo_region_);
+#elif GTK_CHECK_VERSION (3,0,0)
+  ACE_ASSERT (!context_);
   context_ = gdk_cairo_create (gtk_widget_get_window (GTK_WIDGET (window_)));
   if (unlikely (!context_))
   {
@@ -660,9 +611,14 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
     return -1;
   } // end IF
 #endif // GTK_CHECK_VERSION (3,22,0)
-#endif // GTK_CHECK_VERSION (3,0,0)
 
-//  g_main_loop_run (mainLoop_);
+#if GTK_CHECK_VERSION (3,22,0)
+  g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("draw"), G_CALLBACK (acestream_gtk_window_draw_cb), pixbuf_);
+#elif GTK_CHECK_VERSION (3,0,0)
+#else
+  // g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("expose"), G_CALLBACK (acestream_gtk_window_expose_event_cb), pixbuf_);
+#endif // GTK_CHECK_VERSION (3,22,0)
+
   gtk_main ();
 
 #if GTK_CHECK_VERSION (3,6,0)

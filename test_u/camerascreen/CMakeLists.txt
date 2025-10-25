@@ -13,6 +13,7 @@ if (UNIX)
 
  set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis/scripts")
  include (wayland)
+ include (x11)
 endif (UNIX)
 
 if (UNIX)
@@ -69,9 +70,7 @@ endif ()
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
@@ -143,7 +142,6 @@ endif (WIN32 AND NOT BUILD_TEST_U)
 add_dependencies (${EXECUTABLE} Common)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME})
-#add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Device)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
@@ -203,7 +201,6 @@ endif (UNIX)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Device)
-#target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_File)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_MediaFramework)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Miscellaneous)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Statistic)
@@ -212,8 +209,6 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Visualization)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_U)
 
 # add PCH
-#set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${EXECUTABLE})
 target_precompile_headers (${EXECUTABLE}
                            PUBLIC stdafx.h)
 

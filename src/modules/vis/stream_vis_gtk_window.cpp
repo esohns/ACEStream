@@ -28,6 +28,38 @@
 const char libacestream_default_vis_gtk_window_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING);
 
+//////////////////////////////////////////
+
+#if GTK_CHECK_VERSION (3,0,0)
+gboolean
+acestream_gtk_window_draw_cb (GtkWidget* widget_in,
+                              cairo_t* context_in,
+                              gpointer userData_in)
+{
+  ACE_ASSERT (widget_in);
+  ACE_ASSERT (context_in);
+  GdkPixbuf* pixbuf_p = static_cast<GdkPixbuf*> (userData_in);
+  ACE_ASSERT (pixbuf_p);
+
+  gdk_cairo_set_source_pixbuf (context_in, pixbuf_p, 0.0, 0.0);
+  cairo_paint (context_in);
+
+  return TRUE; // do NOT propagate event
+}
+#else
+gboolean
+acestream_gtk_window_expose_event_cb (GtkWidget* widget_in,
+                                      GdkEvent* event_in,
+                                      gpointer userData_in)
+{
+  ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (event_in);
+  ACE_UNUSED_ARG (userData_in);
+
+  return TRUE; // do NOT propagate event
+}
+#endif // GTK_CHECK_VERSION (3,0,0)
+
 void
 acestream_gtk_window_destroy_cb (GtkWidget* widget_in,
                                  gpointer userData_in)
@@ -47,15 +79,9 @@ acestream_gtk_window_delete_event_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (event_in);
-  //Stream_IStreamControlBase* istream_control_base_p =
-  //  static_cast<Stream_IStreamControlBase*> (userData_in);
-  //ACE_ASSERT (istream_control_base_p);
   Common_INotify* inotify_p = static_cast<Common_INotify*> (userData_in);
   ACE_ASSERT (inotify_p);
 
-  //istream_control_base_p->stop (false,  // wait for completion ?
-  //                              true,   // recurse upstream ?
-  //                              false); // high priority ?
   inotify_p->notify ();
 
   return TRUE; // do NOT propagate event
