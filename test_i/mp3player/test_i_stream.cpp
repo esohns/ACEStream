@@ -64,6 +64,8 @@ Test_I_Stream::Test_I_Stream ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , waveOutPlayer_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING))
+ , xaudio2Player_ (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_XAUDIO2_RENDER_DEFAULT_NAME_STRING))
 #else
  , ALSAPlayer_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING))
@@ -112,7 +114,8 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   //layout_in->append (&WAVEncoder_, NULL, 0);
   //layout_in->append (&FileSink_, NULL, 0);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  layout_in->append (&waveOutPlayer_, NULL, 0);
+  //layout_in->append (&waveOutPlayer_, NULL, 0);
+  layout_in->append (&xaudio2Player_, NULL, 0);
 #else
 #if defined (LIBPIPEWIRE_SUPPORT)
   layout_in->append (&PipewirePlayer_, NULL, 0);

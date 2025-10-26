@@ -160,6 +160,9 @@ if (WIN32)
       stream_dev_target_wavout.cpp
       stream_dev_target_wavout.h
       stream_dev_target_wavout.inl
+      stream_dev_target_xaudio2.cpp
+      stream_dev_target_xaudio2.h
+      stream_dev_target_xaudio2.inl
       stream_dev_vfw_tools.cpp
       stream_dev_vfw_tools.h)
 elseif (UNIX)
@@ -305,6 +308,8 @@ elseif (WIN32)
           stream_dev_target_wasapi.inl
           stream_dev_target_wavout.h
           stream_dev_target_wavout.inl
+          stream_dev_target_xaudio2.h
+          stream_dev_target_xaudio2.inl
           stream_dev_vfw_tools.h
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)

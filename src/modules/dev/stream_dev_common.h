@@ -105,6 +105,7 @@ enum Stream_Device_Renderer
   // *** audio ONLY (!) ***
   STREAM_DEVICE_RENDERER_WAVEOUT = 0,
   STREAM_DEVICE_RENDERER_WASAPI,
+  STREAM_DEVICE_RENDERER_XAUDIO2,
   // *** video ONLY (!) ***
   // *** audio/video ***
   STREAM_DEVICE_RENDERER_DIRECTSHOW,

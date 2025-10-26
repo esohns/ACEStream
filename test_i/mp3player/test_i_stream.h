@@ -114,6 +114,7 @@ class Test_I_Stream
   //Test_I_FileWriter_Module      FileSink_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_WavOutPlayer_Module      waveOutPlayer_;
+  Test_I_XAudio2Player_Module     xaudio2Player_;
 #else
   Test_I_ALSAPlayer_Module        ALSAPlayer_;
 #if defined (LIBPIPEWIRE_SUPPORT)

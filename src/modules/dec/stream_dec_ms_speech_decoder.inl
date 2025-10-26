@@ -117,12 +117,6 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
-  //if (FAILED (::CoInitializeEx (NULL,
-  //                              (COINIT_MULTITHREADED     |
-  //                               COINIT_DISABLE_OLE1DDE   |
-  //                               COINIT_SPEED_OVER_MEMORY))))
-  //  return false;
-
   result = CoCreateInstance (CLSID_SpVoice, NULL,
                              CLSCTX_INPROC_SERVER,
                              IID_PPV_ARGS (&voice_));

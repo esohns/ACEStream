@@ -39,6 +39,7 @@
 //#include "stream_dec_wav_encoder.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_target_wavout.h"
+#include "stream_dev_target_xaudio2.h"
 #else
 #include "stream_dev_target_alsa.h"
 #if defined (LIBPIPEWIRE_SUPPORT)
@@ -207,6 +208,19 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,         // se
                               libacestream_default_dev_target_wavout_module_name_string,
                               Stream_INotify_t,                         // stream notification interface type
                               Test_I_WavOutPlayer);                          // writer type
+typedef Stream_Dev_Target_XAudio2_T<ACE_MT_SYNCH,
+                                    Common_TimePolicy_t,
+                                    struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                    Stream_ControlMessage_t,
+                                    Test_I_Stream_Message,
+                                    Test_I_Stream_SessionMessage,
+                                    struct _AMMediaType> Test_I_XAudio2Player;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                        // session data type
+                              enum Stream_SessionMessageType,                             // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration,         // module handler configuration type
+                              libacestream_default_dev_target_xaudio2_module_name_string,
+                              Stream_INotify_t,                                           // stream notification interface type
+                              Test_I_XAudio2Player);                                      // writer type
 #else
 typedef Stream_Dev_Target_ALSA_T<ACE_MT_SYNCH,
                                  Common_TimePolicy_t,

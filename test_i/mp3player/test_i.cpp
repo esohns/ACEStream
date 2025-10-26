@@ -313,13 +313,15 @@ do_work (unsigned int bufferSize_in,
 
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
-  //allocator_configuration.defaultBufferSize = 524288;
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
   codec_configuration.codecId = AV_CODEC_ID_AAC;
 #else
   struct Stream_AllocatorConfiguration allocator_configuration;
 #endif // FFMPEG_SUPPORT
-  //allocator_configuration.defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
+  if (bufferSize_in)
+    allocator_configuration.defaultBufferSize = std::min (bufferSize_in,
+                                                          allocator_configuration.defaultBufferSize);
+
   Test_I_Stream stream;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
 #if defined (FFMPEG_SUPPORT)
@@ -376,13 +378,10 @@ do_work (unsigned int bufferSize_in,
     Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                      SND_PCM_STREAM_PLAYBACK);
 #endif // ACE_WIN32 || ACE_WIN64
-  modulehandler_configuration.allocatorConfiguration =
-    &configuration.allocatorConfiguration;
+  modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.fileIdentifier.identifier = inputFileName_in;
   modulehandler_configuration.waitForDataOnEnd = true; // playback application
   // ******************** (sub-)stream configuration data *********************
-  if (bufferSize_in)
-    allocator_configuration.defaultBufferSize = bufferSize_in;
 
   struct Test_I_MP3Player_StreamConfiguration stream_configuration;
   stream_configuration.messageAllocator = &message_allocator;
@@ -492,7 +491,7 @@ ACE_TMAIN (int argc_in,
   process_profile.start ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Common_Tools::initialize (false,  // COM ?
+  Common_Tools::initialize (true,   // COM ?
                             false); // RNG ?
 #else
 #if defined (LIBPIPEWIRE_SUPPORT)
