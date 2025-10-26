@@ -40,8 +40,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename SessionDataType,
           typename MediaType>
 Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -49,8 +47,6 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType,
-                              SessionDataType,
                               MediaType>::Stream_Decoder_SoXResampler_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
@@ -77,8 +73,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename SessionDataType,
           typename MediaType>
 Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -86,8 +80,6 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType,
-                              SessionDataType,
                               MediaType>::~Stream_Decoder_SoXResampler_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXResampler_T::~Stream_Decoder_SoXResampler_T"));
@@ -117,8 +109,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename SessionDataType,
           typename MediaType>
 bool
 Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
@@ -127,8 +117,6 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType,
-                              SessionDataType,
                               MediaType>::initialize (const ConfigurationType& configuration_in,
                                                       Stream_IAllocator* allocator_in)
 {
@@ -196,8 +184,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename SessionDataType,
           typename MediaType>
 void
 Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
@@ -206,8 +192,6 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType,
-                              SessionDataType,
                               MediaType>::handleDataMessage (DataMessageType*& message_inout,
                                                              bool& passMessageDownstream_out)
 {
@@ -227,11 +211,11 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   struct sox_format_t* input_buffer_p = NULL, *output_buffer_p = NULL;
 
   input_buffer_p =
-      sox_open_mem_read (message_inout->rd_ptr (),
-                         message_inout->length (),
-                         &signalInfo_,
-                         &encodingInfo_,
-                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING));
+    sox_open_mem_read (message_inout->rd_ptr (),
+                       message_inout->length (),
+                       &signalInfo_,
+                       &encodingInfo_,
+                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING));
   if (unlikely (!input_buffer_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -264,12 +248,12 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   } // end IF
   message_block_p = buffer_;
   output_buffer_p =
-      sox_open_mem_write (message_block_p->wr_ptr (),
-                          message_block_p->space (),
-                          &signalInfoOut_,
-                          &encodingInfoOut_,
-                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
-                          NULL);
+    sox_open_mem_write (message_block_p->wr_ptr (),
+                        message_block_p->space (),
+                        &signalInfoOut_,
+                        &encodingInfoOut_,
+                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
+                        NULL);
   if (unlikely (!output_buffer_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -450,8 +434,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename SessionDataType,
           typename MediaType>
 void
 Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
@@ -460,8 +442,6 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType,
-                              SessionDataType,
                               MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                 bool& passMessageDownstream_out)
 {
@@ -480,10 +460,10 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
-      //ACE_ASSERT (inherited::configuration_->outputFormat);
       ACE_ASSERT (inherited::sessionData_);
-      SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       const struct sox_effect_handler_t* effect_handler_p = NULL;
       struct sox_effect_t* effect_p = NULL;
       struct sox_signalinfo_t intermediate_signal_s, target_signal_s;
@@ -543,8 +523,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
       } // end IF
 
       // add input,output and conversion 'effects'
-      effect_handler_p =
-          sox_find_effect (ACE_TEXT_ALWAYS_CHAR ("input"));
+      effect_handler_p = sox_find_effect (ACE_TEXT_ALWAYS_CHAR ("input"));
       if (unlikely (!effect_handler_p))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -674,8 +653,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                     signalInfo_.channels, signalInfoOut_.channels));
       } // end IF
 
-      effect_handler_p =
-          sox_find_effect (ACE_TEXT_ALWAYS_CHAR ("output"));
+      effect_handler_p = sox_find_effect (ACE_TEXT_ALWAYS_CHAR ("output"));
       if (unlikely (!effect_handler_p))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -761,8 +739,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename SessionDataType,
           typename MediaType>
 void
 Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
@@ -771,8 +747,6 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType,
-                              SessionDataType,
                               MediaType>::extractBuffer (sox_format_t* outputBuffer_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXResampler_T::extractBuffer"));

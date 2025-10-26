@@ -110,10 +110,13 @@ class Test_I_Stream
   Test_I_AACDecoder_Module        FaadDecoder_;
 #endif // FAAD_SUPPORT
   Test_I_StatisticReport_Module   statisticReport_;
-  //Test_I_WAVEncoder_Module      WAVEncoder_;
-  //Test_I_FileWriter_Module      FileSink_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (SOX_SUPPORT)
+  Test_I_SoXResampler_Module      SoXResampler_;
+#endif // SOX_SUPPORT
+
   Test_I_WavOutPlayer_Module      waveOutPlayer_;
+  Test_I_WASAPIPlayer_Module      WASAPIPlayer_;
   Test_I_XAudio2Player_Module     xaudio2Player_;
 #else
   Test_I_ALSAPlayer_Module        ALSAPlayer_;
@@ -121,6 +124,8 @@ class Test_I_Stream
   Test_I_PipewirePlayer_Module    PipewirePlayer_;
 #endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+  // Test_I_WAVEncoder_Module      WAVEncoder_;
+  // Test_I_FileWriter_Module      FileSink_;
 };
 
 #endif

@@ -265,8 +265,6 @@ typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
                                       Stream_ControlMessage_t,
                                       Test_I_DirectShow_Message,
                                       Test_I_DirectShow_SessionMessage_t,
-                                      Test_I_CommandSpeech_DirectShow_SessionData_t,
-                                      Test_I_CommandSpeech_DirectShow_SessionData,
                                       struct _AMMediaType> Test_I_DirectShow_SoXResampler;
 typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -274,8 +272,6 @@ typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
                                       Stream_ControlMessage_t,
                                       Test_I_DirectShow_Message,
                                       Test_I_MediaFoundation_SessionMessage_t,
-                                      Test_I_CommandSpeech_MediaFoundation_SessionData_t,
-                                      Test_I_CommandSpeech_MediaFoundation_SessionData,
                                       IMFMediaType*> Test_I_MediaFoundation_SoXResampler;
 
 typedef Stream_Decoder_SoXEffect_T<ACE_MT_SYNCH,

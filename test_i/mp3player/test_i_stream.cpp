@@ -37,6 +37,8 @@ extern "C"
 
 #include "stream_macros.h"
 
+#include "stream_dec_defines.h"
+
 #include "stream_file_defines.h"
 
 Test_I_Stream::Test_I_Stream ()
@@ -57,13 +59,15 @@ Test_I_Stream::Test_I_Stream ()
 #endif // FAAD_SUPPORT
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
- //, WAVEncoder_ (this,
- //               ACE_TEXT_ALWAYS_CHAR ("WAVEncoder"))
- //, FileSink_ (this,
- //             ACE_TEXT_ALWAYS_CHAR ("FileSink"))
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (SOX_SUPPORT)
+ , SoXResampler_ (this,
+                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING))
+#endif // SOX_SUPPORT
  , waveOutPlayer_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING))
+ , WASAPIPlayer_ (this,
+                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING))
  , xaudio2Player_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_XAUDIO2_RENDER_DEFAULT_NAME_STRING))
 #else
@@ -74,6 +78,10 @@ Test_I_Stream::Test_I_Stream ()
                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_PIPEWIRE_DEFAULT_NAME_STRING))
 #endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+//, WAVEncoder_ (this,
+//               ACE_TEXT_ALWAYS_CHAR ("WAVEncoder"))
+//, FileSink_ (this,
+//             ACE_TEXT_ALWAYS_CHAR ("FileSink"))
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream::Test_I_Stream"));
 
@@ -111,18 +119,55 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
 #endif // FFMPEG_SUPPORT
   } // end ELSE
   layout_in->append (&statisticReport_, NULL, 0);
-  //layout_in->append (&WAVEncoder_, NULL, 0);
-  //layout_in->append (&FileSink_, NULL, 0);
+
+  switch (inherited::configuration_->configuration_->renderer)
+  {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //layout_in->append (&waveOutPlayer_, NULL, 0);
-  layout_in->append (&xaudio2Player_, NULL, 0);
+    case STREAM_DEVICE_RENDERER_WAVEOUT:
+    {
+      layout_in->append (&waveOutPlayer_, NULL, 0);
+      break;
+    }
+    case STREAM_DEVICE_RENDERER_WASAPI:
+    {
+#if defined (SOX_SUPPORT)
+      layout_in->append (&SoXResampler_, NULL, 0);
+#endif // SOX_SUPPORT
+
+      layout_in->append (&WASAPIPlayer_, NULL, 0);
+      break;
+    }
+    case STREAM_DEVICE_RENDERER_XAUDIO2:
+    {
+      layout_in->append (&xaudio2Player_, NULL, 0);
+      break;
+    }
 #else
+    case STREAM_DEVICE_RENDERER_ALSA:
+    {
+      layout_in->append (&ALSAPlayer_, NULL, 0);
+      break;
+    }
+    case STREAM_DEVICE_RENDERER_PIPEWIRE:
+    {
 #if defined (LIBPIPEWIRE_SUPPORT)
-  layout_in->append (&PipewirePlayer_, NULL, 0);
-#else
-  layout_in->append (&ALSAPlayer_, NULL, 0);
+      layout_in->append (&PipewirePlayer_, NULL, 0);
 #endif // LIBPIPEWIRE_SUPPORT
+      break;
+    }
 #endif // ACE_WIN32 || ACE_WIN64
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->renderer));
+      return false;
+    }
+  } // end SWITCH
+
+  // layout_in->append (&WAVEncoder_, NULL, 0);
+  // layout_in->append (&FileSink_, NULL, 0);
 
   return true;
 }

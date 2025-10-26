@@ -101,6 +101,11 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
    , codecConfiguration (NULL)
 #endif // FFMPEG_SUPPORT
    , deviceIdentifier ()
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (SOX_SUPPORT)
+   , manageSoX (true)
+#endif // SOX_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
    , outputFormat ()
    , pushStatisticMessages (true)
   {
@@ -118,6 +123,9 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
 #endif // FFMPEG_SUPPORT
   struct Stream_Device_Identifier                  deviceIdentifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (SOX_SUPPORT)
+  bool                                             manageSoX;
+#endif // SOX_SUPPORT
   struct _AMMediaType                              outputFormat;
 #else
   struct Stream_MediaFramework_ALSA_MediaType      outputFormat;
@@ -130,7 +138,10 @@ struct Test_I_MP3Player_StreamConfiguration
 {
   Test_I_MP3Player_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
+   , renderer (STREAM_DEV_AUDIO_DEFAULT_RENDERER)
   {}
+
+  enum Stream_Device_Renderer renderer;
 };
 
 struct Test_I_MP3Player_StreamState

@@ -39,6 +39,7 @@
 //#include "stream_dec_wav_encoder.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_target_wavout.h"
+#include "stream_dev_target_wasapi.h"
 #include "stream_dev_target_xaudio2.h"
 #else
 #include "stream_dev_target_alsa.h"
@@ -55,6 +56,9 @@
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_audio_decoder.h"
 #endif // FFMPEG_SUPPORT
+#if defined (SOX_SUPPORT)
+#include "stream_dec_sox_resampler.h"
+#endif // SOX_SUPPORT
 
 #include "stream_file_source.h"
 //#include "stream_file_sink.h"
@@ -193,6 +197,24 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_MP3Player_SessionData,      // session d
                           Test_I_Statistic_WriterTask_t,            // writer type
                           Test_I_StatisticReport);                  // name
 
+#if defined (SOX_SUPPORT)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_I_Stream_Message,
+                                      Test_I_Stream_SessionMessage,
+                                      struct _AMMediaType> Test_I_SoXResampler;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration,        // module handler configuration type
+                              libacestream_default_dec_sox_resampler_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_I_SoXResampler);                                      // name
+#endif // ACE_WIN32 || ACE_WIN64
+#endif // SOX_SUPPORT
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Dev_Target_WavOut_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
@@ -208,6 +230,22 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,         // se
                               libacestream_default_dev_target_wavout_module_name_string,
                               Stream_INotify_t,                         // stream notification interface type
                               Test_I_WavOutPlayer);                          // writer type
+typedef Stream_Dev_Target_WASAPI_T<ACE_MT_SYNCH,
+                                   Common_TimePolicy_t,
+                                   struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                   Stream_ControlMessage_t,
+                                   Test_I_Stream_Message,
+                                   Test_I_Stream_SessionMessage,
+                                   enum Stream_ControlType,
+                                   enum Stream_SessionMessageType,
+                                   struct Stream_UserData,
+                                   struct _AMMediaType> Test_I_WASAPIPlayer;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration,        // module handler configuration type
+                              libacestream_default_dev_target_wasapi_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_I_WASAPIPlayer);                                      // writer type
 typedef Stream_Dev_Target_XAudio2_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     struct Test_I_MP3Player_ModuleHandlerConfiguration,

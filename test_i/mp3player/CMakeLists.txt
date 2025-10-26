@@ -7,6 +7,9 @@ include (mpg123)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev/scripts")
 include (pipewire)
 
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
+include (sox)
+
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
@@ -22,6 +25,9 @@ endif (MPG123_SUPPORT)
 if (LIBPIPEWIRE_SUPPORT)
  include_directories (${LIBPIPEWIRE_INCLUDE_DIRS})
 endif (LIBPIPEWIRE_SUPPORT)
+if (SOX_SUPPORT)
+ include_directories (${SOX_INCLUDE_DIRS})
+endif (SOX_SUPPORT)
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
@@ -55,7 +61,6 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
@@ -63,7 +68,6 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 ############## next target ################
 set (EXECUTABLE mp3player)
 set (${EXECUTABLE}_EXE_SRCS
-#     stdafx.cpp
      stdafx.h
      test_i_modules.h
      test_i_message.cpp
@@ -79,8 +83,6 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_stream.h
      test_i_stream_common.h)
 
-#cmake_policy (SET CMP0060 OLD) # link libraries by full path even in implicit directories
-#cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS})
@@ -108,6 +110,9 @@ endif (MPG123_SUPPORT)
 if (LIBPIPEWIRE_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${LIBPIPEWIRE_LIBRARIES})
 endif (LIBPIPEWIRE_SUPPORT)
+if (SOX_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
+endif (SOX_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
@@ -135,7 +140,7 @@ install (TARGETS ${EXECUTABLE}
 
 if (UNIX)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-f /mnt/win_d/test.mp3 -l -o /mnt/win_d/output.wav -t"
+                         ARGS "-f /mnt/win_d/test.mp3 -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
@@ -158,6 +163,7 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
+ file (TO_CMAKE_PATH "${SOX_LIB_DIR}" SOX_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${FAAD_PATH}
@@ -165,10 +171,11 @@ elseif (WIN32)
                            ${VCPKG_PATH}
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
+                           ${SOX_PATH}
                            ${ACE_PATH})
  create_target_launcher (${EXECUTABLE}
                          COMMAND ${COMMAND}
-                         ARGS "-f F:\\\\test.mp3 -l -o F:\\\\output.wav -t"
+                         ARGS "-f F:\\\\test.mp3 -l -t"
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/${EXECUTABLE}

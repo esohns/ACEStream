@@ -82,7 +82,7 @@ enum Stream_Device_Capturer
   STREAM_DEVICE_CAPTURER_WASAPI,
   // *** video ONLY (!) ***
   STREAM_DEVICE_CAPTURER_VFW,
-  // *** audio/video ***
+  // *** A/V ***
   STREAM_DEVICE_CAPTURER_DIRECTSHOW,
   STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION,
 #else
@@ -107,7 +107,7 @@ enum Stream_Device_Renderer
   STREAM_DEVICE_RENDERER_WASAPI,
   STREAM_DEVICE_RENDERER_XAUDIO2,
   // *** video ONLY (!) ***
-  // *** audio/video ***
+  // *** A/V ***
   STREAM_DEVICE_RENDERER_DIRECTSHOW,
   STREAM_DEVICE_RENDERER_MEDIAFOUNDATION,
 #else

@@ -675,8 +675,6 @@ typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
                                       Stream_ControlMessage_t,
                                       Test_U_DirectShow_Message,
                                       Test_U_DirectShow_SessionMessage,
-                                      Test_U_MicVisualize_DirectShow_SessionData_t,
-                                      Test_U_MicVisualize_DirectShow_SessionData,
                                       struct _AMMediaType> Test_U_MicVisualize_DirectShow_SoXResampler;
 typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -684,8 +682,6 @@ typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
                                       Stream_ControlMessage_t,
                                       Test_U_MediaFoundation_Message,
                                       Test_U_MediaFoundation_SessionMessage,
-                                      Test_U_MicVisualize_MediaFoundation_SessionData_t,
-                                      Test_U_MicVisualize_MediaFoundation_SessionData,
                                       IMFMediaType*> Test_U_MicVisualize_MediaFoundation_SoXResampler;
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_DirectShow_SessionData,                       // session data type

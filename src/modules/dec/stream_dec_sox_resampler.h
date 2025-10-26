@@ -45,9 +45,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionDataContainerType,
-          typename SessionDataType,
-          ////////////////////////////////
           typename MediaType>
 class Stream_Decoder_SoXResampler_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,

@@ -58,7 +58,7 @@
 
 #include "stream_file_sink.h"
 
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -81,9 +81,6 @@ do_printUsage (const std::string& programName_in)
   // enable verbatim boolean output
   std::cout.setf (std::ios::boolalpha);
 
-  std::string path =
-    Common_File_Tools::getWorkingDirectory ();
-
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
             << ACE_TEXT_ALWAYS_CHAR (" [OPTIONS]")
@@ -95,12 +92,7 @@ do_printUsage (const std::string& programName_in)
             << TEST_I_DEFAULT_BUFFER_SIZE
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
-  std::string input_file = path;
-  input_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  input_file = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_INPUT_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : input file name [")
-            << input_file
-            << ACE_TEXT_ALWAYS_CHAR ("]")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : input file name")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
@@ -111,6 +103,10 @@ do_printUsage (const std::string& programName_in)
   output_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-o [STRING] : output file name [")
             << output_file
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-r [VALUE]  : renderer backend [")
+            << STREAM_DEV_AUDIO_DEFAULT_RENDERER
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
@@ -130,6 +126,7 @@ do_processArguments (int argc_in,
                      std::string& inputFileName_out,
                      bool& logToFile_out,
                      std::string& outputFileName_out,
+                     enum Stream_Device_Renderer& renderer_out,
                      bool& traceInformation_out,
                      bool& printVersionAndExit_out)
 {
@@ -139,19 +136,18 @@ do_processArguments (int argc_in,
 
   // initialize results
   bufferSize_out = TEST_I_DEFAULT_BUFFER_SIZE;
-  inputFileName_out = path;
-  inputFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  inputFileName_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_INPUT_FILE);
+  inputFileName_out.clear ();
   logToFile_out = false;
   outputFileName_out = Common_File_Tools::getTempDirectory ();
   outputFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   outputFileName_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
+  renderer_out = STREAM_DEV_AUDIO_DEFAULT_RENDERER;
   traceInformation_out = false;
   printVersionAndExit_out = false;
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:f:lo:tv"),
+                              ACE_TEXT ("b:f:lo:r:tv"),
                               1,                         // skip command name
                               1,                         // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -184,6 +180,16 @@ do_processArguments (int argc_in,
       case 'o':
       {
         outputFileName_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        break;
+      }
+      case 'r':
+      {
+        int value_i;
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << argumentParser.opt_arg ();
+        converter >> value_i;
+        renderer_out = static_cast<enum Stream_Device_Renderer> (value_i);
         break;
       }
       case 't':
@@ -294,9 +300,10 @@ do_initializeSignals (ACE_Sig_Set& signals_out,
 }
 
 void
-do_work (unsigned int bufferSize_in,
+do_work (ACE_UINT32 bufferSize_in,
          const std::string& inputFileName_in,
          const std::string& outputFileName_in,
+         enum Stream_Device_Renderer renderer_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
@@ -319,8 +326,7 @@ do_work (unsigned int bufferSize_in,
   struct Stream_AllocatorConfiguration allocator_configuration;
 #endif // FFMPEG_SUPPORT
   if (bufferSize_in)
-    allocator_configuration.defaultBufferSize = std::min (bufferSize_in,
-                                                          allocator_configuration.defaultBufferSize);
+    allocator_configuration.defaultBufferSize = bufferSize_in;
 
   Test_I_Stream stream;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
@@ -351,23 +357,23 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
     Stream_Device_Identifier::ID;
   modulehandler_configuration.deviceIdentifier.identifier._id = 0;
-  struct tWAVEFORMATEX waveformatex_s;
-  ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
-  waveformatex_s.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
-  waveformatex_s.nChannels = 2;
-  waveformatex_s.nSamplesPerSec = 48000;
-  waveformatex_s.wBitsPerSample = 32;
-  waveformatex_s.nBlockAlign =
-    (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
-  waveformatex_s.nAvgBytesPerSec =
-    (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
-  // waveformatex_s.cbSize = 0;
-  if (!Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (waveformatex_s,
-                                                                 modulehandler_configuration.outputFormat))
+  if (renderer_in == STREAM_DEVICE_RENDERER_WASAPI)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx(), returning\n")));
-    return;
+    struct _GUID device_guid =
+      Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (modulehandler_configuration.deviceIdentifier.identifier._id);
+    ACE_ASSERT (!InlineIsEqualGUID (device_guid, GUID_NULL));
+    struct tWAVEFORMATEX* waveformatex_p =
+      Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat (device_guid);
+    ACE_ASSERT (waveformatex_p);
+    if (!Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (*waveformatex_p,
+                                                                   modulehandler_configuration.outputFormat))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx(), returning\n")));
+      CoTaskMemFree (waveformatex_p);
+      return;
+    } // end IF
+    CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
   } // end IF
 #else
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration;
@@ -387,6 +393,7 @@ do_work (unsigned int bufferSize_in,
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.printFinalReport = true;
   stream_configuration.fileIdentifier.identifier = outputFileName_in;
+  stream_configuration.renderer = renderer_in;
   configuration.streamConfiguration.initialize (module_configuration,
                                                 modulehandler_configuration,
                                                 stream_configuration);
@@ -504,24 +511,22 @@ ACE_TMAIN (int argc_in,
     Common_File_Tools::getWorkingDirectory ();
 
   // step1a set defaults
-  unsigned int buffer_size = TEST_I_DEFAULT_BUFFER_SIZE;
-  std::string path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-  std::string input_file = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_INPUT_FILE);
+  ACE_UINT32 buffer_size_i = TEST_I_DEFAULT_BUFFER_SIZE;
+  std::string input_file;
   bool log_to_file = false;
   std::string output_file = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
+  enum Stream_Device_Renderer renderer_e = STREAM_DEV_AUDIO_DEFAULT_RENDERER;
   bool trace_information = false;
   bool print_version_and_exit = false;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
                             argv_in,
-                            buffer_size,
+                            buffer_size_i,
                             input_file,
                             log_to_file,
                             output_file,
-                            //statistic_reporting_interval,
+                            renderer_e,
                             trace_information,
                             print_version_and_exit))
   {
@@ -538,22 +543,6 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1c: validate arguments
-  // *IMPORTANT NOTE*: iff the number of message buffers is limited, the
-  //                   reactor/proactor thread could (dead)lock on the
-  //                   allocator lock, as it cannot dispatch events that would
-  //                   free slots
-  if (TEST_I_MAX_MESSAGES)
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
-//  if (use_reactor                      &&
-//      (number_of_dispatch_threads > 1) &&
-//      !use_thread_pool)
-//  { // *NOTE*: see also: man (2) select
-//    // *TODO*: verify this for MS Windows based systems
-//    ACE_DEBUG ((LM_WARNING,
-//                ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
-//    use_thread_pool = true;
-//  } // end IF
   if ((!input_file.empty () && !Common_File_Tools::isReadable (input_file)) ||
       false)
   {
@@ -577,13 +566,13 @@ ACE_TMAIN (int argc_in,
   if (log_to_file)
     log_file_name =
       Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                        ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initialize (ACE::basename (argv_in[0]),           // program name
-                                     log_file_name,                        // log file name
-                                     false,                                // log to syslog ?
-                                     false,                                // trace messages ?
-                                     trace_information,                    // debug messages ?
-                                     NULL))                                // logger ?
+                                        ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
+  if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])), // program name
+                                     log_file_name,                                     // log file name
+                                     false,                                             // log to syslog ?
+                                     false,                                             // trace messages ?
+                                     trace_information,                                 // debug messages ?
+                                     NULL))                                             // logger ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Log_Tools::initialize(), aborting\n")));
@@ -647,37 +636,13 @@ ACE_TMAIN (int argc_in,
     return EXIT_SUCCESS;
   } // end IF
 
-  // step1g: set process resource limits
-  // *NOTE*: settings will be inherited by any child processes
-//  if (!Common_Tools::setResourceLimits (false, // file descriptors
-//                                        true,  // stack traces
-//                                        true)) // pending signals
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
-//
-//    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-//                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
-//                                   signal_set,
-//                                   previous_signal_actions,
-//                                   previous_signal_mask);
-//    Common_Log_Tools::finalize ();
-//    // *PORTABILITY*: on Windows, finalize ACE...
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//    result = ACE::fini ();
-//    if (result == -1)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-//#endif
-//    return EXIT_FAILURE;
-//  } // end IF
-
   ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work
-  do_work (buffer_size,
+  do_work (buffer_size_i,
            input_file,
            output_file,
+           renderer_e,
            signal_set,
            ignored_signal_set,
            previous_signal_actions,

@@ -21,10 +21,6 @@
 #ifndef TEST_I_MP3PLAYER_DEFINES_H
 #define TEST_I_MP3PLAYER_DEFINES_H
 
-//#include "ace/config-lite.h"
-
-//#define TEST_I_DEFAULT_BUFFER_SIZE                   16384 // bytes
-#define TEST_I_DEFAULT_INPUT_FILE                    "D:\\test.mp3"
-#define TEST_I_DEFAULT_OUTPUT_FILE                   "output.wav"
+#define TEST_I_DEFAULT_OUTPUT_FILE "output.wav"
 
 #endif
