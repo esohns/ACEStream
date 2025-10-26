@@ -2678,7 +2678,11 @@ combobox_target_changed_cb (GtkWidget* widget_in,
   std::string renderer_modulename_string;
   enum Stream_Device_Renderer renderer_e = STREAM_DEVICE_RENDERER_INVALID;
   HRESULT result = E_FAIL;
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
+  IMFMediaSourceEx* media_source_p = NULL;
+#else
   IMFMediaSource* media_source_p = NULL;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   bool make_topology_b = false;
   switch (ui_cb_data_base_p->mediaFramework)
   {

@@ -4755,11 +4755,13 @@ clean_2:
   //ACE_ASSERT (SUCCEEDED (result));
   //result = video_processor_control_p->SetMirror (MIRROR_VERTICAL);
   //ACE_ASSERT (SUCCEEDED (result));
-  //result = video_processor_control_p->EnableHardwareEffects (TRUE);
-  //ACE_ASSERT (SUCCEEDED (result));
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
+  // result = video_processor_control_p->EnableHardwareEffects (TRUE);
+  // ACE_ASSERT (SUCCEEDED (result));
   result =
     video_processor_control_p->SetRotationOverride (MFVideoRotationFormat_180);
   ACE_ASSERT (SUCCEEDED (result));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00)
   video_processor_control_p->Release (); video_processor_control_p = NULL;
 continue_near:
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)

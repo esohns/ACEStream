@@ -1576,7 +1576,11 @@ Test_U_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& con
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
+  IMFMediaSourceEx* media_source_p = NULL;
+#else
   IMFMediaSource* media_source_p = NULL;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   if (configuration_in.configuration_->capturer != STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION)
   {
     Test_U_MicVisualize_MediaFoundation_Target* writer_p =

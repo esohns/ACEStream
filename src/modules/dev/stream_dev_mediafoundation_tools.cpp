@@ -35,6 +35,7 @@
 
 #include "mfapi.h"
 #include "mferror.h"
+#include "mfidl.h"
 
 #include "wmcodecdsp.h"
 
@@ -312,7 +313,7 @@ Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const struct Stream_Dev
   //                                   NULL);
   //ACE_ASSERT (SUCCEEDED (result));
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_SOURCESTREAM_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -323,7 +324,7 @@ Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const struct Stream_Dev
     goto error;
   } // end IF
   ACE_ASSERT (topology_node_p);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
                                        MF_CONNECT_DIRECT);
   ACE_ASSERT (SUCCEEDED (result));
@@ -430,6 +431,13 @@ Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const struct Stream_Dev
       DWORD i = 0;
       struct _GUID sub_type = GUID_NULL;
       IMFMediaType* media_type_2 = NULL;
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
+      IMFVideoProcessorControl2* video_processor_control_p = NULL;
+#else
+      IMFVideoProcessorControl* video_processor_control_p = NULL;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_MediaFramework_MediaFoundation_Tools::load (MFT_CATEGORY_VIDEO_PROCESSOR,
@@ -500,7 +508,7 @@ clean_2:
         goto error;
       } // end IF
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       result = MFCreateTopologyNode (MF_TOPOLOGY_TRANSFORM_NODE,
                                      &topology_node_2);
       if (FAILED (result))
@@ -513,7 +521,7 @@ clean_2:
         goto error;
       } // end IF
       ACE_ASSERT (topology_node_2);
-    #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       result = topology_node_2->SetObject (transform_p);
       ACE_ASSERT (SUCCEEDED (result));
       result = topology_node_2->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
@@ -619,11 +627,13 @@ clean_2:
       //ACE_ASSERT (SUCCEEDED (result));
       //result = video_processor_control_p->SetMirror (MIRROR_VERTICAL);
       //ACE_ASSERT (SUCCEEDED (result));
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
       //result = video_processor_control_p->EnableHardwareEffects (TRUE);
       //ACE_ASSERT (SUCCEEDED (result));
       result =
         video_processor_control_p->SetRotationOverride (MFVideoRotationFormat_180);
       ACE_ASSERT (SUCCEEDED (result));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00)
       video_processor_control_p->Release (); video_processor_control_p = NULL;
 continue_near:
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
@@ -984,11 +994,11 @@ Stream_Device_MediaFoundation_Tools::setCaptureFormat (IMFTopology* IMFTopology_
   } // end IF
   unknown_p->Release (); unknown_p = NULL;
 
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
 #else
   IMFMediaSource* media_source_p = NULL;
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   result = topology_node_p->GetUnknown (MF_TOPONODE_SOURCE,
                                         IID_PPV_ARGS (&media_source_p));
   ACE_ASSERT (SUCCEEDED (result));
@@ -1007,11 +1017,11 @@ Stream_Device_MediaFoundation_Tools::setCaptureFormat (IMFTopology* IMFTopology_
 }
 
 bool
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
 Stream_Device_MediaFoundation_Tools::setCaptureFormat (IMFMediaSourceEx* mediaSource_in,
 #else
 Stream_Device_MediaFoundation_Tools::setCaptureFormat (IMFMediaSource* mediaSource_in,
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
                                                        const IMFMediaType* mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_MediaFoundation_Tools::setCaptureFormat"));

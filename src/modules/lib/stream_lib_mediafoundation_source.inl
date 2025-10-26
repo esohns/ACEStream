@@ -1147,7 +1147,11 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
           goto continue_;
         } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
+        IMFMediaSourceEx* media_source_p = NULL;
+#else
         IMFMediaSource* media_source_p = NULL;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
         if (!initializeMediaSession (inherited::configuration_->deviceIdentifier,
                                      NULL,
                                      session_data_r.formats.back (),
@@ -1334,24 +1338,24 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                                UserDataType>::initializeMediaSession (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                                                       HWND windowHandle_in,
                                                                                       const IMFMediaType* IMFMediaType_in,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
                                                                                       IMFMediaSourceEx*& IMFMediaSource_inout,
 #else
                                                                                       IMFMediaSource*& IMFMediaSource_inout,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
                                                                                       IDirect3DDeviceManager9* IDirect3DDeviceManager_in,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
                                                                                       IMFSampleGrabberSinkCallback2* IMFSampleGrabberSinkCallback_in,
 #else
                                                                                       IMFSampleGrabberSinkCallback* IMFSampleGrabberSinkCallback_in,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
                                                                                       TOPOID& sampleGrabberSinkNodeId_out,
                                                                                       TOPOID& rendererNodeId_out//,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                                                                                       ,IMFMediaSession*& IMFMediaSession_inout)
 #else
                                                                                       )
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::initializeMediaSession"));
 

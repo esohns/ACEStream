@@ -732,7 +732,11 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
+  IMFMediaSourceEx* media_source_p = NULL;
+#else
   IMFMediaSource* media_source_p = NULL;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   Test_I_MediaFoundation_Target* writer_p =
     &const_cast<Test_I_MediaFoundation_Target&> (getR_4 ());
   if (!writer_p->initialize (*(*iterator).second.second->mediaFoundationConfiguration))
