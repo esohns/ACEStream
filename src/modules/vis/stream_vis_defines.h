@@ -28,7 +28,8 @@
 #define STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING                       "LibAV_Resize"
 #endif // FFMPEG_SUPPORT
 #if defined (IMAGEMAGICK_SUPPORT)
-#define STREAM_VIS_IMAGEMAGICK_RESIZE_DEFAULT_NAME_STRING                 "ImageMagickResize"
+#define STREAM_VIS_IMAGEMAGICK_RESIZE_DEFAULT_NAME_STRING                 "ImageMagick_Resize"
+#define STREAM_VIS_IMAGEMAGICK_RESIZE1_DEFAULT_NAME_STRING                "ImageMagick_Resize1"
 #endif // IMAGEMAGICK_SUPPORT
 #define STREAM_VIS_CURSES_WINDOW_DEFAULT_NAME_STRING                      "Curses"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -93,9 +94,9 @@
 
 // spectrum analyzer
 // *IMPORTANT NOTE*: must be a power of 2 (FFT-specific)
-// *IMPORTANT NOTE*: only half of the buffer (-1) contains meaningful results
+// *IMPORTANT NOTE*: only half of the bins (-1) contain meaningful results
 //                   (FFT-specific)
-#define STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE                   2048 // samples
+#define STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS                2048 // #'slots'
 // *NOTE*: needed for computation; these need to correspond with the input data
 // *TODO*: remove ASAP
 #define STREAM_VIS_SPECTRUMANALYZER_DEFAULT_CHANNELS                      STREAM_DEV_MIC_DEFAULT_CHANNELS
@@ -104,6 +105,5 @@
 #define STREAM_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE                    30 // frames/s
 #define STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE                        STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM
 #define STREAM_VIS_SPECTRUMANALYZER_DEFAULT_3DMODE                        STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_DEFAULT
-#define STREAM_VIS_SPECTRUMANALYZER_DEFAULT_RESOLUTION                    512 // #slots --> 256 frequencies
 
 #endif

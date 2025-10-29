@@ -274,8 +274,6 @@ typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
                                       Stream_ControlMessage_t,
                                       Test_U_Message_t,
                                       Test_U_SessionMessage_t,
-                                      Test_U_MP4Player_SessionData_t,
-                                      Test_U_MP4Player_SessionData,
                                       struct Stream_MediaFramework_FFMPEG_MediaType> Test_U_SOXResampler;
 #endif // SOX_SUPPORT
 #if defined (FFMPEG_SUPPORT)

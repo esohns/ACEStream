@@ -158,7 +158,7 @@ test_u_glut_draw (void)
     if (likely (cb_data_p->fft))
       spectrum_a = cb_data_p->fft->Spectrum (false); // do not normalize
     else
-      spectrum_a.resize ((TEST_U_DEFAULT_ANALYZER_RESOLUTION / 2) - 1, 0.0f);
+      spectrum_a.resize ((STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS / 2) - 1, 0.0f);
   } // end lock scope
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

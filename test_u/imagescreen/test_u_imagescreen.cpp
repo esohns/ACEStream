@@ -450,7 +450,7 @@ do_work (int argc_in,
     video_info_header_p->bmiHeader.biSizeImage;
 #else
 #if defined (FFMPEG_SUPPORT)
-  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGBA;
+  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_BGRA;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.slurpFiles = true;

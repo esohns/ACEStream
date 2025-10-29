@@ -209,10 +209,9 @@ Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
   result = MagickSetImageDepth (inherited::context_, 8);
   ACE_ASSERT (result == MagickTrue);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  ACE_ASSERT (Common_Image_Tools::stringToCodecId (MagickGetImageFormat (inherited::context_)) == AV_CODEC_ID_NONE);
-#endif // ACE_WIN32 || ACE_WIN64
+#if defined (FFMPEG_SUPPORT)
+  ACE_ASSERT (Common_Image_Tools::IMFormatStringToAVCodecID (MagickGetImageFormat (inherited::context_)) == AV_CODEC_ID_NONE);
+#endif // FFMPEG_SUPPORT
 
   data_p = MagickGetImageBlob (inherited::context_, // was: MagickWriteImageBlob
                                &size_i);
@@ -501,18 +500,27 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   int result_2 = -1;
   Stream_SessionId_t session_id = message_inout->sessionId ();
   const typename DataMessageType::DATA_T& message_data_r =
-      message_inout->getR ();
+    message_inout->getR ();
   typename DataMessageType::DATA_T message_data_2;
   message_data_2.format = message_data_r.format;
   DataMessageType* message_p = NULL;
+  std::string input_format_string;
+  Common_Image_Resolution_t resolution_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 #else
   struct Stream_MediaFramework_V4L_MediaType media_type_s;
+#if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+  inherited::getMediaType (message_data_r.format,
+                           STREAM_MEDIATYPE_VIDEO,
+                           media_type_s);
 
   //#if defined (_DEBUG)
-  //  Common_File_Tools::store (ACE_TEXT_ALWAYS_CHAR ("input.rgb"),
+  //  Common_File_Tools::store (ACE_TEXT_ALWAYS_CHAR ("input.rgba"),
   //                            reinterpret_cast<uint8_t*>
   //                            (message_inout->rd_ptr ()),
   //                            message_inout->length ());
@@ -531,44 +539,44 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   // sanity check(s)
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-  inherited::getMediaType (message_data_r.format,
-                           STREAM_MEDIATYPE_VIDEO,
-                           media_type_s);
-  Common_Image_Resolution_t resolution_s =
+  resolution_s =
     Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
               inherited::mod_->name (),
               resolution_s.cx, resolution_s.cy,
               targetResolution_.cx, targetResolution_.cy));
-
+  input_format_string = ACE_TEXT_ALWAYS_CHAR ("RGBA"); // *TODO*
   ACE_ASSERT (Stream_MediaFramework_Tools::isRGB32 (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW));
 #else
-  ACE_OS::memset (&media_type_s, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
-  inherited::getMediaType (inherited::configuration_->outputFormat,
-                           STREAM_MEDIATYPE_VIDEO,
-                           media_type_s);
+  resolution_s.width = media_type_s.format.width;
+  resolution_s.height = media_type_s.format.height;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
               inherited::mod_->name (),
-              message_data_r.format.resolution.width, message_data_r.format.resolution.height,
-              media_type_s.format.width, media_type_s.format.height));
+              resolution_s.width, resolution_s.height,
+              targetResolution_.width, targetResolution_.height));
 
-  ACE_ASSERT (message_data_r.format.codecId == AV_CODEC_ID_NONE);
-  ACE_ASSERT (Stream_Module_Decoder_Tools::isRGB32 (message_data_r.format.format));
+#if defined (FFMPEG_SUPPORT)
+  inherited::getMediaType (message_data_r.format,
+                           STREAM_MEDIATYPE_VIDEO,
+                           media_type_2);
+  ACE_ASSERT (media_type_2.codecId == AV_CODEC_ID_NONE);
+  input_format_string =
+    Common_Image_Tools::AVPixelFormatToIMFormatString (media_type_2.format);
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
   result = MagickSetSize (inherited::context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                           resolution_s.cx, resolution_s.cy);
 #else
-                          message_data_r.format.resolution.width, message_data_r.format.resolution.height);
+                          resolution_s.width, resolution_s.height);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result == MagickTrue);
-  result =
-    MagickSetFormat (inherited::context_,
-                     ACE_TEXT_ALWAYS_CHAR ("RGBA")); // *TODO*: make this configurable !
+
+  result = MagickSetFormat (inherited::context_,
+                            input_format_string.c_str ());
   ACE_ASSERT (result == MagickTrue);
 
   result = MagickReadImage (inherited::context_,
@@ -596,9 +604,9 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                              resolution_s.cx, resolution_s.cy,
 #else
-                             message_data_r.format.resolution.width, message_data_r.format.resolution.height,
+                             resolution_s.width, resolution_s.height,
 #endif // ACE_WIN32 || ACE_WIN64
-                             ACE_TEXT_ALWAYS_CHAR ("RGBA"), // *TODO*: make this configurable !
+                             input_format_string.c_str (),
                              CharPixel,
                              message_inout->rd_ptr ());
 #endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
@@ -650,11 +658,6 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   //                   8 to 16 when the image is resized. ..."
   result = MagickSetImageDepth (inherited::context_, 8);
   ACE_ASSERT (result == MagickTrue);
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  ACE_ASSERT (Common_Image_Tools::stringToCodecId (MagickGetImageFormat (inherited::context_)) == AV_CODEC_ID_NONE);
-#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
   data_p = MagickWriteImageBlob (inherited::context_,

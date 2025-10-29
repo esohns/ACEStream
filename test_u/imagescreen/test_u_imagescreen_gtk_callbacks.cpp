@@ -270,27 +270,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
 
-  // step10: retrieve window handle
-//  (*stream_configuration_iterator).second.second->window =
-//      gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-//  ACE_ASSERT ((*stream_configuration_iterator).second.second->window);
-//  GtkAllocation allocation_s;
-//  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
-//                             &allocation_s);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Common_Image_Resolution_t resolution_s;
-  resolution_s.cx = 640;
-  resolution_s.cy = 480;
-  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-                                                         (*stream_configuration_iterator).second.second->outputFormat);
-#else
-  (*stream_configuration_iterator).second.second->outputFormat.resolution.width = 640;
-  (*stream_configuration_iterator).second.second->outputFormat.resolution.height = 480;
-#endif // ACE_WIN32 || ACE_WIN64
-//  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("initial window size: %ux%u\n"),
-//              allocation_s.width, allocation_s.height));
-
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_ADAPTER_NAME)));
@@ -502,9 +481,13 @@ idle_update_progress_cb (gpointer userData_in)
   gtk_progress_bar_set_text (progress_bar_p,
                              (done ? ACE_TEXT_ALWAYS_CHAR ("")
                                    : converter.str ().c_str ()));
-  gtk_progress_bar_set_fraction (progress_bar_p,
-                                 (gdouble)data_p->current / (gdouble)data_p->total);
-//  gtk_progress_bar_pulse (progress_bar_p);
+  if (done)
+    gtk_progress_bar_set_fraction (progress_bar_p,
+                                   1.0);
+  else
+    gtk_progress_bar_set_fraction (progress_bar_p,
+                                   (gdouble)data_p->current / (gdouble)data_p->total);
+  //gtk_progress_bar_pulse (progress_bar_p);
 
   // reschedule ?
   return (done ? G_SOURCE_REMOVE : G_SOURCE_CONTINUE);
@@ -516,19 +499,18 @@ idle_update_display_cb (gpointer userData_in)
   STREAM_TRACE (ACE_TEXT ("::idle_update_display_cb"));
 
   // sanity check(s)
-  struct Stream_ImageScreen_UI_CBData* ui_cb_data_base_p =
+  struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
-  ACE_ASSERT (userData_in);
-  Common_UI_GTK_BuildersIterator_t iterator =
-    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
-
-  // trigger refresh of the drawing area
-  GtkDrawingArea* drawing_area_p =
-    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME)));
-  ACE_ASSERT (drawing_area_p);
-  gdk_window_invalidate_rect (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)),
+  ACE_ASSERT (ui_cb_data_p);
+  // Common_UI_GTK_BuildersIterator_t iterator =
+  //   ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  // ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
+  Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_iterator =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+  // trigger refresh of the drawing area | fullscreen window
+  ACE_ASSERT ((*stream_iterator).second.second->window.gdk_window);
+  gdk_window_invalidate_rect ((*stream_iterator).second.second->window.gdk_window,
                               NULL,   // whole window
                               FALSE); // invalidate children ?
 
@@ -813,12 +795,6 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
     Common_UI_Tools::getDisplay (g_value_get_string (&value));
 //    Common_UI_Tools::getLogicalDisplay (g_value_get_string (&value));
 #endif // ACE_WIN32 || ACE_WIN64
-  if (!ui_cb_data_p->stream->initialize (ui_cb_data_p->configuration->streamConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize stream, returning\n")));
-    return;
-  } // end IF
 
   if ((*stream_configuration_iterator).second.second->fullScreen)
   {
@@ -862,6 +838,13 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
     (*stream_configuration_iterator).second.second->outputFormat.resolution.height = allocation_s.height;
 #endif // ACE_WIN32 || ACE_WIN64
   } // end ELSE
+
+  if (!ui_cb_data_p->stream->initialize (ui_cb_data_p->configuration->streamConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize stream, returning\n")));
+    return;
+  } // end IF
 
   const Stream_Module_t* module_p = NULL;
 #if defined (GTK_USE)
@@ -943,7 +926,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   Stream_IStreamControlBase* stream_base_p = NULL;
   Stream_IStream_t* stream_p = NULL;
   Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_iterator;
-  
+
   stream_base_p = ui_cb_data_p->stream;
   stream_p = ui_cb_data_p->stream;
   stream_iterator =
@@ -951,27 +934,41 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (stream_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
   (*stream_iterator).second.second->fullScreen = is_active_b;
 
+  GtkWindow* window_p =
+    GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_WINDOW_FULLSCREEN)));
+  ACE_ASSERT (window_p);
+  if (is_active_b)
+  {
+    gtk_widget_show (GTK_WIDGET (window_p));
+    // gtk_window_fullscreen (window_p);
+    gtk_window_maximize (window_p);
+  } // end IF
+  else
+  {
+    //gtk_window_minimize (window_p);
+    // gtk_window_unfullscreen (window_p);
+    gtk_widget_hide (GTK_WIDGET (window_p));
+  } // end ELSE
+
+  if (is_active_b)
+  {
+    window_p =
+      GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
+                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_WINDOW_FULLSCREEN)));
+    ACE_ASSERT (window_p);
+    (*stream_iterator).second.second->window.gdk_window =
+      gtk_widget_get_window (GTK_WIDGET (window_p));
+  } // end IF
+  else
+    (*stream_iterator).second.second->window.gdk_window =
+      gtk_widget_get_window (GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
+                                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME))));
+  ACE_ASSERT ((*stream_iterator).second.second->window.gdk_window);
+
   ACE_ASSERT (stream_base_p);
   if (!stream_base_p->isRunning ())
     return;
-
-//  GtkWindow* window_p =
-//    GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
-//                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_WINDOW_FULLSCREEN)));
-//  ACE_ASSERT (window_p);
-//
-//  if (is_active_b)
-//  {
-//    gtk_widget_show (GTK_WIDGET (window_p));
-////  gtk_window_fullscreen (window_p);
-//    gtk_window_maximize (window_p);
-//  } // end IF
-//  else
-//  {
-////    gtk_window_minimize (window_p);
-////  gtk_window_unfullscreen (window_p);
-//    gtk_widget_hide (GTK_WIDGET (window_p));
-//  } // end ELSE
 
   ACE_ASSERT (stream_p);
   const Stream_Module_t* module_p = NULL;
@@ -1263,14 +1260,14 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   ACE_UNUSED_ARG (widget_in);
 
   // sanity check(s)
-  struct Stream_ImageScreen_UI_CBData* ui_cb_data_base_p =
+  struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_base_p);
-  if (!ui_cb_data_base_p->dispatch)
+  ACE_ASSERT (ui_cb_data_p);
+  if (!ui_cb_data_p->dispatch)
     return TRUE; // do NOT propagate event
 
   try {
-    ui_cb_data_base_p->dispatch->dispatch (context_in);
+    ui_cb_data_p->dispatch->dispatch (context_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
@@ -1284,7 +1281,9 @@ drawingarea_key_press_event_cb (GtkWidget* widget_in,
                                 GdkEventKey* eventKey_in,
                                 gpointer userData_in)
 {
-  return key_cb (widget_in, eventKey_in, userData_in);
+  return key_cb (widget_in,
+                 eventKey_in,
+                 userData_in);
 }
 
 gboolean

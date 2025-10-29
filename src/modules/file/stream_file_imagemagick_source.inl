@@ -245,18 +245,20 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
   bool finished = false;
   bool stop_processing = false;
   int file_index_i = 0;
-  std::string file_path_string;
+  std::string file_path_string, output_format_string;
   size_t file_size_i = 0;
   unsigned int result_3 = MagickTrue;
   unsigned char* data_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType media_type_s;
-  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-#else
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
-  media_type_s.format = AV_PIX_FMT_BGRA;
 #endif // FFMPEG_SUPPORT
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_3;
+  ACE_OS::memset (&media_type_3, 0, sizeof (struct _AMMediaType));
+  inherited2::getMediaType (inherited::configuration_->outputFormat,
+                            STREAM_MEDIATYPE_VIDEO,
+                            media_type_3);
+#else
 #endif // ACE_WIN32 || ACE_WIN64
   MediaType media_type_2;
   ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
@@ -266,9 +268,21 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::sessionData_);
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-      const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-//  ACE_ASSERT (session_data_r.lock);
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   session_data_r.statistic.totalFrames = directory_.length ();
+#if defined (FFMPEG_SUPPORT)
+  inherited2::getMediaType (inherited::configuration_->outputFormat,
+                            STREAM_MEDIATYPE_VIDEO,
+                            media_type_s);
+  output_format_string =
+    Common_Image_Tools::AVPixelFormatToIMFormatString (media_type_s.format);
+#else
+  output_format_string = ACE_TEXT_ALWAYS_CHAR ("RGBA");
+  ACE_DEBUG ((LM_WARNING,
+              ACE_TEXT ("%s: forwarding file(s) in format \"%s\",
+              inherited::mod_->name (),
+              ACE_TEXT (output_format_string.c_str ())));
+#endif // FFMPEG_SUPPORT
 
 next:
   file_path_string = inherited::configuration_->fileIdentifier.identifier;
@@ -390,18 +404,12 @@ next:
       continue;
     } // end IF
 
-//    media_type_s.codec =
-//        Common_Image_Tools::stringToCodecId (MagickGetImageFormat (context_));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    ACE_ASSERT (!session_data_r.formats.empty ());
-    inherited2::getMediaType (session_data_r.formats.back (),
-                              STREAM_MEDIATYPE_VIDEO,
-                              media_type_s);
     Common_Image_Resolution_t resolution_s;
     resolution_s.cx = static_cast<LONG> (MagickGetImageWidth (context_));
     resolution_s.cy = static_cast<LONG> (MagickGetImageHeight (context_));
     Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-                                                           media_type_s);
+                                                           media_type_3);
 #else
 #if defined (FFMPEG_SUPPORT)
     media_type_s.resolution.width = MagickGetImageWidth (context_);
@@ -411,7 +419,7 @@ next:
 
     result_3 =
       MagickSetImageFormat (context_,
-                            ACE_TEXT_ALWAYS_CHAR ("RGBA"));
+                            output_format_string.c_str ());
     ACE_ASSERT (result_3 == MagickTrue);
 
 #if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
@@ -442,18 +450,22 @@ next:
 
       continue;
     } // end IF
-    // *TODO*: crashes in release()...(needs MagickRelinquishMemory())
+    // *NOTE*: the message (NOT the message block) owns image data;
+    //         i.e. call MagickRelinquishMemory() in the message dtor
     message_p->base (reinterpret_cast<char*> (data_p),
                      file_size_i,
-                     ACE_Message_Block::DONT_DELETE); // own image data
+                     ACE_Message_Block::DONT_DELETE);
     message_p->wr_ptr (file_size_i);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    inherited2::getMediaType (media_type_3,
+                              STREAM_MEDIATYPE_VIDEO,
+                              media_type_2);
+    Stream_MediaFramework_DirectShow_Tools::free (media_type_3);
+#else
+#if defined (FFMPEG_SUPPORT)
     inherited2::getMediaType (media_type_s,
                               STREAM_MEDIATYPE_VIDEO,
                               media_type_2);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#if defined (FFMPEG_SUPPORT)
-    media_type_2.codecId = AV_CODEC_ID_NONE;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
     message_data_s.format = media_type_2;

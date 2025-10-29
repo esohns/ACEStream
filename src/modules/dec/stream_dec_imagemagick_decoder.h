@@ -21,6 +21,8 @@
 #ifndef STREAM_DEC_IMAGEMAGICK_DECODER_T_H
 #define STREAM_DEC_IMAGEMAGICK_DECODER_T_H
 
+#include <string>
+
 #include "ace/Global_Macros.h"
 
 #include "stream_task_base_synch.h"
@@ -69,7 +71,7 @@ class Stream_Decoder_ImageMagick_Decoder_T
 
  public:
   Stream_Decoder_ImageMagick_Decoder_T (typename inherited::ISTREAM_T*); // stream handle
-  virtual ~Stream_Decoder_ImageMagick_Decoder_T ();
+  inline virtual ~Stream_Decoder_ImageMagick_Decoder_T () {}
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -84,6 +86,7 @@ class Stream_Decoder_ImageMagick_Decoder_T
  protected:
   struct _MagickWand* context_;
   MediaType           outputFormat_;
+  std::string         outputFormatString_;
 
  private:
   // convenient types

@@ -69,7 +69,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   ValueType>::Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_CHANNELS,
-               STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE,
+               STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS,
                STREAM_VIS_SPECTRUMANALYZER_DEFAULT_SAMPLE_RATE)
  , bufferedSamples_ (0)
  , CBData_ ()
@@ -550,7 +550,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
       result_2 =
         inherited2::Initialize (channels,
-                                inherited::configuration_->spectrumAnalyzerConfiguration->resolution,
+                                inherited::configuration_->spectrumAnalyzerConfiguration->numberOfBins,
                                 sample_rate);
       if (unlikely (!result_2))
       {
@@ -736,7 +736,7 @@ error:
 
       result_2 =
         inherited2::Initialize (channels,
-                                inherited::configuration_->spectrumAnalyzerConfiguration->resolution,
+                                inherited::configuration_->spectrumAnalyzerConfiguration->numberOfBins,
                                 sample_rate);
       if (unlikely (!result_2))
       {

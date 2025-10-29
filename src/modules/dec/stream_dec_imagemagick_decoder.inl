@@ -74,31 +74,10 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
  , inherited2 ()
  , context_ (NULL)
  , outputFormat_ ()
+ , outputFormatString_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ImageMagick_Decoder_T::Stream_Decoder_ImageMagick_Decoder_T"));
 
-//  InitializeMagick (NULL);
-  //MagickWandGenesis ();
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename MediaType>
-Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     MediaType>::~Stream_Decoder_ImageMagick_Decoder_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ImageMagick_Decoder_T::~Stream_Decoder_ImageMagick_Decoder_T"));
-
-  //MagickWandTerminus ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -147,12 +126,20 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-  inherited2::getMediaType (outputFormat_,
+  inherited2::getMediaType (configuration_in.outputFormat,
                             STREAM_MEDIATYPE_VIDEO,
                             media_type_s);
+  ACE_ASSERT (Stream_MediaFramework_Tools::isRGB32 (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW));
+  outputFormatString_ = ACE_TEXT_ALWAYS_CHAR ("RGBA"); // *TODO*
   if (unlikely (InlineIsEqualGUID (media_type_s.subtype, GUID_NULL)))
 #else
 #if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+  inherited2::getMediaType (configuration_in.outputFormat,
+                            STREAM_MEDIATYPE_VIDEO,
+                            media_type_s);
+  outputFormatString_ =
+    Common_Image_Tools::AVPixelFormatToIMFormatString (media_type_s.format);
   if (unlikely (outputFormat_.format == AV_PIX_FMT_NONE))
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
@@ -162,13 +149,18 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     inherited2::setFormat (MEDIASUBTYPE_RGB32,
+                           outputFormat_);
 #else
 #if defined (FFMPEG_SUPPORT)
-    inherited2::setFormat (AV_PIX_FMT_RGB32,
+    inherited2::setFormat (AV_PIX_FMT_RGBA,
+                           outputFormat_);
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-                           outputFormat_);
+    outputFormatString_ = ACE_TEXT_ALWAYS_CHAR ("RGBA");
   } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#endif // ACE_WIN32 || ACE_WIN64
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -201,25 +193,41 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   unsigned char* data_p = NULL;
   size_t size_i = 0, size_2 = 0;
   typename DataMessageType::DATA_T message_data_2;
+  std::string input_format_string;
 
   const typename DataMessageType::DATA_T& message_data_r =
-      message_inout->getR ();
+    message_inout->getR ();
+  Common_Image_Resolution_t resolution_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
-#else
-#if defined (FFMPEG_SUPPORT)
-  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
-#endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   inherited2::getMediaType (message_data_r.format,
                             STREAM_MEDIATYPE_VIDEO,
                             media_type_s);
-  size_i =
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    Stream_MediaFramework_DirectShow_Tools::toFramesize (media_type_s);
+  ACE_ASSERT (InlineIsEqualGUID (media_type_s.subtype, MEDIASUBTYPE_RGB24));
+  input_format_string = ACE_TEXT_ALWAYS_CHAR ("RGB"); // *TODO*
+  resolution_s =
+    Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
 #else
 #if defined (FFMPEG_SUPPORT)
-    static_cast<unsigned int> (av_image_get_buffer_size (outputFormat_.format,
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+  inherited2::getMediaType (message_data_r.format,
+                            STREAM_MEDIATYPE_VIDEO,
+                            media_type_s);
+  input_format_string =
+    Common_Image_Tools::AVPixelFormatToIMFormatString (media_type_s.format);
+  resolution_s = media_type_s.resolution;
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
+  inherited2::setResolution (resolution_s,
+                             outputFormat_);
+
+  size_i =
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    Stream_MediaFramework_DirectShow_Tools::toFramesize (outputFormat_); // *TODO*
+#else
+#if defined (FFMPEG_SUPPORT)
+    static_cast<unsigned int> (av_image_get_buffer_size (outputFormat_.format, // *TODO*
                                                          media_type_s.resolution.width,
                                                          media_type_s.resolution.height,
                                                          1));
@@ -241,18 +249,10 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (message_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  message_data_2.format = *Stream_MediaFramework_DirectShow_Tools::copy (outputFormat_);
+  message_data_2.format =
+    *Stream_MediaFramework_DirectShow_Tools::copy (outputFormat_); // *TODO*
 #else
   message_data_2.format = outputFormat_;
-#endif // ACE_WIN32 || ACE_WIN64
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Common_Image_Resolution_t resolution_s =
-    Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
-#else
-#if defined (FFMPEG_SUPPORT)
-  ACE_ASSERT (media_type_s.codecId == AV_CODEC_ID_NONE);
-#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
@@ -260,13 +260,15 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
 #else
   MagickBooleanType result = MagickFalse;
 #endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
-  result = MagickSetFormat (context_, ACE_TEXT_ALWAYS_CHAR ("RGB"));
+
+  result = MagickSetFormat (context_, input_format_string.c_str ());
   ACE_ASSERT (result == MagickTrue);
+
   result = MagickSetSize (context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                           resolution_s.cx, resolution_s.cy);
 #else
-                          media_type_s.resolution.width, media_type_s.resolution.height);
+                          resolution_s.width, resolution_s.height);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result == MagickTrue);
 
@@ -282,7 +284,7 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
 //                                       AllChannels,
 //                                       8);
   ACE_ASSERT (result == MagickTrue);
-  result = MagickSetImageFormat (context_, ACE_TEXT_ALWAYS_CHAR ("RGBA"));
+  result = MagickSetImageFormat (context_, outputFormatString_.c_str ());
   ACE_ASSERT (result == MagickTrue);
 //result = MagickSetImageAlphaChannel (context_,
 //                                     OpaqueAlphaChannel);
@@ -312,7 +314,7 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
                          NULL);
 
 //#if defined (_DEBUG)
-//  std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
+//  std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgba");
 //  if (!Common_File_Tools::store (filename_string,
 //                                 data_p,
 //                                 size_2))

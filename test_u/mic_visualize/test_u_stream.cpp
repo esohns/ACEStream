@@ -2234,8 +2234,11 @@ Test_U_ALSA_Stream::load (Stream_ILayout* layout_in,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
-      inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator_3 != inherited::configuration_->end ());
@@ -2250,6 +2253,8 @@ Test_U_ALSA_Stream::load (Stream_ILayout* layout_in,
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
 
+  (*iterator).second.second->waitForDataOnEnd = false;
+  (*iterator_2).second.second->waitForDataOnEnd = false;
   switch (inherited::configuration_->configuration_->sourceType)
   {
     case MICVISUALIZE_SOURCE_DEVICE:
@@ -2275,6 +2280,8 @@ Test_U_ALSA_Stream::load (Stream_ILayout* layout_in,
                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_1LAYER3_DEFAULT_NAME_STRING)),
                       false);
       add_delay_b = true;
+      (*iterator).second.second->waitForDataOnEnd = true;
+      (*iterator_2).second.second->waitForDataOnEnd = true;
       break;
     }
     default:

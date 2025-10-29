@@ -50,7 +50,7 @@ Stream_ImageScreen_Stream::Stream_ImageScreen_Stream ()
   , imagemagick_source_ (this,
                          ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_IMAGEMAGICK_SOURCE_DEFAULT_NAME_STRING))
   , imagemagick_resize_ (this,
-                         ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_IMAGEMAGICK_RESIZE_DEFAULT_NAME_STRING))
+                         ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_IMAGEMAGICK_RESIZE1_DEFAULT_NAME_STRING))
 // , imagemagick_decode_ (this,
 //                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_IMAGEMAGICK_DECODER_DEFAULT_NAME_STRING))
 #endif // IMAGEMAGICK_SUPPORT

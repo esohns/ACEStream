@@ -6313,7 +6313,7 @@ idle_update_info_display_cb (gpointer userData_in)
   STREAM_TRACE (ACE_TEXT ("::idle_update_info_display_cb"));
 
   struct Test_U_MicVisualize_UI_CBDataBase* ui_cb_data_base_p =
-      static_cast<struct Test_U_MicVisualize_UI_CBDataBase*> (userData_in);
+    static_cast<struct Test_U_MicVisualize_UI_CBDataBase*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);

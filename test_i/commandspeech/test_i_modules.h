@@ -597,8 +597,6 @@ typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
                                       Stream_ControlMessage_t,
                                       Test_I_Message,
                                       Test_I_ALSA_SessionMessage_t,
-                                      Test_I_CommandSpeech_ALSA_SessionData_t,
-                                      Test_I_CommandSpeech_ALSA_SessionData,
                                       struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_SoXResampler;
 typedef Stream_Decoder_SoXEffect_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,

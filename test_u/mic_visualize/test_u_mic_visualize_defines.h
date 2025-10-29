@@ -25,8 +25,6 @@
 #define TEST_U_NOISE_DEFAULT_FREQUENCY_D    440.0 // Hz
 #define TEST_U_DEFAULT_OUTPUT_FILE          "output.wav"
 
-#define TEST_U_DEFAULT_ANALYZER_RESOLUTION  2048 // STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE
-
 #if defined (GTK_USE)
 #if defined (GTK2_USE)
 #define TEST_U_GLADE_FILE                   "test_u.gtk2"

@@ -49,13 +49,13 @@ struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration
   Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration ()
    : applyWindowFunction (false)
    , mode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
-   , resolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_RESOLUTION)
+   , numberOfBins (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS)
    , window (NULL)
   {}
 
   bool                                              applyWindowFunction; // e.g. Hamming-, Hann-, ...
   enum Stream_Visualization_SpectrumAnalyzer_2DMode mode;
-  unsigned int                                      resolution;
+  unsigned int                                      numberOfBins;
 #if GTK_CHECK_VERSION (4,0,0)
   GdkSurface*                                       window;
 #else

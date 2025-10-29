@@ -1095,7 +1095,7 @@ do_work (int argc_in,
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration spectrumanalyzer_configuration;
-  spectrumanalyzer_configuration.resolution = TEST_U_DEFAULT_ANALYZER_RESOLUTION;
+  // spectrumanalyzer_configuration.resolution = STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS;
   struct Stream_AllocatorConfiguration allocator_configuration;
   struct Common_AllocatorConfiguration* allocator_configuration_p = NULL;
   Common_TimerConfiguration timer_configuration;
@@ -1605,7 +1605,7 @@ do_work (int argc_in,
                                                    modulehandler_configuration,
                                                    stream_configuration);
   modulehandler_iterator =
-      configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR(""));
+      configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT(modulehandler_iterator != configuration_in.streamConfiguration.end());
 
   modulehandler_configuration_2 = modulehandler_configuration;
