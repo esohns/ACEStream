@@ -859,7 +859,7 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
   passMessageDownstream_out = false;
 
   int result;
-  ACE_UINT64 available_tokens_i;
+  ACE_UINT64 tokens_to_dispatch_i;
   size_t total_length_i;
   ACE_Message_Block* message_block_p = message_inout;
   message_inout = NULL;
@@ -884,14 +884,14 @@ continue_:
       case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
       {
         total_length_i = message_block_p->total_length ();
-        available_tokens_i = std::min (total_length_i, availableTokens_);
-        availableTokens_ -= available_tokens_i;
+        tokens_to_dispatch_i = std::min (total_length_i, availableTokens_);
+        availableTokens_ -= tokens_to_dispatch_i;
         break;
       }
       case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
       case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER:
       {
-        available_tokens_i = 1;
+        tokens_to_dispatch_i = 1;
         --availableTokens_;
         break;
       }
@@ -912,9 +912,9 @@ continue_:
     case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
     {
       ACE_Message_Block* message_block_2 = message_block_p;
-      if (available_tokens_i < total_length_i)
+      if (tokens_to_dispatch_i < total_length_i)
       {
-        message_block_2 = Stream_Tools::get (available_tokens_i,
+        message_block_2 = Stream_Tools::get (tokens_to_dispatch_i,
                                              message_block_p,
                                              message_block_p);
         if (!message_block_2)
@@ -922,7 +922,7 @@ continue_:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_Tools::get(%u), returning\n"),
                       inherited::mod_->name (),
-                      available_tokens_i));
+                      tokens_to_dispatch_i));
           message_block_p->release ();
           return;
         } // end IF
@@ -939,19 +939,21 @@ continue_:
         return;
       } // end IF
 
-      if (available_tokens_i < total_length_i)
+      if (tokens_to_dispatch_i < total_length_i)
       {
-        if (availableTokens_)
-          goto continue_;
-        result = inherited::ungetq (message_block_p, NULL);
-        if (unlikely (result == -1))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_Task::ungetq(): \"%m\", returning\n"),
-                      inherited::mod_->name ()));
-          message_block_p->release ();
-          return;
-        } // end IF
+        goto continue_;
+        // *WARNING*: iff the queue is now full (i.e. more data has arrived in
+        //            the meantime), this blocks forever
+        //            --> just wait for more tokens
+        //result = inherited::ungetq (message_block_p, NULL);
+        //if (unlikely (result == -1))
+        //{
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("%s: failed to ACE_Task::ungetq(): \"%m\", returning\n"),
+        //              inherited::mod_->name ()));
+        //  message_block_p->release ();
+        //  return;
+        //} // end IF
       } // end IF
 
       break;
