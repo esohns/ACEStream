@@ -18,7 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-//#include "opencv2/opencv.hpp"
 #include "opencv2/core/cvstd.hpp"
 #include "opencv2/core/mat.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -86,8 +85,7 @@ Stream_Visualization_OpenCVClassifier_T<ACE_SYNCH_USE,
 
   bool result = false;
   try {
-    result =
-        cascadeClassifier_.load (cv::String (configuration_in.cascadeFile.c_str ()));
+    result = cascadeClassifier_.load (configuration_in.cascadeFile);
   } catch (cv::Exception& e) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in cv::BaseCascadeClassifier::load(): \"%s\", continuing\n"),

@@ -5220,7 +5220,7 @@ Stream_MediaFramework_DirectShow_Tools::mediaSubTypeToAVPixelFormat (REFGUID med
 }
 #endif // FFMPEG_SUPPORT
 
-#if defined(SOX_SUPPORT)
+#if defined (SOX_SUPPORT)
 void
 Stream_MediaFramework_DirectShow_Tools::to (const struct _AMMediaType& mediaType_in,
                                             struct sox_encodinginfo_t& encoding_inout,

@@ -43,7 +43,7 @@ class Stream_MessageQueueBase_T
                             TimePolicyType> inherited;
 
  public:
-  Stream_MessageQueueBase_T (size_t,                             // maximum # of queued messages
+  Stream_MessageQueueBase_T (size_t,                             // maximum # of queued messages; 0: unlimited
                              ACE_Notification_Strategy* = NULL); // notification callback handle
   inline virtual ~Stream_MessageQueueBase_T () {}
 
@@ -80,7 +80,7 @@ class Stream_MessageQueueBase_T
   // *IMPORTANT NOTE*: override so that the queue considers the # of enqueued
   //                   messages (instead of the amount of enqueued bytes) to
   //                   determine its' water mark
-  inline virtual bool is_full_i (void) { return (inherited::cur_count_ >= inherited::high_water_mark_); }
+  inline virtual bool is_full_i (void) { return (inherited::high_water_mark_ ? inherited::cur_count_ >= inherited::high_water_mark_ : false); }
 
   bool isShuttingDown_; // MB_STOP has been dequeued ?
 

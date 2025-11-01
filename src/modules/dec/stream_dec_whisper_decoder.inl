@@ -66,14 +66,17 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   parameters2_ = whisper_full_default_params (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SAMPLING_STRATEGY);
   if (unlikely (!parameters_.use_gpu))
     parameters2_.n_threads = Common_Tools::getNumberOfCPUs (true);
-  // //parameters2_.n_max_text_ctx = 16;
-  // //parameters2_.no_context = false;
-  // parameters2_.no_timestamps = true;
-  // parameters2_.single_segment = true;
-  // parameters2_.print_progress = false;
-  // parameters2_.print_timestamps = false;
-  // parameters2_.temperature_inc = -1.0f;
-  // parameters2_.greedy.best_of = 1;
+  //parameters2_.n_max_text_ctx = 16384;
+  //parameters2_.no_context = true;
+  parameters2_.no_timestamps = true;
+  parameters2_.print_progress = false;
+  parameters2_.print_timestamps = false;
+  //parameters2_.suppress_blank = true;
+  parameters2_.suppress_nst = true;
+  //parameters2_.temperature_inc = -1.0f;
+  //parameters2_.greedy.best_of = 5;
+  //parameters2_.beam_search.beam_size = 5;
+  parameters2_.split_on_word = true;
 }
 
 template <ACE_SYNCH_DECL,
@@ -151,6 +154,15 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
               inherited::mod_->name (),
               ACE_TEXT (configuration_in.modelFile.c_str ())));
 
+  if (!configuration_in.language.empty ())
+  {
+    parameters2_.language = configuration_in.language.c_str ();
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: setting input language: \"%s\"\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (configuration_in.language.c_str ())));
+  } // end IF
+
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
@@ -178,13 +190,18 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  // this module may (!) buffer data...
+  // this module buffers data
   passMessageDownstream_out = false;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+  ACE_ASSERT (inherited::configuration_->messageAllocator);
 
   unsigned int number_of_samples_i = 
     static_cast<unsigned int> (message_inout->length () / sampleSize_);
   bufferedMs_ +=
-    static_cast<unsigned int> ((number_of_samples_i * 1000.0) / static_cast<double> (WHISPER_SAMPLE_RATE));
+    static_cast<unsigned int> ((number_of_samples_i * 1000.0f) / static_cast<float> (WHISPER_SAMPLE_RATE));
   if (bufferedMs_ < STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_BUFFER_LENGTH_MS)
   {
     if (!buffer_)
@@ -194,8 +211,10 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  typename DataMessageType::DATA_T* data_p = NULL;
+  typename DataMessageType::DATA_T* data_p = NULL, *data_2 = NULL;
   int n_segments;
+  std::string buffer_string;
+  typename DataMessageType* message_p = NULL;
 
   ACE_Message_Block* message_block_p = buffer_;
   Stream_Tools::crunch (message_block_p,
@@ -205,9 +224,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
 
   number_of_samples_i =
     static_cast<unsigned int> (buffer_->length () / sampleSize_);
-  parameters2_.duration_ms = bufferedMs_;
-  parameters2_.max_tokens =
-    static_cast<int> (4.0f * (int)number_of_samples_i / (float)WHISPER_SAMPLE_RATE);
+  //parameters2_.duration_ms = bufferedMs_;
   if (whisper_full (context_,
                     parameters2_,
                     reinterpret_cast<float*> (buffer_->rd_ptr ()),
@@ -230,8 +247,38 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
       data_p->words.push_back (text_p);
     } // end FOR
   } // end FOR
+  data_p->words.erase (std::remove_if (data_p->words.begin (), data_p->words.end (),
+                                       [] (const std::string& word_in) { return word_in == ACE_TEXT_ALWAYS_CHAR ("<|endoftext|>"); }),
+                       data_p->words.end ());
+  if (data_p->words.empty ())
+  {
+    // nothing recognized, reset buffer and return
+    buffer_->release (); buffer_ = NULL;
+    bufferedMs_ = 0;
+    return;
+  } // end IF
+  buffer_string = data_p->words[0];
+  for (unsigned int i = 1; i < data_p->words.size (); i++)
+    buffer_string += ACE_TEXT_ALWAYS_CHAR (" ") + data_p->words[i];
 
-  result = inherited::put_next (buffer_, NULL);
+  message_p =
+    inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+  if (unlikely (!message_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: allocateMessage(%u) failed: \"%m\", aborting\n"),
+                inherited::mod_->name (),
+                inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+    goto error;
+  } // end IF
+  message_p->initialize (message_inout->sessionId (),
+                         NULL);
+  result = message_p->copy (buffer_string.c_str ());
+  ACE_ASSERT (result == 0);
+  data_2 = &const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+  data_2->words = data_p->words;
+
+  result = inherited::put_next (message_p, NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -239,12 +286,14 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     goto error;
   } // end IF
-  buffer_ = NULL;
+  buffer_->release (); buffer_ = NULL;
   bufferedMs_ = 0;
 
   return;
 
 error:
+  if (message_p)
+    message_p->release ();
   if (buffer_)
   {
     buffer_->release (); buffer_ = NULL;

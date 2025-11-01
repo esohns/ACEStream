@@ -90,7 +90,7 @@ processInstructions (struct Test_U_AudioEffect_UI_CBDataBase* CBDataBase_in)
         }
         case STREAM_VISUALIZATION_INSTRUCTION_ROTATE:
         {
-          CBDataBase_in->objectRotation += 0.01f;
+          CBDataBase_in->objectRotation += 0.0025f;
           CBDataBase_in->objectRotation =
               std::fmod (CBDataBase_in->objectRotation, 360.0f);
           break;

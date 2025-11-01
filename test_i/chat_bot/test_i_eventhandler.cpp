@@ -17,43 +17,6 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "stdafx.h"
 
-#ifndef STREAM_MESSAGEQUEUE_H
-#define STREAM_MESSAGEQUEUE_H
-
-#include "ace/Global_Macros.h"
-
-#include "stream_messagequeue_base.h"
-
- // forward declarations
-class ACE_Notification_Strategy;
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          ////////////////////////////////
-          typename SessionMessageType>
-class Stream_MessageQueue_T
- : public Stream_MessageQueueBase_T<ACE_SYNCH_USE,
-                                    TimePolicyType>
-{
-  typedef Stream_MessageQueueBase_T<ACE_SYNCH_USE,
-                                    TimePolicyType> inherited;
-
- public:
-  Stream_MessageQueue_T (size_t,                             // maximum # of queued messages; 0: unlimited
-                         ACE_Notification_Strategy* = NULL); // notification callback handle
-  inline virtual ~Stream_MessageQueue_T () {}
-
-  // override (part of) Stream_IMessageQueue
-  virtual unsigned int flush (bool = false); // flush session messages ?
-
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T (const Stream_MessageQueue_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T& operator= (const Stream_MessageQueue_T&))
-};
-
-// include template definition
-#include "stream_messagequeue.inl"
-
-#endif
+#include "test_i_eventhandler.h"

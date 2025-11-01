@@ -468,7 +468,8 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
   if (!inherited::putStatisticMessage (data_out)) // data container
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to putStatisticMessage(), aborting\n")));
+                ACE_TEXT ("%s: failed to putStatisticMessage(), aborting\n"),
+                inherited::mod_->name ()));
     return false;
   } // end IF
 
@@ -527,7 +528,8 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
   if (result)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to mysql_real_query(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to mysql_real_query(\"%s\"): \"%s\", aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (query_string.c_str ()),
                 ACE_TEXT (mysql_error (state_))));
 
@@ -541,7 +543,8 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
   if (!result_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to mysql_use_result(): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to mysql_use_result(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (mysql_error (state_))));
 
     // signal the controller
@@ -553,7 +556,8 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
   free_result = true;
   number_of_fields = mysql_num_fields (result_p);
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("loaded DB table \"%s\" (%u record(s) in %u fields)...\n"),
+              ACE_TEXT ("%s: loaded DB table \"%s\" (%u record(s) in %u fields)...\n"),
+              inherited::mod_->name (),
               ACE_TEXT (inherited::configuration_.DBTable.c_str ()),
               mysql_num_rows (result_p),
               number_of_fields));
@@ -583,7 +587,8 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
         if (!finished)
         {
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("session aborted\n")));
+                      ACE_TEXT ("%s: session aborted\n"),
+                      inherited::mod_->name ()));
 
           finished = true;
           inherited::finished ();
@@ -604,7 +609,8 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
       if (error != EWOULDBLOCK) // Win32: 10035
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
+                    ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
 
         // signal the controller ?
         if (!finished)
@@ -623,7 +629,8 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("allocateMessage(%d) failed: \"%m\", aborting\n"),
+                  ACE_TEXT ("%s: allocateMessage(%d) failed: \"%m\", aborting\n"),
+                  inherited::mod_->name (),
                   inherited::configuration_.streamConfiguration->bufferSize));
 
       // signal the controller
@@ -639,7 +646,8 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
       unsigned int error = mysql_errno (state_);
       if (error)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to mysql_fetch_row(): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to mysql_fetch_row(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (mysql_error (state_))));
 
       // signal the controller
@@ -655,7 +663,8 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
     if (!field_lengths_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to mysql_fetch_lengths(): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s: failed to mysql_fetch_lengths(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (mysql_error (state_))));
 
       // signal the controller

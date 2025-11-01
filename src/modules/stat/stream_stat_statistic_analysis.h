@@ -108,16 +108,24 @@ class Stream_Statistic_StatisticAnalysis_T
   double                          amplitudeS_;
 
   // activity detection
-  unsigned int                    streak_;
-  unsigned int                    streakCount_; // total-
+  ACE_UINT64                      streak_;
+  ACE_UINT64                      streakCount_; // total-
   double                          streakM_;
   double                          streakS_;
   double                          volumeM_;
   double                          volumeS_;
 
+  bool                            in_peak_ = false;
+  bool                            was_in_peak_ = false;
+  bool                            in_streak_ = false;
+  bool                            was_in_streak_ = false;
+  bool                            in_volume_ = false;
+  bool                            was_in_volume_ = false;
+
   INOTIFY_T*                      eventDispatcher_;
   typename inherited3::ITERATOR_T iterator_;
-  unsigned int                    frameCount_; // processed-
+  ACE_UINT64                      frameCount_; // processed-
+  ACE_UINT64                      volumeFrameCount_;
   bool                            sampleIsSigned_;
   ValueType                       signedSampleModifier_;
 };

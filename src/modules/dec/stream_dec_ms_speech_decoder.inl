@@ -173,12 +173,11 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
 
   passMessageDownstream_out = false;
   std::wstring text_string = ACE_TEXT_ALWAYS_WCHAR (message_inout->rd_ptr ());
-  message_inout->release (); message_inout = NULL;
 
   // sanity check(s)
   ACE_ASSERT (voice_);
 
-  ACE_Message_Block* message_block_p = NULL;
+  DataMessageType* message_p = NULL;
   uint8_t* data_p = NULL, *data_2 = NULL;
   ACE_UINT64 file_size_i, offset_i = 0;
   int result_2;
@@ -214,10 +213,10 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
   data_2 = data_p;
 
 #define DESC_SIZE 4
-#define COPY_SIZE 1024
-  const char riff_hdr[DESC_SIZE + 1] = {'R', 'I', 'F', 'F', '\0'};
-  const char wave_hdr[DESC_SIZE + 1] = {'W', 'A', 'V', 'E', '\0'};
-  const char data_hdr[DESC_SIZE + 1] = {'d', 'a', 't', 'a', '\0'};
+#define COPY_SIZE 4096 // 4kb
+  static char riff_hdr[DESC_SIZE + 1] = {'R', 'I', 'F', 'F', '\0'};
+  static char wave_hdr[DESC_SIZE + 1] = {'W', 'A', 'V', 'E', '\0'};
+  static char data_hdr[DESC_SIZE + 1] = {'d', 'a', 't', 'a', '\0'};
 
   if (ACE_OS::strncmp ((char*)data_2, riff_hdr, DESC_SIZE))
   {
@@ -240,13 +239,11 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
 
   // step2: allocate message block
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
-  ACE_ASSERT (inherited::configuration_->messageAllocator);
-  message_block_p =
-    static_cast<ACE_Message_Block*> (inherited::configuration_->messageAllocator->malloc (inherited::configuration_->allocatorConfiguration->defaultBufferSize));
-  if (unlikely (!message_block_p))
+  message_p = inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+  if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_IAllocator::malloc(%u): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to allocateMessage(%u): \"%m\", aborting\n"),
                 inherited::mod_->name (),
                 inherited::configuration_->allocatorConfiguration->defaultBufferSize));
     goto error;
@@ -270,10 +267,12 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
       int32_t trailing_bytes = chunk_size % COPY_SIZE;
       for (int32_t i = 0; i < num_blocks; i++)
       {
-        if (unlikely (message_block_p->space () < COPY_SIZE))
+        if (unlikely (message_p->space () < COPY_SIZE))
         {
           // step3: push data downstream
-          result = inherited::put_next (message_block_p, NULL);
+          message_p->initialize (message_inout->sessionId (),
+                                 NULL);
+          result = inherited::put_next (message_p, NULL);
           if (unlikely (result == -1))
           {
             ACE_DEBUG ((LM_ERROR,
@@ -282,20 +281,20 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
             goto error;
           } // end IF
 
-          message_block_p =
-            static_cast<ACE_Message_Block*> (inherited::configuration_->messageAllocator->malloc (inherited::configuration_->allocatorConfiguration->defaultBufferSize));
-          if (unlikely (!message_block_p))
+          message_p =
+            inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+          if (unlikely (!message_p))
           {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to Stream_IAllocator::malloc(%u): \"%m\", aborting\n"),
+                        ACE_TEXT ("%s: failed to allocateMessage(%u): \"%m\", aborting\n"),
                         inherited::mod_->name (),
                         inherited::configuration_->allocatorConfiguration->defaultBufferSize));
             goto error;
           } // end IF
-          ACE_ASSERT (message_block_p->space () >= COPY_SIZE);
+          ACE_ASSERT (message_p->space () >= COPY_SIZE);
         } // end IF
 
-        result_2 = message_block_p->copy ((char*)data_2, COPY_SIZE);
+        result_2 = message_p->copy ((char*)data_2, COPY_SIZE);
         if (unlikely (result_2 == -1))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -309,10 +308,12 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
 
       if (!trailing_bytes)
         continue;
-      if (unlikely (message_block_p->space () < trailing_bytes))
+      if (unlikely (message_p->space () < trailing_bytes))
       {
         // step3: push data downstream
-        result = inherited::put_next (message_block_p, NULL);
+        message_p->initialize (message_inout->sessionId (),
+                               NULL);
+        result = inherited::put_next (message_p, NULL);
         if (unlikely (result == -1))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -321,9 +322,9 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
           goto error;
         } // end IF
 
-        message_block_p =
-          static_cast<ACE_Message_Block*> (inherited::configuration_->messageAllocator->malloc (inherited::configuration_->allocatorConfiguration->defaultBufferSize));
-        if (unlikely (!message_block_p))
+        message_p =
+          inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+        if (unlikely (!message_p))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_IAllocator::malloc(%u): \"%m\", aborting\n"),
@@ -331,10 +332,10 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
                       inherited::configuration_->allocatorConfiguration->defaultBufferSize));
           goto error;
         } // end IF
-        ACE_ASSERT (message_block_p->space () >= trailing_bytes);
+        ACE_ASSERT (message_p->space () >= trailing_bytes);
       } // end IF
 
-      result_2 = message_block_p->copy ((char*)data_2, trailing_bytes);
+      result_2 = message_p->copy ((char*)data_2, trailing_bytes);
       if (unlikely (result_2 == -1))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -351,9 +352,12 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
       data_2 += chunk_size; offset_i += chunk_size;
     } // end ELSE
   } // end WHILE
+  delete [] data_p; data_p = NULL;
 
   // step3: push data downstream
-  result = inherited::put_next (message_block_p, NULL);
+  message_p->initialize (message_inout->sessionId (),
+                          NULL);
+  result = inherited::put_next (message_p, NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -369,13 +373,16 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
                                 SPFEI_ALL_EVENTS);
   ACE_ASSERT (SUCCEEDED (result));
 
+  message_inout->release (); message_inout = NULL;
+
   return;
 
 error:
   if (data_p)
     delete [] data_p;
-  if (message_block_p)
-    message_block_p->release ();
+  if (message_p)
+    message_p->release ();
+  message_inout->release (); message_inout = NULL;
 
   this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
@@ -412,7 +419,6 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
       typename SessionDataContainerType::DATA_T& session_data_r =
         const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
-      ACE_ASSERT (session_data_r.formats.empty ());
       MediaType media_type;
       // *NOTE*: festival generates PCM mono signed 16 bits at 16000Hz
       struct _AMMediaType media_type_2;

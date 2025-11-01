@@ -1,5 +1,20 @@
+include (OpenGL)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/scripts")
+include (llama)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/gl/scripts")
+include (assimp)
+include (glew)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/image/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image/scripts")
+include (png)
+
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
+
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev/scripts")
+ include (pipewire)
 endif (UNIX)
 include (ffmpeg)
 include (ImageMagick)
@@ -11,6 +26,8 @@ endif (WIN32)
 include (sox)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
+include (deepspeech)
+include (whisper_cpp)
 include (festival)
 if (WIN32)
  include (ms_speech)
@@ -19,8 +36,19 @@ endif (WIN32)
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
+if (LLAMACPP_SUPPORT)
+ include_directories (${LLAMACPP_INCLUDE_DIRS})
+endif (LLAMACPP_SUPPORT)
+if (GLEW_SUPPORT)
+ include_directories (${GLEW_INCLUDE_DIRS})
+endif (GLEW_SUPPORT)
 if (UNIX)
  include_directories (${PKG_ALSA_INCLUDE_DIRS})
+
+ if (LIBPIPEWIRE_SUPPORT)
+  include_directories (${LIBPIPEWIRE_INCLUDE_DIRS})
+ endif (LIBPIPEWIRE_SUPPORT)
+
  if (SOX_SUPPORT)
   include_directories (${SOX_INCLUDE_DIRS})
  endif (SOX_SUPPORT)
@@ -39,16 +67,6 @@ if (UNIX)
   endif (GTKGL_SUPPORT)
  endif (GTK_SUPPORT)
 elseif (WIN32)
- # *NOTE*: workaround
-# set (_PF86 "ProgramFiles(x86)")
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      $ENV{LIB_ROOT}/DShowBaseClasses)
-# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
-
-# DirectShow
-# include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
- include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses)
-
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/${BUILD_PATH_SUFFIX})
@@ -66,35 +84,35 @@ elseif (WIN32)
  endif (GTK_SUPPORT)
 endif ()
 
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../include)
+include_directories (${CMAKE_BINARY_DIR})
+
+if (WIN32)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../include)
+endif (WIN32)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/ml)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 
-include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
-
 ############## next target ################
-set (EXECUTABLE commandspeech)
+set (EXECUTABLE chat_bot)
 set (${EXECUTABLE}_EXE_SRCS
 #     stdafx.cpp
      stdafx.h
      ../test_i_common.h
      ../test_i_defines.h
      test_i.cpp
-     test_i_commandspeech_common.h
-     test_i_commandspeech_defines.h
+     test_i_chat_bot_common.h
+     test_i_chat_bot_defines.h
      test_i_eventhandler.cpp
      test_i_eventhandler.h
      test_i_eventhandler.inl
-     test_i_input_handler.cpp
-     test_i_input_handler.h
-     test_i_input_handler.inl
      test_i_message.cpp
      test_i_message.h
      test_i_modules.h
@@ -111,6 +129,12 @@ if (GTK_SUPPORT)
       ${${EXECUTABLE}_EXE_SRCS}
       test_i_gtk_callbacks.cpp
       test_i_gtk_callbacks.h)
+ if (GTKGL_SUPPORT)
+  set (${EXECUTABLE}_EXE_SRCS
+       ${${EXECUTABLE}_EXE_SRCS}
+       test_i_gl_callbacks.cpp
+       test_i_gl_callbacks.h)
+ endif (GTKGL_SUPPORT)
 endif (GTK_SUPPORT)
 if (WXWIDGETS_SUPPORT)
  set (${EXECUTABLE}_EXE_SRCS
@@ -136,21 +160,12 @@ if (WIN32 AND NOT BUILD_TEST_I)
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif (WIN32 AND NOT BUILD_TEST_I)
 
-if (WIN32)
- if (FESTIVAL_SUPPORT)
-# at this point festival only supports static linking on win32 platforms
-#  set_property (TARGET ${EXECUTABLE} PROPERTY
-#                MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
- endif (FESTIVAL_SUPPORT)
-endif (WIN32)
-
 #add_dependencies (${EXECUTABLE} ACE)
 
 add_dependencies (${EXECUTABLE} Common)
 if (WIN32)
  add_dependencies (${EXECUTABLE} CommonError)
 endif (WIN32)
-add_dependencies (${EXECUTABLE} CommonInput)
 add_dependencies (${EXECUTABLE} CommonLog)
 add_dependencies (${EXECUTABLE} CommonMath)
 add_dependencies (${EXECUTABLE} CommonTimer)
@@ -172,24 +187,21 @@ endif (UNIX)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
-if (UNIX)
- target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_ALSA_LIBRARIES})
-elseif (WIN32)
- target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
- target_link_libraries (${EXECUTABLE} PUBLIC mfuuid.lib)
- target_link_libraries (${EXECUTABLE} PUBLIC Dmoguids.lib)
- target_link_libraries (${EXECUTABLE} PUBLIC Msdmo.lib)
- target_link_libraries (${EXECUTABLE} PUBLIC strmiids.lib)
+if (GLEW_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${GLEW_LIBRARIES})
+endif (GLEW_SUPPORT)
 
- if (FESTIVAL_SUPPORT)
-# *WARNING*: linking libFestival.lib requires "/FORCE:MULTIPLE"
-  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
- endif (FESTIVAL_SUPPORT)
- if (FLITE_SUPPORT)
-# *WARNING*: linking libflite.lib requires "/FORCE:MULTIPLE"
-  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
- endif (FLITE_SUPPORT)
-endif ()
+if (DEEPSPEECH_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${DEEPSPEECH_LIBRARIES})
+endif (DEEPSPEECH_SUPPORT)
+if (WHISPERCPP_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${WHISPERCPP_LIBRARIES})
+endif (WHISPERCPP_SUPPORT)
+
+if (LLAMACPP_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${LLAMACPP_LIBRARIES})
+endif (LLAMACPP_SUPPORT)
+
 if (FESTIVAL_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${FESTIVAL_LIBRARIES})
 endif (FESTIVAL_SUPPORT)
@@ -199,10 +211,44 @@ endif (FLITE_SUPPORT)
 if (SOX_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
 endif (SOX_SUPPORT)
+if (UNIX)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_ALSA_LIBRARIES})
+
+ if (LIBPIPEWIRE_SUPPORT)
+  target_link_libraries (${EXECUTABLE} PUBLIC ${LIBPIPEWIRE_LIBRARIES})
+ endif (LIBPIPEWIRE_SUPPORT)
+
+ if (SOX_SUPPORT)
+  target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
+ endif (SOX_SUPPORT)
+elseif (WIN32)
+ if (FESTIVAL_SUPPORT)
+# *WARNING*: linking libFestival.lib requires "/FORCE:MULTIPLE"
+  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+ endif (FESTIVAL_SUPPORT)
+ if (FLITE_SUPPORT)
+# *WARNING*: linking libflite.lib requires "/FORCE:MULTIPLE"
+  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+ endif (FLITE_SUPPORT)
+
+ target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
+ target_link_libraries (${EXECUTABLE} PUBLIC mfuuid.lib)
+ target_link_libraries (${EXECUTABLE} PUBLIC Dmoguids.lib)
+ target_link_libraries (${EXECUTABLE} PUBLIC Msdmo.lib)
+ target_link_libraries (${EXECUTABLE} PUBLIC strmiids.lib)
+
+ if (GTK_SUPPORT)
+  if (GTKGL_SUPPORT)
+   target_link_libraries (${EXECUTABLE} PUBLIC OpenGL32.lib)
+   target_link_libraries (${EXECUTABLE} PUBLIC GlU32.lib)
+  endif (GTKGL_SUPPORT)
+ endif (GTK_SUPPORT)
+endif ()
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
 target_link_libraries (${EXECUTABLE} PUBLIC Common)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonEvent)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonInput)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonLog)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonMath)
@@ -221,6 +267,7 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Device)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_File)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_MachineLearning)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_MediaFramework)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Miscellaneous)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Statistic)
@@ -231,6 +278,15 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_I)
 # add PCH
 target_precompile_headers (${EXECUTABLE}
                            PUBLIC stdafx.h)
+
+set (ds_model_file "deepspeech-0.9.3-models.pbmm")
+set (ds_scorer_file "deepspeech-0.9.3-models.scorer")
+set (ds_german_model_file "model.pbmm")
+set (ds_german_scorer_file "de-aashishag-1-prune-kenlm.scorer")
+set (ds_model_file "etc/${ds_german_model_file}")
+set (ds_scorer_file "etc/${ds_german_scorer_file}")
+set (wh_model_file "$ENV{LIB_ROOT}/../models/ggml-small.en.bin")
+set (llm_model_file "$ENV{LIB_ROOT}/../models/Llama-3.1-8B-Instruct-IQ4_XS.gguf")
 
 set (ui_definition_file "")
 if (GTK_USE)
@@ -246,10 +302,11 @@ endif ()
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
-if (UNIX)
- install (FILES ${ui_definition_file}
-          DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
-elseif (WIN32)
+#install (FILES ${model_file} ${scorer_file}
+#         DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT data)
+install (FILES ${ui_definition_file}
+         DESTINATION "etc/${EXECUTABLE}" COMPONENT config)
+if (WIN32)
  get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY} DIRECTORY)
  set (ACE_DLL_FILE ACE${LIB_FILE_SUFFIX}.dll)
  set (ACE_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_DLL_FILE})
@@ -277,6 +334,7 @@ elseif (WIN32)
                  ${LIB_ROOT}/gtk3/bin/libpng15-15.dll
                  ${LIB_ROOT}/gtk3/bin/zlib1.dll
                  ${LIB_ROOT}/gtk3/bin/libxml2-2.dll
+                 ${LIB_ROOT}/DeepSpeech/native_client/windows/bin/libdeepspeech.so
            DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
  endif (DEFINED $ENV{LIB_ROOT})
  install (FILES ${ui_definition_file}
@@ -289,16 +347,20 @@ endif ()
 set (VOICE_DIRECTORY "$ENV{LIB_ROOT}/flite/voices")
 file (TO_NATIVE_PATH "${VOICE_DIRECTORY}" VOICE_DIRECTORY)
 set (VOICE "cmu_us_slt.flitevox")
-if (DEFINED CMAKE_BUILD_TYPE)
- if (${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR
-     ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
-  set (ARGS "${ARGS} -l -t")
- endif (${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR
-        ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
-endif (DEFINED CMAKE_BUILD_TYPE)
 if (UNIX)
- set (ARGS "${ARGS} -b ${VOICE} -c ${VOICE_DIRECTORY}")
- file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE}" COMMAND)
+ set (ARGS "-b ${VOICE} -c ${VOICE_DIRECTORY} -f ${wh_model_file} -h ${llm_model_file}")
+endif (UNIX)
+set (PATH_SUFFIX "Release")
+if (DEFINED CMAKE_BUILD_TYPE)
+set (PATH_SUFFIX ${CMAKE_BUILD_TYPE})
+endif (DEFINED CMAKE_BUILD_TYPE)
+if (PATH_SUFFIX STREQUAL "Debug" OR
+    PATH_SUFFIX STREQUAL "RelWithDebInfo")
+ set (ARGS "${ARGS} -l -t")
+endif (PATH_SUFFIX STREQUAL "Debug" OR
+       PATH_SUFFIX STREQUAL "RelWithDebInfo")
+if (UNIX)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${PATH_SUFFIX}/${EXECUTABLE}" COMMAND)
  if (GTK_USE OR WXWIDGETS_USE)
   set (ARGS "${ARGS} -g./${ui_definition_file}")
  endif (GTK_USE OR WXWIDGETS_USE)
@@ -314,10 +376,18 @@ if (UNIX)
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
 # set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
+ file (TO_NATIVE_PATH ".\\${ds_scorer_file}" ds_scorer_file)
+ string (REPLACE "\\" "\\\\" ds_scorer_file ${ds_scorer_file})
+ file (TO_NATIVE_PATH ".\\${ds_model_file}" ds_model_file)
+ string (REPLACE "\\" "\\\\" ds_model_file ${ds_model_file})
+ file (TO_NATIVE_PATH "${wh_model_file}" wh_model_file)
+ string (REPLACE "\\" "\\\\" wh_model_file ${wh_model_file})
+ file (TO_NATIVE_PATH "${llm_model_file}" llm_model_file)
+ string (REPLACE "\\" "\\\\" llm_model_file ${llm_model_file})
  string (REPLACE "\\" "\\\\" VOICE_DIRECTORY ${VOICE_DIRECTORY})
- set (ARGS "${ARGS} -b ${VOICE} -c ${VOICE_DIRECTORY}")
- #set (ARGS "-m ${ARGS}") # use mediafoundation
- file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
+ set (ARGS "${ARGS} -b ${VOICE} -c ${VOICE_DIRECTORY} -f ${wh_model_file} -h ${llm_model_file}")
+# set (ARGS "-m ${ARGS}") # use mediafoundation
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${PATH_SUFFIX}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if ("${ui_definition_file}" STREQUAL "")
   set (ARGS " ${ARGS} -g")
@@ -330,35 +400,47 @@ elseif (WIN32)
 #   set (ENVIRONMENT "GTK_DEBUG=interactive$<COMMA>size-request")
   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                             ${GTK_PATH})
+                            ${GTK_PATH})
  endif (GTK_SUPPORT)
  if (WXWIDGETS_SUPPORT)
   file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                             ${WXWIDGETS_PATH})
  endif (WXWIDGETS_SUPPORT)
- file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${LLAMACPP_LIB_DIR}" LLAMACPP_PATH)
+ file (TO_CMAKE_PATH "${GLEW_LIB_DIR}" GLEW_PATH)
  file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
- file (TO_CMAKE_PATH "${FLITE_LIB_DIR}" FLITE_LIBRARY_PATH)
-  # *NOTE*: ffmpeg was built with (vcpkg-)"libpng" support, so now there is a new dependency to zlib1.dll, liblzma.dll, iconv-2.dll :-(
+# *NOTE*: ffmpeg was built with (vcpkg-)"libpng" support, so now there is a new dependency to zlib1.dll, liblzma.dll, iconv-2.dll :-(
  file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
+ file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${ACE_LIBRARY_PATH}
+                           ${LLAMACPP_PATH}
+                           ${GLEW_PATH}
                            ${ASSIMP_PATH}
                            ${LIBPNG_PATH}
-                           ${FLITE_LIBRARY_PATH}
                            ${VCPKG_PATH}
                            ${FFMPEG_PATH}
-                           ${IMAGEMAGICK_PATH})
+                           ${IMAGEMAGICK_PATH}
+                           ${ACE_PATH})
  if (SOX_SUPPORT)
   file (TO_CMAKE_PATH "${SOX_LIB_DIR}" SOX_PATH)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                             ${SOX_PATH})
  endif (SOX_SUPPORT)
- set (ENVIRONMENT "FESTLIBDIR=E:\\\\lib\\\\festival\\\\lib")
+ if (DEEPSPEECH_SUPPORT)
+  file (TO_CMAKE_PATH "${DEEPSPEECH_LIB_DIR}" DEEPSPEECH_PATH)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${DEEPSPEECH_PATH})
+ endif (DEEPSPEECH_SUPPORT)
+ if (WHISPERCPP_SUPPORT)
+  file (TO_CMAKE_PATH "${WHISPERCPP_LIB_DIRS}" WHISPERCPP_PATH)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${WHISPERCPP_PATH})
+ set (ENVIRONMENT "${ENVIRONMENT};HSA_OVERRIDE_GFX_VERSION=9.0.0;HIP_VISIBLE_DEVICES=1")
+ endif (WHISPERCPP_SUPPORT)
 endif ()
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}

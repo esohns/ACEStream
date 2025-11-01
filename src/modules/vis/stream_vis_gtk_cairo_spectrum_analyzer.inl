@@ -1401,7 +1401,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
           // method1: (normalized-) magnitude
           //magnitude_d = inherited2::Magnitude (j, i, true);
           //y = static_cast<double> (height_) * magnitude_d;
+          // *NOTE*: set 'normalize' (3rd parameter) to 'true' for more realism
           // magnitude_d = inherited2::Magnitude (j, i, false) / 5.0;
+          //magnitude_d = inherited2::Magnitude2 (j, i, true) / 10.0; // *NOTE*: <-- tested with sine wave
           magnitude_d = inherited2::Magnitude2 (j, i, false);
           y =
             sampleIterator_.isSignedSampleFormat_ ? magnitude_d * scaleFactorY_

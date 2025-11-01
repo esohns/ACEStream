@@ -94,21 +94,23 @@
 
 #include "stream_misc_defines.h"
 
+#include "stream_module_ml_defines.h"
+
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
+#include "test_i_chat_bot_common.h"
+#include "test_i_chat_bot_defines.h"
 #if defined (GTK_SUPPORT)
 #include "test_i_gtk_callbacks.h"
 #endif // GTK_SUPPORT
 #include "test_i_session_message.h"
-#include "test_i_speechcommand_common.h"
-#include "test_i_speechcommand_defines.h"
 #include "test_i_modules.h"
 #include "test_i_eventhandler.h"
 #include "test_i_signalhandler.h"
 #include "test_i_stream.h"
 
-const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("SpeechCommandStream");
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("ChatBotStream");
 
 void
 do_printUsage (const std::string& programName_in)
@@ -130,13 +132,25 @@ do_printUsage (const std::string& programName_in)
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-  std::string scorer_file = path;
-  scorer_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  scorer_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c [STRING] : scorer file [\"")
-            << scorer_file
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  std::string voice = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-b [STRING] : voice [\"")
+            << voice
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+  path = configuration_path;
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  std::string voice_directory = path;
+  // voice_directory += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c [STRING] : voice directory [\"")
+            << voice_directory
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << std::endl;
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [INTEGER]: device id [")
             << 0
@@ -160,7 +174,7 @@ do_printUsage (const std::string& programName_in)
   std::string model_file = path;
   model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : model file [\"")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : STT model file [\"")
             << model_file
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
@@ -173,6 +187,13 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
             << std::endl;
 #endif // GTK_SUPPORT || WXWIDGETS_SUPPORT
+  model_file = path;
+  model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE_2);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-h [STRING] : LLM model file [\"")
+            << model_file
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << std::endl;
 #if defined (GTK_SUPPORT)
   std::string UI_style_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -241,18 +262,22 @@ do_printUsage (const std::string& programName_in)
 bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
-                     std::string& scorerFile_out,
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+                     std::string& voice_out,
+                     std::string& voiceDirectory_out,
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      unsigned int& deviceIdentifier_out,
 #else
                      std::string& deviceIdentifier_out,
 #endif // ACE_WIN32 || ACE_WIN64
                      double& gain_out,
-                     std::string& modelFile_out,
+                     std::string& STTModelFile_out,
                      std::string& UIFile_out,
 #if defined (GTK_SUPPORT)
                      std::string& UICSSFile_out,
 #endif // GTK_SUPPORT
+                     std::string& LLMModelFile_out,
                      bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      enum Stream_MediaFramework_Type& mediaFramework_out,
@@ -281,9 +306,12 @@ do_processArguments (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 
   // initialize results
-  scorerFile_out = configuration_path;
-  scorerFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  scorerFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  voice_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
+  voiceDirectory_out = configuration_path;
+  voiceDirectory_out += ACE_DIRECTORY_SEPARATOR_STR_A;
+  voiceDirectory_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY);
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   deviceIdentifier_out = 0;
 #else
@@ -294,15 +322,18 @@ do_processArguments (int argc_in,
     deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
 #endif // ACE_WIN32 || ACE_WIN64
   gain_out = 0.0;
-  modelFile_out = configuration_path;
-  modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
+  STTModelFile_out = configuration_path;
+  STTModelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  STTModelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
 #if defined (GTK_SUPPORT)
   UICSSFile_out.clear ();
 #endif // GTK_SUPPORT
+  LLMModelFile_out = configuration_path;
+  LLMModelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  LLMModelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE_2);
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -326,7 +357,10 @@ do_processArguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
   language_out = ACE_TEXT_ALWAYS_CHAR ("en");
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("c:d:e:f:lo::s:tuvz:");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:e:f:h:lo::s:tuvz:");
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  options_string += ACE_TEXT_ALWAYS_CHAR ("b:c:");
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("g::");
 #endif // GTK_SUPPORT || WXWIDGETS_SUPPORT
@@ -361,11 +395,18 @@ do_processArguments (int argc_in,
   {
     switch (option)
     {
-      case 'c':
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+      case 'b':
       {
-        scorerFile_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        voice_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
+      case 'c':
+      {
+        voiceDirectory_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        break;
+      }
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
       case 'd':
       {
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
@@ -389,7 +430,7 @@ do_processArguments (int argc_in,
       }
       case 'f':
       {
-        modelFile_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        STTModelFile_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
@@ -403,6 +444,11 @@ do_processArguments (int argc_in,
         break;
       }
 #endif // GTK_SUPPORT || WXWIDGETS_SUPPORT
+      case 'h':
+      {
+        LLMModelFile_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        break;
+      }
 #if defined (GTK_SUPPORT)
       case 'i':
       {
@@ -586,7 +632,8 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
                           struct _AMMediaType& captureMediaType_out,
-                          struct _AMMediaType& targetMediaType_out,
+                          struct _AMMediaType& targetMediaType_out, // required by STT
+                          struct _AMMediaType& renderMediaType_out, // required by renderer
                           bool useDirectShowSource_in,
                           bool mute_in,
                           enum Test_I_STTBackend STT_in)
@@ -626,6 +673,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   // initialize return value(s)
   Stream_MediaFramework_DirectShow_Tools::free (captureMediaType_out);
   Stream_MediaFramework_DirectShow_Tools::free (targetMediaType_out);
+  Stream_MediaFramework_DirectShow_Tools::free (renderMediaType_out);
 
   waveformatex_s.wFormatTag = STREAM_DEV_MIC_DEFAULT_FORMAT;
   waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
@@ -663,6 +711,24 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   // waveformatex_s.cbSize = 0;
   if (unlikely (!Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (waveformatex_s,
                                                                            targetMediaType_out)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx(), aborting\n")));
+    goto error;
+  } // end IF
+
+  ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
+  // *NOTE*: renderer can handle PCM stereo signed 16 bits at 48000Hz
+  waveformatex_s.nChannels = 2;
+  waveformatex_s.nSamplesPerSec = 48000;
+  waveformatex_s.wFormatTag = WAVE_FORMAT_PCM;
+  waveformatex_s.wBitsPerSample = 16;
+  waveformatex_s.nBlockAlign =
+    (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
+  waveformatex_s.nAvgBytesPerSec =
+    (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
+  if (unlikely (!Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (waveformatex_s,
+                                                                           renderMediaType_out)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx(), aborting\n")));
@@ -1178,15 +1244,20 @@ do_finalize_mediafoundation ()
 #endif // ACE_WIN32 || ACE_WIN64
 
 void
-do_work (const std::string& scorerFile_in,
+do_work (
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+         const std::string& voice_in,
+         const std::string& voiceDirectory_in,
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          unsigned int deviceId_in,
 #else
          const std::string& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
          double gain_in,
-         const std::string& modelFile_in,
+         const std::string& STTModelFile_in,
          const std::string& UIDefinitionFile_in,
+         const std::string& LLMModelFile_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1194,6 +1265,7 @@ do_work (const std::string& scorerFile_in,
          unsigned int statisticReportingInterval_in,
          bool mute_in,
          enum Test_I_STTBackend STT_in,
+         enum Test_I_TTSBackend TTS_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
          bool usePipewire_in,
@@ -1246,15 +1318,16 @@ do_work (const std::string& scorerFile_in,
   Stream_IStream_t* istream_p = NULL, *istream_2 = NULL;
   Stream_IStreamControlBase* istream_control_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
-  struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // directshow target module
-  struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // renderer module
-  struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_4; // file writer module
+  struct Test_I_ChatBot_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
+  struct Test_I_ChatBot_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // directshow target module
+  struct Test_I_ChatBot_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // resampler/renderer module
+  struct Test_I_ChatBot_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_4; // file writer module
+  struct Test_I_ChatBot_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_5; // llama module
   struct Test_I_DirectShow_StreamConfiguration directshow_stream_configuration;
-  struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
-  struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // mediafoundation target target module
-  struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_3; // renderer module
-  struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_4; // file writer module
+  struct Test_I_ChatBot_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
+  struct Test_I_ChatBot_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // mediafoundation target target module
+  struct Test_I_ChatBot_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_3; // renderer module
+  struct Test_I_ChatBot_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_4; // file writer module
   struct Test_I_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
   Test_I_DirectShow_Stream directshow_stream;
   Test_I_MediaFoundation_Stream mediafoundation_stream;
@@ -1265,19 +1338,22 @@ do_work (const std::string& scorerFile_in,
     {
       istream_p = &directshow_stream;
       istream_control_p = &directshow_stream;
+
       directshow_stream_configuration.capturer =
         (useFrameworkSource_in ? STREAM_DEVICE_CAPTURER_DIRECTSHOW
                                : STREAM_DEVICE_CAPTURER_WASAPI);
                              //: STREAM_DEVICE_CAPTURER_WAVEIN);
       directshow_stream_configuration.renderer =
-        (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_DIRECTSHOW
-                                 : STREAM_DEVICE_RENDERER_WAVEOUT);
+        (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_DIRECTSHOW :
+                                   STREAM_DEVICE_RENDERER_WASAPI);
+                               //: STREAM_DEVICE_RENDERER_WAVEOUT);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       istream_p = &mediafoundation_stream;
       istream_control_p = &mediafoundation_stream;
+
       mediafoundation_stream_configuration.capturer =
         (useFrameworkSource_in ? STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION
                                : STREAM_DEVICE_CAPTURER_WASAPI);
@@ -1376,9 +1452,9 @@ do_work (const std::string& scorerFile_in,
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration_2; // playback
 //  ALSA_configuration_2.asynch = false;
   ALSA_configuration_2.rateResample = false;
-  struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
-  struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
-  struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration modulehandler_configuration_3; // file writer module
+  struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
+  struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration modulehandler_configuration_3; // file writer module
 #endif // ACE_WIN32 || ACE_WIN64
   Test_I_InputMessageHandler_Module input_handler_module (istream_2,
                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
@@ -1400,16 +1476,21 @@ do_work (const std::string& scorerFile_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+      directshow_modulehandler_configuration.manageFestival = true;
+      directshow_modulehandler_configuration.manageFlite = true;
+      directshow_modulehandler_configuration.voice = voice_in;
+      directshow_modulehandler_configuration.voiceDirectory =
+        voiceDirectory_in;
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
       directshow_modulehandler_configuration.language = language_in;
       directshow_modulehandler_configuration.maximumQueueSlots = 0; // unlimited
       directshow_modulehandler_configuration.spectrumAnalyzerConfiguration =
         &spectrumanalyzer_configuration;
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
-      directshow_modulehandler_configuration.scorerFile =
-        scorerFile_in;
       directshow_modulehandler_configuration.modelFile =
-        modelFile_in;
+        STTModelFile_in;
       switch (directshow_stream_configuration.capturer)
       {
         case STREAM_DEVICE_CAPTURER_WAVEIN:
@@ -1541,6 +1622,10 @@ do_work (const std::string& scorerFile_in,
         }
         case STREAM_DEVICE_RENDERER_WASAPI:
         {
+          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Filter_2"),//STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING),
+                                                                                 std::make_pair (&module_configuration,
+                                                                                                 &directshow_modulehandler_configuration_3)));
+
           renderer_modulename_string =
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING);
           // *WARNING*: falls through !
@@ -1576,6 +1661,13 @@ do_work (const std::string& scorerFile_in,
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_4)));
 
+      directshow_modulehandler_configuration_5 =
+        directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_5.modelFile = LLMModelFile_in;
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (MODULE_ML_LLAMA_CPP_DEFAULT_NAME_STRING),
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_5)));
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1586,10 +1678,8 @@ do_work (const std::string& scorerFile_in,
         &spectrumanalyzer_configuration;
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
-      mediafoundation_modulehandler_configuration.scorerFile =
-        scorerFile_in;
       mediafoundation_modulehandler_configuration.modelFile =
-        modelFile_in;
+        STTModelFile_in;
       switch (mediafoundation_stream_configuration.capturer)
       {
         case STREAM_DEVICE_CAPTURER_WAVEIN:
@@ -1782,8 +1872,6 @@ do_work (const std::string& scorerFile_in,
     converter << gain_in;
     modulehandler_configuration.effectOptions.push_back (converter.str ()); // gain-dB
   } // end IF
-  modulehandler_configuration.scorerFile = scorerFile_in;
-  //modulehandler_configuration.spectrumAnalyzerResolution = 512;
   modulehandler_configuration.modelFile = modelFile_in;
 
   stream_configuration.allocatorConfiguration = allocator_configuration_p;
@@ -1851,6 +1939,7 @@ do_work (const std::string& scorerFile_in,
         ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME);
       //directshow_stream_configuration.printFinalReport = true;
       directshow_stream_configuration.STTBackend = STT_in;
+      directshow_stream_configuration.TTSBackend = TTS_in;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1910,6 +1999,7 @@ do_work (const std::string& scorerFile_in,
                                   directShowCBData_in.streamConfiguration,
                                   directshow_stream_configuration.format,
                                   directshow_modulehandler_configuration.outputFormat,
+                                  directshow_modulehandler_configuration_3.outputFormat,
                                   useFrameworkSource_in, // use DirectShow source ?
                                   mute_in,
                                   STT_in);
@@ -2446,9 +2536,12 @@ ACE_TMAIN (int argc_in,
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 
   // step1a set defaults
-  std::string scorer_file = path;
-  scorer_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  scorer_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  std::string voice_string = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
+  std::string voice_directory = path;
+  //voice_directory += ACE_DIRECTORY_SEPARATOR_STR_A;
+  voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY);
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   unsigned int device_id = 0;
 #else
@@ -2459,15 +2552,18 @@ ACE_TMAIN (int argc_in,
     device_identifier_string = ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
 #endif // ACE_WIN32 || ACE_WIN64
   double gain_d = 0.0;
-  std::string model_file = path;
-  model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
+  std::string STT_model_file = path;
+  STT_model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  STT_model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
 #if defined (GTK_SUPPORT)
   std::string UI_CSS_file;
 #endif // GTK_SUPPORT
+  std::string LLM_model_file = path;
+  LLM_model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  LLM_model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE_2);
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
@@ -2482,9 +2578,12 @@ ACE_TMAIN (int argc_in,
   bool trace_information = false;
   bool mute = false;
   enum Test_I_STTBackend STT_backend_e = TEST_I_DEFAULT_STT_BACKEND;
-  //enum Test_I_STTBackend STT_backend_e = STT_DEEPSPEECH;
+  enum Test_I_TTSBackend TTS_backend_e = TEST_I_DEFAULT_TTS_BACKEND;
   bool print_version_and_exit = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (SAPI_SUPPORT)
+  TTS_backend_e = TTS_SAPI;
+#endif // SAPI_SUPPORT
 #else
   bool use_pipewire_b = false;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2531,18 +2630,22 @@ ACE_TMAIN (int argc_in,
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
                             argv_in,
-                            scorer_file,
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+                            voice_string,
+                            voice_directory,
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             device_id,
 #else
                             device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
                             gain_d,
-                            model_file,
+                            STT_model_file,
                             UI_definition_file,
 #if defined (GTK_SUPPORT)
                             UI_CSS_file,
 #endif // GTK_SUPPORT
+                            LLM_model_file,
                             log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             media_framework_e,
@@ -2551,13 +2654,13 @@ ACE_TMAIN (int argc_in,
                             statistic_reporting_interval,
                             trace_information,
                             mute,
-                            print_version_and_exit
+                            print_version_and_exit,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-                            ,use_pipewire_b,
+                            use_pipewire_b,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            ,use_framework_source,
+                            use_framework_source,
                             use_framework_renderer,
 #endif // ACE_WIN32 || ACE_WIN64
                             language_string))
@@ -2575,14 +2678,15 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
   if (/*!Common_File_Tools::isReadable (scorer_file)
-      ||*/ !Common_File_Tools::isReadable (model_file)
+      ||*/ !Common_File_Tools::isReadable (STT_model_file)
       || (!UI_definition_file.empty () &&
           !Common_File_Tools::isReadable (UI_definition_file))
 #if defined (GTK_SUPPORT)
       || (!UI_CSS_file.empty () &&
           !Common_File_Tools::isReadable (UI_CSS_file))
 #endif // GTK_SUPPORT
-      )
+       || !Common_File_Tools::isReadable (LLM_model_file)
+     )
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -2780,15 +2884,20 @@ ACE_TMAIN (int argc_in,
 
   timer.start ();
   // step2: do actual work
-  do_work (scorer_file,
+  do_work (
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+           voice_string,
+           voice_directory,
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            device_id,
 #else
            device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
            gain_d,
-           model_file,
+           STT_model_file,
            UI_definition_file,
+           LLM_model_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2796,6 +2905,7 @@ ACE_TMAIN (int argc_in,
            statistic_reporting_interval,
            mute,
            STT_backend_e,
+           TTS_backend_e,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
            use_pipewire_b,

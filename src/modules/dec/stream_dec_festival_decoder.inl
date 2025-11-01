@@ -228,7 +228,6 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
       typename SessionDataContainerType::DATA_T& session_data_r =
         const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
-      ACE_ASSERT (session_data_r.formats.empty ());
       MediaType media_type;
       // *NOTE*: festival generates PCM mono signed 16 bits at 16000Hz
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

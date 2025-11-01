@@ -301,6 +301,7 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
 #if defined (DEEPSPEECH_SUPPORT)
    , hotWords ()
 #endif // DEEPSPEECH_SUPPORT
+   , language (ACE_TEXT_ALWAYS_CHAR ("en"))
    , manageSoX (false)
    , modelFile ()
    , mute (false)
@@ -329,6 +330,7 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
 #if defined (DEEPSPEECH_SUPPORT)
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
 #endif // DEEPSPEECH_SUPPORT
+  std::string                                       language;
   bool manageSoX;
   std::string                                       modelFile;
   bool                                              mute;
@@ -360,6 +362,7 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
 #if defined (DEEPSPEECH_SUPPORT)
    , hotWords ()
 #endif // DEEPSPEECH_SUPPORT
+   , language (ACE_TEXT_ALWAYS_CHAR ("en"))
    , manageSoX (false)
    , modelFile ()
    , mute (false)
@@ -388,7 +391,8 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
 #if defined (DEEPSPEECH_SUPPORT)
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
 #endif // DEEPSPEECH_SUPPORT
-  bool manageSoX;
+  std::string                                       language;
+  bool                                              manageSoX;
   std::string                                       modelFile;
   bool                                              mute;
   std::string                                       scorerFile;
@@ -418,6 +422,7 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
 #if defined (DEEPSPEECH_SUPPORT)
    , hotWords ()
 #endif // DEEPSPEECH_SUPPORT
+   , language (ACE_TEXT_ALWAYS_CHAR ("en"))
    , manageSoX (false)
    , modelFile ()
    , mute (false)
@@ -445,6 +450,7 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
 #if defined (DEEPSPEECH_SUPPORT)
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
 #endif // DEEPSPEECH_SUPPORT
+  std::string                                       language;
   bool                                              manageSoX;
   std::string                                       modelFile;
   bool                                              mute;

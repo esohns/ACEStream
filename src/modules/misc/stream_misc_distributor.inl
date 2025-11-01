@@ -516,12 +516,13 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::push"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (module_in);
 
   typename inherited::MESSAGE_QUEUE_T* queue_p = NULL;
   ACE_NEW_NORETURN (queue_p,
-                    typename inherited::MESSAGE_QUEUE_T (STREAM_QUEUE_MAX_SLOTS, // max # slots
-                                                         NULL));                 // notification handle
+                    typename inherited::MESSAGE_QUEUE_T (inherited::configuration_->maximumQueueSlots, // max # slots
+                                                         NULL));                                       // notification handle
   if (unlikely (!queue_p))
   {
     ACE_DEBUG ((LM_CRITICAL,

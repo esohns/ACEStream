@@ -113,6 +113,7 @@ struct Stream_ModuleHandlerConfiguration
    , hasReentrantSynchronousSubDownstream (true)
    , inbound (true)
    , lock (NULL)
+   , maximumQueueSlots (STREAM_QUEUE_MAX_SLOTS)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
@@ -183,6 +184,7 @@ struct Stream_ModuleHandlerConfiguration
   //         dispatch --> account for it only once
   bool                                        inbound;                              // statistic[/network IO] module(s)
   ACE_SYNCH_RECURSIVE_MUTEX*                  lock;                                 // display/message handler module(s)
+  size_t                                      maximumQueueSlots;                    // message queue(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type             mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64

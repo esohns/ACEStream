@@ -62,9 +62,16 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
  , streakS_ (0.0)
  , volumeM_ (0.0)
  , volumeS_ (0.0)
+ , in_peak_ (false)
+ , was_in_peak_ (false)
+ , in_streak_ (false)
+ , was_in_streak_ (false)
+ , in_volume_ (false)
+ , was_in_volume_ (false)
  , eventDispatcher_ (NULL)
  , iterator_ (NULL)
  , frameCount_ (0)
+ , volumeFrameCount_ (0)
  , sampleIsSigned_ (false)
  , signedSampleModifier_ (0.0)
 {
@@ -115,6 +122,13 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     streakS_ = 0.0;
     volumeM_ = 0.0;
     volumeS_ = 0.0;
+
+    in_peak_ = false;
+    was_in_peak_ = false;
+    in_streak_ = false;
+    was_in_streak_ = false;
+    in_volume_ = false;
+    was_in_volume_ = false; 
 
     eventDispatcher_ = NULL;
     iterator_.buffer_ = NULL;
@@ -354,124 +368,6 @@ error:
   } // end SWITCH
 }
 
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename ValueType,
-//          unsigned int Aggregation>
-//void
-//Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
-//                                  TimePolicyType,
-//                                  ConfigurationType,
-//                                  ControlMessageType,
-//                                  DataMessageType,
-//                                  SessionMessageType,
-//                                  SessionDataType,
-//                                  SessionDataContainerType,
-//                                  ValueType,
-//                                  Aggregation>::reset ()
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::reset"));
-
-//  // trigger a render update
-//  // *NOTE*: (as long as it is single thread-based,) rendering a frame creates
-//  //         too much workload for the timer dispatch context and delays the
-//  //         dispatch of (relatively more important other) scheduled tasks
-//  //         --> avoid 'laggy' applications
-//  // *TODO*: depending on the platform (and the timer dispatch 'mode'), this may
-//  //         be unnecessary (i.e. if the timer mechanism is signal-handler
-//  //         based (, or the timer dispatch uses a thread pool itself))
-//  inherited::control (ACE_Message_Block::MB_EVENT);
-//}
-
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename ValueType,
-//          unsigned int Aggregation>
-//int
-//Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
-//                                  TimePolicyType,
-//                                  ConfigurationType,
-//                                  ControlMessageType,
-//                                  DataMessageType,
-//                                  SessionMessageType,
-//                                  SessionDataType,
-//                                  SessionDataContainerType,
-//                                  ValueType,
-//                                  Aggregation>::svc (void)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::svc"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::mod_);
-//  //ACE_ASSERT (inherited::sessionData_);
-//
-//  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("%s: analyzer thread (ID: %t) starting...\n"),
-//              inherited::mod_->name ()));
-//
-//  int error = 0;
-//  ACE_Message_Block* message_block_p = NULL;
-//  int result = 0;
-//  int result_2 = -1;
-//  //const SessionDataType& session_data_r = inherited::sessionData_->get ();
-//  //  unsigned int queued, done = 0;
-//
-//  // process update events
-//  do
-//  {
-//    message_block_p = NULL;
-//    result_2 = inherited::getq (message_block_p, NULL);
-//    if (unlikely (result_2 == -1))
-//    {
-//      error = ACE_OS::last_error ();
-//      if (error != EWOULDBLOCK) // Win32: 10035
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
-//                    inherited::mod_->name ()));
-//      break;
-//    } // end IF
-//    ACE_ASSERT (message_block_p);
-//
-//    switch (message_block_p->msg_type ())
-//    {
-//      case ACE_Message_Block::MB_STOP:
-//      {
-//        // clean up
-//        message_block_p->release ();
-//        message_block_p = NULL;
-//
-//        goto done;
-//      }
-//      default:
-//      {
-//        // clean up
-//        message_block_p->release ();
-//        message_block_p = NULL;
-//
-//        update ();
-//
-//        break;
-//      }
-//    } // end SWITCH
-//  } while (true);
-//  result = -1;
-//
-//done:
-//  return result;
-//}
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -504,47 +400,44 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (endIndex_in < inherited3::slots_);
 
-  static bool in_peak = false;
-  static bool was_in_peak = false;
-  static bool in_streak = false;
-  static bool was_in_streak = false;
-  static bool in_volume = false;
-  static bool was_in_volume = false;
-
   ValueType abs_value;
-  double abs_value_d, frame_count_d, difference, old_mean, std_deviation, streak_d;
+  bool value_is_zero_b;
+  double abs_value_d, frame_count_d, vol_frame_count_d, difference_d, old_mean_d, std_deviation_d, streak_d;
 
-  for (unsigned int j = 0; j < (endIndex_in - startIndex_in + 1); ++j, ++frameCount_)
+  for (unsigned int j = 0; j < (endIndex_in - startIndex_in + 1); ++j, ++frameCount_, ++volumeFrameCount_)
   {
     abs_value =
       (sampleIsSigned_ ? inherited3::buffer_[channel_in][startIndex_in + j] + signedSampleModifier_
                        : inherited3::buffer_[channel_in][startIndex_in + j]);
+    value_is_zero_b = (sampleIsSigned_ ? abs_value == signedSampleModifier_ :
+                                         abs_value == static_cast<ValueType> (0.0));
     abs_value_d = static_cast<double> (abs_value);
     frame_count_d = static_cast<double> (frameCount_);
+    vol_frame_count_d = static_cast<double> (volumeFrameCount_);
 
     // step1: 'attack' detection
-    old_mean = (frameCount_ ? amplitudeM_ : abs_value_d);
+    old_mean_d = (frameCount_ ? amplitudeM_ : abs_value_d);
     amplitudeM_ =
-      (frameCount_ ? old_mean + ((abs_value_d - old_mean) / frame_count_d) : abs_value_d);
-    difference = abs_value_d - old_mean;
-    amplitudeS_ =
-      amplitudeS_ + ((abs_value_d - old_mean) * (abs_value_d - amplitudeM_));
-    std_deviation = (frameCount_ ? std::sqrt (amplitudeS_ / frame_count_d) : 0.0);
+      (frameCount_ ? old_mean_d + ((abs_value_d - old_mean_d) / frame_count_d) : abs_value_d);
+    difference_d = abs_value_d - old_mean_d;
+    amplitudeS_ += (difference_d * (abs_value_d - amplitudeM_));
+    std_deviation_d = (frameCount_ ? std::sqrt (amplitudeS_ / frame_count_d) : 0.0);
 
-    was_in_peak = in_peak;
-    in_peak =
-      (std::abs (difference) > (MODULE_STAT_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE * std_deviation));
+    was_in_peak_ = in_peak_;
+    in_peak_ =
+      (frameCount_ ? (std::abs (difference_d) > (MODULE_STAT_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE * std_deviation_d)) : value_is_zero_b);
 
     // step2a: 'sustain' detection (streak)
-    if (difference <= 0.0)
+    if (difference_d <= 0.0)
     { // --> amplitude drop
       streak_ = 0;
       streak_d = 0.0;
-      in_streak = false;
+      in_streak_ = false;
 
-      in_volume = false;
-      volumeM_ = 0.0;
-      volumeS_ = 0.0;
+      in_volume_ = false;
+      volumeM_ = abs_value_d;
+      volumeS_ = 1.0;
+      volumeFrameCount_ = 0;
 
       goto continue_; // --> streak-end
     } // end IF
@@ -552,49 +445,49 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     ++streak_;
     streak_d = static_cast<double> (streak_);
 
-    old_mean = (frameCount_ ? streakM_ : abs_value_d);
+    old_mean_d = (frameCount_ ? streakM_ : streak_d);
     streakM_ =
-      (frameCount_ ? old_mean + ((streak_d - old_mean) / frame_count_d) : streak_d);
-    difference = (streak_d - old_mean);
-    streakS_ = streakS_ + ((streak_d - old_mean) * (streak_d - streakM_));
-    std_deviation = (frameCount_ ? std::sqrt (streakS_ / frame_count_d) : 0.0);
-    was_in_streak = in_streak;
-    in_streak =
-      (std::abs (difference) >= (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std_deviation));
+      (frameCount_ ? old_mean_d + ((streak_d - old_mean_d) / frame_count_d) : streak_d);
+    difference_d = streak_d - old_mean_d;
+    streakS_ += (difference_d * (streak_d - streakM_));
+    std_deviation_d = (frameCount_ ? std::sqrt (streakS_ / frame_count_d) : 0.0);
+    was_in_streak_ = in_streak_;
+    in_streak_ =
+      (frameCount_ ? (std::abs (difference_d) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std_deviation_d)) : value_is_zero_b);
 
-    if (unlikely (in_streak))
+    if (unlikely (in_streak_))
     {
-      if (!was_in_streak)
+      if (!was_in_streak_)
         ++streakCount_;
       goto continue_2;
     } // end IF
     // --> !in_streak
-    if (unlikely (was_in_streak))
+    if (unlikely (was_in_streak_))
     {
       streak_ = 0;
       streak_d = 0.0;
 
-      in_volume = false;
-      volumeM_ = 0.0;
-      volumeS_ = 0.0;
+      in_volume_ = false;
+      volumeM_ = abs_value_d;
+      volumeS_ = 1.0;
+      volumeFrameCount_ = 0;
     } // end IF
 
     // step2b: 'sustain' detection (volume)
-    old_mean = (frameCount_ ? volumeM_ : abs_value_d);
+    old_mean_d = (volumeFrameCount_ ? volumeM_ : abs_value_d);
     volumeM_ =
-      (frameCount_ ? old_mean + ((abs_value_d - old_mean) / frame_count_d) : abs_value_d);
-    difference = abs_value_d - old_mean;
-    volumeS_ =
-      volumeS_ + ((abs_value_d - old_mean) * (abs_value_d - volumeM_));
-    std_deviation = (frameCount_ ? std::sqrt (volumeS_ / frame_count_d) : 0.0);
-    was_in_volume = in_volume;
-    ACE_UNUSED_ARG (was_in_volume);
-    in_volume =
-      (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std_deviation));
+      (volumeFrameCount_ ? old_mean_d + ((abs_value_d - old_mean_d) / vol_frame_count_d) : abs_value_d);
+    difference_d = abs_value_d - old_mean_d;
+    volumeS_ += (difference_d * (abs_value_d - volumeM_));
+    std_deviation_d = (volumeFrameCount_ ? std::sqrt (volumeS_ / vol_frame_count_d) : 0.0);
+    was_in_volume_ = in_volume_;
+    ACE_UNUSED_ARG (was_in_volume_);
+    in_volume_ =
+      (volumeFrameCount_ ? (std::abs (difference_d) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std_deviation_d)) : value_is_zero_b);
 
 continue_2:
     if (unlikely (inherited::configuration_->dispatch &&
-                  ((in_streak && !was_in_streak) || in_volume)))  // <-- 'activity' ?
+                  ((in_streak_ && !was_in_streak_) || in_volume_)))  // <-- 'activity' ?
     {
       try {
         inherited::configuration_->dispatch->dispatch (STREAM_STATISTIC_ANALYSIS_EVENT_ACTIVITY);
@@ -607,7 +500,7 @@ continue_2:
 
 continue_:
     if (unlikely (inherited::configuration_->dispatch &&
-                  (in_peak && !was_in_peak))) // <-- 'peak' ?
+                  (in_peak_ && !was_in_peak_))) // <-- 'peak' ?
     {
       try {
         inherited::configuration_->dispatch->dispatch (STREAM_STATISTIC_ANALYSIS_EVENT_PEAK);

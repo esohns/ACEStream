@@ -17,43 +17,28 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "stdafx.h"
 
-#ifndef STREAM_MESSAGEQUEUE_H
-#define STREAM_MESSAGEQUEUE_H
+#include "stream_module_llamacpp.h"
 
-#include "ace/Global_Macros.h"
+#include "stream_module_ml_defines.h"
 
-#include "stream_messagequeue_base.h"
+const char libacestream_default_ml_llamacpp_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_ML_LLAMA_CPP_DEFAULT_NAME_STRING);
 
- // forward declarations
-class ACE_Notification_Strategy;
+//////////////////////////////////////////
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          ////////////////////////////////
-          typename SessionMessageType>
-class Stream_MessageQueue_T
- : public Stream_MessageQueueBase_T<ACE_SYNCH_USE,
-                                    TimePolicyType>
+void
+acestream_ggml_log_callback (enum ggml_log_level level,
+                             const char* text,
+                             void* user_data)
 {
-  typedef Stream_MessageQueueBase_T<ACE_SYNCH_USE,
-                                    TimePolicyType> inherited;
-
- public:
-  Stream_MessageQueue_T (size_t,                             // maximum # of queued messages; 0: unlimited
-                         ACE_Notification_Strategy* = NULL); // notification callback handle
-  inline virtual ~Stream_MessageQueue_T () {}
-
-  // override (part of) Stream_IMessageQueue
-  virtual unsigned int flush (bool = false); // flush session messages ?
-
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T (const Stream_MessageQueue_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T& operator= (const Stream_MessageQueue_T&))
-};
-
-// include template definition
-#include "stream_messagequeue.inl"
-
-#endif
+#if defined (_DEBUG)
+    if (level >= GGML_LOG_LEVEL_NONE)
+#else
+    if (level >= GGML_LOG_LEVEL_ERROR)
+#endif // _DEBUG
+      ACE_DEBUG (((level >= GGML_LOG_LEVEL_ERROR ? LM_ERROR : LM_DEBUG),
+                  ACE_TEXT ("%s"),
+                  ACE_TEXT (text)));
+}

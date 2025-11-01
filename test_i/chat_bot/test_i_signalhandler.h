@@ -18,42 +18,30 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MESSAGEQUEUE_H
-#define STREAM_MESSAGEQUEUE_H
+#ifndef TEST_I_SIGNALHANDLER_H
+#define TEST_I_SIGNALHANDLER_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
-#include "stream_messagequeue_base.h"
+#include "common_signal_common.h"
+#include "common_signal_handler.h"
 
- // forward declarations
-class ACE_Notification_Strategy;
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          ////////////////////////////////
-          typename SessionMessageType>
-class Stream_MessageQueue_T
- : public Stream_MessageQueueBase_T<ACE_SYNCH_USE,
-                                    TimePolicyType>
+class Test_I_SignalHandler
+ : public Common_SignalHandler_T<struct Test_I_SignalHandlerConfiguration>
 {
-  typedef Stream_MessageQueueBase_T<ACE_SYNCH_USE,
-                                    TimePolicyType> inherited;
+  typedef Common_SignalHandler_T<struct Test_I_SignalHandlerConfiguration> inherited;
 
  public:
-  Stream_MessageQueue_T (size_t,                             // maximum # of queued messages; 0: unlimited
-                         ACE_Notification_Strategy* = NULL); // notification callback handle
-  inline virtual ~Stream_MessageQueue_T () {}
+  Test_I_SignalHandler ();
+  inline virtual ~Test_I_SignalHandler () {}
 
-  // override (part of) Stream_IMessageQueue
-  virtual unsigned int flush (bool = false); // flush session messages ?
+  // implement Common_ISignal
+  virtual void handle (const struct Common_Signal&); // signal
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T (const Stream_MessageQueue_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T& operator= (const Stream_MessageQueue_T&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_SignalHandler (const Test_I_SignalHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_SignalHandler& operator= (const Test_I_SignalHandler&))
 };
-
-// include template definition
-#include "stream_messagequeue.inl"
 
 #endif
