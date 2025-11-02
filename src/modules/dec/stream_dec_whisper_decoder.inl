@@ -221,14 +221,15 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
                         inherited::configuration_->messageAllocator);
   if (unlikely (message_block_p != buffer_))
     buffer_ = static_cast<DataMessageType*> (message_block_p);
+  ACE_ASSERT (!buffer_->cont ());
 
   number_of_samples_i =
     static_cast<unsigned int> (buffer_->length () / sampleSize_);
   //parameters2_.duration_ms = bufferedMs_;
-  if (whisper_full (context_,
-                    parameters2_,
-                    reinterpret_cast<float*> (buffer_->rd_ptr ()),
-                    number_of_samples_i) != 0)
+  if (unlikely (whisper_full (context_,
+                              parameters2_,
+                              reinterpret_cast<float*> (buffer_->rd_ptr ()),
+                              number_of_samples_i) != 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to whisper_full(), aborting\n"),
@@ -250,7 +251,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   data_p->words.erase (std::remove_if (data_p->words.begin (), data_p->words.end (),
                                        [] (const std::string& word_in) { return word_in == ACE_TEXT_ALWAYS_CHAR ("<|endoftext|>"); }),
                        data_p->words.end ());
-  if (data_p->words.empty ())
+  if (unlikely (data_p->words.empty ()))
   {
     // nothing recognized, reset buffer and return
     buffer_->release (); buffer_ = NULL;
@@ -271,12 +272,12 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
                 inherited::configuration_->allocatorConfiguration->defaultBufferSize));
     goto error;
   } // end IF
-  message_p->initialize (message_inout->sessionId (),
-                         NULL);
+  ACE_ASSERT (message_p->space () >= buffer_string.size () + 1);
   result = message_p->copy (buffer_string.c_str ());
   ACE_ASSERT (result == 0);
-  data_2 = &const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
-  data_2->words = data_p->words;
+  message_p->initialize (*data_p,
+                         message_inout->sessionId (),
+                         NULL);
 
   result = inherited::put_next (message_p, NULL);
   if (unlikely (result == -1))

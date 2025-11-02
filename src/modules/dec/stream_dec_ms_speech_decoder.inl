@@ -172,6 +172,7 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SAPIDecoder_T::handleDataMessage"));
 
   passMessageDownstream_out = false;
+
   std::wstring text_string = ACE_TEXT_ALWAYS_WCHAR (message_inout->rd_ptr ());
 
   // sanity check(s)
@@ -181,6 +182,9 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
   uint8_t* data_p = NULL, *data_2 = NULL;
   ACE_UINT64 file_size_i, offset_i = 0;
   int result_2;
+  bool is_first_b = true;
+  typename DataMessageType::DATA_T& data_r =
+    const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
 
   // step1: speak text --> WAV file
   HRESULT result = voice_->Speak (text_string.c_str (),
@@ -270,8 +274,16 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
         if (unlikely (message_p->space () < COPY_SIZE))
         {
           // step3: push data downstream
-          message_p->initialize (message_inout->sessionId (),
-                                 NULL);
+          if (is_first_b)
+          {
+            is_first_b = false;
+            message_p->initialize (data_r,
+                                   message_inout->sessionId (),
+                                   NULL);
+          } // end IF
+          else
+            message_p->initialize (message_inout->sessionId (),
+                                   NULL);
           result = inherited::put_next (message_p, NULL);
           if (unlikely (result == -1))
           {
@@ -311,8 +323,16 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
       if (unlikely (message_p->space () < trailing_bytes))
       {
         // step3: push data downstream
-        message_p->initialize (message_inout->sessionId (),
-                               NULL);
+        if (is_first_b)
+        {
+          is_first_b = false;
+          message_p->initialize (data_r,
+                                 message_inout->sessionId (),
+                                 NULL);
+        } // end IF
+        else
+          message_p->initialize (message_inout->sessionId (),
+                                 NULL);
         result = inherited::put_next (message_p, NULL);
         if (unlikely (result == -1))
         {
@@ -355,8 +375,16 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
   delete [] data_p; data_p = NULL;
 
   // step3: push data downstream
-  message_p->initialize (message_inout->sessionId (),
-                          NULL);
+  if (is_first_b)
+  {
+    is_first_b = false;
+    message_p->initialize (data_r,
+                           message_inout->sessionId (),
+                           NULL);
+  } // end IF
+  else
+    message_p->initialize (message_inout->sessionId (),
+                           NULL);
   result = inherited::put_next (message_p, NULL);
   if (unlikely (result == -1))
   {

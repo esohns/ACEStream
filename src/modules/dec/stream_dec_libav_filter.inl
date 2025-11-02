@@ -201,6 +201,9 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
   uint8_t* data_p = NULL;
   size_t   data_size_i = 0;
   bool abort_session_on_error = true;
+  bool is_first_b = true;
+  typename DataMessageType::DATA_T& data_r =
+    const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
 
   message_block_p = message_inout;
   do
@@ -232,8 +235,16 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
         continue;
 
       // forward the decoded frame
-      message_p->initialize (message_inout->sessionId (),
-                             NULL);
+      if (is_first_b)
+      {
+        is_first_b = false;
+        message_p->initialize (data_r,
+                               message_inout->sessionId (),
+                               NULL);
+      } // end IF
+      else
+        message_p->initialize (message_inout->sessionId (),
+                               NULL);
       message_p->set (message_inout->type ());
       result = inherited::put_next (message_p, NULL);
       if (unlikely (result == -1))

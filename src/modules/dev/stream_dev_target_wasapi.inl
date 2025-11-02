@@ -1129,7 +1129,12 @@ next_buffer_2:
       result_3 =
         audioRenderClient_->ReleaseBuffer (buffer_size_i - num_frames_available_i,
                                            /*flags_i*/0);
-      ACE_ASSERT (SUCCEEDED (result_3));
+      if (unlikely (FAILED (result_3)))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IAudioRenderClient::ReleaseBuffer(%u): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
+                    buffer_size_i - num_frames_available_i,
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_3, false, false).c_str ())));
       goto done;
     } // end IF
     //buffer_written_b = false;
@@ -1165,7 +1170,12 @@ continue_:
       result_3 =
         audioRenderClient_->ReleaseBuffer (buffer_size_i - num_frames_available_i,
                                            /*flags_i*/0);
-      ACE_ASSERT (SUCCEEDED (result_3));
+      if (unlikely (FAILED (result_3)))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IAudioRenderClient::ReleaseBuffer(%u): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
+                    buffer_size_i - num_frames_available_i,
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_3, false, false).c_str ())));
       goto next_buffer;
     } // end IF
     if (!message_block_p)

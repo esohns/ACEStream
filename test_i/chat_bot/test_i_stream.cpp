@@ -138,9 +138,10 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   } // end IF
 #endif // SOX_SUPPORT
 
-  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
-  unsigned int index_i = 0;
-  Stream_Branches_t branches_a;
+  typename inherited::MODULE_T* branch_p = NULL, *branch_2 = NULL; // NULL: 'main' branch
+  unsigned int index_i = 0, index_2 = 0;
+  Stream_Branches_t branches_a, branches_2;
+  Stream_IDistributorModule *idistributor_p = NULL, *idistributor_2 = NULL;
 
   ACE_NEW_RETURN (module_p,
                   Test_I_DirectShow_Distributor_Module (this,
@@ -152,7 +153,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME));
   if (!(*iterator_4).second.second->fileIdentifier.empty ())
     branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
-  Stream_IDistributorModule* idistributor_p =
+  idistributor_p =
     dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
   ACE_ASSERT (idistributor_p);
   idistributor_p->initialize (branches_a);
@@ -221,6 +222,20 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   module_p = NULL;
 #endif // LLAMACPP_SUPPORT
 
+  ACE_NEW_RETURN (module_p,
+                  Test_I_DirectShow_Distributor_Module (this,
+                                                        ACE_TEXT_ALWAYS_CHAR ("Distributor_2")),
+                  false);
+  ACE_ASSERT (module_p);
+  branch_2 = module_p;
+  branches_2.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+  idistributor_2 =
+    dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
+  ACE_ASSERT (idistributor_2);
+  idistributor_2->initialize (branches_2);
+  layout_in->append (module_p, branch_p, index_i);
+  module_p = NULL;
+
   switch (inherited::configuration_->configuration_->TTSBackend)
   {
     case TTS_FESTIVAL:
@@ -262,7 +277,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
       return false;
     }
   } // end SWITCH
-  layout_in->append (module_p, branch_p, index_i);
+  layout_in->append (module_p, branch_2, index_2);
   module_p = NULL;
 
 #if defined (FFMPEG_SUPPORT)
@@ -271,7 +286,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
                                                          ACE_TEXT_ALWAYS_CHAR ("LibAV_Filter_2")),
                   false);
   ACE_ASSERT (module_p);
-  layout_in->append (module_p, branch_p, index_i);
+  layout_in->append (module_p, branch_2, index_2);
   module_p = NULL;
 #endif // FFMPEG_SUPPORT
 
@@ -334,7 +349,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
   } // end SWITCH
   ACE_ASSERT (module_p);
-  layout_in->append (module_p, branch_p, index_i);
+  layout_in->append (module_p, branch_2, index_2);
   module_p = NULL;
 
   ++index_i;
