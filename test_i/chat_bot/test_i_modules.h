@@ -65,6 +65,7 @@
 
 #if defined (LIBPIPEWIRE_SUPPORT)
 #include "stream_dev_mic_source_pipewire.h"
+#include "stream_dev_target_pipewire.h"
 #endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_misc_distributor.h"
@@ -85,14 +86,12 @@
 #include "stream_module_llamacpp.h"
 #endif // LLAMACPP_SUPPORT
 
-#if defined (FESTIVAL_SUPPORT)
-#include "stream_dec_festival_decoder.h"
-#endif // FESTIVAL_SUPPORT
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+// #if defined (FESTIVAL_SUPPORT)
+// #include "stream_dec_festival_decoder.h"
+// #endif // FESTIVAL_SUPPORT
 #if defined (FLITE_SUPPORT)
 #include "stream_dec_flite_decoder.h"
 #endif // FLITE_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if defined (SAPI_SUPPORT)
 #include "stream_dec_ms_speech_decoder.h"
@@ -478,22 +477,22 @@ typedef Stream_Module_LlamaCpp_T<struct Test_I_ChatBot_MediaFoundation_ModuleHan
 #endif // LLAMACPP_SUPPORT
 
 #if defined (FESTIVAL_SUPPORT)
-typedef Stream_Decoder_FestivalDecoder_T<ACE_MT_SYNCH,
-                                         Common_TimePolicy_t,
-                                         struct Test_I_ChatBot_DirectShow_ModuleHandlerConfiguration,
-                                         Stream_ControlMessage_t,
-                                         Test_I_DirectShow_Message,
-                                         Test_I_DirectShow_SessionMessage_t,
-                                         Test_I_ChatBot_DirectShow_SessionData_t,
-                                         struct _AMMediaType> Test_I_DirectShow_Festival;
-typedef Stream_Decoder_FestivalDecoder_T<ACE_MT_SYNCH,
-                                         Common_TimePolicy_t,
-                                         struct Test_I_ChatBot_MediaFoundation_ModuleHandlerConfiguration,
-                                         Stream_ControlMessage_t,
-                                         Test_I_DirectShow_Message,
-                                         Test_I_MediaFoundation_SessionMessage_t,
-                                         Test_I_ChatBot_MediaFoundation_SessionData_t,
-                                         IMFMediaType*> Test_I_MediaFoundation_Festival;
+// typedef Stream_Decoder_FestivalDecoder_T<ACE_MT_SYNCH,
+//                                          Common_TimePolicy_t,
+//                                          struct Test_I_ChatBot_DirectShow_ModuleHandlerConfiguration,
+//                                          Stream_ControlMessage_t,
+//                                          Test_I_DirectShow_Message,
+//                                          Test_I_DirectShow_SessionMessage_t,
+//                                          Test_I_ChatBot_DirectShow_SessionData_t,
+//                                          struct _AMMediaType> Test_I_DirectShow_Festival;
+// typedef Stream_Decoder_FestivalDecoder_T<ACE_MT_SYNCH,
+//                                          Common_TimePolicy_t,
+//                                          struct Test_I_ChatBot_MediaFoundation_ModuleHandlerConfiguration,
+//                                          Stream_ControlMessage_t,
+//                                          Test_I_DirectShow_Message,
+//                                          Test_I_MediaFoundation_SessionMessage_t,
+//                                          Test_I_ChatBot_MediaFoundation_SessionData_t,
+//                                          IMFMediaType*> Test_I_MediaFoundation_Festival;
 #endif // FESTIVAL_SUPPORT
 
 #if defined (FLITE_SUPPORT)
@@ -773,6 +772,35 @@ typedef Stream_Decoder_WhisperCppDecoder_T<ACE_MT_SYNCH,
                                            struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_WhisperCppDecoder;
 #endif // WHISPERCPP_SUPPORT
 
+#if defined (LLAMACPP_SUPPORT)
+typedef Stream_Module_LlamaCpp_T<struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,
+                                 Stream_ControlMessage_t,
+                                 Test_I_Message,
+                                 Test_I_ALSA_SessionMessage_t> Test_I_ALSA_LlamaCpp;
+#endif // LLAMACPP_SUPPORT
+
+#if defined (FESTIVAL_SUPPORT)
+// typedef Stream_Decoder_FestivalDecoder_T<ACE_MT_SYNCH,
+//                                          Common_TimePolicy_t,
+//                                          struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,
+//                                          Stream_ControlMessage_t,
+//                                          Test_I_Message,
+//                                          Test_I_ALSA_SessionMessage_t,
+//                                          Test_I_ChatBot_ALSA_SessionData_t,
+//                                          struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_Festival;
+#endif // FESTIVAL_SUPPORT
+
+#if defined (FLITE_SUPPORT)
+typedef Stream_Decoder_FliteDecoder_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_I_Message,
+                                      Test_I_ALSA_SessionMessage_t,
+                                      Test_I_ChatBot_ALSA_SessionData_t,
+                                      struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_Flite;
+#endif // FLITE_SUPPORT
+
 //////////////////////////////////////////
 
 typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
@@ -807,6 +835,15 @@ typedef Stream_Dev_Target_ALSA_T<ACE_MT_SYNCH,
                                  Test_I_ALSA_SessionMessage_t,
                                  Test_I_ChatBot_ALSA_SessionData> Test_I_Target_ALSA;
 #endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (LIBPIPEWIRE_SUPPORT)
+typedef Stream_Dev_Target_Pipewire_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Test_I_Message,
+                                     Test_I_ALSA_SessionMessage_t> Test_I_Target_Pipewire;
+#endif // LIBPIPEWIRE_SUPPORT
 
 typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
@@ -1056,18 +1093,18 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_MediaFoundation_SessionData,       
 #endif // LLAMACPP_SUPPORT
 
 #if defined (FESTIVAL_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_DirectShow_SessionData,                        // session data type
-                              enum Stream_SessionMessageType,                               // session event type
-                              struct Test_I_ChatBot_DirectShow_ModuleHandlerConfiguration,  // module handler configuration type
-                              libacestream_default_dec_festival_decoder_module_name_string,
-                              Stream_INotify_t,                                             // stream notification interface type
-                              Test_I_DirectShow_Festival);                                  // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_MediaFoundation_SessionData,                       // session data type
-                              enum Stream_SessionMessageType,                                   // session event type
-                              struct Test_I_ChatBot_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dec_festival_decoder_module_name_string,
-                              Stream_INotify_t,                                                 // stream notification interface type
-                              Test_I_MediaFoundation_Festival);                                 // writer type
+// DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_DirectShow_SessionData,                        // session data type
+//                               enum Stream_SessionMessageType,                               // session event type
+//                               struct Test_I_ChatBot_DirectShow_ModuleHandlerConfiguration,  // module handler configuration type
+//                               libacestream_default_dec_festival_decoder_module_name_string,
+//                               Stream_INotify_t,                                             // stream notification interface type
+//                               Test_I_DirectShow_Festival);                                  // writer type
+// DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_MediaFoundation_SessionData,                       // session data type
+//                               enum Stream_SessionMessageType,                                   // session event type
+//                               struct Test_I_ChatBot_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+//                               libacestream_default_dec_festival_decoder_module_name_string,
+//                               Stream_INotify_t,                                                 // stream notification interface type
+//                               Test_I_MediaFoundation_Festival);                                 // writer type
 #endif // FESTIVAL_SUPPORT
 
 #if defined (FLITE_SUPPORT)
@@ -1205,38 +1242,38 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                  
 
 //////////////////////////////////////////
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                              // session data type
-                              enum Stream_SessionMessageType,                       // session event type
-                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,        // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                        // session event type
+                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_stat_analysis_module_name_string,
-                              Stream_INotify_t,                                     // stream notification interface type
-                              Test_I_ALSA_StatisticAnalysis);                       // name
-DATASTREAM_MODULE_DUPLEX (Test_I_ChatBot_ALSA_SessionData,                             // session data type
-                          enum Stream_SessionMessageType,                      // session event type
-                          struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,       // module handler configuration type
+                              Stream_INotify_t,                                      // stream notification interface type
+                              Test_I_ALSA_StatisticAnalysis);                        // name
+DATASTREAM_MODULE_DUPLEX (Test_I_ChatBot_ALSA_SessionData,                       // session data type
+                          enum Stream_SessionMessageType,                        // session event type
+                          struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                           libacestream_default_stat_report_module_name_string,
-                          Stream_INotify_t,                                    // stream notification interface type
-                          Test_I_ALSA_Statistic_ReaderTask_t,                  // reader type
-                          Test_I_ALSA_Statistic_WriterTask_t,                  // writer type
-                          Test_I_ALSA_StatisticReport);                        // name
+                          Stream_INotify_t,                                      // stream notification interface type
+                          Test_I_ALSA_Statistic_ReaderTask_t,                    // reader type
+                          Test_I_ALSA_Statistic_WriterTask_t,                    // writer type
+                          Test_I_ALSA_StatisticReport);                          // name
 
 //////////////////////////////////////////
 
-DATASTREAM_MODULE_DUPLEX (Test_I_ChatBot_ALSA_SessionData,                   // session data type
-                          enum Stream_SessionMessageType,                          // session event type
-                          struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_DUPLEX (Test_I_ChatBot_ALSA_SessionData,                          // session data type
+                          enum Stream_SessionMessageType,                           // session event type
+                          struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,    // module handler configuration type
                           libacestream_default_misc_distributor_module_name_string,
-                          Stream_INotify_t,                                        // stream notification interface type
-                          Test_I_ALSA_Distributor_Reader_t,                        // reader type
-                          Test_I_ALSA_Distributor_Writer_t,                        // writer type
-                          Test_I_ALSA_Distributor);                                // module name prefix
+                          Stream_INotify_t,                                         // stream notification interface type
+                          Test_I_ALSA_Distributor_Reader_t,                         // reader type
+                          Test_I_ALSA_Distributor_Writer_t,                         // writer type
+                          Test_I_ALSA_Distributor);                                 // module name prefix
 
 //////////////////////////////////////////
 
 #if defined (GTK_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                                       // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                               // session data type
                               enum Stream_SessionMessageType,                                // session event type
-                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,                 // module handler configuration type
+                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,         // module handler configuration type
                               libacestream_default_vis_spectrum_analyzer_module_name_string,
                               Stream_INotify_t,                                              // stream notification interface type
                               Test_I_ALSA_Vis_SpectrumAnalyzer);                             // writer type
@@ -1245,49 +1282,85 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                  
 //////////////////////////////////////////
 
 #if defined (DEEPSPEECH_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                         // session data type
-                              enum Stream_SessionMessageType,                                // session event type
-                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,   // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                                // session data type
+                              enum Stream_SessionMessageType,                                 // session event type
+                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,          // module handler configuration type
                               libacestream_default_dec_deepspeech_decoder_module_name_string,
-                              Stream_INotify_t,                                              // stream notification interface type
-                              Test_I_ALSA_DeepSpeechDecoder);                                // writer type
+                              Stream_INotify_t,                                               // stream notification interface type
+                              Test_I_ALSA_DeepSpeechDecoder);                                 // writer type
 #endif // DEEPSPEECH_SUPPORT
 
 #if defined (WHISPERCPP_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                       // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                             // session data type
                               enum Stream_SessionMessageType,                              // session event type
-                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,       // module handler configuration type
                               libacestream_default_dec_whisper_decoder_module_name_string,
                               Stream_INotify_t,                                            // stream notification interface type
                               Test_I_ALSA_WhisperCppDecoder);                              // writer type
 #endif // WHISPERCPP_SUPPORT
 
+#if defined (LLAMACPP_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                        // session event type
+                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_ml_llamacpp_module_name_string,
+                              Stream_INotify_t,                                      // stream notification interface type
+                              Test_I_ALSA_LlamaCpp);                                 // writer type
+#endif // LLAMACPP_SUPPORT
+
+#if defined (FESTIVAL_SUPPORT)
+// DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                              // session data type
+//                               enum Stream_SessionMessageType,                               // session event type
+//                               struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,        // module handler configuration type
+//                               libacestream_default_dec_festival_decoder_module_name_string,
+//                               Stream_INotify_t,                                             // stream notification interface type
+//                               Test_I_ALSA_Festival);                                        // writer type
+#endif // FESTIVAL_SUPPORT
+
+#if defined (FLITE_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                           // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,     // module handler configuration type
+                              libacestream_default_dec_flite_decoder_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_I_ALSA_Flite);                                        // writer type
+#endif // FLITE_SUPPORT
+
 //////////////////////////////////////////
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                                 // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                         // session data type
                               enum Stream_SessionMessageType,                          // session event type
-                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,           // module handler configuration type
+                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,   // module handler configuration type
                               libacestream_default_dec_wav_encoder_module_name_string,
                               Stream_INotify_t,                                        // stream notification interface type
                               Test_I_ALSA_WAVEncoder);                                 // writer type
 
 //////////////////////////////////////////
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                     // session data type
-                              enum Stream_SessionMessageType,                            // session event type
-                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                             // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,       // module handler configuration type
                               libacestream_default_misc_messagehandler_module_name_string,
-                              Stream_INotify_t,                                          // stream notification interface type
-                              Test_I_ALSA_MessageHandler);                               // writer type
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_I_ALSA_MessageHandler);                                 // writer type
 
 //////////////////////////////////////////
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                                 // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                         // session data type
                               enum Stream_SessionMessageType,                          // session event type
-                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,           // module handler configuration type
+                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,   // module handler configuration type
                               libacestream_default_dev_target_alsa_module_name_string,
                               Stream_INotify_t,                                        // stream notification interface type
                               Test_I_Target_ALSA);                                     // writer type
+
+#if defined (LIBPIPEWIRE_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_ALSA_SessionData,                             // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration,       // module handler configuration type
+                              libacestream_default_dev_target_pipewire_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_I_Target_Pipewire);                                     // writer type
+#endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 DATASTREAM_MODULE_INPUT_ONLY (struct Stream_SessionData,                                   // session data type

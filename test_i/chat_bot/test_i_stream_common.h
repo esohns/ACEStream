@@ -77,7 +77,7 @@ enum Test_I_STTBackend
   STT_DEEPSPEECH = 0,
   STT_WHISPERCPP,
   //
-  STT_MAX = STT_WHISPERCPP,
+  STT_MAX,
   STT_INVALID = -1
 };
 
@@ -451,6 +451,8 @@ struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration
    , hotWords ()
 #endif // DEEPSPEECH_SUPPORT
    , language (ACE_TEXT_ALWAYS_CHAR ("en"))
+   , manageFestival (false)
+   , manageFlite (false)
    , manageSoX (false)
    , modelFile ()
    , mute (false)
@@ -465,6 +467,8 @@ struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration
    , spectrumAnalyzerConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
+   , voice ()
+   , voiceDirectory ()
    , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
@@ -479,6 +483,8 @@ struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
 #endif // DEEPSPEECH_SUPPORT
   std::string                                       language;
+  bool                                              manageFestival;
+  bool                                              manageFlite;
   bool                                              manageSoX;
   std::string                                       modelFile;
   bool                                              mute;
@@ -493,6 +499,8 @@ struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
   Test_I_ALSA_ISessionNotify_t*                     subscriber;
   Test_I_ALSA_Subscribers_t*                        subscribers;
+  std::string                                       voice;
+  std::string                                       voiceDirectory;
   struct Common_UI_Window                           window;
 };
 #endif // ACE_WIN32 || ACE_WIN64
@@ -564,6 +572,7 @@ struct Test_I_ALSA_StreamConfiguration
   Test_I_ALSA_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , STTBackend (TEST_I_DEFAULT_STT_BACKEND)
+   , TTSBackend (TEST_I_DEFAULT_TTS_BACKEND)
    , capturer (STREAM_DEVICE_CAPTURER_INVALID)
    , renderer (STREAM_DEVICE_RENDERER_INVALID)
    , format ()
@@ -573,6 +582,7 @@ struct Test_I_ALSA_StreamConfiguration
   }
 
   enum Test_I_STTBackend                      STTBackend;
+  enum Test_I_TTSBackend                      TTSBackend;
   enum Stream_Device_Capturer                 capturer;
   enum Stream_Device_Renderer                 renderer;
   struct Stream_MediaFramework_ALSA_MediaType format;

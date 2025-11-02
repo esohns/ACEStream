@@ -208,10 +208,9 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXEffect_T::handleDataMessage"));
 
   // sanity check(s)
-  if (unlikely (!chain_))
-    return;
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+  ACE_ASSERT (chain_);
 
   // initialize return value(s)
   passMessageDownstream_out = false;
@@ -222,11 +221,11 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   struct sox_format_t* input_buffer_p = NULL, *output_buffer_p = NULL;
 
   input_buffer_p =
-      sox_open_mem_read (message_inout->rd_ptr (),
-                         message_inout->length (),
-                         &signalInfo_,
-                         &encodingInfo_,
-                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING));
+    sox_open_mem_read (message_inout->rd_ptr (),
+                       message_inout->length (),
+                       &signalInfo_,
+                       &encodingInfo_,
+                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING));
   if (unlikely (!input_buffer_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -248,7 +247,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   if (unlikely (!buffer_))
   {
     buffer_ =
-        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+      inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (unlikely (!buffer_))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -260,12 +259,12 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   } // end IF
   message_block_p = buffer_;
   output_buffer_p =
-      sox_open_mem_write (message_block_p->wr_ptr (),
-                          message_block_p->space (),
-                          &signalInfo_,
-                          &encodingInfo_,
-                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
-                          NULL);
+    sox_open_mem_write (message_block_p->wr_ptr (),
+                        message_block_p->space (),
+                        &signalInfo_,
+                        &encodingInfo_,
+                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
+                        NULL);
   if (unlikely (!output_buffer_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -319,7 +318,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
 
     message_block_2 = NULL;
     message_block_2 =
-        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+      inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (unlikely (!message_block_2))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -342,12 +341,12 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
     } // end IF
     output_buffer_p = NULL;
     output_buffer_p =
-        sox_open_mem_write (message_block_p->wr_ptr (),
-                            inherited::configuration_->allocatorConfiguration->defaultBufferSize,
-                            &signalInfo_,
-                            &encodingInfo_,
-                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
-                            NULL);
+      sox_open_mem_write (message_block_p->wr_ptr (),
+                          inherited::configuration_->allocatorConfiguration->defaultBufferSize,
+                          &signalInfo_,
+                          &encodingInfo_,
+                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
+                          NULL);
     if (unlikely (!output_buffer_p))
     {
       ACE_DEBUG ((LM_ERROR,

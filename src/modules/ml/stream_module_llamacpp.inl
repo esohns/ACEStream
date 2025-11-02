@@ -207,6 +207,7 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
   } // end IF
 
   message_inout->reset ();
+  ACE_ASSERT (message_inout->space () >= response.size () + 1);
   result = message_inout->copy (response.c_str (), response.size ());
   if (unlikely (result == -1))
   {

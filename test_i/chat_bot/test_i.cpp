@@ -286,13 +286,13 @@ do_processArguments (int argc_in,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& mute_out,
-                     bool& printVersionAndExit_out
+                     bool& printVersionAndExit_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-                     ,bool& usePipewire_out
+                     bool& usePipewire_out,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                     ,bool& useFrameworkSource_out,
+                     bool& useFrameworkSource_out,
                      bool& useFrameworkRenderer_out,
 #endif // ACE_WIN32 || ACE_WIN64
                      std::string& language_out)
@@ -1453,8 +1453,9 @@ do_work (
 //  ALSA_configuration_2.asynch = false;
   ALSA_configuration_2.rateResample = false;
   struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
-  struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
+  struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // resampler/renderer module
   struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration modulehandler_configuration_3; // file writer module
+  struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration modulehandler_configuration_4; // llama module
 #endif // ACE_WIN32 || ACE_WIN64
   Test_I_InputMessageHandler_Module input_handler_module (istream_2,
                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
@@ -1854,6 +1855,12 @@ do_work (
     }
   } // end SWITCH
 #else
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  modulehandler_configuration.manageFestival = true;
+  modulehandler_configuration.manageFlite = true;
+  modulehandler_configuration.voice = voice_in;
+  modulehandler_configuration.voiceDirectory = voiceDirectory_in;
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
   modulehandler_configuration.language = language_in;
   modulehandler_configuration.maximumQueueSlots = 0; // unlimited
   modulehandler_configuration.spectrumAnalyzerConfiguration =
@@ -1861,7 +1868,6 @@ do_work (
   modulehandler_configuration.allocatorConfiguration =
     allocator_configuration_p;
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
-  modulehandler_configuration.bufferSize = 512;
 #if defined (_DEBUG)
   modulehandler_configuration.debug = true;
 #endif // _DEBUG
@@ -1872,7 +1878,7 @@ do_work (
     converter << gain_in;
     modulehandler_configuration.effectOptions.push_back (converter.str ()); // gain-dB
   } // end IF
-  modulehandler_configuration.modelFile = modelFile_in;
+  modulehandler_configuration.modelFile = STTModelFile_in;
 
   stream_configuration.allocatorConfiguration = allocator_configuration_p;
   if (unlikely (!Stream_MediaFramework_ALSA_Tools::getDefaultFormat (deviceIdentifier_in,
@@ -1912,6 +1918,9 @@ do_work (
   modulehandler_configuration_2.deviceIdentifier.identifier =
     Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                      SND_PCM_STREAM_PLAYBACK);
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("SoX_Resampler_2"),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_2)));
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
@@ -1921,6 +1930,12 @@ do_work (
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_3)));
+
+  modulehandler_configuration_4 = modulehandler_configuration;
+  modulehandler_configuration_4.modelFile = LLMModelFile_in;
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (MODULE_ML_LLAMA_CPP_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_4)));
 #endif // ACE_WIN32 || ACE_WIN64
 
   // ********************** stream configuration data **************************
@@ -1973,6 +1988,7 @@ do_work (
     ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME);
   //stream_configuration.printFinalReport = true;
   stream_configuration.STTBackend = STT_in;
+  stream_configuration.TTSBackend = TTS_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // intialize timers
@@ -2050,6 +2066,11 @@ do_work (
   modulehandler_configuration.outputFormat.format = SND_PCM_FORMAT_FLOAT_LE;
   modulehandler_configuration.outputFormat.channels = 1;
   modulehandler_configuration.outputFormat.rate = 16000;
+
+  // *NOTE*: renderer can handle PCM stereo signed 16 bits at 48000Hz
+  modulehandler_configuration_2.outputFormat.format = SND_PCM_FORMAT_S16_LE;
+  modulehandler_configuration_2.outputFormat.channels = 2;
+  modulehandler_configuration_2.outputFormat.rate = 48000;
 
   if (unlikely (!Stream_MediaFramework_ALSA_Tools::getDefaultFormat (deviceIdentifier_in,
                                                                      true, // capture
@@ -2586,6 +2607,9 @@ ACE_TMAIN (int argc_in,
 #endif // SAPI_SUPPORT
 #else
   bool use_pipewire_b = false;
+#if defined (FLITE_SUPPORT)
+  TTS_backend_e = TTS_FLITE;
+#endif // FLITE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool use_framework_source = false;

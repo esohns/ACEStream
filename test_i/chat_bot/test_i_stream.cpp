@@ -241,10 +241,10 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     case TTS_FESTIVAL:
     {
 #if defined (FESTIVAL_SUPPORT)
-      ACE_NEW_RETURN (module_p,
-                      Test_I_DirectShow_Festival_Module (this,
-                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FESTIVAL_DECODER_DEFAULT_NAME_STRING)),
-                      false);
+      //ACE_NEW_RETURN (module_p,
+      //                Test_I_DirectShow_Festival_Module (this,
+      //                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FESTIVAL_DECODER_DEFAULT_NAME_STRING)),
+      //                false);
 #endif // FESTIVAL_SUPPORT
       break;
     }
@@ -277,6 +277,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
       return false;
     }
   } // end SWITCH
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, branch_2, index_2);
   module_p = NULL;
 
@@ -296,7 +297,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
   //                false);
   //ACE_ASSERT (module_p);
-  //layout_in->append (module_p, branch_p, index_i);
+  //layout_in->append (module_p, branch_2, index_2);
   //module_p = NULL;
   
   //if (!(*iterator).second.second->effect.empty ())
@@ -306,7 +307,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
   //                  false);
   //  ACE_ASSERT (module_p);
-  //  layout_in->append (module_p, NULL, 0);
+  //  layout_in->append (module_p, branch_2, index_2);
   //  module_p = NULL;
   //} // end IF
 #endif // SOX_SUPPORT
@@ -1919,7 +1920,6 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator_3 != inherited::configuration_->end ());
-  Stream_Branches_t branches_a;
   Stream_Module_t* module_p = NULL;
 
   switch (inherited::configuration_->configuration_->capturer)
@@ -1971,17 +1971,23 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
 
-  ACE_NEW_RETURN (module_p,
-                  Test_I_ALSA_SoXEffect_Module (this,
-                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
+  if (!(*iterator).second.second->effect.empty ())
+  {
+    ACE_NEW_RETURN (module_p,
+                    Test_I_ALSA_SoXEffect_Module (this,
+                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+  } // end IF
 #endif // SOX_SUPPORT
 
-  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
-  unsigned int index_i = 0;
+  typename inherited::MODULE_T* branch_p = NULL, *branch_2 = NULL; // NULL: 'main' branch
+  unsigned int index_i = 0, index_2 = 0;
+  Stream_Branches_t branches_a, branches_2;
+  Stream_IDistributorModule *idistributor_p = NULL, *idistributor_2 = NULL;
+
   ACE_NEW_RETURN (module_p,
                   Test_I_ALSA_Distributor_Module (this,
                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
@@ -1992,7 +1998,7 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   if (!(*iterator_3).second.second->fileIdentifier.empty ())
     branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
   branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME));
-  Stream_IDistributorModule* idistributor_p =
+  idistributor_p =
     dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
   ACE_ASSERT (idistributor_p);
   if (!idistributor_p->initialize (branches_a))
@@ -2022,6 +2028,7 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
 #endif // GTK_USE
 
   ++index_i;
+
   if (!(*iterator_3).second.second->fileIdentifier.empty ())
   {
     ACE_NEW_RETURN (module_p,
@@ -2066,7 +2073,120 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
       return false;
     }
   } // end SWITCH
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, branch_p, index_i);
+  module_p = NULL;
+
+#if defined (LLAMACPP_SUPPORT)
+  ACE_NEW_RETURN (module_p,
+                  Test_I_ALSA_LlamaCpp_Module (this,
+                                               ACE_TEXT_ALWAYS_CHAR (MODULE_ML_LLAMA_CPP_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, branch_p, index_i);
+  module_p = NULL;
+#endif // LLAMACPP_SUPPORT
+
+  ACE_NEW_RETURN (module_p,
+                  Test_I_ALSA_Distributor_Module (this,
+                                                  ACE_TEXT_ALWAYS_CHAR ("Distributor_2")),
+                  false);
+  ACE_ASSERT (module_p);
+  branch_2 = module_p;
+  branches_2.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+  idistributor_2 =
+    dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
+  ACE_ASSERT (idistributor_2);
+  idistributor_2->initialize (branches_2);
+  layout_in->append (module_p, branch_p, index_i);
+  module_p = NULL;
+
+  switch (inherited::configuration_->configuration_->TTSBackend)
+  {
+    case TTS_FESTIVAL:
+    {
+#if defined (FESTIVAL_SUPPORT)
+      // ACE_NEW_RETURN (module_p,
+      //                 Test_I_ALSA_Festival_Module (this,
+      //                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FESTIVAL_DECODER_DEFAULT_NAME_STRING)),
+      //                 false);
+#endif // FESTIVAL_SUPPORT
+      break;
+    }
+    case TTS_FLITE:
+    {
+#if defined (FLITE_SUPPORT)
+      ACE_NEW_RETURN (module_p,
+                      Test_I_ALSA_Flite_Module (this,
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FLITE_DECODER_DEFAULT_NAME_STRING)),
+                      false);
+#endif // FLITE_SUPPORT
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown TTS backend type (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->TTSBackend));
+      return false;
+    }
+  } // end SWITCH
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, branch_2, index_2);
+  module_p = NULL;
+
+#if defined (SOX_SUPPORT)
+  ACE_NEW_RETURN (module_p,
+                  Test_I_ALSA_SoXResampler_Module (this,
+                                                   ACE_TEXT_ALWAYS_CHAR ("SoX_Resampler_2")),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, branch_2, index_2);
+  module_p = NULL;
+
+  //if (!(*iterator).second.second->effect.empty ())
+  //{
+  //  ACE_NEW_RETURN (module_p,
+  //                  Test_I_ALSA_SoXEffect_Module (this,
+  //                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
+  //                  false);
+  //  ACE_ASSERT (module_p);
+  //  layout_in->append (module_p, branch_2, index_2);
+  //  module_p = NULL;
+  //} // end IF
+#endif // SOX_SUPPORT
+
+  switch (inherited::configuration_->configuration_->renderer)
+  {
+    case STREAM_DEVICE_RENDERER_ALSA:
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_I_Target_ALSA_Module (this,
+                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
+                      false);
+      break;
+    }
+    case STREAM_DEVICE_RENDERER_PIPEWIRE:
+    {
+#if defined (LIBPIPEWIRE_SUPPORT)
+      ACE_NEW_RETURN (module_p,
+                      Test_I_Target_Pipewire_Module (this,
+                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_PIPEWIRE_DEFAULT_NAME_STRING)),
+                      false);
+#endif // LIBPIPEWIRE_SUPPORT
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->renderer));
+      return false;
+    }
+  } // end SWITCH
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, branch_2, index_2);
   module_p = NULL;
 
   return true;

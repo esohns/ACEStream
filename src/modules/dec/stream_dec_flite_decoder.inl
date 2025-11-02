@@ -350,7 +350,7 @@ Stream_Decoder_FliteDecoder_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
       typename SessionDataContainerType::DATA_T& session_data_r =
         const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
-      ACE_ASSERT (session_data_r.formats.empty ());
+      // ACE_ASSERT (session_data_r.formats.empty ());
       MediaType media_type;
       // *NOTE*: flite generates PCM mono signed 16 bits at 8000[/16000]Hz
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

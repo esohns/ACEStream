@@ -144,11 +144,13 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
 
   EST_String string (message_inout->rd_ptr ());
   EST_Wave wave;
-  ACE_Message_Block* message_block_p = NULL;
+  DataMessageType* message_p = NULL;
+  typename DataMessageType::DATA_T& data_r =
+    const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
 
   int result = festival_text_to_wave (string,
                                       wave);
-  if (unlikely (result == 0))
+  if (unlikely (result == FALSE))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to festival_text_to_wave(): \"%m\", aborting\n"),
@@ -156,39 +158,44 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
     message_inout->release (); message_inout = NULL;
     goto error;
   } // end IF
-  message_inout->release (); message_inout = NULL;
 
   // step1: allocate message block
   ACE_ASSERT (inherited::configuration_->messageAllocator);
   ACE_ASSERT (wave.num_samples () > 0);
-  message_block_p =
-    static_cast<ACE_Message_Block*> (inherited::configuration_->messageAllocator->malloc (wave.num_samples () * sizeof (short)));
-  if (unlikely (!message_block_p))
+  message_p = inherited::allocateMessage (wave.num_samples () * sizeof (short));
+  if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_IAllocator::malloc(%d): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to ::allocateMessage(%u): \"%m\", aborting\n"),
                 inherited::mod_->name (),
                 wave.num_samples () * sizeof (short)));
+    message_inout->release (); message_inout = NULL;
     goto error;
   } // end IF
+  message_p->initialize (data_r,
+                         message_inout->sessionId (),
+                         NULL);
 
   // step2: copy data into message buffer
   wave.copy_channel (0,
-                     reinterpret_cast<short*> (message_block_p->wr_ptr ()),
+                     reinterpret_cast<short*> (message_p->wr_ptr ()),
                      0,
                      EST_ALL);
-  message_block_p->wr_ptr (wave.num_samples () * sizeof (short));
+  message_p->wr_ptr (wave.num_samples () * sizeof (short));
 
   // step3: push data downstream
-  result = inherited::put_next (message_block_p, NULL);
+  result = inherited::put_next (message_p, NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
-    message_block_p->release ();
+    message_inout->release (); message_inout = NULL;
+    message_p->release ();
     goto error;
   } // end IF
+
+  message_inout->release (); message_inout = NULL;
 
   return;
 

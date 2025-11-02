@@ -34,7 +34,7 @@
 
 #include "gtk/gtk.h"
 
-void processInstructions (struct Test_I_SpeechCommand_UI_CBData*);
+void processInstructions (struct Test_I_ChatBot_UI_CBData*);
 
 #ifdef __cplusplus
 extern "C"

@@ -261,13 +261,13 @@ do_processArguments (int argc_in,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& mute_out,
-                     bool& printVersionAndExit_out
+                     bool& printVersionAndExit_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-                     ,bool& usePipewire_out
+                     bool& usePipewire_out,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                     ,bool& useFrameworkSource_out,
+                     bool& useFrameworkSource_out,
                      bool& useFrameworkRenderer_out,
 #endif // ACE_WIN32 || ACE_WIN64
                      std::string& language_out)
@@ -1771,7 +1771,6 @@ do_work (const std::string& scorerFile_in,
   modulehandler_configuration.allocatorConfiguration =
     allocator_configuration_p;
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
-  modulehandler_configuration.bufferSize = 512;
 #if defined (_DEBUG)
   modulehandler_configuration.debug = true;
 #endif // _DEBUG
@@ -1783,7 +1782,6 @@ do_work (const std::string& scorerFile_in,
     modulehandler_configuration.effectOptions.push_back (converter.str ()); // gain-dB
   } // end IF
   modulehandler_configuration.scorerFile = scorerFile_in;
-  //modulehandler_configuration.spectrumAnalyzerResolution = 512;
   modulehandler_configuration.modelFile = modelFile_in;
 
   stream_configuration.allocatorConfiguration = allocator_configuration_p;

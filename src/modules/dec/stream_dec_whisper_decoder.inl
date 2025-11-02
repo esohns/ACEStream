@@ -214,7 +214,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   typename DataMessageType::DATA_T* data_p = NULL, *data_2 = NULL;
   int n_segments;
   std::string buffer_string;
-  typename DataMessageType* message_p = NULL;
+  DataMessageType* message_p = NULL;
 
   ACE_Message_Block* message_block_p = buffer_;
   Stream_Tools::crunch (message_block_p,
