@@ -11,6 +11,7 @@ endif (WIN32)
 include (sox)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
+include (espeak_ng)
 include (festival)
 if (WIN32)
  include (ms_speech)
@@ -190,6 +191,9 @@ elseif (WIN32)
   target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
  endif (FLITE_SUPPORT)
 endif ()
+if (ESPEAK_NG_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${ESPEAK_NG_LIBRARIES})
+endif (ESPEAK_NG_SUPPORT)
 if (FESTIVAL_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${FESTIVAL_LIBRARIES})
 endif (FESTIVAL_SUPPORT)
@@ -286,7 +290,8 @@ endif ()
 
 ##########################################
 
-set (VOICE_DIRECTORY "$ENV{LIB_ROOT}/flite/voices")
+#set (VOICE_DIRECTORY "$ENV{LIB_ROOT}/flite/voices")
+set (VOICE_DIRECTORY "$ENV{LIB_ROOT}/espeak-ng/espeak-ng-data")
 file (TO_NATIVE_PATH "${VOICE_DIRECTORY}" VOICE_DIRECTORY)
 set (VOICE "cmu_us_slt.flitevox")
 if (DEFINED CMAKE_BUILD_TYPE)
@@ -340,7 +345,8 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
- file (TO_CMAKE_PATH "${FLITE_LIB_DIR}" FLITE_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${ESPEAK_NG_LIB_DIR}" ESPEAK_NG_PATH)
+ file (TO_CMAKE_PATH "${FLITE_LIB_DIR}" FLITE_PATH)
   # *NOTE*: ffmpeg was built with (vcpkg-)"libpng" support, so now there is a new dependency to zlib1.dll, liblzma.dll, iconv-2.dll :-(
  file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
@@ -349,7 +355,8 @@ elseif (WIN32)
                            ${ACE_LIBRARY_PATH}
                            ${ASSIMP_PATH}
                            ${LIBPNG_PATH}
-                           ${FLITE_LIBRARY_PATH}
+                           ${ESPEAK_NG_PATH}
+                           ${FLITE_PATH}
                            ${VCPKG_PATH}
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH})

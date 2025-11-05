@@ -19,28 +19,29 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dec_flite_decoder.h"
+#include "stream_dec_espeak_ng_decoder.h"
 
 #include "stream_dec_defines.h"
 
-const char libacestream_default_dec_flite_decoder_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FLITE_DECODER_DEFAULT_NAME_STRING);
+const char libacestream_default_dec_espeak_ng_decoder_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_ESPEAK_NG_DECODER_DEFAULT_NAME_STRING);
+
+//////////////////////////////////////////
 
 int
-libacestream_flite_audio_stream_chunk_cb (const cst_wave* wave_in,
-                                          int start_in,
-                                          int size_in,
-                                          int last_in,
-                                          cst_audio_streaming_info* asi_in)
+libacestream_espeak_ng_synth_callback (short* samples_in,
+                                       int numberOfSamples_in,
+                                       espeak_EVENT* events_in)
 {
-  //STREAM_TRACE (ACE_TEXT ("::libacestream_flite_audio_stream_chunk_cb"));
-
   // sanity check(s)
-  if (unlikely (!size_in))
+  if (samples_in == NULL || numberOfSamples_in == 0)
     return 0; // nothing to do
-  ACE_ASSERT (asi_in);
-  struct libacestream_flite_audio_stream_chunk_cbdata* cbdata_p =
-    static_cast<struct libacestream_flite_audio_stream_chunk_cbdata*> (asi_in->userdata);
+  espeak_EVENT* event_p = events_in;
+  ACE_ASSERT (event_p);
+  if (event_p->type == espeakEVENT_LIST_TERMINATED)
+    return 0; // finished ?
+  struct libacestream_espeak_ng_audio_stream_chunk_cbdata* cbdata_p =
+    static_cast<struct libacestream_espeak_ng_audio_stream_chunk_cbdata*> (event_p->user_data);
   ACE_ASSERT (cbdata_p);
   ACE_ASSERT (cbdata_p->allocator);
   ACE_ASSERT (cbdata_p->task);
@@ -50,26 +51,25 @@ libacestream_flite_audio_stream_chunk_cb (const cst_wave* wave_in,
 
   // step1: allocate message block
   message_block_p =
-    static_cast<ACE_Message_Block*> (cbdata_p->allocator->malloc (size_in * sizeof (short)));
+    static_cast<ACE_Message_Block*> (cbdata_p->allocator->malloc (numberOfSamples_in * sizeof (short)));
   if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_IAllocator::malloc(%d): \"%m\", aborting\n"),
-                size_in));
-    return -1;
+                numberOfSamples_in * sizeof (short)));
+    return 1;
   } // end IF
 
   // step2: copy data into message buffer
-  result =
-    message_block_p->copy (reinterpret_cast<char*> (&wave_in->samples[start_in]),
-                           size_in * sizeof (short));
+  result = message_block_p->copy (reinterpret_cast<char*> (samples_in),
+                                  numberOfSamples_in * sizeof (short));
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Message_Block::copy(%d): \"%m\", aborting\n"),
-                size_in));
+                numberOfSamples_in * sizeof (short)));
     message_block_p->release ();
-    return -1;
+    return 1;
   } // end IF
 
   // step3: push data downstream
@@ -79,7 +79,7 @@ libacestream_flite_audio_stream_chunk_cb (const cst_wave* wave_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", aborting\n")));
     message_block_p->release ();
-    return -1;
+    return 1;
   } // end IF
 
   return 0;

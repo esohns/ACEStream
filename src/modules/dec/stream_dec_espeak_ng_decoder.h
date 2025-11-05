@@ -18,10 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DEC_FLITE_DECODER_T_H
-#define STREAM_DEC_FLITE_DECODER_T_H
+#ifndef STREAM_DEC_ESPEAK_NG_DECODER_T_H
+#define STREAM_DEC_ESPEAK_NG_DECODER_T_H
 
-#include "flite.h"
+#include "espeak-ng/speak_lib.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -36,19 +36,14 @@
 class ACE_Message_Block;
 class Stream_IAllocator;
 
-int
-libacestream_flite_audio_stream_chunk_cb (const cst_wave*,            // w
-                                          int,                        // start
-                                          int,                        // size
-                                          int,                        // last
-                                          cst_audio_streaming_info*); // asi
-struct libacestream_flite_audio_stream_chunk_cbdata
+int libacestream_espeak_ng_synth_callback (short*, int, espeak_EVENT*);
+struct libacestream_espeak_ng_audio_stream_chunk_cbdata
 {
   Stream_IAllocator*                           allocator;
   ACE_Task<ACE_MT_SYNCH, Common_TimePolicy_t>* task;
 };
 
-extern const char libacestream_default_dec_flite_decoder_module_name_string[];
+extern const char libacestream_default_dec_espeak_ng_decoder_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -61,7 +56,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataContainerType,
           typename MediaType> // session data-
-class Stream_Decoder_FliteDecoder_T
+class Stream_Decoder_ESpeakNGDecoder_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -85,8 +80,8 @@ class Stream_Decoder_FliteDecoder_T
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  Stream_Decoder_FliteDecoder_T (typename inherited::ISTREAM_T*); // stream handle
-  virtual ~Stream_Decoder_FliteDecoder_T ();
+  Stream_Decoder_ESpeakNGDecoder_T (typename inherited::ISTREAM_T*); // stream handle
+  virtual ~Stream_Decoder_ESpeakNGDecoder_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -99,19 +94,15 @@ class Stream_Decoder_FliteDecoder_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_FliteDecoder_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_FliteDecoder_T (const Stream_Decoder_FliteDecoder_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_FliteDecoder_T& operator= (const Stream_Decoder_FliteDecoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ESpeakNGDecoder_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ESpeakNGDecoder_T (const Stream_Decoder_ESpeakNGDecoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ESpeakNGDecoder_T& operator= (const Stream_Decoder_ESpeakNGDecoder_T&))
 
-  // helper methods
-  bool registerVoices (const std::string&); // base directory
-
-  struct libacestream_flite_audio_stream_chunk_cbdata CBData_;
-  struct cst_features_struct*                         features_;
-  struct cst_voice_struct*                            voice_;
+  struct libacestream_espeak_ng_audio_stream_chunk_cbdata CBData_;
+  unsigned int                                            sampleRate_;
 };
 
 // include template definition
-#include "stream_dec_flite_decoder.inl"
+#include "stream_dec_espeak_ng_decoder.inl"
 
 #endif

@@ -305,7 +305,7 @@ Stream_Decoder_FliteDecoder_T<ACE_SYNCH_USE,
   if (unlikely (!duration_f))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to flite_text_to_speech(): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to flite_text_to_speech(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
     message_inout->release (); message_inout = NULL;
     goto error;

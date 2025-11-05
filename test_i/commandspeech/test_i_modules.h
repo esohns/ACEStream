@@ -64,6 +64,10 @@
 
 #include "stream_stat_statistic_report.h"
 
+#if defined (ESPEAK_NG_SUPPORT)
+#include "stream_dec_espeak_ng_decoder.h"
+#endif // ESPEAK_NG_SUPPORT
+
 #if defined (FESTIVAL_SUPPORT)
 #include "stream_dec_festival_decoder.h"
 #endif // FESTIVAL_SUPPORT
@@ -201,6 +205,25 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
+#if defined (ESPEAK_NG_SUPPORT)
+typedef Stream_Decoder_ESpeakNGDecoder_T<ACE_MT_SYNCH,
+                                         Common_TimePolicy_t,
+                                         struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration,
+                                         Stream_ControlMessage_t,
+                                         Test_I_DirectShow_Message,
+                                         Test_I_DirectShow_SessionMessage_t,
+                                         Test_I_CommandSpeech_DirectShow_SessionData_t,
+                                         struct _AMMediaType> Test_I_DirectShow_ESpeakNG;
+typedef Stream_Decoder_ESpeakNGDecoder_T<ACE_MT_SYNCH,
+                                         Common_TimePolicy_t,
+                                         struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration,
+                                         Stream_ControlMessage_t,
+                                         Test_I_DirectShow_Message,
+                                         Test_I_MediaFoundation_SessionMessage_t,
+                                         Test_I_CommandSpeech_MediaFoundation_SessionData_t,
+                                         IMFMediaType*> Test_I_MediaFoundation_ESpeakNG;
+#endif // ESPEAK_NG_SUPPORT
+
 #if defined (FESTIVAL_SUPPORT)
 typedef Stream_Decoder_FestivalDecoder_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
@@ -219,6 +242,7 @@ typedef Stream_Decoder_FestivalDecoder_T<ACE_MT_SYNCH,
                                          Test_I_CommandSpeech_MediaFoundation_SessionData_t,
                                          IMFMediaType*> Test_I_MediaFoundation_Festival;
 #endif // FESTIVAL_SUPPORT
+
 #if defined (FLITE_SUPPORT)
 typedef Stream_Decoder_FliteDecoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -237,6 +261,7 @@ typedef Stream_Decoder_FliteDecoder_T<ACE_MT_SYNCH,
                                       Test_I_CommandSpeech_MediaFoundation_SessionData_t,
                                       IMFMediaType*> Test_I_MediaFoundation_Flite;
 #endif // FLITE_SUPPORT
+
 #if defined (SAPI_SUPPORT)
 typedef Stream_Decoder_SAPIDecoder_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
@@ -743,6 +768,21 @@ DATASTREAM_MODULE_DUPLEX (Test_I_CommandSpeech_MediaFoundation_SessionData,     
 
 //////////////////////////////////////////
 
+#if defined (ESPEAK_NG_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                    // session event type
+                              struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_espeak_ng_decoder_module_name_string,
+                              Stream_INotify_t,                                                  // stream notification interface type
+                              Test_I_DirectShow_ESpeakNG);                                       // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                         // session event type
+                              struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_espeak_ng_decoder_module_name_string,
+                              Stream_INotify_t,                                                       // stream notification interface type
+                              Test_I_MediaFoundation_ESpeakNG);                                       // writer type
+#endif // ESPEAK_NG_SUPPORT
+
 #if defined (FESTIVAL_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                    // session event type
@@ -757,6 +797,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_MediaFoundation_SessionData, 
                               Stream_INotify_t,                                                       // stream notification interface type
                               Test_I_MediaFoundation_Festival);                                       // writer type
 #endif // FESTIVAL_SUPPORT
+
 #if defined (FLITE_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                    // session event type
@@ -771,6 +812,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_MediaFoundation_SessionData, 
                               Stream_INotify_t,                                                       // stream notification interface type
                               Test_I_MediaFoundation_Flite);                                          // writer type
 #endif // FLITE_SUPPORT
+
 #if defined (SAPI_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                    // session event type

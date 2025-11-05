@@ -131,17 +131,17 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   std::string voice = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-b [STRING] : voice [\"")
             << voice
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   std::string voice_directory = path;
   // voice_directory += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY);
@@ -149,7 +149,7 @@ do_printUsage (const std::string& programName_in)
             << voice_directory
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [INTEGER]: device id [")
             << 0
@@ -234,18 +234,16 @@ do_printUsage (const std::string& programName_in)
 bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
                      std::string& voice_out,
                      std::string& voiceDirectory_out,
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      unsigned int& deviceIdentifier_out,
 #else
                      std::string& deviceIdentifier_out,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
                      std::string& sourceFileName_out,
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
                      std::string& UIFile_out,
 #if defined (GTK_SUPPORT)
                      std::string& UICSSFile_out,
@@ -289,9 +287,7 @@ do_processArguments (int argc_in,
   if (deviceIdentifier_out.empty ())
     deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   sourceFileName_out.clear ();
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
@@ -314,9 +310,9 @@ do_processArguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:f:lo::s:tuv");
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("b:c:");
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("g::");
 #endif // GTK_SUPPORT || WXWIDGETS_SUPPORT
@@ -349,7 +345,7 @@ do_processArguments (int argc_in,
   {
     switch (option)
     {
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       case 'b':
       {
         voice_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
@@ -360,7 +356,7 @@ do_processArguments (int argc_in,
         voiceDirectory_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
       case 'd':
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1053,18 +1049,16 @@ do_finalize_mediafoundation ()
 
 void
 do_work (
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+#if defined (ESPEAK_NG_SUPPORT) || defined(FESTIVAL_SUPPORT) || defined(FLITE_SUPPORT)
          const std::string& voice_in,
          const std::string& voiceDirectory_in,
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          unsigned int deviceId_in,
 #else
          const std::string& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
          const std::string& sourceFileName_in,
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
          const std::string& UIDefinitionFile_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
@@ -1257,10 +1251,8 @@ do_work (
     {
       directshow_modulehandler_configuration.spectrumAnalyzerConfiguration =
         &spectrumanalyzer_configuration;
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       directshow_modulehandler_configuration.fileIdentifier.identifier =
         sourceFileName_in;
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
       directshow_modulehandler_configuration.filterConfiguration =
@@ -1276,13 +1268,13 @@ do_work (
         ACE_Time_Value (statisticReportingInterval_in, 0);
       directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       directshow_modulehandler_configuration.manageFestival = true;
       directshow_modulehandler_configuration.manageFlite = true;
       directshow_modulehandler_configuration.voice = voice_in;
       directshow_modulehandler_configuration.voiceDirectory =
         voiceDirectory_in;
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
@@ -1330,7 +1322,20 @@ do_work (
         {
           renderer_modulename_string =
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING);
-          // *WARNING*: falls through !
+
+          directshow_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::GUID;
+          directshow_modulehandler_configuration_3.deviceIdentifier.identifier._guid =
+            (mute_in ? GUID_NULL
+                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
+                                                                                               false)); // playback
+
+          struct tWAVEFORMATEX* waveformatex_p =
+            Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat (directshow_modulehandler_configuration_3.deviceIdentifier.identifier._guid);
+          Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (*waveformatex_p,
+                                                                    directshow_modulehandler_configuration_5.outputFormat);
+          CoTaskMemFree (waveformatex_p);
+          break;
         }
         case STREAM_DEVICE_RENDERER_DIRECTSHOW:
         {
@@ -1372,10 +1377,8 @@ do_work (
     {
       mediafoundation_modulehandler_configuration.spectrumAnalyzerConfiguration =
         &spectrumanalyzer_configuration;
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       mediafoundation_modulehandler_configuration.fileIdentifier.identifier =
         sourceFileName_in;
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
       mediafoundation_modulehandler_configuration.mediaFoundationConfiguration =
@@ -1389,11 +1392,11 @@ do_work (
         ACE_Time_Value (statisticReportingInterval_in, 0);
       mediafoundation_modulehandler_configuration.subscriber =
         &mediafoundation_ui_event_handler;
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       mediafoundation_modulehandler_configuration.voice = voice_in;
       mediafoundation_modulehandler_configuration.voiceDirectory =
         voiceDirectory_in;
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
 
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
@@ -1486,13 +1489,12 @@ do_work (
     &const_cast<Stream_MessageQueue_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       Test_I_ALSA_SessionMessage_t>&> (stream.getR_3 ());
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   modulehandler_configuration.manageFestival = true;
   modulehandler_configuration.manageFlite = true;
   modulehandler_configuration.voice = voice_in;
   modulehandler_configuration.voiceDirectory = voiceDirectory_in;
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
-  //modulehandler_configuration.spectrumAnalyzerResolution = 512;
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
 
   stream_configuration.allocatorConfiguration = allocator_configuration_p;
   if (unlikely (!Stream_MediaFramework_ALSA_Tools::getDefaultFormat (deviceIdentifier_in,
@@ -1505,9 +1507,7 @@ do_work (
     goto error;
   } // end IF
 
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   modulehandler_configuration.fileIdentifier.identifier = sourceFileName_in;
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
   modulehandler_configuration.messageAllocator = &message_allocator;
   modulehandler_configuration.statisticReportingInterval =
     ACE_Time_Value (statisticReportingInterval_in, 0);
@@ -2142,12 +2142,12 @@ ACE_TMAIN (int argc_in,
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 
   // step1a set defaults
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   std::string voice_string = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
   std::string voice_directory = path;
   //voice_directory += ACE_DIRECTORY_SEPARATOR_STR_A;
   voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY);
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   unsigned int device_id = 0;
 #else
@@ -2157,9 +2157,7 @@ ACE_TMAIN (int argc_in,
   if (device_identifier_string.empty ())
     device_identifier_string = ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   std::string source_filename;
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
@@ -2219,18 +2217,16 @@ ACE_TMAIN (int argc_in,
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
                             argv_in,
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
                             voice_string,
                             voice_directory,
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             device_id,
 #else
                             device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
                             source_filename,
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
                             UI_definition_file,
 #if defined (GTK_SUPPORT)
                             UI_CSS_file,
@@ -2479,18 +2475,16 @@ ACE_TMAIN (int argc_in,
   timer.start ();
   // step2: do actual work
   do_work (
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
            voice_string,
            voice_directory,
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            device_id,
 #else
            device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
            source_filename,
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
            UI_definition_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            media_framework_e,

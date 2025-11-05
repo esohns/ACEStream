@@ -538,6 +538,7 @@ struct Test_I_MediaFoundation_StreamConfiguration
   Test_I_MediaFoundation_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , STTBackend (TEST_I_DEFAULT_STT_BACKEND)
+   , TTSBackend (TEST_I_DEFAULT_TTS_BACKEND)
    , capturer (STREAM_DEVICE_CAPTURER_INVALID)
    , renderer (STREAM_DEVICE_RENDERER_INVALID)
    , format (NULL)
@@ -547,6 +548,7 @@ struct Test_I_MediaFoundation_StreamConfiguration
   }
 
   enum Test_I_STTBackend      STTBackend;
+  enum Test_I_TTSBackend      TTSBackend;
   enum Stream_Device_Capturer capturer;
   enum Stream_Device_Renderer renderer;
   IMFMediaType*               format;

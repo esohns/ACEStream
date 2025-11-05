@@ -1838,8 +1838,7 @@ do_work (
       mediafoundation_modulehandler_configuration_4 =
         mediafoundation_modulehandler_configuration;
       mediafoundation_modulehandler_configuration_4.fileIdentifier.clear ();
-      if (!targetFilename_in.empty ())
-        mediafoundation_modulehandler_configuration_4.fileIdentifier.identifier = targetFilename_in;
+      mediafoundation_modulehandler_configuration_4.fileIdentifier.identifier = targetFilename_in;
       mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &mediafoundation_modulehandler_configuration_4)));
@@ -1969,6 +1968,7 @@ do_work (
         ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME);
       //mediafoundation_stream_configuration.printFinalReport = true;
       mediafoundation_stream_configuration.STTBackend = STT_in;
+      mediafoundation_stream_configuration.TTSBackend = TTS_in;
       break;
     }
     default:

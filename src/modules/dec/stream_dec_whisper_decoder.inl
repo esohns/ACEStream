@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 #include <algorithm>
-#include <iterator>
+#include <numeric>
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
@@ -66,17 +66,47 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   parameters2_ = whisper_full_default_params (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SAMPLING_STRATEGY);
   if (unlikely (!parameters_.use_gpu))
     parameters2_.n_threads = Common_Tools::getNumberOfCPUs (true);
-  //parameters2_.n_max_text_ctx = 16384;
-  //parameters2_.no_context = true;
+  // *NOTE*: (hopefully) reduces repetitions
+  parameters2_.n_max_text_ctx = 64;
+
+  //parameters2_.translate = false;
+  parameters2_.no_context = false;
   parameters2_.no_timestamps = true;
+  //parameters2_.print_special = false;
   parameters2_.print_progress = false;
+  //parameters2_.print_realtime = false;
   parameters2_.print_timestamps = false;
+
+  //parameters2_.token_timestamps = false;
+  parameters2_.max_len = 0;
+  parameters2_.split_on_word = true;
+  //parameters2_.max_tokens = 0;
+
+  //parameters2_.debug_mode = false;
+  //parameters2_.audio_ctx = 0;
+
+  //parameters2_.tdrz_enable = false;
+
+  //parameters2_.detect_language = false;
+
   //parameters2_.suppress_blank = true;
   parameters2_.suppress_nst = true;
+
   //parameters2_.temperature_inc = -1.0f;
+  // *NOTE*: (hopefully) reduces repetitions
+  parameters2_.entropy_thold = 2.8f; // default: 2.4f
+  //parameters2_.logprob_thold = -1.0f; // default: -1.0f
+  //parameters2_.no_speech_thold = 0.6f; // default: 0.55f
+
   //parameters2_.greedy.best_of = 5;
   //parameters2_.beam_search.beam_size = 5;
-  parameters2_.split_on_word = true;
+
+//#define WHISPERCPP_VAD_SUPPORT
+#if defined (WHISPERCPP_VAD_SUPPORT)
+  parameters2_.vad = true;
+  parameters2_.vad_model_path = ACE_TEXT_ALWAYS_CHAR ("E:\\models\\ggml-silero-v5.1.2.bin");
+  parameters2_.vad_params = whisper_vad_default_params ();
+#endif // WHISPERCPP_VAD_SUPPORT
 }
 
 template <ACE_SYNCH_DECL,
@@ -198,23 +228,28 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::configuration_->messageAllocator);
 
-  unsigned int number_of_samples_i = 
-    static_cast<unsigned int> (message_inout->length () / sampleSize_);
+  if (!buffer_)
+    buffer_ = message_inout;
+  else
+    Stream_Tools::append (buffer_,
+                          message_inout);
+
+  int number_of_samples_i =
+    static_cast<int> (message_inout->total_length () / sampleSize_);
   bufferedMs_ +=
     static_cast<unsigned int> ((number_of_samples_i * 1000.0f) / static_cast<float> (WHISPER_SAMPLE_RATE));
   if (bufferedMs_ < STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_BUFFER_LENGTH_MS)
   {
-    if (!buffer_)
-      buffer_ = message_inout;
-    else
-      Stream_Tools::append (buffer_, message_inout);
+    message_inout = NULL;
     return;
   } // end IF
 
   typename DataMessageType::DATA_T* data_p = NULL, *data_2 = NULL;
-  int n_segments;
+  int n_segments, n_tokens;
   std::string buffer_string;
   DataMessageType* message_p = NULL;
+  Stream_SessionId_t session_id_i = message_inout->sessionId ();
+  message_inout = NULL;
 
   ACE_Message_Block* message_block_p = buffer_;
   Stream_Tools::crunch (message_block_p,
@@ -223,8 +258,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     buffer_ = static_cast<DataMessageType*> (message_block_p);
   ACE_ASSERT (!buffer_->cont ());
 
-  number_of_samples_i =
-    static_cast<unsigned int> (buffer_->length () / sampleSize_);
+  number_of_samples_i = static_cast<int> (buffer_->length () / sampleSize_);
   //parameters2_.duration_ms = bufferedMs_;
   if (unlikely (whisper_full (context_,
                               parameters2_,
@@ -241,15 +275,16 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   n_segments = whisper_full_n_segments (context_);
   for (int i = 0; i < n_segments; ++i)
   {
-    int n_tokens = whisper_full_n_tokens (context_, i);
+    n_tokens = whisper_full_n_tokens (context_, i);
     for (int j = 0; j < n_tokens; ++j)
-    {
-      const char* text_p = whisper_full_get_token_text (context_, i, j);
-      data_p->words.push_back (text_p);
-    } // end FOR
+      data_p->words.push_back (whisper_full_get_token_text (context_, i, j));
   } // end FOR
+
+  // filter tokens
+  static std::vector<std::string> token_filter_a = { ACE_TEXT_ALWAYS_CHAR ("<|endoftext|>"),
+                                                     ACE_TEXT_ALWAYS_CHAR ("[_EOT_]") };
   data_p->words.erase (std::remove_if (data_p->words.begin (), data_p->words.end (),
-                                       [] (const std::string& word_in) { return word_in == ACE_TEXT_ALWAYS_CHAR ("<|endoftext|>"); }),
+                                       [&] (const std::string& word_in) { return std::find (token_filter_a.begin (), token_filter_a.end (), word_in) != token_filter_a.end (); }),
                        data_p->words.end ());
   if (unlikely (data_p->words.empty ()))
   {
@@ -258,9 +293,10 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     bufferedMs_ = 0;
     return;
   } // end IF
-  buffer_string = data_p->words[0];
-  for (unsigned int i = 1; i < data_p->words.size (); i++)
-    buffer_string += ACE_TEXT_ALWAYS_CHAR (" ") + data_p->words[i];
+
+  // concatenate words
+  buffer_string =
+    std::accumulate (data_p->words.begin (), data_p->words.end (), std::string ());
 
   message_p =
     inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
@@ -276,7 +312,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   result = message_p->copy (buffer_string.c_str ());
   ACE_ASSERT (result == 0);
   message_p->initialize (*data_p,
-                         message_inout->sessionId (),
+                         session_id_i,
                          NULL);
 
   result = inherited::put_next (message_p, NULL);

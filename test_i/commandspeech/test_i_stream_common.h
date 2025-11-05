@@ -64,7 +64,8 @@ class Test_I_Message;
 
 enum Test_I_TTSBackend
 {
-  TTS_FESTIVAL = 0,
+  TTS_ESPEAK_NG = 0,
+  TTS_FESTIVAL,
   TTS_FLITE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if defined (SAPI_SUPPORT)

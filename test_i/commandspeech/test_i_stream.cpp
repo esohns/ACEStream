@@ -66,7 +66,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //  inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING));
   //ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
-    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING));
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator_3 != inherited::configuration_->end ());
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_4 =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
@@ -103,6 +103,16 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   switch (inherited::configuration_->configuration_->TTSBackend)
   {
+    case TTS_ESPEAK_NG:
+    {
+#if defined (ESPEAK_NG_SUPPORT)
+      ACE_NEW_RETURN (module_p,
+                      Test_I_DirectShow_ESpeakNG_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_ESPEAK_NG_DECODER_DEFAULT_NAME_STRING)),
+                      false);
+#endif // ESPEAK_NG_SUPPORT
+      break;
+    }
     case TTS_FESTIVAL:
     {
 #if defined (FESTIVAL_SUPPORT)
@@ -193,13 +203,13 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
    layout_in->append (module_p, NULL, 0);
    module_p = NULL;
 
-   ACE_NEW_RETURN (module_p,
-                   Test_I_DirectShow_SoXEffect_Module (this,
-                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
-                   false);
-   ACE_ASSERT (module_p);
-   layout_in->append (module_p, NULL, 0);
-   module_p = NULL;
+   //ACE_NEW_RETURN (module_p,
+   //                Test_I_DirectShow_SoXEffect_Module (this,
+   //                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
+   //                false);
+   //ACE_ASSERT (module_p);
+   //layout_in->append (module_p, NULL, 0);
+   //module_p = NULL;
 #endif // SOX_SUPPORT
   } // end IF
 

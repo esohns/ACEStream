@@ -70,19 +70,24 @@ load_backends (GtkListStore* listStore_in)
   GtkTreeIter iterator;
   gtk_list_store_append (listStore_in, &iterator);
   gtk_list_store_set (listStore_in, &iterator,
-                      0, ACE_TEXT_ALWAYS_CHAR ("Festival"),
+                      0, ACE_TEXT_ALWAYS_CHAR ("eSpeak-NG"),
                       1, 0,
                       -1);
   gtk_list_store_append (listStore_in, &iterator);
   gtk_list_store_set (listStore_in, &iterator,
-                      0, ACE_TEXT_ALWAYS_CHAR ("Flite"),
+                      0, ACE_TEXT_ALWAYS_CHAR ("Festival"),
                       1, 1,
+                      -1);
+  gtk_list_store_append (listStore_in, &iterator);
+  gtk_list_store_set (listStore_in, &iterator,
+                      0, ACE_TEXT_ALWAYS_CHAR ("Flite"),
+                      1, 2,
                       -1);
 #if defined (SAPI_SUPPORT)
   gtk_list_store_append (listStore_in, &iterator);
   gtk_list_store_set (listStore_in, &iterator,
                       0, ACE_TEXT_ALWAYS_CHAR ("SAPI"),
-                      1, 2,
+                      1, 3,
                       -1);
 #endif // SAPI_SUPPORT
 }
@@ -1092,7 +1097,7 @@ idle_initialize_UI_cb (gpointer userData_in)
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator_2 != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       directshow_modulehandler_configuration_iterator_3 =
-        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING));
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator_3 != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
 
@@ -1102,9 +1107,10 @@ idle_initialize_UI_cb (gpointer userData_in)
         (*directshow_modulehandler_configuration_iterator).second.second->voiceDirectory;
       voice_string =
         (*directshow_modulehandler_configuration_iterator).second.second->voice;
-      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
       mute_b =
-        ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifier._id == -1);
+        InlineIsEqualGUID ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifier._guid, GUID_NULL);
+        //((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifier._id == -1);
       backend_e =
         directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->TTSBackend;
 
@@ -2821,6 +2827,7 @@ combobox_target_changed_cb (GtkWidget* widget_in,
 //  gint n_rows = 0;
   GtkToggleButton* toggle_button_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Device_Identifier device_identifier;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -2830,11 +2837,11 @@ combobox_target_changed_cb (GtkWidget* widget_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (renderer_modulename_string);
       ACE_ASSERT (directshow_modulehandler_configuration_iterator_2 != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      Stream_Device_Identifier device_identifier;
       device_identifier.identifier._id = card_id_i;
       device_identifier.identifierDiscriminator = Stream_Device_Identifier::ID;
-      (*directshow_modulehandler_configuration_iterator_2).second.second->deviceIdentifier =
-        device_identifier;
+
+      (*directshow_modulehandler_configuration_iterator_2).second.second->deviceIdentifier.identifier._guid =
+        Common_OS_Tools::StringToGUID (device_identifier_string);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2844,10 +2851,10 @@ combobox_target_changed_cb (GtkWidget* widget_in,
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (renderer_modulename_string);
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator_2 != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      Stream_Device_Identifier device_identifier;
       device_identifier.identifier._guid =
         Common_OS_Tools::StringToGUID (device_identifier_string);
       device_identifier.identifierDiscriminator = Stream_Device_Identifier::GUID;
+
       (*mediafoundation_modulehandler_configuration_iterator_2).second.second->deviceIdentifier =
         device_identifier;
       break;
@@ -2882,7 +2889,7 @@ combobox_target_changed_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
-      if (!Stream_Device_DirectShow_Tools::loadDeviceGraph ((*directshow_modulehandler_configuration_iterator_2).second.second->deviceIdentifier,
+      if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (device_identifier,
                                                             CLSID_AudioInputDeviceCategory,
                                                             (*directshow_modulehandler_configuration_iterator).second.second->builder,
                                                             buffer_negotiation_p,

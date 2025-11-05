@@ -93,7 +93,7 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
     llama_model_free (model_); model_ = NULL;
 
     formatted_.clear ();
-    for (struct llama_chat_message& msg: messages_)
+    for (struct llama_chat_message& msg : messages_)
       free (const_cast<char*> (msg.content));
     messages_.clear ();
     previousLength_ = 0;

@@ -21,7 +21,9 @@
 #ifndef TEST_I_COMMANDSPEECH_DEFINES_H
 #define TEST_I_COMMANDSPEECH_DEFINES_H
 
-#if defined (FESTIVAL_SUPPORT)
+#if defined (ESPEAK_NG_SUPPORT)
+#define TEST_I_DEFAULT_TTS_BACKEND                     TTS_ESPEAK_NG
+#elif defined (FESTIVAL_SUPPORT)
 #define TEST_I_DEFAULT_TTS_BACKEND                     TTS_FESTIVAL
 #elif defined (FLITE_SUPPORT)
 #define TEST_I_DEFAULT_TTS_BACKEND                     TTS_FLITE

@@ -259,7 +259,7 @@ set (ds_german_model_file "model.pbmm")
 set (ds_german_scorer_file "de-aashishag-1-prune-kenlm.scorer")
 set (ds_model_file "etc/${ds_german_model_file}")
 set (ds_scorer_file "etc/${ds_german_scorer_file}")
-set (wh_model_file "$ENV{LIB_ROOT}/../models/ggml-small.en.bin")
+set (wh_model_file "$ENV{LIB_ROOT}/../models/ggml-medium.en.bin")
 
 set (ui_definition_file "")
 if (GTK_USE)
