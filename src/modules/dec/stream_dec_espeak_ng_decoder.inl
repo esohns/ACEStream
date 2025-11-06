@@ -98,6 +98,7 @@ Stream_Decoder_ESpeakNGDecoder_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    sampleRate_ = 0;
   } // end IF
 
   int options_i = 0;
@@ -113,6 +114,27 @@ Stream_Decoder_ESpeakNGDecoder_T<ACE_SYNCH_USE,
     return false;
   } // end IF
   sampleRate_ = static_cast<unsigned int> (result);
+
+  if (!configuration_in.voice.empty ())
+  {
+    espeak_VOICE voice_s;
+    ACE_OS::memset (&voice_s, 0, sizeof (espeak_VOICE));
+    //voice_s.name = ACE_TEXT_ALWAYS_CHAR ("default");
+    voice_s.languages = configuration_in.voice.c_str ();
+    voice_s.gender = 2; // 0=none 1=male, 2=female
+    //voice_s.variant = 0;
+    result = espeak_SetVoiceByProperties (&voice_s);
+    if (unlikely (result != EE_OK))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to espeak_SetVoiceByProperties(\"%s\"): %d, aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (configuration_in.voice.c_str ()),
+                  result));
+      sampleRate_ = 0; 
+      return false;
+    } // end IF
+  } // end IF
 
   espeak_SetSynthCallback (libacestream_espeak_ng_synth_callback);
 
