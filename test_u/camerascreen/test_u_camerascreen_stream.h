@@ -107,9 +107,12 @@ class Stream_CameraScreen_DirectShow_Stream
   Stream_CameraScreen_DirectShow_Source_Module              source_;
   Stream_CameraScreen_DirectShow_StatisticReport_Module     statisticReport_;
   Stream_CameraScreen_DirectShow_LibAVConvert_Module        convert_; // RGB
-  Stream_CameraScreen_DirectShow_LibAVResize_Module         resize_; // --> window size/fullscreen
-  Stream_CameraScreen_DirectShow_LibAVResize_Module         resize_2; // --> video wall resolution
+  Stream_CameraScreen_DirectShow_LibAVResize_Module         resize_; // --> ONNX/video wall resolution
+  Stream_CameraScreen_DirectShow_LibAVResize_Module         resize_2; // --> window size/fullscreen
   Test_U_CameraScreen_VideoWall_Module                      videoWall_;
+#if defined (ONNXRT_SUPPORT)
+  Stream_CameraScreen_DirectShow_ONNXRuntime_Module         ONNXRuntime_;
+#endif // ONNXRT_SUPPORT
 #if defined (CURSES_SUPPORT)
   Test_U_CameraScreen_Curses_Window_Module                  CursesDisplay_;
 #endif // CURSES_SUPPORT

@@ -381,6 +381,7 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , display ()
    , fullScreen (false)
+   , model ()
    , window ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -399,6 +400,7 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
   struct Common_UI_Display                                display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
   bool                                                    fullScreen;
+  std::string                                             model;
   struct Common_UI_Window                                 window;
 };
 //extern const char stream_name_string_[];
@@ -588,6 +590,7 @@ struct Stream_CameraScreen_StreamConfiguration
    : Stream_Configuration ()
    , fullscreen (false)
    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_INVALID)
+   , useONNX (false)
    , useVideoWall (false)
   {
     printFinalReport = true;
@@ -595,6 +598,7 @@ struct Stream_CameraScreen_StreamConfiguration
 
   bool                                    fullscreen;
   enum Stream_Visualization_VideoRenderer renderer;
+  bool                                    useONNX;
   bool                                    useVideoWall;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

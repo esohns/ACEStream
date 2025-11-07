@@ -34,6 +34,8 @@
 #include "stream_dev_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "stream_module_ml_defines.h"
+
 #include "stream_stat_defines.h"
 
 #include "stream_vis_defines.h"
@@ -59,6 +61,10 @@ Stream_CameraScreen_DirectShow_Stream::Stream_CameraScreen_DirectShow_Stream ()
              ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2"))
  , videoWall_ (this,
                ACE_TEXT_ALWAYS_CHAR ("VideoWall"))
+#if defined (ONNXRT_SUPPORT)
+ , ONNXRuntime_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (MODULE_ML_ONNXRUNTIME_DEFAULT_NAME_STRING))
+#endif // ONNXRT_SUPPORT
 #if defined (CURSES_SUPPORT)
  , CursesDisplay_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CURSES_WINDOW_DEFAULT_NAME_STRING))
@@ -103,7 +109,13 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   layout_in->append (&source_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
-  if (inherited::configuration_->configuration_->useVideoWall)
+  if (inherited::configuration_->configuration_->useONNX)
+  {
+    layout_in->append (&convert_, NULL, 0); // output is 8-bit BGR
+    layout_in->append (&resize_, NULL, 0); // output is ONNX model input tensor size
+    layout_in->append (&ONNXRuntime_, NULL, 0);
+  } // end IF
+  else if (inherited::configuration_->configuration_->useVideoWall)
   {
     layout_in->append (&resize_, NULL, 0); // output is video wall thumbnail size
     layout_in->append (&videoWall_, NULL, 0);
@@ -122,7 +134,7 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (GTK_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
     {
-      layout_in->append (&convert_, NULL, 0);
+      //layout_in->append (&convert_2, NULL, 0); // output is 8-bit BGRA
       layout_in->append (&GTKDisplay_, NULL, 0);
       break;
     }

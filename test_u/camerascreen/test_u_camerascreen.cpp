@@ -186,6 +186,10 @@ do_print_usage (const std::string& programName_in)
             << device_identifier_string
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f          : ONNX model fíle path [")
+            << ACE_TEXT_ALWAYS_CHAR ("")
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-g          : OpenGL mode [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -228,9 +232,15 @@ do_print_usage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (ONNXRT_SUPPORT)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : use ONNX [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+#endif // ONNXRT_SUPPORT
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-z          : use video wall filter [")
             << false
-            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 }
 
@@ -238,6 +248,7 @@ bool
 do_process_arguments (int argc_in,
                       ACE_TCHAR** argv_in, // cannot be const...
                       struct Stream_Device_Identifier& deviceIdentifier_out,
+                      std::string& modelFilePath_out,
                       bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                       enum Stream_MediaFramework_Type& mediaFramework_out,
@@ -246,6 +257,9 @@ do_process_arguments (int argc_in,
                       enum Stream_Visualization_VideoRenderer& renderer_out,
                       bool& traceInformation_out,
                       enum Stream_CameraScreen_ProgramMode& mode_out,
+#if defined (ONNXRT_SUPPORT)
+                      bool& useONNX_out,
+#endif // ONNXRT_SUPPORT
                       bool& useVideoWall_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_process_arguments"));
@@ -286,6 +300,7 @@ do_process_arguments (int argc_in,
   deviceIdentifier_out.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
+  modelFilePath_out.clear ();
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -298,19 +313,26 @@ do_process_arguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
   traceInformation_out = false;
   mode_out = STREAM_CAMERASCREEN_PROGRAMMODE_NORMAL;
+#if defined (ONNXRT_SUPPORT)
+  useONNX_out = false;
+#endif // ONNXRT_SUPPORT
+  useVideoWall_out = false;
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:glo:tvz");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:f:glo:tvz");
 #if defined (CURSES_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("c");
 #endif // CURSES_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  options_string += ACE_TEXT_ALWAYS_CHAR ("129mxy");
+  options_string += ACE_TEXT_ALWAYS_CHAR ("129mwx");
 #else
   options_string += ACE_TEXT_ALWAYS_CHAR ("1x");
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("k");
 #endif // GTK_SUPPORT
+#if defined (ONNXRT_SUPPORT)
+  options_string += ACE_TEXT_ALWAYS_CHAR ("y");
+#endif // ONNXRT_SUPPORT
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
                               ACE_TEXT (options_string.c_str ()),
@@ -368,6 +390,11 @@ do_process_arguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
         break;
       }
+      case 'f':
+      {
+        modelFilePath_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        break;
+      }
       case 'g':
       {
         renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT;
@@ -409,12 +436,12 @@ do_process_arguments (int argc_in,
         break;
       }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      case 'x':
+      case 'w':
       {
         renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11;
         break;
       }
-      case 'y':
+      case 'x':
       {
         renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_12;
         break;
@@ -426,6 +453,13 @@ do_process_arguments (int argc_in,
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (ONNXRT_SUPPORT)
+      case 'y':
+      {
+        useONNX_out = true;
+        break;
+      }
+#endif // ONNXRT_SUPPORT
       case 'z':
       {
         useVideoWall_out = true;
@@ -1097,6 +1131,7 @@ void
 do_work (int argc_in,
          ACE_TCHAR* argv_in[],
          struct Stream_Device_Identifier& deviceIdentifier_in,
+         const std::string& modelFilePath_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1108,6 +1143,9 @@ do_work (int argc_in,
 #else
          struct Stream_CameraScreen_Configuration& configuration_in,
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (ONNXRT_SUPPORT)
+         bool useONNX_in,
+#endif // ONNXRT_SUPPORT
          bool useVideoWall_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
@@ -1158,16 +1196,16 @@ do_work (int argc_in,
                 ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(): \"%m\", returning\n")));
     return;
   } // end IF
-  //if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
-  //                                      handled_signals,
-  //                                      ignored_signals,
-  //                                      &signal_handler,
-  //                                      previous_actions_a))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Common_Signal_Tools::initialize(): \"%m\", returning\n")));
-  //  return;
-  //} // end IF
+  if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+                                        handled_signals,
+                                        ignored_signals,
+                                        &signal_handler,
+                                        previous_actions_a))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Signal_Tools::initialize(): \"%m\", returning\n")));
+    return;
+  } // end IF
 
   // ********************** module configuration data **************************
 #if defined (FFMPEG_SUPPORT)
@@ -1203,6 +1241,7 @@ do_work (int argc_in,
         &allocator_configuration;
       directshow_modulehandler_configuration.deviceIdentifier =
         deviceIdentifier_in;
+      directshow_modulehandler_configuration.model = modelFilePath_in;
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
       std::string shader_file_path = Common_File_Tools::getWorkingDirectory ();
@@ -1224,6 +1263,11 @@ do_work (int argc_in,
       //} // end IF
       directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
+
+#if defined (ONNXRT_SUPPORT)
+      directshow_stream_configuration.useONNX = useONNX_in;
+#endif // ONNXRT_SUPPORT
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1232,6 +1276,7 @@ do_work (int argc_in,
         &allocator_configuration;
       mediafoundation_modulehandler_configuration.deviceIdentifier =
         deviceIdentifier_in;
+      mediafoundation_modulehandler_configuration.model = modelFilePath_in;
       mediafoundation_modulehandler_configuration.direct3DConfiguration =
         &mediaFoundationConfiguration_in.direct3DConfiguration;
       //mediafoundation_modulehandler_configuration.lock = &state_r.subscribersLock;
@@ -1246,6 +1291,10 @@ do_work (int argc_in,
       mediafoundation_modulehandler_configuration.subscriber =
         &mediafoundation_ui_event_handler;
       break;
+
+#if defined (ONNXRT_SUPPORT)
+      mediafoundation_stream_configuration.useONNX = useONNX_in;
+#endif // ONNXRT_SUPPORT
     }
     default:
     {
@@ -1264,7 +1313,8 @@ do_work (int argc_in,
   modulehandler_configuration.codecConfiguration = &codec_configuration;
 #endif // FFMPEG_SUPPORT
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
-//  modulehandler_configuration.display = displayDevice_in;
+  modulehandler_configuration.model = modelFilePath_in;
+  //  modulehandler_configuration.display = displayDevice_in;
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   Stream_Device_Tools::getDefaultCaptureFormat (deviceIdentifier_in.identifier,
@@ -1272,6 +1322,10 @@ do_work (int argc_in,
   modulehandler_configuration.subscriber = &ui_event_handler;
 
   struct Stream_CameraScreen_V4L_StreamConfiguration stream_configuration;
+
+#if defined (ONNXRT_SUPPORT)
+  stream_configuration.useONNX = useONNX_in;
+#endif // ONNXRT_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
@@ -1446,6 +1500,16 @@ do_work (int argc_in,
       } // end IF
       directshow_modulehandler_configuration_2b.outputFormat = *media_type_p;
       delete media_type_p; media_type_p = NULL;
+#if defined (ONNXRT_SUPPORT)
+      if (useONNX_in)
+      {
+        Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
+                                                           directshow_modulehandler_configuration_2.outputFormat);
+        Common_Image_Resolution_t resolution_s = {720, 720};
+        Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                               directshow_modulehandler_configuration_2b.outputFormat);
+      } // end IF
+#endif // ONNXRT_SUPPORT
 
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
@@ -2080,6 +2144,7 @@ ACE_TMAIN (int argc_in,
   device_identifier.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
+  std::string model_file_path;
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
@@ -2096,12 +2161,16 @@ ACE_TMAIN (int argc_in,
   bool trace_information = false;
   enum Stream_CameraScreen_ProgramMode program_mode_e =
       STREAM_CAMERASCREEN_PROGRAMMODE_NORMAL;
+#if defined (ONNXRT_SUPPORT)
+  bool use_ONNX_b = false;
+#endif // ONNXRT_SUPPORT
   bool use_video_wall_b = false;
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
                              argv_in,
                              device_identifier,
+                             model_file_path,
                              log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                              media_framework_e,
@@ -2110,6 +2179,9 @@ ACE_TMAIN (int argc_in,
                              video_renderer_e,
                              trace_information,
                              program_mode_e,
+#if defined (ONNXRT_SUPPORT)
+                             use_ONNX_b,
+#endif // ONNXRT_SUPPORT
                              use_video_wall_b))
   {
     do_print_usage (ACE::basename (argv_in[0]));
@@ -2152,9 +2224,8 @@ ACE_TMAIN (int argc_in,
   // step1d: initialize logging and/or tracing
   std::string log_file_name;
   if (log_to_file)
-    log_file_name =
-        Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                          ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
+    log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
   if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])), // program name
                                      log_file_name,                                     // log file name
                                      false,                                             // log to syslog ?
@@ -2245,6 +2316,7 @@ ACE_TMAIN (int argc_in,
   // step2: do actual work
   do_work (argc_in, argv_in,
            device_identifier,
+           model_file_path,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2256,6 +2328,9 @@ ACE_TMAIN (int argc_in,
 #else
            configuration,
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (ONNXRT_SUPPORT)
+           use_ONNX_b,
+#endif // ONNXRT_SUPPORT
            use_video_wall_b);
   timer.stop ();
 

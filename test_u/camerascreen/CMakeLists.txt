@@ -7,6 +7,9 @@ include (png)
 include (ffmpeg)
 include (ImageMagick)
 
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/scripts")
+include (onnxrt)
+
 if (UNIX)
  set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev/scripts")
  include (libcamera)
@@ -32,12 +35,19 @@ string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 if (GLUT_SUPPORT)
  include_directories (${GLUT_INCLUDE_DIRS})
 endif (GLUT_SUPPORT)
+
 if (FFMPEG_SUPPORT)
  include_directories (${ffmpeg_INCLUDE_DIRS})
 endif (FFMPEG_SUPPORT)
+
+if (ONNXRT_SUPPORT)
+ include_directories (${ONNXRT_INCLUDE_DIRS})
+endif (ONNXRT_SUPPORT)
+
 if (LIBCAMERA_SUPPORT)
  include_directories (${LIBCAMERA_INCLUDE_DIRS})
 endif (LIBCAMERA_SUPPORT)
+
 if (UNIX)
  include_directories (${PKG_V4L_INCLUDE_DIRS})
 
@@ -73,6 +83,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/ml)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis)
 
@@ -154,15 +165,23 @@ if (CURSES_SUPPORT)
   target_link_libraries (${EXECUTABLE} PUBLIC ncursesw)
  endif (UNIX)
 endif (CURSES_SUPPORT)
+
 if (GLUT_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${GLUT_LIBRARIES})
 endif (GLUT_SUPPORT)
+
 if (FFMPEG_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)
+
+if (ONNXRT_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${ONNXRT_LIBRARIES})
+endif (ONNXRT_SUPPORT)
+
 if (LIBCAMERA_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${LIBCAMERA_LIBRARIES})
 endif (LIBCAMERA_SUPPORT)
+
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_V4L_LIBRARIES})
@@ -201,6 +220,7 @@ endif (UNIX)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Device)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_MachineLearning)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_MediaFramework)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Miscellaneous)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Statistic)
@@ -256,6 +276,9 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
+ if (ONNXRT_SUPPORT)
+  file (TO_CMAKE_PATH "${ONNXRT_LIB_DIR}" ONNXRT_PATH)
+ endif (ONNXRT_SUPPORT)
  if (GTK_SUPPORT)
   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
  endif (GTK_SUPPORT)
@@ -272,6 +295,7 @@ elseif (WIN32)
                            ${IMAGEMAGICK_PATH}
                            ${ASSIMP_PATH}
                            ${LIBPNG_PATH}
+                           ${ONNXRT_PATH}
                            ${ACE_LIBRARY_PATH})
  if (GTK_SUPPORT)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}

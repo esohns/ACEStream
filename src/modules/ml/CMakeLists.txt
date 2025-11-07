@@ -1,5 +1,6 @@
 include (tensorflow)
 include (libtorch)
+include (onnxrt)
 include (llama)
 
 add_library (${PROJECT_NAME}_MachineLearning STATIC "")
@@ -19,14 +20,22 @@ if (TENSORFLOW_CC_SUPPORT)
  target_include_directories (${PROJECT_NAME}_MachineLearning PUBLIC
                              "$<BUILD_INTERFACE:${tensorflow_cc_INCLUDE_DIRS}>")
 endif (TENSORFLOW_CC_SUPPORT)
+
 if (LIBTORCH_SUPPORT)
  target_include_directories (${PROJECT_NAME}_MachineLearning PUBLIC
                              "$<BUILD_INTERFACE:${LIBTORCH_INCLUDE_DIRS}>")
 endif (LIBTORCH_SUPPORT)
+
+if (ONNXRT_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_MachineLearning PUBLIC
+                             $<BUILD_INTERFACE:${ONNXRT_INCLUDE_DIRS}>)
+endif (ONNXRT_SUPPORT)
+
 if (LLAMACPP_SUPPORT)
  target_include_directories (${PROJECT_NAME}_MachineLearning PUBLIC
                              "$<BUILD_INTERFACE:${LLAMACPP_INCLUDE_DIRS}>")
 endif (LLAMACPP_SUPPORT)
+
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_MachineLearning PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
@@ -53,6 +62,7 @@ set (source_files
      stream_module_ml_defines.h
      stream_module_ml_tools.cpp
      stream_module_ml_tools.h)
+
 if (TENSORFLOW_SUPPORT)
  set (source_files
       ${source_files}
@@ -60,6 +70,7 @@ if (TENSORFLOW_SUPPORT)
       stream_module_tensorflow.h
       stream_module_tensorflow.inl)
 endif (TENSORFLOW_SUPPORT)
+
 if (LIBTORCH_SUPPORT)
  set (source_files
       ${source_files}
@@ -67,6 +78,15 @@ if (LIBTORCH_SUPPORT)
       stream_module_libtorch.h
       stream_module_libtorch.inl)
 endif (LIBTORCH_SUPPORT)
+
+if (ONNXRT_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_module_onnxruntime.cpp
+      stream_module_onnxruntime.h
+      stream_module_onnxruntime.inl)
+endif (ONNXRT_SUPPORT)
+
 if (LLAMACPP_SUPPORT)
  set (source_files
       ${source_files}
@@ -74,9 +94,6 @@ if (LLAMACPP_SUPPORT)
       stream_module_llamacpp.h
       stream_module_llamacpp.inl)
 endif (LLAMACPP_SUPPORT)
-
-# Include dir for installed targets
-#set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
 unset (absolute_source_files)
 foreach (source_file ${source_files})
@@ -102,12 +119,19 @@ add_dependencies (${PROJECT_NAME}_MachineLearning ${PROJECT_NAME})
 #if (TENSORFLOW_SUPPORT)
 # target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC ${tensorflow_LIBRARIES})
 #endif (TENSORFLOW_SUPPORT)
+
 #if (LIBTORCH_SUPPORT)
 # target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC ${LIBTORCH_LIBRARIES})
 #endif (LIBTORCH_SUPPORT)
+
+#if (ONNXRT_SUPPORT)
+# target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC ${ONNXRT_LIBRARIES})
+#endif (ONNXRT_SUPPORT)
+
 #if (LLAMACPP_SUPPORT)
 # target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC ${LLAMACPP_LIBRARIES})
 #endif (LLAMACPP_SUPPORT)
+
 target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC Common)
 target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC ${PROJECT_NAME})
 
@@ -120,24 +144,35 @@ set (source_files
      stream_module_ml_common.h
      stream_module_ml_defines.h
      stream_module_ml_tools.h)
+
 if (TENSORFLOW_SUPPORT)
  set (source_files
       ${source_files}
       stream_module_tensorflow.h
       stream_module_tensorflow.inl)
 endif (TENSORFLOW_SUPPORT)
+
 if (LIBTORCH_SUPPORT)
  set (source_files
       ${source_files}
       stream_module_libtorch.h
       stream_module_libtorch.inl)
 endif (LIBTORCH_SUPPORT)
+
+if (ONNXRT_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_module_onnxruntime.h
+      stream_module_onnxruntime.inl)
+endif (ONNXRT_SUPPORT)
+
 if (LLAMACPP_SUPPORT)
  set (source_files
       ${source_files}
       stream_module_llamacpp.h
       stream_module_llamacpp.inl)
 endif (LLAMACPP_SUPPORT)
+
 install (FILES
          ${source_files}
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"

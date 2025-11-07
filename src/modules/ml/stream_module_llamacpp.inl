@@ -315,5 +315,4 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
   } // end WHILE
 
   return response;
-
 }
