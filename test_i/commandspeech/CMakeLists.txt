@@ -291,9 +291,14 @@ endif ()
 ##########################################
 
 #set (VOICE_DIRECTORY "$ENV{LIB_ROOT}/flite/voices")
-set (VOICE_DIRECTORY "$ENV{LIB_ROOT}/espeak-ng/espeak-ng-data")
+if (UNIX)
+ set (VOICE_DIRECTORY "/usr/share/espeak-ng-data")
+elseif (WIN32)
+ set (VOICE_DIRECTORY "$ENV{LIB_ROOT}/espeak-ng/espeak-ng-data")
+endif ()
 file (TO_NATIVE_PATH "${VOICE_DIRECTORY}" VOICE_DIRECTORY)
-set (VOICE "cmu_us_slt.flitevox")
+#set (VOICE "cmu_us_slt.flitevox")
+set (VOICE "")
 if (DEFINED CMAKE_BUILD_TYPE)
  if (${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR
      ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")

@@ -592,6 +592,17 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
+#if defined (ESPEAK_NG_SUPPORT)
+typedef Stream_Decoder_ESpeakNGDecoder_T<ACE_MT_SYNCH,
+                                         Common_TimePolicy_t,
+                                         struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration,
+                                         Stream_ControlMessage_t,
+                                         Test_I_Message,
+                                         Test_I_ALSA_SessionMessage_t,
+                                         Test_I_CommandSpeech_ALSA_SessionData_t,
+                                         struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_ESpeakNG;
+#endif // ESPEAK_NG_SUPPORT
+
 #if defined (FESTIVAL_SUPPORT)
 typedef Stream_Decoder_FestivalDecoder_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
@@ -602,6 +613,7 @@ typedef Stream_Decoder_FestivalDecoder_T<ACE_MT_SYNCH,
                                          Test_I_CommandSpeech_ALSA_SessionData_t,
                                          struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_Festival;
 #endif // FESTIVAL_SUPPORT
+
 #if defined (FLITE_SUPPORT)
 // typedef Stream_Decoder_FliteDecoder_T<ACE_MT_SYNCH,
 //                                       Common_TimePolicy_t,
@@ -1024,6 +1036,15 @@ DATASTREAM_MODULE_DUPLEX (Test_I_CommandSpeech_ALSA_SessionData,                
 
 //////////////////////////////////////////
 
+#if defined (ESPEAK_NG_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_ALSA_SessionData,                         // session data type
+                              enum Stream_SessionMessageType,                                // session event type
+                              struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration,   // module handler configuration type
+                              libacestream_default_dec_espeak_ng_decoder_module_name_string,
+                              Stream_INotify_t,                                              // stream notification interface type
+                              Test_I_ALSA_ESpeakNG);                                         // writer type
+#endif // ESPEAK_NG_SUPPORT
+
 #if defined (FESTIVAL_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_ALSA_SessionData,                        // session data type
                               enum Stream_SessionMessageType,                               // session event type
@@ -1032,6 +1053,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_ALSA_SessionData,            
                               Stream_INotify_t,                                             // stream notification interface type
                               Test_I_ALSA_Festival);                                        // writer type
 #endif // FESTIVAL_SUPPORT
+
 #if defined (FLITE_SUPPORT)
 // DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_ALSA_SessionData,                        // session data type
 //                               enum Stream_SessionMessageType,                               // session event type

@@ -1362,6 +1362,16 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
 
   switch (inherited::configuration_->configuration_->TTSBackend)
   {
+    case TTS_ESPEAK_NG:
+    {
+#if defined (ESPEAK_NG_SUPPORT)
+      ACE_NEW_RETURN (module_p,
+                      Test_I_ALSA_ESpeakNG_Module (this,
+                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_ESPEAK_NG_DECODER_DEFAULT_NAME_STRING)),
+                      false);
+#endif // ESPEAK_NG_SUPPORT
+      break;
+    }
     case TTS_FESTIVAL:
     {
 #if defined (FESTIVAL_SUPPORT)

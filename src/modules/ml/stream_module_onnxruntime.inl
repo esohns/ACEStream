@@ -26,12 +26,15 @@
 template <typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename MediaType>
 Stream_Module_ONNXRuntime_T<ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType>::Stream_Module_ONNXRuntime_T (typename inherited::ISTREAM_T* stream_in)
+                            SessionMessageType,
+                            MediaType>::Stream_Module_ONNXRuntime_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
+ , inherited2 ()
  , APIHandle_ (NULL)
  , env_ (NULL)
  , memory_info_ (NULL)
@@ -44,11 +47,13 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
 template <typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename MediaType>
 Stream_Module_ONNXRuntime_T<ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType>::~Stream_Module_ONNXRuntime_T ()
+                            SessionMessageType,
+                            MediaType>::~Stream_Module_ONNXRuntime_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_ONNXRuntime_T::~Stream_Module_ONNXRuntime_T"));
 
@@ -63,13 +68,15 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
 template <typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename MediaType>
 bool
 Stream_Module_ONNXRuntime_T<ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType>::initialize (const ConfigurationType& configuration_in,
-                                                             Stream_IAllocator* allocator_in)
+                            SessionMessageType,
+                            MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                    Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_ONNXRuntime_T::initialize"));
 
@@ -174,7 +181,11 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
 // APIHandle_->SessionOptionsAppendExecutionProvider_DML (session_options_p, NULL);
 
   status_p = APIHandle_->CreateSession (env_,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                                         ACE_TEXT_ALWAYS_WCHAR (configuration_in.model.c_str ()),
+#else
+                                        configuration_in.model.c_str (),
+#endif // ACE_WIN32 || ACE_WIN64
                                         session_options_p,
                                         &session_);
   if (unlikely (status_p || !session_))
@@ -232,13 +243,15 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
 template <typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename MediaType>
 void
 Stream_Module_ONNXRuntime_T<ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                    bool& passMessageDownstream_out)
+                            SessionMessageType,
+                            MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                           bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_ONNXRuntime_T::handleDataMessage"));
 
@@ -376,15 +389,109 @@ error:
 template <typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename MediaType>
 void
 Stream_Module_ONNXRuntime_T<ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType>::hwc_to_chw (const uint8_t* data_in,
-                                                             unsigned int height_in,
-                                                             unsigned int width_in,
-                                                             float*& data_out)
+                            SessionMessageType,
+                            MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                              bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_ONNXRuntime_T::handleSessionMessage"));
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  switch (message_inout->type ())
+  {
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+      const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        inherited::sessionData_->getR ();
+      ACE_ASSERT (!session_data_r.formats.empty ());
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
+                                media_type_s);
+      Common_Image_Resolution_t resolution_s;
+      Stream_MediaFramework_DirectShow_Tools::toResolution (resolution_s,
+                                                            media_type_s);
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+      if (resolution_s.cx != 720 || resolution_s.cy != 720)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid resolution (was: %dx%d), aborting\n"),
+                    inherited::mod_->name (),
+                    resolution_s.cx, resolution_s.cy));
+        goto error;
+      } // end IF
+#else
+      struct Stream_MediaFramework_V4L_MediaType media_type_s;
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
+                                media_type_s);
+      if (media_type_s.format.pixelformat != V4L2_PIX_FMT_BGR24)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid format (was: %d), aborting\n"),
+                    inherited::mod_->name (),
+                    media_type_s.format.pixelformat));
+        goto error;
+      } // end IF
+      if (media_type_s.format.width != 720 || media_type_s.format.height != 720)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid resolution (was: %ux%u), aborting\n"),
+                    inherited::mod_->name (),
+                    media_type_s.format.width, media_type_s.format.height));
+        goto error;
+      } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
+
+      break;
+
+error:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#endif // ACE_WIN32 || ACE_WIN64
+
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      break;
+    }
+//    case STREAM_SESSION_MESSAGE_RESIZE:
+//    {
+//      break;
+//    }
+    case STREAM_SESSION_MESSAGE_END:
+    {
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+}
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+void
+Stream_Module_ONNXRuntime_T<ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            MediaType>::hwc_to_chw (const uint8_t* data_in,
+                                                    unsigned int height_in,
+                                                    unsigned int width_in,
+                                                    float*& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_ONNXRuntime_T::hwc_to_chw"));
 
@@ -403,15 +510,17 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
 template <typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename MediaType>
 void
 Stream_Module_ONNXRuntime_T<ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType>::chw_to_hwc (const float* data_in,
-                                                             unsigned int height_in,
-                                                             unsigned int width_in,
-                                                             uint8_t* data_out)
+                            SessionMessageType,
+                            MediaType>::chw_to_hwc (const float* data_in,
+                                                    unsigned int height_in,
+                                                    unsigned int width_in,
+                                                    uint8_t* data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_ONNXRuntime_T::chw_to_hwc"));
 

@@ -63,9 +63,9 @@
 #include "stream_dev_mic_source_alsa.h"
 #include "stream_dev_target_alsa.h"
 
-#if defined (GTK_SUPPORT)
-//#include "stream_vis_gtk_cairo.h"
-#endif // GTK_SUPPORT
+#if defined (LIBPIPEWIRE_SUPPORT)
+#include "stream_dev_mic_source_pipewire.h"
+#endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_misc_asynch.h"
 #include "stream_misc_delay.h"
@@ -353,6 +353,25 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_SessionData,                  
                               libacestream_default_dev_mic_source_alsa_module_name_string,
                               Stream_INotify_t,                                     // stream notification interface type
                               Test_U_Dev_Mic_Source_ALSA);                          // writer type
+#if defined (LIBPIPEWIRE_SUPPORT)
+typedef Stream_Dev_Mic_Source_Pipewire_T<ACE_MT_SYNCH,
+                                         Stream_ControlMessage_t,
+                                         Test_U_Message,
+                                         Test_U_SessionMessage,
+                                         struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration,
+                                         enum Stream_ControlType,
+                                         enum Stream_SessionMessageType,
+                                         struct Test_U_MicVisualize_StreamState,
+                                         struct Test_U_MicVisualize_Statistic,
+                                         Test_U_SessionManager_t,
+                                         Common_Timer_Manager_t> Test_U_Dev_Mic_Source_Pipewire;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_SessionData,                                 // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration,      // module handler configuration type
+                              libacestream_default_dev_mic_source_pipewire_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_Dev_Mic_Source_Pipewire);                                 // writer type
+#endif // LIBPIPEWIRE_SUPPORT
 
 typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
                               Common_TimePolicy_t,

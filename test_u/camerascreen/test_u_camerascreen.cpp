@@ -1229,6 +1229,7 @@ do_work (int argc_in,
   struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
   struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration_2b; // resize
+  struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration_2c; // converter_2
   Stream_CameraScreen_EventHandler_t ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1622,9 +1623,30 @@ do_work (int argc_in,
     modulehandler_configuration_2b.outputFormat.format.height /=
       TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
   } // end IF
+
+  modulehandler_configuration_2c = modulehandler_configuration;
+#if defined (ONNXRT_SUPPORT)
+  if (useONNX_in)
+  {
+    modulehandler_configuration_2.outputFormat.format.pixelformat =
+      V4L2_PIX_FMT_BGR24;
+
+    modulehandler_configuration_2b.outputFormat.format.width = 720;
+    modulehandler_configuration_2b.outputFormat.format.height = 720;
+
+    modulehandler_configuration_2c.outputFormat.format.pixelformat =
+      V4L2_PIX_FMT_BGRA32;
+  } // end IF
+#endif // ONNXRT_SUPPORT
+
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2b)));
+
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_2c)));
+
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 

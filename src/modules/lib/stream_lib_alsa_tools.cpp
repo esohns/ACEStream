@@ -821,6 +821,7 @@ Stream_MediaFramework_ALSA_Tools::getDeviceName (int cardIndex_in,
   char* string_p = NULL;
   std::string hint_string, device_type;
   std::string::size_type position_i = std::string::npos;
+  std::vector<std::string>::iterator iterator;
   for (void** i = hints_p; *i; ++i)
   {
     string_p = NULL;
@@ -859,8 +860,21 @@ continue_:
     position_i = device_type.find (':', 0);
     if (position_i != std::string::npos)
       device_type = device_type.substr (0, position_i);
-    if (!ACE_OS::strcmp (device_type.c_str (),
-                         ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_SYSDEFAULT_DEVICE_PREFIX)))
+    static std::vector<std::string> default_device_prefixes_a =
+    {
+      ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_SYSDEFAULT_DEVICE_PREFIX),
+      ACE_TEXT_ALWAYS_CHAR ("front"),
+      ACE_TEXT_ALWAYS_CHAR ("surround21"),
+      ACE_TEXT_ALWAYS_CHAR ("surround40"),
+      ACE_TEXT_ALWAYS_CHAR ("surround41"),
+      ACE_TEXT_ALWAYS_CHAR ("surround50"),
+      ACE_TEXT_ALWAYS_CHAR ("surround51"),
+      ACE_TEXT_ALWAYS_CHAR ("surround71")
+    };
+    iterator =
+      std::find (default_device_prefixes_a.begin (), default_device_prefixes_a.end (),
+                 device_type);
+    if (iterator != default_device_prefixes_a.end ())
       continue;
     result_string = hint_string;
 

@@ -262,11 +262,15 @@ class Stream_CameraScreen_Stream
   Stream_CameraScreen_V4L_Source_Module      source_;
   Stream_CameraScreen_StatisticReport_Module statisticReport_;
 #if defined (FFMPEG_SUPPORT)
-  Stream_CameraScreen_LibAVConvert_Module    convert_; // --> BGRA (Xlib)
+  Stream_CameraScreen_LibAVConvert_Module    convert_; // --> BGR (ONNX)
+  Stream_CameraScreen_LibAVConvert_Module    convert_2; // --> BGRA (Xlib)
   Stream_CameraScreen_LibAVDecode_Module     decode_; // --> RGB
   Stream_CameraScreen_LibAVResize_Module     resize_; // --> window size/fullscreen
 #endif // FFMPEG_SUPPORT
   Test_U_CameraScreen_VideoWall_Module       videoWall_;
+#if defined (ONNXRT_SUPPORT)
+  Stream_CameraScreen_ONNXRuntime_Module     ONNXRuntime_;
+#endif // ONNXRT_SUPPORT
 #if defined (CURSES_SUPPORT)
   Test_U_CameraScreen_Curses_Window_Module   CursesDisplay_;
 #endif // CURSES_SUPPORT

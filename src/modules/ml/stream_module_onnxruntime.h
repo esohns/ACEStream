@@ -31,13 +31,17 @@
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_lib_mediatype_converter.h"
+
 extern const char libacestream_default_ml_onnxruntime_module_name_string[];
 
 template <typename ConfigurationType,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename MediaType> // session data-
 class Stream_Module_ONNXRuntime_T
  : public Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                  Common_TimePolicy_t,
@@ -48,6 +52,7 @@ class Stream_Module_ONNXRuntime_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
   typedef Stream_TaskBaseSynch_T<ACE_MT_SYNCH,
                                  Common_TimePolicy_t,
@@ -58,6 +63,7 @@ class Stream_Module_ONNXRuntime_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   Stream_Module_ONNXRuntime_T (typename inherited::ISTREAM_T*); // stream handle
@@ -70,8 +76,8 @@ class Stream_Module_ONNXRuntime_T
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
                                   bool&);            // return value: pass message downstream ?
-  inline virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                            bool&) {}             // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
 
  protected:
   OrtApi*        APIHandle_;

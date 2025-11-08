@@ -108,7 +108,9 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (inherited::configuration_->configuration_);
 
   layout_in->append (&source_, NULL, 0);
+
   //layout_in->append (&statisticReport_, NULL, 0);
+
   if (inherited::configuration_->configuration_->useONNX)
   {
     layout_in->append (&convert_, NULL, 0); // output is 8-bit BGR
@@ -1239,6 +1241,8 @@ Stream_CameraScreen_Stream::Stream_CameraScreen_Stream ()
 #if defined (FFMPEG_SUPPORT)
  , convert_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
+ , convert_2 (this,
+              ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
  , decode_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
  , resize_ (this,
@@ -1246,6 +1250,10 @@ Stream_CameraScreen_Stream::Stream_CameraScreen_Stream ()
 #endif // FFMPEG_SUPPORT
  , videoWall_ (this,
                ACE_TEXT_ALWAYS_CHAR ("VideoWall"))
+#if defined (ONNXRT_SUPPORT)
+ , ONNXRuntime_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (MODULE_ML_ONNXRUNTIME_DEFAULT_NAME_STRING))
+#endif // ONNXRT_SUPPORT
 #if defined (CURSES_SUPPORT)
  , CursesDisplay_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CURSES_WINDOW_DEFAULT_NAME_STRING))
@@ -1298,11 +1306,17 @@ Stream_CameraScreen_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (&convert_, NULL, 0);
   if (inherited::configuration_->configuration_->renderer == STREAM_VISUALIZATION_VIDEORENDERER_CURSES ||
       inherited::configuration_->configuration_->fullscreen                                            ||
+      inherited::configuration_->configuration_->useONNX                                               ||
       inherited::configuration_->configuration_->useVideoWall)
     layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 #endif // FFMPEG_SUPPORT
 
-  if (inherited::configuration_->configuration_->useVideoWall)
+  if (inherited::configuration_->configuration_->useONNX)
+  {
+    layout_in->append (&ONNXRuntime_, NULL, 0);
+    layout_in->append (&convert_2, NULL, 0); // --> BGRA32
+  } // end iF
+  else if (inherited::configuration_->configuration_->useVideoWall)
     layout_in->append (&videoWall_, NULL, 0);
 
   switch (inherited::configuration_->configuration_->renderer)
