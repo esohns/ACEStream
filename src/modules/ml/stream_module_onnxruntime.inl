@@ -419,10 +419,16 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
-      Common_Image_Resolution_t resolution_s;
-      Stream_MediaFramework_DirectShow_Tools::toResolution (resolution_s,
-                                                            media_type_s);
-      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+      if (!InlineIsEqualGUID (media_type_s.subtype, MEDIASUBTYPE_RGB24))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid format (was: \"%s\"), aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ())));
+        goto error;
+      } // end IF
+      Common_Image_Resolution_t resolution_s =
+        Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
       if (resolution_s.cx != 720 || resolution_s.cy != 720)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -431,6 +437,7 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
                     resolution_s.cx, resolution_s.cy));
         goto error;
       } // end IF
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
       struct Stream_MediaFramework_V4L_MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),

@@ -165,7 +165,8 @@ typedef Stream_Visualization_LibAVResize_T<Test_U_DirectShow_TaskBaseSynch_t,
 typedef Stream_Module_ONNXRuntime_T<struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
                                     Stream_ControlMessage_t,
                                     Stream_CameraScreen_DirectShow_Message_t,
-                                    Stream_CameraScreen_DirectShow_SessionMessage_t> Stream_CameraScreen_DirectShow_ONNXRuntime;
+                                    Stream_CameraScreen_DirectShow_SessionMessage_t,
+                                    struct _AMMediaType> Stream_CameraScreen_DirectShow_ONNXRuntime;
 #endif // ONNXRT_SUPPORT
 
 #else
