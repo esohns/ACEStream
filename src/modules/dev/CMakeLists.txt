@@ -235,6 +235,7 @@ elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC Vfw32.lib)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC winmm.lib)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC Wmcodecdspuuid.lib)
+ target_link_libraries (${PROJECT_NAME}_Device PUBLIC Xaudio2.lib)
 
  if (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
   target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${DS_BASECLASSES_LIBRARIES})
