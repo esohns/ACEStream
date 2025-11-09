@@ -18,10 +18,10 @@ index 64c6b1c6..7616f470 100644
  1 file changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/test_i/CMakeLists.txt b/test_i/CMakeLists.txt
-index 86a13ba4..ce9e20de 100644
+index e18542d1..de820dda 100644
 --- a/test_i/CMakeLists.txt
 +++ b/test_i/CMakeLists.txt
-@@ -299,12 +299,12 @@ if (BUILD_TEST_I)
+@@ -300,12 +300,12 @@ if (BUILD_TEST_I)
   add_subdirectory (speechcommand)
  # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
  #                   interdependencies
@@ -39,8 +39,8 @@ index 86a13ba4..ce9e20de 100644
 +# add_subdirectory (smtp_send)
  # *IMPORTANT NOTE* /END
  
-  add_dependencies (test_i avsave camera_ar camera_ml camera_msa commandspeech extract_stream imagesave mp3player speechcommand)
-@@ -317,10 +317,10 @@ if (BUILD_TEST_I)
+  add_dependencies (test_i avsave camera_ar camera_ml camera_msa chat_bot commandspeech extract_stream imagesave mp3player speechcommand)
+@@ -318,10 +318,10 @@ if (BUILD_TEST_I)
  
  # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
  #                   interdependencies
@@ -59,10 +59,10 @@ index 86a13ba4..ce9e20de 100644
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/test_u/CMakeLists.txt b/test_u/CMakeLists.txt
-index 857a779a..2249c0fa 100644
+index d59ce898..c739056d 100644
 --- a/test_u/CMakeLists.txt
 +++ b/test_u/CMakeLists.txt
-@@ -316,7 +316,7 @@ if (BUILD_TEST_U)
+@@ -313,7 +313,7 @@ if (BUILD_TEST_U)
   add_subdirectory (filecopy)
  # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
  #                   interdependencies
@@ -71,7 +71,7 @@ index 857a779a..2249c0fa 100644
  # *IMPORTANT NOTE* /END
   add_subdirectory (imagescreen)
   add_subdirectory (mic_visualize)
-@@ -329,7 +329,7 @@ if (BUILD_TEST_U)
+@@ -326,7 +326,7 @@ if (BUILD_TEST_U)
   add_dependencies (test_u animated_gif audioeffect branch camera_filter camerascreen camsave capturewindow document filecopy imagescreen mic_visualize mp4_player parser QR_decode RIFF_decoder tree)
  # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
  #                   interdependencies
