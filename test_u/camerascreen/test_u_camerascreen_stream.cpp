@@ -115,7 +115,9 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
   {
     layout_in->append (&convert_, NULL, 0); // output is 8-bit BGR
     layout_in->append (&resize_, NULL, 0); // output is ONNX model input tensor size
+#if defined (ONNXRT_SUPPORT)
     layout_in->append (&ONNXRuntime_, NULL, 0);
+#endif // ONNXRT_SUPPORT
   } // end IF
   else if (inherited::configuration_->configuration_->useVideoWall)
   {
@@ -1313,7 +1315,9 @@ Stream_CameraScreen_Stream::load (Stream_ILayout* layout_in,
 
   if (inherited::configuration_->configuration_->useONNX)
   {
+#if defined (ONNXRT_SUPPORT)
     layout_in->append (&ONNXRuntime_, NULL, 0);
+#endif // ONNXRT_SUPPORT
     layout_in->append (&convert_2, NULL, 0); // --> BGRA32
   } // end iF
   else if (inherited::configuration_->configuration_->useVideoWall)
