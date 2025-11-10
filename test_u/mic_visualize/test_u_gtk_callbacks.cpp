@@ -9677,8 +9677,8 @@ button_quit_clicked_cb (GtkButton* button_in,
 
   // step3: initiate shutdown sequence (see idle_finalize_UI_cb() above)
   //        *NOTE*: the final gtk_main_quit() is called there
-  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
-                                                      true); // high priority ?
+  // COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
+  //                                                     true); // high priority ?
 
   // step4: invoke signal handler
   int result = ACE_OS::raise (SIGINT);

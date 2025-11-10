@@ -1938,6 +1938,7 @@ do_work (int argc_in,
 
     // initialize GLUT
     glutInit (&argc_in, argv_in);
+    glutSetOption (GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
     glutInitDisplayMode (GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH);
     glutInitWindowSize (TEST_U_GLUT_DEFAULT_WIDTH, TEST_U_GLUT_DEFAULT_HEIGHT);
 

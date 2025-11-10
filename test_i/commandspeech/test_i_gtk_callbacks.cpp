@@ -4166,6 +4166,12 @@ textview_key_press_event_cb (GtkWidget* widget_in,
       Test_I_DirectShow_Stream* stream_p =
         dynamic_cast<Test_I_DirectShow_Stream*> (directshow_ui_cb_data_p->stream);
       ACE_ASSERT (stream_p);
+
+      Test_I_DirectShow_Message* message_p =
+        static_cast<Test_I_DirectShow_Message*> (message_block_p);
+      message_p->initialize (stream_p->sessionId (),
+                             NULL);
+
       result = stream_p->put (message_block_p, NULL);
       break;
     }
@@ -4176,6 +4182,12 @@ textview_key_press_event_cb (GtkWidget* widget_in,
       Test_I_MediaFoundation_Stream* stream_p =
         dynamic_cast<Test_I_MediaFoundation_Stream*> (mediafoundation_ui_cb_data_p->stream);
       ACE_ASSERT (stream_p);
+
+      Test_I_MediaFoundation_Message* message_p =
+        static_cast<Test_I_MediaFoundation_Message*> (message_block_p);
+      message_p->initialize (stream_p->sessionId (),
+                             NULL);
+
       result = stream_p->put (message_block_p, NULL);
       break;
     }
@@ -4193,6 +4205,12 @@ textview_key_press_event_cb (GtkWidget* widget_in,
   Test_I_ALSA_Stream* stream_p =
     dynamic_cast<Test_I_ALSA_Stream*> (ui_cb_data_p->stream);
   ACE_ASSERT (stream_p);
+
+  Test_I_Message* message_p =
+    static_cast<Test_I_Message*> (message_block_p);
+  message_p->initialize (stream_p->sessionId (),
+                         NULL);
+
   result = stream_p->put (message_block_p, NULL);
 #endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (result == -1))

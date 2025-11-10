@@ -67,10 +67,12 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   if (unlikely (!parameters_.use_gpu))
     parameters2_.n_threads = Common_Tools::getNumberOfCPUs (true);
   // *NOTE*: (hopefully) reduces repetitions
-  parameters2_.n_max_text_ctx = 64;
+  parameters2_.n_max_text_ctx =
+    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_MAX_TOKEN_CONTEXT;
 
   //parameters2_.translate = false;
-  parameters2_.no_context = false;
+  parameters2_.no_context =
+    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_NO_CONTEXT;
   parameters2_.no_timestamps = true;
   //parameters2_.print_special = false;
   parameters2_.print_progress = false;
@@ -94,19 +96,19 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
 
   //parameters2_.temperature_inc = -1.0f;
   // *NOTE*: (hopefully) reduces repetitions
-  parameters2_.entropy_thold = 2.8f; // default: 2.4f
+  parameters2_.entropy_thold =
+    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_ENTROPY_THRESHOLD_F; // default: 2.4f
   //parameters2_.logprob_thold = -1.0f; // default: -1.0f
   //parameters2_.no_speech_thold = 0.6f; // default: 0.55f
 
   //parameters2_.greedy.best_of = 5;
   //parameters2_.beam_search.beam_size = 5;
 
-//#define WHISPERCPP_VAD_SUPPORT
-#if defined (WHISPERCPP_VAD_SUPPORT)
+#if (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SUPPORT_VAD)
   parameters2_.vad = true;
   parameters2_.vad_model_path = ACE_TEXT_ALWAYS_CHAR ("E:\\models\\ggml-silero-v5.1.2.bin");
   parameters2_.vad_params = whisper_vad_default_params ();
-#endif // WHISPERCPP_VAD_SUPPORT
+#endif // STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SUPPORT_VAD
 }
 
 template <ACE_SYNCH_DECL,
