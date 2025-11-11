@@ -1318,7 +1318,7 @@ Stream_CameraScreen_Stream::load (Stream_ILayout* layout_in,
 #if defined (ONNXRT_SUPPORT)
     layout_in->append (&ONNXRuntime_, NULL, 0);
 #endif // ONNXRT_SUPPORT
-    layout_in->append (&convert_2, NULL, 0); // --> BGRA32
+    layout_in->append (&convert_2, NULL, 0); // --> renderer
   } // end iF
   else if (inherited::configuration_->configuration_->useVideoWall)
     layout_in->append (&videoWall_, NULL, 0);

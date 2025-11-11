@@ -53,24 +53,47 @@ acestream_dev_cam_pw_on_stream_param_changed_cb (void* userData_in,
                 parameters_in));
     return;
   } // end IF
-  /* only accept raw video */
-  if (unlikely (cb_data_p->videoFormat.media_type != SPA_MEDIA_TYPE_video ||
-                cb_data_p->videoFormat.media_subtype != SPA_MEDIA_SUBTYPE_raw))
+  /* only accept video */
+  if (unlikely (cb_data_p->videoFormat.media_type != SPA_MEDIA_TYPE_video))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid media (sub-)type (was: %u|%u), returning\n"),
-                cb_data_p->videoFormat.media_type,
-                cb_data_p->videoFormat.media_subtype));
+                ACE_TEXT ("invalid media type (was: %u), returning\n"),
+                cb_data_p->videoFormat.media_type));
     return;
   } // end IF
-  result = spa_format_video_raw_parse (parameters_in,
-                                       &cb_data_p->videoFormat.info.raw);
-  ACE_ASSERT (result >= 0);
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("capturing format %d (%s), @ %dx%d, @ %d/%d fps\n"),
-              cb_data_p->videoFormat.info.raw.format, ACE_TEXT (spa_debug_type_find_name (spa_type_video_format, cb_data_p->videoFormat.info.raw.format)),
-              cb_data_p->videoFormat.info.raw.size.width, cb_data_p->videoFormat.info.raw.size.height,
-              cb_data_p->videoFormat.info.raw.framerate.num, cb_data_p->videoFormat.info.raw.framerate.denom));
+  switch (cb_data_p->videoFormat.media_subtype)
+  {
+    case SPA_MEDIA_SUBTYPE_raw:
+    {
+      result = spa_format_video_raw_parse (parameters_in,
+                                           &cb_data_p->videoFormat.info.raw);
+      ACE_ASSERT (result >= 0);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("capturing raw format %d (%s), @ %dx%d, @ %d/%d fps\n"),
+                  cb_data_p->videoFormat.info.raw.format, ACE_TEXT (spa_debug_type_find_name (spa_type_video_format, cb_data_p->videoFormat.info.raw.format)),
+                  cb_data_p->videoFormat.info.raw.size.width, cb_data_p->videoFormat.info.raw.size.height,
+                  cb_data_p->videoFormat.info.raw.framerate.num, cb_data_p->videoFormat.info.raw.framerate.denom));
+      break;
+    }
+    case SPA_MEDIA_SUBTYPE_mjpg:
+    {
+      result = spa_format_video_mjpg_parse (parameters_in,
+                                            &cb_data_p->videoFormat.info.mjpg);
+      ACE_ASSERT (result >= 0);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("capturing mjpeg format @ %dx%d, @ %d/%d fps\n"),
+                  cb_data_p->videoFormat.info.mjpg.size.width, cb_data_p->videoFormat.info.mjpg.size.height,
+                  cb_data_p->videoFormat.info.mjpg.framerate.num, cb_data_p->videoFormat.info.mjpg.framerate.denom));
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media subtype (was: %u), returning\n"),
+                  cb_data_p->videoFormat.media_subtype));
+      return;
+    }
+  } // end SWITCH
 }
 
 void

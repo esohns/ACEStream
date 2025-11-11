@@ -115,34 +115,26 @@ do_print_usage (const std::string& programName_in)
 #if defined (CURSES_SUPPORT)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-c          : use curses [")
             << false
-            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif // CURSES_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-1          : use GDI renderer [")
             << false
-            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-2          : use Direct2D renderer [")
             << false
-            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-9          : use Direct3D 9 renderer [")
             << true
-            << ACE_TEXT_ALWAYS_CHAR ("])")
-            << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : use Direct3D 11 renderer [")
-            << false
-            << ACE_TEXT_ALWAYS_CHAR ("])")
-            << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : use Direct3D 12 renderer [")
-            << false
-            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #else
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-1          : use X11 renderer [")
             << true
-            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Stream_Device_Identifier device_identifier;
@@ -197,7 +189,7 @@ do_print_usage (const std::string& programName_in)
 #if defined (GTK_SUPPORT)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-k          : use Gtk [")
             << false
-            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif // GTK_SUPPORT
   std::string path = Common_File_Tools::getTempDirectory ();
@@ -226,7 +218,21 @@ do_print_usage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-w          : use Direct3D 11 renderer [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : use Direct3D 12 renderer [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
 #else
+#if defined (WAYLAND_SUPPORT)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-w          : use Wayland renderer [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+#endif // WAYLAND_SUPPORT
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : test device for method support and exit [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -318,14 +324,16 @@ do_process_arguments (int argc_in,
 #endif // ONNXRT_SUPPORT
   useVideoWall_out = false;
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:f:glo:tvz");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:f:glo:tvxz1");
 #if defined (CURSES_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("c");
 #endif // CURSES_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  options_string += ACE_TEXT_ALWAYS_CHAR ("129mwx");
+  options_string += ACE_TEXT_ALWAYS_CHAR ("29mw");
 #else
-  options_string += ACE_TEXT_ALWAYS_CHAR ("1x");
+#if defined (WAYLAND_SUPPORT)
+  options_string += ACE_TEXT_ALWAYS_CHAR ("w");
+#endif // WAYLAND_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("k");
@@ -447,6 +455,13 @@ do_process_arguments (int argc_in,
         break;
       }
 #else
+#if defined (WAYLAND_SUPPORT)
+      case 'w':
+      {
+        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND;
+        break;
+      }
+#endif // WAYLAND_SUPPORT
       case 'x':
       {
         mode_out = STREAM_CAMERASCREEN_PROGRAMMODE_TEST_METHODS;
@@ -1230,6 +1245,7 @@ do_work (int argc_in,
   struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
   struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration_2b; // resize
   struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration_2c; // converter_2
+  struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration_3; // display
   Stream_CameraScreen_EventHandler_t ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1433,6 +1449,9 @@ do_work (int argc_in,
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
                                                    stream_configuration);
+  configuration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (renderer_in),
+                                                               std::make_pair (&module_configuration,
+                                                               &modulehandler_configuration_3)));
 
   if (!heap_allocator.initialize (allocator_configuration))
   {
@@ -1597,11 +1616,17 @@ do_work (int argc_in,
       //                   on little-endian platforms) --> convert
       modulehandler_configuration_2.outputFormat.format.pixelformat =
         V4L2_PIX_FMT_BGRA32;
+
+      modulehandler_configuration_2c.outputFormat.format.pixelformat =
+        V4L2_PIX_FMT_BGRA32;
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
     {
       modulehandler_configuration_2.outputFormat.format.pixelformat =
+        V4L2_PIX_FMT_RGBA32;
+
+      modulehandler_configuration_2c.outputFormat.format.pixelformat =
         V4L2_PIX_FMT_RGBA32;
       break;
     }
@@ -1615,7 +1640,7 @@ do_work (int argc_in,
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
 
-  modulehandler_configuration_2b = modulehandler_configuration;
+  modulehandler_configuration_2b = modulehandler_configuration_2;
   if (useVideoWall_in)
   {
     modulehandler_configuration_2b.outputFormat.format.width /=
@@ -1624,7 +1649,8 @@ do_work (int argc_in,
       TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
   } // end IF
 
-  modulehandler_configuration_2c = modulehandler_configuration;
+  modulehandler_configuration_2c = modulehandler_configuration_2;
+  modulehandler_configuration_3 = modulehandler_configuration_2;
 #if defined (ONNXRT_SUPPORT)
   if (useONNX_in)
   {
@@ -1634,8 +1660,8 @@ do_work (int argc_in,
     modulehandler_configuration_2b.outputFormat.format.width = 720;
     modulehandler_configuration_2b.outputFormat.format.height = 720;
 
-    modulehandler_configuration_2c.outputFormat.format.pixelformat =
-      V4L2_PIX_FMT_BGRA32;
+    modulehandler_configuration_3.outputFormat =
+      modulehandler_configuration_2b.outputFormat;
   } // end IF
 #endif // ONNXRT_SUPPORT
 

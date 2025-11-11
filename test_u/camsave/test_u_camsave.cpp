@@ -1312,14 +1312,14 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   Stream_IStreamControlBase* stream_p = NULL;
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-    Common_UI_GTK_State_t& state_r =
-        const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-    //CBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-    //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-    state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-      std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+  //CBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+  //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
+  state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+    std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 #endif // GTK_USE
 
   // ********************** module configuration data **************************
@@ -1328,7 +1328,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #else
   struct Stream_AllocatorConfiguration allocator_configuration;
 #endif // FFMPEG_SUPPORT
-  allocator_configuration.defaultBufferSize = 1228800; // 640x480x4
 
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
@@ -1463,9 +1462,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator;
-  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator_2;
-
   if (capturer_in == STREAM_DEVICE_CAPTURER_LIBCAMERA)
   {
 #if defined (LIBCAMERA_SUPPORT)
@@ -1522,6 +1518,8 @@ error:
                                                   v4l_modulehandler_configuration.outputFormat);
     v4l_modulehandler_configuration.outputFormat.format.pixelformat =
       V4L2_PIX_FMT_RGB32;
+    allocator_configuration.defaultBufferSize =
+      v4l_modulehandler_configuration.outputFormat.format.sizeimage;
     if (statisticReportingInterval_in)
     {
       v4l_modulehandler_configuration.statisticCollectionInterval.set (0,
@@ -1882,9 +1880,6 @@ error:
                                                                          std::make_pair (&module_configuration,
                                                                                          &libcamera_converter_2_modulehandler_configuration)));
 #endif // LIBCAMERA_SUPPORT
-  v4l_stream_iterator =
-    configuration_in.v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (v4l_stream_iterator != configuration_in.v4l_streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2212,7 +2207,8 @@ error:
   // step3: clean up
 clean:
 #if defined (GTK_USE)
-  gtk_manager_p->stop (true, true);
+  gtk_manager_p->stop (true,
+                       true);
 #endif // GTK_USE
   timer_manager_p->stop ();
 

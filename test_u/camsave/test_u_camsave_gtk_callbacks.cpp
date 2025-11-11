@@ -2029,12 +2029,12 @@ update_buffer_size (struct Stream_CamSave_UI_CBData* CBData_in)
   else
   {
     frame_size_i =
-        Stream_MediaFramework_Tools::frameSize ((*iterator_2).second.second->deviceIdentifier.identifier,
-                                                ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format);
+      Stream_MediaFramework_Tools::frameSize ((*iterator_2).second.second->deviceIdentifier.identifier,
+                                              ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format);
     ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format.sizeimage =
-        frame_size_i;
+      frame_size_i;
     (*iterator_2).second.second->allocatorConfiguration->defaultBufferSize =
-        frame_size_i;
+      frame_size_i;
   } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
 //  gtk_spin_button_set_value (spin_button_p,
