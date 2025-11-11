@@ -104,19 +104,32 @@ Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
                                  DataMessageType,
                                  SessionMessageType,
                                  SessionDataContainerType,
-                                 MediaType>::frame (cv::Mat& frame_inout,
-                                                    const cv::Mat& boundingBox_in)
+                                 MediaType>::drawFrame (cv::Mat& frame_inout,
+                                                        const std::vector<cv::Point>& boundingBox_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVQRDecoder_T::frame"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVQRDecoder_T::drawFrame"));
 
-  for (int i = 0; i < boundingBox_in.rows; i++)
-    cv::line (frame_inout,
-              cv::Point2i (boundingBox_in.at<int> (i, 0),
-                           boundingBox_in.at<int> (i, 1)),
-              cv::Point2i (boundingBox_in.at<int> ((i + 1) % boundingBox_in.rows, 0),
-                           boundingBox_in.at<int> ((i + 1) % boundingBox_in.rows, 1)),
-              cv::Scalar (255, 0, 0),
-              3);
+  double show_radius_d =
+    (frame_inout.rows > frame_inout.cols) ? (2.813 * frame_inout.rows) / frame_inout.cols
+                                          : (2.813 * frame_inout.cols) / frame_inout.rows;
+  double contour_radius_d = show_radius_d * 0.4;
+  std::vector<std::vector<cv::Point> > contours_a;
+  static cv::RNG rng (1000);
+
+  for (size_t i = 0; i < boundingBox_in.size (); i += 4)
+  {
+    std::vector<cv::Point> contour_a (boundingBox_in.begin () + i,
+                                      boundingBox_in.begin () + i + 4);
+    contours_a.clear ();
+    contours_a.push_back (contour_a);
+    cv::drawContours (frame_inout, contours_a, 0, cv::Scalar (211, 0, 148),
+                      cvRound (contour_radius_d), cv::LINE_8, cv::noArray (), INT_MAX, cv::Point ());
+  
+    cv::Scalar color (rng.uniform (0, 255), rng.uniform (0, 255),
+                      rng.uniform (0, 255));
+    for (size_t i = 0; i < 4; i++)
+      cv::circle (frame_inout, contour_a[i], cvRound (show_radius_d), color, -1);
+  } // end FOR
 }
 
 template <ACE_SYNCH_DECL,
@@ -152,18 +165,13 @@ Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
                         message_inout->rd_ptr (),
                         cv::Mat::AUTO_STEP);
 
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  // step1: convert to BGR
-//  cv::Mat frame_BGR;
-//  cv::cvtColor (frame_matrix, frame_BGR, cv::COLOR_RGB2BGR);
-//  frame_matrix = frame_BGR;
-//#endif // ACE_WIN32 || ACE_WIN64
-
-  // step2: detect QR code(s)
-  cv::Mat bbox, rectified_image;
+  // step1: detect QR code(s)
+  //cv::Mat rectified_image;
+  std::vector<cv::Point> bbox_a;
   std::string data = detector_.detectAndDecode (frame_matrix,
-                                                bbox,
-                                                rectified_image);
+                                                bbox_a,
+                                                //rectified_image
+                                                cv::noArray ());
   if (data.size () > 0)
   {
     ACE_DEBUG ((LM_INFO,
@@ -171,11 +179,14 @@ Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
                 inherited::mod_->name (),
                 ACE_TEXT (data.c_str ())));
 
-    frame (frame_matrix, bbox);
-    //rectified_image.convertTo (rectified_image, CV_8UC3);
-    //cv::imshow ("Rectified QRCode", rectified_image);
+    drawFrame (frame_matrix, bbox_a);
+    
+    //cv::resize (rectified_image, rectified_image, cv::Size (320, 320), 0.0, 0.0, cv::INTER_NEAREST);
+    //cv::imshow (ACE_TEXT_ALWAYS_CHAR ("rectified QRCode"),
+    //            rectified_image);
   } // end IF
 
+  // step2: display
   cv::imshow (ACE_TEXT_ALWAYS_CHAR ("ACEStream OpenCV display"),
               frame_matrix);
   int key_i = cv::waitKey (1);

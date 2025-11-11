@@ -21,6 +21,8 @@
 #ifndef STREAM_DEC_OPENCV_QR_DECODER_T_H
 #define STREAM_DEC_OPENCV_QR_DECODER_T_H
 
+#include <vector>
+
 #include "opencv2/objdetect.hpp"
 
 #include "ace/Global_Macros.h"
@@ -92,12 +94,12 @@ class Stream_Decoder_OpenCVQRDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_OpenCVQRDecoder_T& operator= (const Stream_Decoder_OpenCVQRDecoder_T&))
 
   // helper methods
-  void frame (cv::Mat&,        // image frame
-              const cv::Mat&); // bounding box
+  void drawFrame (cv::Mat&,                       // image frame
+                  const std::vector<cv::Point>&); // bounding box
 
   cv::QRCodeDetector        detector_;
-  int                       format_; // OpenCV-
-  Common_Image_Resolution_t resolution_;
+  int                       format_;     // OpenCV-
+  Common_Image_Resolution_t resolution_; // input-
 };
 
 // include template definition
