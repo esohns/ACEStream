@@ -30,6 +30,7 @@ if (UNIX)
 endif (UNIX)
 
 add_library (${PROJECT_NAME}_Test_U STATIC "")
+set_property (TARGET ${PROJECT_NAME}_Test_U PROPERTY FOLDER "test_u")
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
@@ -301,6 +302,8 @@ install (TARGETS ${PROJECT_NAME}_Test_U
 # phonies
 add_custom_target (test_u ALL
                    COMMENT "building test_u...")
+set_property (TARGET test_u PROPERTY FOLDER "test_u")
+
 if (BUILD_TEST_U)
  add_subdirectory (animated_gif)
  add_subdirectory (audioeffect)
