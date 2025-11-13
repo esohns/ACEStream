@@ -50,7 +50,8 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
  , buffer_ (NULL)
  , configuration_ ()
  , context_ (NULL)
- , channels_ (9)
+ , isFirst_ (true)
+ , channels_ (0)
  , sampleRate_ (0)
  , sampleSize_ (0)
 {
@@ -112,6 +113,7 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
     {
       NeAACDecClose (context_); context_ = NULL;
     } // end IF
+    isFirst_ = true;
   } // end IF
   else
   {
@@ -176,9 +178,8 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
   long result_2 = -1;
   unsigned char result_3 = 0;
 
-  static bool is_first = true;
 reinitialize:
-  if (unlikely (is_first))
+  if (unlikely (isFirst_))
   {
     unsigned long sample_rate = 0;
     unsigned char channels = 0;
@@ -212,8 +213,11 @@ reinitialize:
     //            configuration_p->defObjectType,
     //            configuration_p->outputFormat,
     //            configuration_p->downMatrix));
+    sampleRate_ = sample_rate;
+    configuration_.defSampleRate = sampleRate_;
+    channels_ = channels;
 
-    is_first = false;
+    isFirst_ = false;
   } // end IF
 
   while (message_block_p)
@@ -271,7 +275,7 @@ reinitialize:
           goto error;
         } // end IF
 
-        is_first = true;
+        isFirst_ = true;
         goto reinitialize;
       } // end IF
 

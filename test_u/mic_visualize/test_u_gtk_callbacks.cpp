@@ -47,9 +47,9 @@ extern "C"
 }
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (LIBNOISE_SUPPORT)
-#include "noise/noise.h"
-#endif // LIBNOISE_SUPPORT
+//#if defined (LIBNOISE_SUPPORT)
+//#include "noise/noise.h"
+//#endif // LIBNOISE_SUPPORT
 
 #include "gdk/gdk.h"
 #include "gtk/gtk.h"
@@ -972,14 +972,14 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
     return false;
   } // end IF
   struct _AMMediaType* media_type_p = NULL;
-  struct _AUDIO_STREAM_CONFIG_CAPS capabilities;
+  struct _AUDIO_STREAM_CONFIG_CAPS capabilities_s;
   struct tagWAVEFORMATEX* waveformatex_p = NULL;
   for (int i = 0; i < count; ++i)
   {
     media_type_p = NULL;
     result = IAMStreamConfig_in->GetStreamCaps (i,
                                                 &media_type_p,
-                                                (BYTE*)&capabilities);
+                                                (BYTE*)&capabilities_s);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1314,14 +1314,14 @@ load_sample_rates (IAMStreamConfig* IAMStreamConfig_in,
   } // end IF
 
   struct _AMMediaType* media_type_p = NULL;
-  struct _AUDIO_STREAM_CONFIG_CAPS capabilities;
+  struct _AUDIO_STREAM_CONFIG_CAPS capabilities_s;
   struct tWAVEFORMATEX* waveformatex_p = NULL;
   for (int i = 0; i < count; ++i)
   {
     media_type_p = NULL;
     result = IAMStreamConfig_in->GetStreamCaps (i,
                                                 &media_type_p,
-                                                (BYTE*)&capabilities);
+                                                (BYTE*)&capabilities_s);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2551,14 +2551,14 @@ load_channels (IAMStreamConfig* IAMStreamConfig_in,
   } // end IF
 
   struct _AMMediaType* media_type_p = NULL;
-  struct _AUDIO_STREAM_CONFIG_CAPS capabilities;
+  struct _AUDIO_STREAM_CONFIG_CAPS capabilities_s;
   struct tWAVEFORMATEX* waveformatex_p = NULL;
   for (int i = 0; i < count; ++i)
   {
     media_type_p = NULL;
     result = IAMStreamConfig_in->GetStreamCaps (i,
                                                 &media_type_p,
-                                                (BYTE*)&capabilities);
+                                                (BYTE*)&capabilities_s);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -9836,12 +9836,12 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
         effect_GUID;
       if (InlineIsEqualGUID (effect_GUID, CLSID_CWMAudioAEC))
       {
-        struct _DSCFXAec effect_options;
-        effect_options.fEnable = TRUE;
-        effect_options.fNoiseFill = FALSE;
-        effect_options.dwMode = DSCFX_AEC_MODE_FULL_DUPLEX;
+        struct _DSCFXAec effect_options_s;
+        effect_options_s.fEnable = TRUE;
+        effect_options_s.fNoiseFill = FALSE;
+        effect_options_s.dwMode = DSCFX_AEC_MODE_FULL_DUPLEX;
         (*directshow_modulehandler_configuration_iterator).second.second->effectOptions.AECOptions =
-          effect_options;
+          effect_options_s;
       } // end IF
       //////////////////////////////////////
       else if (InlineIsEqualGUID (effect_GUID, GUID_DSFX_STANDARD_CHORUS))

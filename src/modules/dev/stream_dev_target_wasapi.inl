@@ -345,6 +345,21 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
       frameSize_ = audio_info_p->nChannels * (audio_info_p->wBitsPerSample / 8);
       ACE_ASSERT (frameSize_ == audio_info_p->nBlockAlign);
       struct _GUID device_identifier_s = GUID_NULL;
+      REFERENCE_TIME requested_duration_i = 0;
+      enum _AUDCLNT_SHAREMODE share_mode_e =
+        STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE;
+      IMMDevice* device_p = NULL;
+      DWORD stream_flags_i = (AUDCLNT_STREAMFLAGS_EVENTCALLBACK |
+                              // AUDCLNT_STREAMFLAGS_NOPERSIST             |
+                              /////////////////////////////////
+                              AUDCLNT_SESSIONFLAGS_EXPIREWHENUNOWNED |
+                              AUDCLNT_SESSIONFLAGS_DISPLAY_HIDEWHENEXPIRED);
+      struct _GUID GUID_s = GUID_NULL;
+      // HANDLE task_h = NULL;
+      // DWORD task_index_i = 0;
+      struct tWAVEFORMATEX* audio_info_2 = NULL;
+      IAudioSessionControl* audio_session_control_p = NULL;
+
       switch (inherited::configuration_->deviceIdentifier.identifierDiscriminator)
       {
         case Stream_Device_Identifier::ID:
@@ -369,22 +384,6 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
           goto error;
         }
       } // end SWITCH
-
-      REFERENCE_TIME requested_duration_i = 0;
-      enum _AUDCLNT_SHAREMODE share_mode_e =
-        STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE;
-      IMMDevice* device_p = NULL;
-      DWORD stream_flags_i =
-        (AUDCLNT_STREAMFLAGS_EVENTCALLBACK           |
-         //AUDCLNT_STREAMFLAGS_NOPERSIST             |
-         /////////////////////////////////
-         AUDCLNT_SESSIONFLAGS_EXPIREWHENUNOWNED      |
-         AUDCLNT_SESSIONFLAGS_DISPLAY_HIDEWHENEXPIRED);
-      struct _GUID GUID_s = GUID_NULL;
-      //HANDLE task_h = NULL;
-      //DWORD task_index_i = 0;
-      struct tWAVEFORMATEX* audio_info_2 = NULL;
-      IAudioSessionControl* audio_session_control_p = NULL;
 
       if (InlineIsEqualGUID (device_identifier_s, GUID_NULL))
       {

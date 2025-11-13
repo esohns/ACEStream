@@ -33,7 +33,7 @@ typedef std::map<ACE_HANDLE, struct Net_ConnectionState*> Stream_Net_ConnectionS
 typedef Stream_Net_ConnectionStates_t::iterator Stream_Net_ConnectionStatesIterator_t;
 
 typedef std::map<std::string, // module name
-                 struct Net_ConnectionConfiguration> Stream_Net_StreamConnectionConfigurations_t;
+                 struct Net_ConnectionConfigurationBase*> Stream_Net_StreamConnectionConfigurations_t;
 typedef Stream_Net_StreamConnectionConfigurations_t::iterator Stream_Net_StreamConnectionConfigurationIterator_t;
 typedef std::map<std::string, // stream name
                  Stream_Net_StreamConnectionConfigurations_t> Stream_Net_ConnectionConfigurations_t;

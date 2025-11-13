@@ -52,7 +52,7 @@ Test_U_Stream::~Test_U_Stream ()
 
 bool
 Test_U_Stream::load (Stream_ILayout* layout_inout,
-                              bool& delete_out)
+                     bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_Stream::load"));
 
@@ -108,7 +108,6 @@ Test_U_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-//  bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Test_U_AnimatedGIF_SessionData* session_data_p = NULL;
@@ -217,8 +216,7 @@ Test_U_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 
 error:
   if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
-      setup_pipeline;
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline = setup_pipeline;
 
   return false;
 }

@@ -96,6 +96,7 @@ class Stream_Decoder_FAAD_T
   ACE_Message_Block*           buffer_;
   struct NeAACDecConfiguration configuration_;
   NeAACDecHandle               context_;
+  bool                         isFirst_;
 
   uint32_t                     channels_;
   uint32_t                     sampleRate_;

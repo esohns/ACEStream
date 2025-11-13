@@ -56,21 +56,21 @@ class Stream_MessageAllocatorHeapBase_T
   typedef Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
                                           ConfigurationType> DATABLOCK_ALLOCATOR_T;
 
-  Stream_MessageAllocatorHeapBase_T (size_t = 0,         // number of concurrent messages (0: no limits)
+  Stream_MessageAllocatorHeapBase_T (size_t = 0,               // number of concurrent messages (0: no limits)
                                      HEAP_ALLOCATOR_T* = NULL, // (heap) memory allocator handle
                                      bool = true);             // block until a buffer is available ?
-  inline virtual ~Stream_MessageAllocatorHeapBase_T () {};
+  inline virtual ~Stream_MessageAllocatorHeapBase_T () {}
 
   // implement Stream_IAllocator
-  inline virtual bool block () { return block_; };
+  inline virtual bool block () { return block_; }
   virtual void* calloc ();
   // *NOTE*: if argument is > 0, this returns a (pointer to) <MessageType>, and
   //         a (pointer to) <SessionMessageType> otherwise
   virtual void* malloc (size_t); // bytes
   // *NOTE*: frees a <MessageType>/<SessionMessageType>
   virtual void free (void*); // handle
-  inline virtual size_t cache_depth () const { return dataBlockAllocator_.cache_depth (); }; // return value: #bytes allocated
-  inline virtual size_t cache_size () const { return poolSize_.value (); }; // return value: #inflight ACE_Message_Blocks
+  inline virtual size_t cache_depth () const { return dataBlockAllocator_.cache_depth (); } // return value: #bytes allocated
+  inline virtual size_t cache_size () const { return poolSize_.value (); } // return value: #inflight ACE_Message_Blocks
 
   // implement (part of) ACE_Allocator
   // *NOTE*: returns a pointer to raw memory (!) of size <MessageType>/
@@ -80,7 +80,7 @@ class Stream_MessageAllocatorHeapBase_T
                         char = '\0'); // initial value (not used)
 
   // implement Common_IDumpState
-  inline virtual void dump_state () const { return dataBlockAllocator_.dump_state (); };
+  inline virtual void dump_state () const { return dataBlockAllocator_.dump_state (); }
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageAllocatorHeapBase_T (const Stream_MessageAllocatorHeapBase_T&))
