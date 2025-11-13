@@ -100,8 +100,10 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
-class Stream_Base_T
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename UserDataType>
+  class Stream_Base_T
  : public ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType>
  , public Stream_Base
@@ -145,7 +147,7 @@ class Stream_Base_T
                             SessionMessageType,
                             ControlType,
                             NotificationType,
-                            struct Stream_UserData> STREAM_TASK_BASE_T; // *TODO*: make Stream_UserData a template parameter
+                            UserDataType> STREAM_TASK_BASE_T;
   typedef typename SessionMessageType::DATA_T SESSION_DATA_CONTAINER_T;
   typedef typename SessionMessageType::DATA_T::DATA_T SESSION_DATA_T;
   typedef Stream_IModule_T<SESSION_DATA_T,
@@ -378,7 +380,7 @@ class Stream_Base_T
                                       StatisticContainerType,
                                       SessionManagerType,
                                       Common_Timer_Manager_t,
-                                      struct Stream_UserData> HEAD_TASK_T;
+                                      UserDataType> HEAD_TASK_T;
 
   Stream_Base_T ();
 
@@ -420,7 +422,8 @@ class Stream_Base_T
                         SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType> OWN_TYPE_T;
+                        SessionMessageType,
+                        UserDataType> OWN_TYPE_T;
   typedef Stream_ITask_T<ControlMessageType,
                          DataMessageType,
                          SessionMessageType> ITASK_T;

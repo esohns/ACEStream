@@ -67,7 +67,8 @@ class Stream_CameraML_DirectShow_Stream_2
                         Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraML_DirectShow_Message_t,
-                        Stream_CameraML_DirectShow_SessionMessage_t>
+                        Stream_CameraML_DirectShow_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -82,7 +83,8 @@ class Stream_CameraML_DirectShow_Stream_2
                         Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraML_DirectShow_Message_t,
-                        Stream_CameraML_DirectShow_SessionMessage_t> inherited;
+                        Stream_CameraML_DirectShow_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_CameraML_DirectShow_Stream_2 ();
@@ -135,7 +137,8 @@ class Stream_CameraML_MediaFoundation_Stream_2
                         Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraML_MediaFoundation_Message_t,
-                        Stream_CameraML_MediaFoundation_SessionMessage_t>
+                        Stream_CameraML_MediaFoundation_SessionMessage_t,
+                        struct Stream_UserData>
  , public IMFAsyncCallback
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
@@ -151,7 +154,8 @@ class Stream_CameraML_MediaFoundation_Stream_2
                         Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraML_MediaFoundation_Message_t,
-                        Stream_CameraML_MediaFoundation_SessionMessage_t> inherited;
+                        Stream_CameraML_MediaFoundation_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_CameraML_MediaFoundation_Stream_2 ();
@@ -212,7 +216,8 @@ class Stream_CameraML_Stream_2
                         Test_I_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraML_Message_t,
-                        Stream_CameraML_SessionMessage_t>
+                        Stream_CameraML_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -227,7 +232,8 @@ class Stream_CameraML_Stream_2
                         Test_I_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraML_Message_t,
-                        Stream_CameraML_SessionMessage_t> inherited;
+                        Stream_CameraML_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_CameraML_Stream_2 ();

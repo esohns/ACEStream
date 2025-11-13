@@ -78,7 +78,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   } // end IF
 
   if (configuration_in.subscriber)
-    subscribe (configuration_in.subscriber);
+    subscribe (const_cast<ConfigurationType&> (configuration_in).subscriber);
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

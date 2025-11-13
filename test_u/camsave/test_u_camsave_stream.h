@@ -63,7 +63,8 @@ class Stream_CamSave_DirectShow_Stream
                         Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_DirectShow_Message_t,
-                        Stream_CamSave_DirectShow_SessionMessage_t>
+                        Stream_CamSave_DirectShow_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -78,7 +79,8 @@ class Stream_CamSave_DirectShow_Stream
                         Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_DirectShow_Message_t,
-                        Stream_CamSave_DirectShow_SessionMessage_t> inherited;
+                        Stream_CamSave_DirectShow_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_CamSave_DirectShow_Stream ();

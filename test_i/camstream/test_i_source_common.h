@@ -236,7 +236,8 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       Test_I_DirectShow_SessionManager_t,
                       Stream_ControlMessage_t,
                       Test_I_Source_DirectShow_Stream_Message,
-                      Test_I_Source_DirectShow_SessionMessage> Test_I_Source_DirectShow_StreamBase_t;
+                      Test_I_Source_DirectShow_SessionMessage,
+                      struct Stream_UserData> Test_I_Source_DirectShow_StreamBase_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       stream_name_string_,
@@ -250,7 +251,8 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       Test_I_MediaFoundation_SessionManager_t,
                       Stream_ControlMessage_t,
                       Test_I_Source_MediaFoundation_Stream_Message,
-                      Test_I_Source_MediaFoundation_SessionMessage> Test_I_Source_MediaFoundation_StreamBase_t;
+                      Test_I_Source_MediaFoundation_SessionMessage,
+                      struct Stream_UserData> Test_I_Source_MediaFoundation_StreamBase_t;
 #else
 struct Test_I_Source_V4L_StreamState;
 struct Test_I_Source_V4L_ModuleHandlerConfiguration;
@@ -269,7 +271,8 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       Test_I_V4L_SessionManager_t,
                       Stream_ControlMessage_t,
                       Test_I_Source_V4L_Stream_Message,
-                      Test_I_Source_V4L_SessionMessage> Test_I_Source_V4L_StreamBase_t;
+                      Test_I_Source_V4L_SessionMessage,
+                      struct Stream_UserData> Test_I_Source_V4L_StreamBase_t;
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_ISessionDataNotify_T<Test_I_Source_DirectShow_SessionData,

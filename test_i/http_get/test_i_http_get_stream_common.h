@@ -215,7 +215,8 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       Test_I_SessionManager_t,
                       Stream_ControlMessage_t,
                       Test_I_Stream_Message,
-                      Test_I_Stream_SessionMessage> Test_I_StreamBase_t;
+                      Test_I_Stream_SessionMessage,
+                      struct Stream_UserData> Test_I_StreamBase_t;
 struct Test_I_HTTPGet_ModuleHandlerConfiguration
  : Test_I_ModuleHandlerConfiguration
 {

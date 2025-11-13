@@ -82,7 +82,8 @@ class Stream_Module_Net_Server_Stream_T
                         SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType>
+                        SessionMessageType,
+                        UserDataType>
 {
   typedef Stream_Base_T<ACE_SYNCH_USE,
                         TimePolicyType,
@@ -97,7 +98,8 @@ class Stream_Module_Net_Server_Stream_T
                         SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType> inherited;
+                        SessionMessageType,
+                        UserDataType> inherited;
 
  public:
   // convenient types
@@ -114,7 +116,8 @@ class Stream_Module_Net_Server_Stream_T
                         SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType> STREAM_BASE_T;
+                        SessionMessageType,
+                        UserDataType> STREAM_BASE_T;
 
   Stream_Module_Net_Server_Stream_T ();
   inline virtual ~Stream_Module_Net_Server_Stream_T () { inherited::shutdown (); }

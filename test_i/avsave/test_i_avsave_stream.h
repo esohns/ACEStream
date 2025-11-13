@@ -65,7 +65,8 @@ class Stream_AVSave_DirectShow_Stream
                         Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_DirectShow_Message_t,
-                        Stream_AVSave_DirectShow_SessionMessage_t>
+                        Stream_AVSave_DirectShow_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -80,7 +81,8 @@ class Stream_AVSave_DirectShow_Stream
                         Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_DirectShow_Message_t,
-                        Stream_AVSave_DirectShow_SessionMessage_t> inherited;
+                        Stream_AVSave_DirectShow_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_AVSave_DirectShow_Stream ();
@@ -134,7 +136,8 @@ class Stream_AVSave_MediaFoundation_Stream
                         Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_MediaFoundation_Message_t,
-                        Stream_AVSave_MediaFoundation_SessionMessage_t>
+                        Stream_AVSave_MediaFoundation_SessionMessage_t,
+                        struct Stream_UserData>
  , public IMFAsyncCallback
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
@@ -150,7 +153,8 @@ class Stream_AVSave_MediaFoundation_Stream
                         Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_MediaFoundation_Message_t,
-                        Stream_AVSave_MediaFoundation_SessionMessage_t> inherited;
+                        Stream_AVSave_MediaFoundation_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_AVSave_MediaFoundation_Stream ();
@@ -215,7 +219,8 @@ class Stream_AVSave_DirectShow_Audio_Stream
                         Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_DirectShow_Message_t,
-                        Stream_AVSave_DirectShow_SessionMessage_t>
+                        Stream_AVSave_DirectShow_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -230,7 +235,8 @@ class Stream_AVSave_DirectShow_Audio_Stream
                         Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_DirectShow_Message_t,
-                        Stream_AVSave_DirectShow_SessionMessage_t> inherited;
+                        Stream_AVSave_DirectShow_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_AVSave_DirectShow_Audio_Stream ();
@@ -270,7 +276,8 @@ class Stream_AVSave_MediaFoundation_Audio_Stream
                         Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_MediaFoundation_Message_t,
-                        Stream_AVSave_MediaFoundation_SessionMessage_t>
+                        Stream_AVSave_MediaFoundation_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -285,7 +292,8 @@ class Stream_AVSave_MediaFoundation_Audio_Stream
                         Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_MediaFoundation_Message_t,
-                        Stream_AVSave_MediaFoundation_SessionMessage_t> inherited;
+                        Stream_AVSave_MediaFoundation_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_AVSave_MediaFoundation_Audio_Stream ();
@@ -322,7 +330,8 @@ class Stream_AVSave_V4L_Stream
                         Test_I_ALSA_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_Message_t,
-                        Stream_AVSave_ALSA_V4L_SessionMessage_t>
+                        Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -337,7 +346,8 @@ class Stream_AVSave_V4L_Stream
                         Test_I_ALSA_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_Message_t,
-                        Stream_AVSave_ALSA_V4L_SessionMessage_t> inherited;
+                        Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_AVSave_V4L_Stream ();
@@ -396,7 +406,8 @@ class Stream_AVSave_ALSA_Stream
                         Test_I_ALSA_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_Message_t,
-                        Stream_AVSave_ALSA_V4L_SessionMessage_t>
+                        Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -411,7 +422,8 @@ class Stream_AVSave_ALSA_Stream
                         Test_I_ALSA_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_Message_t,
-                        Stream_AVSave_ALSA_V4L_SessionMessage_t> inherited;
+                        Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_AVSave_ALSA_Stream ();

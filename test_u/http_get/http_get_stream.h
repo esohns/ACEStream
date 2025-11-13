@@ -60,7 +60,8 @@ class HTTPGet_Stream_T
                         HTTPGet_SessionManager_t,
                         Stream_ControlMessage_t,
                         HTTPGet_Message,
-                        HTTPGet_SessionMessage>
+                        HTTPGet_SessionMessage,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -75,7 +76,8 @@ class HTTPGet_Stream_T
                         HTTPGet_SessionManager_t,
                         Stream_ControlMessage_t,
                         HTTPGet_Message,
-                        HTTPGet_SessionMessage> inherited;
+                        HTTPGet_SessionMessage,
+                        struct Stream_UserData> inherited;
 
  public:
   HTTPGet_Stream_T ();

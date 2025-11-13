@@ -70,7 +70,8 @@ class Stream_Miscellaneous_Input_Stream_T
                         SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType>
+                        SessionMessageType,
+                        UserDataType>
 {
   typedef Stream_Base_T<ACE_SYNCH_USE,
                         TimePolicyType,
@@ -85,7 +86,8 @@ class Stream_Miscellaneous_Input_Stream_T
                         SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType> inherited;
+                        SessionMessageType,
+                        UserDataType> inherited;
 
  public:
   // convenient types
@@ -105,7 +107,8 @@ class Stream_Miscellaneous_Input_Stream_T
                         SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType> STREAM_BASE_T;
+                        SessionMessageType,
+                        UserDataType> STREAM_BASE_T;
 
   Stream_Miscellaneous_Input_Stream_T ();
   virtual ~Stream_Miscellaneous_Input_Stream_T ();

@@ -244,8 +244,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Stream_CameraScreen_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Stream_CameraScreen_DirectShow_SessionData,
-                                                      Stream_CameraScreen_DirectShow_SessionData_t> Stream_CameraScreen_DirectShow_Statistic_ReaderTask_t;
+                                                      struct Stream_UserData> Stream_CameraScreen_DirectShow_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
@@ -255,8 +254,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Stream_CameraScreen_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Stream_CameraScreen_DirectShow_SessionData,
-                                                      Stream_CameraScreen_DirectShow_SessionData_t> Stream_CameraScreen_DirectShow_Statistic_WriterTask_t;
+                                                      struct Stream_UserData> Stream_CameraScreen_DirectShow_Statistic_WriterTask_t;
 
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
@@ -267,8 +265,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Stream_CameraScreen_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Stream_CameraScreen_MediaFoundation_SessionData,
-                                                      Stream_CameraScreen_MediaFoundation_SessionData_t> Stream_CameraScreen_MediaFoundation_Statistic_ReaderTask_t;
+                                                      struct Stream_UserData> Stream_CameraScreen_MediaFoundation_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration,
@@ -278,8 +275,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Stream_CameraScreen_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Stream_CameraScreen_MediaFoundation_SessionData,
-                                                      Stream_CameraScreen_MediaFoundation_SessionData_t> Stream_CameraScreen_MediaFoundation_Statistic_WriterTask_t;
+                                                      struct Stream_UserData> Stream_CameraScreen_MediaFoundation_Statistic_WriterTask_t;
 #else
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
@@ -290,8 +286,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Stream_CameraScreen_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Stream_CameraScreen_V4L_SessionData,
-                                                      Stream_CameraScreen_V4L_SessionData_t> Stream_CameraScreen_Statistic_ReaderTask_t;
+                                                      struct Stream_UserData> Stream_CameraScreen_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
@@ -301,8 +296,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Stream_CameraScreen_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Stream_CameraScreen_V4L_SessionData,
-                                                      Stream_CameraScreen_V4L_SessionData_t> Stream_CameraScreen_Statistic_WriterTask_t;
+                                                      struct Stream_UserData> Stream_CameraScreen_Statistic_WriterTask_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

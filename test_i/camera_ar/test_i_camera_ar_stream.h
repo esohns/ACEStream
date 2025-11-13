@@ -67,7 +67,8 @@ class Stream_CameraAR_DirectShow_Stream
                         Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraAR_DirectShow_Message_t,
-                        Stream_CameraAR_DirectShow_SessionMessage_t>
+                        Stream_CameraAR_DirectShow_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -82,7 +83,8 @@ class Stream_CameraAR_DirectShow_Stream
                         Test_I_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraAR_DirectShow_Message_t,
-                        Stream_CameraAR_DirectShow_SessionMessage_t> inherited;
+                        Stream_CameraAR_DirectShow_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_CameraAR_DirectShow_Stream ();
@@ -123,7 +125,8 @@ class Stream_CameraAR_MediaFoundation_Stream
                         Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraAR_MediaFoundation_Message_t,
-                        Stream_CameraAR_MediaFoundation_SessionMessage_t>
+                        Stream_CameraAR_MediaFoundation_SessionMessage_t,
+                        struct Stream_UserData>
  , public IMFAsyncCallback
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
@@ -139,7 +142,8 @@ class Stream_CameraAR_MediaFoundation_Stream
                         Test_I_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraAR_MediaFoundation_Message_t,
-                        Stream_CameraAR_MediaFoundation_SessionMessage_t> inherited;
+                        Stream_CameraAR_MediaFoundation_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_CameraAR_MediaFoundation_Stream ();
@@ -202,7 +206,8 @@ class Stream_CameraAR_Stream
                         Test_I_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraAR_Message_t,
-                        Stream_CameraAR_SessionMessage_t>
+                        Stream_CameraAR_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -217,7 +222,8 @@ class Stream_CameraAR_Stream
                         Test_I_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraAR_Message_t,
-                        Stream_CameraAR_SessionMessage_t> inherited;
+                        Stream_CameraAR_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_CameraAR_Stream ();

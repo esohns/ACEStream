@@ -249,8 +249,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_I_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Test_I_CameraMSA_DirectShow_SessionData,
-                                                      Test_I_CameraMSA_DirectShow_SessionData_t> Test_I_DirectShow_Statistic_ReaderTask_t;
+                                                      struct Stream_UserData> Test_I_DirectShow_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Test_I_CameraMSA_DirectShow_ModuleHandlerConfiguration,
@@ -260,8 +259,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_I_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Test_I_CameraMSA_DirectShow_SessionData,
-                                                      Test_I_CameraMSA_DirectShow_SessionData_t> Test_I_DirectShow_Statistic_WriterTask_t;
+                                                      struct Stream_UserData> Test_I_DirectShow_Statistic_WriterTask_t;
 
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
@@ -272,8 +270,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_I_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Test_I_CameraMSA_MediaFoundation_SessionData,
-                                                      Test_I_CameraMSA_MediaFoundation_SessionData_t> Test_I_MediaFoundation_Statistic_ReaderTask_t;
+                                                      struct Stream_UserData> Test_I_MediaFoundation_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Test_I_CameraMSA_MediaFoundation_ModuleHandlerConfiguration,
@@ -283,8 +280,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_I_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Test_I_CameraMSA_MediaFoundation_SessionData,
-                                                      Test_I_CameraMSA_MediaFoundation_SessionData_t> Test_I_MediaFoundation_Statistic_WriterTask_t;
+                                                      struct Stream_UserData> Test_I_MediaFoundation_Statistic_WriterTask_t;
 #else
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
@@ -295,8 +291,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_I_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Test_I_CameraMSA_V4L_SessionData,
-                                                      Test_I_CameraMSA_V4L_SessionData_t> Test_I_Statistic_ReaderTask_t;
+                                                      struct Stream_UserData> Test_I_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
@@ -306,8 +301,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_I_StatisticData,
                                                       Common_Timer_Manager_t,
-                                                      Test_I_CameraMSA_V4L_SessionData,
-                                                      Test_I_CameraMSA_V4L_SessionData_t> Test_I_Statistic_WriterTask_t;
+                                                      struct Stream_UserData> Test_I_Statistic_WriterTask_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

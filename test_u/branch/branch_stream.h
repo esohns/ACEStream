@@ -52,7 +52,8 @@ class Branch_Stream
                         Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Branch_Message,
-                        Branch_SessionMessage>
+                        Branch_SessionMessage,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -67,7 +68,8 @@ class Branch_Stream
                         Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Branch_Message,
-                        Branch_SessionMessage> inherited;
+                        Branch_SessionMessage,
+                        struct Stream_UserData> inherited;
 
  public:
   Branch_Stream ();
@@ -104,7 +106,8 @@ class Branch_Stream_2
                         Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Branch_Message,
-                        Branch_SessionMessage>
+                        Branch_SessionMessage,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -119,7 +122,8 @@ class Branch_Stream_2
                         Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Branch_Message,
-                        Branch_SessionMessage> inherited;
+                        Branch_SessionMessage,
+                        struct Stream_UserData> inherited;
 
  public:
   Branch_Stream_2 ();

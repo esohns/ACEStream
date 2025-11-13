@@ -58,7 +58,8 @@ class Test_I_Stream
                         Test_I_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Message_t,
-                        Test_I_SessionMessage_t>
+                        Test_I_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -73,7 +74,8 @@ class Test_I_Stream
                         Test_I_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Message_t,
-                        Test_I_SessionMessage_t> inherited;
+                        Test_I_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Test_I_Stream ();

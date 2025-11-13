@@ -54,8 +54,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename UserDataType>
 class Stream_Statistic_StatisticReport_WriterTask_T;
 
 extern const char libacestream_default_stat_report_module_name_string[];
@@ -72,9 +71,9 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType, // implements Common_ITimer
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
-class Stream_Statistic_StatisticReport_ReaderTask_T
+          ////////////////////////////////
+          typename UserDataType>
+ class Stream_Statistic_StatisticReport_ReaderTask_T
  : public ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType>
 {
@@ -87,8 +86,7 @@ class Stream_Statistic_StatisticReport_ReaderTask_T
                                                              ProtocolCommandType,
                                                              StatisticContainerType,
                                                              TimerManagerType,
-                                                             SessionDataType,
-                                                             SessionDataContainerType>;
+                                                             UserDataType>;
 
   typedef ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType> inherited;
@@ -115,8 +113,7 @@ class Stream_Statistic_StatisticReport_ReaderTask_T
                                                         ProtocolCommandType,
                                                         StatisticContainerType,
                                                         TimerManagerType,
-                                                        SessionDataType,
-                                                        SessionDataContainerType> WRITER_TASK_T;
+                                                        UserDataType> WRITER_TASK_T;
   typedef DataMessageType MESSAGE_T;
   typedef ProtocolCommandType COMMAND_T;
 
@@ -137,8 +134,8 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType, // implements Common_ITimer
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_Statistic_StatisticReport_WriterTask_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -148,7 +145,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
                                  SessionMessageType,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
-                                 struct Stream_UserData>
+                                 UserDataType>
  , public Common_ICounter
  , public Common_IStatistic_T<StatisticContainerType>
 {
@@ -161,8 +158,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
                                                              ProtocolCommandType,
                                                              StatisticContainerType,
                                                              TimerManagerType,
-                                                             SessionDataType,
-                                                             SessionDataContainerType>;
+                                                             UserDataType>;
 
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -172,7 +168,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
                                  SessionMessageType,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
+                                 UserDataType> inherited;
 
  public:
   Stream_Statistic_StatisticReport_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
@@ -228,8 +224,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
                                                         ProtocolCommandType,
                                                         StatisticContainerType,
                                                         TimerManagerType,
-                                                        SessionDataType,          // session data
-                                                        SessionDataContainerType> OWN_TYPE_T;
+                                                        UserDataType> OWN_TYPE_T;
   typedef Common_StatisticHandler_T<StatisticContainerType> STATISTIC_HANDLER_T;
   typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
                                                         TimePolicyType,
@@ -240,8 +235,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
                                                         ProtocolCommandType,
                                                         StatisticContainerType,
                                                         TimerManagerType,
-                                                        SessionDataType,
-                                                        SessionDataContainerType> READER_TASK_T;
+                                                        UserDataType> READER_TASK_T;
 
   // message type counters
   typedef std::map<ProtocolCommandType,

@@ -253,8 +253,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_I_Statistic,
                                                       Common_Timer_Manager_t,
-                                                      Test_I_SpeechCommand_DirectShow_SessionData,
-                                                      Test_I_SpeechCommand_DirectShow_SessionData_t> Test_I_DirectShow_Statistic_ReaderTask_t;
+                                                      struct Stream_UserData> Test_I_DirectShow_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
@@ -264,8 +263,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_I_Statistic,
                                                       Common_Timer_Manager_t,
-                                                      Test_I_SpeechCommand_DirectShow_SessionData,
-                                                      Test_I_SpeechCommand_DirectShow_SessionData_t> Test_I_DirectShow_Statistic_WriterTask_t;
+                                                      struct Stream_UserData> Test_I_DirectShow_Statistic_WriterTask_t;
 
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
@@ -276,8 +274,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_I_Statistic,
                                                       Common_Timer_Manager_t,
-                                                      Test_I_SpeechCommand_MediaFoundation_SessionData,
-                                                      Test_I_SpeechCommand_MediaFoundation_SessionData_t> Test_I_MediaFoundation_Statistic_ReaderTask_t;
+                                                      struct Stream_UserData> Test_I_MediaFoundation_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
@@ -287,8 +284,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_I_Statistic,
                                                       Common_Timer_Manager_t,
-                                                      Test_I_SpeechCommand_MediaFoundation_SessionData,
-                                                      Test_I_SpeechCommand_MediaFoundation_SessionData_t> Test_I_MediaFoundation_Statistic_WriterTask_t;
+                                                      struct Stream_UserData> Test_I_MediaFoundation_Statistic_WriterTask_t;
 
 //////////////////////////////////////////
 
@@ -615,8 +611,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_I_Statistic,
                                                       Common_Timer_Manager_t,
-                                                      Test_I_SpeechCommand_ALSA_SessionData,
-                                                      Test_I_SpeechCommand_ALSA_SessionData_t> Test_I_ALSA_Statistic_ReaderTask_t;
+                                                      struct Stream_UserData> Test_I_ALSA_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
@@ -626,8 +621,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_I_Statistic,
                                                       Common_Timer_Manager_t,
-                                                      Test_I_SpeechCommand_ALSA_SessionData,
-                                                      Test_I_SpeechCommand_ALSA_SessionData_t> Test_I_ALSA_Statistic_WriterTask_t;
+                                                      struct Stream_UserData> Test_I_ALSA_Statistic_WriterTask_t;
 
 //////////////////////////////////////////
 

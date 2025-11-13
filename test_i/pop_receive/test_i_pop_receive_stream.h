@@ -58,7 +58,8 @@ class Test_I_POPReceive_Stream
                         POP_SessionManager_t,
                         Stream_ControlMessage_t,
                         POP_Message_t,
-                        POP_SessionMessage_t>
+                        POP_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -73,7 +74,8 @@ class Test_I_POPReceive_Stream
                         POP_SessionManager_t,
                         Stream_ControlMessage_t,
                         POP_Message_t,
-                        POP_SessionMessage_t> inherited;
+                        POP_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Test_I_POPReceive_Stream ();
@@ -145,8 +147,7 @@ class Test_I_POPReceive_Stream
                                                         POP_Command_t,
                                                         POP_Statistic_t,
                                                         Common_Timer_Manager_t,
-                                                        struct POP_Stream_SessionData,
-                                                        POP_Stream_SessionData_t> STATISTIC_READER_T;
+                                                        struct Stream_UserData> STATISTIC_READER_T;
   typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                         Common_TimePolicy_t,
                                                         struct Stream_POPReceive_ModuleHandlerConfiguration,
@@ -156,8 +157,7 @@ class Test_I_POPReceive_Stream
                                                         POP_Command_t,
                                                         POP_Statistic_t,
                                                         Common_Timer_Manager_t,
-                                                        struct POP_Stream_SessionData,
-                                                        POP_Stream_SessionData_t> STATISTIC_WRITER_T;
+                                                        struct Stream_UserData> STATISTIC_WRITER_T;
   typedef Stream_StreamModule_T<ACE_MT_SYNCH,
                                 Common_TimePolicy_t,
                                 struct POP_Stream_SessionData,    // session data type

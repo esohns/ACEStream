@@ -58,7 +58,8 @@ class Test_I_SMTPSend_Stream
                         SMTP_SessionManager_t,
                         Stream_ControlMessage_t,
                         SMTP_Message_t,
-                        SMTP_SessionMessage_t>
+                        SMTP_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -73,7 +74,8 @@ class Test_I_SMTPSend_Stream
                         SMTP_SessionManager_t,
                         Stream_ControlMessage_t,
                         SMTP_Message_t,
-                        SMTP_SessionMessage_t> inherited;
+                        SMTP_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Test_I_SMTPSend_Stream ();
@@ -145,8 +147,7 @@ class Test_I_SMTPSend_Stream
                                                         SMTP_Code_t,
                                                         SMTP_Statistic_t,
                                                         Common_Timer_Manager_t,
-                                                        struct SMTP_Stream_SessionData,
-                                                        SMTP_Stream_SessionData_t> STATISTIC_READER_T;
+                                                        struct Stream_UserData> STATISTIC_READER_T;
   typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                         Common_TimePolicy_t,
                                                         struct Stream_SMTPSend_ModuleHandlerConfiguration,
@@ -156,8 +157,7 @@ class Test_I_SMTPSend_Stream
                                                         SMTP_Code_t,
                                                         SMTP_Statistic_t,
                                                         Common_Timer_Manager_t,
-                                                        struct SMTP_Stream_SessionData,
-                                                        SMTP_Stream_SessionData_t> STATISTIC_WRITER_T;
+                                                        struct Stream_UserData> STATISTIC_WRITER_T;
   typedef Stream_StreamModule_T<ACE_MT_SYNCH,
                                 Common_TimePolicy_t,
                                 struct SMTP_Stream_SessionData,    // session data type

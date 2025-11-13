@@ -44,7 +44,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               StreamName,
@@ -58,7 +59,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::Stream_Base_T ()
+              SessionMessageType,
+              UserDataType>::Stream_Base_T ()
  : inherited (NULL, // default argument to module open()
               NULL, // --> allocate head module
               NULL) // --> allocate tail module
@@ -116,7 +118,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               StreamName,
@@ -130,7 +133,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::~Stream_Base_T ()
+              SessionMessageType,
+              UserDataType>::~Stream_Base_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::~Stream_Base_T"));
 
@@ -163,7 +167,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -178,7 +183,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::reset ()
+              SessionMessageType,
+              UserDataType>::reset ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::reset"));
 
@@ -234,7 +240,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -249,7 +256,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::setup (ACE_Notification_Strategy* notificationStrategy_in)
+              SessionMessageType,
+              UserDataType>::setup (ACE_Notification_Strategy* notificationStrategy_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::setup"));
 
@@ -390,7 +398,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -405,7 +414,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::subscribe (IEVENT_T* interfaceHandle_in)
+              SessionMessageType,
+              UserDataType>::subscribe (IEVENT_T* interfaceHandle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::subscribe"));
 
@@ -432,7 +442,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -447,7 +458,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::unsubscribe (IEVENT_T* interfaceHandle_in)
+              SessionMessageType,
+              UserDataType>::unsubscribe (IEVENT_T* interfaceHandle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unsubscribe"));
 
@@ -485,7 +497,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -500,8 +513,9 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::initialize (bool setupPipeline_in,
-                                               bool resetSessionData_in)
+              SessionMessageType,
+              UserDataType>::initialize (bool setupPipeline_in,
+                                         bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
@@ -604,7 +618,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -619,7 +634,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::finalize (bool initializeHeadTailModules_in)
+              SessionMessageType,
+              UserDataType>::finalize (bool initializeHeadTailModules_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::finalize"));
 
@@ -708,7 +724,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -723,7 +740,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::initializeHeadTail ()
+              SessionMessageType,
+              UserDataType>::initializeHeadTail ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initializeHeadTail"));
 
@@ -837,7 +855,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -852,7 +871,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::start ()
+              SessionMessageType,
+              UserDataType>::start ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::start"));
 
@@ -936,7 +956,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -951,9 +972,10 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::stop (bool wait_in,
-                                         bool recurseUpstream_in,
-                                         bool highPriority_in)
+              SessionMessageType,
+              UserDataType>::stop (bool wait_in,
+                                   bool recurseUpstream_in,
+                                   bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::stop"));
 
@@ -1040,7 +1062,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 Stream_SessionId_t
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -1055,7 +1078,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::sessionId () const
+              SessionMessageType,
+              UserDataType>::sessionId () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::sessionId"));
 
@@ -1079,7 +1103,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -1094,7 +1119,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::isRunning () const
+              SessionMessageType,
+              UserDataType>::isRunning () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::isRunning"));
 
@@ -1142,7 +1168,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -1157,8 +1184,9 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::control (ControlType control_in,
-                                            bool recurseUpstream_in)
+              SessionMessageType,
+              UserDataType>::control (ControlType control_in,
+                                      bool recurseUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::control"));
 
@@ -1267,7 +1295,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -1282,9 +1311,10 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::notify (NotificationType notification_in,
-                                           bool recurseUpstream_in,
-                                           bool expedite_in)
+              SessionMessageType,
+              UserDataType>::notify (NotificationType notification_in,
+                                     bool recurseUpstream_in,
+                                     bool expedite_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::notify"));
 
@@ -1368,7 +1398,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -1383,8 +1414,9 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::onEvent (const std::string& streamId_in,
-                                            NotificationType notification_in)
+              SessionMessageType,
+              UserDataType>::onEvent (const std::string& streamId_in,
+                                      NotificationType notification_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::onEvent"));
 
@@ -1583,7 +1615,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 unsigned int
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -1598,9 +1631,10 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::flush (bool flushInbound_in,
-                                          bool flushSessionMessages_in,
-                                          bool flushUpstream_in)
+              SessionMessageType,
+              UserDataType>::flush (bool flushInbound_in,
+                                    bool flushSessionMessages_in,
+                                    bool flushUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::flush"));
 
@@ -1731,7 +1765,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -1746,7 +1781,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::pause ()
+              SessionMessageType,
+              UserDataType>::pause ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::pause"));
 
@@ -1794,7 +1830,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -1809,7 +1846,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::rewind ()
+              SessionMessageType,
+              UserDataType>::rewind ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::rewind"));
 
@@ -1866,7 +1904,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 StatusType
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -1881,7 +1920,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::status () const
+              SessionMessageType,
+              UserDataType>::status () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::status"));
 
@@ -1938,7 +1978,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -1953,8 +1994,9 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::idle (bool waitForever_in,
-                                         bool recurseUpstream_in) const
+              SessionMessageType,
+              UserDataType>::idle (bool waitForever_in,
+                                   bool recurseUpstream_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::idle"));
 
@@ -2096,7 +2138,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -2111,9 +2154,10 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::wait (bool waitForThreads_in,
-                                         bool waitForUpstream_in,
-                                         bool waitForDownStream_in) const
+              SessionMessageType,
+              UserDataType>::wait (bool waitForThreads_in,
+                                   bool waitForUpstream_in,
+                                   bool waitForDownStream_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::wait"));
 
@@ -2357,7 +2401,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 // *NOTE*: fore some reason, this does not compile with gcc
 //const typename ISTREAM_T::MODULE_T*
 const typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::MODULE_T*
@@ -2374,9 +2419,10 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::find (const std::string& name_in,
-                                         bool sanitizeModuleNames_in,
-                                         bool recurseUpstream_in) const
+              SessionMessageType,
+              UserDataType>::find (const std::string& name_in,
+                                   bool sanitizeModuleNames_in,
+                                   bool recurseUpstream_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::find"));
 
@@ -2409,7 +2455,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -2424,7 +2471,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::link (typename ISTREAM_T::STREAM_T* upstream_in)
+              SessionMessageType,
+              UserDataType>::link (typename ISTREAM_T::STREAM_T* upstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::link"));
 
@@ -2479,7 +2527,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -2494,7 +2543,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::_unlink ()
+              SessionMessageType,
+              UserDataType>::_unlink ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::_unlink"));
 
@@ -2531,7 +2581,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::STREAM_T*
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -2546,7 +2597,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::downstream () const
+              SessionMessageType,
+              UserDataType>::downstream () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::downstream"));
 
@@ -2616,7 +2668,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::STREAM_T*
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -2631,7 +2684,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::upstream (bool recurse_in) const
+              SessionMessageType,
+              UserDataType>::upstream (bool recurse_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::upstream"));
 
@@ -2669,7 +2723,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -2684,8 +2739,9 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::lock (bool block_in,
-                                         bool recurseUpstream_in)
+              SessionMessageType,
+              UserDataType>::lock (bool block_in,
+                                   bool recurseUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::lock"));
 
@@ -2761,7 +2817,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 int
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -2776,8 +2833,9 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::unlock (bool unlock_in,
-                                           bool recurseUpstream_in)
+              SessionMessageType,
+              UserDataType>::unlock (bool unlock_in,
+                                     bool recurseUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlock"));
 
@@ -2821,7 +2879,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 ACE_SYNCH_MUTEX_T&
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -2836,7 +2895,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::getLock (bool recurseUpstream_in)
+              SessionMessageType,
+              UserDataType>::getLock (bool recurseUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::getLock"));
 
@@ -2880,7 +2940,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -2895,7 +2956,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::hasLock (bool recurseUpstream_in)
+              SessionMessageType,
+              UserDataType>::hasLock (bool recurseUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::hasLock"));
 
@@ -2957,7 +3019,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -2972,7 +3035,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::dump_state () const
+              SessionMessageType,
+              UserDataType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::dump_state"));
 
@@ -3145,7 +3209,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 std::string
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -3160,8 +3225,9 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::dump_state (MODULE_T* module_in,
-                                               int indentation_in) const
+              SessionMessageType,
+              UserDataType>::dump_state (MODULE_T* module_in,
+                                         int indentation_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::dump_state"));
 
@@ -3242,7 +3308,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 const typename SessionMessageType::DATA_T::DATA_T&
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -3257,7 +3324,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::getR_2 () const
+              SessionMessageType,
+              UserDataType>::getR_2 () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::getR_2"));
 
@@ -3298,7 +3366,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -3313,7 +3382,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::initialize (const CONFIGURATION_T& configuration_in)
+              SessionMessageType,
+              UserDataType>::initialize (const CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
@@ -3440,7 +3510,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -3455,7 +3526,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::collect (StatisticContainerType& data_out)
+              SessionMessageType,
+              UserDataType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::collect"));
 
@@ -3525,7 +3597,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -3540,7 +3613,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::update (const ACE_Time_Value& interval_in)
+              SessionMessageType,
+              UserDataType>::update (const ACE_Time_Value& interval_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::update"));
 
@@ -3589,7 +3663,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -3604,7 +3679,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::report () const
+              SessionMessageType,
+              UserDataType>::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::report"));
 
@@ -3666,7 +3742,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 int
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -3681,7 +3758,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::close (int flags_in)
+              SessionMessageType,
+              UserDataType>::close (int flags_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::close"));
 
@@ -3717,7 +3795,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 int
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -3732,9 +3811,10 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::replace (const ACE_TCHAR* name_in,
-                                            MODULE_T* module_in,
-                                            int flags_in)
+              SessionMessageType,
+              UserDataType>::replace (const ACE_TCHAR* name_in,
+                                      MODULE_T* module_in,
+                                      int flags_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::replace"));
 
@@ -3778,7 +3858,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 ACE_Module<ACE_SYNCH_USE, TimePolicyType>*
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -3793,7 +3874,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::tail ()
+              SessionMessageType,
+              UserDataType>::tail ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::tail"));
 
@@ -3817,7 +3899,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 int
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -3832,7 +3915,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::link (STREAM_T& upstream_in)
+              SessionMessageType,
+              UserDataType>::link (STREAM_T& upstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::link"));
 
@@ -4038,7 +4122,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 int
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -4053,7 +4138,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::unlink (void)
+              SessionMessageType,
+              UserDataType>::unlink (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlink"));
 
@@ -4153,7 +4239,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -4168,9 +4255,10 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::remove (MODULE_T* module_in,
-                                           bool lock_in,
-                                           bool reset_in)
+              SessionMessageType,
+              UserDataType>::remove (MODULE_T* module_in,
+                                     bool lock_in,
+                                     bool reset_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::remove"));
 
@@ -4267,7 +4355,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -4282,7 +4371,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::finished (bool recurseUpstream_in)
+              SessionMessageType,
+              UserDataType>::finished (bool recurseUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::finished"));
 
@@ -4370,7 +4460,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -4385,7 +4476,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::shutdown ()
+              SessionMessageType,
+              UserDataType>::shutdown ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::shutdown"));
 
@@ -4464,7 +4556,8 @@ template <ACE_SYNCH_DECL,
           typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename UserDataType>
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -4479,7 +4572,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionManagerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::deactivateModules ()
+              SessionMessageType,
+              UserDataType>::deactivateModules ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::deactivateModules"));
 
@@ -4563,48 +4657,3 @@ Stream_Base_T<ACE_SYNCH_USE,
     return;
   } // end IF
 }
-
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          const char* StreamName,
-//          typename ControlType,
-//          typename NotificationType,
-//          typename StatusType,
-//          typename StateType,
-//          typename ConfigurationType,
-//          typename StatisticContainerType,
-//          typename HandlerConfigurationType,
-//          typename SessionManagerType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType>
-//void
-//Stream_Base_T<ACE_SYNCH_USE,
-//              TimePolicyType,
-//              StreamName,
-//              ControlType,
-//              NotificationType,
-//              StatusType,
-//              StateType,
-//              ConfigurationType,
-//              StatisticContainerType,
-//              HandlerConfigurationType,
-//              SessionManagerType,
-//              ControlMessageType,
-//              DataMessageType,
-//              SessionMessageType>::unlinkModules ()
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlinkModules"));
-//
-//  MODULE_T* head_p = inherited::head ();
-//  MODULE_T* next_p = NULL;
-//  for (MODULE_T* module_p = head_p;
-//       module_p;
-//       )
-//  {
-//    next_p = module_p->next ();
-//    module_p->next (NULL);
-//    module_p = next_p;
-//  } // end FOR
-//  head_p->next (inherited::tail ());
-//}

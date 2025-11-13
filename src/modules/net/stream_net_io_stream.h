@@ -83,7 +83,8 @@ class Stream_Module_Net_IO_Stream_T
                         SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType>
+                        SessionMessageType,
+                        UserDataType>
  //, public Stream_IMessageQueue
  , public Stream_IOutboundDataNotify
  , public Common_ISetR_T<std::string>
@@ -101,7 +102,8 @@ class Stream_Module_Net_IO_Stream_T
                         SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType> inherited;
+                        SessionMessageType,
+                        UserDataType> inherited;
 
  public:
   // convenient types
@@ -118,7 +120,8 @@ class Stream_Module_Net_IO_Stream_T
                         SessionManagerType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType> STREAM_BASE_T;
+                        SessionMessageType,
+                        UserDataType> STREAM_BASE_T;
 
   Stream_Module_Net_IO_Stream_T ();
   virtual ~Stream_Module_Net_IO_Stream_T ();

@@ -53,7 +53,8 @@ class Stream_Filecopy_Stream
                         Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_Filecopy_Message,
-                        Stream_Filecopy_SessionMessage>
+                        Stream_Filecopy_SessionMessage,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -68,7 +69,8 @@ class Stream_Filecopy_Stream
                         Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_Filecopy_Message,
-                        Stream_Filecopy_SessionMessage> inherited;
+                        Stream_Filecopy_SessionMessage,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_Filecopy_Stream ();

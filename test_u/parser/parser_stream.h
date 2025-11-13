@@ -49,7 +49,8 @@ class Parser_Stream
                         Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Parser_Message,
-                        Parser_SessionMessage>
+                        Parser_SessionMessage,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -64,7 +65,8 @@ class Parser_Stream
                         Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Parser_Message,
-                        Parser_SessionMessage> inherited;
+                        Parser_SessionMessage,
+                        struct Stream_UserData> inherited;
 
  public:
   Parser_Stream ();

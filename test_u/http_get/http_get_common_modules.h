@@ -128,8 +128,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       HTTP_Method_t,
                                                       struct Stream_Statistic,
                                                       Common_Timer_Manager_t,
-                                                      struct HTTPGet_SessionData,
-                                                      HTTPGet_SessionData_t> HTTPGet_StatisticReport_ReaderTask_t;
+                                                      struct Stream_UserData> HTTPGet_StatisticReport_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct HTTPGet_ModuleHandlerConfiguration,
@@ -139,8 +138,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       HTTP_Method_t,
                                                       struct Stream_Statistic,
                                                       Common_Timer_Manager_t,
-                                                      struct HTTPGet_SessionData,
-                                                      HTTPGet_SessionData_t> HTTPGet_StatisticReport_WriterTask_t;
+                                                      struct Stream_UserData> HTTPGet_StatisticReport_WriterTask_t;
 DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session data type
                           enum Stream_SessionMessageType,            // session event type
                           struct HTTPGet_ModuleHandlerConfiguration, // module handler configuration type

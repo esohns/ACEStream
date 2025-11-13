@@ -36,8 +36,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename UserDataType>
 Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
                                               ConfigurationType,
@@ -47,8 +46,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               ProtocolCommandType,
                                               StatisticContainerType,
                                               TimerManagerType,
-                                              SessionDataType,
-                                              SessionDataContainerType>::Stream_Statistic_StatisticReport_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
+                                              UserDataType>::Stream_Statistic_StatisticReport_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inboundBytes_ (0)
  , outboundBytes_ (0)
@@ -85,8 +83,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename UserDataType>
 bool
 Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
@@ -97,9 +94,8 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               ProtocolCommandType,
                                               StatisticContainerType,
                                               TimerManagerType,
-                                              SessionDataType,
-                                              SessionDataContainerType>::initialize (const ConfigurationType& configuration_in,
-                                                                                     Stream_IAllocator* allocator_in)
+                                              UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                                         Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::initialize"));
 
@@ -153,8 +149,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename UserDataType>
 void
 Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
@@ -165,8 +160,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               ProtocolCommandType,
                                               StatisticContainerType,
                                               TimerManagerType,
-                                              SessionDataType,
-                                              SessionDataContainerType>::handleControlMessage (ControlMessageType& controlMessage_in)
+                                              UserDataType>::handleControlMessage (ControlMessageType& controlMessage_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::handleControlMessage"));
 
@@ -190,8 +184,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename UserDataType>
 void
 Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
@@ -202,9 +195,8 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               ProtocolCommandType,
                                               StatisticContainerType,
                                               TimerManagerType,
-                                              SessionDataType,
-                                              SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                                            bool& passMessageDownstream_out)
+                                              UserDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                                bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::handleDataMessage"));
 
@@ -227,6 +219,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     messageTypeStatistic_[message_inout->command ()]++;
   } // end lock scope
 }
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -236,8 +229,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename UserDataType>
 void
 Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
@@ -248,9 +240,8 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               ProtocolCommandType,
                                               StatisticContainerType,
                                               TimerManagerType,
-                                              SessionDataType,
-                                              SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                                               bool& passMessageDownstream_out)
+                                              UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                                   bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::handleSessionMessage"));
 
@@ -336,11 +327,11 @@ error:
       //         module (e.g. some hardware capture device driver)
       //         --> aggregate this data so that any new (session) messages
       //             generated by this module carry up-to-date information
-      typename SessionDataContainerType::DATA_T& session_data_r =
-        const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
-      const SessionDataContainerType& session_data_container_r =
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+      const SessionMessageType::DATA_T& session_data_container_r =
         message_inout->getR ();
-      const typename SessionDataContainerType::DATA_T& session_data_2 =
+      const typename SessionMessageType::DATA_T::DATA_T& session_data_2 =
         session_data_container_r.getR ();
 
       // sanity check(s)
@@ -412,8 +403,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename UserDataType>
 void
 Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
@@ -424,8 +414,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               ProtocolCommandType,
                                               StatisticContainerType,
                                               TimerManagerType,
-                                              SessionDataType,
-                                              SessionDataContainerType>::reset ()
+                                              UserDataType>::reset ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::reset"));
 
@@ -458,8 +447,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename UserDataType>
 bool
 Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
@@ -470,8 +458,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               ProtocolCommandType,
                                               StatisticContainerType,
                                               TimerManagerType,
-                                              SessionDataType,
-                                              SessionDataContainerType>::collect (StatisticContainerType& data_out)
+                                              UserDataType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::collect"));
 
@@ -502,8 +489,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename UserDataType>
 void
 Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
@@ -514,21 +500,19 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               ProtocolCommandType,
                                               StatisticContainerType,
                                               TimerManagerType,
-                                              SessionDataType,
-                                              SessionDataContainerType>::update (const ACE_Time_Value& interval_in)
+                                              UserDataType>::update (const ACE_Time_Value& interval_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::update"));
 
   ACE_UNUSED_ARG (interval_in);
 
-//  int result = -1;
-  SessionDataType* session_data_p = NULL;
+  typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
 
   session_data_p =
-    &const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+    &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   ACE_ASSERT (session_data_p->lock);
 
   { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
@@ -561,8 +545,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename UserDataType>
 void
 Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
@@ -573,20 +556,18 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               ProtocolCommandType,
                                               StatisticContainerType,
                                               TimerManagerType,
-                                              SessionDataType,
-                                              SessionDataContainerType>::report () const
+                                              UserDataType>::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::report"));
 
   int result = -1;
-  SessionDataType* session_data_p = NULL;
+  typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
   unsigned int data_messages_i = 0, total_messages_i = 0;
 
   ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
 
   if (likely (inherited::sessionData_))
-    session_data_p =
-        &const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+    session_data_p = &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   if (likely (session_data_p))
     if (likely (session_data_p->lock))
     {
@@ -634,8 +615,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename UserDataType>
 void
 Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
@@ -646,16 +626,14 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               ProtocolCommandType,
                                               StatisticContainerType,
                                               TimerManagerType,
-                                              SessionDataType,
-                                              SessionDataContainerType>::finalReport () const
+                                              UserDataType>::finalReport () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::finalReport"));
 
   int result = -1;
-  SessionDataType* session_data_p = NULL;
+  typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
   if (likely (inherited::sessionData_))
-    session_data_p =
-        &const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+    session_data_p = &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
 
   if (likely (session_data_p))
     if (session_data_p->lock)
@@ -715,8 +693,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename UserDataType>
 void
 Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
@@ -727,8 +704,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               ProtocolCommandType,
                                               StatisticContainerType,
                                               TimerManagerType,
-                                              SessionDataType,
-                                              SessionDataContainerType>::finiTimer ()
+                                              UserDataType>::finiTimer ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::finiTimer"));
 
@@ -761,8 +737,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename UserDataType>
 bool
 Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
@@ -773,12 +748,11 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               ProtocolCommandType,
                                               StatisticContainerType,
                                               TimerManagerType,
-                                              SessionDataType,
-                                              SessionDataContainerType>::putStatisticMessage ()
+                                              UserDataType>::putStatisticMessage ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::putStatisticMessage"));
 
-  SessionDataContainerType* session_data_container_p = NULL;
+  typename SessionMessageType::DATA_T* session_data_container_p = NULL;
   if (inherited::sessionData_)
   {
     inherited::sessionData_->increase ();
@@ -786,9 +760,9 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   } // end IF
   else
   {
-    SessionDataType* session_data_p = NULL;
+    typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
     ACE_NEW_NORETURN (session_data_p,
-                      SessionDataType ());
+                      typename SessionMessageType::DATA_T::DATA_T ());
     if (unlikely (!session_data_p))
     {
       ACE_DEBUG ((LM_CRITICAL,
@@ -799,7 +773,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
 
     // *IMPORTANT NOTE*: fire-and-forget session_data_p
     ACE_NEW_NORETURN (session_data_container_p,
-                      SessionDataContainerType (session_data_p));
+                      typename SessionMessageType::DATA_T (session_data_p));
     if (unlikely (!session_data_container_p))
     {
       ACE_DEBUG ((LM_CRITICAL,
@@ -810,7 +784,8 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   } // end ELSE
   ACE_ASSERT (session_data_container_p);
 
-  const SessionDataType& session_data_r = session_data_container_p->getR ();
+  const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    session_data_container_p->getR ();
 
   // create session message
   SessionMessageType* session_message_p = NULL;
@@ -898,8 +873,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename UserDataType>
 Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
                                               ConfigurationType,
@@ -909,8 +883,7 @@ Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
                                               ProtocolCommandType,
                                               StatisticContainerType,
                                               TimerManagerType,
-                                              SessionDataType,
-                                              SessionDataContainerType>::Stream_Statistic_StatisticReport_ReaderTask_T (ISTREAM_T* stream_in)
+                                              UserDataType>::Stream_Statistic_StatisticReport_ReaderTask_T (ISTREAM_T* stream_in)
  : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_ReaderTask_T::Stream_Statistic_StatisticReport_ReaderTask_T"));
@@ -929,8 +902,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename UserDataType>
 int
 Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
@@ -941,9 +913,8 @@ Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
                                               ProtocolCommandType,
                                               StatisticContainerType,
                                               TimerManagerType,
-                                              SessionDataType,
-                                              SessionDataContainerType>::put (ACE_Message_Block* messageBlock_in,
-                                                                              ACE_Time_Value* timeValue_in)
+                                              UserDataType>::put (ACE_Message_Block* messageBlock_in,
+                                                                  ACE_Time_Value* timeValue_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_ReaderTask_T::put"));
 

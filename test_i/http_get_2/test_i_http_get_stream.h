@@ -68,7 +68,8 @@ class Test_I_HTTPGet_Stream_T
                         Test_I_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Stream_Message,
-                        Test_I_Stream_SessionMessage>
+                        Test_I_Stream_SessionMessage,
+                        struct Stream_UserData>
 {
  public:
   Test_I_HTTPGet_Stream_T ();
@@ -100,7 +101,8 @@ class Test_I_HTTPGet_Stream_T
                         Test_I_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_I_Stream_Message,
-                        Test_I_Stream_SessionMessage> inherited;
+                        Test_I_Stream_SessionMessage,
+                        struct Stream_UserData> inherited;
 
   typedef Stream_Module_Net_Source_Writer_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,

@@ -75,7 +75,8 @@ class Test_I_Source_DirectShow_Stream_T
                         Test_I_DirectShow_SessionManager_t,
                         ControlMessageType,
                         MessageType,
-                        SessionMessageType>
+                        SessionMessageType,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -90,7 +91,8 @@ class Test_I_Source_DirectShow_Stream_T
                         Test_I_DirectShow_SessionManager_t,
                         ControlMessageType,
                         MessageType,
-                        SessionMessageType> inherited;
+                        SessionMessageType,
+                        struct Stream_UserData> inherited;
 
  public:
   Test_I_Source_DirectShow_Stream_T ();
@@ -163,7 +165,8 @@ class Test_I_Source_MediaFoundation_Stream_T
                         Test_I_MediaFoundation_SessionManager_t,
                         ControlMessageType,
                         MessageType,
-                        SessionMessageType>
+                        SessionMessageType,
+                        struct Stream_UserData>
  , public Stream_MediaFramework_MediaFoundation_Callback_T<struct Test_I_MediaFoundationConfiguration>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
@@ -179,7 +182,8 @@ class Test_I_Source_MediaFoundation_Stream_T
                         Test_I_MediaFoundation_SessionManager_t,
                         ControlMessageType,
                         MessageType,
-                        SessionMessageType> inherited;
+                        SessionMessageType,
+                        struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaFoundation_Callback_T<struct Test_I_MediaFoundationConfiguration> inherited2;
 
  public:
@@ -264,7 +268,8 @@ class Test_I_Source_V4L_Stream_T
                         Test_I_V4L_SessionManager_t,
                         ControlMessageType,
                         MessageType,
-                        SessionMessageType>
+                        SessionMessageType,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -279,7 +284,8 @@ class Test_I_Source_V4L_Stream_T
                         Test_I_V4L_SessionManager_t,
                         ControlMessageType,
                         MessageType,
-                        SessionMessageType> inherited;
+                        SessionMessageType,
+                        struct Stream_UserData> inherited;
 
  public:
   Test_I_Source_V4L_Stream_T ();

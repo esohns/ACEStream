@@ -54,7 +54,8 @@ class Test_U_DirectShow_Stream
                         Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_DirectShow_Message,
-                        Test_U_DirectShow_SessionMessage>
+                        Test_U_DirectShow_SessionMessage,
+                        struct Stream_UserData>
 #if defined (GTKGL_SUPPORT)
  , public Stream_Visualization_GTK_Cairo_OpenGL
 #endif // GTKGL_SUPPORT
@@ -72,7 +73,8 @@ class Test_U_DirectShow_Stream
                         Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_DirectShow_Message,
-                        Test_U_DirectShow_SessionMessage> inherited;
+                        Test_U_DirectShow_SessionMessage,
+                        struct Stream_UserData> inherited;
 #if defined (GTKGL_SUPPORT)
   typedef Stream_Visualization_GTK_Cairo_OpenGL inherited2;
 #endif // GTKGL_SUPPORT
