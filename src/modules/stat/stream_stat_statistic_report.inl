@@ -655,10 +655,11 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                 ACE_TEXT ("*** [session: %d] STATISTIC ***\n\ttotal # data message(s) [in/out]: %u/%u\n --> Protocol Info <--\n"),
                 (session_data_p ? static_cast<int> (session_data_p->sessionId) : -1),
                 inboundMessages_ - sessionMessages_ - controlMessages_,
-                outboundMessages_ - sessionMessages_ - controlMessages_));
+                outboundMessages_ - (sessionMessages_ - 1) - controlMessages_)); // *NOTE*: -1 to account for this message
 
     unsigned int data_messages =
-      inboundMessages_ + outboundMessages_ - sessionMessages_ - controlMessages_;
+      (inboundMessages_ - sessionMessages_ - controlMessages_) +
+      (outboundMessages_ - (sessionMessages_ - 1) - controlMessages_);
     for (STATISTIC_ITERATOR_T iterator = messageTypeStatistic_.begin ();
          iterator != messageTypeStatistic_.end ();
          iterator++)
@@ -929,6 +930,7 @@ Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
       { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
         // update counters
         ++writer_p->outboundMessages_;
+        ++writer_p->messageCounter_;
       } // end lock scope
       break;
     }
@@ -937,6 +939,7 @@ Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
       { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
         // update counters
         ++writer_p->outboundMessages_;
+        ++writer_p->messageCounter_;
       } // end lock scope
       break;
     }
