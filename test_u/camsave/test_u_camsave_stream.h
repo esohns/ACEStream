@@ -140,7 +140,8 @@ class Stream_CamSave_MediaFoundation_Stream
                         Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_MediaFoundation_Message_t,
-                        Stream_CamSave_MediaFoundation_SessionMessage_t>
+                        Stream_CamSave_MediaFoundation_SessionMessage_t,
+                        struct Stream_UserData>
  , public IMFAsyncCallback
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
@@ -156,7 +157,8 @@ class Stream_CamSave_MediaFoundation_Stream
                         Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_MediaFoundation_Message_t,
-                        Stream_CamSave_MediaFoundation_SessionMessage_t> inherited;
+                        Stream_CamSave_MediaFoundation_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_CamSave_MediaFoundation_Stream ();
@@ -221,7 +223,8 @@ class Stream_CamSave_LibCamera_Stream
                         Test_U_LibCamera_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_LibCamera_Message_t,
-                        Stream_CamSave_LibCamera_SessionMessage_t>
+                        Stream_CamSave_LibCamera_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -236,7 +239,8 @@ class Stream_CamSave_LibCamera_Stream
                         Test_U_LibCamera_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_LibCamera_Message_t,
-                        Stream_CamSave_LibCamera_SessionMessage_t> inherited;
+                        Stream_CamSave_LibCamera_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_CamSave_LibCamera_Stream ();
@@ -286,7 +290,8 @@ class Stream_CamSave_V4L_Stream
                         Test_U_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_V4L_Message_t,
-                        Stream_CamSave_V4L_SessionMessage_t>
+                        Stream_CamSave_V4L_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -301,7 +306,8 @@ class Stream_CamSave_V4L_Stream
                         Test_U_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CamSave_V4L_Message_t,
-                        Stream_CamSave_V4L_SessionMessage_t> inherited;
+                        Stream_CamSave_V4L_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_CamSave_V4L_Stream ();

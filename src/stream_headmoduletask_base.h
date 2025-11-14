@@ -213,7 +213,7 @@ class Stream_HeadModuleTaskBase_T
   using inherited::isInitialized_;
 
   bool                                abortSent_;
-  bool                                endSeen_;
+  bool                                endSeenFromUpstream_;
   bool                                isHighPriorityStop_;
   typename inherited::MESSAGE_QUEUE_T queue_;
   bool                                sessionEndProcessed_;

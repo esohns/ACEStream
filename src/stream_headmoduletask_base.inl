@@ -66,7 +66,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
               NULL) // queue handle (see below)
  , inherited2 (NULL)
  , abortSent_ (false)
- , endSeen_ (false)
+ , endSeenFromUpstream_ (false)
  , isHighPriorityStop_ (false)
  , queue_ (STREAM_QUEUE_MAX_SLOTS, // maximum #slots
            NULL)                   // notification handle
@@ -1033,7 +1033,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   {
     case STREAM_CONTROL_MESSAGE_END:
     {
-      endSeen_ = true;
+      endSeenFromUpstream_ = true;
 
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: received end from upstream\n"),
@@ -1109,7 +1109,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       highPriority_in);
 
   if (waitForCompletion_in)
-    this->wait (true);
+    this->wait (true, false, false);
 }
 
 template <ACE_SYNCH_DECL,
@@ -1161,7 +1161,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
-      if (endSeen_ && // <-- there was (!) an upstream
+      if (endSeenFromUpstream_ && // <-- there was (!) an upstream
           inherited::configuration_->stopOnUnlink)
       {
         ACE_DEBUG ((LM_DEBUG,
@@ -1292,7 +1292,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   if (unlikely (inherited::isInitialized_))
   {
     abortSent_ = false;
-    endSeen_ = false;
+    endSeenFromUpstream_ = false;
     isHighPriorityStop_ = false;
     // *NOTE*: sessionEndProcessed_ and sessionEndSent_ are reset in onChange()
 
@@ -2723,7 +2723,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       if (likely (!aborted_b))
       { ACE_ASSERT (inherited::sessionData_);
         const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-            inherited::sessionData_->getR ();
+          inherited::sessionData_->getR ();
         // *TODO*: remove type inferences
         { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock, false);
           aborted_b = session_data_r.aborted;
@@ -2741,7 +2741,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       //                   change
       if (unlikely (inherited::linked_ &&
                     downstream_p       &&
-                    !endSeen_)) // --> send ONCE (from upstream head) only
+                    !endSeenFromUpstream_)) // --> send ONCE (from upstream head) only
       {
         ISTREAM_CONTROL_T* istream_control_p =
           dynamic_cast<ISTREAM_CONTROL_T*> (downstream_p);
@@ -2797,32 +2797,32 @@ continue_:
                       ACE_TEXT (istream_2->name ().c_str ())));
           return false;
         }
+
 continue_2:
+        //// step2: notify downstream
+        //INOTIFY_T* inotify_p = dynamic_cast<INOTIFY_T*> (downstream_p);
+        //if (unlikely (!inotify_p))
+        //{
+        //  ACE_DEBUG ((LM_WARNING,
+        //              ACE_TEXT ("%s:%s: downstream does not implement Stream_INotify_T; cannot notify unlink, continuing\n"),
+        //              ACE_TEXT (istream_p->name ().c_str ()),
+        //              inherited::mod_->name ()));
+        //  goto continue_3;
+        //} // end IF
 
-//        // step2: notify downstream
-//        INOTIFY_T* inotify_p = dynamic_cast<INOTIFY_T*> (downstream_p);
-//        if (unlikely (!inotify_p))
-//        {
-//          ACE_DEBUG ((LM_WARNING,
-//                      ACE_TEXT ("%s:%s: downstream does not implement Stream_INotify_T; cannot notify unlink, continuing\n"),
-//                      ACE_TEXT (istream_p->name ().c_str ()),
-//                      inherited::mod_->name ()));
-//          goto continue_3;
-//        } // end IF
-//
-//        try {
-//          inotify_p->notify (STREAM_SESSION_MESSAGE_UNLINK,
-//                             false,  // recurse upstream ?
-//                             false); // expedite ?
-//        } catch (...) {
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("%s:%s: caught exception in Stream_INotify_T::notify(STREAM_SESSION_MESSAGE_UNLINK), aborting\n"),
-//                      ACE_TEXT (istream_p->name ().c_str ()),
-//                      inherited::mod_->name ()));
-//          return false;
-//        }
+        //try {
+        //  inotify_p->notify (STREAM_SESSION_MESSAGE_UNLINK,
+        //                     false,  // recurse upstream ?
+        //                     false); // expedite ?
+        //} catch (...) {
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("%s:%s: caught exception in Stream_INotify_T::notify(STREAM_SESSION_MESSAGE_UNLINK), aborting\n"),
+        //              ACE_TEXT (istream_p->name ().c_str ()),
+        //              inherited::mod_->name ()));
+        //  return false;
+        //}
+
 //continue_3:
-
         // step3: 'downstream' has been unlinked; notify 'upstream' (i.e.
         //         'this') about this fact as well
 

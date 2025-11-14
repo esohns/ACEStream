@@ -4314,7 +4314,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 #if defined (GTKGL_SUPPORT)
   GtkBox* box_p = NULL;
   Common_UI_GTK_GLContextsIterator_t opengl_contexts_iterator;
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   GtkGLArea* gl_area_p = NULL;
   GdkGLContext* gl_context_p = NULL;

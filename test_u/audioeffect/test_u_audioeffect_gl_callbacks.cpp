@@ -1388,7 +1388,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 
   ggla_area_swap_buffers (GGLA_AREA (widget_in));
 
-  glUseProgram (0);
+  shader_p->unuse ();
 
   return TRUE;
 }

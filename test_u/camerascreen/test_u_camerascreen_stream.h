@@ -71,7 +71,8 @@ class Stream_CameraScreen_DirectShow_Stream
                         Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraScreen_DirectShow_Message_t,
-                        Stream_CameraScreen_DirectShow_SessionMessage_t>
+                        Stream_CameraScreen_DirectShow_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -86,7 +87,8 @@ class Stream_CameraScreen_DirectShow_Stream
                         Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraScreen_DirectShow_Message_t,
-                        Stream_CameraScreen_DirectShow_SessionMessage_t> inherited;
+                        Stream_CameraScreen_DirectShow_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_CameraScreen_DirectShow_Stream ();
@@ -146,7 +148,8 @@ class Stream_CameraScreen_MediaFoundation_Stream
                         Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraScreen_MediaFoundation_Message_t,
-                        Stream_CameraScreen_MediaFoundation_SessionMessage_t>
+                        Stream_CameraScreen_MediaFoundation_SessionMessage_t,
+                        struct Stream_UserData>
  , public IMFAsyncCallback
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
@@ -162,7 +165,8 @@ class Stream_CameraScreen_MediaFoundation_Stream
                         Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraScreen_MediaFoundation_Message_t,
-                        Stream_CameraScreen_MediaFoundation_SessionMessage_t> inherited;
+                        Stream_CameraScreen_MediaFoundation_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_CameraScreen_MediaFoundation_Stream ();
@@ -226,7 +230,8 @@ class Stream_CameraScreen_Stream
                         Test_U_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraScreen_Message_t,
-                        Stream_CameraScreen_SessionMessage_t>
+                        Stream_CameraScreen_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -241,7 +246,8 @@ class Stream_CameraScreen_Stream
                         Test_U_V4L_SessionManager_t,
                         Stream_ControlMessage_t,
                         Stream_CameraScreen_Message_t,
-                        Stream_CameraScreen_SessionMessage_t> inherited;
+                        Stream_CameraScreen_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Stream_CameraScreen_Stream ();

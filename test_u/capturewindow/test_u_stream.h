@@ -54,7 +54,8 @@ class Test_U_DirectShow_Stream
                         Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_DirectShow_Message_t,
-                        Test_U_DirectShow_SessionMessage_t>
+                        Test_U_DirectShow_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -69,7 +70,8 @@ class Test_U_DirectShow_Stream
                         Test_U_DirectShow_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_DirectShow_Message_t,
-                        Test_U_DirectShow_SessionMessage_t> inherited;
+                        Test_U_DirectShow_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Test_U_DirectShow_Stream ();
@@ -112,7 +114,8 @@ class Test_U_MediaFoundation_Stream
                         Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_MediaFoundation_Message_t,
-                        Test_U_MediaFoundation_SessionMessage_t>
+                        Test_U_MediaFoundation_SessionMessage_t,
+                        struct Stream_UserData>
  , public IMFAsyncCallback
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
@@ -128,7 +131,8 @@ class Test_U_MediaFoundation_Stream
                         Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_MediaFoundation_Message_t,
-                        Test_U_MediaFoundation_SessionMessage_t> inherited;
+                        Test_U_MediaFoundation_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Test_U_MediaFoundation_Stream ();
@@ -187,7 +191,8 @@ class Test_U_Stream
                         Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message_t,
-                        Test_U_SessionMessage_t>
+                        Test_U_SessionMessage_t,
+                        struct Stream_UserData>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -202,7 +207,8 @@ class Test_U_Stream
                         Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_Message_t,
-                        Test_U_SessionMessage_t> inherited;
+                        Test_U_SessionMessage_t,
+                        struct Stream_UserData> inherited;
 
  public:
   Test_U_Stream ();

@@ -870,7 +870,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
-      if (inherited::endSeen_ && // <-- there was (!) an upstream
+      if (inherited::endSeenFromUpstream_ && // <-- there was (!) an upstream
           inherited::configuration_->stopOnUnlink)
       {
         ACE_DEBUG ((LM_DEBUG,
@@ -1245,10 +1245,6 @@ end:
                       inherited::name (),
                       STREAM_SESSION_MESSAGE_DISCONNECT));
 
-        // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
-        stream_p->stop (false,  // wait for completion ?
-                        false,  // recurse upstream ?
-                        false); // high priority ?
         istream_connection_p->waitForIdleState ();
 
         goto continue_2;

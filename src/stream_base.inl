@@ -1006,9 +1006,11 @@ Stream_Base_T<ACE_SYNCH_USE,
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("N/A"))));
     }
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: stopped upstream: %s, continuing\n"),
+                ACE_TEXT ("%s: stopped upstream: %s, returning\n"),
                 ACE_TEXT (name_.c_str ()),
                 (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("N/A"))));
+
+    return;
   } // end IF
 
 continue_:
@@ -1553,14 +1555,18 @@ Stream_Base_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_END:
     {
 session_end:
+      enum Stream_StateMachine_ControlState next_state_e = STREAM_STATE_STOPPED;
+
       // sanity check(s)
       enum Stream_StateMachine_ControlState state_e =
         istatemachine_p->current ();
       if (state_e > STREAM_STATE_SESSION_STOPPING)
         break; // catch spurious abort(s); there should only be one (!) session-end notification
+      else if (state_e == STREAM_STATE_RUNNING)
+        next_state_e = STREAM_STATE_SESSION_STOPPING;
 
       try {
-        istatemachine_p->change (STREAM_STATE_STOPPED);
+        istatemachine_p->change (next_state_e);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: caught exception in Common_IStateMachine_2::change(), returning\n"),

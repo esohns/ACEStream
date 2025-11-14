@@ -697,13 +697,6 @@ error:
       enum Stream_SessionMessageType session_message_type =
         session_message_p->type ();
 
-      // *IMPORTANT NOTE*: if linked, do not deliver session end messages; this
-      //                   ensures that only one session end message is
-      //                   delivered per session
-      if (unlikely (linked_ &&
-                    (session_message_type == STREAM_SESSION_MESSAGE_END)))
-        break;
-
       bool post_process_b = false;
       // post-process UNLINK, END messages, pre-process all others
       if (unlikely ((session_message_type == STREAM_SESSION_MESSAGE_UNLINK) ||

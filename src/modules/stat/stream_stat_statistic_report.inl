@@ -924,6 +924,22 @@ Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
 
   switch (messageBlock_in->msg_type ())
   {
+    case STREAM_MESSAGE_CONTROL:
+    {
+      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
+        // update counters
+        ++writer_p->outboundMessages_;
+      } // end lock scope
+      break;
+    }
+    case STREAM_MESSAGE_SESSION:
+    {
+      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
+        // update counters
+        ++writer_p->outboundMessages_;
+      } // end lock scope
+      break;
+    }
     case STREAM_MESSAGE_DATA:
     case STREAM_MESSAGE_OBJECT:
     {

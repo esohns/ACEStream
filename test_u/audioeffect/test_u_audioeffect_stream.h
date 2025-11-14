@@ -115,7 +115,8 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_MediaFoundation_Message,
-                        Test_U_AudioEffect_MediaFoundation_SessionMessage>
+                        Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                        struct Stream_UserData>
 #if defined (GTKGL_SUPPORT)
  , public Stream_Visualization_GTK_Cairo_OpenGL
 #endif // GTKGL_SUPPORT
@@ -137,7 +138,8 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         Test_U_MediaFoundation_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_MediaFoundation_Message,
-                        Test_U_AudioEffect_MediaFoundation_SessionMessage> inherited;
+                        Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                        struct Stream_UserData> inherited;
 #if defined (GTKGL_SUPPORT)
   typedef Stream_Visualization_GTK_Cairo_OpenGL inherited2;
 #endif // GTKGL_SUPPORT
@@ -203,7 +205,8 @@ class Test_U_AudioEffect_ALSA_Stream
                         Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_Message,
-                        Test_U_AudioEffect_SessionMessage>
+                        Test_U_AudioEffect_SessionMessage,
+                        struct Stream_UserData>
 #if defined (GTKGL_SUPPORT)
  , public Stream_Visualization_GTK_Cairo_OpenGL
 #endif // GTKGL_SUPPORT
@@ -221,7 +224,8 @@ class Test_U_AudioEffect_ALSA_Stream
                         Test_U_SessionManager_t,
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_Message,
-                        Test_U_AudioEffect_SessionMessage> inherited;
+                        Test_U_AudioEffect_SessionMessage,
+                        struct Stream_UserData> inherited;
 #if defined (GTKGL_SUPPORT)
   typedef Stream_Visualization_GTK_Cairo_OpenGL inherited2;
 #endif // GTKGL_SUPPORT
