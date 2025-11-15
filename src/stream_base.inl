@@ -1005,10 +1005,10 @@ Stream_Base_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: caught exception in Stream_IStreamControl::stop(), continuing\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("N/A"))));
     }
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: stopped upstream: %s, returning\n"),
-                ACE_TEXT (name_.c_str ()),
-                (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("N/A"))));
+    // ACE_DEBUG ((LM_DEBUG,
+    //             ACE_TEXT ("%s: stopped upstream: %s, returning\n"),
+    //             ACE_TEXT (name_.c_str ()),
+    //             (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("N/A"))));
 
     return;
   } // end IF
@@ -4068,12 +4068,12 @@ continue_:
 continue_2:
     // (try to) merge upstream session data
     iget_p = dynamic_cast<ISESSION_DATA_T*> (&upstream_in);
-    if (!iget_p)
+    if (unlikely (!iget_p))
     {
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("%s: upstream (was: 0x%@) does not implement Common_IGetR_T<SESSION_DATA_T>, cannot update session data, continuing\n"),
-//                  ACE_TEXT (name_.c_str ()),
-//                  inherited::linked_us_in));
+     ACE_DEBUG ((LM_WARNING,
+                 ACE_TEXT ("%s: upstream (was: 0x%@) does not implement Common_IGetR_T<SESSION_DATA_T>, cannot update session data, continuing\n"),
+                 ACE_TEXT (name_.c_str ()),
+                 inherited::linked_us_));
       goto continue_3;
     } // end IF
     session_data_p = &const_cast<SESSION_DATA_T&> (iget_p->getR_2 ());
@@ -4082,9 +4082,29 @@ continue_2:
     ACE_ASSERT (session_data_2->lock);
     { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_2->lock, -1);
       ACE_ASSERT (session_data_p->lock);
-      ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard_2, *session_data_p->lock, -1);
+      bool release_upstream_lock_b = false;
+      ACE_SYNCH_MUTEX* upstream_session_data_lock_p = session_data_p->lock; // retain handle to originals
+      if (likely (session_data_p->lock != session_data_2->lock))
+      {
+        result = upstream_session_data_lock_p->acquire ();
+        if (unlikely (result == -1))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n"),
+                      ACE_TEXT (name_.c_str ())));
+        release_upstream_lock_b = true;
+      } // end IF
+
       // *IMPORTANT NOTE*: the idea here is to 'merge' the two datasets
       *session_data_p += *session_data_2;
+
+      if (likely (release_upstream_lock_b))
+      {
+        result = upstream_session_data_lock_p->release ();
+        if (unlikely (result == -1))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX_T::release(): \"%m\", continuing\n"),
+                      ACE_TEXT (name_.c_str ())));
+      } // end IF
     } // end lock scope
 
 continue_3:

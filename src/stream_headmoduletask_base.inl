@@ -1383,11 +1383,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::control"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::sessionData_);
-  ACE_ASSERT (streamState_);
-
   SessionEventType message_type_e = STREAM_SESSION_MESSAGE_INVALID;
   switch (control_in)
   { // control
@@ -1399,7 +1394,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     case STREAM_CONTROL_RESET:
     case STREAM_CONTROL_STEP:
     case STREAM_CONTROL_STEP_2:
-    {
+    { ACE_ASSERT (inherited::sessionData_);
       const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         inherited::sessionData_->getR ();
       if (!inherited::putControlMessage (session_data_r.sessionId,
@@ -1437,6 +1432,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   return;
 
 send_session_message:
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::sessionData_);
+  ACE_ASSERT (streamState_);
+
   // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
   //         condition when the connection is close()d asynchronously
   //         --> see below: line 2015
@@ -1663,7 +1663,7 @@ retry:
                      false); // forward upstream ?
         } // end IF
 
-        return; // nothing to do
+        goto wait_2; // wait for any remaining workers ?
       }
       default:
       {
@@ -1702,6 +1702,7 @@ wait: // (try to) wait a little while until the state settles down
 continue_:
   inherited2::change (next_state_e);
 
+wait_2:
   if (wait_in)
     wait (true,   // wait for worker thread(s) ?
           false,  // N/A
@@ -1747,8 +1748,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     case STREAM_STATE_SESSION_STARTING:
     case STREAM_STATE_RUNNING:
     case STREAM_STATE_PAUSED:
-    case STREAM_STATE_SESSION_STOPPING:
       return true;
+    case STREAM_STATE_SESSION_STOPPING:
     case STREAM_STATE_STOPPED:
     case STREAM_STATE_FINISHED:
       break; // left to check: (still) processing data ?

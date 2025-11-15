@@ -573,8 +573,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_U_MicVisualize_Statistic,
                                                       Common_Timer_Manager_t,
-                                                      Test_U_MicVisualize_SessionData,
-                                                      Test_U_MicVisualize_SessionData_t> Test_U_MicVisualize_Module_Statistic_ReaderTask_t;
+                                                      struct Stream_UserData> Test_U_MicVisualize_Module_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration,
@@ -584,8 +583,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_U_MicVisualize_Statistic,
                                                       Common_Timer_Manager_t,
-                                                      Test_U_MicVisualize_SessionData,
-                                                      Test_U_MicVisualize_SessionData_t> Test_U_MicVisualize_Module_Statistic_WriterTask_t;
+                                                      struct Stream_UserData> Test_U_MicVisualize_Module_Statistic_WriterTask_t;
 DATASTREAM_MODULE_DUPLEX (Test_U_MicVisualize_SessionData,                       // session data type
                           enum Stream_SessionMessageType,                       // session event type
                           struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration, // module handler configuration type
