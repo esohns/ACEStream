@@ -418,7 +418,7 @@
                                             <property name="relief">half</property>
                                             <property name="use_stock">True</property>
                                             <property name="focus_on_click">False</property>
-                                            <signal name="clicked" handler="button_device_settings_clicked_cb" swapped="no"/>
+                                            <signal name="clicked" handler="button_settings_clicked_cb" swapped="no"/>
                                           </object>
                                           <packing>
                                             <property name="expand">False</property>
@@ -437,7 +437,7 @@
                                             <property name="relief">half</property>
                                             <property name="use_stock">True</property>
                                             <property name="focus_on_click">False</property>
-                                            <signal name="clicked" handler="button_device_reset_clicked_cb" swapped="no"/>
+                                            <signal name="clicked" handler="button_reset_clicked_cb" swapped="no"/>
                                           </object>
                                           <packing>
                                             <property name="expand">False</property>
@@ -491,7 +491,7 @@
                                             <property name="draw_value">False</property>
                                             <property name="has_origin">False</property>
                                             <signal name="change-value" handler="hscale_boost_change_value_cb" swapped="no"/>
-                                            <signal name="value-changed" handler="hscale_device_boost_value_changed_cb" swapped="no"/>
+                                            <signal name="value-changed" handler="hscale_boost_value_changed_cb" swapped="no"/>
                                           </object>
                                           <packing>
                                             <property name="expand">False</property>

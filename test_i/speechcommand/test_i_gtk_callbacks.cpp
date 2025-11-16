@@ -3114,6 +3114,148 @@ error:
 #endif // ACE_WIN32 || ACE_WIN64
 } // combobox_source_changed_cb
 
+gboolean
+dialog_main_key_press_event_cb (GtkWidget* widget_in,
+                                GdkEventKey* eventKey_in,
+                                gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::dialog_main_key_press_event_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+
+  // sanity check(s)
+  ACE_ASSERT (eventKey_in);
+  struct Test_I_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Test_I_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR());
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_r.builders.end ());
+
+  switch (eventKey_in->keyval)
+  {
+#if GTK_CHECK_VERSION (3,0,0)
+    case GDK_KEY_Escape:
+    case GDK_KEY_r:
+    case GDK_KEY_R:
+#else
+    case GDK_Escape:
+    case GDK_r:
+    case GDK_R:
+#endif // GTK_CHECK_VERSION (3,0,0)
+    {
+      bool is_active_b = false;
+      GtkToggleButton* toggle_button_p =
+        GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
+      ACE_ASSERT (toggle_button_p);
+      is_active_b = gtk_toggle_button_get_active (toggle_button_p);
+
+     // sanity check(s)
+#if GTK_CHECK_VERSION (3,0,0)
+      if ((eventKey_in->keyval == GDK_KEY_Escape) &&
+#else
+      if ((eventKey_in->keyval == GDK_Escape) &&
+#endif // GTK_CHECK_VERSION (3,0,0)
+          !is_active_b)
+        break; // <-- not in recording mode, nothing to do
+
+      gtk_toggle_button_set_active (toggle_button_p,
+                                    !is_active_b);
+
+      break;
+    }
+// #if GTK_CHECK_VERSION (3,0,0)
+//     case GDK_KEY_1:
+//     case GDK_KEY_2:
+//     case GDK_KEY_3:
+//     case GDK_KEY_4:
+//     case GDK_KEY_5:
+//     case GDK_KEY_6:
+//     case GDK_KEY_7:
+//     case GDK_KEY_8:
+//     case GDK_KEY_9:
+//     case GDK_KEY_0:
+// #else
+//     case GDK_1:
+//     case GDK_2:
+//     case GDK_3:
+//     case GDK_4:
+//     case GDK_5:
+//     case GDK_6:
+//     case GDK_7:
+//     case GDK_8:
+//     case GDK_9:
+//     case GDK_0:
+// #endif // GTK_CHECK_VERSION (3,0,0)
+//     {
+//       // sanity check(s)
+//       if (data_p->nextChannel != -1)
+//         return TRUE; // done (do not propagate further)
+// #if GTK_CHECK_VERSION (3,0,0)
+//       if (eventKey_in->keyval == GDK_KEY_0)
+//         data_p->nextChannel = 10;
+//       else
+//         data_p->nextChannel = eventKey_in->keyval - GDK_KEY_0;
+// #else
+//       if (eventKey_in->keyval == GDK_0)
+//         data_p->nextChannel = 10;
+//       else
+//         data_p->nextChannel = eventKey_in->keyval - GDK_0;
+// #endif // GTK_CHECK_VERSION (3,0,0)
+//       // sanity check(s)
+//       if (data_p->nextChannel == static_cast<int> (data_p->currentChannel))
+//       {
+//         data_p->nextChannel = -1; // reset
+//         return TRUE; // done (do not propagate further)
+//       } // end IF
+
+//       GtkToggleButton* toggle_button_p =
+//         GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+//                                                    ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_PLAY_NAME)));
+//       ACE_ASSERT (toggle_button_p);
+//       if (gtk_toggle_button_get_active (toggle_button_p))
+//       {
+//         GtkToggleButton* toggle_button_2 =
+//           GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+//                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_PLAY_NAME)));
+//         ACE_ASSERT (toggle_button_2);
+//         gtk_toggle_button_set_active (toggle_button_2, FALSE);
+//         return TRUE; // done (do not propagate further)
+//       } // end IF
+
+// #if GTK_CHECK_VERSION (2,30,0)
+//       struct _GValue value = G_VALUE_INIT;
+// #else
+//       struct _GValue value;
+//       ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+// #endif // GTK_CHECK_VERSION (2,30,0)
+//       g_value_init (&value, G_TYPE_UINT);
+//       g_value_set_uint (&value,
+//                         data_p->nextChannel);
+//       GtkComboBox* combo_box_p =
+//         GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+//                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_CHANNEL_NAME)));
+//       ACE_ASSERT (combo_box_p);
+//       Common_UI_GTK_Tools::selectValue (combo_box_p,
+//                                         value,
+//                                         1);
+//       g_value_unset (&value);
+
+//       break;
+//     }
+    default:
+      return FALSE; // propagate
+  } // end SWITCH
+
+  return TRUE; // done (do not propagate further)
+} // dialog_main_key_press_event_cb
+
 void
 togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
                               gpointer userData_in)

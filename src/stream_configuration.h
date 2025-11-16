@@ -123,7 +123,7 @@ struct Stream_ModuleHandlerConfiguration
    , parserConfiguration (NULL)
    , passive (true)
    , printFinalReport (false)
-   , reportingInterval (0)
+   , reportingInterval (ACE_Time_Value::zero)
    , slurpFiles (false)
    , socketHandle (ACE_INVALID_HANDLE)
    , splitOnStep (false)
@@ -194,7 +194,7 @@ struct Stream_ModuleHandlerConfiguration
   struct Common_ParserConfiguration*          parserConfiguration;                  // parser module(s)
   bool                                        passive;                              // network/device/... module(s)
   bool                                        printFinalReport;                     // statistic module(s)
-  unsigned int                                reportingInterval;                    // (statistic) reporting interval (second(s)) [0: off]
+  ACE_Time_Value                              reportingInterval;                    // (statistic) reporting interval (second(s)) [ACE_Time_Value::zero: off]
   bool                                        slurpFiles;                           // file source module(s)
   ACE_HANDLE                                  socketHandle;                         // network module(s)
   bool                                        splitOnStep;                          // file sink module(s)

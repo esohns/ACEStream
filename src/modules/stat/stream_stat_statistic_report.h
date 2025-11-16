@@ -264,8 +264,6 @@ class Stream_Statistic_StatisticReport_WriterTask_T
   // timer
   STATISTIC_HANDLER_T              localReportingHandler_;
   long                             localReportingHandlerId_;
-  ACE_Time_Value                   reportingInterval_; // [ACE_Time_Value::zero: off]
-  bool                             printFinalReport_;
 
   // used to compute data/message throughput
   ACE_UINT64                       byteCounter_;

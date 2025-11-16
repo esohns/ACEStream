@@ -61,8 +61,6 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                            this,
                            false)
  , localReportingHandlerId_ (-1)
- , reportingInterval_ (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S, 0)
- , printFinalReport_ (false)
  , byteCounter_ (0)
  , fragmentCounter_ (0)
  , controlMessageCounter_ (0)
@@ -105,9 +103,6 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     // stop timers
     finiTimer ();
 
-    reportingInterval_ = ACE_Time_Value::zero;
-    printFinalReport_ = false;
-
     // reset various counters
     { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
       inboundBytes_ = 0;
@@ -128,8 +123,6 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
       messageTypeStatistic_.clear ();
     } // end lock scope
   } // end IF
-  reportingInterval_ = configuration_in.reportingInterval;
-  printFinalReport_ = configuration_in.printFinalReport;
 
   // *NOTE*: if this is an 'outbound' stream, any 'inbound' data (!) will
   //         eventually turn around and travel back upstream for dispatch
@@ -273,10 +266,9 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
       } // end IF
 
       // statistic reporting
-      if (reportingInterval_ != ACE_Time_Value::zero)
+      if (inherited::configuration_->reportingInterval != ACE_Time_Value::zero)
       {
         // schedule the reporting interval timer
-        ACE_ASSERT (inherited::configuration_);
         ACE_ASSERT (localReportingHandlerId_ == -1);
 
         typename TimerManagerType::INTERFACE_T* itimer_manager_p =
@@ -284,23 +276,23 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                                      : TimerManagerType::SINGLETON_T::instance ());
         ACE_ASSERT (itimer_manager_p);
         localReportingHandlerId_ =
-          itimer_manager_p->schedule_timer (&localReportingHandler_,              // event handler handle
-                                            NULL,                                 // asynchronous completion token
-                                            COMMON_TIME_NOW + reportingInterval_, // first wakeup time
-                                            reportingInterval_);                  // interval
+          itimer_manager_p->schedule_timer (&localReportingHandler_,                                        // event handler handle
+                                            NULL,                                                           // asynchronous completion token
+                                            COMMON_TIME_NOW + inherited::configuration_->reportingInterval, // first wakeup time
+                                            inherited::configuration_->reportingInterval);                  // interval
         if (unlikely (localReportingHandlerId_ == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", aborting\n"),
                       inherited::mod_->name (),
-                      &reportingInterval_));
+                      &inherited::configuration_->reportingInterval));
           goto error;
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: scheduled (local) reporting timer (id: %d, interval: %#T)\n"),
                     inherited::mod_->name (),
                     localReportingHandlerId_,
-                    &reportingInterval_));
+                    &inherited::configuration_->reportingInterval));
       } // end IF
       // *NOTE*: even if 'this' doesn't report(), it might still be triggered from
       //         outside
@@ -384,7 +376,7 @@ error:
       finiTimer ();
 
       // session finished --> print overall statistic ?
-      if (printFinalReport_)
+      if (inherited::configuration_->printFinalReport)
         finalReport ();
 
       break;
@@ -510,7 +502,6 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
-
   session_data_p =
     &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   ACE_ASSERT (session_data_p->lock);
@@ -527,7 +518,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     session_data_p->statistic.messagesPerSecond =
       static_cast<float> (lastDataMessagesPerSecondCount_);
     session_data_p->statistic.timeStamp = COMMON_TIME_NOW;
-  } // end lock scope
+  } // end locks scope
 
   // *TODO*: move this into report()
   if (unlikely (!putStatisticMessage ()))
@@ -582,7 +573,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     } // end IF
 
   data_messages_i =
-    inboundMessages_ + outboundMessages_ - sessionMessages_ - controlMessages_;
+    (inboundMessages_ - sessionMessages_ - controlMessages_) + outboundMessages_;
   total_messages_i = inboundMessages_ + outboundMessages_;
 
   // *TODO*: remove type inferences
@@ -655,11 +646,10 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                 ACE_TEXT ("*** [session: %d] STATISTIC ***\n\ttotal # data message(s) [in/out]: %u/%u\n --> Protocol Info <--\n"),
                 (session_data_p ? static_cast<int> (session_data_p->sessionId) : -1),
                 inboundMessages_ - sessionMessages_ - controlMessages_,
-                outboundMessages_ - (sessionMessages_ - 1) - controlMessages_)); // *NOTE*: -1 to account for this message
+                outboundMessages_));
 
     unsigned int data_messages =
-      (inboundMessages_ - sessionMessages_ - controlMessages_) +
-      (outboundMessages_ - (sessionMessages_ - 1) - controlMessages_);
+      (inboundMessages_ - sessionMessages_ - controlMessages_) + outboundMessages_;
     for (STATISTIC_ITERATOR_T iterator = messageTypeStatistic_.begin ();
          iterator != messageTypeStatistic_.end ();
          iterator++)
@@ -929,8 +919,8 @@ Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
     {
       { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
         // update counters
-        ++writer_p->outboundMessages_;
-        ++writer_p->messageCounter_;
+        // ++writer_p->outboundMessages_;
+        // ++writer_p->messageCounter_;
       } // end lock scope
       break;
     }
@@ -938,8 +928,8 @@ Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
     {
       { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
         // update counters
-        ++writer_p->outboundMessages_;
-        ++writer_p->messageCounter_;
+        // ++writer_p->outboundMessages_;
+        // ++writer_p->messageCounter_;
       } // end lock scope
       break;
     }
