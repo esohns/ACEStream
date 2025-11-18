@@ -211,9 +211,10 @@ do_work (int argc_in,
   Test_U_EventHandler event_handler (false);
   Test_U_MessageHandler_Module module (NULL,
                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Stream_MessageQueueBase_T<ACE_MT_SYNCH,
-                            Common_TimePolicy_t> message_queue (STREAM_QUEUE_MAX_SLOTS,
-                                                                NULL);
+  Stream_MessageQueue_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        Test_U_SessionMessage> message_queue (STREAM_QUEUE_MAX_SLOTS,
+                                                              NULL);
   Test_U_Stream stream;
 
   ACE_NEW_NORETURN (message_p,
