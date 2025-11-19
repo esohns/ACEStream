@@ -488,10 +488,7 @@ elseif (WIN32)
  get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY} DIRECTORY)
  set (ACE_DLL_FILE ACE${LIB_FILE_SUFFIX}.dll)
  set (ACE_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_DLL_FILE})
- if (DEFINED $ENV{LIB_ROOT})
-  file (TO_NATIVE_PATH $ENV{LIB_ROOT} LIB_ROOT)
-  string (REPLACE "\\" "\\\\" LIB_ROOT ${LIB_ROOT})
- endif (DEFINED $ENV{LIB_ROOT})
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT} LIB_ROOT)
  install (FILES ${ACE_DLL_FQPATH}
                 ${LIB_ROOT}/freeglut/bin/x64/freeglut.dll
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
