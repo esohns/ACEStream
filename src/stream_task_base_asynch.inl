@@ -766,8 +766,8 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     this->handleMessage (message_block_p,
                          stop_processing);
     if (unlikely (stop_processing))
-      this->stop (false, // wait ?
-                  true); // high priority ?
+      this->stop (false,  // wait ?
+                  false); // high priority ?
 
     message_block_p = NULL;
   } while (true);

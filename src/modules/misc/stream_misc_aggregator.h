@@ -384,7 +384,6 @@ class Stream_Module_Aggregator_WriterTask_2
 
   LINKS_T                   readerLinks_;
   LINKS_T                   writerLinks_;
-  unsigned int              sessionEndCount_;
   ACE_SYNCH_MUTEX_T         sessionLock_;
   SESSION_DATA_T            sessionSessionData_;
   SESSIONID_TO_STREAM_MAP_T sessions_;

@@ -110,15 +110,6 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 # target_link_libraries (${EXECUTABLE} PUBLIC rt)
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_CAP_LIBRARIES})
-elseif (WIN32)
-# target_link_libraries (${EXECUTABLE} PUBLIC Advapi32.lib)
-# target_link_libraries (${EXECUTABLE} PUBLIC Ole32.lib)
-# target_link_libraries (${EXECUTABLE} PUBLIC Quartz.lib)
-# target_link_libraries (${EXECUTABLE} PUBLIC Shell32.lib)
- #target_link_libraries (${EXECUTABLE} PUBLIC ucrtd.lib)
-# target_link_libraries (${EXECUTABLE} PUBLIC User32.lib)
-# target_link_libraries (${EXECUTABLE} PUBLIC Userenv.lib)
-# *TODO*: repair WIN32 pkgconfig support
 endif ()
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
@@ -170,11 +161,15 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
+ if (WXWIDGETS_SUPPORT)
+  file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
+ endif (WXWIDGETS_SUPPORT)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${LIBPNG_PATH}
                            ${VCPKG_PATH}
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
+                           ${WXWIDGETS_PATH}
                            ${ACE_LIB_PATH})
  if (IMAGEMAGICK_SUPPORT)
   file (TO_NATIVE_PATH ${IMAGEMAGICK_PATH} IMAGEMAGICK_NATIVE_PATH)

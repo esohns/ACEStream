@@ -67,6 +67,14 @@ Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
   Stream_IMessage* imessage_p = NULL;
   typename WRITER_TASK_T::SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
   TASK_T* task_p = NULL;
+  bool remove_session_b = false;
+  if (messageBlock_in->msg_type () == STREAM_MESSAGE_SESSION)
+  {
+    SessionMessageType* session_message_p =
+      static_cast<SessionMessageType*> (messageBlock_in);
+    remove_session_b =
+      (session_message_p->type () == STREAM_SESSION_MESSAGE_END);
+  } // end IF
 
   // forward message to upstream module
 
@@ -110,6 +118,9 @@ Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
 
       break;
     } // end FOR
+
+    if (remove_session_b)
+      writer_p->sessions_.erase (iterator);
   } // end lock scope
   if (likely (task_p))
     return task_p->put (messageBlock_in,
@@ -168,6 +179,14 @@ Stream_Module_Aggregator_ReaderTask_2<ACE_SYNCH_USE,
   Stream_IMessage* imessage_p = NULL;
   typename WRITER_TASK_T::SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
   TASK_T* task_p = NULL;
+  bool remove_session_b = false;
+  if (messageBlock_in->msg_type () == STREAM_MESSAGE_SESSION)
+  {
+    SessionMessageType* session_message_p =
+      static_cast<SessionMessageType*> (messageBlock_in);
+    remove_session_b =
+      (session_message_p->type () == STREAM_SESSION_MESSAGE_END);
+  } // end IF
 
   // forward message to upstream module
 
@@ -211,6 +230,9 @@ Stream_Module_Aggregator_ReaderTask_2<ACE_SYNCH_USE,
 
       break;
     } // end FOR
+
+    if (remove_session_b)
+      writer_p->sessions_.erase (iterator);
   } // end lock scope
   ACE_ASSERT (task_p);
 
@@ -942,7 +964,6 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
  : inherited (stream_in)
  , readerLinks_ ()
  , writerLinks_ ()
- , sessionEndCount_ (0)
  , sessionLock_ ()
  , sessionSessionData_ ()
  , sessions_ ()
@@ -1226,7 +1247,6 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
   if (unlikely (inherited::isInitialized_))
   {
     { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_, false);
-      //sessionEndCount_ = 0;
       //sessions_.clear (); // *WARNING*: module is enqueued several times --> retain state
     } // end lock scope
 
@@ -1343,9 +1363,10 @@ error:
       } // end IF
 
       // *NOTE*: iff this was a SESSION_END message, stop processing (see above)
+      // *TODO*: this will race if there is an asynchrounous module downstream
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
         if (unlikely ((session_message_type == STREAM_SESSION_MESSAGE_END) &&
-                      (++sessionEndCount_ == sessions_.size ())))
+                      (sessions_.size () == 1)))
           stopProcessing_out = true;
       } // end lock scope
 
