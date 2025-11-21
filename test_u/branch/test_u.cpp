@@ -91,6 +91,7 @@ do_process_arguments (int argc_in,
 
   // initialize results
   logToFile_out = false;
+  mode_out = TEST_U_MODE_DEFAULT;
   traceInformation_out = false;
 
   ACE_Get_Opt argument_parser (argc_in,
@@ -195,7 +196,7 @@ do_work (int argc_in,
     case TEST_U_MODE_DEFAULT:
     {
       Branch_Message* message_p = NULL;
-      modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+      modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
       Stream_MessageQueueBase_T<ACE_MT_SYNCH,
                                 Common_TimePolicy_t> message_queue (STREAM_QUEUE_MAX_SLOTS,
                                                                     NULL);
@@ -236,7 +237,9 @@ do_work (int argc_in,
 
       ACE_OS::sleep (ACE_Time_Value (1, 0));
 
-      branch_stream.stop ();
+      branch_stream.stop (false,
+                          true,
+                          false);
       branch_stream.wait ();
 
 clean:
@@ -244,6 +247,7 @@ clean:
       {
         message_p->release (); message_p = NULL;
       } // end IF
+
       break;
     }
     case TEST_U_MODE_AGGREGATION:
@@ -487,7 +491,7 @@ ACE_TMAIN (int argc_in,
   // step1a set defaults
   bool log_to_file = false;
   std::string log_file_name;
-  enum Test_U_ModeType program_mode_e = TEST_U_MODE_INVALID;
+  enum Test_U_ModeType program_mode_e = TEST_U_MODE_DEFAULT;
   bool trace_information = false;
 
   // step1b: parse/process/validate configuration

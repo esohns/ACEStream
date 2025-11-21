@@ -220,7 +220,7 @@ class Stream_Miscellaneous_Distributor_WriterTask_T
     typedef MODULE_T*             second_argument_type;
     typedef bool                  result_type;
 
-    inline bool operator() (const BRANCH_TO_HEAD_PAIR_T& entry_in, MODULE_T* module_in) const { return !ACE_OS::strcmp (entry_in.second->name (), module_in->name ()); }
+    inline bool operator() (const BRANCH_TO_HEAD_PAIR_T& entry_in, MODULE_T* module_in) const { return entry_in.second == module_in; /*!ACE_OS::strcmp (entry_in.second->name (), module_in->name ());*/ }
   };
 
   // helper methods

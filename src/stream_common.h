@@ -171,11 +171,12 @@ enum Stream_SessionMessageType : int
   // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
   STREAM_SESSION_MESSAGE_MASK      = ACE_Message_Block::MB_USER, // == 0x200
   // *** notification ***
-  STREAM_SESSION_MESSAGE_ABORT,
+  STREAM_SESSION_MESSAGE_ABORT, // *NOTE*: currently to be used by modules only
   STREAM_SESSION_MESSAGE_CONNECT,
   STREAM_SESSION_MESSAGE_DISCONNECT,
   STREAM_SESSION_MESSAGE_LINK,
-  STREAM_SESSION_MESSAGE_RESIZE, // *TODO*: disambiguate between updated session data (i.e. input data) and  updated configuration data
+  STREAM_SESSION_MESSAGE_RESIZE, // *TODO*: disambiguate between updated session data
+                                 //         (i.e. input data) and updated configuration data
   STREAM_SESSION_MESSAGE_UNLINK,
   // *** control ***
   STREAM_SESSION_MESSAGE_BEGIN,

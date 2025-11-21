@@ -96,7 +96,7 @@ if (WIN32)
 endif (WIN32)
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}
-                        ARGS "-l -m 1 -t"
+                        ARGS "-l -t"
 #                         FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/branch

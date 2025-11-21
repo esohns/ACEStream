@@ -886,7 +886,7 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::svc"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
   Common_Error_Tools::setThreadName (inherited::threadName_,
                                      NULL);
 #else
@@ -916,10 +916,10 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
     ACE_ASSERT (iterator_2 != modules_.end ());
     module_p = (*iterator_2).second;
     iterator_3 =
-        std::find_if (heads_.begin (), heads_.end (),
-                      std::bind (BRANCH_TO_HEAD_MAP_FIND_S (),
-                                 std::placeholders::_1,
-                                 (*iterator_2).second));
+      std::find_if (heads_.begin (), heads_.end (),
+                    std::bind (BRANCH_TO_HEAD_MAP_FIND_S (),
+                               std::placeholders::_1,
+                               (*iterator_2).second));
     ACE_ASSERT (iterator_3 != heads_.end ());
     branch_string = (*iterator_3).first;
   } // end lock scope
@@ -996,8 +996,10 @@ done:
   } // end lock scope
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: worker thread (id: %t) leaving\n"),
-              inherited::mod_->name ()));
+              ACE_TEXT ("%s: worker thread (id: %t, group: %d, branch: \"%s\") leaving\n"),
+              inherited::mod_->name (),
+              inherited::grp_id_,
+              ACE_TEXT (branch_string.c_str ())));
 
   return result;
 }
