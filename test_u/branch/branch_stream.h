@@ -86,8 +86,8 @@ class Branch_Stream
   ACE_UNIMPLEMENTED_FUNC (Branch_Stream (const Branch_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Branch_Stream& operator= (const Branch_Stream&))
 
-  // *TODO*: re-consider this API
-  inline void ping () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  //// *TODO*: re-consider this API
+  //inline void ping () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 };
 
 //////////////////////////////////////////
@@ -142,6 +142,63 @@ class Branch_Stream_2
  private:
   ACE_UNIMPLEMENTED_FUNC (Branch_Stream_2 (const Branch_Stream_2&))
   ACE_UNIMPLEMENTED_FUNC (Branch_Stream_2& operator= (const Branch_Stream_2&))
+
+  // *TODO*: re-consider this API
+  //inline void ping () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+};
+
+//////////////////////////////////////////
+
+class Branch_Stream_3
+ : public Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Branch_StreamState,
+                        struct Branch_StreamConfiguration,
+                        struct Stream_Statistic,
+                        struct Branch_ModuleHandlerConfiguration,
+                        Test_U_SessionManager_t,
+                        Stream_ControlMessage_t,
+                        Branch_Message,
+                        Branch_SessionMessage,
+                        struct Stream_UserData>
+{
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Branch_StreamState,
+                        struct Branch_StreamConfiguration,
+                        struct Stream_Statistic,
+                        struct Branch_ModuleHandlerConfiguration,
+                        Test_U_SessionManager_t,
+                        Stream_ControlMessage_t,
+                        Branch_Message,
+                        Branch_SessionMessage,
+                        struct Stream_UserData> inherited;
+
+ public:
+  Branch_Stream_3 ();
+  inline virtual ~Branch_Stream_3 () { inherited::shutdown (); }
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ILayout*, // layout handle
+                     bool&);          // return value: delete modules ?
+
+  // implement Common_IInitialize_T
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
+
+  // implement (part of) Stream_ISessionCB
+  virtual void onSessionEnd (Stream_SessionId_t);
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Branch_Stream_3 (const Branch_Stream_3&))
+  ACE_UNIMPLEMENTED_FUNC (Branch_Stream_3& operator= (const Branch_Stream_3&))
 
   // *TODO*: re-consider this API
   //inline void ping () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
