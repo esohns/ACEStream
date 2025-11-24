@@ -26,6 +26,7 @@
 class Stream_Module_MachineLearning_Tools
 {
  public:
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MachineLearning_Tools ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MachineLearning_Tools (const Stream_Module_MachineLearning_Tools&))

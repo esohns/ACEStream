@@ -10,6 +10,7 @@ enum Stream_MachineLearning_BackendType : int
   STREAM_ML_BACKEND_TENSORFLOW = 0,
   STREAM_ML_BACKEND_TENSORFLOW_CC,
   STREAM_ML_BACKEND_LIBTORCH,
+  STREAM_ML_BACKEND_ONNX_RT,
   ////////////////////////////////////////
   STREAM_ML_BACKEND_MAX,
   STREAM_ML_BACKEND_INVALID

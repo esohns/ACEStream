@@ -36,8 +36,6 @@ set (parser_EXE_SRCS
      parser_eventhandler.h
      parser_message.cpp
      parser_message.h
-     parser_module_eventhandler.cpp
-     parser_module_eventhandler.h
      parser_module_parser.cpp
      parser_module_parser.h
      parser_session_message.cpp

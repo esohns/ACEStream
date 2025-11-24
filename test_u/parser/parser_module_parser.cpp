@@ -95,9 +95,11 @@ Parser_Module_Parser::record (Bencoding_Dictionary_t*& record_inout)
     const_cast<Parser_MessageData_t&> (message_p->getR ());
   struct Parser_MessageData& data_r =
     const_cast<struct Parser_MessageData&> (data_container_r.getR ());
-  data_r.dictionary = record_inout;
+  data_r.element.type = Bencoding_Element::BENCODING_TYPE_DICTIONARY;
+  data_r.element.dictionary = record_inout;
   Parser_MessageData_t* data_container_2 = NULL;
-  Parser_Message* message_2 = static_cast<Parser_Message*> (inherited::headFragment_->cont ());
+  Parser_Message* message_2 =
+    static_cast<Parser_Message*> (inherited::headFragment_->cont ());
   while (message_2)
   {
     data_container_r.increase ();

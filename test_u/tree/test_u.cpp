@@ -261,20 +261,11 @@ ACE_TMAIN (int argc_in,
     goto clean;
   } // end IF
 
-//  if (!Common_File_Tools::isReadable (source_file_path))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("invalid argument(s), aborting\n")));
-//    do_print_usage (ACE::basename (argv_in[0]));
-//    goto clean;
-//  } // end IF
-
   // step1c: initialize logging and/or tracing
   if (log_to_file)
-    log_file_name =
-      Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                        ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initialize (ACE::basename (argv_in[0]), // program name
+    log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
+  if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])), // program name
                                      log_file_name,              // log file name
                                      false,                      // log to syslog ?
                                      false,                      // trace messages ?
@@ -293,7 +284,6 @@ ACE_TMAIN (int argc_in,
            program_mode_e);
   timer.stop ();
 
-  // debug info
   timer.elapsed_time (working_time);
   ACE_DEBUG ((LM_INFO,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"\n"),

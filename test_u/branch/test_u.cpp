@@ -240,11 +240,11 @@ do_work (int argc_in,
       message_p = NULL;
 
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("waiting: %#T...\n"),
+                  ACE_TEXT ("waiting: %#Y...\n"),
                   &timeout));
       ACE_OS::sleep (timeout);
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("waiting: %#T...DONE\n"),
+                  ACE_TEXT ("waiting: %#Y...DONE\n"),
                   &timeout));
 
       // *NOTE*: non-high-priority stop

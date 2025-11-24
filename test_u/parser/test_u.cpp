@@ -9,7 +9,6 @@
 #include "ace/Init_ACE.h"
 #include "ace/OS.h"
 #include "ace/Profile_Timer.h"
-//#include "ace/Synch.h"
 #include "ace/Time_Value.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -29,8 +28,8 @@
 
 #include "stream_misc_defines.h"
 
+#include "parser_common_modules.h"
 #include "parser_eventhandler.h"
-#include "parser_module_eventhandler.h"
 #include "parser_stream.h"
 
 void
@@ -186,8 +185,8 @@ do_work (int argc_in,
   struct Stream_Configuration stream_configuration;
   Parser_StreamConfiguration_t stream_configuration_2;
   Parser_EventHandler event_handler (false);
-  Parser_Module_EventHandler_Module module (NULL,
-                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Parser_MessageHandler_Module module (NULL,
+                                       ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Stream_MessageQueueBase_T<ACE_MT_SYNCH, Common_TimePolicy_t> message_queue (STREAM_QUEUE_MAX_SLOTS,
                                                                               NULL);
   Parser_Stream parser_stream;
@@ -197,7 +196,6 @@ do_work (int argc_in,
   int result = -1;
   Parser_MessageData_t* data_container_p = NULL;
   Parser_MessageData* data_3 = NULL;
-  struct Parser_SessionData session_data_s;
   Test_U_SessionManager_t* session_manager_p = NULL;
 
   // step1: initialize/start stream
@@ -221,8 +219,8 @@ do_work (int argc_in,
 
   session_manager_p = Test_U_SessionManager_t::SINGLETON_T::instance ();
   ACE_ASSERT (session_manager_p);
-  session_manager_p->setR (session_data_s,
-                           parser_stream.id ());
+  const struct Parser_SessionData& session_data_r =
+    session_manager_p->getR (parser_stream.id ());
 
   if (!parser_stream.initialize (stream_configuration_2))
   {
@@ -259,12 +257,12 @@ do_work (int argc_in,
                     Parser_MessageData_t ());
   ACE_ASSERT (data_container_p);
   ACE_NEW_NORETURN (data_3,
-                    Parser_MessageData ());
+                    struct Parser_MessageData ());
   ACE_ASSERT (data_3);
   data_container_p->setPR (data_3);
 
   message_p->initialize (data_container_p,
-                         session_data_s.sessionId,
+                         session_data_r.sessionId,
                          NULL);
 
   if (!Common_File_Tools::load (file_path_2,

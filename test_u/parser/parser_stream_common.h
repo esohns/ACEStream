@@ -50,17 +50,17 @@ class Parser_SessionMessage;
 struct Parser_MessageData
 {
   Parser_MessageData ()
-   : dictionary (NULL)
-  {};
-  virtual ~Parser_MessageData ()
+   : element ()
+  {}
+  ~Parser_MessageData ()
   {
-    if (dictionary)
-      Common_Parser_Bencoding_Tools::free (dictionary);
-  };
-  inline void operator+= (struct Parser_MessageData rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-  inline operator Bencoding_Dictionary_t&() const { ACE_ASSERT (dictionary); return *dictionary; }
+    Common_Parser_Bencoding_Tools::free (element);
+  }
 
-  Bencoding_Dictionary_t* dictionary;
+  inline void operator+= (struct Parser_MessageData rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  // inline operator Bencoding_Dictionary_t&() const { ACE_ASSERT (dictionary); return *dictionary; }
+
+  struct Bencoding_Element element;
 };
 typedef Stream_DataBase_T<struct Parser_MessageData> Parser_MessageData_t;
 

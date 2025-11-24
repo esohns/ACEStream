@@ -21,31 +21,15 @@
 
 #include "parser_eventhandler.h"
 
-//#include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
-//#include "ace/Synch_Traits.h"
-
-//#if defined (GTK_USE)
-//#include "gtk/gtk.h"
-//#endif // GTK_USE
-//#include "common_ui_common.h"
 
 #include "stream_macros.h"
 
-//#if defined (GTK_USE)
-//#include "http_get_callbacks.h"
-//#endif // GTK_USE
-
-Parser_EventHandler::Parser_EventHandler (
-//                                            struct Parser_UI_CBData* CBData_in,
-                                            bool consoleMode_in)
+Parser_EventHandler::Parser_EventHandler (bool consoleMode_in)
  : consoleMode_ (consoleMode_in)
-// , CBData_ (CBData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Parser_EventHandler::Parser_EventHandler"));
 
-  // sanity check(s)
-//  ACE_ASSERT (CBData_);
 }
 
 void
@@ -56,28 +40,6 @@ Parser_EventHandler::start (Stream_SessionId_t sessionId_in,
 
   ACE_UNUSED_ARG (sessionId_in);
   ACE_UNUSED_ARG (sessionData_in);
-
-  // sanity check(s)
-//  ACE_ASSERT (CBData_);
-
-//#if defined (GTK_USE)
-//  Common_UI_GTK_Manager_t* gtk_manager_p =
-//    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-//  ACE_ASSERT (gtk_manager_p);
-//  Common_UI_GTK_State_t& state_r =
-//    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
-//  guint event_source_id = 0;
-//  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-//    event_source_id = g_idle_add (idle_session_start_cb,
-//                                  CBData_);
-//    if (!event_source_id)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to g_idle_add(idle_session_start_cb): \"%m\", continuing\n")));
-//    else
-//      state_r.eventSourceIds.insert (event_source_id);
-//    state_r.eventStack.push (COMMON_UI_EVENT_STARTED);
-//  } // end lock scope
-//#endif // GTK_USE
 }
 
 void
@@ -106,26 +68,14 @@ Parser_EventHandler::notify (Stream_SessionId_t sessionId_in,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
-//  ACE_ASSERT (CBData_);
   ACE_ASSERT (message_in.isInitialized ());
-
-//#if defined (GTK_USE)
-//  Common_UI_GTK_Manager_t* gtk_manager_p =
-//    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-//  ACE_ASSERT (gtk_manager_p);
-//  Common_UI_GTK_State_t& state_r =
-//    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
-//  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-//    state_r.eventStack.push (COMMON_UI_EVENT_DATA);
-//  } // end lock scope
-//#endif // GTK_USE
 
   const Parser_MessageData_t& data_container_r = message_in.getR ();
   const struct Parser_MessageData& data_r = data_container_r.getR ();
-  ACE_ASSERT (data_r.dictionary);
+  ACE_ASSERT (data_r.element.type == Bencoding_Element::BENCODING_TYPE_DICTIONARY);
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT("%s\n"),
-              ACE_TEXT (Common_Parser_Bencoding_Tools::DictionaryToString (*data_r.dictionary).c_str ())));
+              ACE_TEXT ("%s\n"),
+              ACE_TEXT (Common_Parser_Bencoding_Tools::DictionaryToString (*data_r.element.dictionary).c_str ())));
 }
 
 void
@@ -136,18 +86,6 @@ Parser_EventHandler::notify (Stream_SessionId_t sessionId_in,
 
   ACE_UNUSED_ARG (sessionId_in);
 
-  // sanity check(s)
-//  ACE_ASSERT (CBData_);
-
-//  int result = -1;
-  //enum Common_UI_EventType event_e = COMMON_UI_EVENT_SESSION;
-//#if defined (GTK_USE)
-//  Common_UI_GTK_Manager_t* gtk_manager_p =
-//    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-//  ACE_ASSERT (gtk_manager_p);
-//  Common_UI_GTK_State_t& state_r =
-//    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
-//#endif // GTK_USE
   switch (message_in.type ())
   {
     //case STREAM_SESSION_MESSAGE_CONNECT:
@@ -158,38 +96,15 @@ Parser_EventHandler::notify (Stream_SessionId_t sessionId_in,
     //case STREAM_SESSION_MESSAGE_LINK:
     //case STREAM_SESSION_MESSAGE_UNLINK:
       //event_e = COMMON_UI_EVENT_CONTROL; break;
+    case STREAM_SESSION_MESSAGE_STEP_DATA:
+      break;
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
-//      const Parser_SessionData_t& session_data_container_r =
-//        message_in.getR ();
-//      struct Parser_SessionData& session_data_r =
-//        const_cast<struct Parser_SessionData&> (session_data_container_r.getR ());
+     const Parser_SessionData_t& session_data_container_r =
+       message_in.getR ();
+     struct Parser_SessionData& session_data_r =
+       const_cast<struct Parser_SessionData&> (session_data_container_r.getR ());
 
-//#if defined (GTK_USE)
-//      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-//#endif // GTK_USE
-//        if (session_data_r.lock)
-//        {
-//          result = session_data_r.lock->acquire ();
-//          if (result == -1)
-//            ACE_DEBUG ((LM_ERROR,
-//                        ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
-//        } // end IF
-//
-//        CBData_->progressData.statistic = session_data_r.statistic;
-//
-//        if (session_data_r.lock)
-//        {
-//          result = session_data_r.lock->release ();
-//          if (result == -1)
-//            ACE_DEBUG ((LM_ERROR,
-//                        ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
-//        } // end IF
-//#if defined (GTK_USE)
-//      } // end lock scope
-//#endif // GTK_USE
-
-      //event_e = COMMON_UI_EVENT_STATISTIC;
       break;
     }
     default:
@@ -200,14 +115,6 @@ Parser_EventHandler::notify (Stream_SessionId_t sessionId_in,
       return;
     }
   } // end SWITCH
-
-//#if defined (GTK_USE)
-//  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-//    state_r.eventStack.push (event_e);
-//  } // end lock scope
-//#else
-//  ACE_UNUSED_ARG (event_e);
-//#endif // GTK_USE
 }
 
 void
@@ -216,26 +123,4 @@ Parser_EventHandler::end (Stream_SessionId_t sessionId_in)
   STREAM_TRACE (ACE_TEXT ("Parser_EventHandler::end"));
 
   ACE_UNUSED_ARG (sessionId_in);
-
-  // sanity check(s)
-//  ACE_ASSERT (CBData_);
-
-//#if defined (GTK_USE)
-//  Common_UI_GTK_Manager_t* gtk_manager_p =
-//    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-//  ACE_ASSERT (gtk_manager_p);
-//  Common_UI_GTK_State_t& state_r =
-//    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
-//  guint event_source_id = 0;
-//  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-//    event_source_id = g_idle_add (idle_session_end_cb,
-//                                  CBData_);
-//    if (!event_source_id)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
-//    else
-//      state_r.eventSourceIds.insert (event_source_id);
-//    state_r.eventStack.push (COMMON_UI_EVENT_STOPPED);
-//  } // end lock scope
-//#endif // GTK_USE
 }

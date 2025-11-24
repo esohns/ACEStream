@@ -21,7 +21,9 @@
 
 #include "stream_lib_alsa_tools.h"
 
+#include <regex>
 #include <sstream>
+#include <string>
 
 #if defined (SOX_SUPPORT)
 #include "sox.h"
@@ -819,7 +821,7 @@ Stream_MediaFramework_ALSA_Tools::getDeviceName (int cardIndex_in,
   } // end IF
 
   char* string_p = NULL;
-  std::string hint_string, device_type;
+  std::string hint_string, device_type, card_name;
   std::string::size_type position_i = std::string::npos;
   std::vector<std::string>::iterator iterator;
   for (void** i = hints_p; *i; ++i)
@@ -854,6 +856,26 @@ continue_:
                 ((direction_in == SND_PCM_STREAM_PLAYBACK) ? ACE_TEXT ("playback")
                                                            : ACE_TEXT ("capture")),
                 ACE_TEXT (hint_string.c_str ())));
+
+    if (card_name.empty ())
+    {
+      std::string regex_string =
+        ACE_TEXT_ALWAYS_CHAR ("^(?:[^:]+):CARD=([^,]+)(?:,(?:.+))?$");
+      std::regex regex (regex_string);
+      std::smatch match_results;
+      if (!std::regex_match (hint_string,
+                             match_results,
+                             regex,
+                             std::regex_constants::match_default))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to match: \"%s\", aborting\n"),
+                    ACE_TEXT (hint_string.c_str ())));
+        goto clean;
+      } // end IF
+      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+      card_name = match_results[1].str ();
+    } // end IF
 
     // filter 'default' devices
     device_type = hint_string;
@@ -892,14 +914,23 @@ continue_:
   } // end FOR
 
 clean:
-  if (hints_p)
+  if (likely (hints_p))
   {
     result = snd_device_name_free_hint (hints_p);
-    if (result < 0)
+    if (unlikely (result < 0))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to snd_device_name_free_hint(): \"%s\", continuing\n"),
                   ACE_TEXT (snd_strerror (result))));
   } // end IF
+
+  // fallback
+  // if (unlikely (result_string.empty () && !card_name.empty ()))
+  // {
+  //   result_string =
+  //     ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
+  //   // result_string += ACE_TEXT_ALWAYS_CHAR (":CARD=");
+  //   // result_string += card_name;
+  // } // end IF
 
   return result_string;
 }

@@ -34,7 +34,7 @@ test_u_glut_reshape (int width_in, int height_in)
   ACE_ASSERT (height_in);
   gluPerspective (45.0,
                   width_in / static_cast<GLdouble> (height_in),
-                  150.0, -150.0);
+                  -150.0, 150.0);
   //glOrtho (static_cast<GLdouble> (-width_in / 2.0), static_cast<GLdouble> (width_in / 2.0),
   //         static_cast<GLdouble> (height_in / 2.0), static_cast<GLdouble> (-height_in / 2.0), 150.0, -150.0);
 
@@ -60,8 +60,8 @@ test_u_glut_key (unsigned char key_in,
 
 void
 test_u_glut_key_special (int key_in,
-                             int x,
-                             int y)
+                         int x,
+                         int y)
 {
   struct Test_U_GLUT_CBData* cb_data_p =
     static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
@@ -149,17 +149,26 @@ test_u_glut_draw (void)
   float x, y, z, x1, y1, z1;
   int i = 0;
   float r, g, b;
-  std::vector<float> spectrum_a;
+  std::vector<float> spectrum_0, spectrum_1;
 
   struct Test_U_GLUT_CBData* cb_data_p =
     static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
   { ACE_GUARD (ACE_Thread_Mutex, aGuard, cb_data_p->lock);
     if (likely (cb_data_p->fft))
-      spectrum_a = cb_data_p->fft->Spectrum (false); // do not normalize
+    {
+      spectrum_0 = cb_data_p->fft->Spectrum (0, false); // do not normalize
+      spectrum_1 = cb_data_p->fft->Spectrum (1, false); // do not normalize
+    } // end IF
     else
-      spectrum_a.resize ((STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS / 2) - 1, 0.0f);
+    {
+      spectrum_0.resize ((STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS / 2) - 1, 0.0f);
+      spectrum_1.resize ((STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS / 2) - 1, 0.0f);
+    } // end ELSE
   } // end lock scope
+
+  glPolygonMode (GL_FRONT_AND_BACK,
+                 cb_data_p->wireframe ? GL_LINE : GL_FILL);
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -172,9 +181,6 @@ test_u_glut_draw (void)
              cb_data_p->camera.looking_at_.x, cb_data_p->camera.looking_at_.y, cb_data_p->camera.looking_at_.z,
              cb_data_p->camera.up_.x, cb_data_p->camera.up_.y, cb_data_p->camera.up_.z);
 
-  glPolygonMode (GL_FRONT_AND_BACK,
-                 cb_data_p->wireframe ? GL_LINE : GL_FILL);
-
   // draw a red x-axis, a green y-axis, and a blue z-axis. Each of the
   // axes are 100 units long
   //glBegin (GL_LINES);
@@ -183,7 +189,10 @@ test_u_glut_draw (void)
   //glColor3f (0.0f, 0.0f, 1.0f); glVertex3i (0, 0, 0); glVertex3i (0, 0, 100);
   //glEnd ();
 
-  glTranslatef (0.0f, -250.0f, 0.0f);
+  glTranslatef (0.0f, -315.0f, 0.0f);
+
+  glPushMatrix ();
+  glTranslatef (-250.0f, 0.0f, 0.0f);
   glRotatef (static_cast<float> (M_PI_4) * (180.0f / static_cast<float> (M_PI)), 1.0f, 0.0f, 0.0f);
   glRotatef (frame_count_i / 10.0f * (180.0f / static_cast<float> (M_PI)), 0.0f, 0.0f, 1.0f);
 
@@ -200,8 +209,7 @@ test_u_glut_draw (void)
     {
       x = TEST_U_GLUT_DEFAULT_D * k * std::cos (a);
       y = TEST_U_GLUT_DEFAULT_D * k * std::sin (a);
-      z = static_cast<float> (k); //* 3.0f * std::cos (frame_count_i);
-      z -= (spectrum_a[i++ % spectrum_a.size ()] * TEST_U_GLUT_DEFAULT_AMP_FACTOR);
+      z = -(spectrum_0[i++ % spectrum_0.size ()] * TEST_U_GLUT_DEFAULT_AMP_FACTOR);
 
       if (unlikely (a == 0.0f))
       {
@@ -215,6 +223,45 @@ test_u_glut_draw (void)
     glVertex3f (x1, y1, z1);
     glEnd ();
   } // end FOR
+
+  glPopMatrix ();
+
+  i = 0;
+
+  glPushMatrix ();
+  glTranslatef (250.0f, 0.0f, 0.0f);
+  glRotatef (static_cast<float> (M_PI_4) * (180.0f / static_cast<float> (M_PI)), 1.0f, 0.0f, 0.0f);
+  glRotatef (frame_count_i / 10.0f * (180.0f / static_cast<float> (M_PI)), 0.0f, 0.0f, 1.0f);
+
+  for (int k = 0; k < TEST_U_GLUT_DEFAULT_LAYERS; k++)
+  {
+    Common_Image_Tools::HSVToRGB (std::fmod (k * 18.0f, 360.0f),
+                                  80 / 100.0f,
+                                  100 / 100.0f,
+                                  r, g, b);
+    glColor3f (r, g, b);
+
+    glBegin (GL_LINE_STRIP);
+    for (float a = 0.0f; a < 2.0f * static_cast<float> (M_PI); a += 1.0f / (0.8f * static_cast<float> (k)))
+    {
+      x = TEST_U_GLUT_DEFAULT_D * k * std::cos (a);
+      y = TEST_U_GLUT_DEFAULT_D * k * std::sin (a);
+      z = -(spectrum_1[i++ % spectrum_1.size ()] * TEST_U_GLUT_DEFAULT_AMP_FACTOR);
+
+      if (unlikely (a == 0.0f))
+      {
+        x1 = x;
+        y1 = y;
+        z1 = z;
+      } // end IF
+
+      glVertex3f (x, y, z);
+    } // end FOR
+    glVertex3f (x1, y1, z1);
+    glEnd ();
+  } // end FOR
+
+  glPopMatrix ();
 
   glutSwapBuffers ();
 

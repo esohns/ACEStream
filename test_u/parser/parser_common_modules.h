@@ -30,11 +30,13 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
+#include "stream_misc_messagehandler.h"
 #include "stream_misc_queue_source.h"
 
 #include "stream_stat_statistic_report.h"
 
 #include "parser_stream_common.h"
+#include "parser_session_message.h"
 
 // declare module(s)
 typedef Stream_Module_QueueReader_T <ACE_MT_SYNCH,
@@ -84,5 +86,20 @@ DATASTREAM_MODULE_DUPLEX (struct Parser_SessionData,                // session d
                           Parser_StatisticReport_ReaderTask_t,      // reader type
                           Parser_StatisticReport_WriterTask_t,      // writer type
                           Parser_StatisticReport);                  // name
+
+typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
+                                       struct Parser_ModuleHandlerConfiguration,
+                                       Stream_ControlMessage_t,
+                                       Parser_Message,
+                                       Parser_SessionMessage,
+                                       struct Parser_SessionData,
+                                       struct Stream_UserData> Parser_MessageHandler;
+DATASTREAM_MODULE_INPUT_ONLY (struct Parser_SessionData,                                   // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Parser_ModuleHandlerConfiguration,                    // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Parser_MessageHandler);                                      // writer type
 
 #endif
