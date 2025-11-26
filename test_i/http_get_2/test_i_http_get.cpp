@@ -771,6 +771,8 @@ do_work (const std::string& bootstrapFileName_in,
   // ********************** module configuration data **************************
   modulehandler_configuration.allocatorConfiguration =
     &allocator_configuration;
+  modulehandler_configuration.concurrency =
+    STREAM_HEADMODULECONCURRENCY_ACTIVE;
   modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
     &configuration.connectionConfigurations;
@@ -971,7 +973,9 @@ do_work (const std::string& bootstrapFileName_in,
 
   //      return;
   //    } // end IF
-  istream_base_p->wait (true, false, false);
+  istream_base_p->wait (true,
+                        false,
+                        false);
 
   // step3: clean up
   connection_manager_p->stop (false, true);

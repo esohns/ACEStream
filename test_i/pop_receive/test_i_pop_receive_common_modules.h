@@ -44,6 +44,7 @@
 typedef Stream_Module_Net_Source_Reader_T<ACE_MT_SYNCH,
                                           Common_TimePolicy_t,
                                           struct Stream_POPReceive_ModuleHandlerConfiguration,
+                                          POP_SessionManager_t,
                                           Stream_ControlMessage_t,
                                           POP_Message_t,
                                           POP_SessionMessage_t> Stream_POPReceive_NetSourceReader;

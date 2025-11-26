@@ -4,6 +4,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../m
 include (libxml2)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/db/scripts")
 include (mysql)
+include (SOCI)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts")
 include (SSLConfig)
 
@@ -211,6 +212,7 @@ elseif (WIN32)
  file (TO_CMAKE_PATH ${LIBICONV_LIB_DIR} ICONV_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libmysql/lib LIBMYSQL_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${LIBXML2_LIB_DIR}" LIBXML_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${SOCI_LIB_DIR}" SOCI_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/zlib/${BUILD_PATH_SUFFIX}/${CMAKE_BUILD_TYPE} ZLIB_LIBRARY_PATH)
@@ -222,6 +224,7 @@ elseif (WIN32)
                            ${ICONV_LIBRARY_PATH}
                            ${LIBXML_LIBRARY_PATH}
                            ${LIBMYSQL_LIBRARY_PATH}
+                           ${SOCI_LIBRARY_PATH}
                            ${SSL_LIBRARY_PATH}
                            ${ZLIB_LIBRARY_PATH}
                            ${ACE_LIBRARY_PATH})

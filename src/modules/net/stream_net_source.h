@@ -42,6 +42,8 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
+          typename SessionManagerType,
+          ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -89,6 +91,8 @@ template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
+          ////////////////////////////////
+          typename SessionManagerType,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,

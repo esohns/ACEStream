@@ -24,6 +24,7 @@
 #include "rtl/bootstrap.h"
 
 #include "com/sun/star/beans/Optional.hpp"
+//#include "com/sun/star/bridge/UnoUrlResolver.hpp"
 #include "com/sun/star/document/MacroExecMode.hpp"
 #include "com/sun/star/frame/Desktop.hpp"
 #include "com/sun/star/frame/FrameSearchFlag.hpp"
@@ -175,6 +176,7 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
     message_inout->getR ();
   struct Test_I_HTTPGet_SessionData& session_data_r =
     const_cast<struct Test_I_HTTPGet_SessionData&> (session_data_container_r.getR ());
+
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -274,6 +276,7 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
         url_resolver_p.set (multi_component_factory_p->createInstanceWithContext (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR ("com.sun.star.bridge.UnoUrlResolver"))),
                                                                                   inherited::componentContext_),
                             uno::UNO_QUERY);
+      //url_resolver_p = bridge::UnoUrlResolver::create (inherited::componentContext_);
       ACE_ASSERT (url_resolver_p.is ());
       ACE_ASSERT (result_4);
       //uno::Reference<lang::XComponent>::query (multi_component_factory_p)->dispose ();
@@ -419,8 +422,6 @@ error:
       Test_I_StockRecordsIterator_t iterator = session_data_r.data.begin ();
       bool is_reference = false;
       uno::Reference<sheet::XCalculatable> calculatable_p;
-      ACE_TCHAR buffer[BUFSIZ];
-      ACE_OS::memset (buffer, 0, sizeof (buffer));
 
       // sanity check(s)
       if (!document_.is ())

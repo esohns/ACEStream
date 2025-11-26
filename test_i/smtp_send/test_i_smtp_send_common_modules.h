@@ -44,6 +44,7 @@
 typedef Stream_Module_Net_Source_Reader_T<ACE_MT_SYNCH,
                                           Common_TimePolicy_t,
                                           struct Stream_SMTPSend_ModuleHandlerConfiguration,
+                                          SMTP_SessionManager_t,
                                           Stream_ControlMessage_t,
                                           SMTP_Message_t,
                                           SMTP_SessionMessage_t> Stream_SMTPSend_NetSourceReader;

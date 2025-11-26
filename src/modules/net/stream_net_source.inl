@@ -35,17 +35,17 @@
 #include "net_client_common_tools.h"
 #include "net_client_defines.h"
 
-//////////////////////////////////////////
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ConfigurationType,
+                                  SessionManagerType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::Stream_Module_Net_Source_Reader_T (typename inherited::ISTREAM_T* stream_in)
@@ -58,6 +58,7 @@ Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -65,6 +66,7 @@ void
 Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ConfigurationType,
+                                  SessionManagerType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::handleControlMessage (ControlMessageType& message_in)
@@ -97,6 +99,7 @@ Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -104,6 +107,7 @@ template <ACE_SYNCH_DECL,
 Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ConfigurationType,
+                                  SessionManagerType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
@@ -122,6 +126,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -129,6 +134,7 @@ template <ACE_SYNCH_DECL,
 Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ConfigurationType,
+                                  SessionManagerType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
@@ -154,6 +160,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -162,6 +169,7 @@ bool
 Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ConfigurationType,
+                                  SessionManagerType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
@@ -217,6 +225,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename SessionManagerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -225,6 +234,7 @@ void
 Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ConfigurationType,
+                                  SessionManagerType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
@@ -304,7 +314,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       ACE_ASSERT (!isOpen_);
 
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       // *TODO*: remove type inferences
       typename ConnectorType::CONNECTION_MANAGER_T::INTERFACE_T* iconnection_manager_p =
         ConnectorType::CONNECTION_MANAGER_T::SINGLETON_T::instance ();
@@ -316,7 +326,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       ACE_HANDLE handle_h = ACE_INVALID_HANDLE;
       typename ConnectorType::ADDRESS_T local_SAP, peer_SAP;
       bool is_error = false;
-      typename inherited::ISTREAM_T* istream_p = NULL;
+      typename inherited::ISTREAM_T* istream_p = NULL, *istream_2 = NULL;
       typename ConnectorType::CONFIGURATION_T* configuration_p = NULL;
       typename ConnectorType::USERDATA_T user_data_s;
       bool is_peer_address_b = true;
@@ -494,18 +504,28 @@ link:
         goto error;
       } // end IF
 
-      //// update session data in the current session message
-      //// *WARNING*: this works iff (!) the STREAM_SESSION_LINK message has
-      ////            already been processed at this point (i.e. as long as
-      ////            upstream is completely synchronous)
-      //session_data_r =
-      //  const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-      //inherited::sessionData_->increase ();
-      //session_data_container_p = inherited::sessionData_;
-      //message_inout->initialize (session_data_r.sessionId,
-      //                           STREAM_SESSION_MESSAGE_BEGIN,
-      //                           session_data_container_p,
-      //                           &const_cast<typename SessionMessageType::USER_DATA_T&> (message_inout->data ()));
+      // update session data of the connection stream (make it non-managed).
+      // *NOTE*: this is necessary to avoid the scenario where the connection
+      // stream session data is destroyed when the connection is aborted /
+      // destroyed asynchronously. The session-end message travelling downstream
+      // would then contain a reference to the (now deallocated) session data
+      // *TODO*: this probably should not be happening here...should it ?
+      SessionManagerType* session_manager_p =
+        SessionManagerType::SINGLETON_T::instance ();
+      ACE_ASSERT (session_manager_p);
+      istream_2 = dynamic_cast<typename inherited::ISTREAM_T*> (stream_p);
+      ACE_ASSERT (istream_2);
+      typename SessionMessageType::DATA_T::DATA_T& connection_stream_session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (istream_2->id ()));
+      // *TODO*: remove type inferences
+      ACE_ASSERT (connection_stream_session_data_r.lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *connection_stream_session_data_r.lock);
+        connection_stream_session_data_r.managed = false;
+      } // end lock scope
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: un-managed connection stream (id was: \"%s\") session data\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (istream_2->id ().c_str ())));
 
       goto continue_;
 
@@ -904,7 +924,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       ACE_HANDLE handle_h = ACE_INVALID_HANDLE;
       typename ConnectorType::ADDRESS_T local_SAP, peer_SAP;
       bool is_error = false;
-      typename inherited::ISTREAM_T* istream_p = NULL;
+      typename inherited::ISTREAM_T* istream_p = NULL, *istream_2 = NULL;
       typename ConnectorType::CONFIGURATION_T* configuration_p = NULL;
       typename ConnectorType::USERDATA_T user_data_s;
       bool is_peer_address_b = true;
@@ -1113,17 +1133,28 @@ link:
         goto error;
       } // end IF
 
-      //// update session data in the current session message
-      //// *WARNING*: this works iff (!) the STREAM_SESSION_LINK message has been
-      ////            received by now (i.e. iff upstream is entirely synchronous)
-      //session_data_r =
-      //  const_cast<SessionDataType&> (inherited::sessionData_->get ());
-      //inherited::sessionData_->increase ();
-      //session_data_container_p = inherited::sessionData_;
-      //message_inout->initialize (session_data_r.sessionId,
-      //                           STREAM_SESSION_MESSAGE_BEGIN,
-      //                           session_data_container_p,
-      //                           &const_cast<typename SessionMessageType::USER_DATA_T&> (message_inout->data ()));
+      // update session data of the connection stream (make it non-managed).
+      // *NOTE*: this is necessary to avoid the scenario where the connection
+      // stream session data is destroyed when the connection is aborted /
+      // destroyed asynchronously. The session-end message travelling downstream
+      // would then contain a reference to the (now deallocated) session data
+      // *TODO*: this probably should not be happening here...should it ?
+      SessionManagerType* session_manager_p =
+        SessionManagerType::SINGLETON_T::instance ();
+      ACE_ASSERT (session_manager_p);
+      istream_2 = dynamic_cast<typename inherited::ISTREAM_T*> (stream_p);
+      ACE_ASSERT (istream_2);
+      typename SessionMessageType::DATA_T::DATA_T& connection_stream_session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (istream_2->id ()));
+      // *TODO*: remove type inferences
+      ACE_ASSERT (connection_stream_session_data_r.lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *connection_stream_session_data_r.lock);
+        connection_stream_session_data_r.managed = false;
+      } // end lock scope
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: un-managed connection stream (id was: \"%s\") session data\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (istream_2->id ().c_str ())));
 
       goto continue_;
 
