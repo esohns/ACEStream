@@ -1384,6 +1384,32 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::control"));
 
   SessionEventType message_type_e = STREAM_SESSION_MESSAGE_INVALID;
+
+  // *NOTE*: support sending control messages even when stream is finished...
+  typename SessionMessageType::DATA_T* session_data_container_p =
+    inherited::sessionData_;
+  bool release_session_data_container_b = false;
+  if (unlikely (!session_data_container_p))
+  {
+    SessionManagerType* session_manager_p =
+      SessionManagerType::SINGLETON_T::instance ();
+    ACE_ASSERT (session_manager_p);
+    typename SessionMessageType::DATA_T::DATA_T* session_data_p =
+      &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (streamId_));
+
+    ACE_NEW_NORETURN (session_data_container_p,
+                      typename SessionMessageType::DATA_T (session_data_p,
+                                                           false)); // *NOTE*: do NOT delete the session data when the container is destroyed
+    if (unlikely (!session_data_container_p))
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("%s: failed to allocate memory, returning\n"),
+                  inherited::mod_->name ()));
+      return;
+    } // end IF
+    release_session_data_container_b = true;
+  } // end IF
+
   switch (control_in)
   { // control
     case STREAM_CONTROL_END:
@@ -1394,9 +1420,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     case STREAM_CONTROL_RESET:
     case STREAM_CONTROL_STEP:
     case STREAM_CONTROL_STEP_2:
-    { ACE_ASSERT (inherited::sessionData_);
+    { ACE_ASSERT (session_data_container_p);
       const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-        inherited::sessionData_->getR ();
+        session_data_container_p->getR ();
       if (!inherited::putControlMessage (session_data_r.sessionId,
                                          control_in,
                                          forwardUpStream_in))
@@ -1422,19 +1448,22 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown control (was: %d), returning\n"),
+                  ACE_TEXT ("%s: invalid/unknown control (was: %d), continuing\n"),
                   inherited::mod_->name (),
                   control_in));
-      return;
+      break;
     }
   } // end SWITCH
+
+  if (release_session_data_container_b)
+    session_data_container_p->decrease ();
 
   return;
 
 send_session_message:
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::sessionData_);
+  ACE_ASSERT (session_data_container_p);
   ACE_ASSERT (streamState_);
 
   // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
@@ -1457,11 +1486,11 @@ send_session_message:
     }
   } // end IF
 
-  inherited::sessionData_->increase ();
-  typename SessionMessageType::DATA_T* session_data_container_p =
-    inherited::sessionData_;
+  session_data_container_p->increase ();
+  typename SessionMessageType::DATA_T* session_data_container_2 =
+    session_data_container_p;
   if (unlikely (!inherited::putSessionMessage (message_type_e,
-                                               session_data_container_p,
+                                               session_data_container_2,
                                                streamState_->userData,
                                                false))) // expedited ?
     ACE_DEBUG ((LM_ERROR,
@@ -1482,6 +1511,9 @@ send_session_message:
       return;
     }
   } // end IF
+
+  if (release_session_data_container_b)
+    session_data_container_p->decrease ();
 }
 
 template <ACE_SYNCH_DECL,

@@ -1844,10 +1844,8 @@ stream_processing_function (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("::stream_processing_function"));
 
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("processing thread (id: %t) starting\n")));
-#endif // _DEBUG
 
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1856,10 +1854,9 @@ stream_processing_function (void* arg_in)
   result = arg_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
+  // sanity check(s)
   struct Stream_AVSave_UI_ThreadData* thread_data_p =
       static_cast<struct Stream_AVSave_UI_ThreadData*> (arg_in);
-
-  // sanity check(s)
   ACE_ASSERT (thread_data_p);
   ACE_ASSERT (thread_data_p->CBData);
 
@@ -3498,10 +3495,9 @@ idle_update_progress_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_cb"));
 
-  struct Stream_AVSave_ProgressData* data_p =
-      static_cast<struct Stream_AVSave_ProgressData*> (userData_in);
-
   // sanity check(s)
+  struct Stream_AVSave_ProgressData* data_p =
+    static_cast<struct Stream_AVSave_ProgressData*> (userData_in);
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->state);
 
@@ -4695,7 +4691,8 @@ button_quit_clicked_cb (GtkWidget* widget_in,
 
   enum Stream_StateMachine_ControlState status_e = STREAM_STATE_INVALID;
   Stream_IStreamControlBase* stream_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_IStreamControlBase* stream_2 = NULL;
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   struct Stream_AVSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
     NULL;
@@ -4707,6 +4704,7 @@ button_quit_clicked_cb (GtkWidget* widget_in,
         static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (userData_in);
       status_e = directshow_cb_data_p->videoStream->status ();
       stream_p = directshow_cb_data_p->videoStream;
+      stream_2 = directshow_cb_data_p->audioStream;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -4715,6 +4713,7 @@ button_quit_clicked_cb (GtkWidget* widget_in,
         static_cast<struct Stream_AVSave_MediaFoundation_UI_CBData*> (userData_in);
       status_e = mediafoundation_cb_data_p->videoStream->status ();
       stream_p = mediafoundation_cb_data_p->videoStream;
+      stream_2 = mediafoundation_cb_data_p->audioStream;
       break;
     }
     default:
@@ -4730,19 +4729,21 @@ button_quit_clicked_cb (GtkWidget* widget_in,
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (userData_in);
   status_e = cb_data_p->videoStream->status ();
   stream_p = cb_data_p->videoStream;
+  stream_2 = cb_data_p->audioStream;
 #endif // ACE_WIN32 || ACE_WIN64
-  ACE_ASSERT (stream_p);
+  ACE_ASSERT (stream_p && stream_2);
 
-  // stop stream ?
-  if ((status_e == STREAM_STATE_RUNNING) ||
-      (status_e == STREAM_STATE_PAUSED))
-    stream_p->stop (false, true, true);
+  // stop streams
+  stream_p->stop (true, true, true);
+  stream_2->stop (true, true, true);
 
   // wait for processing thread(s)
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, cb_data_base_p->UIState->lock, FALSE);
-    while (!cb_data_base_p->progressData.pendingActions.empty ())
-      cb_data_base_p->UIState->condition.wait (NULL);
-  } // end lock scope
+  // *TODO*: this doesn't work ! cannot wait here as idle_update_progress_cb()
+  //         will not be called anymore (the gtk main loop is single-threaded)
+  //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, cb_data_base_p->UIState->lock, FALSE);
+  //  while (!cb_data_base_p->progressData.pendingActions.empty ())
+  //    cb_data_base_p->UIState->condition.wait (NULL);
+  //} // end lock scope
 
   // step1: remove event sources
   { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, cb_data_base_p->UIState->lock, FALSE);
@@ -4755,9 +4756,6 @@ button_quit_clicked_cb (GtkWidget* widget_in,
                     *iterator));
     cb_data_base_p->UIState->eventSourceIds.clear ();
   } // end lock scope
-
-  STREAM_AVSAVE_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?
-                                                             true);  // high priority ?
 
   // step2: initiate shutdown sequence
   int result = ACE_OS::raise (SIGINT);
