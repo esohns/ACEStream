@@ -107,8 +107,7 @@ stream_processing_function (void* arg_in)
     dynamic_cast<Common_IGetR_2_T<struct HTTPGet_SessionData>*> (thread_data_p->CBData->stream);
   ACE_ASSERT (iget_p);
   //  GtkStatusbar* statusbar_p = NULL;
-//  const HTTPGet_SessionData_t* session_data_container_p = NULL;
-//  const struct HTTPGet_SessionData* session_ui_cb_data_p = NULL;
+  struct HTTPGet_SessionData* session_data_p = NULL;
 //  std::ostringstream converter;
   bool result_2 = false;
 //  guint context_id = 0;
@@ -131,12 +130,11 @@ stream_processing_function (void* arg_in)
       goto done;
     } // end IF
 
-//    session_data_container_p = &iget_p->getR_2 ();
-//    ACE_ASSERT (session_data_container_p);
-//    session_ui_cb_data_p =
-//      &const_cast<struct HTTPGet_SessionData&> (session_data_container_p->getR ());
-//    ACE_ASSERT (session_ui_cb_data_p);
-//    converter.clear ();
+    session_data_p =
+      &const_cast<struct HTTPGet_SessionData&> (iget_p->getR_2 ());
+    ACE_ASSERT (session_data_p);
+    session_data_p->connectionStates.clear ();
+    //    converter.clear ();
 //    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
 //    converter << session_ui_cb_data_p->sessionId;
     // set context id

@@ -591,6 +591,7 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
   struct HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
+  modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   modulehandler_configuration.configuration = CBData_in.configuration;
   modulehandler_configuration.connectionConfigurations =
     &CBData_in.configuration->connectionConfigurations;
