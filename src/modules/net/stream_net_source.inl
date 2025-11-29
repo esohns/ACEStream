@@ -330,6 +330,9 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       typename ConnectorType::CONFIGURATION_T* configuration_p = NULL;
       typename ConnectorType::USERDATA_T user_data_s;
       bool is_peer_address_b = true;
+      SessionManagerType* session_manager_p = NULL;
+      typename SessionMessageType::DATA_T::DATA_T* connection_stream_session_data_p =
+        NULL;
 
       if (isPassive_)
       {
@@ -510,17 +513,16 @@ link:
       // destroyed asynchronously. The session-end message travelling downstream
       // would then contain a reference to the (now deallocated) session data
       // *TODO*: this probably should not be happening here...should it ?
-      SessionManagerType* session_manager_p =
-        SessionManagerType::SINGLETON_T::instance ();
+      session_manager_p = SessionManagerType::SINGLETON_T::instance ();
       ACE_ASSERT (session_manager_p);
       istream_2 = dynamic_cast<typename inherited::ISTREAM_T*> (stream_p);
       ACE_ASSERT (istream_2);
-      typename SessionMessageType::DATA_T::DATA_T& connection_stream_session_data_r =
-        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (istream_2->id ()));
+      connection_stream_session_data_p =
+        &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (istream_2->id ()));
       // *TODO*: remove type inferences
-      ACE_ASSERT (connection_stream_session_data_r.lock);
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *connection_stream_session_data_r.lock);
-        connection_stream_session_data_r.managed = false;
+      ACE_ASSERT (connection_stream_session_data_p->lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *connection_stream_session_data_p->lock);
+        connection_stream_session_data_p->managed = false;
       } // end lock scope
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: un-managed connection stream (id was: \"%s\") session data\n"),
@@ -929,6 +931,9 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       typename ConnectorType::CONFIGURATION_T* configuration_p = NULL;
       typename ConnectorType::USERDATA_T user_data_s;
       bool is_peer_address_b = true;
+      SessionManagerType* session_manager_p = NULL;
+      typename SessionMessageType::DATA_T::DATA_T* connection_stream_session_data_p =
+        NULL;
 
       // schedule regular statistic collection ?
       if (inherited::configuration_->statisticReportingInterval !=
@@ -1140,17 +1145,16 @@ link:
       // destroyed asynchronously. The session-end message travelling downstream
       // would then contain a reference to the (now deallocated) session data
       // *TODO*: this probably should not be happening here...should it ?
-      SessionManagerType* session_manager_p =
-        SessionManagerType::SINGLETON_T::instance ();
+      session_manager_p = SessionManagerType::SINGLETON_T::instance ();
       ACE_ASSERT (session_manager_p);
       istream_2 = dynamic_cast<typename inherited::ISTREAM_T*> (stream_p);
       ACE_ASSERT (istream_2);
-      typename SessionMessageType::DATA_T::DATA_T& connection_stream_session_data_r =
-        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (istream_2->id ()));
+      connection_stream_session_data_p =
+        &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (istream_2->id ()));
       // *TODO*: remove type inferences
-      ACE_ASSERT (connection_stream_session_data_r.lock);
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *connection_stream_session_data_r.lock);
-        connection_stream_session_data_r.managed = false;
+      ACE_ASSERT (connection_stream_session_data_p->lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *connection_stream_session_data_p->lock);
+        connection_stream_session_data_p->managed = false;
       } // end lock scope
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: un-managed connection stream (id was: \"%s\") session data\n"),

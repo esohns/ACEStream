@@ -462,7 +462,7 @@ elseif (WIN32)
  get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY} DIRECTORY)
  set (ACE_DLL_FILE ACE${LIB_FILE_SUFFIX}.dll)
  set (ACE_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_DLL_FILE})
- file (TO_CMAKE_PATH $ENV{LIB_ROOT} LIB_ROOT)
+ file (TO_CMAKE_PATH "$ENV{LIB_ROOT}" LIB_ROOT)
  install (FILES ${ACE_DLL_FQPATH}
                 ${LIB_ROOT}/opencv/build/bin/Release/opencv_core453.dll
                 ${LIB_ROOT}/opencv/build/bin/Release/opencv_imgproc453.dll

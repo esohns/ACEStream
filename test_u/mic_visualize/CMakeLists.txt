@@ -281,7 +281,7 @@ elseif (WIN32)
                          DIRECTORY)
  set (ACE_DLL_FILE ACE${LIB_FILE_SUFFIX}.dll)
  set (ACE_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_DLL_FILE})
- file (TO_CMAKE_PATH $ENV{LIB_ROOT} LIB_ROOT)
+ file (TO_CMAKE_PATH "$ENV{LIB_ROOT}" LIB_ROOT)
  install (FILES ${ACE_DLL_FQPATH}
                  ${LIB_ROOT}/assimp/cmake/bin/Release/assimp-vc143-mt.dll
                  ${LIB_ROOT}/ffmpeg/libswresample/swresample-5.dll
