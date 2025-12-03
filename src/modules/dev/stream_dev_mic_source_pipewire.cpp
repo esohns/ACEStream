@@ -21,10 +21,227 @@
 
 #include "stream_dev_mic_source_pipewire.h"
 
+#include "common_file_tools.h"
+
 #include "stream_dev_defines.h"
 
 const char libacestream_default_dev_mic_source_pipewire_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_PIPEWIRE_DEFAULT_NAME_STRING);
+
+void
+acestream_dev_mic_pw_on_client_event_info_cb (void* userData_in,
+                                              const struct pw_client_info* info_in)
+{
+  STREAM_TRACE (ACE_TEXT ("acestream_dev_mic_pw_on_client_event_info_cb"));
+
+  struct Stream_Device_Pipewire_Capture_CBData* cb_data_p =
+    static_cast<struct Stream_Device_Pipewire_Capture_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+
+  // ACE_DEBUG ((LM_DEBUG,
+  //             ACE_TEXT ("client id: %u\n"),
+  //             info_in->id));
+  // const struct spa_dict_item* item_p;
+  // spa_dict_for_each (item_p, info_in->props)
+  //   ACE_DEBUG ((LM_DEBUG,
+  //               ACE_TEXT ("%s: %s\n"),
+  //               ACE_TEXT (item_p->key), ACE_TEXT (item_p->value)));
+}
+
+void
+acestream_dev_mic_pw_on_device_event_info_cb (void* userData_in,
+                                              const struct pw_device_info* info_in)
+{
+  STREAM_TRACE (ACE_TEXT ("acestream_dev_mic_pw_on_device_event_info_cb"));
+
+  struct Stream_Device_Pipewire_Capture_CBData* cb_data_p =
+    static_cast<struct Stream_Device_Pipewire_Capture_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->device);
+
+  if ((info_in->change_mask & PW_DEVICE_CHANGE_MASK_PARAMS) == PW_DEVICE_CHANGE_MASK_PARAMS)
+  {
+    for (uint32_t i = 0; i != info_in->n_params; i++)
+    {
+      struct spa_param_info& param_s = info_in->params[i];
+      if (param_s.id == SPA_PARAM_Route)
+      {
+        if ((param_s.flags & SPA_PARAM_INFO_READWRITE) == SPA_PARAM_INFO_READWRITE)
+          pw_device_enum_params ((struct pw_device*)cb_data_p->device,
+                                 0,
+                                 SPA_PARAM_Route,
+                                 0,
+                                 UINT32_MAX,
+                                 NULL);
+        else
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("unable to enumerate route param for capture device as the param does not have read+write permissions\n")));
+        break;
+      } // end IF
+    } // end FOR
+  } // end IF
+}
+
+void
+acestream_dev_mic_pw_on_device_event_param_cb (void* userData_in,
+                                               int seq_in,
+                                               uint32_t id_in,
+                                               uint32_t index_in,
+                                               uint32_t next_in,
+                                               const struct spa_pod* parameters_in)
+{
+  STREAM_TRACE (ACE_TEXT ("acestream_dev_mic_pw_on_device_event_param_cb"));
+
+  // sanity check(s)
+  struct Stream_Device_Pipewire_Capture_CBData* cb_data_p =
+    static_cast<struct Stream_Device_Pipewire_Capture_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  if (!parameters_in || id_in != SPA_PARAM_Route)
+    return;
+  // In many simple setups, the first (index 0) or only route is the one we want.
+  // A more robust method would check `active` or metadata.
+  static bool acestream_dev_mic_pw_on_device_event_params_found_b = false;
+  if (acestream_dev_mic_pw_on_device_event_params_found_b)
+    return;
+
+  // struct spa_pod_object* pod_object_p = (struct spa_pod_object*)parameters_in;
+  // struct spa_pod_prop* pod_prop_p;
+
+  // check if this route is currently active (a common property of the default route)
+  // bool active = false;
+  // SPA_POD_OBJECT_FOREACH (pod_object_p, pod_prop_p)
+  // { ACE_ASSERT (pod_prop_p);
+  //   if (pod_prop_p->key == SPA_PARAM_ROUTE_props)
+  //   {
+  //     struct spa_pod* props_struct_p = (struct spa_pod*)&pod_prop_p->value;
+  //     ACE_ASSERT (props_struct_p);
+  //     struct spa_pod_prop* pod_prop_2;
+  //     SPA_POD_STRUCT_FOREACH (props_struct_p, pod_prop_2)
+  //     { ACE_ASSERT (pod_prop_2);
+  //       if (pod_prop_2->key == SPA_PROP_DEVICE_ACTIVE)
+  //         spa_pod_get_bool (&pod_prop_2->value, &active);
+  //     } // end foreach
+  //   } // end IF
+  // } // end foreach
+
+  struct spa_pod_parser parser_s;
+  ACE_OS::memset (&parser_s, 0, sizeof (struct spa_pod_parser));
+  spa_pod_parser_pod (&parser_s, parameters_in);
+  uint32_t id = SPA_PARAM_Route;
+  spa_pod_parser_get_object (&parser_s,
+                             SPA_TYPE_OBJECT_ParamRoute, &id,
+                             SPA_PARAM_ROUTE_device, SPA_POD_Int (&cb_data_p->routeDevice),
+                             SPA_PARAM_ROUTE_index, SPA_POD_Int (&cb_data_p->routeIndex));
+
+  // if (index_in == 0 /* or check if active */)
+  // {
+  //   pod_prop_p = spa_pod_prop_first (&pod_object_p->body);
+  //   spa_pod_get_int (&pod_prop_p->value, &cb_data_p->routeIndex);
+  //   pod_prop_p = spa_pod_prop_next (pod_prop_p);
+  //   spa_pod_get_int (&pod_prop_p->value, &cb_data_p->routeDevice);
+    acestream_dev_mic_pw_on_device_event_params_found_b = true;
+
+    // ACE_ASSERT (cb_data_p->loop);
+    // pw_main_loop_quit (cb_data_p->loop);
+  // } // end IF
+}
+
+void
+acestream_dev_mic_pw_on_registry_event_global_cb (void* userData_in,
+                                                  uint32_t id_in,
+                                                  uint32_t permissions_in,
+                                                  const char* type_in,
+                                                  uint32_t version_in,
+                                                  const struct spa_dict* properties_in)
+{
+  STREAM_TRACE (ACE_TEXT ("acestream_dev_mic_pw_on_registry_event_global_cb"));
+
+  // sanity check(s)
+  struct Stream_Device_Pipewire_Capture_CBData* cb_data_p =
+    static_cast<struct Stream_Device_Pipewire_Capture_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (type_in);
+
+  if (ACE_OS::strcmp (type_in, PW_TYPE_INTERFACE_Node) == 0)
+  {
+    if (cb_data_p->nodeId)
+      return;
+
+    const char* media_class_p =
+      spa_dict_lookup (properties_in, PW_KEY_MEDIA_CLASS);
+    // *NOTE*: this relies on the session manager using standard properties
+    if (media_class_p && ACE_OS::strcmp (media_class_p, ACE_TEXT_ALWAYS_CHAR ("Audio/Source")) == 0)
+    {
+      const char* node_name_p =
+        spa_dict_lookup (properties_in, PW_KEY_NODE_NAME);
+      if (node_name_p && ACE_OS::strcmp (node_name_p, cb_data_p->nodeName.c_str ()) == 0)
+      { ACE_ASSERT (cb_data_p->registry);
+        cb_data_p->node =
+          (struct pw_proxy*)pw_registry_bind (cb_data_p->registry,
+                                              id_in, type_in,
+                                              PW_VERSION_NODE,
+                                              0);
+        ACE_ASSERT (cb_data_p->node);
+        cb_data_p->nodeId = id_in;
+
+        const char* node_description_p =
+          spa_dict_lookup (properties_in, PW_KEY_NODE_DESCRIPTION);
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("found audio source node (\"%s\") as \"%s\" --> %u\n"),
+                    ACE_TEXT (node_name_p),
+                    ACE_TEXT (node_description_p),
+                    id_in));
+      } // end IF
+    } // end IF
+  } // end IF
+  else if (ACE_OS::strcmp (type_in, PW_TYPE_INTERFACE_Client) == 0)
+  {
+    if (cb_data_p->client)
+      return;
+
+    const char* application_name_p =
+      spa_dict_lookup (properties_in, PW_KEY_APP_NAME);
+    if (application_name_p && ACE_OS::strcmp (application_name_p, Common_File_Tools::executable.c_str ()) == 0)
+    { ACE_ASSERT (cb_data_p->registry);
+      cb_data_p->client =
+        (struct pw_proxy*)pw_registry_bind (cb_data_p->registry,
+                                            id_in, type_in,
+                                            PW_VERSION_CLIENT,
+                                            0);
+      ACE_ASSERT (cb_data_p->client);
+      pw_client_add_listener ((struct pw_client*)cb_data_p->client,
+                              &cb_data_p->clientListener,
+                              &cb_data_p->clientEvents,
+                              userData_in);
+    } // end IF
+  } // end ELSE IF
+  else if (ACE_OS::strcmp (type_in, PW_TYPE_INTERFACE_Device) == 0)
+  {
+    if (cb_data_p->device)
+      return;
+
+    const struct spa_dict_item* item_p;
+    spa_dict_for_each (item_p, properties_in)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: %s\n"),
+                  ACE_TEXT (item_p->key), ACE_TEXT (item_p->value)));
+
+    const char* device_name_p =
+      spa_dict_lookup (properties_in, PW_KEY_DEVICE_NAME);
+
+    // ACE_ASSERT (cb_data_p->registry);
+    // cb_data_p->device =
+    //   (struct pw_proxy*)pw_registry_bind (cb_data_p->registry,
+    //                                       id_in, type_in,
+    //                                       PW_VERSION_DEVICE,
+    //                                       0);
+    // ACE_ASSERT (cb_data_p->device);
+    // pw_device_add_listener (cb_data_p->device,
+    //                         &cb_data_p->deviceListener,
+    //                         &cb_data_p->deviceEvents,
+    //                         userData_in);
+  } // end ELSE IF
+}
 
 void
 acestream_dev_mic_pw_on_stream_param_changed_cb (void* userData_in,
@@ -35,7 +252,7 @@ acestream_dev_mic_pw_on_stream_param_changed_cb (void* userData_in,
 
   // sanity check(s)
   struct Stream_Device_Pipewire_Capture_CBData* cb_data_p =
-      static_cast<struct Stream_Device_Pipewire_Capture_CBData*> (userData_in);
+    static_cast<struct Stream_Device_Pipewire_Capture_CBData*> (userData_in);
   ACE_ASSERT (cb_data_p);
   /* NULL means to clear the format */
   if (parameters_in == NULL || id_in != SPA_PARAM_Format)
@@ -76,7 +293,7 @@ acestream_dev_mic_pw_on_process_cb (void* userData_in)
 
   // sanity check(s)
   struct Stream_Device_Pipewire_Capture_CBData* cb_data_p =
-      static_cast<struct Stream_Device_Pipewire_Capture_CBData*> (userData_in);
+    static_cast<struct Stream_Device_Pipewire_Capture_CBData*> (userData_in);
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->allocator);
   ACE_ASSERT (cb_data_p->allocatorConfiguration);

@@ -22,8 +22,27 @@
 #include "test_u_mic_visualize_common.h"
 #include "test_u_mic_visualize_defines.h"
 
+#if defined (ACE_LINUX)
+#else
+void* timer_cb_data_p = NULL;
+#endif // ACE_LINUX
+
 void
-test_u_glut_reshape (int width_in, int height_in)
+test_u_glut_close ()
+{
+  struct Test_U_GLUT_CBData* cb_data_p =
+    static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
+  ACE_ASSERT (cb_data_p);
+
+  // glutDestroyWindow (cb_data_p->windowId);
+  cb_data_p->windowId = -1;
+
+  glutLeaveMainLoop ();
+}
+
+void
+test_u_glut_reshape (int width_in,
+                     int height_in)
 {
   glViewport (0, 0, width_in, height_in);
 
@@ -43,8 +62,8 @@ test_u_glut_reshape (int width_in, int height_in)
 
 void
 test_u_glut_key (unsigned char key_in,
-                     int x,
-                     int y)
+                 int x,
+                 int y)
 {
   struct Test_U_GLUT_CBData* cb_data_p =
     static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
@@ -99,7 +118,10 @@ test_u_glut_menu (int entry_in)
 }
 
 void
-test_u_glut_mouse_button (int button, int state, int x, int y)
+test_u_glut_mouse_button (int button,
+                          int state,
+                          int x,
+                          int y)
 {
   struct Test_U_GLUT_CBData* cb_data_p =
     static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
@@ -118,7 +140,8 @@ test_u_glut_mouse_button (int button, int state, int x, int y)
 }
 
 void
-test_u_glut_mouse_move (int x, int y)
+test_u_glut_mouse_move (int x,
+                        int y)
 {
   struct Test_U_GLUT_CBData* cb_data_p =
     static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
@@ -129,17 +152,26 @@ test_u_glut_mouse_move (int x, int y)
 }
 
 void
-test_u_glut_timer (int v)
+test_u_glut_timer (int value_in)
 {
-  struct Test_U_GLUT_CBData* cb_data_p =
-    static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
+  // sanity check(s)
+  struct Test_U_GLUT_CBData* cb_data_p = NULL;
+#if defined (ACE_LINUX)
+  ACE_ASSERT (sizeof (unsigned int) == 4);
+  uint64_t value_i = static_cast<unsigned int> (value_in) + 0x7FFF00000000;
+  cb_data_p = reinterpret_cast<struct Test_U_GLUT_CBData*> (value_i);
+#else
+  cb_data_p =
+    reinterpret_cast<struct Test_U_GLUT_CBData*> (timer_cb_data_p);
+#endif // ACE_LINUX
   ACE_ASSERT (cb_data_p);
 
-  glutPostRedisplay ();
+  if (likely (cb_data_p->windowId != -1))
+  {
+    glutPostRedisplay ();
 
-  glutTimerFunc (1000 / TEST_U_GLUT_DEFAULT_FPS,
-                 test_u_glut_timer,
-                 v);
+    glutTimerFunc (1000 / TEST_U_GLUT_DEFAULT_FPS, test_u_glut_timer, value_in);
+  } // end IF
 }
 
 void
@@ -277,8 +309,5 @@ test_u_glut_idle (void)
 void
 test_u_glut_visible (int vis)
 {
-  if (vis == GLUT_VISIBLE)
-    ;// glutIdleFunc (test_u_glut_idle);
-  else
-    glutIdleFunc (NULL);
+  // glutIdleFunc ((vis == GLUT_VISIBLE) ? test_u_glut_idle : NULL);
 }

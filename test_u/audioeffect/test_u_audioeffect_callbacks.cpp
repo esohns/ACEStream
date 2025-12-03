@@ -115,6 +115,9 @@ extern "C"
 #include "stream_lib_tools.h"
 #else
 #include "stream_lib_alsa_tools.h"
+#if defined (LIBPIPEWIRE_SUPPORT)
+#include "stream_lib_pipewire_tools.h"
+#endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "test_u_audioeffect_common.h"
@@ -7628,26 +7631,64 @@ hscale_device_volume_value_changed_cb (GtkRange* range_in,
   } // end SWITCH
 #else
   // sanity check(s)
-  struct Test_U_AudioEffect_UI_CBData* data_p =
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-      data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+  bool use_pipewire_b =
+    ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer == STREAM_DEVICE_CAPTURER_PIPEWIRE;
 
-  if (!Stream_MediaFramework_ALSA_Tools::setVolumeLevel ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier,
-                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME),
-                                                         true, // capture
-                                                         static_cast<long> (gtk_range_get_value (range_in))))
+  if (use_pipewire_b)
+  {
+    if (!ui_cb_data_p->stream->isRunning ())
+      return;
+    Stream_IStream_t* istream_p =
+      dynamic_cast<Stream_IStream_t*> (ui_cb_data_p->stream);
+    ACE_ASSERT (istream_p);
+    const Stream_Module_t* module_p =
+      istream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_PIPEWIRE_DEFAULT_NAME_STRING));
+    if (!module_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_IStreamControlBase::find(\"%s\"), returning\n"),
+                  ACE_TEXT (STREAM_DEV_MIC_SOURCE_PIPEWIRE_DEFAULT_NAME_STRING)));
+      return;
+    } // end IF
+    Common_IGetR_2_T<struct Stream_Device_Pipewire_Capture_CBData>* iget_p =
+      dynamic_cast<Common_IGetR_2_T<struct Stream_Device_Pipewire_Capture_CBData>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+    ACE_ASSERT (iget_p);
+    struct Stream_Device_Pipewire_Capture_CBData& cb_data_r =
+      const_cast<struct Stream_Device_Pipewire_Capture_CBData&> (iget_p->getR_2 ());
+    GtkAdjustment* adjustment_p = gtk_range_get_adjustment (range_in);
+    ACE_ASSERT (adjustment_p);
+    float volume_f =
+      static_cast<float> (gtk_range_get_value (range_in) / gtk_adjustment_get_upper (adjustment_p));
+    if (!Stream_MediaFramework_Pipewire_Tools::setVolumeLevel (pw_main_loop_get_loop (cb_data_r.loop),
+                                                               // cb_data_r.node,
+                                                               cb_data_r.stream,
+                                                               volume_f))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MediaFramework_Pipewire_Tools::setVolumeLevel(%f), returning\n"),
+                  volume_f));
+      return;
+    } // end IF
+  } // end IF
+  else if (!Stream_MediaFramework_ALSA_Tools::setVolumeLevel ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier,
+                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME),
+                                                              true, // capture
+                                                              static_cast<long> (gtk_range_get_value (range_in))))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::setVolumeLevel(\"%s\",\"%s\",%d), returning\n"),
-                 ACE_TEXT ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ()),
-                 ACE_TEXT (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME),
-                 static_cast<long> (gtk_range_get_value (range_in))));
+                ACE_TEXT ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ()),
+                ACE_TEXT (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME),
+                static_cast<long> (gtk_range_get_value (range_in))));
     return;
-  } // end IF
+  } // end ELSE IF
 #endif // ACE_WIN32 || ACE_WIN64
 } // hscale_device_volume_value_changed_cb
 

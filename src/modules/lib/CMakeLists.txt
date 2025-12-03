@@ -149,6 +149,14 @@ if (LIBCAMERA_SUPPORT)
       ${source_files}
       stream_lib_libcamera_common.h)
 endif (LIBCAMERA_SUPPORT)
+if (LIBPIPEWIRE_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_lib_pipewire_common.h
+      stream_lib_pipewire_defines.h
+      stream_lib_pipewire_tools.cpp
+      stream_lib_pipewire_tools.h)
+endif (LIBPIPEWIRE_SUPPORT)
 if (UNIX)
  set (source_files
       ${source_files}

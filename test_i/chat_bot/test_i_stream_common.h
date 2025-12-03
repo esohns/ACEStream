@@ -456,6 +456,7 @@ struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration
    , manageSoX (false)
    , modelFile ()
    , mute (false)
+   , nodeName (ACE_TEXT_ALWAYS_CHAR ("combined_stereo_mix"))
    , scorerFile ()
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
@@ -488,6 +489,7 @@ struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration
   bool                                              manageSoX;
   std::string                                       modelFile;
   bool                                              mute;
+  std::string                                       nodeName; // pipewire source-
   std::string                                       scorerFile;
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)

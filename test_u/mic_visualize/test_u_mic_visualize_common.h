@@ -481,6 +481,7 @@ struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration
    , ALSAConfiguration (NULL)
    , effect ()
    , effectOptions ()
+   , nodeName (ACE_TEXT_ALWAYS_CHAR ("combined_stereo_mix"))
    , outputFormat ()
    , streamConfiguration (NULL)
    , subscriber (NULL)
@@ -494,6 +495,7 @@ struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration
   struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
   std::string                                      effect;
   std::vector<std::string>                         effectOptions;
+  std::string                                      nodeName; // pipewire source-
   struct Stream_MediaFramework_ALSA_MediaType      outputFormat;
   Test_U_MicVisualize_ALSA_StreamConfiguration_t*  streamConfiguration;
   Test_U_MicVisualize_ISessionNotify_t*            subscriber;
@@ -760,6 +762,9 @@ struct Test_U_GLUT_CBData
   Common_Math_FFT_T<float>*         fft;
 #endif // FFTW_SUPPORT
   ACE_Thread_Mutex                  lock; // protect fft handle
+
+  // window
+  int                               windowId;
 
   // menu
   bool                              wireframe;

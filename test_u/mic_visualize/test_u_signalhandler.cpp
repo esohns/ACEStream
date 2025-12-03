@@ -133,6 +133,11 @@ Test_U_SignalHandler::handle (const struct Common_Signal& signal_in)
     // - activation timers (connection attempts, ...)
     // [- UI dispatch]
 
+#if defined (GTK_USE)
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
+                                                        true); // high priority ?
+#endif // GTK_USE
+
 #if defined (GLUT_SUPPORT)
     glutLeaveMainLoop ();
 #endif // GLUT_SUPPORT

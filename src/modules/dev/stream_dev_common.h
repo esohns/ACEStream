@@ -287,10 +287,24 @@ struct Stream_Device_Pipewire_Capture_CBData
 {
   Stream_IAllocator*                          allocator;
   struct Common_AllocatorConfiguration*       allocatorConfiguration;
+  struct pw_proxy*                            client;
+  struct pw_client_events                     clientEvents;
+  struct spa_hook                             clientListener;
+  struct pw_core*                             core;
+  struct pw_proxy*                            device; // source-
+  struct pw_device_events                     deviceEvents;
+  struct spa_hook                             deviceListener;
   struct spa_audio_info                       audioFormat;
   struct spa_video_info                       videoFormat;
   unsigned int                                frameSize; // bytesPerSample * format.channels | video-
+  struct pw_main_loop*                        loop;
+  struct pw_proxy*                            node; // source-
+  int                                         nodeId; // source-
+  std::string                                 nodeName; // source-
   ACE_Message_Queue_Base*                     queue;
+  struct pw_registry*                         registry;
+  int                                         routeDevice;
+  int                                         routeIndex;
   struct Stream_Statistic*                    statistic;
   struct pw_stream*                           stream;
 };
@@ -298,8 +312,11 @@ struct Stream_Device_Pipewire_Capture_CBData
 struct Stream_Device_Pipewire_Playback_CBData
 {
   ACE_Message_Block*      buffer;
+  int                     deviceId; // target-
+  std::string             deviceName; // target-
   struct spa_audio_info   format;
   unsigned int            frameSize; // bytesPerSample * format.channels
+  struct pw_main_loop*    loop;
   ACE_Message_Queue_Base* queue;
   struct pw_stream*       stream;
 };

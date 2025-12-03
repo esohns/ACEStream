@@ -1631,7 +1631,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   else
   { // --> no video *TODO*: support audio-only streams
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: invalid/unknown media format type (was: \"%s\"), aborting\n"),
+                ACE_TEXT ("%s: invalid/unknown video media format type (was: \"%s\"), aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_OS_Tools::GUIDToString (media_type_s.formattype).c_str ())));
     goto error;
@@ -1643,7 +1643,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   else
   { // --> no audio *TODO*: write only one strl in this case; adjust offset(s), pad bytes accordingly
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: invalid/unknown media format type (was: \"%s\"), continuing\n"),
+                ACE_TEXT ("%s: invalid/unknown audio media format type (was: \"%s\"), continuing\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_OS_Tools::GUIDToString (media_type_2.formattype).c_str ())));
   } // end ELSE

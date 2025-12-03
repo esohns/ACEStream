@@ -1,5 +1,5 @@
 /***************************************************************************
-*   Copyright (C) 2010 by Erik Sohns   *
+*   Copyright (C) 2009 by Erik Sohns   *
 *   erik.sohns@web.de   *
 *                                                                         *
 *   This program is free software; you can redistribute it and/or modify  *
@@ -18,25 +18,22 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef TEST_U_GLUT_CALLBACKS_H
-#define TEST_U_GLUT_CALLBACKS_H
+#ifndef STREAM_LIB_PIPEWIRE_COMMON_H
+#define STREAM_LIB_PIPEWIRE_COMMON_H
 
-// GLUT routines
-void test_u_glut_close ();
-void test_u_glut_reshape (int, int);
-void test_u_glut_key (unsigned char, int, int);
-void test_u_glut_key_special (int, int, int);
-void test_u_glut_menu (int);
-void test_u_glut_mouse_button (int, int, int, int);
-void test_u_glut_mouse_move (int, int);
-void test_u_glut_timer (int);
-void test_u_glut_draw (void);
-void test_u_glut_idle (void);
-void test_u_glut_visible (int);
+#include <string>
 
-#if defined (ACE_LINUX)
-#else
-extern void* timer_cb_data_p;
-#endif // ACE_LINUX
+#include "stream_lib_pipewire_defines.h"
+
+struct Stream_MediaFramework_Pipewire_Configuration
+{
+  Stream_MediaFramework_Pipewire_Configuration ()
+   : captureSink (false)
+   , nodeName ()
+  {}
+
+  bool        captureSink; // Stereo-Mix ?
+  std::string nodeName;
+};
 
 #endif

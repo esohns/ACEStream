@@ -916,7 +916,7 @@ deque:
         head_p->release (); head_p = NULL;
         return -1;
       } // end IF
-      if (unlikely (available_frames == 0))
+      else if (unlikely (available_frames == 0))
       {
         result = snd_pcm_wait (deviceHandle_,
                                SND_PCM_WAIT_IO);

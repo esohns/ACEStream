@@ -37,6 +37,13 @@
 
 #include "stream_dev_common.h"
 
+void acestream_dev_mic_pw_on_client_event_info_cb (void*, const struct pw_client_info*);
+
+void acestream_dev_mic_pw_on_device_event_info_cb (void*, const struct pw_device_info*);
+void acestream_dev_mic_pw_on_device_event_param_cb (void*, int, uint32_t, uint32_t, uint32_t, const struct spa_pod*);
+
+void acestream_dev_mic_pw_on_registry_event_global_cb (void*, uint32_t, uint32_t, const char*, uint32_t, const struct spa_dict*);
+
 void acestream_dev_mic_pw_on_stream_param_changed_cb (void* , uint32_t, const struct spa_pod*);
 void acestream_dev_mic_pw_on_process_cb (void*);
 
@@ -72,6 +79,7 @@ class Stream_Dev_Mic_Source_Pipewire_T
                                       TimerManagerType,
                                       struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<struct spa_audio_info>
+ , public Common_IGetR_2_T<struct Stream_Device_Pipewire_Capture_CBData>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -95,6 +103,9 @@ class Stream_Dev_Mic_Source_Pipewire_T
 
   Stream_Dev_Mic_Source_Pipewire_T (ISTREAM_T* = NULL); // stream handle
   virtual ~Stream_Dev_Mic_Source_Pipewire_T ();
+
+  // implement Common_IGetR_2_T
+  inline virtual const struct Stream_Device_Pipewire_Capture_CBData& getR_2 () const { return CBData_; }
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -120,10 +131,13 @@ class Stream_Dev_Mic_Source_Pipewire_T
   virtual int svc (void);
 
   struct Stream_Device_Pipewire_Capture_CBData CBData_;
-  struct pw_stream_events                      events_;
+  struct pw_context*                           context_;
   bool                                         isPipewireMainLoopThread_;
   struct pw_main_loop*                         loop_;
   uint8_t                                      PODBuffer_[STREAM_DEV_PIPEWIRE_DEFAULT_POD_BUFFER_SIZE];
+  struct pw_registry_events                    registryEvents_;
+  struct spa_hook                              registryListener_;
+  struct pw_stream_events                      streamEvents_;
 };
 
 // include template definition

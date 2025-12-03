@@ -1851,7 +1851,6 @@ do_work (int argc_in,
           std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
 #endif // GTK_USE
         directShowCBData_in.stream = &directshow_stream;
-        //directShowCBData_in.userData = &directShowCBData_in;
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1863,7 +1862,6 @@ do_work (int argc_in,
           std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
 #endif // GTK_USE
         mediaFoundationCBData_in.stream = &mediafoundation_stream;
-        //mediaFoundationCBData_in.UIState.userData = &mediaFoundationCBData_in;
         break;
       }
       default:
@@ -1883,7 +1881,6 @@ do_work (int argc_in,
     CBData_in.UIState = &state_r;
 #endif // GTK_USE
     CBData_in.stream = &stream;
-    //CBData_in.userData = &CBData_in;
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_USE)
     itask_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -1938,12 +1935,13 @@ do_work (int argc_in,
 
     // initialize GLUT
     glutInit (&argc_in, argv_in);
-    glutSetOption (GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
+    glutSetOption (GLUT_ACTION_ON_WINDOW_CLOSE,
+                   GLUT_ACTION_GLUTMAINLOOP_RETURNS);
     glutInitDisplayMode (GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH);
     glutInitWindowSize (TEST_U_GLUT_DEFAULT_WIDTH, TEST_U_GLUT_DEFAULT_HEIGHT);
 
-    int window_i = glutCreateWindow ("MicVisualize");
-    glutSetWindow (window_i);
+    GLUT_CBData_p->windowId = glutCreateWindow ("MicVisualize");
+    glutSetWindow (GLUT_CBData_p->windowId);
     glutSetWindowData (GLUT_CBData_p);
 
 #if defined (GLEW_SUPPORT)
@@ -1970,13 +1968,20 @@ do_work (int argc_in,
     glutDisplayFunc (test_u_glut_draw);
     glutReshapeFunc (test_u_glut_reshape);
     glutVisibilityFunc (test_u_glut_visible);
+    glutCloseFunc (test_u_glut_close);
 
     glutKeyboardFunc (test_u_glut_key);
     glutSpecialFunc (test_u_glut_key_special);
     glutMouseFunc (test_u_glut_mouse_button);
     glutMotionFunc (test_u_glut_mouse_move);
     glutPassiveMotionFunc (test_u_glut_mouse_move);
-    glutTimerFunc (100, test_u_glut_timer, 0);
+    int value_i = 0;
+#if defined (ACE_LINUX)
+    value_i = static_cast<int> ((uint64_t)GLUT_CBData_p);
+#else
+    timer_cb_data_p = GLUT_CBData_p;
+#endif // ACE_LINUX
+    glutTimerFunc (1000 / TEST_U_GLUT_DEFAULT_FPS, test_u_glut_timer, value_i);
 
     glutCreateMenu (test_u_glut_menu);
     glutAddMenuEntry (ACE_TEXT_ALWAYS_CHAR ("wireframe"), 0);
@@ -1984,6 +1989,11 @@ do_work (int argc_in,
 
     glutMainLoop ();
 #endif // GLUT_SUPPORT
+
+    ACE_ASSERT (istream_control_p);
+    istream_control_p->stop (true,
+                             true,
+                             false);
 
     itask_p->stop (true,
                    false);

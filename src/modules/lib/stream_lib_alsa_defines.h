@@ -21,8 +21,6 @@
 #ifndef STREAM_LIB_ALSA_DEFINES_H
 #define STREAM_LIB_ALSA_DEFINES_H
 
-#include "common_macros.h"
-
 // device names/indices
 #define STREAM_LIB_ALSA_DEVICE_DEFAULT                            0
 #define STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX                     "default"

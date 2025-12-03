@@ -483,6 +483,7 @@ struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration
    , ALSAConfiguration (NULL)
    , effect ()
    , effectOptions ()
+   , nodeName (ACE_TEXT_ALWAYS_CHAR ("combined_stereo_mix"))
    , outputFormat ()
    , streamConfiguration (NULL)
    , subscriber (NULL)
@@ -496,6 +497,7 @@ struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration
   struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
   std::string                                      effect;
   std::vector<std::string>                         effectOptions;
+  std::string                                      nodeName; // pipewire source-
   struct Stream_MediaFramework_ALSA_MediaType      outputFormat;
   Test_U_AudioEffect_ALSA_StreamConfiguration_t*   streamConfiguration;
   Test_U_AudioEffect_ISessionNotify_t*             subscriber;

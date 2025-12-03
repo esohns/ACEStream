@@ -6637,14 +6637,9 @@ idle_update_display_cb (gpointer userData_in)
   struct Test_U_MicVisualize_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_MicVisualize_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-  ACE_ASSERT (gtk_manager_p);
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
   Common_UI_GTK_BuildersConstIterator_t iterator =
-    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != state_r.builders.end ());
+    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
   // trigger refresh of the 2D area ?
   GtkDrawingArea* drawing_area_p = NULL;
@@ -6669,8 +6664,9 @@ continue_2:
   if (!ui_cb_data_base_p->render3d)
     return G_SOURCE_CONTINUE;
 
-  ACE_ASSERT (!state_r.OpenGLContexts.empty ());
-  Common_UI_GTK_GLContextsIterator_t iterator_2 = state_r.OpenGLContexts.begin ();
+  ACE_ASSERT (!ui_cb_data_base_p->UIState->OpenGLContexts.empty ());
+  Common_UI_GTK_GLContextsIterator_t iterator_2 =
+    ui_cb_data_base_p->UIState->OpenGLContexts.begin ();
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   window_p = gtk_widget_get_window (GTK_WIDGET ((*iterator_2).first));
@@ -9675,12 +9671,7 @@ button_quit_clicked_cb (GtkButton* button_in,
   ACE_ASSERT (dialog_p);
   gtk_widget_destroy (GTK_WIDGET (dialog_p));
 
-  // step3: initiate shutdown sequence (see idle_finalize_UI_cb() above)
-  //        *NOTE*: the final gtk_main_quit() is called there
-  // COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
-  //                                                     true); // high priority ?
-
-  // step4: invoke signal handler
+  // step3: invoke signal handler
   int result = ACE_OS::raise (SIGINT);
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
