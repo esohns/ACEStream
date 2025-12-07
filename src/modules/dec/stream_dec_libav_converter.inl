@@ -402,7 +402,7 @@ error:
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
 
-      inputFormat_ = media_type_2.format;
+      // inputFormat_ = media_type_2.format;
 
       ACE_ASSERT (frame_);
       frame_->format = media_type_s.format;
