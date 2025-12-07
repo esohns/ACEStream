@@ -68,9 +68,7 @@ enum Test_I_TTSBackend
   TTS_FESTIVAL,
   TTS_FLITE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if defined (SAPI_SUPPORT)
   TTS_SAPI,
-#endif // SAPI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   //
   TTS_MAX,

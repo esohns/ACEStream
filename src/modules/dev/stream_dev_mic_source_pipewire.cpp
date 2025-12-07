@@ -220,11 +220,11 @@ acestream_dev_mic_pw_on_registry_event_global_cb (void* userData_in,
     if (cb_data_p->device)
       return;
 
-    const struct spa_dict_item* item_p;
-    spa_dict_for_each (item_p, properties_in)
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: %s\n"),
-                  ACE_TEXT (item_p->key), ACE_TEXT (item_p->value)));
+    // const struct spa_dict_item* item_p;
+    // spa_dict_for_each (item_p, properties_in)
+    //   ACE_DEBUG ((LM_DEBUG,
+    //               ACE_TEXT ("%s: %s\n"),
+    //               ACE_TEXT (item_p->key), ACE_TEXT (item_p->value)));
 
     const char* device_name_p =
       spa_dict_lookup (properties_in, PW_KEY_DEVICE_NAME);

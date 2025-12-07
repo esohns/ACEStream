@@ -131,13 +131,13 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
-#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-  std::string voice = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
+#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT) || defined (SAPI_SUPPORT)
+  std::string voice;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-b [STRING] : voice [\"")
             << voice
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
-#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT || SAPI_SUPPORT
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
@@ -273,7 +273,7 @@ do_processArguments (int argc_in,
 
   // initialize results
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-  voice_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
+  voice_out.clear ();
   voiceDirectory_out = configuration_path;
   voiceDirectory_out += ACE_DIRECTORY_SEPARATOR_STR_A;
   voiceDirectory_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY);
@@ -2143,7 +2143,7 @@ ACE_TMAIN (int argc_in,
 
   // step1a set defaults
 #if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-  std::string voice_string = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
+  std::string voice_string;
   std::string voice_directory = path;
   //voice_directory += ACE_DIRECTORY_SEPARATOR_STR_A;
   voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY);

@@ -178,15 +178,23 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
   torch::Tensor indexs = std::get<1> (results)[0];
 
   // step5: print results
-  for (int i = 0; i < 3; ++i)
+  float probability_f = softmaxs[0].item<float> ();
+  if (probability_f > 0.9f)
   {
-    int idx = indexs[i].item<int> ();
-    std::cout << ACE_TEXT_ALWAYS_CHAR ("    ============= Top-") << i + 1
-              << ACE_TEXT_ALWAYS_CHAR (" =============") << std::endl;
-    std::cout << ACE_TEXT_ALWAYS_CHAR ("    Label:  ") << labels_[idx] << std::endl;
+    int index_i = indexs[0].item<int> ();
+    std::cout << ACE_TEXT_ALWAYS_CHAR ("    Label:  ") << labels_[index_i] << std::endl;
     std::cout << ACE_TEXT_ALWAYS_CHAR ("    With Probability:  ")
-              << softmaxs[i].item<float> () * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
-  } // end FOR
+              << probability_f * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
+  } // end IF
+  // for (int i = 0; i < 3; ++i)
+  // {
+  //   int idx = indexs[i].item<int> ();
+  //   std::cout << ACE_TEXT_ALWAYS_CHAR ("    ============= Top-") << i + 1
+  //             << ACE_TEXT_ALWAYS_CHAR (" =============") << std::endl;
+  //   std::cout << ACE_TEXT_ALWAYS_CHAR ("    Label:  ") << labels_[idx] << std::endl;
+  //   std::cout << ACE_TEXT_ALWAYS_CHAR ("    With Probability:  ")
+  //             << softmaxs[i].item<float> () * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
+  // } // end FOR
 
   // step6: draw fps
   std::ostringstream converter;

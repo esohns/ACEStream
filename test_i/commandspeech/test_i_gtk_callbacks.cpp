@@ -93,9 +93,9 @@ load_backends (GtkListStore* listStore_in)
 }
 
 int
-acestream_test_i_commandspeech_selector (const dirent* dirEntry_in)
+acestream_test_i_commandspeech_flite_selector (const dirent* dirEntry_in)
 {
-  //STREAM_TRACE (ACE_TEXT ("acestream_test_i_commandspeech_selector"));
+  //STREAM_TRACE (ACE_TEXT ("acestream_test_i_commandspeech_flite_selector"));
 
   // *NOTE*: select only files following the naming schema for
   //         voice files: "*.flitevox"
@@ -114,17 +114,51 @@ acestream_test_i_commandspeech_selector (const dirent* dirEntry_in)
 
 bool
 load_voices (GtkListStore* listStore_in,
-             const std::string& voicesDirectory_in)
+             const std::string& voicesDirectory_in,
+             enum Test_I_TTSBackend TTSBackend_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_voices"));
 
   // initialize result
   gtk_list_store_clear (listStore_in);
 
+  Common_File_IdentifierList_t files_a;
+  switch (TTSBackend_in)
+  {
+    case TTS_ESPEAK_NG:
+    {
+      // *TODO*
+      break;
+    }
+    case TTS_FESTIVAL:
+    {
+      // *TODO*
+      break;
+    }
+    case TTS_FLITE:
+    {
+      files_a =
+        Common_File_Tools::files (voicesDirectory_in,
+                                  acestream_test_i_commandspeech_flite_selector);
+      break;
+    }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case TTS_SAPI:
+    {
+      // *TODO*
+      break;
+    }
+#endif // ACE_WIN32 || ACE_WIN64
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown TTS backend (was: %d), aborting\n"),
+                  TTSBackend_in));
+      return false;
+    }
+  } // end SWITCH
+
   GtkTreeIter iterator;
-  Common_File_IdentifierList_t files_a =
-    Common_File_Tools::files (voicesDirectory_in,
-                              acestream_test_i_commandspeech_selector);
   std::string filename_string;
   for (Common_File_IdentifierListIterator_t iterator_2 = files_a.begin ();
        iterator_2 != files_a.end ();
@@ -1250,7 +1284,8 @@ idle_initialize_UI_cb (gpointer userData_in)
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VOICE_NAME)));
   ACE_ASSERT (list_store_p);
   if (!load_voices (list_store_p,
-                    voices_directory_string))
+                    voices_directory_string,
+                    backend_e))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_voices(), aborting\n")));
@@ -2586,8 +2621,67 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
   selected_e = static_cast<enum Test_I_TTSBackend> (g_value_get_int (&value));
   g_value_unset (&value);
 
+  std::string voices_directory_string, voice_string;
+  switch (selected_e)
+  {
+    case TTS_ESPEAK_NG:
+    {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      voices_directory_string =
+        ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
+      voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("espeak-ng");
+      voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("espeak-ng-data");
+#else
+      voices_directory_string =
+        ACE_TEXT_ALWAYS_CHAR ("/usr/share/espeak-ng-data");
+#endif // ACE_WIN32 || ACE_WIN64
+      break;
+    }
+    case TTS_FESTIVAL:
+    {
+      voices_directory_string =
+        ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("FESTLIBDIR"));
+      voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("voices");
+      voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("us");
+      voice_string = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FESTVIAL_VOICE);
+      break;
+    }
+    case TTS_FLITE:
+    {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      voices_directory_string =
+        ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
+      voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("flite");
+      voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("voices");
+#else
+      voices_directory_string =
+        ACE_TEXT_ALWAYS_CHAR ("/usr/share/flite/voices");
+#endif // ACE_WIN32 || ACE_WIN64
+      voice_string = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
+      break;
+    }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case TTS_SAPI:
+      break;
+#endif // ACE_WIN32 || ACE_WIN64
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown TTS backend (was: %d), returning\n"),
+                  selected_e));
+      return;
+    }
+  } // end SWITCH
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
   struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
   HRESULT result = E_FAIL;
   IMFMediaSource* media_source_p = NULL;
@@ -2602,6 +2696,14 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
       directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->TTSBackend = selected_e;
+
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      (*directshow_modulehandler_configuration_iterator).second.second->voiceDirectory =
+        voices_directory_string;
+      (*directshow_modulehandler_configuration_iterator).second.second->voice =
+        voice_string;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2630,7 +2732,28 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (ui_cb_data_p->configuration);
   ACE_ASSERT (ui_cb_data_p->configuration->streamConfiguration.configuration_);
   ui_cb_data_p->configuration->streamConfiguration.configuration_->TTSBackend = selected_e;
+  Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator;
+  modulehandler_configuration_iterator =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+  (*modulehandler_configuration_iterator).second.second->voiceDirectory =
+    voices_directory_string;
+  (*modulehandler_configuration_iterator).second.second->voice =
+    voice_string;
 #endif // ACE_WIN32 || ACE_WIN64
+
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VOICE_NAME)));
+  ACE_ASSERT (list_store_p);
+  if (!load_voices (list_store_p,
+                    voices_directory_string,
+                    selected_e))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::load_voices(), returning\n")));
+    return;
+  } // end IF
 } // combobox_backend_changed_cb
 
 void
