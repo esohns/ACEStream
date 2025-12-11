@@ -99,7 +99,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
   ACE_ASSERT (heapAllocator_->configuration_);
 
   size_t bytes_to_allocate_i =
-    (bytes_in ? bytes_in + heapAllocator_->configuration_->paddingBytes : 9);
+    (bytes_in ? bytes_in + heapAllocator_->configuration_->paddingBytes : 0);
 
   ACE_Data_Block* data_block_p = NULL;
   try {
