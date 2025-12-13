@@ -2400,6 +2400,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: invalid/unknown concurrency mode (was: %d), aborting\n"),
+                      inherited::mod_->name (),
                       inherited::configuration_->concurrency));
           return false;
         }
@@ -2626,6 +2627,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: invalid/unknown concurrency mode (was: %d), aborting\n"),
+                      inherited::mod_->name (),
                       inherited::configuration_->concurrency));
           return false;
         }
@@ -2680,6 +2682,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             {
               ACE_DEBUG ((LM_ERROR,
                           ACE_TEXT ("%s: invalid/unknown concurrency mode (was: %d), aborting\n"),
+                          inherited::mod_->name (),
                           inherited::configuration_->concurrency));
               return false;
             }
@@ -2734,6 +2737,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
               {
                 ACE_DEBUG ((LM_ERROR,
                             ACE_TEXT ("%s: invalid/unknown concurrency mode (was: %d), aborting\n"),
+                            inherited::mod_->name (),
                             inherited::configuration_->concurrency));
                 return false;
               }
@@ -2921,6 +2925,7 @@ continue_2:
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: invalid/unknown concurrency mode (was: %d), aborting\n"),
+                      inherited::mod_->name (),
                       inherited::configuration_->concurrency));
           return false;
         }
@@ -2975,6 +2980,7 @@ continue_2:
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: invalid/unknown concurrency mode (was: %d), aborting\n"),
+                      inherited::mod_->name (),
                       inherited::configuration_->concurrency));
           return false;
         }
@@ -3018,6 +3024,7 @@ continue_2:
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: invalid/unknown concurrency mode (was: %d), aborting\n"),
+                      inherited::mod_->name (),
                       inherited::configuration_->concurrency));
           return false;
         }

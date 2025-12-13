@@ -243,6 +243,9 @@ class Stream_Module_Parser_T
 
   // override some ACE_Task_T methods
   virtual int svc (void);
+
+  // override (part of) Common_IScannerBase
+  inline virtual void head (ACE_Message_Block* newHead_in) { ACE_ASSERT (newHead_in && !headFragment_); headFragment_ = static_cast<DataMessageType*> (newHead_in); }
 };
 
 //////////////////////////////////////////
@@ -328,6 +331,9 @@ class Stream_Module_ParserH_T
 
   // *NOTE*: this enqueues the STOP message at the tail end...
   void stop ();
+
+  // override (part of) Common_IScannerBase
+  inline virtual void head (ACE_Message_Block* newHead_in) { ACE_ASSERT (newHead_in && !headFragment_); headFragment_ = static_cast<DataMessageType*> (newHead_in); }
 };
 
 // include template definition
