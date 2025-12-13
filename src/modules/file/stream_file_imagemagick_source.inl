@@ -279,7 +279,7 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
 #else
   output_format_string = ACE_TEXT_ALWAYS_CHAR ("RGBA");
   ACE_DEBUG ((LM_WARNING,
-              ACE_TEXT ("%s: forwarding file(s) in format \"%s\",
+              ACE_TEXT ("%s: forwarding file(s) in format \"%s\", continuing\n"),
               inherited::mod_->name (),
               ACE_TEXT (output_format_string.c_str ())));
 #endif // FFMPEG_SUPPORT
