@@ -2766,7 +2766,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
 
-  // step10: retrieve canvas coordinates, window handle and pixel buffer
+  // step10: retrieve canvas coordinates, window handle
   GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
   ACE_ASSERT (window_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

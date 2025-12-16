@@ -370,21 +370,18 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       // *TODO*: remove type inferences
       ACE_ASSERT (inherited::configuration_->connectionConfigurations);
       if (!inherited::configuration_->connectionConfigurationName.empty ())
-        iterator_2 =
-          inherited::configuration_->connectionConfigurations->find (inherited::configuration_->connectionConfigurationName);
+        iterator_2 = inherited::configuration_->connectionConfigurations->find (inherited::configuration_->connectionConfigurationName);
       else
-       iterator_2 =
-         inherited::configuration_->connectionConfigurations->find (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ())));
+       iterator_2 = inherited::configuration_->connectionConfigurations->find (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ())));
       if (iterator_2 == inherited::configuration_->connectionConfigurations->end ())
-        iterator_2 =
-          inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
+        iterator_2 = inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
       else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: applying connection configuration\n"),
                     inherited::mod_->name ()));
       ACE_ASSERT (iterator_2 != inherited::configuration_->connectionConfigurations->end ());
       configuration_p =
-          static_cast<typename ConnectorType::CONFIGURATION_T*> ((*iterator_2).second);
+        static_cast<typename ConnectorType::CONFIGURATION_T*> ((*iterator_2).second);
       ACE_ASSERT (configuration_p);
 
       switch (connector_.transportLayer ())
