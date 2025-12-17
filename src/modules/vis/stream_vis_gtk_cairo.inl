@@ -330,18 +330,18 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #endif // GTK_CHECK_VERSION (3,6,0)
     return;
   } // end IF
-  GdkPixbuf* scaled_pixbuf_p = gdk_pixbuf_scale_simple (surface_,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                        resolution_s.cx,
-                                                        resolution_s.cy,
-#else
-                                                        resolution_s.width,
-                                                        resolution_s.height,
-#endif // ACE_WIN32 || ACE_WIN64
-                                                        GDK_INTERP_NEAREST);
-  ACE_ASSERT (scaled_pixbuf_p);
-  g_object_unref (surface_);
-  surface_ = scaled_pixbuf_p;
+//  GdkPixbuf* scaled_pixbuf_p = gdk_pixbuf_scale_simple (surface_,
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//                                                        resolution_s.cx,
+//                                                        resolution_s.cy,
+//#else
+//                                                        resolution_s.width,
+//                                                        resolution_s.height,
+//#endif // ACE_WIN32 || ACE_WIN64
+//                                                        GDK_INTERP_NEAREST);
+//  ACE_ASSERT (scaled_pixbuf_p);
+//  g_object_unref (surface_);
+//  surface_ = scaled_pixbuf_p;
 #elif GTK_CHECK_VERSION (2,0,0)
     gdk_pixbuf_get_from_drawable (NULL,
                                   GDK_DRAWABLE (window_in),
