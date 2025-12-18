@@ -16,14 +16,14 @@ struct Stream_Decoder_MPEG_TS_PacketHeader
   /*00*/ uint8_t  synchronization;          /* 0x47 */
 #if defined (ACE_LITTLE_ENDIAN)
   /*01*/ uint8_t  packet_identifier_hi:5,
-                  tansport_priority:1,
+                  transport_priority:1,
                   payload_unit_start_indicator:1,
                   transport_error_indicator:1;
   /*02*/ uint8_t  packet_identifier_lo;
 #else
   /*01*/ uint16_t transport_error_indicator:1,
                   payload_unit_start_indicator:1,
-                  tansport_priority:1,
+                  transport_priority:1,
                   packet_identifier:13;
 #endif // ACE_LITTLE_ENDIAN
 #if defined (ACE_LITTLE_ENDIAN)

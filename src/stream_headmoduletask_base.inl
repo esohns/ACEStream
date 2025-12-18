@@ -1596,11 +1596,31 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         }
       } // end IF
 
-      // *TODO*: there is obviously a race condition here
-      ACE_ASSERT (inherited::sessionData_);
-      inherited::sessionData_->increase ();
       typename SessionMessageType::DATA_T* session_data_container_p =
         inherited::sessionData_;
+      bool release_session_data_container_b = false;
+      if (unlikely (!session_data_container_p))
+      {
+        SessionManagerType* session_manager_p =
+          SessionManagerType::SINGLETON_T::instance ();
+        ACE_ASSERT (session_manager_p);
+        typename SessionMessageType::DATA_T::DATA_T* session_data_p =
+          &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (streamId_));
+
+        ACE_NEW_NORETURN (session_data_container_p,
+                          typename SessionMessageType::DATA_T (session_data_p,
+                                                               false)); // *NOTE*: do NOT delete the session data when the container is destroyed
+        if (unlikely (!session_data_container_p))
+        {
+          ACE_DEBUG ((LM_CRITICAL,
+                      ACE_TEXT ("%s: failed to allocate memory, returning\n"),
+                      inherited::mod_->name ()));
+          return;
+        } // end IF
+        release_session_data_container_b = true;
+      } // end IF
+      else
+        inherited::sessionData_->increase ();
       ACE_ASSERT (streamState_);
       // *NOTE*: "fire-and-forget" the second argument
       if (unlikely (!inherited::putSessionMessage (notification_in,
