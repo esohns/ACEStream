@@ -31,19 +31,16 @@
 #define TEST_I_DEFAULT_TTS_BACKEND                     TTS_INVALID
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 
-#if defined (FESTIVAL_SUPPORT)
 #define TEST_I_DEFAULT_FESTIVAL_VOICE_DIRECTORY        ""
 #define TEST_I_DEFAULT_FESTVIAL_VOICE                  "cmu_us_slt_cg"
-#endif // FESTIVAL_SUPPORT
-#if defined (FLITE_SUPPORT)
+
 #define TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY           ""
 #define TEST_I_DEFAULT_FLITE_VOICE                     "cmu_us_slt.flitevox"
-#endif // FLITE_SUPPORT
+
 #define TEST_I_DEFAULT_OUTPUT_FILE                     "output.wav"
 
 //----------------------------------------
 
-#if defined (GTK_SUPPORT)
 #define TEST_I_UI_GTK_ACTION_RECORD_NAME               "action_record"
 #define TEST_I_UI_GTK_SCROLLEDWINDOW_ADJUSTMENT_V_NAME "adjustment_sw_v"
 #define TEST_I_UI_GTK_BOX_DISPLAY_2_NAME               "box_display_2"
@@ -100,6 +97,5 @@
 #define TEST_I_UI_GTK_STATUSBAR_NAME                   "statusbar"
 #define TEST_I_UI_GTK_TEXTBUFFER_NAME                  "textbuffer"
 #define TEST_I_UI_GTK_TEXTVIEW_NAME                    "textview"
-#endif // GTK_SUPPORT
 
 #endif

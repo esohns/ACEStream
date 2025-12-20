@@ -310,10 +310,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     return;
   } // end IF
 #elif GTK_CHECK_VERSION (3,0,0)
-        // gdk_pixbuf_get_from_window (window_in,
-        //                             0, 0,
-        //                             gdk_window_get_width (window_in),
-        //                             gdk_window_get_height (window_in));
+    //gdk_pixbuf_get_from_window (window_in,
+    //                            0, 0,
+    //                            gdk_window_get_width (window_in),
+    //                            gdk_window_get_height (window_in));
     gdk_pixbuf_new (GDK_COLORSPACE_RGB,
                     (n_channels_i == 4) ? TRUE : FALSE, 8,
                     gdk_window_get_width (window_in),
