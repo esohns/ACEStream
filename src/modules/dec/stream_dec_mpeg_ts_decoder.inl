@@ -288,7 +288,7 @@ parse_psi:
           sizeof (struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamOptionalHeader);
         buffer_->rd_ptr (optional_pes_header_p->pes_header_length);
         skipped_bytes += optional_pes_header_p->pes_header_length;
-        ACE_ASSERT (skipped_bytes < STREAM_DEC_MPEG_TS_PACKET_SIZE - skipped_bytes); // *TODO* remove ASAP
+        //ACE_ASSERT (skipped_bytes < STREAM_DEC_MPEG_TS_PACKET_SIZE); // *TODO* remove ASAP
       } // end IF
     } // end IF
     else if (missingPESBytes_)

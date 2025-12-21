@@ -61,40 +61,38 @@ Stream_Visualization_LibAVResize_T<TaskType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize_T::handleDataMessage"));
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::buffer_);
+  ACE_ASSERT (inherited::frame_);
+  ACE_ASSERT (!message_inout->cont ());
+
   // initialize return value(s)
   passMessageDownstream_out = false;
 
-  int result = -1;
   int line_sizes_a[AV_NUM_DATA_POINTERS];
   uint8_t* data_a[AV_NUM_DATA_POINTERS];
   ACE_OS::memset (&line_sizes_a, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
   ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::buffer_);
-  //ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::frame_);
-  ACE_ASSERT (!message_inout->cont ());
-
-  result =
-      av_image_fill_linesizes (line_sizes_a,
-                               inherited::inputFormat_,
+  int result =
+    av_image_fill_linesizes (line_sizes_a,
+                             inherited::inputFormat_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                               static_cast<int> (sourceResolution_.cx));
+                             static_cast<int> (sourceResolution_.cx));
 #else
-                               static_cast<int> (sourceResolution_.width));
+                             static_cast<int> (sourceResolution_.width));
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result >= 0);
   result =
-      av_image_fill_pointers (data_a,
-                              inherited::inputFormat_,
+    av_image_fill_pointers (data_a,
+                            inherited::inputFormat_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              static_cast<int> (sourceResolution_.cy),
+                            static_cast<int> (sourceResolution_.cy),
 #else
-                              static_cast<int> (sourceResolution_.height),
+                            static_cast<int> (sourceResolution_.height),
 #endif // ACE_WIN32 || ACE_WIN64
-                              reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
-                              line_sizes_a);
+                            reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
+                            line_sizes_a);
   ACE_ASSERT (result >= 0);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (unlikely (!Stream_Module_Decoder_Tools::scale (inherited::context_,
@@ -160,16 +158,16 @@ Stream_Visualization_LibAVResize_T<TaskType,
   } // end IF
 //  av_frame_unref (inherited::frame_);
   result =
-      av_image_fill_linesizes (inherited::frame_->linesize,
-                               inherited::inputFormat_,
-                               static_cast<int> (inherited::frame_->width));
+    av_image_fill_linesizes (inherited::frame_->linesize,
+                             inherited::inputFormat_,
+                             static_cast<int> (inherited::frame_->width));
   ACE_ASSERT (result >= 0);
   result =
-      av_image_fill_pointers (inherited::frame_->data,
-                              inherited::inputFormat_,
-                              static_cast<int> (inherited::frame_->height),
-                              reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
-                              inherited::frame_->linesize);
+    av_image_fill_pointers (inherited::frame_->data,
+                            inherited::inputFormat_,
+                            static_cast<int> (inherited::frame_->height),
+                            reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
+                            inherited::frame_->linesize);
   ACE_ASSERT (result >= 0);
 
   return;

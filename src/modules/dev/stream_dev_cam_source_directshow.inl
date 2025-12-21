@@ -690,11 +690,24 @@ end:
         ROTID_ = 0;
       } // end IF
 
-//continue_2:
+      if (IMediaControl_)
+      {
+        // stop previewing video data
+        // *NOTE*: there may be still be data messages to be delivered at this
+        //         point
+        //result_2 = IMediaControl_->StopWhenReady ();
+        result_2 = IMediaControl_->Stop ();
+        if (FAILED (result_2))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to IMediaControl::Stop(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+      } // end IF
+
       if (IMediaEventEx_)
       {
-        //Stream_MediaFramework_DirectShow_Tools::waitForStreamEnd (IMediaEventEx_,
-        //                                                          10000); // 10 seconds max
+        Stream_MediaFramework_DirectShow_Tools::waitForStreamEnd (IMediaEventEx_,
+                                                                  10000); // 10 seconds max
 
         result_2 = IMediaEventEx_->SetNotifyWindow (NULL,
                                                     0,
@@ -709,32 +722,23 @@ end:
 
       if (IMediaControl_)
       {
-        // stop previewing video data
-        // *NOTE*: there may be still be data messages to be delivered at this
-        //         point
-        //result_2 = IMediaControl_->StopWhenReady ();
-        result_2 = IMediaControl_->Stop ();
-        if (FAILED (result_2))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to IMediaControl::Stop(): \"%s\", continuing\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
-        else
+        enum _FilterState graph_state;
+        do
         {
-          enum _FilterState graph_state;
           result_2 =
             IMediaControl_->GetState (INFINITE,
                                       (OAFilterState*)&graph_state);
           if (FAILED (result_2)) // VFW_S_STATE_INTERMEDIATE: 0x00040237
+          {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to IMediaControl::GetState(): \"%s\", continuing\n"),
                         inherited::mod_->name (),
                         ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
-          else
-          {
-            ACE_ASSERT (graph_state == State_Stopped);
-          } // end ELSE
-        } // end ELSE
+            goto continue_2;
+          } // end IF
+        } while (graph_state != State_Stopped);
+        ACE_ASSERT (graph_state == State_Stopped);
+continue_2:
         IMediaControl_->Release (); IMediaControl_ = NULL;
       } // end IF
 

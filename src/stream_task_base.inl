@@ -440,7 +440,10 @@ continue_:
       // *NOTE*: the distributor is one notable example where this fails (the nth (n > 1) time around)
       if (likely (sessionData_2))
       {
-        sessionData_->decrease (); sessionData_ = NULL;
+        if (sessionData_)
+        {
+          sessionData_->decrease (); sessionData_ = NULL;
+        } // end IF
         sessionData_ = sessionData_2;
         sessionData_2 = NULL;
       } // end IF

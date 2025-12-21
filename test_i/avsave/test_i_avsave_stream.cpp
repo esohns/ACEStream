@@ -197,6 +197,7 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
   bool remove_module_2 = false;
   Test_I_DirectShow_SessionManager_t* session_manager_p =
     Test_I_DirectShow_SessionManager_t::SINGLETON_T::instance ();
+  Common_Image_Resolution_t resolution_s;
 
   // sanity check(s)
   iterator =
@@ -480,7 +481,7 @@ continue_:
   session_data_p->stream = this;
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
-  Common_Image_Resolution_t resolution_s =
+  resolution_s =
     Stream_MediaFramework_DirectShow_Tools::toResolution (configuration_in.configuration_->format.video);
   Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                          (*iterator_2).second.second->outputFormat);
