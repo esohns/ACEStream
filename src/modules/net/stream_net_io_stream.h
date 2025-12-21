@@ -33,7 +33,8 @@
 #include "stream_inotify.h"
 #include "stream_streammodule_base.h"
 
-#include "stream_net_io.h"
+//#include "stream_net_io.h"
+#include "stream_net_input.h"
 
 // forward declarations
 template <ACE_SYNCH_DECL,
@@ -167,44 +168,44 @@ class Stream_Module_Net_IO_Stream_T
  protected:
   // convenient types
   typedef Stream_INotify_T<NotificationType> INOTIFY_T;
-  typedef Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
-                                       ControlMessageType,
-                                       DataMessageType,
-                                       SessionMessageType,
-                                       HandlerConfigurationType,
-                                       ControlType,
-                                       NotificationType,
-                                       StateType,
-                                       StatisticContainerType,
-                                       SessionManagerType,
-                                       TimerManagerType,
-                                       AddressType,
-                                       ConnectionManagerType,
-                                       UserDataType> READER_T;
-  typedef Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
-                                       ControlMessageType,
-                                       DataMessageType,
-                                       SessionMessageType,
-                                       HandlerConfigurationType,
-                                       ControlType,
-                                       NotificationType,
-                                       StateType,
-                                       StatisticContainerType,
-                                       SessionManagerType,
-                                       TimerManagerType,
-                                       AddressType,
-                                       ConnectionManagerType,
-                                       UserDataType> WRITER_T;
-  typedef Stream_StreamModule_T<ACE_SYNCH_USE,                               // task synch type
-                                TimePolicyType,                              // time policy
-                                typename SessionMessageType::DATA_T::DATA_T, // session data type
-                                enum Stream_SessionMessageType,              // session event type
-                                struct Stream_ModuleConfiguration,           // module configuration type
-                                HandlerConfigurationType,                    // module handler configuration type
-                                libacestream_default_net_io_module_name_string, // name
-                                INOTIFY_T,                                   // stream notification interface type
-                                READER_T,                                    // reader type
-                                WRITER_T> IO_MODULE_T;                       // writer type
+  typedef Stream_Module_Net_InputReader_T<ACE_SYNCH_USE,
+                                          ControlMessageType,
+                                          DataMessageType,
+                                          SessionMessageType,
+                                          HandlerConfigurationType,
+                                          ControlType,
+                                          NotificationType,
+                                          StateType,
+                                          StatisticContainerType,
+                                          SessionManagerType,
+                                          TimerManagerType,
+                                          AddressType,
+                                          ConnectionManagerType,
+                                          UserDataType> READER_T;
+  typedef Stream_Module_Net_InputWriter_T<ACE_SYNCH_USE,
+                                          ControlMessageType,
+                                          DataMessageType,
+                                          SessionMessageType,
+                                          HandlerConfigurationType,
+                                          ControlType,
+                                          NotificationType,
+                                          StateType,
+                                          StatisticContainerType,
+                                          SessionManagerType,
+                                          TimerManagerType,
+                                          AddressType,
+                                          ConnectionManagerType,
+                                          UserDataType> WRITER_T;
+  typedef Stream_StreamModule_T<ACE_SYNCH_USE,                                     // task synch type
+                                TimePolicyType,                                    // time policy
+                                typename SessionMessageType::DATA_T::DATA_T,       // session data type
+                                enum Stream_SessionMessageType,                    // session event type
+                                struct Stream_ModuleConfiguration,                 // module configuration type
+                                HandlerConfigurationType,                          // module handler configuration type
+                                libacestream_default_net_input_module_name_string, // name
+                                INOTIFY_T,                                         // stream notification interface type
+                                READER_T,                                          // reader type
+                                WRITER_T> INPUT_MODULE_T;                          // writer type
 
   // *NOTE*: finish session on disconnect notification ?
   bool        finishOnDisconnect_;

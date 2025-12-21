@@ -22,7 +22,8 @@
 #define STREAM_NET_DEFINES_H
 
 // module
-#define MODULE_NET_IO_DEFAULT_NAME_STRING       "NetIO"
+#define MODULE_NET_INPUT_DEFAULT_NAME_STRING    "NetInput"
+#define MODULE_NET_OUTPUT_DEFAULT_NAME_STRING   "NetOutput"
 #define MODULE_NET_LISTENER_DEFAULT_NAME_STRING "NetListener"
 // *NOTE*: marshalling modules usually have reader and (!) writer tasks that
 //         'funnel' PDUs over the network, i.e. serialize the data (reader-side)

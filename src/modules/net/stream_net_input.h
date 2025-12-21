@@ -18,8 +18,8 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef STREAM_NET_IO_H
-#define STREAM_NET_IO_H
+#ifndef STREAM_NET_INPUT_H
+#define STREAM_NET_INPUT_H
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -30,7 +30,7 @@
 #include "stream_headmoduletask_base.h"
 #include "stream_task_base_synch.h"
 
-extern const char libacestream_default_net_io_module_name_string[];
+extern const char libacestream_default_net_input_module_name_string[];
 
 // forward declarations
 template <ACE_SYNCH_DECL,
@@ -47,7 +47,7 @@ template <ACE_SYNCH_DECL,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
-class Stream_Module_Net_IOWriter_T;
+class Stream_Module_Net_InputWriter_T;
 class Stream_IOutboundDataNotify;
 
 template <ACE_SYNCH_DECL,
@@ -70,7 +70,7 @@ template <ACE_SYNCH_DECL,
           typename ConnectionManagerType,
           ////////////////////////////////
           typename UserDataType>
-class Stream_Module_Net_IOReader_T // --> input
+class Stream_Module_Net_InputReader_T // --> input
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  Common_TimePolicy_t,
                                  ConfigurationType,
@@ -92,33 +92,33 @@ class Stream_Module_Net_IOReader_T // --> input
                                  UserDataType> inherited;
 
  public:
-  Stream_Module_Net_IOReader_T (typename inherited::ISTREAM_T*); // stream handle
-  inline virtual ~Stream_Module_Net_IOReader_T () {}
+  Stream_Module_Net_InputReader_T (typename inherited::ISTREAM_T*); // stream handle
+  inline virtual ~Stream_Module_Net_InputReader_T () {}
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleControlMessage (ControlMessageType&); // control message
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOReader_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOReader_T (const Stream_Module_Net_IOReader_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOReader_T& operator= (const Stream_Module_Net_IOReader_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_InputReader_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_InputReader_T (const Stream_Module_Net_InputReader_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_InputReader_T& operator= (const Stream_Module_Net_InputReader_T&))
 
   // convenient types
   typedef typename SessionMessageType::DATA_T::DATA_T SESSION_DATA_T;
-  typedef Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
-                                       ControlMessageType,
-                                       DataMessageType,
-                                       SessionMessageType,
-                                       ConfigurationType,
-                                       StreamControlType,
-                                       StreamNotificationType,
-                                       StreamStateType,
-                                       StatisticContainerType,
-                                       SessionManagerType,
-                                       TimerManagerType,
-                                       AddressType,
-                                       ConnectionManagerType,
-                                       UserDataType> WRITER_T;
+  typedef Stream_Module_Net_InputWriter_T<ACE_SYNCH_USE,
+                                          ControlMessageType,
+                                          DataMessageType,
+                                          SessionMessageType,
+                                          ConfigurationType,
+                                          StreamControlType,
+                                          StreamNotificationType,
+                                          StreamStateType,
+                                          StatisticContainerType,
+                                          SessionManagerType,
+                                          TimerManagerType,
+                                          AddressType,
+                                          ConnectionManagerType,
+                                          UserDataType> WRITER_T;
 };
 
 //////////////////////////////////////////
@@ -143,7 +143,7 @@ template <ACE_SYNCH_DECL,
           typename ConnectionManagerType,
           ////////////////////////////////
           typename UserDataType>
-class Stream_Module_Net_IOWriter_T // --> output
+class Stream_Module_Net_InputWriter_T // --> output
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
@@ -158,20 +158,20 @@ class Stream_Module_Net_IOWriter_T // --> output
                                       TimerManagerType,
                                       UserDataType>
 {
-  friend class Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
-                                            ControlMessageType,
-                                            DataMessageType,
-                                            SessionMessageType,
-                                            ConfigurationType,
-                                            StreamControlType,
-                                            StreamNotificationType,
-                                            StreamStateType,
-                                            StatisticContainerType,
-                                            SessionManagerType,
-                                            TimerManagerType,
-                                            AddressType,
-                                            ConnectionManagerType,
-                                            UserDataType>;
+  friend class Stream_Module_Net_InputReader_T<ACE_SYNCH_USE,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               ConfigurationType,
+                                               StreamControlType,
+                                               StreamNotificationType,
+                                               StreamStateType,
+                                               StatisticContainerType,
+                                               SessionManagerType,
+                                               TimerManagerType,
+                                               AddressType,
+                                               ConnectionManagerType,
+                                               UserDataType>;
 
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -188,8 +188,8 @@ class Stream_Module_Net_IOWriter_T // --> output
                                       UserDataType> inherited;
 
  public:
-  Stream_Module_Net_IOWriter_T (typename inherited::ISTREAM_T*); // stream handle
-  inline virtual ~Stream_Module_Net_IOWriter_T () {}
+  Stream_Module_Net_InputWriter_T (typename inherited::ISTREAM_T*); // stream handle
+  inline virtual ~Stream_Module_Net_InputWriter_T () {}
 
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -219,16 +219,14 @@ class Stream_Module_Net_IOWriter_T // --> output
   typedef ACE_Module<ACE_SYNCH_USE,
                      Common_TimePolicy_t> MODULE_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T (const Stream_Module_Net_IOWriter_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T& operator= (const Stream_Module_Net_IOWriter_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_InputWriter_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_InputWriter_T (const Stream_Module_Net_InputWriter_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_InputWriter_T& operator= (const Stream_Module_Net_InputWriter_T&))
 
-  bool                        inbound_;
-  bool                        manageSessionData_;
-  Stream_IOutboundDataNotify* outboundNotificationHandle_;
+  bool manageSessionData_;
 };
 
 // include template definition
-#include "stream_net_io.inl"
+#include "stream_net_input.inl"
 
 #endif

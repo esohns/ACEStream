@@ -111,7 +111,6 @@ struct Stream_ModuleHandlerConfiguration
    , generateSessionMessages (true)
    , handleResize (true)
    , hasReentrantSynchronousSubDownstream (true)
-   , inbound (true)
    , lock (NULL)
    , maximumQueueSlots (STREAM_QUEUE_MAX_SLOTS)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -182,7 +181,6 @@ struct Stream_ModuleHandlerConfiguration
   //         e.g. network connection-) stream, any 'inbound' (i.e. writer-
   //         side) data [!] may (!) 'turn around' and travel back upstream for
   //         dispatch --> account for it only once
-  bool                                        inbound;                              // statistic[/network IO] module(s)
   ACE_SYNCH_RECURSIVE_MUTEX*                  lock;                                 // display/message handler module(s)
   size_t                                      maximumQueueSlots;                    // message queue(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

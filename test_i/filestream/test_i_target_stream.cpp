@@ -29,8 +29,8 @@
 
 Test_I_Target_TCPStream::Test_I_Target_TCPStream ()
  : inherited ()
- , netIO_ (this,
-           ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING))
+ , netInput_ (this,
+              ACE_TEXT_ALWAYS_CHAR (MODULE_NET_INPUT_DEFAULT_NAME_STRING))
  //, statisticReport_ (this,
  //                    ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , fileWriter_ (this,
@@ -57,7 +57,7 @@ Test_I_Target_TCPStream::load (Stream_ILayout* layout_in,
 //  modules_out.clear ();
   delete_out = false;
 
-  layout_in->append (&netIO_, NULL, 0);
+  layout_in->append (&netInput_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
   layout_in->append (&fileWriter_, NULL, 0);
 
@@ -223,8 +223,8 @@ Test_I_Target_TCPStream::report () const
 
 Test_I_Target_UDPStream::Test_I_Target_UDPStream ()
  : inherited ()
- , netIO_ (this,
-           ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING))
+ , netInput_ (this,
+              ACE_TEXT_ALWAYS_CHAR (MODULE_NET_INPUT_DEFAULT_NAME_STRING))
  //, statisticReport_ (this,
  //                    ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , fileWriter_ (this,
@@ -251,7 +251,7 @@ Test_I_Target_UDPStream::load (Stream_ILayout* layout_in,
 //  modules_out.clear ();
   delete_out = false;
 
-  layout_in->append (&netIO_, NULL, 0);
+  layout_in->append (&netInput_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
   layout_in->append (&fileWriter_, NULL, 0);
 

@@ -972,7 +972,6 @@ do_work (unsigned int bufferSize_in,
         Common_UI_Tools::getDefaultDisplay ();
       directshow_modulehandler_configuration.filterConfiguration =
         &directshow_configuration.filterConfiguration;
-      directshow_modulehandler_configuration.inbound = true;
       directshow_modulehandler_configuration.printProgressDot =
         UIDefinitionFilename_in.empty ();
       directshow_modulehandler_configuration.statisticReportingInterval =
@@ -1014,7 +1013,6 @@ do_work (unsigned int bufferSize_in,
       //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       //  goto clean;
       //} // end IF
-      mediafoundation_modulehandler_configuration.inbound = true;
       mediafoundation_modulehandler_configuration.printProgressDot =
         UIDefinitionFilename_in.empty ();
       mediafoundation_modulehandler_configuration.statisticReportingInterval =

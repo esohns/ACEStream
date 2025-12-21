@@ -70,15 +70,18 @@ target_include_directories (${PROJECT_NAME}_Network PUBLIC
 set (source_files
      stream_net_common.h
      stream_net_defines.h
-     stream_net_io.cpp
-     stream_net_io.h
-     stream_net_io.inl
+     stream_net_input.cpp
+     stream_net_input.h
+     stream_net_input.inl
      stream_net_io_stream.cpp
      stream_net_io_stream.h
      stream_net_io_stream.inl
      stream_net_listener.cpp
      stream_net_listener.h
      stream_net_listener.inl
+     stream_net_output.cpp
+     stream_net_output.h
+     stream_net_output.inl
      stream_net_server_stream.cpp
      stream_net_server_stream.h
      stream_net_server_stream.inl
@@ -126,12 +129,14 @@ export (TARGETS ${PROJECT_NAME}_Network
 install (FILES
          stream_net_common.h
          stream_net_defines.h
-         stream_net_io.h
-         stream_net_io.inl
+         stream_net_input.h
+         stream_net_input.inl
          stream_net_io_stream.h
          stream_net_io_stream.inl
          stream_net_listener.h
          stream_net_listener.inl
+         stream_net_output.h
+         stream_net_output.inl
          stream_net_server_stream.h
          stream_net_server_stream.inl
          stream_net_source.h

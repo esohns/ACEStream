@@ -35,7 +35,7 @@
 
 #include "stream_misc_parser.h"
 
-#include "stream_net_io.h"
+#include "stream_net_output.h"
 #include "stream_module_source_http_get.h"
 
 #include "stream_stat_statistic_report.h"
@@ -54,42 +54,34 @@ typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
                                  struct Stream_UserData> HTTPGet_SessionManager_t;
 
 // declare module(s)
-typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
-                                     Stream_ControlMessage_t,
-                                     HTTPGet_Message,
-                                     HTTPGet_SessionMessage,
-                                     struct HTTPGet_ModuleHandlerConfiguration,
-                                     enum Stream_ControlType,
-                                     enum Stream_SessionMessageType,
-                                     struct HTTPGet_StreamState,
-                                     struct Stream_Statistic,
-                                     HTTPGet_SessionManager_t,
-                                     Common_Timer_Manager_t,
-                                     ACE_INET_Addr,
-                                     HTTPGet_ConnectionManager_t,
-                                     struct Stream_UserData> HTTPGet_Net_Reader_t;
-typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
-                                     Stream_ControlMessage_t,
-                                     HTTPGet_Message,
-                                     HTTPGet_SessionMessage,
-                                     struct HTTPGet_ModuleHandlerConfiguration,
-                                     enum Stream_ControlType,
-                                     enum Stream_SessionMessageType,
-                                     struct HTTPGet_StreamState,
-                                     struct Stream_Statistic,
-                                     HTTPGet_SessionManager_t,
-                                     Common_Timer_Manager_t,
-                                     ACE_INET_Addr,
-                                     HTTPGet_ConnectionManager_t,
-                                     struct Stream_UserData> HTTPGet_Net_Writer_t;
-DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session data type
-                          enum Stream_SessionMessageType,            // session event type
-                          struct HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
-                          libacestream_default_net_io_module_name_string,
-                          Stream_INotify_t,                          // stream notification interface type
-                          HTTPGet_Net_Reader_t,                      // reader type
-                          HTTPGet_Net_Writer_t,                      // writer type
-                          HTTPGet_Net_IO);                           // name
+typedef Stream_Module_Net_OutputReader_T<ACE_MT_SYNCH,
+                                         Common_TimePolicy_t,
+                                         struct HTTPGet_ModuleHandlerConfiguration,
+                                         Stream_ControlMessage_t,
+                                         HTTPGet_Message,
+                                         HTTPGet_SessionMessage,
+                                         enum Stream_ControlType,
+                                         enum Stream_SessionMessageType,
+                                         HTTPGet_ConnectionManager_t,
+                                         struct Stream_UserData> HTTPGet_Net_Reader_t;
+typedef Stream_Module_Net_OutputWriter_T<ACE_MT_SYNCH,
+                                         Common_TimePolicy_t,
+                                         struct HTTPGet_ModuleHandlerConfiguration,
+                                         Stream_ControlMessage_t,
+                                         HTTPGet_Message,
+                                         HTTPGet_SessionMessage,
+                                         enum Stream_ControlType,
+                                         enum Stream_SessionMessageType,
+                                         HTTPGet_ConnectionManager_t,
+                                         struct Stream_UserData> HTTPGet_Net_Writer_t;
+DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                         // session data type
+                          enum Stream_SessionMessageType,                     // session event type
+                          struct HTTPGet_ModuleHandlerConfiguration,          // module handler configuration type
+                          libacestream_default_net_output_module_name_string,
+                          Stream_INotify_t,                                   // stream notification interface type
+                          HTTPGet_Net_Reader_t,                               // reader type
+                          HTTPGet_Net_Writer_t,                               // writer type
+                          HTTPGet_Net_Output);                                // name
 
 typedef HTTP_Module_Streamer_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,

@@ -168,8 +168,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   typename inherited::MODULE_T* module_p = NULL;
 
   ACE_NEW_RETURN (module_p,
-                  IO_MODULE_T (this,
-                               ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING)),
+                  INPUT_MODULE_T (this,
+                                  ACE_TEXT_ALWAYS_CHAR (MODULE_NET_INPUT_DEFAULT_NAME_STRING)),
                   false);
   if (unlikely (!module_p))
   {

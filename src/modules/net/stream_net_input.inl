@@ -45,23 +45,23 @@ template <ACE_SYNCH_DECL,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
-Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             ConfigurationType,
-                             StreamControlType,
-                             StreamNotificationType,
-                             StreamStateType,
-                             StatisticContainerType,
-                             SessionManagerType,
-                             TimerManagerType,
-                             AddressType,
-                             ConnectionManagerType,
-                             UserDataType>::Stream_Module_Net_IOReader_T (typename inherited::ISTREAM_T* stream_in)
+Stream_Module_Net_InputReader_T<ACE_SYNCH_USE,
+                                ControlMessageType,
+                                DataMessageType,
+                                SessionMessageType,
+                                ConfigurationType,
+                                StreamControlType,
+                                StreamNotificationType,
+                                StreamStateType,
+                                StatisticContainerType,
+                                SessionManagerType,
+                                TimerManagerType,
+                                AddressType,
+                                ConnectionManagerType,
+                                UserDataType>::Stream_Module_Net_InputReader_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::Stream_Module_Net_IOReader_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_InputReader_T::Stream_Module_Net_InputReader_T"));
 
 }
 
@@ -80,31 +80,31 @@ template <ACE_SYNCH_DECL,
           typename ConnectionManagerType,
           typename UserDataType>
 void
-Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             ConfigurationType,
-                             StreamControlType,
-                             StreamNotificationType,
-                             StreamStateType,
-                             StatisticContainerType,
-                             SessionManagerType,
-                             TimerManagerType,
-                             AddressType,
-                             ConnectionManagerType,
-                             UserDataType>::handleControlMessage (ControlMessageType& controlMessage_in)
+Stream_Module_Net_InputReader_T<ACE_SYNCH_USE,
+                                ControlMessageType,
+                                DataMessageType,
+                                SessionMessageType,
+                                ConfigurationType,
+                                StreamControlType,
+                                StreamNotificationType,
+                                StreamStateType,
+                                StatisticContainerType,
+                                SessionManagerType,
+                                TimerManagerType,
+                                AddressType,
+                                ConnectionManagerType,
+                                UserDataType>::handleControlMessage (ControlMessageType& controlMessage_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::handleControlMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_InputReader_T::handleControlMessage"));
 
   ConnectionManagerType* connection_manager_p =
-      ConnectionManagerType::SINGLETON_T::instance ();
+    ConnectionManagerType::SINGLETON_T::instance ();
   typename ConnectionManagerType::ICONNECTION_T* connection_p = NULL;
   WRITER_T* sibling_task_p = static_cast<WRITER_T*> (inherited::sibling ());
   if (unlikely (!sibling_task_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to dynamic_cast<Stream_Module_Net_IOWriter_T>(0x%@), returning\n"),
+                ACE_TEXT ("%s: failed to dynamic_cast<Stream_Module_Net_InputWriter_T>(0x%@), returning\n"),
                 inherited::mod_->name (),
                 inherited::sibling ()));
     return;
@@ -216,26 +216,24 @@ template <ACE_SYNCH_DECL,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
-Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             ConfigurationType,
-                             StreamControlType,
-                             StreamNotificationType,
-                             StreamStateType,
-                             StatisticContainerType,
-                             SessionManagerType,
-                             TimerManagerType,
-                             AddressType,
-                             ConnectionManagerType,
-                             UserDataType>::Stream_Module_Net_IOWriter_T (typename inherited::ISTREAM_T* stream_in)
+Stream_Module_Net_InputWriter_T<ACE_SYNCH_USE,
+                                ControlMessageType,
+                                DataMessageType,
+                                SessionMessageType,
+                                ConfigurationType,
+                                StreamControlType,
+                                StreamNotificationType,
+                                StreamStateType,
+                                StatisticContainerType,
+                                SessionManagerType,
+                                TimerManagerType,
+                                AddressType,
+                                ConnectionManagerType,
+                                UserDataType>::Stream_Module_Net_InputWriter_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in) // stream handle
- , inbound_ (true)
  , manageSessionData_ (true)
- , outboundNotificationHandle_ (NULL)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::Stream_Module_Net_IOWriter_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_InputWriter_T::Stream_Module_Net_InputWriter_T"));
 
 }
 
@@ -254,56 +252,47 @@ template <ACE_SYNCH_DECL,
           typename ConnectionManagerType,
           typename UserDataType>
 bool
-Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             ConfigurationType,
-                             StreamControlType,
-                             StreamNotificationType,
-                             StreamStateType,
-                             StatisticContainerType,
-                             SessionManagerType,
-                             TimerManagerType,
-                             AddressType,
-                             ConnectionManagerType,
-                             UserDataType>::initialize (const ConfigurationType& configuration_in,
-                                                        Stream_IAllocator* allocator_in)
+Stream_Module_Net_InputWriter_T<ACE_SYNCH_USE,
+                                ControlMessageType,
+                                DataMessageType,
+                                SessionMessageType,
+                                ConfigurationType,
+                                StreamControlType,
+                                StreamNotificationType,
+                                StreamStateType,
+                                StatisticContainerType,
+                                SessionManagerType,
+                                TimerManagerType,
+                                AddressType,
+                                ConnectionManagerType,
+                                UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                           Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_InputWriter_T::initialize"));
 
   bool result = false;
-//  enum Stream_HeadModuleConcurrency concurrency_e =
-//      STREAM_HEADMODULECONCURRENCY_INVALID;
 
   if (unlikely (inherited::isInitialized_))
   {
-    inbound_ = true;
     manageSessionData_ = true;
-    outboundNotificationHandle_ = NULL;
   } // end IF
 
   // *TODO*: remove type inferences
-  inbound_ = configuration_in.inbound;
-  outboundNotificationHandle_ = configuration_in.outboundNotificationHandle;
-
-  if (inbound_ &&
-      (configuration_in.concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+  if (configuration_in.concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
   {
-//    concurrency_e = configuration_in.concurrency;
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: trying to correct (head-module-) concurrency setting\n"),
                 inherited::mod_->name ()));
     const_cast<ConfigurationType&> (configuration_in).concurrency =
-        STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+      STREAM_HEADMODULECONCURRENCY_CONCURRENT;
   } // end IF
+
   result = inherited::initialize (configuration_in,
                                   allocator_in);
   if (unlikely (!result))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
-  //const_cast<ConfigurationType&> (configuration_in).concurrency = concurrency_e;
 
   return result;
 }
@@ -323,68 +312,31 @@ template <ACE_SYNCH_DECL,
           typename ConnectionManagerType,
           typename UserDataType>
 void
-Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             ConfigurationType,
-                             StreamControlType,
-                             StreamNotificationType,
-                             StreamStateType,
-                             StatisticContainerType,
-                             SessionManagerType,
-                             TimerManagerType,
-                             AddressType,
-                             ConnectionManagerType,
-                             UserDataType>::handleDataMessage (DataMessageType*& message_inout,
-                                                               bool& passMessageDownstream_out)
+Stream_Module_Net_InputWriter_T<ACE_SYNCH_USE,
+                                ControlMessageType,
+                                DataMessageType,
+                                SessionMessageType,
+                                ConfigurationType,
+                                StreamControlType,
+                                StreamNotificationType,
+                                StreamStateType,
+                                StatisticContainerType,
+                                SessionManagerType,
+                                TimerManagerType,
+                                AddressType,
+                                ConnectionManagerType,
+                                UserDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                  bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_InputWriter_T::handleDataMessage"));
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // *TODO*: remove this test(, it slows things down unnecessarily)
-  if (inbound_)
-  { ACE_ASSERT (inherited::sessionData_);
-    const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-      inherited::sessionData_->getR ();
-    message_inout->set (session_data_r.sessionId); // session id
-
-    return;
-  } // end IF
-
-  // *IMPORTANT NOTE*: this module dispatches outbound data: route message to
-  //                   the siblings' queue; it is forwarded to the
-  //                   (sub-)streams' head and notify()d to the (network-) event
-  //                   dispatch from there
-  // *TODO*: this works as long as there is only a net_target module; if there
-  //         is also a net_source module on the same stream, things get mixed up
-  int result = -1;
-
-  // sanity check(s)
-  ACE_ASSERT (message_inout);
-
-  ACE_Message_Block* message_block_p = message_inout->duplicate ();
-  if (unlikely (!message_block_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to DataMessageType::duplicate(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
-    return;
-  } // end IF
-
-  result = inherited::reply (message_block_p, NULL);
-  if (unlikely (result == -1))
-  {
-    int error = ACE_OS::last_error ();
-    if (error != ESHUTDOWN) // 108,10058: connection/stream has/is shut/ting
-                            //            down
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Task::reply(): \"%m\", returning\n"),
-                  inherited::mod_->name ()));
-    message_block_p->release (); message_block_p = NULL;
-    return;
-  } // end IF
+  ACE_ASSERT (inherited::sessionData_);
+  const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    inherited::sessionData_->getR ();
+  message_inout->set (session_data_r.sessionId); // session id
 }
 
 template <ACE_SYNCH_DECL,
@@ -402,26 +354,29 @@ template <ACE_SYNCH_DECL,
           typename ConnectionManagerType,
           typename UserDataType>
 void
-Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             ConfigurationType,
-                             StreamControlType,
-                             StreamNotificationType,
-                             StreamStateType,
-                             StatisticContainerType,
-                             SessionManagerType,
-                             TimerManagerType,
-                             AddressType,
-                             ConnectionManagerType,
-                             UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                  bool& passMessageDownstream_out)
+Stream_Module_Net_InputWriter_T<ACE_SYNCH_USE,
+                                ControlMessageType,
+                                DataMessageType,
+                                SessionMessageType,
+                                ConfigurationType,
+                                StreamControlType,
+                                StreamNotificationType,
+                                StreamStateType,
+                                StatisticContainerType,
+                                SessionManagerType,
+                                TimerManagerType,
+                                AddressType,
+                                ConnectionManagerType,
+                                UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                     bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_InputWriter_T::handleSessionMessage"));
 
   int result = -1;
   Stream_Task_t* task_p = NULL;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -434,12 +389,9 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
       //                   - the session is being aborted by the user
       //                   - the session is being aborted by some module
 
-      if (!inbound_)
-        goto continue_;
-
       // *NOTE*: deactivate the stream head queue so it does not accept new
       //         data ?
-      if (outboundNotificationHandle_)
+      if (inherited::configuration_->outboundNotificationHandle)
       {
         task_p = inherited::mod_->reader ();
         ACE_ASSERT (task_p);
@@ -467,10 +419,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                       inherited::mod_->name ()));
       } // end IF
 
-continue_:
-      //inherited::change (STREAM_STATE_SESSION_STOPPING);
-
-      break;
+      goto end;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
@@ -488,9 +437,6 @@ continue_:
         // schedule regular statistic collection ?
         if (inherited::timerId_ != -1)
           goto continue_2;
-
-        // sanity check(s)
-        ACE_ASSERT (inherited::configuration_);
 
         itimer_manager_p =
             (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
@@ -523,9 +469,6 @@ continue_2:
       //            forwarded downstream, onto the connections' stream (2x).
       // *NOTE*: the connection handle has already been retrieved when the
       //         second message arrives (see stream_module_io_stream.inl:232)
-      if (!inbound_)
-        goto continue_3;
-
       goto continue_3;
 
 error:
@@ -537,30 +480,10 @@ continue_3:
       break;
     }
     case STREAM_SESSION_MESSAGE_LINK:
-    {
-      // is inbound ?
-      const typename inherited::TASK_BASE_T::ISTREAM_T* const istream_p =
-          inherited::getP ();
-      ACE_ASSERT (istream_p);
-      inbound_ = !istream_p->upstream (false);
-
-      break;
-    }
     case STREAM_SESSION_MESSAGE_UNLINK:
-    {
-      // still outbound ?
-      if (!inbound_ &&
-          !inherited::linked_)
-        inbound_ = true;
-
       break;
-    }
     case STREAM_SESSION_MESSAGE_CONNECT:
-    { 
-      if (!inbound_)
-        break; // don't bother
-
-      ACE_ASSERT (inherited::sessionData_);
+    { ACE_ASSERT (inherited::sessionData_);
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       ConnectionManagerType* connection_manager_p =
@@ -613,9 +536,6 @@ continue_3:
     }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
     {
-      if (!inbound_)
-        break; // don't bother
-
       ACE_ASSERT (inherited::sessionData_);
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
@@ -630,6 +550,7 @@ continue_3:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       // *IMPORTANT NOTE*: control reaches this point because either:
       //                   - processing is complete ('outbound' scenario)
       //                   - the connection has been closed and the processing
@@ -646,9 +567,6 @@ continue_3:
 
       if (likely (inherited::timerId_ != -1))
       {
-        // sanity check(s)
-        ACE_ASSERT (inherited::configuration_);
-
         typename TimerManagerType::INTERFACE_T* itimer_manager_p =
             (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
                                                      : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
@@ -664,16 +582,12 @@ continue_3:
         inherited::timerId_ = -1;
       } // end IF
 
-      if (!inbound_)
-        goto continue_4;
-
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
         itask_p->stop (false,  // wait for completion ?
                        false); // high priority ?
       } // end IF
 
-continue_4:
       break;
     }
     default:
@@ -696,22 +610,22 @@ template <ACE_SYNCH_DECL,
           typename ConnectionManagerType,
           typename UserDataType>
 bool
-Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             ConfigurationType,
-                             StreamControlType,
-                             StreamNotificationType,
-                             StreamStateType,
-                             StatisticContainerType,
-                             SessionManagerType,
-                             TimerManagerType,
-                             AddressType,
-                             ConnectionManagerType,
-                             UserDataType>::collect (StatisticContainerType& data_out)
+Stream_Module_Net_InputWriter_T<ACE_SYNCH_USE,
+                                ControlMessageType,
+                                DataMessageType,
+                                SessionMessageType,
+                                ConfigurationType,
+                                StreamControlType,
+                                StreamNotificationType,
+                                StreamStateType,
+                                StatisticContainerType,
+                                SessionManagerType,
+                                TimerManagerType,
+                                AddressType,
+                                ConnectionManagerType,
+                                UserDataType>::collect (StatisticContainerType& data_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::collect"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_InputWriter_T::collect"));
 
   // sanity check(s)
   ACE_ASSERT (inherited::isInitialized_);

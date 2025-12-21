@@ -109,7 +109,7 @@ class Test_I_Target_TCPStream
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_TCPStream& operator= (const Test_I_Target_TCPStream&))
 
   // modules
-  Test_I_Target_TCP_IO_Module          netIO_;
+  Test_I_Target_TCP_Input_Module       netInput_;
   //Test_I_Target_StatisticReport_Module statisticReport_;
   Test_I_FileWriter_Module             fileWriter_;
 };
@@ -182,7 +182,7 @@ class Test_I_Target_UDPStream
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_UDPStream& operator= (const Test_I_Target_UDPStream&))
 
   // modules
-  Test_I_Target_UDP_IO_Module          netIO_;
+  Test_I_Target_UDP_Input_Module       netInput_;
   //Test_I_Target_StatisticReport_Module statisticReport_;
   Test_I_FileWriter_Module             fileWriter_;
 };

@@ -560,7 +560,6 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.connectionConfigurations =
     &CBData_in.configuration->connectionConfigurations;
 //  modulehandler_configuration.connectionManager = connection_manager_p;
-  modulehandler_configuration.inbound = true;
   modulehandler_configuration.printProgressDot =
       UIDefinitionFile_in.empty ();
   modulehandler_configuration.statisticReportingInterval =

@@ -449,12 +449,12 @@ template <ACE_SYNCH_DECL,
   //         reader B and writer B to reader A. Prefer 'concat' method: writer
   //         A to writer B(, reader A to reader B; see explanation)
   // *TODO*: the 'outbound' pipe of readers is not currently implemented, as it
-  //         creates problems in conjunction with libACENetwork.
-  //         libACENetwork connections use the connection streams'
-  //         ACE_Stream_Head reader queue/notification to buffer outbound data
+  //         creates problems in conjunction with ACENetwork.
+  //         ACENetwork connections use the connection streams' ACE_Stream_Head
+  //         reader queue/notification to buffer outbound data
   //         while the reactor/connection thread dispatches the corresponding
   //         events.
-  //         libACEStream modules encapsulating a network connection may be
+  //         ACEStream modules encapsulating a network connection may be
   //         tempted to link the data processing stream to the connections'
   //         stream. For 'inbound' (i.e. reader-side oriented) modules, the
   //         connection stream is prepended, for 'outbound' modules appended.
