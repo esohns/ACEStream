@@ -7993,7 +7993,7 @@ drawingarea_video_resize_end (gpointer userData_in)
         directshow_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfigurations.end ());
       directshow_stream_iterator_2 =
-        (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+        (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2"));
       ACE_ASSERT (directshow_stream_iterator_2 != (*directshow_stream_iterator).second.end ());
 
       Common_Image_Resolution_t resolution_s;

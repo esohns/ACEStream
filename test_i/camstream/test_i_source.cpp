@@ -567,7 +567,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   outputFormat_inout = *media_type_p;
   delete (media_type_p); media_type_p = NULL;
 
-  // *NOTE*: the default output format is RGB32
+  // *NOTE*: the default output format is RGB32 640x480
   ACE_ASSERT (InlineIsEqualGUID (outputFormat_inout.majortype, MEDIATYPE_Video));
   outputFormat_inout.subtype = MEDIASUBTYPE_RGB32;
   outputFormat_inout.bFixedSizeSamples = TRUE;
@@ -584,6 +584,10 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     ACE_ASSERT (SUCCEEDED (result_2));
     ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
     ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
+    video_info_header_p->bmiHeader.biWidth =
+      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
+    video_info_header_p->bmiHeader.biHeight =
+      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
     ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
     video_info_header_p->bmiHeader.biBitCount = 32;
     video_info_header_p->bmiHeader.biCompression = BI_RGB;
@@ -981,7 +985,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_modulehandler_configuration_5 =
         directshow_modulehandler_configuration;
 
-      directshow_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+      directshow_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2"),
                                                               std::make_pair (&module_configuration,
                                                                               &directshow_modulehandler_configuration_4)));
 

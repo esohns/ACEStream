@@ -104,6 +104,13 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   module_p = NULL;
 
   ACE_NEW_RETURN (module_p,
+                  Test_I_Source_DirectShow_Resize_Module (this,
+                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING)),
+                  false);
+  layout_out->append (module_p, NULL, 0);
+  module_p = NULL;
+
+  ACE_NEW_RETURN (module_p,
                   Test_I_Source_DirectShow_Distributor_Module (this,
                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
                   false);
@@ -126,8 +133,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   module_p = NULL;
 
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_DirectShow_Resize_Module (this,
-                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING)),
+                  Test_I_Source_DirectShow_Resize_Module (this, ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2")),
                   false);
   layout_out->append (module_p, branch_p, index_i);
   module_p = NULL;
