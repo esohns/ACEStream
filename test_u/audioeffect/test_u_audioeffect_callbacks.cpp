@@ -4378,6 +4378,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator_2; // file writer
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator_3; // renderer
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator_3; // renderer
+  struct _GUID GUID_s = GUID_NULL;
+  struct _GUID GUID_2 = CLSID_ACEStream_MediaFramework_WASAPI_AudioSession;
+  struct _GUID effect_id = GUID_NULL;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -5084,8 +5087,6 @@ continue_:
   ACE_ASSERT (scale_p);
   // *TODO*: select output device
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = GUID_NULL;
-  struct _GUID GUID_2 = CLSID_ACEStream_MediaFramework_WASAPI_AudioSession;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -5835,7 +5836,6 @@ continue_3:
   gtk_combo_box_set_active (combo_box_p, index_i);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID effect_id = GUID_NULL;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -10932,6 +10932,7 @@ combobox_device_changed_cb (GtkWidget* widget_in,
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
   bool use_framework_source_b = false;
+  struct _GUID GUID_s = GUID_NULL;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -11423,7 +11424,7 @@ continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // retrieve volume control handle
   // step1: retrieve DirectSound device GUID from wave device id
-  struct _GUID GUID_s =
+  GUID_s =
     Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (card_id_i,
                                                                             true); // capture
   ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));

@@ -266,10 +266,10 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
 //typedef Test_I_HTTPGet_ModuleHandlerConfigurations_t::const_iterator Test_I_HTTPGet_ModuleHandlerConfigurationsConstIterator_t;
 
 struct Test_I_HTTPGet_StreamConfiguration
- : Stream_Configuration
+ : Stream_Net_StreamConfiguration
 {
   Test_I_HTTPGet_StreamConfiguration ()
-   : Stream_Configuration ()
+   : Stream_Net_StreamConfiguration ()
   {}
 };
 

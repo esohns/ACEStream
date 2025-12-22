@@ -453,28 +453,28 @@ typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_SignalHandlerConfigur
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_StreamConfiguration
- : Stream_Configuration
+ : Stream_Net_StreamConfiguration
 {
   Test_I_Target_DirectShow_StreamConfiguration ()
-   : Stream_Configuration ()
+   : Stream_Net_StreamConfiguration ()
    , graphBuilder (NULL)
   {}
 
   IGraphBuilder* graphBuilder;
 };
 struct Test_I_Target_MediaFoundation_StreamConfiguration
- : Stream_Configuration
+ : Stream_Net_StreamConfiguration
 {
   Test_I_Target_MediaFoundation_StreamConfiguration ()
-   : Stream_Configuration ()
+   : Stream_Net_StreamConfiguration ()
   {}
 };
 #else
 struct Test_I_Target_StreamConfiguration
- : Stream_Configuration
+ : Stream_Net_StreamConfiguration
 {
   Test_I_Target_StreamConfiguration ()
-   : Stream_Configuration ()
+   : Stream_Net_StreamConfiguration ()
    , format ()
 #if defined (GTK_USE)
    , window (NULL)

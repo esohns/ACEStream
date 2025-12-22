@@ -265,7 +265,6 @@ struct Stream_Configuration
    : allocatorConfiguration (NULL)
    , cloneModule (false) // *NOTE*: cloneModule ==> delete module
    , dispatchConfiguration (NULL)
-   , finishOnDisconnect (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
@@ -285,7 +284,6 @@ struct Stream_Configuration
   struct Common_AllocatorConfiguration*     allocatorConfiguration;
   bool                                      cloneModule; // final-
   struct Common_EventDispatchConfiguration* dispatchConfiguration;
-  bool                                      finishOnDisconnect; // (network) i/o streams
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type           mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64

@@ -122,7 +122,7 @@ typedef Stream_SMTPSend_Subscribers_t::iterator Stream_SMTPSend_SubscribersItera
 
 struct Stream_SMTPSend_ModuleHandlerConfiguration
  : Test_I_ModuleHandlerConfiguration
- , SMTP_ModuleHandlerConfiguration
+ , virtual SMTP_ModuleHandlerConfiguration
 {
   Stream_SMTPSend_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()

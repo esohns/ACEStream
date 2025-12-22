@@ -44,9 +44,12 @@ struct Stream_Net_StreamConfiguration
 {
   Stream_Net_StreamConfiguration ()
    : Stream_Configuration ()
-  {
-    finishOnDisconnect = true;
-  }
+   , finishOnDisconnect (true)
+   , inbound (true)
+  {}
+
+  bool finishOnDisconnect;
+  bool inbound;
 };
 
 #endif

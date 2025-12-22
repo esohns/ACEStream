@@ -316,13 +316,19 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       // *TODO*: remove type inferences
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
         ConnectionManagerType::SINGLETON_T::instance ();
-      typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
+      typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p =
+        NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
       typename ConnectorType::CONFIGURATION_T* configuration_p;
       typename ConnectorType::USERDATA_T user_data_s;
       bool notify_connect = false;
       Net_ConnectionConfigurationsIterator_t iterator_2;
       typename inherited::TASK_BASE_T::STREAM_T* stream_2 = NULL;
+      Stream_Module_t* module_p = NULL;
+      Common_ISet_T<bool>* iset_p = NULL;
+      typename inherited::TASK_BASE_T* task_p = NULL;
+      typename ConnectorType::STREAM_T::CONFIGURATION_T*
+        stream_configuration_p = NULL;
       ACE_HANDLE handle_h = ACE_INVALID_HANDLE;
       typename ConnectorType::ADDRESS_T local_SAP, peer_SAP;
 
@@ -477,7 +483,7 @@ link:
       stream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
       stream_2 =
-          dynamic_cast<typename inherited::TASK_BASE_T::STREAM_T*> (const_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (inherited::getP ()));
+        dynamic_cast<typename inherited::TASK_BASE_T::STREAM_T*> (const_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (inherited::getP ()));
       ACE_ASSERT (stream_2);
       result = stream_p->link (stream_2);
       if (unlikely (result == -1))
@@ -490,6 +496,25 @@ link:
         goto error;
       } // end IF
       unlink_ = true;
+
+      // ************* head ******************
+      module_p = stream_2->head ();
+      ACE_ASSERT (module_p);
+      task_p =
+        static_cast<typename inherited::TASK_BASE_T*> (module_p->reader ());
+      stream_configuration_p =
+        &const_cast<typename ConnectorType::STREAM_T::CONFIGURATION_T&> (stream_p->getR_4 ());
+      ACE_ASSERT (stream_configuration_p->configuration_);
+      task_p->msg_queue_->notification_strategy (stream_configuration_p->configuration_->notificationStrategy);
+      iset_p = dynamic_cast<Common_ISet_T<bool>*> (module_p->reader ());
+      if (unlikely (!iset_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to dynamic_cast<Common_ISet_T<bool>*>(), aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+      iset_p->set (true); // enqueue incoming head reader data (!) messages
 
       goto continue_;
 

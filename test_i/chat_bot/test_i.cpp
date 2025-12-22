@@ -1050,7 +1050,7 @@ continue_2:
   if (!useMediaFoundationSource_in)
   {
     Test_I_MediaFoundation_Target* writer_p =
-      &const_cast<Test_I_MediaFoundation_Target&> (stream_in.getR_4 ());
+      &const_cast<Test_I_MediaFoundation_Target&> (stream_in.getR_5 ());
     if (!writer_p->initialize (configuration_in.mediaFoundationConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,

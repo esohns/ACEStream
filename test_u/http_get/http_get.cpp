@@ -608,8 +608,8 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.targetFileName = fileName_in;
   modulehandler_configuration.URL = URL_in;
   // ******************** (sub-)stream configuration data *********************
-  struct Stream_Configuration steam_configuration;
-  struct Stream_Configuration steam_configuration_2;
+  struct Stream_Net_StreamConfiguration steam_configuration;
+  struct Stream_Net_StreamConfiguration steam_configuration_2;
   steam_configuration.allocatorConfiguration = &allocator_configuration;
   steam_configuration.messageAllocator = &message_allocator;
   steam_configuration.module =
@@ -630,8 +630,7 @@ do_work (unsigned int bufferSize_in,
                                                              steam_configuration_2);
 
   if (bufferSize_in)
-    CBData_in.configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
-      bufferSize_in;
+    CBData_in.configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize = bufferSize_in;
 
   CBData_in.stream = istream_p;
 

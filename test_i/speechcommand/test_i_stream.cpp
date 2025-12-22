@@ -1276,7 +1276,7 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
   if (configuration_in.configuration_->capturer != STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION)
   {
     Test_I_MediaFoundation_Target* writer_p =
-      &const_cast<Test_I_MediaFoundation_Target&> (getR_4 ());
+      &const_cast<Test_I_MediaFoundation_Target&> (getR_5 ());
     if (!writer_p->initialize (*(*iterator).second.second->mediaFoundationConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1525,9 +1525,9 @@ error:
 }
 
 const Test_I_MediaFoundation_Target&
-Test_I_MediaFoundation_Stream::getR_4 () const
+Test_I_MediaFoundation_Stream::getR_5 () const
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::getR_4"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::getR_5"));
 
   Test_I_MediaFoundation_Target* writer_p =
     static_cast<Test_I_MediaFoundation_Target*> (const_cast<Test_I_MediaFoundation_Target_Module&> (mediaFoundationTarget_).writer ());
@@ -1537,9 +1537,9 @@ Test_I_MediaFoundation_Stream::getR_4 () const
 }
 
 const Test_I_MediaFoundation_Source&
-Test_I_MediaFoundation_Stream::getR_5 () const
+Test_I_MediaFoundation_Stream::getR_6 () const
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::getR_5"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::getR_6"));
 
   Test_I_MediaFoundation_Source* writer_p =
     static_cast<Test_I_MediaFoundation_Source*> (const_cast<Test_I_MediaFoundation_Source_Module&> (mediaFoundationSource_).writer ());
@@ -1549,9 +1549,9 @@ Test_I_MediaFoundation_Stream::getR_5 () const
 }
 
 const Test_I_Mic_Source_MediaFoundation&
-Test_I_MediaFoundation_Stream::getR_6 () const
+Test_I_MediaFoundation_Stream::getR_7 () const
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::getR_6"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::getR_7"));
 
   Test_I_Mic_Source_MediaFoundation* writer_p =
     static_cast<Test_I_Mic_Source_MediaFoundation*> (const_cast<Test_I_Mic_Source_MediaFoundation_Module&> (frameworkSource_).writer ());

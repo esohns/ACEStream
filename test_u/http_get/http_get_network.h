@@ -75,7 +75,7 @@ struct HTTPGet_StreamState;
 //extern const char stream_name_string_[];
 struct HTTPGet_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_Configuration,
+                               struct Stream_Net_StreamConfiguration,
                                struct HTTPGet_ModuleHandlerConfiguration> HTTPGet_StreamConfiguration_t;
 struct HTTPGet_Configuration;
 
@@ -112,7 +112,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
                                       struct HTTPGet_StreamState,
-                                      struct Stream_Configuration,
+                                      struct Stream_Net_StreamConfiguration,
                                       struct Stream_Statistic,
                                       Common_Timer_Manager_t,
                                       struct HTTPGet_ModuleHandlerConfiguration,

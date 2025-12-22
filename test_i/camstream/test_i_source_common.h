@@ -556,10 +556,10 @@ typedef Test_I_Source_SignalHandler_T<struct Test_I_Source_V4L_SignalHandlerConf
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_StreamConfiguration
- : Stream_Configuration
+ : Stream_Net_StreamConfiguration
 {
   Test_I_Source_DirectShow_StreamConfiguration ()
-   : Stream_Configuration ()
+   : Stream_Net_StreamConfiguration ()
    , format ()
    , graphLayout ()
   {
@@ -582,10 +582,10 @@ typedef Test_I_Source_DirectShow_StreamConfigurations_t::iterator Test_I_Source_
 
 struct Test_I_MediaFoundationConfiguration;
 struct Test_I_Source_MediaFoundation_StreamConfiguration
- : Stream_Configuration
+ : Stream_Net_StreamConfiguration
 {
   Test_I_Source_MediaFoundation_StreamConfiguration ()
-   : Stream_Configuration ()
+   : Stream_Net_StreamConfiguration ()
    , format (NULL)
    , mediaFoundationConfiguration (NULL)
   {}

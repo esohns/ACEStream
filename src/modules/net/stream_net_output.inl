@@ -160,28 +160,31 @@ continue_:
       ACE_FALLTHROUGH;
     }
     case STREAM_CONTROL_MESSAGE_ABORT:
-    { ACE_ASSERT (connection_p);
-      try {
-        connection_p->abort ();
-      } catch (...) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in Net_IConnection_T::abort() (id was: %u), continuing\n"),
+    {
+      if (connection_p)
+      {
+        try {
+          connection_p->abort ();
+        } catch (...) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: caught exception in Net_IConnection_T::abort() (id was: %u), continuing\n"),
+                      inherited::mod_->name (),
+                      connection_p->id ()));
+          return;
+        }
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborted connection (id was: %u)\n"),
                     inherited::mod_->name (),
                     connection_p->id ()));
-        return;
-      }
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: aborted connection (id was: %u)\n"),
-                  inherited::mod_->name (),
-                  connection_p->id ()));
-
+      } // end IF
       break;
     }
     default:
       break;
   } // end SWITCH
 
-  connection_p->decrease (); connection_p = NULL;
+  if (connection_p)
+    connection_p->decrease ();
 }
 
 //////////////////////////////////////////

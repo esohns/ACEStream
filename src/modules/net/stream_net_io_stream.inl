@@ -62,7 +62,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               ConnectionManagerType,
                               UserDataType>::Stream_Module_Net_IO_Stream_T ()
  : inherited ()
- , finishOnDisconnect_ (false)
  , handle_ (ACE_INVALID_HANDLE)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::Stream_Module_Net_IO_Stream_T"));
@@ -163,14 +162,21 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::load"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->configuration_);
   ACE_ASSERT (layout_in);
 
   typename inherited::MODULE_T* module_p = NULL;
-
-  ACE_NEW_RETURN (module_p,
-                  INPUT_MODULE_T (this,
-                                  ACE_TEXT_ALWAYS_CHAR (MODULE_NET_INPUT_DEFAULT_NAME_STRING)),
-                  false);
+  if (inherited::configuration_->configuration_->inbound)
+    ACE_NEW_RETURN (module_p,
+                    INPUT_MODULE_T (this,
+                                    ACE_TEXT_ALWAYS_CHAR (MODULE_NET_INPUT_DEFAULT_NAME_STRING)),
+                    false);
+  else
+    ACE_NEW_RETURN (module_p,
+                    OUTPUT_MODULE_T (this,
+                                     ACE_TEXT_ALWAYS_CHAR (MODULE_NET_OUTPUT_DEFAULT_NAME_STRING)),
+                    false);
   if (unlikely (!module_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -290,18 +296,14 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
 
+  // sanity check(s)
+  ACE_ASSERT (!isRunning ());
+  ACE_ASSERT (configuration_in.configuration_);
+
   bool result_b = false;
   bool setup_pipeline_b = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline_b = false;
-  //typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
-  //  const_cast<inherited::CONFIGURATION_T&> (configuration_in.find (ACE_TEXT_ALWAYS_CHAR ("")));
-//  typename inherited::MODULE_T* module_p = NULL;
-//  WRITER_T* IOWriter_impl_p = NULL;
   Common_ISet_T<bool>* iset_p = NULL;
-
-  // sanity check(s)
-  ACE_ASSERT (!inherited::isRunning ());
-  //ACE_ASSERT (iterator != configuration_in.end ());
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -330,30 +332,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   } // end IF
   iset_p->set (true); // enqueue incoming head reader data (!) messages
 
-  // ************** IO *******************
-  //module_p =
-  //  const_cast<typename inherited::MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING),
-  //                                             true,    // sanitize module names ?
-  //                                             false)); // recurse upstream ?
-  //if (!module_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-  //              ACE_TEXT (inherited::name_.c_str ()),
-  //              ACE_TEXT (MODULE_NET_IO_DEFAULT_NAME_STRING)));
-  //  goto error;
-  //} // end IF
-  //IOWriter_impl_p = dynamic_cast<WRITER_T*> (module_p->writer ());
-  //if (unlikely (!IOWriter_impl_p))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s/%s writer: dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n"),
-  //              ACE_TEXT (inherited::name_.c_str ()),
-  //              module_p->name ()));
-  //  goto error;
-  //} // end IF
-  //IOWriter_impl_p->initialize ();
-
   if (configuration_in.configuration_->setupPipeline)
     if (unlikely (!inherited::setup (configuration_in.configuration_->notificationStrategy)))
     {
@@ -375,6 +353,56 @@ error:
       setup_pipeline_b;
 
   return result_b;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename HandlerConfigurationType,
+          typename SessionManagerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+void
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              TimerManagerType,
+                              HandlerConfigurationType,
+                              SessionManagerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::start ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::start"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->configuration_);
+
+  if (!inherited::configuration_->configuration_->inbound)
+    return; // nothing to do
+
+  inherited::start ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -462,6 +490,57 @@ template <ACE_SYNCH_DECL,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
+bool
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              TimerManagerType,
+                              HandlerConfigurationType,
+                              SessionManagerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::isRunning () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::isRunning"));
+
+  // sanity check(s)
+  if (!inherited::configuration_)
+    return false;
+  ACE_ASSERT (inherited::configuration_->configuration_);
+
+  if (!inherited::configuration_->configuration_->inbound)
+    return false; // nothing to do
+
+  return inherited::isRunning ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename HandlerConfigurationType,
+          typename SessionManagerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
 void
 Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -500,13 +579,442 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   if (likely (handle_ != ACE_INVALID_HANDLE))
     connection_p = connection_manager_p->get (handle_);
 
-  inherited::stop (false,              // wait ?
-                   recurseUpstream_in,
-                   false);             // high priority ?
+  stop (false,              // wait ?
+        recurseUpstream_in,
+        false);             // high priority ?
 
   // clean up
   if (likely (connection_p))
     connection_p->decrease ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename HandlerConfigurationType,
+          typename SessionManagerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+unsigned int
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              TimerManagerType,
+                              HandlerConfigurationType,
+                              SessionManagerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::flush (bool flushInbound_in,
+                                                    bool flushSessionMessages_in,
+                                                    bool flushUpstream_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::flush"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->configuration_);
+
+  if (!inherited::configuration_->configuration_->inbound)
+    return 0; // nothing to do
+
+  return inherited::flush (flushInbound_in,
+                           flushSessionMessages_in,
+                           flushUpstream_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename HandlerConfigurationType,
+          typename SessionManagerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+void
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              TimerManagerType,
+                              HandlerConfigurationType,
+                              SessionManagerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::idle (bool wait_in,
+                                                   bool recurseUpstream_in) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::idle"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->configuration_);
+
+  if (!inherited::configuration_->configuration_->inbound)
+    return; // nothing to do
+
+  inherited::idle (wait_in,
+                   recurseUpstream_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename HandlerConfigurationType,
+          typename SessionManagerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+void
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              TimerManagerType,
+                              HandlerConfigurationType,
+                              SessionManagerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::wait (bool waitForThreads_in,
+                                                   bool waitForUpstream_in,
+                                                   bool waitForDownstream_in) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::wait"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->configuration_);
+
+  if (!inherited::configuration_->configuration_->inbound)
+    return; // nothing to do
+
+  inherited::wait (waitForThreads_in,
+                   waitForUpstream_in,
+                   waitForDownstream_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename HandlerConfigurationType,
+          typename SessionManagerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+void
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              TimerManagerType,
+                              HandlerConfigurationType,
+                              SessionManagerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::pause ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::pause"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->configuration_);
+
+  if (!inherited::configuration_->configuration_->inbound)
+    return; // nothing to do
+
+  inherited::pause ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename HandlerConfigurationType,
+          typename SessionManagerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+void
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              TimerManagerType,
+                              HandlerConfigurationType,
+                              SessionManagerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::rewind ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::rewind"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->configuration_);
+
+  if (!inherited::configuration_->configuration_->inbound)
+    return; // nothing to do
+
+  inherited::rewind ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename HandlerConfigurationType,
+          typename SessionManagerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+void
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              TimerManagerType,
+                              HandlerConfigurationType,
+                              SessionManagerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::control (ControlType type_in,
+                                                      bool recurseUpstream_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::control"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->configuration_);
+
+  if (!inherited::configuration_->configuration_->inbound)
+    return; // nothing to do
+
+  inherited::control (type_in,
+                      recurseUpstream_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename HandlerConfigurationType,
+          typename SessionManagerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+void
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              TimerManagerType,
+                              HandlerConfigurationType,
+                              SessionManagerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::notify (NotificationType notification_in,
+                                                     bool recurseUpstream_in,
+                                                     bool expedite_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::notify"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->configuration_);
+
+  if (!inherited::configuration_->configuration_->inbound)
+    return; // nothing to do
+
+  inherited::notify (notification_in,
+                     recurseUpstream_in,
+                     expedite_in);
+
+  // finished ?
+  switch (notification_in)
+  {
+    case STREAM_SESSION_MESSAGE_DISCONNECT:
+    {
+      if (inherited::configuration_->configuration_->finishOnDisconnect)
+        finished (false); // recurse upstream ?
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename HandlerConfigurationType,
+          typename SessionManagerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+StatusType
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              TimerManagerType,
+                              HandlerConfigurationType,
+                              SessionManagerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::status () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::status"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->configuration_);
+
+  if (!inherited::configuration_->configuration_->inbound)
+    return static_cast<StatusType> (-1);
+
+  return inherited::status ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -768,10 +1276,12 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   } // end IF
   else
   { // --> inbound
+    ACE_ASSERT (inherited::configuration_);
+    ACE_ASSERT (inherited::configuration_->configuration_);
     // make sure 'this' auto-finished()-es on disconnect
-    if (!finishOnDisconnect_)
+    if (!inherited::configuration_->configuration_->finishOnDisconnect)
     {
-      finishOnDisconnect_ = true;
+      inherited::configuration_->configuration_->finishOnDisconnect = true;
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("%s: reset finish-on-disconnect\n"),
                   ACE_TEXT (inherited::name_.c_str ())));
@@ -811,64 +1321,4 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 continue_:
     ;
   } // end IF
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          const char* StreamName,
-          typename ControlType,
-          typename NotificationType,
-          typename StatusType,
-          typename StateType,
-          typename ConfigurationType,
-          typename StatisticContainerType,
-          typename TimerManagerType,
-          typename HandlerConfigurationType,
-          typename SessionManagerType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename AddressType,
-          typename ConnectionManagerType,
-          typename UserDataType>
-void
-Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              StreamName,
-                              ControlType,
-                              NotificationType,
-                              StatusType,
-                              StateType,
-                              ConfigurationType,
-                              StatisticContainerType,
-                              TimerManagerType,
-                              HandlerConfigurationType,
-                              SessionManagerType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              AddressType,
-                              ConnectionManagerType,
-                              UserDataType>::notify (NotificationType notification_in,
-                                                     bool recurseUpstream_in,
-                                                     bool expedite_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::notify"));
-
-  inherited::notify (notification_in,
-                     recurseUpstream_in,
-                     expedite_in);
-
-  // finished ?
-  switch (notification_in)
-  {
-    case STREAM_SESSION_MESSAGE_DISCONNECT:
-    {
-      if (finishOnDisconnect_)
-        finished (false); // recurse upstream ?
-      break;
-    }
-    default:
-      break;
-  } // end SWITCH
 }

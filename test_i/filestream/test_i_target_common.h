@@ -168,10 +168,10 @@ struct Test_I_Target_ModuleHandlerConfiguration
 };
 
 struct Test_I_Target_StreamConfiguration
- : Stream_Configuration
+ : Stream_Net_StreamConfiguration
 {
   Test_I_Target_StreamConfiguration ()
-   : Stream_Configuration ()
+   : Stream_Net_StreamConfiguration ()
   {}
 };
 

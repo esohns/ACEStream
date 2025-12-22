@@ -33,8 +33,8 @@
 #include "stream_inotify.h"
 #include "stream_streammodule_base.h"
 
-//#include "stream_net_io.h"
 #include "stream_net_input.h"
+#include "stream_net_output.h"
 
 // forward declarations
 template <ACE_SYNCH_DECL,
@@ -136,16 +136,30 @@ class Stream_Module_Net_IO_Stream_T
                      bool&);          // return value: delete modules ?
 
   // override (part of) Stream_IStreamControl_T
-  virtual void stop (bool = true,   // wait for completion ?
+  virtual void start ();
+  virtual void stop (bool = true,      // wait for completion ?
                      bool = true,   // recurse upstream (if any) ?
                      bool = false); // high priority ?
+  virtual bool isRunning () const;
   virtual void finished (bool = true); // recurse upstream (if any) ?
-  using inherited::flush;
-
+  virtual unsigned int flush (bool = true,   // flush inbound data ?
+                              bool = false,  // flush session messages ?
+                              bool = false); // flush upstream (if any) ?
+  virtual void idle (bool = true,            // wait forever ?
+                     bool = true) const;     // recurse upstream (if any) ?
+  virtual void wait (bool = true,            // wait for any worker thread(s) ?
+                     bool = false,           // wait for upstream (if any) ?
+                     bool = false) const;    // wait for downstream (if any) ?
+  virtual void pause ();
+  virtual void rewind ();
+  virtual void control (ControlType,   // control type
+                        bool = false); // recurse upstream (if any) ?
   // *NOTE*: the default implementation forwards calls to the head module
   virtual void notify (NotificationType, // notification type
                        bool = false,     // recurse upstream (if any) ?
                        bool = false);    // expedite ?
+  virtual StatusType status () const;
+
   //inline virtual const SessionDataContainerType& getR_2 () const { ACE_ASSERT (inherited::sessionData_); return *inherited::sessionData_; }
 
   //// implement Stream_IMessageQueue
@@ -181,7 +195,7 @@ class Stream_Module_Net_IO_Stream_T
                                           TimerManagerType,
                                           AddressType,
                                           ConnectionManagerType,
-                                          UserDataType> READER_T;
+                                          UserDataType> I_READER_T;
   typedef Stream_Module_Net_InputWriter_T<ACE_SYNCH_USE,
                                           ControlMessageType,
                                           DataMessageType,
@@ -195,7 +209,7 @@ class Stream_Module_Net_IO_Stream_T
                                           TimerManagerType,
                                           AddressType,
                                           ConnectionManagerType,
-                                          UserDataType> WRITER_T;
+                                          UserDataType> I_WRITER_T;
   typedef Stream_StreamModule_T<ACE_SYNCH_USE,                                     // task synch type
                                 TimePolicyType,                                    // time policy
                                 typename SessionMessageType::DATA_T::DATA_T,       // session data type
@@ -204,11 +218,40 @@ class Stream_Module_Net_IO_Stream_T
                                 HandlerConfigurationType,                          // module handler configuration type
                                 libacestream_default_net_input_module_name_string, // name
                                 INOTIFY_T,                                         // stream notification interface type
-                                READER_T,                                          // reader type
-                                WRITER_T> INPUT_MODULE_T;                          // writer type
+                                I_READER_T,                                        // reader type
+                                I_WRITER_T> INPUT_MODULE_T;                        // writer type
 
-  // *NOTE*: finish session on disconnect notification ?
-  bool        finishOnDisconnect_;
+  typedef Stream_Module_Net_OutputReader_T<ACE_SYNCH_USE,
+                                           TimePolicyType,
+                                           HandlerConfigurationType,
+                                           ControlMessageType,
+                                           DataMessageType,
+                                           SessionMessageType,
+                                           ControlType,
+                                           NotificationType,
+                                           ConnectionManagerType,
+                                           UserDataType> O_READER_T;
+  typedef Stream_Module_Net_OutputWriter_T<ACE_SYNCH_USE,
+                                           TimePolicyType,
+                                           HandlerConfigurationType,
+                                           ControlMessageType,
+                                           DataMessageType,
+                                           SessionMessageType,
+                                           ControlType,
+                                           NotificationType,
+                                           ConnectionManagerType,
+                                           UserDataType> O_WRITER_T;
+  typedef Stream_StreamModule_T<ACE_SYNCH_USE,                                      // task synch type
+                                TimePolicyType,                                     // time policy
+                                typename SessionMessageType::DATA_T::DATA_T,        // session data type
+                                enum Stream_SessionMessageType,                     // session event type
+                                struct Stream_ModuleConfiguration,                  // module configuration type
+                                HandlerConfigurationType,                           // module handler configuration type
+                                libacestream_default_net_output_module_name_string, // name
+                                INOTIFY_T,                                          // stream notification interface type
+                                O_READER_T,                                         // reader type
+                                O_WRITER_T> OUTPUT_MODULE_T;                        // writer type
+
   ACE_HANDLE  handle_; // socket-
 
  private:

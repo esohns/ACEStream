@@ -191,7 +191,14 @@ endif (FFMPEG_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC ${PKG_V4L2_LIBRARIES})
 elseif (WIN32)
-# set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+ if (MSVC)
+  target_compile_options (${EXECUTABLE_SOURCE} PUBLIC /bigobj)
+ else ()
+  target_compile_options (${EXECUTABLE_SOURCE} PUBLIC -Wa,-mbig-obj)
+ endif (MSVC)
+ # *NOTE*: DirectShow uses 'DEBUG'
+# add_definitions (-DDEBUG) # activate DirectShow debug logging
+# add_compile_options ($<$<CONFIG:Debug>:-DDEBUG>)
 
  target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC evr.lib)
  target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC mfplat.lib)

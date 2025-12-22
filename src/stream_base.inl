@@ -576,9 +576,9 @@ Stream_Base_T<ACE_SYNCH_USE,
     // *NOTE*: the head module writer task needs access to the stream state
     ISET_T* iset_p = dynamic_cast<ISET_T*> ((*iterator)->writer ());
     if (unlikely (!iset_p))
-    {
+    { // *NOTE*: outbound network stream ?
       ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: head module \"%s\" does not inherit Common_ISetP_T<StateType> --> check implementation, continuing\n"),
+                  ACE_TEXT ("%s: head module \"%s\" does not inherit Common_ISetP_T<StateType>, continuing\n"),
                   ACE_TEXT (name_.c_str ()),
                   (*iterator)->name ()));
       goto continue_;

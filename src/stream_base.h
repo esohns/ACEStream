@@ -125,6 +125,9 @@ template <ACE_SYNCH_DECL,
  , public Common_IGetR_3_T<Stream_MessageQueue_T<ACE_SYNCH_USE,
                                                  TimePolicyType,
                                                  SessionMessageType> >
+ , public Common_IGetR_4_T<Stream_Configuration_T<//StreamName,
+                                                  ConfigurationType,
+                                                  HandlerConfigurationType> >
 {
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> inherited;
@@ -244,7 +247,6 @@ template <ACE_SYNCH_DECL,
                      bool = false) const; // wait for downstream (if any) ?
   virtual void pause ();
   virtual void rewind ();
-  //virtual void idle (bool = false) const; // wait for upstream (if any) ?
   virtual void control (ControlType,   // control type
                         bool = false); // recurse upstream (if any) ?
   // *NOTE*: the default implementation forwards calls to the head module
@@ -307,6 +309,7 @@ template <ACE_SYNCH_DECL,
   inline virtual const Stream_MessageQueue_T<ACE_SYNCH_USE,
                                              TimePolicyType,
                                              SessionMessageType>& getR_3 () const { return messageQueue_; }
+  inline virtual const CONFIGURATION_T& getR_4 () const { ACE_ASSERT (configuration_); return *configuration_; }
 
   // implement Common_IInitialize_T
   virtual bool initialize (const CONFIGURATION_T&);

@@ -2807,6 +2807,7 @@ combobox_target_changed_cb (GtkWidget* widget_in,
   std::string renderer_modulename_string;
   enum Stream_Device_Renderer renderer_e = STREAM_DEVICE_RENDERER_INVALID;
   HRESULT result = E_FAIL;
+  struct _GUID GUID_s = GUID_NULL;
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
 #else
@@ -2887,7 +2888,7 @@ combobox_target_changed_cb (GtkWidget* widget_in,
         dynamic_cast<Test_I_MediaFoundation_Stream*> (mediafoundation_ui_cb_data_p->stream);
       ACE_ASSERT (stream_2);
       Test_I_MediaFoundation_Target* target_p =
-        &const_cast<Test_I_MediaFoundation_Target&> (stream_2->getR_4 ());
+        &const_cast<Test_I_MediaFoundation_Target&> (stream_2->getR_5 ());
       if (!target_p->initialize (mediafoundation_ui_cb_data_p->configuration->mediaFoundationConfiguration))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -3136,7 +3137,7 @@ combobox_target_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // retrieve volume control handle
   // step1: retrieve DirectSound device GUID from wave device id
-  struct _GUID GUID_s = Common_OS_Tools::StringToGUID (device_identifier_string);
+  GUID_s = Common_OS_Tools::StringToGUID (device_identifier_string);
   ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
   IAudioEndpointVolume* i_audio_endpoint_volume_p =
     Stream_MediaFramework_DirectSound_Tools::getMasterVolumeControl (GUID_s);

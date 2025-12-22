@@ -69,7 +69,7 @@ typedef Stream_DataBase_T<struct HTTPGet_MessageData> HTTPGet_MessageData_t;
 //extern const char stream_name_string_[];
 struct HTTPGet_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_Configuration,
+                               struct Stream_Net_StreamConfiguration,
                                struct HTTPGet_ModuleHandlerConfiguration> HTTPGet_StreamConfiguration_t;
 typedef Net_StreamConnectionConfiguration_T<HTTPGet_StreamConfiguration_t,
                                             NET_TRANSPORTLAYER_TCP> HTTPGet_ConnectionConfiguration_t;

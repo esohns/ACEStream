@@ -268,10 +268,10 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
 };
 
 struct Test_I_HTTPGet_StreamConfiguration
- : Stream_Configuration
+ : Stream_Net_StreamConfiguration
 {
   Test_I_HTTPGet_StreamConfiguration ()
-   : Stream_Configuration ()
+   : Stream_Net_StreamConfiguration ()
   {}
 };
 
