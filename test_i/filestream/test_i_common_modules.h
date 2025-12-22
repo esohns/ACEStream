@@ -229,36 +229,34 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Target_SessionData,                  // 
                           Test_I_Target_Module_UDP_Writer_t,                 // writer type
                           Test_I_Target_UDP_Input);                          // name
 
-//typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-//                                                      Common_TimePolicy_t,
-//                                                      struct Test_I_Target_ModuleHandlerConfiguration,
-//                                                      Stream_ControlMessage_t,
-//                                                      Test_I_Target_Message_t,
-//                                                      Test_I_Target_SessionMessage,
-//                                                      Stream_CommandType_t,
-//                                                      struct Stream_Statistic,
-//                                                      Common_Timer_Manager_t,
-//                                                      struct Test_I_Target_SessionData,
-//                                                      Test_I_Target_SessionData_t> Test_I_Target_Module_Statistic_ReaderTask_t;
-//typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-//                                                   Common_TimePolicy_t,
-//                                                   struct Test_I_Target_ModuleHandlerConfiguration,
-//                                                   Stream_ControlMessage_t,
-//                                                   Test_I_Target_Message_t,
-//                                                   Test_I_Target_SessionMessage,
-//                                                   Stream_CommandType_t,
-//                                                   struct Stream_Statistic,
-//                                                   Common_Timer_Manager_t,
-//                                                   struct Test_I_Target_SessionData,
-//                                                   Test_I_Target_SessionData_t> Test_I_Target_Module_Statistic_WriterTask_t;
-//DATASTREAM_MODULE_DUPLEX (struct Test_I_Target_SessionData,                   // session data type
-//                          enum Stream_SessionMessageType,                     // session event type
-//                          struct Test_I_Target_ModuleHandlerConfiguration,    // module handler configuration type
-//                          libacestream_default_stat_report_module_name_string,
-//                          Stream_INotify_t,                             // stream notification interface type
-//                          Test_I_Target_Module_Statistic_ReaderTask_t,        // reader type
-//                          Test_I_Target_Module_Statistic_WriterTask_t,        // writer type
-//                          Test_I_Target_StatisticReport);                     // name
+typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_Target_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_I_Target_Message_t,
+                                                      Test_I_Target_SessionMessage,
+                                                      Stream_CommandType_t,
+                                                      struct Stream_Statistic,
+                                                      Common_Timer_Manager_t,
+                                                      struct Stream_UserData> Test_I_Target_Module_Statistic_ReaderTask_t;
+typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_Target_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_I_Target_Message_t,
+                                                      Test_I_Target_SessionMessage,
+                                                      Stream_CommandType_t,
+                                                      struct Stream_Statistic,
+                                                      Common_Timer_Manager_t,
+                                                      struct Stream_UserData> Test_I_Target_Module_Statistic_WriterTask_t;
+DATASTREAM_MODULE_DUPLEX (struct Test_I_Target_SessionData,                   // session data type
+                          enum Stream_SessionMessageType,                     // session event type
+                          struct Test_I_Target_ModuleHandlerConfiguration,    // module handler configuration type
+                          libacestream_default_stat_report_module_name_string,
+                          Stream_INotify_t,                             // stream notification interface type
+                          Test_I_Target_Module_Statistic_ReaderTask_t,        // reader type
+                          Test_I_Target_Module_Statistic_WriterTask_t,        // writer type
+                          Test_I_Target_StatisticReport);                     // name
 
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
@@ -288,19 +286,19 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_SessionData,                /
                               Stream_INotify_t,                          // stream notification interface type
                               Test_I_Stream_Source_EventHandler);              // writer type
 
-typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
-                                            struct Test_I_Target_ModuleHandlerConfiguration,
-                                            Stream_ControlMessage_t,
-                                            Test_I_Target_Message_t,
-                                            Test_I_Target_SessionMessage,
-                                            struct Test_I_Target_SessionData,
-                                            Test_I_Target_SessionData_t,
-                                            struct Stream_UserData> Test_I_Stream_Target_EventHandler;
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_SessionData,                // session data type
-                              enum Stream_SessionMessageType,                  // session event type
-                              struct Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
+typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
+                                       struct Test_I_Target_ModuleHandlerConfiguration,
+                                       Stream_ControlMessage_t,
+                                       Test_I_Target_Message_t,
+                                       Test_I_Target_SessionMessage,
+                                       struct Test_I_Target_SessionData,
+                                       struct Stream_UserData> Test_I_Target_Stream_EventHandler;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_SessionData,                            // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Test_I_Target_ModuleHandlerConfiguration,             // module handler configuration type
                               libacestream_default_misc_messagehandler_module_name_string,
-                              Stream_INotify_t,                          // stream notification interface type
-                              Test_I_Stream_Target_EventHandler);              // writer type
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_I_Target_Stream_EventHandler);                          // writer type
 
 #endif

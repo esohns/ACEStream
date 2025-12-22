@@ -25,14 +25,16 @@
 
 #include "stream_macros.h"
 
+#include "stream_stat_defines.h"
+
 #include "test_i_source_stream.h"
 
 Test_I_Target_TCPStream::Test_I_Target_TCPStream ()
  : inherited ()
  , netInput_ (this,
               ACE_TEXT_ALWAYS_CHAR (MODULE_NET_INPUT_DEFAULT_NAME_STRING))
- //, statisticReport_ (this,
- //                    ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+ , statisticReport_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , fileWriter_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING))
 {
@@ -54,11 +56,10 @@ Test_I_Target_TCPStream::load (Stream_ILayout* layout_in,
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_TCPStream::load"));
 
   // initialize return value(s)
-//  modules_out.clear ();
   delete_out = false;
 
   layout_in->append (&netInput_, NULL, 0);
-  //layout_in->append (&statisticReport_, NULL, 0);
+  layout_in->append (&statisticReport_, NULL, 0);
   layout_in->append (&fileWriter_, NULL, 0);
 
   return true;
@@ -69,7 +70,7 @@ bool
 Test_I_Target_TCPStream::initialize (const CONFIGURATION_T& configuration_in,
 #else
 Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& configuration_in,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                                      ACE_HANDLE handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_TCPStream::initialize"));

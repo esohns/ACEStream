@@ -461,13 +461,11 @@ do_work (unsigned int bufferSize_in,
 
   // step0a: initialize configuration
   if (useReactor_in)
-    CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads =
-      numberOfDispatchThreads_in;
+    CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads = numberOfDispatchThreads_in;
   else
-    CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads =
-      numberOfDispatchThreads_in;
-  CBData_in.configuration->protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
-                                                 : NET_TRANSPORTLAYER_TCP);
+    CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads = numberOfDispatchThreads_in;
+  CBData_in.configuration->protocol =
+    (useUDP_in ? NET_TRANSPORTLAYER_UDP : NET_TRANSPORTLAYER_TCP);
 
   struct Stream_AllocatorConfiguration allocator_configuration;
 
@@ -483,20 +481,9 @@ do_work (unsigned int bufferSize_in,
                                                       &heap_allocator,     // heap allocator handle
                                                       true);               // block ?
 
-//  CBData_in.configuration = &configuration;
-//  Stream_GTK_CBData* cb_data_base_p = &CBData_in;
-//  cb_data_base_p->configuration = &configuration;
   Test_I_Target_EventHandler ui_event_handler (&CBData_in);
-  Test_I_Stream_Target_EventHandler_Module event_handler (NULL,
+  Test_I_Target_Stream_EventHandler_Module event_handler (NULL,
                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Test_I_Stream_Target_EventHandler* event_handler_p =
-    dynamic_cast<Test_I_Stream_Target_EventHandler*> (event_handler.writer ());
-  if (!event_handler_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Target_EventHandler> failed, returning\n")));
-    return;
-  } // end IF
 
   Test_I_Target_TCPConnectionManager_t* connection_manager_p =
     TEST_I_TARGET_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
@@ -556,20 +543,21 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_Target_ModuleHandlerConfiguration modulehandler_configuration;
-//  modulehandler_configuration.configuration = &configuration;
+  modulehandler_configuration.computeThroughput = true;
+  modulehandler_configuration.concurrency =
+    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
   modulehandler_configuration.connectionConfigurations =
     &CBData_in.configuration->connectionConfigurations;
-//  modulehandler_configuration.connectionManager = connection_manager_p;
   modulehandler_configuration.printProgressDot =
-      UIDefinitionFile_in.empty ();
+    UIDefinitionFile_in.empty ();
   modulehandler_configuration.statisticReportingInterval =
-      ACE_Time_Value (statisticReportingInterval_in, 0);
+    ACE_Time_Value (statisticReportingInterval_in, 0);
   modulehandler_configuration.streamConfiguration =
-      &CBData_in.configuration->streamConfiguration;
+    &CBData_in.configuration->streamConfiguration;
 #if defined (GTK_USE)
   modulehandler_configuration.subscriber = &ui_event_handler;
-  modulehandler_configuration.subscribers = &CBData_in.subscribers;
-  modulehandler_configuration.lock = &state_r.subscribersLock;
+  //modulehandler_configuration.subscribers = &CBData_in.subscribers;
+  //modulehandler_configuration.lock = &state_r.subscribersLock;
 #endif // GTK_USE
   modulehandler_configuration.fileIdentifier.identifier = fileName_in;
 
@@ -582,8 +570,7 @@ do_work (unsigned int bufferSize_in,
   stream_configuration.cloneModule = true;
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module =
-    (!UIDefinitionFile_in.empty () ? &event_handler
-                                   : NULL);
+    (!UIDefinitionFile_in.empty () ? &event_handler : NULL);
   stream_configuration.printFinalReport = true;
   CBData_in.configuration->streamConfiguration.initialize (module_configuration,
                                                            modulehandler_configuration,
@@ -610,8 +597,15 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Event_Tools::initializeEventDispatch(), returning\n")));
+    Common_Timer_Tools::finalize ();
     return;
   } // end IF
+
+  // intialize timers
+  Common_Timer_Tools::configuration_.dispatch =
+    useReactor_in ? COMMON_TIMER_DISPATCH_REACTOR : COMMON_TIMER_DISPATCH_PROACTOR;
+  Common_Timer_Tools::configuration_.publishSeconds = true;
+  Common_Timer_Tools::initialize ();
 
   // step0c: initialize connection manager
   struct Net_UserData user_data_s;
@@ -625,9 +619,8 @@ do_work (unsigned int bufferSize_in,
   Common_Timer_Manager_t* timer_manager_p =
     COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
-  struct Common_TimerConfiguration timer_configuration;
-  timer_manager_p->initialize (timer_configuration);
-  timer_manager_p->start (NULL);
+  //timer_manager_p->initialize (Common_Timer_Tools::configuration_);
+  //timer_manager_p->start (NULL);
   Net_StreamStatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
                                                   connection_manager_p,
                                                   false);
@@ -645,23 +638,22 @@ do_work (unsigned int bufferSize_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to schedule timer: \"%m\", returning\n")));
       timer_manager_p->stop ();
+      Common_Timer_Tools::finalize ();
       return;
     } // end IF
   } // end IF
 
   struct Common_EventDispatchState event_dispatch_state_s;
   event_dispatch_state_s.configuration =
-      &CBData_in.configuration->dispatchConfiguration;
+    &CBData_in.configuration->dispatchConfiguration;
 
   // step0e: initialize signal handling
   CBData_in.configuration->signalHandlerConfiguration.dispatchState =
     &event_dispatch_state_s;
-//  if (useReactor_in)
-//    CBData_in.configuration->signalHandlerConfiguration.listener =
-//      TEST_I_TARGET_LISTENER_SINGLETON::instance ();
-//  else
-    CBData_in.configuration->signalHandlerConfiguration.listener =
-      TEST_I_TARGET_ASYNCHLISTENER_SINGLETON::instance ();
+  if (useReactor_in)
+    CBData_in.configuration->signalHandlerConfiguration.listener = TEST_I_TARGET_LISTENER_SINGLETON::instance ();
+  else
+    CBData_in.configuration->signalHandlerConfiguration.listener = TEST_I_TARGET_ASYNCHLISTENER_SINGLETON::instance ();
   CBData_in.configuration->signalHandlerConfiguration.statisticReportingHandler =
     connection_manager_p;
   CBData_in.configuration->signalHandlerConfiguration.statisticReportingTimerId =
@@ -682,6 +674,7 @@ do_work (unsigned int bufferSize_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Signal_Tools::initialize(), returning\n")));
     timer_manager_p->stop ();
+    Common_Timer_Tools::finalize ();
     return;
   } // end IF
 
@@ -716,6 +709,7 @@ do_work (unsigned int bufferSize_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
       timer_manager_p->stop ();
+      Common_Timer_Tools::finalize ();
       return;
     } // end IF
 #endif // GTK_USE
@@ -726,10 +720,11 @@ do_work (unsigned int bufferSize_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
-      timer_manager_p->stop ();
 #if defined (GTK_USE)
       gtk_manager_p->stop (true, true);
 #endif // GTK_USE
+      timer_manager_p->stop ();
+      Common_Timer_Tools::finalize ();
       return;
     } // end IF
     BOOL was_visible_b = ::ShowWindow (window_p, SW_HIDE);
@@ -757,6 +752,7 @@ do_work (unsigned int bufferSize_in,
       gtk_manager_p->stop (true, true);
 #endif // GTK_USE
     timer_manager_p->stop ();
+    Common_Timer_Tools::finalize ();
     return;
   } // end IF
 
@@ -795,6 +791,7 @@ do_work (unsigned int bufferSize_in,
           gtk_manager_p->stop (true, true);
 #endif // GTK_USE
         timer_manager_p->stop ();
+        Common_Timer_Tools::finalize ();
         return;
       } // end IF
       //  Stream_IInetConnector_t* iconnector_p = &connector;
@@ -819,6 +816,7 @@ do_work (unsigned int bufferSize_in,
 #endif // GTK_USE
         timer_manager_p->stop ();
         delete connector_p; connector_p = NULL;
+        Common_Timer_Tools::finalize ();
         return;
       } // end IF
 
@@ -877,6 +875,7 @@ do_work (unsigned int bufferSize_in,
 #endif // GTK_USE
         timer_manager_p->stop ();
         delete connector_p; connector_p = NULL;
+        Common_Timer_Tools::finalize ();
         return;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
@@ -907,6 +906,7 @@ do_work (unsigned int bufferSize_in,
           gtk_manager_p->stop (true, true);
 #endif // GTK_USE
         timer_manager_p->stop ();
+        Common_Timer_Tools::finalize ();
         return;
       } // end IF
       CBData_in.configuration->signalHandlerConfiguration.listener->start (NULL);
@@ -965,6 +965,7 @@ do_work (unsigned int bufferSize_in,
   connection_manager_p->wait ();
 
   timer_manager_p->stop ();
+  Common_Timer_Tools::finalize ();
 
   result = event_handler.close (ACE_Module_Base::M_DELETE_NONE);
   if (result == -1)
@@ -976,7 +977,7 @@ do_work (unsigned int bufferSize_in,
               ACE_TEXT ("finished working...\n")));
 }
 
-COMMON_DEFINE_PRINTVERSION_FUNCTION(do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
+COMMON_DEFINE_PRINTVERSION_FUNCTION (do_printVersion, STREAM_MAKE_VERSION_STRING_VARIABLE (programName_in, ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
 
 int
 ACE_TMAIN (int argc_in,

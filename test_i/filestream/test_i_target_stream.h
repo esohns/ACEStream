@@ -110,7 +110,7 @@ class Test_I_Target_TCPStream
 
   // modules
   Test_I_Target_TCP_Input_Module       netInput_;
-  //Test_I_Target_StatisticReport_Module statisticReport_;
+  Test_I_Target_StatisticReport_Module statisticReport_;
   Test_I_FileWriter_Module             fileWriter_;
 };
 

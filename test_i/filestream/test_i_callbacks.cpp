@@ -199,12 +199,12 @@ loop:
 
   // *NOTE*: processing currently happens 'inline' (borrows calling thread)
   istream_control_p->start ();
-  //    if (!stream_p->isRunning ())
-  //    {
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("failed to start stream, aborting\n")));
-  //      return;
-  //    } // end IF
+  if (!istream_control_p->isRunning ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to start stream, aborting\n")));
+    goto done;
+  } // end IF
   istream_control_p->wait (true,
                            false,
                            false);
@@ -840,6 +840,8 @@ idle_update_progress_source_cb (gpointer userData_in)
     //  gdk_window_set_cursor (window_2, cursor_p);
     //  progress_data_p->cursorType = GDK_LAST_CURSOR;
     //} // end IF
+
+    ACE_ASSERT (progress_data_p->state);
     int result = progress_data_p->state->condition.broadcast ();
     if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
@@ -1156,7 +1158,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     event_source_id =
       g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET_MS,
                      idle_update_info_display_target_cb,
-                     ui_cb_data_p);
+                     userData_in);
     if (event_source_id > 0)
       state_r.eventSourceIds.insert (event_source_id);
     else
@@ -1363,8 +1365,8 @@ idle_update_progress_target_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
 
-  ACE_TCHAR buffer[BUFSIZ];
-  ACE_OS::memset (buffer, 0, sizeof (buffer));
+  char buffer_a[BUFSIZ];
+  ACE_OS::memset (buffer_a, 0, sizeof (char[BUFSIZ]));
   int result = -1;
   float speed = 0.0F;
 
@@ -1384,14 +1386,14 @@ idle_update_progress_target_cb (gpointer userData_in)
       speed /= 1024.0F;
       magnitude_string = ACE_TEXT_ALWAYS_CHAR ("mbyte(s)/s");
     } // end IF
-    result = ACE_OS::sprintf (buffer, ACE_TEXT ("%.2f %s"),
+    result = ACE_OS::sprintf (buffer_a, ACE_TEXT_ALWAYS_CHAR ("%.2f %s"),
                               speed, magnitude_string.c_str ());
     if (result < 0)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sprintf(): \"%m\", continuing\n")));
   } // end IF
   gtk_progress_bar_set_text (progress_bar_p,
-                             ACE_TEXT_ALWAYS_CHAR (buffer));
+                             ACE_TEXT_ALWAYS_CHAR (buffer_a));
   gtk_progress_bar_pulse (progress_bar_p);
 
   // --> reschedule
@@ -1524,6 +1526,17 @@ idle_update_info_display_source_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
+        case COMMON_UI_EVENT_CONNECT:
+        case COMMON_UI_EVENT_DISCONNECT:
+        {
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+          ACE_ASSERT (spin_button_p);
+
+          is_session_message = true;
+          break;
+        }
         case COMMON_UI_EVENT_STATISTIC:
         {
           spin_button_p =
@@ -1568,6 +1581,7 @@ idle_update_info_display_source_cb (gpointer userData_in)
 
   return G_SOURCE_CONTINUE;
 }
+
 gboolean
 idle_update_info_display_target_cb (gpointer userData_in)
 {
@@ -1671,6 +1685,17 @@ idle_update_info_display_target_cb (gpointer userData_in)
                                        static_cast<gdouble> (--number_of_connections));
           } // end IF
 
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+          ACE_ASSERT (spin_button_p);
+
+          is_session_message = true;
+          break;
+        }
+        case COMMON_UI_EVENT_CONNECT:
+        case COMMON_UI_EVENT_DISCONNECT:
+        {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
@@ -2589,6 +2614,7 @@ action_listen_activate_cb (GtkAction* action_in,
       GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
     ACE_ASSERT (progressbar_p);
+    gtk_progress_bar_set_show_text (progressbar_p, TRUE);
     gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), TRUE);
 
     ACE_ASSERT (!ui_cb_data_p->progressData.eventSourceId);

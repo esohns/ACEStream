@@ -424,7 +424,7 @@ do_work (unsigned int bufferSize_in,
          const std::string& fileName_in,
          const std::string& UIDefinitionFile_in,
          const std::string& hostName_in,
-         unsigned short port_in,
+         ACE_UINT16 port_in,
          bool useReactor_in,
          unsigned int statisticReportingInterval_in,
          bool useUDP_in,
@@ -559,7 +559,10 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_Source_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_I_Source_ModuleHandlerConfiguration modulehandler_configuration_2; // net-
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
+  modulehandler_configuration.concurrency =
+    STREAM_HEADMODULECONCURRENCY_ACTIVE;
   modulehandler_configuration.connectionManager = iconnection_manager_p;
   modulehandler_configuration.fileIdentifier.identifier = fileName_in;
   modulehandler_configuration.printProgressDot =
@@ -594,10 +597,15 @@ do_work (unsigned int bufferSize_in,
                                                            modulehandler_configuration,
                                                            stream_configuration);
 
+  modulehandler_configuration_2 = modulehandler_configuration;
+  modulehandler_configuration_2.concurrency =
+    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+
   stream_configuration_2 = stream_configuration;
+  stream_configuration_2.inbound = false;
   stream_configuration_2.module = NULL;
   stream_configuration_3.initialize (module_configuration,
-                                     modulehandler_configuration,
+                                     modulehandler_configuration_2,
                                      stream_configuration_2);
   connection_configuration.streamConfiguration = &stream_configuration_3;
   //  stream_iterator =
@@ -1002,6 +1010,7 @@ ACE_TMAIN (int argc_in,
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 //  lock_2 = &state_r.subscribersLock;
+  ui_cb_data.progressData.state = &state_r;
   ui_cb_data.UIState = &state_r;
 #endif // GTK_USE
   Common_Logger_Queue_t logger;

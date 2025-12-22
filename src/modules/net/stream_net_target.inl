@@ -635,6 +635,10 @@ continue_:
                     !isPassive_))
       { ACE_ASSERT (connection_);
         Net_ConnectionId_t id = connection_->id ();
+        istream_connection_p =
+          dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
+        ACE_ASSERT (istream_connection_p);
+        istream_connection_p->waitForIdleState (true);
         connection_->abort ();
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: aborted connection to %s (id was: %u)\n"),

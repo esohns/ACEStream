@@ -158,13 +158,13 @@ struct Test_I_Target_ModuleHandlerConfiguration
    , connectionConfigurations (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
-   , subscribers (NULL)
+   //, subscribers (NULL)
   {}
 
   Net_ConnectionConfigurations_t*      connectionConfigurations;
   Test_I_Target_StreamConfiguration_t* streamConfiguration;
   Test_I_Target_ISessionNotify_t*      subscriber;
-  Test_I_Target_Subscribers_t*         subscribers;
+  //Test_I_Target_Subscribers_t*         subscribers;
 };
 
 struct Test_I_Target_StreamConfiguration

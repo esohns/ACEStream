@@ -2885,7 +2885,6 @@ continue_2:
 
         // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
         //         condition when the connection is close()d asynchronously
-        //         --> see above: line 2015
         if (unlikely (!inherited::configuration_->hasReentrantSynchronousSubDownstream))
         { ACE_ASSERT (streamLock_);
           try {
@@ -2899,9 +2898,35 @@ continue_2:
           }
         } // end IF
 
-        ACE_ASSERT (inherited::sessionData_);
-        inherited::sessionData_->increase ();
-        session_data_container_p = inherited::sessionData_;
+        // *NOTE*: support sending control messages even when stream is finished...
+        typename SessionMessageType::DATA_T* session_data_container_p =
+          inherited::sessionData_;
+        bool release_session_data_container_b = false;
+        if (unlikely (!session_data_container_p))
+        {
+          SessionManagerType* session_manager_p =
+            SessionManagerType::SINGLETON_T::instance ();
+          ACE_ASSERT (session_manager_p);
+          typename SessionMessageType::DATA_T::DATA_T* session_data_p =
+            &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (streamId_));
+
+          ACE_NEW_NORETURN (session_data_container_p,
+                            typename SessionMessageType::DATA_T (session_data_p,
+                                                                 false)); // *NOTE*: do NOT delete the session data when the container is destroyed
+          if (unlikely (!session_data_container_p))
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
+                        inherited::mod_->name ()));
+            if (unlikely (release_lock))
+              streamLock_->unlock (false, // unlock ?
+                                   true); // forward upstream (if any) ?
+            return false;
+          } // end IF
+          release_session_data_container_b = true;
+        } // end IF
+        else
+          inherited::sessionData_->increase ();
         ACE_ASSERT (streamState_);
         // *NOTE*: "fire-and-forget" the second argument
         if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_UNLINK, // session message type

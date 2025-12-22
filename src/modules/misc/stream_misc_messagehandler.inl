@@ -108,11 +108,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  //// sanity check(s)
-  //ACE_ASSERT (inherited::sessionData_);
-
-  //const SessionDataType& session_data_r = inherited::sessionData_->getR ();
-
+  INOTIFY_T* subscriber_p = NULL;
   { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, lock_);
     // *WARNING* callees unsubscribe()ing within the callback invalidate the
     //           iterator
@@ -123,10 +119,12 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
          iterator != subscribers_.end ();
          )
     {
+      subscriber_p = *iterator;
+      ++iterator;
       try {
         // *TODO*: remove type inference
-        (*iterator++)->notify (message_inout->sessionId (),
-                               *message_inout);
+        subscriber_p->notify (message_inout->sessionId (),
+                              *message_inout);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in Common_INotify_T::notify (), continuing\n"),
@@ -160,6 +158,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
+  INOTIFY_T* subscriber_p = NULL;
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -182,10 +181,12 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
              iterator != subscribers_.end ();
              )
         {
+          subscriber_p = *iterator;
+          ++iterator;
           try {
             // *TODO*: remove type inference
-            (*iterator++)->start (session_data_r.sessionId,
-                                  session_data_r);
+            subscriber_p->start (session_data_r.sessionId,
+                                 session_data_r);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: caught exception in Common_INotify_T::start(), continuing\n"),
@@ -219,9 +220,11 @@ error:
              iterator != subscribers_.end ();
              )
         {
+          subscriber_p = *iterator;
+          ++iterator;
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->end (message_inout->sessionId ());
+            subscriber_p->end (message_inout->sessionId ());
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: caught exception in Common_INotify_T::end(), continuing\n"),
@@ -244,10 +247,12 @@ error:
              iterator != subscribers_.end ();
              )
         {
+          subscriber_p = *iterator;
+          ++iterator;
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->notify (message_inout->sessionId (),
-                                     *message_inout);
+            subscriber_p->notify (message_inout->sessionId (),
+                                  *message_inout);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: caught exception in Common_INotify_T::notify(), continuing\n"),
