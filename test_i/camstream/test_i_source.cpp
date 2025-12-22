@@ -948,6 +948,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      directshow_modulehandler_configuration.concurrency =
+        STREAM_HEADMODULECONCURRENCY_ACTIVE;
       directshow_modulehandler_configuration.deviceIdentifier =
         deviceIdentifier_in;
       //directshow_modulehandler_configuration_2.display =
@@ -995,6 +997,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         STREAM_HEADMODULECONCURRENCY_CONCURRENT;
 
       directshow_stream_configuration_4 = directshow_stream_configuration_2;
+      directshow_stream_configuration_4.inbound = false;
       directshow_stream_configuration_4.module = NULL;
       directshow_stream_configuration_3.initialize (module_configuration,
                                                     directshow_modulehandler_configuration_3,
@@ -1056,6 +1059,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         STREAM_HEADMODULECONCURRENCY_CONCURRENT;
 
       mediafoundation_stream_configuration_4 = mediafoundation_stream_configuration_2;
+      mediafoundation_stream_configuration_4.inbound = false;
       mediafoundation_stream_configuration_4.module = NULL;
       mediafoundation_stream_configuration_3.initialize (module_configuration,
                                                          mediafoundation_modulehandler_configuration_3,

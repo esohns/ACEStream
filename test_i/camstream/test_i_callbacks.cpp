@@ -253,7 +253,7 @@ error:
         goto error_2;
       } // end IF
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       result_2 =
         attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
@@ -272,7 +272,7 @@ error:
       ACE_ASSERT (false);
       ACE_NOTSUP_RETURN (false);
       ACE_NOTREACHED (return false;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -287,7 +287,7 @@ error:
       {
         ACE_OS::memset (buffer_a, 0, sizeof (WCHAR[BUFSIZ]));
         length = 0;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
         result_2 =
           devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
                                         buffer_a, sizeof (WCHAR[BUFSIZ]),
@@ -952,14 +952,19 @@ load_rates (IAMStreamConfig* IAMStreamConfig_in,
   } // end FOR
 
   GtkTreeIter iterator;
+  std::ostringstream converter;
   for (std::set<std::pair<unsigned int, unsigned int> >::const_iterator iterator_2 = frame_rates.begin ();
        iterator_2 != frame_rates.end ();
        ++iterator_2)
   {
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter << static_cast<guint> ((*iterator_2).first / static_cast<float> ((*iterator_2).second));
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, (*iterator_2).first,
-                        1, (*iterator_2).second,
+                        0, converter.str ().c_str (),
+                        1, (*iterator_2).first,
+                        2, (*iterator_2).second,
                         -1);
   } // end FOR
 
@@ -2037,14 +2042,13 @@ stream_processing_function (void* arg_in)
   } // end IF
   ACE_ASSERT (stream_p);
 
-  // *NOTE*: processing currently happens 'inline' (borrows calling thread)
   stream_p->start ();
-  //    if (!stream_p->isRunning ())
-  //    {
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("failed to start stream, aborting\n")));
-  //      return;
-  //    } // end IF
+  if (!stream_p->isRunning ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to start stream, aborting\n")));
+    goto done;
+  } // end IF
   stream_p->wait (true,   // wait for thread(s)
                   false,  // wait for upstream ?
                   false); // wait for downstream ?
@@ -3933,14 +3937,93 @@ idle_start_target_UI_cb (gpointer userData_in)
   STREAM_TRACE (ACE_TEXT ("::idle_start_target_UI_cb"));
 
   // sanity check(s)
-  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_base_p);
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+
+//  Stream_Module_t* module_p = NULL;
+//  Common_IDispatch* dispatch_p = NULL;
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  switch (ui_cb_data_base_p->mediaFramework)
+//  {
+//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+//    {
+//      Test_I_Target_DirectShow_TCPConnectionManager_t* iconnection_manager_p =
+//        Test_I_Target_DirectShow_TCPConnectionManager_t::SINGLETON_T::instance ();
+//      ACE_ASSERT (iconnection_manager_p);
+//      iconnection_manager_p->lock ();
+//      if (!iconnection_manager_p->count ())
+//      {
+//        iconnection_manager_p->unlock ();
+//        return FALSE;
+//      } // end IF
+//      Test_I_Target_DirectShow_TCPConnectionManager_t::ICONNECTION_T* iconnection_p =
+//        iconnection_manager_p->operator[](0);
+//      ACE_ASSERT (iconnection_p);
+//      iconnection_manager_p->unlock ();
+//      Test_I_Target_DirectShow_ITCPConnection_t* i_stream_connection_p =
+//        dynamic_cast<Test_I_Target_DirectShow_ITCPConnection_t*> (iconnection_p);
+//      ACE_ASSERT (i_stream_connection_p);
+//      const Test_I_Target_DirectShow_TCPStream& connection_stream_r =
+//        i_stream_connection_p->stream ();
+//      module_p =
+//        const_cast<Stream_Module_t*> (connection_stream_r.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
+//      ACE_ASSERT (module_p);
+//      Test_I_Target_DirectShow_GTK_Cairo* display_p =
+//        static_cast<Test_I_Target_DirectShow_GTK_Cairo*> (module_p->writer ());
+//      dispatch_p = display_p;
+//      // dispatch_p = dynamic_cast<Common_IDispatch*> (module_p->writer ());
+//      iconnection_p->decrease ();
+//      break;
+//    }
+//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+//    {
+//      break;
+//    }
+//    default:
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+//                  ui_cb_data_base_p->mediaFramework));
+//      return FALSE;
+//    }
+//  } // end SWITCH
+//#else
+//  Test_I_CamStream_Server_TCPConnectionManager_t* iconnection_manager_p =
+//    Test_I_CamStream_Server_TCPConnectionManager_t::SINGLETON_T::instance ();
+//  ACE_ASSERT (iconnection_manager_p);
+//  iconnection_manager_p->lock ();
+//  if (!iconnection_manager_p->count ())
+//  {
+//    iconnection_manager_p->unlock ();
+//    return FALSE;
+//  } // end IF
+//  Test_I_CamStream_Server_TCPConnectionManager_t::ICONNECTION_T* iconnection_p =
+//    iconnection_manager_p->operator[](0);
+//  ACE_ASSERT (iconnection_p);
+//  iconnection_manager_p->unlock ();
+//  Test_I_CamStream_Server_ITCPConnection_t* i_stream_connection_p =
+//    dynamic_cast<Test_I_CamStream_Server_ITCPConnection_t*> (iconnection_p);
+//  ACE_ASSERT (i_stream_connection_p);
+//  const Test_I_CamStream_Server_TCPStream& connection_stream_r =
+//    i_stream_connection_p->stream ();
+//  module_p =
+//    const_cast<Stream_Module_t*> (connection_stream_r.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
+//  ACE_ASSERT (module_p);
+//  Test_I_CamStream_Server_Display* display_p =
+//    static_cast<Test_I_CamStream_Server_Display*> (module_p->writer ());
+//  dispatch_p = display_p;
+//  // dispatch_p = dynamic_cast<Common_IDispatch*> (module_p->writer ());
+//  iconnection_p->decrease ();
+//#endif // ACE_WIN32 || ACE_WIN64
+  //ACE_ASSERT (dispatch_p);
+  //ui_cb_data_base_p->dispatch = dispatch_p;
+  ACE_ASSERT (ui_cb_data_base_p->dispatch);
 
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
@@ -4041,13 +4124,13 @@ idle_end_target_UI_cb (gpointer userData_in)
   if (connection_count == 0)
   {
     { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
-      ACE_OS::memset (&(ui_cb_data_base_p->progressData.statistic),
-                      0,
-                      sizeof (ui_cb_data_base_p->progressData.statistic));
+      ACE_OS::memset (&(ui_cb_data_base_p->progressData.statistic), 0, sizeof (ui_cb_data_base_p->progressData.statistic));
     } // end lock scope
 
     gtk_progress_bar_set_text (progress_bar_p, ACE_TEXT_ALWAYS_CHAR (""));
   } // end IF
+
+  ui_cb_data_base_p->dispatch = NULL;
 
   return G_SOURCE_REMOVE;
 } // idle_end_target_UI_cb

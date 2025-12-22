@@ -884,11 +884,9 @@ do_work (unsigned int bufferSize_in,
   ACE_UNUSED_ARG (serialize_output);
   ACE_ASSERT (dispatch_configuration_p);
   if (useReactor_in)
-    dispatch_configuration_p->numberOfReactorThreads =
-      numberOfDispatchThreads_in;
+    dispatch_configuration_p->numberOfReactorThreads = numberOfDispatchThreads_in;
   else
-    dispatch_configuration_p->numberOfProactorThreads =
-      numberOfDispatchThreads_in;
+    dispatch_configuration_p->numberOfProactorThreads = numberOfDispatchThreads_in;
   if (!Common_Event_Tools::initializeEventDispatch (*dispatch_configuration_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1048,7 +1046,6 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
     &configuration.connectionConfigurations;
-  modulehandler_configuration.inbound = true;
 
   //modulehandler_configuration.connectionManager = connection_manager_p;
   //modulehandler_configuration.format.type =
@@ -1627,10 +1624,10 @@ do_work (unsigned int bufferSize_in,
         TEST_I_TARGET_DIRECTSHOW_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
       directshow_configuration.signalHandlerConfiguration.dispatchState =
         &event_dispatch_state_s;
-      //if (useReactor_in)
-      //  directshow_configuration.signalHandlerConfiguration.listener =
-      //    TEST_I_TARGET_DIRECTSHOW_LISTENER_SINGLETON::instance ();
-      //else
+      if (useReactor_in)
+        directshow_configuration.signalHandlerConfiguration.listener =
+          TEST_I_TARGET_DIRECTSHOW_LISTENER_SINGLETON::instance ();
+      else
         directshow_configuration.signalHandlerConfiguration.listener =
           TEST_I_TARGET_DIRECTSHOW_ASYNCHLISTENER_SINGLETON::instance ();
       directshow_configuration.signalHandlerConfiguration.statisticReportingHandler =
@@ -1648,10 +1645,10 @@ do_work (unsigned int bufferSize_in,
         TEST_I_TARGET_MEDIAFOUNDATION_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
       mediafoundation_configuration.signalHandlerConfiguration.dispatchState =
         &event_dispatch_state_s;
-      //if (useReactor_in)
-      //  mediafoundation_configuration.signalHandlerConfiguration.listener =
-      //    TEST_I_TARGET_MEDIAFOUNDATION_LISTENER_SINGLETON::instance ();
-      //else
+      if (useReactor_in)
+        mediafoundation_configuration.signalHandlerConfiguration.listener =
+          TEST_I_TARGET_MEDIAFOUNDATION_LISTENER_SINGLETON::instance ();
+      else
         mediafoundation_configuration.signalHandlerConfiguration.listener =
           TEST_I_TARGET_MEDIAFOUNDATION_ASYNCHLISTENER_SINGLETON::instance ();
       mediafoundation_configuration.signalHandlerConfiguration.statisticReportingHandler =
@@ -1676,10 +1673,10 @@ do_work (unsigned int bufferSize_in,
       tcp_connection_manager_p;
   configuration.signalHandlerConfiguration.dispatchState =
       &event_dispatch_state_s;
-//  if (useReactor_in)
-//    configuration.signalHandlerConfiguration.listener =
-//        TEST_I_TARGET_LISTENER_SINGLETON::instance ();
-//  else
+  if (useReactor_in)
+    configuration.signalHandlerConfiguration.listener =
+        TEST_I_TARGET_LISTENER_SINGLETON::instance ();
+  else
     configuration.signalHandlerConfiguration.listener =
         TEST_I_TARGET_ASYNCHLISTENER_SINGLETON::instance ();
   configuration.signalHandlerConfiguration.statisticReportingHandler =
@@ -1808,10 +1805,10 @@ do_work (unsigned int bufferSize_in,
       {
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         {
-          //if (useReactor_in)
-          //  ACE_NEW_NORETURN (directshow_iconnector_p,
-          //                    Test_I_Target_DirectShow_UDPConnector_t (true));
-          //else
+          if (useReactor_in)
+            ACE_NEW_NORETURN (directshow_iconnector_p,
+                              Test_I_Target_DirectShow_UDPConnector_t (true));
+          else
             ACE_NEW_NORETURN (directshow_iconnector_p,
                               Test_I_Target_DirectShow_UDPAsynchConnector_t (true));
           result_2 =
@@ -1820,10 +1817,10 @@ do_work (unsigned int bufferSize_in,
         }
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
         {
-          //if (useReactor_in)
-          //  ACE_NEW_NORETURN (mediafoundation_iconnector_p,
-          //                    Test_I_Target_MediaFoundation_UDPConnector_t (true));
-          //else
+          if (useReactor_in)
+            ACE_NEW_NORETURN (mediafoundation_iconnector_p,
+                              Test_I_Target_MediaFoundation_UDPConnector_t (true));
+          else
             ACE_NEW_NORETURN (mediafoundation_iconnector_p,
                               Test_I_Target_MediaFoundation_UDPAsynchConnector_t (true));
           result_2 =
@@ -1840,10 +1837,10 @@ do_work (unsigned int bufferSize_in,
       } // end SWITCH
       if (!mediafoundation_iconnector_p && !directshow_iconnector_p)
 #else
-//      if (useReactor_in)
-//        ACE_NEW_NORETURN (i_udp_connector_p,
-//                          Test_I_Target_UDPConnector_t (true));
-//      else
+      if (useReactor_in)
+        ACE_NEW_NORETURN (i_udp_connector_p,
+                          Test_I_Target_UDPConnector_t (true));
+      else
         ACE_NEW_NORETURN (i_udp_connector_p,
                           Test_I_Target_UDPAsynchConnector_t (true));
       ACE_ASSERT (i_udp_connector_p);
@@ -2365,8 +2362,8 @@ clean:
   timer_manager_p->stop ();
 
   Common_Event_Tools::finalizeEventDispatch (event_dispatch_state_s,
-                                             true,  // wait ?
-                                             true); // close singletons ?
+                                             true,   // wait ?
+                                             false); // close singletons ?
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)

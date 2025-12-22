@@ -323,6 +323,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       typename ConnectorType::USERDATA_T user_data_s;
       bool notify_connect = false;
       Net_ConnectionConfigurationsIterator_t iterator_2;
+      const typename inherited::ISTREAM_T* istream_p = NULL;
       typename inherited::TASK_BASE_T::STREAM_T* stream_2 = NULL;
       Stream_Module_t* module_p = NULL;
       Common_ISet_T<bool>* iset_p = NULL;
@@ -482,8 +483,10 @@ link:
       } // end IF
       stream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
+      istream_p = inherited::getP ();
+      ACE_ASSERT (istream_p);
       stream_2 =
-        dynamic_cast<typename inherited::TASK_BASE_T::STREAM_T*> (const_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (inherited::getP ()));
+        dynamic_cast<typename inherited::TASK_BASE_T::STREAM_T*> (const_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (istream_p));
       ACE_ASSERT (stream_2);
       result = stream_p->link (stream_2);
       if (unlikely (result == -1))
@@ -496,6 +499,10 @@ link:
         goto error;
       } // end IF
       unlink_ = true;
+#if defined (_DEBUG)
+      ACE_ASSERT (istream_p);
+      istream_p->dump_state ();
+#endif // _DEBUG
 
       // ************* head ******************
       module_p = stream_2->head ();
@@ -620,8 +627,7 @@ continue_:
 
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
-//      typename SessionMessageType::DATA_T* session_data_container_p =
-//        inherited::sessionData_;
+      const typename inherited::ISTREAM_T* istream_p = NULL;
 
       ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
 
@@ -711,11 +717,14 @@ continue_2:
         message_inout = NULL;
         passMessageDownstream_out = false;
 
-        //ACE_ASSERT (connection_);
-        //ACE_ASSERT (istream_connection_p);
         ACE_ASSERT (stream_p);
         stream_p->_unlink ();
         unlink_ = false;
+#if defined (_DEBUG)
+        istream_p = inherited::getP ();
+        ACE_ASSERT (istream_p);
+        istream_p->dump_state ();
+#endif // _DEBUG
       } // end IF
 
       if (likely (connection_))

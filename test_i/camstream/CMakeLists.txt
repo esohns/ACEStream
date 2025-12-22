@@ -336,7 +336,8 @@ elseif (WIN32)
                            ${WXWIDGETS_PATH}
                            ${SSL_PATH}
                            ${ACE_PATH})
- string (REPLACE "/" "\\\\" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+ file (TO_CMAKE_PATH ${PROJECT_SOURCE_DIR}/test_i/camstream WORKING_DIRECTORY)
+ string (REPLACE "/" "\\\\" WORKING_DIRECTORY ${WORKING_DIRECTORY})
 endif ()
 create_target_launcher (${EXECUTABLE_SOURCE}
                         COMMAND ${COMMAND}

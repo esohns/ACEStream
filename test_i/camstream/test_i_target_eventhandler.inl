@@ -94,8 +94,8 @@ Test_I_Target_EventHandler_T<SessionDataType,
   Net_IINETConnection_t* connection_p =
     connection_manager_p->get ((*sessionData_->connectionStates.begin ()).first);
   ACE_ASSERT (connection_p);
-  Test_I_Target_DirectShow_AsynchTCPConnection_t* tcp_connection_p =
-    dynamic_cast<Test_I_Target_DirectShow_AsynchTCPConnection_t*> (connection_p);
+  Test_I_Target_DirectShow_ITCPConnection_t* tcp_connection_p =
+    dynamic_cast<Test_I_Target_DirectShow_ITCPConnection_t*> (connection_p);
   ACE_ASSERT (tcp_connection_p);
   CBData_->stream =
     &const_cast<Test_I_Target_DirectShow_TCPStream&> (tcp_connection_p->stream ());
@@ -106,8 +106,8 @@ Test_I_Target_EventHandler_T<SessionDataType,
   Net_IINETConnection_t* connection_p =
     connection_manager_p->get ((*sessionData_->connectionStates.begin ()).first);
   ACE_ASSERT (connection_p);
-  Test_I_Target_AsynchTCPConnection_t* tcp_connection_p =
-    dynamic_cast<Test_I_Target_AsynchTCPConnection_t*> (connection_p);
+  Test_I_Target_ITCPConnection_t* tcp_connection_p =
+    dynamic_cast<Test_I_Target_ITCPConnection_t*> (connection_p);
   ACE_ASSERT (tcp_connection_p);
   CBData_->stream =
     &const_cast<Test_I_Target_TCPStream&> (tcp_connection_p->stream ());
