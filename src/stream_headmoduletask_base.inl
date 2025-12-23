@@ -2788,7 +2788,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       } // end IF
 
       bool release_lock = false;
-      typename SessionMessageType::DATA_T* session_data_container_p = NULL;
+      // typename SessionMessageType::DATA_T* session_data_container_p = NULL;
       typename inherited::ISTREAM_T* istream_p =
         const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
       typename inherited::STREAM_T* downstream_p =

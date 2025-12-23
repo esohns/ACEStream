@@ -943,9 +943,9 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::notify"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
+  if (!inherited::configuration_)
+    return;
   ACE_ASSERT (inherited::configuration_->configuration_);
-
   if (!inherited::configuration_->configuration_->inbound)
     return; // nothing to do
 

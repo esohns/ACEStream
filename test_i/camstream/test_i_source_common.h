@@ -607,10 +607,10 @@ typedef std::map<std::string,
 typedef Test_I_Source_MediaFoundation_StreamConfigurations_t::iterator Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t;
 #else
 struct Test_I_Source_V4L_StreamConfiguration
- : Stream_Configuration
+ : Stream_Net_StreamConfiguration
 {
   Test_I_Source_V4L_StreamConfiguration ()
-   : Stream_Configuration ()
+   : Stream_Net_StreamConfiguration ()
    , format ()
   {}
 

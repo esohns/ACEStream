@@ -94,6 +94,11 @@ Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
 
       break;
     }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+    case SIGCHLD:
+      break;
+#endif // ACE_WIN32 || ACE_WIN64
     default:
     {
       // *PORTABILITY*: tracing in a signal handler context is not portable

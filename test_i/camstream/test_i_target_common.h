@@ -315,9 +315,7 @@ struct Test_I_Target_ModuleHandlerConfiguration
    , targetFileName ()
    , subscriber (NULL)
    , subscribers (NULL)
-  {
-    inbound = true;
-  }
+  {}
 
 #if defined (GTK_USE)
   GdkRectangle                                  area;

@@ -324,20 +324,20 @@ idle_initialize_ui_cb (gpointer userData_in)
     g_free (filename_p);
   } // end ELSE
 
-  std::string default_folder_uri = (*iterator_2).second.second->targetFileName;
-  default_folder_uri = Common_File_Tools::directory (default_folder_uri);
-  //default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://") + default_folder_uri;
-  filename_p = Common_UI_GTK_Tools::localeToUTF8 (default_folder_uri);
-  if (!gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                            filename_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (default_folder_uri.c_str ())));
-    g_free (filename_p);
-    return G_SOURCE_REMOVE;
-  } // end IF
-  g_free (filename_p);
+  // std::string default_folder_uri = (*iterator_2).second.second->targetFileName;
+  // default_folder_uri = Common_File_Tools::directory (default_folder_uri);
+  // //default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://") + default_folder_uri;
+  // filename_p = Common_UI_GTK_Tools::localeToUTF8 (default_folder_uri);
+  // if (!gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
+  //                                           filename_p))
+  // {
+  //   ACE_DEBUG ((LM_ERROR,
+  //               ACE_TEXT ("failed to gtk_file_chooser_set_current_folder(\"%s\"): \"%m\", aborting\n"),
+  //               ACE_TEXT (default_folder_uri.c_str ())));
+  //   g_free (filename_p);
+  //   return G_SOURCE_REMOVE;
+  // } // end IF
+  // g_free (filename_p);
 
   GtkCheckButton* check_button_p =
 //    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -1042,6 +1042,7 @@ button_execute_clicked_cb (GtkButton* button_in,
   ACE_ASSERT (!error_p);
   directory_string = Common_UI_GTK_Tools::UTF8ToLocale (directory_p, -1);
   g_free (directory_p);
+  directory_string = Common_File_Tools::directory (directory_string);
   ACE_ASSERT (Common_File_Tools::isDirectory (directory_string));
   (*iterator_2).second.second->targetFileName = directory_string;
   (*iterator_2).second.second->targetFileName += ACE_DIRECTORY_SEPARATOR_STR_A;

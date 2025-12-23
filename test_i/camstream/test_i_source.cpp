@@ -1148,9 +1148,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.concurrency =
     STREAM_HEADMODULECONCURRENCY_CONCURRENT;
-  modulehandler_configuration_2.inbound = false;
 
   stream_configuration_2.allocatorConfiguration = &allocator_configuration;
+  stream_configuration_2.inbound = false;
   stream_configuration_2.messageAllocator = allocator_p;
   stream_configuration_4.initialize (module_configuration,
                                      modulehandler_configuration_2,

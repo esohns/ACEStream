@@ -2043,8 +2043,15 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
   //  ACE_OS::strcpy (thread_name_p,
   //                  ACE_TEXT (TEST_I_STREAM_FILECOPY_THREAD_NAME));
   //  const char* thread_name_2 = thread_name_p;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::strcpy (thread_name,
                   ACE_TEXT (TEST_I_STREAM_THREAD_NAME));
+#else
+  ACE_ASSERT (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH <= BUFSIZ);
+  ACE_OS::strncpy (thread_name,
+                   ACE_TEXT (TEST_I_STREAM_THREAD_NAME),
+                   std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT (TEST_I_STREAM_THREAD_NAME)))));
+#endif // ACE_WIN32 || ACE_WIN64
   thread_name_2 = thread_name;
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);

@@ -883,6 +883,13 @@ typedef Net_AsynchUDPConnectionBase_T<Net_AsynchUDPSocketHandler_t,
                                       Test_I_Target_MediaFoundation_UDPStream,
                                       struct Net_UserData> Test_I_Target_MediaFoundation_AsynchUDPConnection_t;
 #else
+typedef Net_IStreamConnection_T<ACE_INET_Addr,
+                                Test_I_Target_TCPConnectionConfiguration_t,
+                                struct Net_StreamConnectionState,
+                                Net_StreamStatistic_t,
+                                Net_TCPSocketConfiguration_t,
+                                Test_I_Target_TCPStream,
+                                enum Stream_StateMachine_ControlState> Test_I_Target_ITCPConnection_t;
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Net_TCPSocketHandler_t,
                                 Test_I_Target_TCPConnectionConfiguration_t,

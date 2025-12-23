@@ -4,6 +4,11 @@ include (SSLConfig)
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
+if (UNIX)
+ add_compile_options ("-rdynamic")
+ add_link_options ("LINKER:--export-dynamic")
+endif (UNIX)
+
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
